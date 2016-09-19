@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.imageapi
+package no.ndla.audioapi
 
 import javax.sql.DataSource
 import org.flywaydb.core.Flyway
