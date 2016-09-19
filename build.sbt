@@ -31,6 +31,7 @@ lazy val audio_api = (project in file(".")).
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
+      "ndla" %% "network" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.scalatra" %% "scalatra-json" % Scalatraversion,

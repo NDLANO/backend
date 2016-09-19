@@ -15,7 +15,11 @@ import scala.collection.mutable
 object AudioApiProperties extends LazyLogging {
   var AudioApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 80
+  val ApplicationPort = getInt("APPLICATION_PORT")
+  lazy val ContactEmail = get("CONTACT_EMAIL")
+
+  val CorrelationIdKey = "correlationID"
+  val CorrelationIdHeader = "X-Correlation-ID"
 
   lazy val MetaUserName = get("META_USER_NAME")
   lazy val MetaPassword = get("META_PASSWORD")
