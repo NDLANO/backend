@@ -7,9 +7,6 @@
  */
 
 import javax.servlet.ServletContext
-
-import no.ndla.audioapi.ComponentRegistry
-import no.ndla.imageapi._
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {

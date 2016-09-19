@@ -9,7 +9,6 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.DBMigrator
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
