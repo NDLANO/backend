@@ -39,11 +39,9 @@ trait AudioRepositoryComponent {
     }
 
     def insert(audioMetaInformation: AudioMetaInformation, externalId: String): AudioMetaInformation = {
-      val json = write(audioMetaInformation)
-
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(json)
+      dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
         val audioId = sql"insert into audiometadata(external_id, metadata) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey.apply
@@ -52,10 +50,9 @@ trait AudioRepositoryComponent {
     }
 
     def update(audioMetaInformation: AudioMetaInformation, id: Long): AudioMetaInformation = {
-      val json = write(audioMetaInformation)
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(json)
+      dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
         sql"update audiometadata set metadata = ${dataObject} where id = ${id}".update.apply
