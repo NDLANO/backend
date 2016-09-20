@@ -8,7 +8,6 @@ val Jettyversion = "9.2.10.v20150310"
 val AwsSdkversion = "1.10.26"
 val ScalaTestVersion = "2.2.4"
 val MockitoVersion = "1.10.19"
-val SlickVersion = "3.0.0"
 
 val appProperties = settingKey[Properties]("The application properties")
 
@@ -28,8 +27,8 @@ lazy val audio_api = (project in file(".")).
   settings(commonSettings: _*).
   settings(
     name := "audio-api",
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
-    scalacOptions := Seq("-target:jvm-1.7"),
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+    scalacOptions := Seq("-target:jvm-1.8"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
@@ -51,7 +50,6 @@ lazy val audio_api = (project in file(".")).
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "1.1.5",
       "com.sksamuel.elastic4s" %% "elastic4s-core" % "2.3.0",
-      "com.sksamuel.elastic4s" %% "elastic4s-testkit" % "2.3.0" % "test",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0")

@@ -25,12 +25,6 @@ object Error {
   val GENERIC = "GENERIC"
   val NOT_FOUND = "NOT_FOUND"
   val INDEX_MISSING = "INDEX_MISSING"
-  val HEADER_MISSING = "HEADER_MISSING"
-  val VALIDATION = "VALIDATION"
-  val REMOTE_ERROR = "REMOTE_ERROR"
-  val RESOURCE_OUTDATED = "RESOURCE_OUTDATED"
 
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
-  val VALIDATION_DESCRIPTION = "Validation Error"
-  val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 }

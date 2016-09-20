@@ -31,8 +31,6 @@ object AudioApiProperties extends LazyLogging {
   lazy val MetaSchema = get("META_SCHEMA")
 
   val SearchHost = "search-engine"
-  lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
-  lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
   lazy val SearchIndex = get("SEARCH_INDEX")
   lazy val SearchDocument = get("SEARCH_DOCUMENT")
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
