@@ -15,5 +15,6 @@ class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext): Unit = {
     context.mount(ComponentRegistry.internController, "/intern")
+    context.mount(ComponentRegistry.audioApiController, "/audio")
   }
 }

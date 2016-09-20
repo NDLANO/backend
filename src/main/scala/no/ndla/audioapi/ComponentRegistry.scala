@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi
 
-import no.ndla.audioapi.controller.InternController
+import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration.DataSourceComponent
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 import org.postgresql.ds.PGPoolingDataSource
@@ -17,12 +17,13 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 object ComponentRegistry
   extends DataSourceComponent
   with AudioRepositoryComponent
-  with InternController {
+  with InternController
+  with AudioApiController {
 
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(AudioApiProperties.MetaUserName)
   dataSource.setPassword(AudioApiProperties.MetaPassword)
-  dataSource.setDatabaseName(AudioApiProperties.MetaPassword)
+  dataSource.setDatabaseName(AudioApiProperties.MetaResource)
   dataSource.setServerName(AudioApiProperties.MetaServer)
   dataSource.setPortNumber(AudioApiProperties.MetaPort)
   dataSource.setInitialConnections(AudioApiProperties.MetaInitialConnections)
@@ -33,4 +34,5 @@ object ComponentRegistry
 
   lazy val audioRepository = new AudioRepository
   lazy val internController = new InternController
+  lazy val audioApiController = new AudioApiController
 }

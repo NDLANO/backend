@@ -11,11 +11,12 @@ package no.ndla.audioapi
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.mutable
+import scala.io.Source
 
 object AudioApiProperties extends LazyLogging {
   var AudioApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = getInt("APPLICATION_PORT")
+  lazy val ApplicationPort = getInt("APPLICATION_PORT")
   lazy val ContactEmail = get("CONTACT_EMAIL")
 
   val CorrelationIdKey = "correlationID"
@@ -30,7 +31,7 @@ object AudioApiProperties extends LazyLogging {
   lazy val MetaMaxConnections = getInt("META_MAX_CONNECTIONS")
   lazy val MetaSchema = get("META_SCHEMA")
 
-  val SearchHost = "search-engine"
+  lazy val SearchHost = get("SEARCH_SERVER")
   lazy val SearchIndex = get("SEARCH_INDEX")
   lazy val SearchDocument = get("SEARCH_DOCUMENT")
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
@@ -72,8 +73,8 @@ object AudioApiProperties extends LazyLogging {
 object PropertiesLoader {
   val EnvironmentFile = "/audio-api.env"
 
-  def readPropertyFile(): Map[String,Option[String]] = {
-    val keys = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
+  def readPropertyFile(): Map[String, Option[String]] = {
+    val keys = Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
     keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
   }
 
