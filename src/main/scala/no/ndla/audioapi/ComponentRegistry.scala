@@ -20,6 +20,8 @@ object ComponentRegistry
   with InternController
   with AudioApiController {
 
+  implicit val swagger = new AudioSwagger
+
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(AudioApiProperties.MetaUserName)
   dataSource.setPassword(AudioApiProperties.MetaPassword)
@@ -33,6 +35,8 @@ object ComponentRegistry
   ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
   lazy val audioRepository = new AudioRepository
+
   lazy val internController = new InternController
+  lazy val resourcesApp = new ResourcesApp
   lazy val audioApiController = new AudioApiController
 }
