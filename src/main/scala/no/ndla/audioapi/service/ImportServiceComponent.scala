@@ -33,14 +33,13 @@ trait ImportServiceComponent {
       persistMetaData(audioMeta, audioFilePaths)
     }
 
-    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioFilePaths: Seq[AudioFilePath]): domain.AudioMetaInformation = {
-      val (titles, infos) = audioMeta.map(x => (AudioTitle(x.title, x.language),
-                                                AudioInfo(x.mimeType, x.fileSize.toLong, x.language))).unzip
+    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
+      val titles = audioMeta.map(x => Title(x.title, x.language))
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors)
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
-      val copyright = AudioCopyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin).flatten).map(x => AudioAuthor(x.`type`, x.name)))
-      val domainMetaData = domain.AudioMetaInformation(None, titles, audioFilePaths, infos, copyright)
+      val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin).flatten).map(x => Author(x.`type`, x.name)))
+      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright)
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insert(domainMetaData, mainNode.nid)
@@ -48,10 +47,10 @@ trait ImportServiceComponent {
       }
     }
 
-    private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[AudioFilePath] = {
+    private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
       val destinationPath = s"${AudioApiProperties.AudioUrlContextPath}/${audioMeta.fileName}"
       audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, destinationPath)
-        .map(AudioFilePath(_, audioMeta.language))
+        .map(Audio(_, audioMeta.mimeType, audioMeta.fileSize.toLong, audioMeta.language))
     }
   }
 }

@@ -14,7 +14,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration.{AmazonClientComponent, DataSourceComponent, MigrationApiClient}
 import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.{AudioStorageService, ImportServiceComponent}
+import no.ndla.audioapi.service.{AudioStorageService, ConverterServiceComponent, ImportServiceComponent, ReadServiceComponent}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -26,6 +26,8 @@ object ComponentRegistry
   with MigrationApiClient
   with ImportServiceComponent
   with AmazonClientComponent
+  with ReadServiceComponent
+  with ConverterServiceComponent
   with AudioStorageService
   with InternController
   with AudioApiController {
@@ -53,6 +55,8 @@ object ComponentRegistry
   lazy val audioStorage = new AudioStorage
   lazy val ndlaClient = new NdlaClient
   lazy val migrationApiClient = new MigrationApiClient
+  lazy val readService = new ReadService
+  lazy val converterService = new ConverterService
 
   lazy val internController = new InternController
   lazy val resourcesApp = new ResourcesApp

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api.{Error, ValidationException}
 import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.service.ReadServiceComponent
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
 import org.json4s.{DefaultFormats, Formats}
@@ -20,7 +21,7 @@ import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 
 trait AudioApiController {
-  this: AudioRepositoryComponent =>
+  this: AudioRepositoryComponent with ReadServiceComponent =>
   val audioApiController: AudioApiController
 
   class AudioApiController extends ScalatraServlet with NativeJsonSupport with LazyLogging with CorrelationIdSupport {
@@ -52,7 +53,7 @@ trait AudioApiController {
 
     get("/:id") {
       val id = long("id")
-      audioRepository.withId(id) match {
+      readService.withId(id) match {
         case Some(audio) => audio
         case None => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
       }
