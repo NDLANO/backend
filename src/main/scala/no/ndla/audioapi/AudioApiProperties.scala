@@ -48,6 +48,11 @@ object AudioApiProperties extends LazyLogging {
 
   lazy val AudioUrlContextPath = "audio"
 
+  lazy val MappingHost = get("MAPPING_API_HOST")
+  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+
+
   def verify() = {
     val missingProperties = AudioApiProps.filter(entry => entry._2.isEmpty).toList
     if(missingProperties.nonEmpty){

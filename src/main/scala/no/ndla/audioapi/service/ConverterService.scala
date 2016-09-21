@@ -8,12 +8,15 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.{domain, api}
+import com.typesafe.scalalogging.LazyLogging
+import no.ndla.audioapi.integration.MappingApiClient
+import no.ndla.audioapi.model.{api, domain}
 
-trait ConverterServiceComponent {
+trait ConverterService {
+  this: MappingApiClient =>
   val converterService: ConverterService
 
-  class ConverterService {
+  class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation): api.AudioMetaInformation = {
       api.AudioMetaInformation(audioMetaInformation.id.get,
         audioMetaInformation.titles.map(toApiTitle),
@@ -28,7 +31,17 @@ trait ConverterServiceComponent {
       api.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language)
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
-      api.Copyright(copyright.license, copyright.origin, copyright.authors.map(toApiAuthor))
+      api.Copyright(toApiLicence(copyright.license), copyright.origin, copyright.authors.map(toApiAuthor))
+
+    def toApiLicence(licenseAbbrevation: String): api.License = {
+      mappingApiClient.getLicenseDefinition(licenseAbbrevation) match {
+        case Some(licenseDescription) => licenseDescription
+        case None => {
+          logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
+          api.License("unknown", "", None)
+        }
+      }
+    }
 
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)

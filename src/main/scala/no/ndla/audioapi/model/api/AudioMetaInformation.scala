@@ -29,9 +29,14 @@ case class Audio(@(ApiModelProperty@field)(description = "The path to where the 
                  @(ApiModelProperty@field)(description = "ISO 639-1 code that represents the language used in the audio") language: Option[String])
 
 @ApiModel(description = "Description of copyright information")
-case class Copyright(@(ApiModelProperty@field)(description = "The license for the audio") license: String,
+case class Copyright(@(ApiModelProperty@field)(description = "The license for the audio") license: License,
                      @(ApiModelProperty@field)(description = "Reference to where the audio is procured") origin: Option[String],
                      @(ApiModelProperty@field)(description = "") authors: Seq[Author])
+
+@ApiModel(description = "Description of license information")
+case class License(@(ApiModelProperty@field)(description = "The name of the license") license: String,
+                   @(ApiModelProperty@field)(description = "Description of the license") description: String,
+                   @(ApiModelProperty@field)(description = "Url to where the license can be found") url: Option[String])
 
 case class Author(@(ApiModelProperty@field)(description = "The description of the author. Eg. author or publisher") `type`: String,
                   @(ApiModelProperty@field)(description = "The name of the of the author") name: String)

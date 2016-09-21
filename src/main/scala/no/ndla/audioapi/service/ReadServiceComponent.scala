@@ -12,7 +12,7 @@ import no.ndla.audioapi.model.api
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 
 trait ReadServiceComponent {
-  this: AudioRepositoryComponent with ConverterServiceComponent =>
+  this: AudioRepositoryComponent with ConverterService =>
   val readService: ReadService
 
   class ReadService {
