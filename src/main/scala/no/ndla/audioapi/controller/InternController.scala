@@ -27,7 +27,7 @@ trait InternController {
     before() {
       contentType = formats("json")
       ApplicationUrl.set(request)
-      logger.warn("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+      logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
     }
 
     after() {

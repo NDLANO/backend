@@ -26,6 +26,9 @@ object Error {
   val NOT_FOUND = "NOT_FOUND"
   val INDEX_MISSING = "INDEX_MISSING"
   val REMOTE_ERROR = "REMOTE_ERROR"
+  val VALIDATION = "VALIDATION_ERROR"
 
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
 }
+
+class ValidationException(message: String) extends RuntimeException(message)
