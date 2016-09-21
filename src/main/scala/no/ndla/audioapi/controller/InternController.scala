@@ -10,12 +10,14 @@ package no.ndla.audioapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api.Error
+import no.ndla.audioapi.service.ImportServiceComponent
 import no.ndla.network.ApplicationUrl
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.ScalatraServlet
 
 trait InternController {
+  this: ImportServiceComponent =>
   val internController: InternController
 
   class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging with CorrelationIdSupport {
@@ -25,6 +27,7 @@ trait InternController {
     before() {
       contentType = formats("json")
       ApplicationUrl.set(request)
+      logger.warn("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
     }
 
     after() {
@@ -37,6 +40,10 @@ trait InternController {
         logger.error(error.toString, t)
         halt(status = 500, body = error)
       }
+    }
+
+    post("/import/:external_id") {
+      importService.importAudio(params("external_id")).get
     }
 
   }
