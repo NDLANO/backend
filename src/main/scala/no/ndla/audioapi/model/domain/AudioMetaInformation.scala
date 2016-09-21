@@ -21,13 +21,13 @@ case class AudioInfo(mimeType: String, fileSize: Long, language: Option[String])
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   implicit val formats = org.json4s.DefaultFormats
-  override val tableName = "audiometadata"
+  override val tableName = "audiodata"
   override val schemaName = Some(AudioApiProperties.MetaSchema)
 
-  def apply(im: SyntaxProvider[AudioMetaInformation])(rs:WrappedResultSet): AudioMetaInformation = apply(im.resultName)(rs)
-  def apply(im: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
-    val meta = read[AudioMetaInformation](rs.string(im.c("metadata")))
-    AudioMetaInformation(None, meta.titles, meta.filePaths, meta.audioInfo)
+  def apply(au: SyntaxProvider[AudioMetaInformation])(rs:WrappedResultSet): AudioMetaInformation = apply(au.resultName)(rs)
+  def apply(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
+    val meta = read[AudioMetaInformation](rs.string(au.c("document")))
+    AudioMetaInformation(Some(rs.long(au.c("id"))), meta.titles, meta.filePaths, meta.audioInfo)
   }
 
   val JSonSerializer = FieldSerializer[AudioMetaInformation](ignore("id"))

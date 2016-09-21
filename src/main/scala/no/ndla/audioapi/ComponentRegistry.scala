@@ -8,8 +8,11 @@
 
 package no.ndla.audioapi
 
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
-import no.ndla.audioapi.integration.{DataSourceComponent, MigrationApiClient}
+import no.ndla.audioapi.integration.{AmazonClientComponent, DataSourceComponent, MigrationApiClient}
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 import no.ndla.audioapi.service.{AudioStorageService, ImportServiceComponent}
 import no.ndla.network.NdlaClient
@@ -22,6 +25,7 @@ object ComponentRegistry
   with NdlaClient
   with MigrationApiClient
   with ImportServiceComponent
+  with AmazonClientComponent
   with AudioStorageService
   with InternController
   with AudioApiController {
@@ -39,6 +43,10 @@ object ComponentRegistry
   dataSource.setCurrentSchema(AudioApiProperties.MetaSchema)
 
   ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+
+  val amazonClient = new AmazonS3Client(new BasicAWSCredentials(AudioApiProperties.StorageAccessKey, AudioApiProperties.StorageSecretKey))
+  amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))
+  lazy val storageName = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository
   lazy val importService = new ImportService

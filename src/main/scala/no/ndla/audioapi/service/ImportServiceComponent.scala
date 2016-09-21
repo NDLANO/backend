@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.service
 
+import java.net.URL
+
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
@@ -23,20 +25,15 @@ trait ImportServiceComponent {
 
   class ImportService extends LazyLogging {
     def importAudio(audioId: String): Try[domain.AudioMetaInformation] = {
-      logger.warn("Importing node with id {}", audioId)
       migrationApiClient.getAudioMetaData(audioId).map(uploadAndPersist)
     }
 
     private def uploadAndPersist(audioMeta: Seq[MigrationAudioMeta]): domain.AudioMetaInformation = {
-      logger.warn("upload and persist")
-
       val audioFilePaths = audioMeta.map(uploadAudioFile(_).get)
       persistMetaData(audioMeta, audioFilePaths)
     }
 
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioFilePaths: Seq[AudioFilePath]): domain.AudioMetaInformation = {
-      logger.warn("persist")
-
       val (titles, infos) = audioMeta.map(x => (AudioTitle(x.title, x.language),
                                                 AudioInfo(x.mimeType, x.fileSize.toLong, x.language))).unzip
       val mainNodeId = audioMeta.find(_.isMainNode).get.nid
@@ -49,10 +46,9 @@ trait ImportServiceComponent {
     }
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[AudioFilePath] = {
-      logger.warn("upload")
-
       val destinationPath = s"${AudioApiProperties.AudioUrlContextPath}/${audioMeta.fileName}"
-      audioStorage.storeAudio(audioMeta.url, destinationPath).map(AudioFilePath(_, audioMeta.language))
+      audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, destinationPath)
+        .map(AudioFilePath(_, audioMeta.language))
     }
   }
 }
