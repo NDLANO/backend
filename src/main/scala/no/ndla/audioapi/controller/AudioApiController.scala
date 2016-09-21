@@ -11,21 +11,33 @@ package no.ndla.audioapi.controller
 import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.model.api.{Error, ValidationException}
+import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, ValidationException}
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 import no.ndla.audioapi.service.ReadServiceComponent
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import org.scalatra.{NotFound, Ok, ScalatraServlet}
 
 trait AudioApiController {
   this: AudioRepositoryComponent with ReadServiceComponent =>
   val audioApiController: AudioApiController
 
-  class AudioApiController extends ScalatraServlet with NativeJsonSupport with LazyLogging with CorrelationIdSupport {
+  class AudioApiController(implicit val swagger: Swagger) extends ScalatraServlet with NativeJsonSupport with LazyLogging with SwaggerSupport with CorrelationIdSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected val applicationDescription = "API for accessing audio from ndla.no."
+
+    val getByAudioId =
+      (apiOperation[AudioMetaInformation]("findByAudioId")
+        summary "Show image info"
+        notes "Shows info of the audio with submitted id."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
+        pathParam[String]("audio_id").description("Audio_id of the audio that needs to be fetched."))
+        )
 
     before() {
       contentType = formats("json")
@@ -51,7 +63,7 @@ trait AudioApiController {
       Ok(Seq())
     }
 
-    get("/:id") {
+    get("/:id", operation(getByAudioId)) {
       val id = long("id")
       readService.withId(id) match {
         case Some(audio) => audio
@@ -59,7 +71,7 @@ trait AudioApiController {
       }
     }
 
-    def long(paramName: String)(implicit request: HttpServletRequest): Long = {
+    private def long(paramName: String)(implicit request: HttpServletRequest): Long = {
       val paramValue = params(paramName)
       paramValue.forall(_.isDigit) match {
         case true => paramValue.toLong

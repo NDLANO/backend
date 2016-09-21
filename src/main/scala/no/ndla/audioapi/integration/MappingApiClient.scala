@@ -45,7 +45,8 @@ trait MappingApiClient {
         case Failure(ex) => throw ex
       }
     })
+
+    case class LicenseDefinition(license: String, description: String, url: Option[String])
   }
 }
 
-case class LicenseDefinition(license: String, description: String, url: Option[String])
