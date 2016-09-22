@@ -11,6 +11,7 @@ package no.ndla.audioapi
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
+import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration.{AmazonClientComponent, DataSourceComponent, MappingApiClient, MigrationApiClient}
 import no.ndla.audioapi.repository.AudioRepositoryComponent
@@ -31,6 +32,7 @@ object ComponentRegistry
   with ConverterService
   with AudioStorageService
   with InternController
+  with HealthController
   with AudioApiController {
 
   implicit val swagger = new AudioSwagger
@@ -63,4 +65,5 @@ object ComponentRegistry
   lazy val internController = new InternController
   lazy val resourcesApp = new ResourcesApp
   lazy val audioApiController = new AudioApiController
+  lazy val healthController = new HealthController
 }

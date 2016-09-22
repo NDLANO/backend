@@ -19,7 +19,7 @@ import no.ndla.network.model.HttpRequestException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
-import org.scalatra.{NotFound, Ok, ScalatraServlet}
+import org.scalatra._
 
 trait AudioApiController {
   this: AudioRepositoryComponent with ReadServiceComponent =>
@@ -31,7 +31,7 @@ trait AudioApiController {
 
     val getByAudioId =
       (apiOperation[AudioMetaInformation]("findByAudioId")
-        summary "Show image info"
+        summary "Show audio info"
         notes "Shows info of the audio with submitted id."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
@@ -50,12 +50,12 @@ trait AudioApiController {
     }
 
     error {
-      case v: ValidationException => halt(status = 400, body = Error(Error.VALIDATION, v.getMessage))
-      case hre: HttpRequestException => halt(status = 502, body = Error(Error.REMOTE_ERROR, hre.getMessage))
+      case v: ValidationException => BadRequest(Error(Error.VALIDATION, v.getMessage))
+      case hre: HttpRequestException => BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
       case t: Throwable => {
         t.printStackTrace()
         logger.error(t.getMessage)
-        halt(status = 500, body = Error())
+        InternalServerError(Error())
       }
     }
 
