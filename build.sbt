@@ -27,8 +27,8 @@ lazy val audio_api = (project in file(".")).
   settings(commonSettings: _*).
   settings(
     name := "audio-api",
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8"),
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
+    scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
@@ -94,3 +94,4 @@ imageNames in docker := Seq(
     tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
+resolvers ++= scala.util.Properties.envOrNone("NDLA_RELEASES").map(repo => "Release Sonatype Nexus Repository Manager" at repo).toSeq
