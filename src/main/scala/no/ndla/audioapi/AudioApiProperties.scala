@@ -42,7 +42,14 @@ object AudioApiProperties extends LazyLogging {
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
-  lazy val AudioUrlContextPath = "/audio"
+  lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
+  lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
+  lazy val StorageName = get("STORAGE_NAME")
+
+  lazy val MappingHost = get("MAPPING_API_HOST")
+  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+
 
   def verify() = {
     val missingProperties = AudioApiProps.filter(entry => entry._2.isEmpty).toList
@@ -58,14 +65,14 @@ object AudioApiProperties extends LazyLogging {
     properties.foreach(prop => AudioApiProps.put(prop._1, prop._2))
   }
 
-  def get(envKey: String): String = {
+  private def get(envKey: String): String = {
     AudioApiProps.get(envKey).flatten match {
       case Some(value) => value
       case None => throw new NoSuchFieldError(s"Missing environment variable $envKey")
     }
   }
 
-  def getInt(envKey: String):Integer = {
+  private def getInt(envKey: String):Integer = {
     get(envKey).toInt
   }
 }

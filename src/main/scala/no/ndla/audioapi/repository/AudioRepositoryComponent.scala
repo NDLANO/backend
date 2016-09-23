@@ -44,7 +44,7 @@ trait AudioRepositoryComponent {
       dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
-        val audioId = sql"insert into audiometadata(external_id, metadata) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey.apply
+        val audioId = sql"insert into audiodata(external_id, document) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey.apply
         audioMetaInformation.copy(id = Some(audioId))
       }
     }
@@ -55,14 +55,14 @@ trait AudioRepositoryComponent {
       dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
-        sql"update audiometadata set metadata = ${dataObject} where id = ${id}".update.apply
+        sql"update audiodata set document = ${dataObject} where id = ${id}".update.apply
         audioMetaInformation.copy(id = Some(id))
       }
     }
 
     def numElements: Int = {
       DB readOnly { implicit session =>
-        sql"select count(*) from audiometadata".map(rs => {
+        sql"select count(*) from audiodata".map(rs => {
           rs.int("count")
         }).list.first().apply() match {
           case Some(count) => count
