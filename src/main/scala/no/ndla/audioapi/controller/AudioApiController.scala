@@ -28,9 +28,9 @@ trait AudioApiController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        queryParam[Option[String]]("query").description("Return only images with titles, alt-texts or tags matching the specified query."),
+        queryParam[Option[String]]("query").description("Return only audio with titles or tags matching the specified query."),
         queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-        queryParam[Option[String]]("license").description("Return only images with provided license."),
+        queryParam[Option[String]]("license").description("Return only audio with provided license."),
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
         queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
         ))
