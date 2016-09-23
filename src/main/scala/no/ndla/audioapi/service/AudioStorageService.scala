@@ -23,8 +23,9 @@ trait AudioStorageService {
 
   class AudioStorage {
     def storeAudio(audioUrl: URL, contentType: String, size: String, destinationPath: String): Try[String] = {
-      if (objectExists(destinationPath))
+      if (objectExists(destinationPath)) {
         return Success(destinationPath)
+      }
 
       val audioStream = audioUrl.openStream()
       val metadata = new ObjectMetadata()

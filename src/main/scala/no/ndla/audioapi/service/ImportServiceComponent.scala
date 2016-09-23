@@ -11,13 +11,12 @@ package no.ndla.audioapi.service
 import java.net.URL
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 trait ImportServiceComponent {
   this: MigrationApiClient with AudioStorageService with AudioRepositoryComponent =>
@@ -48,7 +47,7 @@ trait ImportServiceComponent {
     }
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
-      val destinationPath = s"${AudioApiProperties.AudioUrlContextPath}/${audioMeta.fileName}"
+      val destinationPath = s"${audioMeta.fileName}"
       audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, destinationPath)
         .map(Audio(_, audioMeta.mimeType, audioMeta.fileSize.toLong, audioMeta.language))
     }

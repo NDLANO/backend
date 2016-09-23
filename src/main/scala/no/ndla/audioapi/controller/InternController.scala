@@ -8,13 +8,11 @@
 
 package no.ndla.audioapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api.Error
 import no.ndla.audioapi.service.{ConverterService, ImportServiceComponent}
 import no.ndla.network.ApplicationUrl
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.{InternalServerError, ScalatraServlet}
+import org.scalatra.InternalServerError
 
 import scala.util.{Failure, Success}
 
@@ -22,7 +20,7 @@ trait InternController {
   this: ImportServiceComponent with ConverterService =>
   val internController: InternController
 
-  class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging with CorrelationIdSupport {
+  class InternController extends NdlaController {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats
 

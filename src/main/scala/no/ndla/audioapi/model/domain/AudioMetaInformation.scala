@@ -32,5 +32,5 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     AudioMetaInformation(Some(rs.long(au.c("id"))), meta.titles, meta.filePaths, meta.copyright)
   }
 
-  val JSonSerializer = FieldSerializer[AudioMetaInformation](ignore("id"))
+  val JSonSerializer = FieldSerializer[AudioMetaInformation](ignore("id") orElse ignore("external_id"))
 }
