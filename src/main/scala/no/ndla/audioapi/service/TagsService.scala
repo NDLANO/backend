@@ -22,7 +22,7 @@ trait TagsService {
   val pattern = new Regex("http:\\/\\/psi\\..*\\/#(.+)")
 
   class TagsService {
-    def forContent(nid: String): List[Tag] = {
+    def forAudio(nid: String): List[Tag] = {
       import org.json4s.native.JsonMethods._
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats

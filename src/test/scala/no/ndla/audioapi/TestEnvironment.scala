@@ -16,7 +16,7 @@ import no.ndla.audioapi.controller.{AudioApiController, HealthController, Intern
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
-import no.ndla.audioapi.service.{AudioStorageService, ConverterService, ImportServiceComponent, ReadServiceComponent}
+import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
@@ -39,19 +39,23 @@ trait TestEnvironment
   with SearchConverterService
   with SearchIndexServiceComponent
   with SearchService
+  with TagsService
   with MockitoSugar
 {
   val dataSource = mock[DataSource]
-  val amazonClient = mock[AmazonS3Client]
   val storageName = AudioApiProperties.StorageName
-  val audioRepository = mock[AudioRepository]
-  val importService = mock[ImportService]
   val audioStorage = mock[AudioStorage]
+  val audioRepository = mock[AudioRepository]
+
+  val amazonClient = mock[AmazonS3Client]
   val ndlaClient = mock[NdlaClient]
   val migrationApiClient = mock[MigrationApiClient]
   val mappingApiClient = mock[MappingApiClient]
+
+  val importService = mock[ImportService]
   val readService = mock[ReadService]
   val converterService = mock[ConverterService]
+  val tagsService = mock[TagsService]
 
   val internController = mock[InternController]
   val resourcesApp = mock[ResourcesApp]

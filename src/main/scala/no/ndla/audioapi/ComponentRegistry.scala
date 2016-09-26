@@ -16,7 +16,7 @@ import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepositoryComponent
 import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
-import no.ndla.audioapi.service.{AudioStorageService, ConverterService, ImportServiceComponent, ReadServiceComponent}
+import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -28,6 +28,7 @@ object ComponentRegistry
   with MigrationApiClient
   with MappingApiClient
   with ImportServiceComponent
+  with TagsService
   with AmazonClientComponent
   with ReadServiceComponent
   with ConverterService
@@ -60,13 +61,16 @@ object ComponentRegistry
   lazy val storageName = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository
-  lazy val importService = new ImportService
   lazy val audioStorage = new AudioStorage
+
   lazy val ndlaClient = new NdlaClient
   lazy val migrationApiClient = new MigrationApiClient
   lazy val mappingApiClient = new MappingApiClient
+
+  lazy val importService = new ImportService
   lazy val readService = new ReadService
   lazy val converterService = new ConverterService
+  lazy val tagsService = new TagsService
 
   lazy val internController = new InternController
   lazy val resourcesApp = new ResourcesApp
