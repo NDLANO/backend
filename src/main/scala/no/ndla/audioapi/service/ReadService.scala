@@ -9,10 +9,10 @@
 package no.ndla.audioapi.service
 
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.repository.AudioRepository
 
-trait ReadServiceComponent {
-  this: AudioRepositoryComponent with ConverterService =>
+trait ReadService {
+  this: AudioRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {

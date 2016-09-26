@@ -14,33 +14,33 @@ import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration._
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.{ElasticIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
-  extends DataSourceComponent
-  with AudioRepositoryComponent
+  extends DataSource
+  with AudioRepository
   with NdlaClient
   with MigrationApiClient
   with MappingApiClient
-  with ImportServiceComponent
+  with ImportService
   with TagsService
-  with AmazonClientComponent
-  with ReadServiceComponent
+  with AmazonClient
+  with ReadService
   with ConverterService
   with AudioStorageService
   with InternController
   with HealthController
   with AudioApiController
   with SearchService
-  with ElasticClientComponent
-  with ElasticContentIndexComponent
+  with ElasticClient
+  with ElasticIndexService
   with SearchConverterService
-  with SearchIndexServiceComponent
+  with SearchIndexService
 {
   implicit val swagger = new AudioSwagger
 
@@ -78,7 +78,7 @@ object ComponentRegistry
   lazy val healthController = new HealthController
 
   lazy val jestClient = JestClientFactory.getClient()
-  lazy val elasticContentIndex = new ElasticContentIndex
+  lazy val elasticIndexService = new ElasticIndexService
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService
   lazy val searchService = new SearchService

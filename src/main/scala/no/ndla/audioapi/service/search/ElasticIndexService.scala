@@ -23,16 +23,16 @@ import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.ElasticClientComponent
+import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.model.Language._
 
-trait ElasticContentIndexComponent {
-  this: ElasticClientComponent with SearchConverterService =>
-  val elasticContentIndex: ElasticContentIndex
+trait ElasticIndexService {
+  this: ElasticClient with SearchConverterService =>
+  val elasticIndexService: ElasticIndexService
 
-  class ElasticContentIndex extends LazyLogging {
+  class ElasticIndexService extends LazyLogging {
 
     def indexDocuments(audioData: List[AudioMetaInformation], indexName: String): Int = {
       implicit val formats = SearchableLanguageFormats.JSonFormats

@@ -8,15 +8,15 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchIndexServiceComponent}
-import no.ndla.audioapi.service.{ConverterService, ImportServiceComponent}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.{ElasticIndexService, SearchIndexService}
+import no.ndla.audioapi.service.{ConverterService, ImportService}
 import org.scalatra.{InternalServerError, Ok}
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportServiceComponent with ConverterService with SearchIndexServiceComponent with AudioRepositoryComponent with ElasticContentIndexComponent =>
+  this: ImportService with ConverterService with SearchIndexService with AudioRepository with ElasticIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {

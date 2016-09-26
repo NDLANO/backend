@@ -10,8 +10,8 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, SearchResult}
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.ReadServiceComponent
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.ReadService
 import no.ndla.audioapi.service.search.SearchService
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import org.scalatra._
@@ -19,7 +19,7 @@ import org.scalatra._
 import scala.util.Try
 
 trait AudioApiController {
-  this: AudioRepositoryComponent with ReadServiceComponent with SearchService =>
+  this: AudioRepository with ReadService with SearchService =>
   val audioApiController: AudioApiController
 
   class AudioApiController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {

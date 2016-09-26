@@ -10,10 +10,10 @@
 package no.ndla.audioapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.repository.AudioRepository
 
-trait SearchIndexServiceComponent {
-  this: AudioRepositoryComponent with ElasticContentIndexComponent =>
+trait SearchIndexService {
+  this: AudioRepository with ElasticIndexService =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends LazyLogging {
@@ -22,22 +22,22 @@ trait SearchIndexServiceComponent {
       synchronized {
         val start = System.currentTimeMillis
 
-        val newIndexName = elasticContentIndex.createIndex()
-        val oldIndexName = elasticContentIndex.aliasTarget
+        val newIndexName = elasticIndexService.createIndex()
+        val oldIndexName = elasticIndexService.aliasTarget
 
         oldIndexName match {
-          case None => elasticContentIndex.updateAliasTarget(oldIndexName, newIndexName)
+          case None => elasticIndexService.updateAliasTarget(oldIndexName, newIndexName)
           case Some(_) =>
         }
 
         var numIndexed = 0
         audioRepository.applyToAll(docs => {
-          numIndexed += elasticContentIndex.indexDocuments(docs, newIndexName)
+          numIndexed += elasticIndexService.indexDocuments(docs, newIndexName)
         })
 
         oldIndexName.foreach(indexName => {
-          elasticContentIndex.updateAliasTarget(oldIndexName, newIndexName)
-          elasticContentIndex.delete(indexName)
+          elasticIndexService.updateAliasTarget(oldIndexName, newIndexName)
+          elasticIndexService.delete(indexName)
         })
 
         val result = s"Completed indexing of $numIndexed documents in ${System.currentTimeMillis() - start} ms."

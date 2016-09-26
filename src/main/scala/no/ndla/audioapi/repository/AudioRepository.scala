@@ -10,15 +10,15 @@ package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.DataSourceComponent
+import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 
 
-trait AudioRepositoryComponent {
-  this: DataSourceComponent =>
+trait AudioRepository {
+  this: DataSource =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends LazyLogging {

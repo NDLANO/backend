@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.ElasticClientComponent
+import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.network.ApplicationUrl
@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait SearchService {
-  this: ElasticClientComponent with SearchIndexServiceComponent with SearchConverterService =>
+  this: ElasticClient with SearchIndexService with SearchConverterService =>
   val searchService: SearchService
 
   class SearchService extends LazyLogging {

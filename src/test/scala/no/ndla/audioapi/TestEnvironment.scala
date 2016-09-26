@@ -8,41 +8,41 @@
 
 package no.ndla.audioapi
 
-import javax.sql.DataSource
+import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
 import io.searchbox.client.JestClient
 import no.ndla.audioapi.controller.{AudioApiController, HealthController, InternController}
 import no.ndla.audioapi.integration._
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search._
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
 trait TestEnvironment
-  extends DataSourceComponent
-  with AudioRepositoryComponent
+  extends DataSource
+  with AudioRepository
   with NdlaClient
   with MigrationApiClient
   with MappingApiClient
-  with ImportServiceComponent
-  with AmazonClientComponent
-  with ReadServiceComponent
+  with ImportService
+  with AmazonClient
+  with ReadService
   with ConverterService
   with AudioStorageService
   with InternController
   with HealthController
   with AudioApiController
-  with ElasticClientComponent
-  with ElasticContentIndexComponent
+  with ElasticClient
+  with ElasticIndexService
   with SearchConverterService
-  with SearchIndexServiceComponent
+  with SearchIndexService
   with SearchService
   with TagsService
   with MockitoSugar
 {
-  val dataSource = mock[DataSource]
+  val dataSource = mock[sql.DataSource]
   val storageName = AudioApiProperties.StorageName
   val audioStorage = mock[AudioStorage]
   val audioRepository = mock[AudioRepository]
@@ -64,7 +64,7 @@ trait TestEnvironment
 
   val jestClient = mock[JestClient]
   val searchService = mock[SearchService]
-  val elasticContentIndex = mock[ElasticContentIndex]
+  val elasticIndexService = mock[ElasticIndexService]
   val searchConverterService = mock[SearchConverterService]
   val searchIndexService = mock[SearchIndexService]
 }

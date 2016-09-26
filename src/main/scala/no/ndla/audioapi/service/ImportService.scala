@@ -14,12 +14,12 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
-import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.repository.AudioRepository
 
 import scala.util.Try
 
-trait ImportServiceComponent {
-  this: MigrationApiClient with AudioStorageService with AudioRepositoryComponent with TagsService =>
+trait ImportService {
+  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {

@@ -29,7 +29,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging 
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
 
   override val searchService = new SearchService
-  override val elasticContentIndex = new ElasticContentIndex
+  override val elasticIndexService = new ElasticIndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
@@ -52,9 +52,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging 
     esNode = new NodeBuilder().settings(settings).node()
     esNode.start()
 
-    val indexName = elasticContentIndex.createIndex()
-    elasticContentIndex.updateAliasTarget(None, indexName)
-    elasticContentIndex.indexDocuments(List(audio1, audio2, audio3, audio4), indexName)
+    val indexName = elasticIndexService.createIndex()
+    elasticIndexService.updateAliasTarget(None, indexName)
+    elasticIndexService.indexDocuments(List(audio1, audio2, audio3, audio4), indexName)
 
     blockUntil(() => searchService.countDocuments() == 4)
   }
