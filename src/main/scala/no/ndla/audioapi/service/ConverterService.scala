@@ -21,7 +21,8 @@ trait ConverterService {
       api.AudioMetaInformation(audioMetaInformation.id.get,
         audioMetaInformation.titles.map(toApiTitle),
         audioMetaInformation.filePaths.map(toApiAudio),
-        toApiCopyright(audioMetaInformation.copyright))
+        toApiCopyright(audioMetaInformation.copyright),
+        audioMetaInformation.tags.map(toApiTags))
     }
 
     def toApiTitle(title: domain.Title): api.Title =
@@ -46,5 +47,7 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
+    def toApiTags(tags: domain.Tag): api.Tag =
+      api.Tag(tags.tags, tags.language)
   }
 }

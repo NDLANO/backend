@@ -43,7 +43,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
-      InternalServerError(Error())
+      InternalServerError(Error(t.getMessage))
     }
   }
 
@@ -54,4 +54,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case false => throw new ValidationException(s"Invalid value for $paramName. Only digits are allowed.")
     }
   }
+
+  def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
+    params.get(paramName).map(_.trim).filterNot(_.isEmpty())
+  }
+
 }

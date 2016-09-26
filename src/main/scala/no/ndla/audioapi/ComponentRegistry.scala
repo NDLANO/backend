@@ -13,8 +13,9 @@ import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
-import no.ndla.audioapi.integration.{AmazonClientComponent, DataSourceComponent, MappingApiClient, MigrationApiClient}
+import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.audioapi.service.{AudioStorageService, ConverterService, ImportServiceComponent, ReadServiceComponent}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
@@ -33,8 +34,13 @@ object ComponentRegistry
   with AudioStorageService
   with InternController
   with HealthController
-  with AudioApiController {
-
+  with AudioApiController
+  with SearchService
+  with ElasticClientComponent
+  with ElasticContentIndexComponent
+  with SearchConverterService
+  with SearchIndexServiceComponent
+{
   implicit val swagger = new AudioSwagger
 
   lazy val dataSource = new PGPoolingDataSource()
@@ -66,4 +72,10 @@ object ComponentRegistry
   lazy val resourcesApp = new ResourcesApp
   lazy val audioApiController = new AudioApiController
   lazy val healthController = new HealthController
+
+  lazy val jestClient = JestClientFactory.getClient()
+  lazy val elasticContentIndex = new ElasticContentIndex
+  lazy val searchConverterService = new SearchConverterService
+  lazy val searchIndexService = new SearchIndexService
+  lazy val searchService = new SearchService
 }

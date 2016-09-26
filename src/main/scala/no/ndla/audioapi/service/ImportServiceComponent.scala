@@ -35,10 +35,10 @@ trait ImportServiceComponent {
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
       val titles = audioMeta.map(x => Title(x.title, x.language))
       val mainNode = audioMeta.find(_.isMainNode).get
-      val authors = audioMeta.flatMap(_.authors)
+      val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
       val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin).flatten).map(x => Author(x.`type`, x.name)))
-      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright)
+      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, Seq()) // TODO: Import tags
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insert(domainMetaData, mainNode.nid)

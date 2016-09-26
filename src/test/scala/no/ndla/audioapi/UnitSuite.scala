@@ -18,6 +18,9 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   val MAX_PAGE_SIZE = 548
 
   AudioApiProperties.setProperties(Map(
+    "CONTACT_EMAIL" -> Some("user@host.com"),
+    "APPLICATION_PORT" -> Some("80"),
+
     "META_USER_NAME" -> Some("username"),
     "META_PASSWORD" -> Some("password"),
     "META_RESOURCE" -> Some("resource"),
@@ -26,20 +29,22 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "META_PORT" -> Some("1234"),
     "META_INITIAL_CONNECTIONS" -> Some("1"),
     "META_MAX_CONNECTIONS" -> Some("1"),
-    "SEARCH_SERVER" -> Some("localhost"),
-    "SEARCH_INDEX" -> Some("audioindex"),
+
+    "SEARCH_SERVER" -> Some("search-server"),
+    "SEARCH_INDEX" -> Some("audios"),
+    "SEARCH_REGION" -> Some("some-region"),
     "SEARCH_DOCUMENT" -> Some("audio"),
     "SEARCH_DEFAULT_PAGE_SIZE" -> Some(s"$DEFAULT_PAGE_SIZE"),
     "SEARCH_MAX_PAGE_SIZE" -> Some(s"$MAX_PAGE_SIZE"),
-    "INDEX_BULK_SIZE" -> Some("100"),
-    "CONTACT_EMAIL" -> Some("user@host.com"),
-    "APPLICATION_PORT" -> Some("80"),
+    "INDEX_BULK_SIZE" -> Some("500"),
+    "RUN_WITH_SIGNED_SEARCH_REQUESTS" -> Some("false"),
+
     "MIGRATION_HOST" -> Some("migration.host"),
     "MIGRATION_USER" -> Some("user"),
     "MIGRATION_PASSWORD" -> Some("password"),
+
     "MAPPING_API_HOST" -> Some("mapping-host"),
-    "STORAGE_SECRET_KEY" -> Some("1234"),
-    "STORAGE_ACCESS_KEY" -> Some("4321"),
+
     "STORAGE_NAME" -> Some("audio.storage")
   ))
 }
