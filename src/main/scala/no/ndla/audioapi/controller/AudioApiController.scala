@@ -8,21 +8,25 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.model.api.{AudioMetaInformation, Error}
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.ReadServiceComponent
+import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, SearchResult}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.ReadService
+import no.ndla.audioapi.service.search.SearchService
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import org.scalatra._
 
+import scala.util.Try
+
 trait AudioApiController {
-  this: AudioRepositoryComponent with ReadServiceComponent =>
+  this: AudioRepository with ReadService with SearchService =>
   val audioApiController: AudioApiController
 
   class AudioApiController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected val applicationDescription = "API for accessing audio from ndla.no."
 
     val getAudioFiles =
-      (apiOperation[AudioMetaInformation]("getAudioFiles")
+      (apiOperation[SearchResult]("getAudioFiles")
         summary "Show all audio files"
         notes "Shows all the audio files in the ndla.no database. You can search it too."
         parameters(
@@ -46,7 +50,29 @@ trait AudioApiController {
         )
 
     get("/", operation(getAudioFiles)) {
-      Ok(Seq())
+      val query = paramOrNone("query")
+      val language = paramOrNone("language")
+      val license = paramOrNone("license")
+      val sort = paramOrNone("sort")
+      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+
+      query match {
+        case Some(q) => searchService.matchingQuery(
+          query = q.toLowerCase().split(" ").map(_.trim),
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc))
+
+        case None => searchService.all(
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc))
+      }
     }
 
     get("/:id", operation(getByAudioId)) {

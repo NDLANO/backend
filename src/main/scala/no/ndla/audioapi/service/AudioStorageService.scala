@@ -12,12 +12,12 @@ import java.net.URL
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, PutObjectRequest}
-import no.ndla.audioapi.integration.AmazonClientComponent
+import no.ndla.audioapi.integration.AmazonClient
 
 import scala.util.{Failure, Success, Try}
 
 trait AudioStorageService {
-  this: AmazonClientComponent =>
+  this: AmazonClient =>
   val audioStorage: AudioStorage
 
 

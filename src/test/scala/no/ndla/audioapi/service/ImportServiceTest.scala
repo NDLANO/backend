@@ -47,6 +47,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(audioPath))
+    when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(Some(existingAudioMeta))
     when(existingAudioMeta.id).thenReturn(Some(1.toLong))
     when(audioRepository.update(any[AudioMetaInformation], any[Long])).thenReturn(existingAudioMeta)
@@ -61,6 +62,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(audioPath))
+    when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
     when(audioRepository.insert(any[AudioMetaInformation], any[String])).thenReturn(newAudioMeta)
 

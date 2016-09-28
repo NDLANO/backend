@@ -8,8 +8,8 @@
 
 package no.ndla.audioapi.integration
 
-import javax.sql.DataSource
+import javax.sql
 
-trait DataSourceComponent {
-  val dataSource: DataSource
+trait DataSource {
+  val dataSource: sql.DataSource
 }

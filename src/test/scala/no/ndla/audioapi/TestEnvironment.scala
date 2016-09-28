@@ -8,46 +8,63 @@
 
 package no.ndla.audioapi
 
-import javax.sql.DataSource
+import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
+import io.searchbox.client.JestClient
 import no.ndla.audioapi.controller.{AudioApiController, HealthController, InternController}
-import no.ndla.audioapi.integration.{AmazonClientComponent, DataSourceComponent, MappingApiClient, MigrationApiClient}
-import no.ndla.audioapi.repository.AudioRepositoryComponent
-import no.ndla.audioapi.service.{AudioStorageService, ConverterService, ImportServiceComponent, ReadServiceComponent}
+import no.ndla.audioapi.integration._
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search._
+import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
 trait TestEnvironment
-  extends DataSourceComponent
-    with AudioRepositoryComponent
-    with NdlaClient
-    with MigrationApiClient
-    with MappingApiClient
-    with ImportServiceComponent
-    with AmazonClientComponent
-    with ReadServiceComponent
-    with ConverterService
-    with AudioStorageService
-    with InternController
-    with AudioApiController
-    with HealthController
-    with MockitoSugar
+  extends DataSource
+  with AudioRepository
+  with NdlaClient
+  with MigrationApiClient
+  with MappingApiClient
+  with ImportService
+  with AmazonClient
+  with ReadService
+  with ConverterService
+  with AudioStorageService
+  with InternController
+  with HealthController
+  with AudioApiController
+  with ElasticClient
+  with ElasticIndexService
+  with SearchConverterService
+  with SearchIndexService
+  with SearchService
+  with TagsService
+  with MockitoSugar
 {
-  val dataSource = mock[DataSource]
-  val amazonClient = mock[AmazonS3Client]
+  val dataSource = mock[sql.DataSource]
   val storageName = AudioApiProperties.StorageName
-  val audioRepository = mock[AudioRepository]
-  val importService = mock[ImportService]
   val audioStorage = mock[AudioStorage]
+  val audioRepository = mock[AudioRepository]
+
+  val amazonClient = mock[AmazonS3Client]
   val ndlaClient = mock[NdlaClient]
   val migrationApiClient = mock[MigrationApiClient]
   val mappingApiClient = mock[MappingApiClient]
+
+  val importService = mock[ImportService]
   val readService = mock[ReadService]
   val converterService = mock[ConverterService]
+  val tagsService = mock[TagsService]
 
   val internController = mock[InternController]
   val resourcesApp = mock[ResourcesApp]
   val audioApiController = mock[AudioApiController]
   val healthController = mock[HealthController]
+
+  val jestClient = mock[JestClient]
+  val searchService = mock[SearchService]
+  val elasticIndexService = mock[ElasticIndexService]
+  val searchConverterService = mock[SearchConverterService]
+  val searchIndexService = mock[SearchIndexService]
 }

@@ -21,6 +21,7 @@ object AudioApiProperties extends LazyLogging {
 
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
+  val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
   lazy val MetaUserName = get("META_USER_NAME")
   lazy val MetaPassword = get("META_PASSWORD")
@@ -31,10 +32,12 @@ object AudioApiProperties extends LazyLogging {
   lazy val MetaMaxConnections = getInt("META_MAX_CONNECTIONS")
   lazy val MetaSchema = get("META_SCHEMA")
 
-  lazy val SearchHost = get("SEARCH_SERVER")
   lazy val SearchIndex = get("SEARCH_INDEX")
   lazy val SearchDocument = get("SEARCH_DOCUMENT")
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
+  lazy val RunWithSignedSearchRequests: Boolean = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
+  lazy val SearchServer = get("SEARCH_SERVER")
+  lazy val SearchRegion = get("SEARCH_REGION")
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
@@ -74,6 +77,10 @@ object AudioApiProperties extends LazyLogging {
 
   private def getInt(envKey: String):Integer = {
     get(envKey).toInt
+  }
+
+  private def getBoolean(envKey: String): Boolean = {
+    get(envKey).toBoolean
   }
 }
 

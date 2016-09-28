@@ -14,12 +14,12 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
-import no.ndla.audioapi.repository.AudioRepositoryComponent
+import no.ndla.audioapi.repository.AudioRepository
 
 import scala.util.Try
 
-trait ImportServiceComponent {
-  this: MigrationApiClient with AudioStorageService with AudioRepositoryComponent =>
+trait ImportService {
+  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {
@@ -35,10 +35,10 @@ trait ImportServiceComponent {
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
       val titles = audioMeta.map(x => Title(x.title, x.language))
       val mainNode = audioMeta.find(_.isMainNode).get
-      val authors = audioMeta.flatMap(_.authors)
+      val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
-      val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin).flatten).map(x => Author(x.`type`, x.name)))
-      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright)
+      val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
+      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid))
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insert(domainMetaData, mainNode.nid)

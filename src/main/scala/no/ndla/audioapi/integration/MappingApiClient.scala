@@ -47,6 +47,6 @@ trait MappingApiClient {
     })
 
   }
-  case class LicenseDefinition(license: String, description: String, url: Option[String])
 }
+case class LicenseDefinition(license: String, description: String, url: Option[String])
 

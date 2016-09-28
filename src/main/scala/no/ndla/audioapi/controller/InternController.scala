@@ -8,38 +8,21 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.model.api.Error
-import no.ndla.audioapi.service.{ConverterService, ImportServiceComponent}
-import no.ndla.network.ApplicationUrl
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.InternalServerError
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.{ElasticIndexService, SearchIndexService}
+import no.ndla.audioapi.service.{ConverterService, ImportService}
+import org.scalatra.{InternalServerError, Ok}
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportServiceComponent with ConverterService =>
+  this: ImportService with ConverterService with SearchIndexService with AudioRepository with ElasticIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats
-
-    before() {
-      contentType = formats("json")
-      ApplicationUrl.set(request)
-      logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
-    }
-
-    after() {
-      ApplicationUrl.clear
-    }
-
-    error {
-      case t: Throwable => {
-        val error = Error(Error.GENERIC, t.getMessage)
-        logger.error(error.toString, t)
-        halt(status = 500, body = error)
-      }
+    post("/index") {
+      Ok(searchIndexService.indexDocuments())
     }
 
     post("/import/:external_id") {
