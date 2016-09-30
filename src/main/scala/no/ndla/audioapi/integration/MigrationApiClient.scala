@@ -19,7 +19,7 @@ trait MigrationApiClient {
   val migrationApiClient: MigrationApiClient
 
   class MigrationApiClient {
-    val audioMetadataEndpoint = s"${AudioApiProperties.MigrationHost}/contents/audiometa/:audio_id"
+    val audioMetadataEndpoint = s"${AudioApiProperties.MigrationHost}/audio/:audio_id"
 
     def getAudioMetaData(audioNid: String): Try[Seq[MigrationAudioMeta]] = {
       ndlaClient.fetch[Seq[MigrationAudioMeta]](
