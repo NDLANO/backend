@@ -20,6 +20,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   AudioApiProperties.setProperties(Map(
     "CONTACT_EMAIL" -> Some("user@host.com"),
     "APPLICATION_PORT" -> Some("80"),
+    "DOMAIN" -> Some("test"),
 
     "META_USER_NAME" -> Some("username"),
     "META_PASSWORD" -> Some("password"),

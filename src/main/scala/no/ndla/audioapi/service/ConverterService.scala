@@ -9,6 +9,7 @@
 package no.ndla.audioapi.service
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.integration.MappingApiClient
 import no.ndla.audioapi.model.{api, domain}
 
@@ -29,7 +30,7 @@ trait ConverterService {
       api.Title(title.title, title.language)
 
     def toApiAudio(audio: domain.Audio): api.Audio =
-      api.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language)
+      api.Audio(s"http://$Domain/$AudioFilesUrlSuffix/${audio.filePath}", audio.mimeType, audio.fileSize, audio.language)
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
       api.Copyright(toApiLicence(copyright.license), copyright.origin, copyright.authors.map(toApiAuthor))

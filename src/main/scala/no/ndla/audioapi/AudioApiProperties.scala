@@ -53,6 +53,8 @@ object AudioApiProperties extends LazyLogging {
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
+  lazy val Domain = get("DOMAIN")
+  val AudioFilesUrlSuffix = "audio/files"
 
   def verify() = {
     val missingProperties = AudioApiProps.filter(entry => entry._2.isEmpty).toList
