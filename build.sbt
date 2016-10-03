@@ -56,7 +56,8 @@ lazy val audio_api = (project in file(".")).
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.14",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
-      "org.flywaydb" % "flyway-core" % "4.0")
+      "org.flywaydb" % "flyway-core" % "4.0",
+      "com.netaporter" %% "scala-uri" % "0.4.12")
   ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
 
 assemblyJarName in assembly := "audio-api.jar"
