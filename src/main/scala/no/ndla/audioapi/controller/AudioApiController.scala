@@ -46,7 +46,7 @@ trait AudioApiController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        pathParam[String]("audio_id").description("Audio_id of the audio that needs to be fetched."))
+        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched."))
         )
 
     get("/", operation(getAudioFiles)) {
