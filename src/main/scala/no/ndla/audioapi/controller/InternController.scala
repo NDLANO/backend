@@ -10,13 +10,13 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{ElasticIndexService, SearchIndexService}
-import no.ndla.audioapi.service.{ConverterService, ImportService}
+import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportService with ConverterService with SearchIndexService with AudioRepository with ElasticIndexService =>
+  this: ImportService with ConverterService with SearchIndexService with AudioRepository with ElasticIndexService with ReadService =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -35,6 +35,10 @@ trait InternController {
           InternalServerError(errorMessage)
         }
       }
+    }
+
+    get("/external/:external_id") {
+      readService.withExternalId(params("external_id"))
     }
 
   }
