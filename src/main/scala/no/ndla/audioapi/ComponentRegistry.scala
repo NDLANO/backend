@@ -8,9 +8,8 @@
 
 package no.ndla.audioapi
 
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration._
@@ -56,8 +55,7 @@ object ComponentRegistry
 
   ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-  val amazonClient = new AmazonS3Client(new BasicAWSCredentials(AudioApiProperties.StorageAccessKey, AudioApiProperties.StorageSecretKey))
-  amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))
+  val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
   lazy val storageName = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository

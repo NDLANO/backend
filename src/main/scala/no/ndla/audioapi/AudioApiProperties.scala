@@ -45,8 +45,6 @@ object AudioApiProperties extends LazyLogging {
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
-  lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
-  lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
   lazy val StorageName = get("STORAGE_NAME")
 
   lazy val MappingHost = get("MAPPING_API_HOST")
