@@ -51,7 +51,8 @@ object AudioApiProperties extends LazyLogging {
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
-  lazy val Domain = get("DOMAIN")
+  lazy val Environment = get("NDLA_ENVIRONMENT")
+  lazy val Domain = getDomain
   val AudioFilesUrlSuffix = "audio/files"
 
   def verify() = {
@@ -73,6 +74,12 @@ object AudioApiProperties extends LazyLogging {
       case Some(value) => value
       case None => throw new NoSuchFieldError(s"Missing environment variable $envKey")
     }
+  }
+
+  private def getDomain: String = {
+    Map("local" -> "http://localhost",
+      "prod" -> "http://api.ndla.no"
+    ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
   }
 
   private def getInt(envKey: String):Integer = {
