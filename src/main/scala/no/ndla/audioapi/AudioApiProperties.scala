@@ -9,63 +9,75 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.network.secrets.PropertyKeys
+import no.ndla.network.secrets.Secrets._
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.{Failure, Properties, Success, Try}
 
 object AudioApiProperties extends LazyLogging {
   var AudioApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  lazy val ApplicationPort = getInt("APPLICATION_PORT")
-  lazy val ContactEmail = get("CONTACT_EMAIL")
+  lazy val ApplicationPort = 80
+  lazy val ContactEmail = "christergundersen@ndla.no"
 
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
-  lazy val MetaUserName = get("META_USER_NAME")
-  lazy val MetaPassword = get("META_PASSWORD")
-  lazy val MetaResource = get("META_RESOURCE")
-  lazy val MetaServer = get("META_SERVER")
-  lazy val MetaPort = getInt("META_PORT")
-  lazy val MetaInitialConnections = getInt("META_INITIAL_CONNECTIONS")
-  lazy val MetaMaxConnections = getInt("META_MAX_CONNECTIONS")
-  lazy val MetaSchema = get("META_SCHEMA")
+  lazy val MetaUserName = get(PropertyKeys.MetaUserNameKey)
+  lazy val MetaPassword = get(PropertyKeys.MetaPasswordKey)
+  lazy val MetaResource = get(PropertyKeys.MetaResourceKey)
+  lazy val MetaServer = get(PropertyKeys.MetaServerKey)
+  lazy val MetaPort = getInt(PropertyKeys.MetaPortKey)
+  lazy val MetaSchema = get(PropertyKeys.MetaSchemaKey)
+  lazy val MetaInitialConnections = 3
+  lazy val MetaMaxConnections = 20
 
-  lazy val SearchIndex = get("SEARCH_INDEX")
-  lazy val SearchDocument = get("SEARCH_DOCUMENT")
-  lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
-  lazy val RunWithSignedSearchRequests: Boolean = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
-  lazy val SearchServer = get("SEARCH_SERVER")
-  lazy val SearchRegion = get("SEARCH_REGION")
-  lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
-  lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
+  lazy val StorageName = get("NDLA_ENVIRONMENT") + ".audio.ndla"
+
+  lazy val SearchServer = getOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
+  lazy val SearchRegion = getOrElse("SEARCH_REGION", "eu-central-1")
+  lazy val SearchIndex = "audios"
+  lazy val SearchDocument = "audio"
+  lazy val DefaultPageSize: Int = 10
+  lazy val MaxPageSize: Int = 100
+  lazy val IndexBulkSize = 1000
+  lazy val RunWithSignedSearchRequests: Boolean = getOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
 
   lazy val MigrationHost = get("MIGRATION_HOST")
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
-  lazy val StorageName = get("STORAGE_NAME")
-
-  lazy val MappingHost = get("MAPPING_API_HOST")
-  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  lazy val MappingHost = "mapping-api.ndla-local"
+  val IsoMappingCacheAgeInMs = 1000 * 60 * 60
+  // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
-  lazy val Domain = get("DOMAIN")
+  lazy val Environment = get("NDLA_ENVIRONMENT")
+  lazy val Domain = getDomain
   val AudioFilesUrlSuffix = "audio/files"
 
-  def verify() = {
+  def setProperties(properties: Map[String, Option[String]]) = {
     val missingProperties = AudioApiProps.filter(entry => entry._2.isEmpty).toList
-    if(missingProperties.nonEmpty){
-      missingProperties.foreach(entry => logger.error("Missing required environment variable {}", entry._1))
-
-      logger.error("Shutting down.")
-      System.exit(1)
+    missingProperties.isEmpty match {
+      case true => Success(properties.foreach(prop => AudioApiProps.put(prop._1, prop._2)))
+      case false => Failure(new Exception(s"Missing the following properties: ${missingProperties.mkString(", ")}"))
     }
   }
 
-  def setProperties(properties: Map[String, Option[String]]) = {
-    properties.foreach(prop => AudioApiProps.put(prop._1, prop._2))
+  private def getOrElse(envKey: String, defaultValue: String) = {
+    AudioApiProps.get(envKey).flatten match {
+      case Some(value) => value
+      case None => defaultValue
+    }
+  }
+
+  private def getDomain: String = {
+    Map("local" -> "http://localhost",
+      "prod" -> "http://api.ndla.no"
+    ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
   }
 
   private def get(envKey: String): String = {
@@ -75,7 +87,7 @@ object AudioApiProperties extends LazyLogging {
     }
   }
 
-  private def getInt(envKey: String):Integer = {
+  private def getInt(envKey: String): Integer = {
     get(envKey).toInt
   }
 
@@ -84,16 +96,23 @@ object AudioApiProperties extends LazyLogging {
   }
 }
 
-object PropertiesLoader {
+object PropertiesLoader extends LazyLogging {
   val EnvironmentFile = "/audio-api.env"
 
-  def readPropertyFile(): Map[String, Option[String]] = {
-    val keys = Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
-    keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
+  def readPropertyFile() = {
+    Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
   }
 
   def load() = {
-    AudioApiProperties.setProperties(readPropertyFile())
-    AudioApiProperties.verify()
+    val verification = for {
+      file <- readPropertyFile()
+      secrets <- readSecrets("audio_api.secrets")
+      didSetProperties <- AudioApiProperties.setProperties(file ++ secrets)
+    } yield didSetProperties
+
+    if (verification.isFailure) {
+      logger.error("Unable to load properties", verification.failed.get)
+      System.exit(1)
+    }
   }
 }
