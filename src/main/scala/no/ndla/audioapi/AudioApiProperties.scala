@@ -34,7 +34,7 @@ object AudioApiProperties extends LazyLogging {
   val MetaInitialConnections = 3
   val MetaMaxConnections = 20
 
-  val StorageName = s"audio.$Environment.ndla"
+  val StorageName = s"$Environment.audio.ndla"
 
   val SearchServer = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")
