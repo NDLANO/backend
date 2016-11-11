@@ -12,107 +12,66 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets._
 
-import scala.collection.mutable
-import scala.io.Source
-import scala.util.{Failure, Properties, Success, Try}
+import scala.util.Properties._
 
 object AudioApiProperties extends LazyLogging {
-  var AudioApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
+  val SecretsFile = "audio_api.secrets"
+  val secrets = readSecrets(SecretsFile).getOrElse(throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile"))
+  val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
-  lazy val ApplicationPort = 80
-  lazy val ContactEmail = "christergundersen@ndla.no"
-
+  val ApplicationPort = 80
+  val ContactEmail = "christergundersen@ndla.no"
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
-  lazy val MetaUserName = get(PropertyKeys.MetaUserNameKey)
-  lazy val MetaPassword = get(PropertyKeys.MetaPasswordKey)
-  lazy val MetaResource = get(PropertyKeys.MetaResourceKey)
-  lazy val MetaServer = get(PropertyKeys.MetaServerKey)
-  lazy val MetaPort = getInt(PropertyKeys.MetaPortKey)
-  lazy val MetaSchema = get(PropertyKeys.MetaSchemaKey)
-  lazy val MetaInitialConnections = 3
-  lazy val MetaMaxConnections = 20
+  val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
+  val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
+  val MetaResource = prop(PropertyKeys.MetaResourceKey)
+  val MetaServer = prop(PropertyKeys.MetaServerKey)
+  val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
+  val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
+  val MetaInitialConnections = 3
+  val MetaMaxConnections = 20
 
-  lazy val StorageName = get("NDLA_ENVIRONMENT") + ".audio.ndla"
+  val StorageName = s"audio.$Environment.ndla"
 
-  lazy val SearchServer = getOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
-  lazy val SearchRegion = getOrElse("SEARCH_REGION", "eu-central-1")
-  lazy val SearchIndex = "audios"
-  lazy val SearchDocument = "audio"
-  lazy val DefaultPageSize: Int = 10
-  lazy val MaxPageSize: Int = 100
-  lazy val IndexBulkSize = 1000
-  lazy val RunWithSignedSearchRequests: Boolean = getOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+  val SearchServer = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
+  val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")
+  val RunWithSignedSearchRequests = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+  val SearchIndex = "audios"
+  val SearchDocument = "audio"
+  val DefaultPageSize = 10
+  val MaxPageSize = 100
+  val IndexBulkSize = 1000
 
-  lazy val MigrationHost = get("MIGRATION_HOST")
-  lazy val MigrationUser = get("MIGRATION_USER")
-  lazy val MigrationPassword = get("MIGRATION_PASSWORD")
+  val MigrationHost = prop("MIGRATION_HOST")
+  val MigrationUser = prop("MIGRATION_USER")
+  val MigrationPassword = prop("MIGRATION_PASSWORD")
 
-  lazy val MappingHost = "mapping-api.ndla-local"
+  val MappingHost = "mapping-api.ndla-local"
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60
-  // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
-  lazy val Environment = get("NDLA_ENVIRONMENT")
-  lazy val Domain = getDomain
   val AudioFilesUrlSuffix = "audio/files"
+  val Domain = Map(
+    "local" -> "http://localhost",
+    "prod" -> "http://api.ndla.no"
+  ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
 
-  def setProperties(properties: Map[String, Option[String]]) = {
-    val missingProperties = AudioApiProps.filter(entry => entry._2.isEmpty).toList
-    missingProperties.isEmpty match {
-      case true => Success(properties.foreach(prop => AudioApiProps.put(prop._1, prop._2)))
-      case false => Failure(new Exception(s"Missing the following properties: ${missingProperties.mkString(", ")}"))
-    }
+
+  def prop(key: String): String = {
+    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
   }
 
-  private def getOrElse(envKey: String, defaultValue: String) = {
-    AudioApiProps.get(envKey).flatten match {
-      case Some(value) => value
-      case None => defaultValue
-    }
-  }
-
-  private def getDomain: String = {
-    Map("local" -> "http://localhost",
-      "prod" -> "http://api.ndla.no"
-    ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
-  }
-
-  private def get(envKey: String): String = {
-    AudioApiProps.get(envKey).flatten match {
-      case Some(value) => value
-      case None => throw new NoSuchFieldError(s"Missing environment variable $envKey")
-    }
-  }
-
-  private def getInt(envKey: String): Integer = {
-    get(envKey).toInt
-  }
-
-  private def getBoolean(envKey: String): Boolean = {
-    get(envKey).toBoolean
-  }
-}
-
-object PropertiesLoader extends LazyLogging {
-  val EnvironmentFile = "/audio-api.env"
-
-  def readPropertyFile() = {
-    Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
-  }
-
-  def load() = {
-    val verification = for {
-      file <- readPropertyFile()
-      secrets <- readSecrets("audio_api.secrets")
-      didSetProperties <- AudioApiProperties.setProperties(file ++ secrets)
-    } yield didSetProperties
-
-    if (verification.isFailure) {
-      logger.error("Unable to load properties", verification.failed.get)
-      System.exit(1)
+  def propOrElse(key: String, default: => String): String = {
+    secrets.get(key).flatten match {
+      case Some(secret) => secret
+      case None =>
+        envOrNone(key) match {
+          case Some(env) => env
+          case None => default
+        }
     }
   }
 }
