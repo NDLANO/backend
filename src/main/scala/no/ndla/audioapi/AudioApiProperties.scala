@@ -16,7 +16,7 @@ import scala.util.Properties._
 
 object AudioApiProperties extends LazyLogging {
   val SecretsFile = "audio_api.secrets"
-  val secrets = readSecrets(SecretsFile).getOrElse(throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile"))
+  lazy val secrets = readSecrets(SecretsFile).getOrElse(throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile"))
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val ApplicationPort = 80
