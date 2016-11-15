@@ -13,10 +13,10 @@ import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets._
 
 import scala.util.Properties._
+import scala.util.{Failure, Success}
 
 object AudioApiProperties extends LazyLogging {
-  val SecretsFile = "audio_api.secrets"
-  lazy val secrets = readSecrets(SecretsFile).getOrElse(throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile"))
+  val SecretsFile = "audio-api.secrets"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val ApplicationPort = 80
@@ -59,6 +59,11 @@ object AudioApiProperties extends LazyLogging {
     "prod" -> "http://api.ndla.no"
   ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
 
+
+  lazy val secrets = readSecrets(SecretsFile) match {
+     case Success(values) => values
+     case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+   }
 
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
