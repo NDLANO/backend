@@ -1,0 +1,19 @@
+language: scala
+scala:
+- 2.11.8
+jdk:
+- oraclejdk7
+sudo: false
+cache:
+  directories:
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt/boot/
+before_cache:
+- find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+- find $HOME/.sbt -name "*.lock" -delete
+notifications:
+  slack:
+    on_success: change
+    on_failure: always
+    rooms:
+      secure: 26HnebpywQ6cUmr+KjTaxCmgfw61XNG6drLAy5TYyUdU3iaQMzq0/ynJUbIUEB/4s4SAB/7ofWa8oV8+wl+6ODplP/W0zSCEQB6LlOFgqVkcOaXfxkRaURL28MJ+hJ0GI9sEsV6Jf5eu+1w5XDHKofJzIBeOR19mnfaO4kRcrbEzSmXQh/rwxHf91Jcq7SBG9ixawNXuJ5Qisy4DyVI1F7hXRtU6+JCdXk0mhDAkhSlroT0DoClROsAeo0cjR82MNQGZP3bFaPUobVg5A2+Rji4lj/YXD/9PfS4OdINKkCKmYKF2IqBOIhmG3KkU7reLeCpVvwusxvAHF6HinTddnoP8qQ118WoQsThggjIiXiK9VEId6NL/3d+/dDm/hctqYytufJnZEaDSkT57lSt2mY3pzTcMCHkSbTZBjgMCOvJJzVoT1kDd4bddLfBRNe8yOCjX+UT1bDPzfDplxNlbS4MTI/nIlrDfRscDYy+rQVmaTvH9AF50kX5NsOCKGayl9qJpMJF4ZsVEf5z4J9g630sJ6VL55HVlxOZtDc7ergbE93OWjGCLhsKWaQBeHfSz8jxbZsOu+dUYXIWo8aiTKTnYpYTWro1OE7ScEThPaUowSRp2/yx/5N6XqaLzbXbNRK9Elpv4xWttqnkBrc7vrJq5RtSaX4XWIbtPizXgChY=
