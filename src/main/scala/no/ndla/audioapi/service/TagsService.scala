@@ -9,14 +9,13 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.integration.MappingApiClient
 import no.ndla.audioapi.model.domain.Tag
 import no.ndla.audioapi.AudioApiProperties.TopicAPIUrl
+import no.ndla.mapping.ISO639
 import scala.io.Source
 import scala.util.matching.Regex
 
 trait TagsService {
-  this: MappingApiClient =>
   val tagsService: TagsService
 
   val pattern = new Regex("http:\\/\\/psi\\..*\\/#(.+)")
@@ -42,7 +41,7 @@ trait TagsService {
 
     def getISO639(languageUrl:String): Option[String] = {
       Option(languageUrl) collect { case pattern(group) => group } match {
-        case Some(x) => if (x == "language-neutral") None else mappingApiClient.get6391CodeFor6392Code(x)
+        case Some(x) => if (x == "language-neutral") None else ISO639.get6391CodeFor6392Code(x)
         case None => None
       }
     }

@@ -10,13 +10,12 @@ package no.ndla.audioapi.service
 
 import com.netaporter.uri.Uri
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties._
-import no.ndla.audioapi.integration.MappingApiClient
-import no.ndla.audioapi.model.{api, domain}
 import com.netaporter.uri.dsl._
+import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.model.{api, domain}
+import no.ndla.mapping.License.getLicense
 
 trait ConverterService {
-  this: MappingApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -40,12 +39,11 @@ trait ConverterService {
       api.Copyright(toApiLicence(copyright.license), copyright.origin, copyright.authors.map(toApiAuthor))
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
-      mappingApiClient.getLicenseDefinition(licenseAbbrevation) match {
-        case Some(licenseDescription) => licenseDescription
-        case None => {
+      getLicense(licenseAbbrevation) match {
+        case Some(license) => api.License(license.license, license.description, license.url)
+        case None =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
           api.License("unknown", "", None)
-        }
       }
     }
 
