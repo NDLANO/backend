@@ -22,14 +22,15 @@ trait TagsService {
 
   class TagsService {
     def forAudio(nid: String): List[Tag] = {
-      import org.json4s.native.JsonMethods._
+      val jsonString = Source.fromURL(TopicAPIUrl + nid).mkString
+      keywordsJsonToImageTags(jsonString)
+    }
+
+    def keywordsJsonToImageTags(keywordsJson: String): List[Tag] = {
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
 
-      val jsonString = Source.fromURL(TopicAPIUrl + nid).mkString
-      val json = parse(jsonString)
-
-      read[Keywords](jsonString)
+      read[Keywords](keywordsJson)
         .keyword
         .flatMap(_.names)
         .flatMap(_.data)
