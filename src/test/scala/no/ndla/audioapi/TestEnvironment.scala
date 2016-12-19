@@ -18,14 +18,13 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search._
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
   extends DataSource
   with AudioRepository
   with NdlaClient
   with MigrationApiClient
-  with MappingApiClient
   with ImportService
   with AmazonClient
   with ReadService
@@ -50,7 +49,6 @@ trait TestEnvironment
   val amazonClient = mock[AmazonS3Client]
   val ndlaClient = mock[NdlaClient]
   val migrationApiClient = mock[MigrationApiClient]
-  val mappingApiClient = mock[MappingApiClient]
 
   val importService = mock[ImportService]
   val readService = mock[ReadService]

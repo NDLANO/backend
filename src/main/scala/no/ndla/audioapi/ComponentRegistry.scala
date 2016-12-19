@@ -25,7 +25,6 @@ object ComponentRegistry
   with AudioRepository
   with NdlaClient
   with MigrationApiClient
-  with MappingApiClient
   with ImportService
   with TagsService
   with AmazonClient
@@ -63,7 +62,6 @@ object ComponentRegistry
 
   lazy val ndlaClient = new NdlaClient
   lazy val migrationApiClient = new MigrationApiClient
-  lazy val mappingApiClient = new MappingApiClient
 
   lazy val importService = new ImportService
   lazy val readService = new ReadService

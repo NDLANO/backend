@@ -27,7 +27,6 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when import is a success") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainImageMetaInformation))
-    when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(api.License("by-sa", "", None)))
     post("/import/123") {
       status should equal (200)
     }

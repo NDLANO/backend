@@ -47,7 +47,6 @@ object AudioApiProperties extends LazyLogging {
 
   lazy val StorageName = get("STORAGE_NAME")
 
-  lazy val MappingHost = get("MAPPING_API_HOST")
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
