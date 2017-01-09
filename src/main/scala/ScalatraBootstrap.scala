@@ -14,8 +14,8 @@ import org.scalatra.LifeCycle
 class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext): Unit = {
+    context.mount(ComponentRegistry.audioApiController, "/audio-api/v1/audio")
     context.mount(ComponentRegistry.internController, "/intern")
-    context.mount(ComponentRegistry.audioApiController, "/audio")
     context.mount(ComponentRegistry.resourcesApp, "/api-docs")
     context.mount(ComponentRegistry.healthController, "/health")
   }
