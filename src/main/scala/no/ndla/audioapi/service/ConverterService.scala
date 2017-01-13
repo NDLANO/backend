@@ -31,7 +31,7 @@ trait ConverterService {
       api.Title(title.title, title.language)
 
     def toApiAudio(audio: domain.Audio): api.Audio = {
-      val audioUrl: Uri = s"http://$Domain/$AudioFilesUrlSuffix/${audio.filePath}"
+      val audioUrl: Uri = s"$Domain/$AudioFilesUrlSuffix/${audio.filePath}"
       api.Audio(audioUrl, audio.mimeType, audio.fileSize, audio.language)
     }
 
