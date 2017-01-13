@@ -49,8 +49,7 @@ object AudioApiProperties extends LazyLogging {
   val MigrationUser = prop("MIGRATION_USER")
   val MigrationPassword = prop("MIGRATION_PASSWORD")
 
-  val MappingHost = "mapping-api.ndla-local"
-  val IsoMappingCacheAgeInMs = 1000 * 60 * 60
+  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
   val AudioFilesUrlSuffix = "audio/files"
