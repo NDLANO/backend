@@ -9,6 +9,7 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.network.Domains
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets._
 
@@ -53,11 +54,8 @@ object AudioApiProperties extends LazyLogging {
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
 
   val AudioFilesUrlSuffix = "audio/files"
-  val Domain = Map(
-    "local" -> "http://localhost",
-    "prod" -> "http://api.ndla.no"
-  ).getOrElse(Environment, s"http://$Environment.api.ndla.no")
 
+  lazy val Domain = Domains.get(Environment)
 
   lazy val secrets = readSecrets(SecretsFile) match {
      case Success(values) => values
