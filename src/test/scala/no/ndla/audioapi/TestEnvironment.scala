@@ -60,7 +60,7 @@ trait TestEnvironment
   val audioApiController = mock[AudioApiController]
   val healthController = mock[HealthController]
 
-  val jestClient = mock[JestClient]
+  val jestClient = mock[NdlaJestClient]
   val searchService = mock[SearchService]
   val elasticIndexService = mock[ElasticIndexService]
   val searchConverterService = mock[SearchConverterService]

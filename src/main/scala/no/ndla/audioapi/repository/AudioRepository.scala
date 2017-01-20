@@ -16,6 +16,8 @@ import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 
+import scala.util.Try
+
 
 trait AudioRepository {
   this: DataSource =>
@@ -71,7 +73,18 @@ trait AudioRepository {
       }
     }
 
-    def applyToAll(func: List[AudioMetaInformation] => Unit) = {
+    def minMaxId: (Long, Long) = {
+      DB readOnly { implicit session =>
+        sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata".map(rs => {
+          (rs.long("mi"), rs.long("ma"))
+        }).single().apply() match {
+          case Some(minmax) => minmax
+          case None => (0L, 0L)
+        }
+      }
+    }
+
+    def applyToAllNew(func: List[AudioMetaInformation] => Try[Unit]) = {
       val au = AudioMetaInformation.syntax("au")
       val numberOfBulks = math.ceil(numElements.toFloat / AudioApiProperties.IndexBulkSize).toInt
 
@@ -84,9 +97,18 @@ trait AudioRepository {
       }
     }
 
+    def audiosWithIdBetween(min: Long, max: Long): List[AudioMetaInformation] = {
+      audioMetaInformationsWhere(sqls"au.id between $min and $max")
+    }
+
     private def audioMetaInformationWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause".map(AudioMetaInformation(au)).single().apply()
+    }
+
+    private def audioMetaInformationsWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): List[AudioMetaInformation] = {
+      val au = AudioMetaInformation.syntax("au")
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause".map(AudioMetaInformation(au)).list().apply()
     }
 
   }

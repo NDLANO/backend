@@ -8,15 +8,12 @@
 
 package no.ndla.audioapi.model.domain
 
+import io.searchbox.client.JestResult
 import no.ndla.audioapi.AudioApiProperties
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
-import org.scalatra.swagger.annotations._
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 import scalikejdbc._
-
-import scala.annotation.meta.field
 
 case class AudioMetaInformation(id: Option[Long], titles: Seq[Title], filePaths: Seq[Audio],
                                 copyright: Copyright, tags: Seq[Tag])
@@ -39,3 +36,9 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
 
   val JSonSerializer = FieldSerializer[AudioMetaInformation](ignore("id") orElse ignore("external_id"))
 }
+
+class NdlaSearchException(jestResponse: JestResult) extends RuntimeException(jestResponse.getErrorMessage) {
+  def getResponse: JestResult = jestResponse
+}
+
+case class ReindexResult(totalIndexed: Int, millisUsed: Long)
