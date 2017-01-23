@@ -53,7 +53,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging 
     esNode = new NodeBuilder().settings(settings).node()
     esNode.start()
 
-    val indexName = elasticIndexService.createIndex()
+    val indexName = elasticIndexService.createIndex().get
     elasticIndexService.updateAliasTarget(None, indexName)
     elasticIndexService.indexDocuments(List(audio1, audio2, audio3, audio4), indexName)
 

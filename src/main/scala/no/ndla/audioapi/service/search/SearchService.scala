@@ -16,6 +16,7 @@ import io.searchbox.params.Parameters
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
+import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.ElasticsearchException
@@ -26,6 +27,7 @@ import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait SearchService {
   this: ElasticClient with SearchIndexService with SearchConverterService =>
@@ -33,7 +35,7 @@ trait SearchService {
 
   class SearchService extends LazyLogging {
 
-    val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
+    private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
     def getHits(response: JestSearchResult): Seq[AudioSummary] = {
       var resultList = Seq[AudioSummary]()
@@ -98,10 +100,9 @@ trait SearchService {
         .setParameter(Parameters.SIZE, numResults)
         .setParameter("from", startAt)
 
-      val response = jestClient.execute(request.build())
-      response.isSucceeded match {
-        case true => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
-        case false => errorHandler(response)
+      jestClient.execute(request.build()) match {
+        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
+        case Failure(f) => errorHandler(Failure(f))
       }
     }
 
@@ -117,8 +118,8 @@ trait SearchService {
     def countDocuments(): Int = {
       val ret = jestClient.execute(
         new Count.Builder().addIndex(AudioApiProperties.SearchIndex).build()
-      ).getCount.toInt
-      ret
+      ).map(result => result.getCount.toInt)
+      ret.getOrElse(0)
     }
 
     def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
@@ -136,25 +137,36 @@ trait SearchService {
       (startAt, numResults)
     }
 
-    private def errorHandler(response: JestSearchResult) = {
-      response.getResponseCode match {
-        case notFound: Int if notFound == 404 => {
-          logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
-          scheduleIndexDocuments()
-          throw new IndexNotFoundException(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
+    private def errorHandler[T](failure: Failure[T]) = {
+      failure match {
+        case Failure(e: NdlaSearchException) => {
+            e.getResponse.getResponseCode match {
+            case notFound: Int if notFound == 404 => {
+              logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
+              scheduleIndexDocuments()
+              throw new IndexNotFoundException(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
+            }
+            case _ => {
+              logger.error(e.getResponse.getErrorMessage)
+              throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", e.getResponse.getErrorMessage)
+            }
+          }
+
         }
-        case _ => {
-          logger.error(response.getErrorMessage)
-          throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", response.getErrorMessage)
-        }
+        case Failure(t: Throwable) => throw t
       }
     }
 
-    def scheduleIndexDocuments() = {
+    private def scheduleIndexDocuments() = {
       val f = Future {
-        searchIndexService.indexDocuments()
+        searchIndexService.indexDocuments
       }
-      f onFailure { case t => logger.error("Unable to create index: " + t.getMessage) }
+
+      f onFailure { case t => logger.warn("Unable to create index: " + t.getMessage, t) }
+      f onSuccess {
+        case Success(reindexResult)  => logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+        case Failure(ex) => logger.warn(ex.getMessage, ex)
+      }
     }
   }
 

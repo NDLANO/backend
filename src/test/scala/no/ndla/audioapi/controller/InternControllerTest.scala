@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.mockito.Matchers.{eq => eqTo}
@@ -27,6 +28,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when import is a success") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainImageMetaInformation))
+    when(searchIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation))).thenReturn(Success(DefaultDomainImageMetaInformation))
     post("/import/123") {
       status should equal (200)
     }
