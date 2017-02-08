@@ -12,8 +12,12 @@ import com.netaporter.uri.Uri
 import com.typesafe.scalalogging.LazyLogging
 import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.model.api.NewAudioMetaInformation
+import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
+
+import scalaj.http.Base64
 
 trait ConverterService {
   val converterService: ConverterService
@@ -52,5 +56,35 @@ trait ConverterService {
 
     def toApiTags(tags: domain.Tag): api.Tag =
       api.Tag(tags.tags, tags.language)
+
+    def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePaths: Seq[Audio]): domain.AudioMetaInformation = {
+      domain.AudioMetaInformation(None,
+        audio.titles.map(toDomainTitle),
+        filePaths,
+        toDomainCopyright(audio.copyright),
+        audio.tags.getOrElse(Seq()).map(toDomainTag))
+    }
+
+    def toDomainTitle(title: api.Title): domain.Title = {
+      domain.Title(title.title, title.language)
+    }
+
+    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
+      domain.Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
+    }
+
+    def toDomainAuthor(author: api.Author): domain.Author = {
+      domain.Author(author.`type`, author.name)
+    }
+
+    def toDomainAudioFile(audioFile: api.NewAudioFile): domain.AudioFile = {
+      val fileContent = Base64.decode(audioFile.fileContent)
+      domain.AudioFile(fileContent, audioFile.language)
+    }
+
+    def toDomainTag(tag: api.Tag): domain.Tag = {
+      domain.Tag(tag.tags, tag.language)
+    }
+
   }
 }
