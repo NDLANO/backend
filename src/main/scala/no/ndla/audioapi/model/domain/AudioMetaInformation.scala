@@ -15,8 +15,11 @@ import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
-case class AudioMetaInformation(id: Option[Long], titles: Seq[Title], filePaths: Seq[Audio],
-                                copyright: Copyright, tags: Seq[Tag])
+case class AudioMetaInformation(id: Option[Long],
+                                titles: Seq[Title],
+                                filePaths: Seq[Audio],
+                                copyright: Copyright,
+                                tags: Seq[Tag])
 case class Title(title: String, language: Option[String])
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String])
 case class Copyright(license: String, origin: Option[String], authors: Seq[Author])
