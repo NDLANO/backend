@@ -41,7 +41,7 @@ trait ImportService {
       val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid))
 
       audioRepository.withExternalId(mainNode.nid) match {
-        case None => audioRepository.insert(domainMetaData, mainNode.nid)
+        case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
         case Some(existingAudio) => audioRepository.update(domainMetaData, existingAudio.id.get)
       }
     }

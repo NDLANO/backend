@@ -28,6 +28,7 @@ trait TestEnvironment
   with ImportService
   with AmazonClient
   with ReadService
+  with WriteService
   with ConverterService
   with AudioStorageService
   with InternController
@@ -52,6 +53,7 @@ trait TestEnvironment
 
   val importService = mock[ImportService]
   val readService = mock[ReadService]
+  val writeService = mock[WriteService]
   val converterService = mock[ConverterService]
   val tagsService = mock[TagsService]
 
