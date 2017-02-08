@@ -9,21 +9,32 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, SearchResult}
+import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.ReadService
+import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.audioapi.service.search.SearchService
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.native.Serialization.read
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra._
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait AudioApiController {
-  this: AudioRepository with ReadService with SearchService =>
+  this: AudioRepository with ReadService with WriteService with SearchService =>
   val audioApiController: AudioApiController
 
   class AudioApiController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+    protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing audio from ndla.no."
+
+    // Additional models used in error responses
+    registerModel[ValidationError]()
+    registerModel[Error]()
+
+    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response404 = ResponseMessage(404, "Not found", Some("Error"))
+    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getAudioFiles =
       (apiOperation[SearchResult]("getAudioFiles")
@@ -37,7 +48,8 @@ trait AudioApiController {
         queryParam[Option[String]]("license").description("Return only audio with provided license."),
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
         queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
-        ))
+        )
+        responseMessages(response404, response500))
 
     val getByAudioId =
       (apiOperation[AudioMetaInformation]("findByAudioId")
@@ -46,8 +58,20 @@ trait AudioApiController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched."))
+        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched.")
         )
+        responseMessages(response404, response500))
+
+    val newAudio =
+      (apiOperation[AudioMetaInformation]("newAudio")
+        summary "Upload a new audio file with meta data"
+        notes "Upload a new audio file with meta data"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
+        bodyParam[NewAudioMetaInformation]
+        )
+        responseMessages(response400, response500))
 
     get("/", operation(getAudioFiles)) {
       val query = paramOrNone("query")
@@ -80,6 +104,23 @@ trait AudioApiController {
       readService.withId(id) match {
         case Some(audio) => audio
         case None => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
+      }
+    }
+
+    put("/", operation(newAudio)) {
+      val newAudio = extract[NewAudioMetaInformation](request.body)
+      writeService.storeNewAudio(newAudio) match {
+        case Success(audioMeta) => audioMeta
+        case Failure(e) => errorHandler(e)
+      }
+    }
+
+    def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
+      Try(read[T](json)) match {
+        case Success(data) => data
+        case Failure(e) =>
+          logger.error(e.getMessage, e)
+          throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
       }
     }
 
