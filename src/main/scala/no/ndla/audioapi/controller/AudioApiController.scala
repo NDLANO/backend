@@ -112,10 +112,10 @@ trait AudioApiController {
     }
 
     post("/", operation(newAudio)) {
-      val files = fileMultiParams("file")
       val newAudio = params.get("metadata")
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
+      val files = fileMultiParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one or more files"))))
 
       writeService.storeNewAudio(newAudio, files) match {
         case Success(audioMeta) => audioMeta
