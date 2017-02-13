@@ -13,10 +13,12 @@ import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInfo
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.audioapi.service.search.SearchService
+import no.ndla.audioapi.AudioApiProperties.MaxAudioFileSizeBytes
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra._
+import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 
 import scala.util.{Failure, Success, Try}
 
@@ -24,7 +26,7 @@ trait AudioApiController {
   this: AudioRepository with ReadService with WriteService with SearchService =>
   val audioApiController: AudioApiController
 
-  class AudioApiController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class AudioApiController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing audio from ndla.no."
 
@@ -73,6 +75,8 @@ trait AudioApiController {
         )
         responseMessages(response400, response500))
 
+    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
+
     get("/", operation(getAudioFiles)) {
       val query = paramOrNone("query")
       val language = paramOrNone("language")
@@ -107,9 +111,13 @@ trait AudioApiController {
       }
     }
 
-    put("/", operation(newAudio)) {
-      val newAudio = extract[NewAudioMetaInformation](request.body)
-      writeService.storeNewAudio(newAudio) match {
+    post("/", operation(newAudio)) {
+      val files = fileMultiParams("file")
+      val newAudio = params.get("metadata")
+        .map(extract[NewAudioMetaInformation])
+        .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
+
+      writeService.storeNewAudio(newAudio, files) match {
         case Success(audioMeta) => audioMeta
         case Failure(e) => errorHandler(e)
       }

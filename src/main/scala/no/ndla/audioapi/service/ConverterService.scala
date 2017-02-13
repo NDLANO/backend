@@ -44,10 +44,10 @@ trait ConverterService {
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
       getLicense(licenseAbbrevation) match {
-        case Some(license) => api.License(license.license, license.description, license.url)
+        case Some(license) => api.License(license.license, Option(license.description), license.url)
         case None =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
-          api.License("unknown", "", None)
+          api.License("unknown", None, None)
       }
     }
 
@@ -75,11 +75,6 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): domain.Author = {
       domain.Author(author.`type`, author.name)
-    }
-
-    def toDomainAudioFile(audioFile: api.NewAudioFile): domain.AudioFile = {
-      val fileContent = Base64.decode(audioFile.fileContent)
-      domain.AudioFile(fileContent, audioFile.language)
     }
 
     def toDomainTag(tag: api.Tag): domain.Tag = {

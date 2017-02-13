@@ -17,7 +17,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense invokes mapping api to retrieve license information") {
     val licenseAbbr = "by-sa"
-    val license = License(licenseAbbr, "Creative Commons Attribution-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-sa/2.0/"))
+    val license = License(licenseAbbr, Some("Creative Commons Attribution-ShareAlike 2.0 Generic"), Some("https://creativecommons.org/licenses/by-sa/2.0/"))
 
     service.toApiLicence(licenseAbbr) should equal (license)
   }
@@ -25,6 +25,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That toApiLicense returns unknown if the license is invalid") {
     val licenseAbbr = "garbage"
 
-    service.toApiLicence(licenseAbbr) should equal (License("unknown", "", None))
+    service.toApiLicence(licenseAbbr) should equal (License("unknown", None, None))
   }
 }

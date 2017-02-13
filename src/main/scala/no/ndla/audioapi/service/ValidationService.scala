@@ -1,11 +1,12 @@
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.api.{NewAudioFile, ValidationException, ValidationMessage}
+import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain._
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
+import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Success, Try}
 
@@ -13,8 +14,18 @@ trait ValidationService {
   val validationService: ValidationService
 
   class ValidationService {
-    def validateAudioFile(audioFile: NewAudioFile): Option[ValidationMessage] = {
-      None
+    def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
+      val validMimeType = "audio/mp3"
+      val actualMimeType = audioFile.contentType.getOrElse("")
+
+      if (actualMimeType != validMimeType) {
+        return Some(ValidationMessage("file", s"The file ${audioFile.name} is not a valid audio file. Only valid type is '$validMimeType', but was '$actualMimeType'"))
+      }
+
+      audioFile.name.toLowerCase.endsWith(".mp3") match {
+        case false => Some(ValidationMessage("file", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
+        case true => None
+      }
     }
 
     def validate(audio: AudioMetaInformation): Try[AudioMetaInformation] = {

@@ -30,6 +30,7 @@ object ComponentRegistry
   with AmazonClient
   with ReadService
   with WriteService
+  with ValidationService
   with ConverterService
   with AudioStorageService
   with InternController
@@ -67,6 +68,7 @@ object ComponentRegistry
   lazy val importService = new ImportService
   lazy val readService = new ReadService
   lazy val writeService = new WriteService
+  lazy val validationService = new ValidationService
   lazy val converterService = new ConverterService
   lazy val tagsService = new TagsService
 
