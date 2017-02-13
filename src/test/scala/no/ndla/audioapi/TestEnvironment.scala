@@ -11,12 +11,11 @@ package no.ndla.audioapi
 import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
-import io.searchbox.client.JestClient
 import no.ndla.audioapi.controller.{AudioApiController, HealthController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search._
 import no.ndla.audioapi.service._
+import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
