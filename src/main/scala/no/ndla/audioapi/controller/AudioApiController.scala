@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.controller
 
+import java.io.File
+
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
@@ -71,7 +73,8 @@ trait AudioApiController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        bodyParam[NewAudioMetaInformation]
+        formParam[NewAudioMetaInformation]("metadata").description("The metadata for the audio file to submit."),
+        formParam[File]("file").description("The audio file(s) to upload.")
         )
         responseMessages(response400, response500))
 

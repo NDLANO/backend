@@ -16,7 +16,7 @@ import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
