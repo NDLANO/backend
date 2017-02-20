@@ -1,5 +1,5 @@
-val Scalaversion = "2.11.8"
-val ScalaTestVersion = "2.2.4"
+val Scalaversion = "2.12.1"
+val ScalaTestVersion = "3.0.1"
 
 lazy val commonSettings = Seq(
   organization := "ndla",
