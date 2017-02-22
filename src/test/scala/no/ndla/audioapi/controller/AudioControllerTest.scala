@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
 class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
   implicit val swagger = new AudioSwagger
-  lazy val controller = new AudioApiController
+  lazy val controller = new AudioController
   addServlet(controller, "/*")
 
   val sampleUploadFile = new Uploadable {

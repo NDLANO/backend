@@ -23,34 +23,48 @@ trait WriteService {
         return Failure(new ValidationException(errors=fileValidationMessages))
       }
 
-      for {
-        uploadedAudios <- uploadFiles(files, newAudioMeta.audioFiles)
-        domainAudio <-  Try(converterService.toDomainAudioMetaInformation(newAudioMeta, uploadedAudios))
+      val audioFilesMeta = uploadFiles(files, newAudioMeta.audioFiles) match {
+        case Failure(e) => return Failure(e)
+        case Success(audioMeta) => audioMeta
+      }
+
+      val audioMetaInformation = for {
+        domainAudio <-  Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFilesMeta))
         _ <- validationService.validate(domainAudio)
-        r <- Try(audioRepository.insert(domainAudio))
-        _ <- searchIndexService.indexDocument(r)
-      } yield converterService.toApiAudioMetaInformation(r)
+        audioMetaData <- Try(audioRepository.insert(domainAudio))
+        _ <- searchIndexService.indexDocument(audioMetaData)
+      } yield converterService.toApiAudioMetaInformation(audioMetaData)
+
+      if (audioMetaInformation.isFailure) {
+        deleteFiles(audioFilesMeta)
+      }
+
+      audioMetaInformation
     }
 
     private[service] def uploadFiles(filesToUpload: Seq[FileItem], audioFileMetas: Seq[NewAudioFile]): Try[Seq[Audio]] = {
-      val uploadedFiles = filesToUpload flatMap(x => uploadFile(x).toOption) toMap
-
+      val uploadedFiles = filesToUpload.flatMap(x => uploadFile(x).toOption).toMap
       if (uploadedFiles.size != filesToUpload.size) {
         deleteFiles(uploadedFiles.values.toSeq)
-        return Failure(new RuntimeException("Failed to save file(s)"))
+        return Failure(new AudioStorageException("Failed to save file(s)"))
       }
 
-      val uploaded = uploadedFiles map { case (oldFileName, uploadedFile) =>
-        getLanguageForFile(oldFileName, audioFileMetas).map(language => uploadedFile.copy(language = language))
+      matchFilesToLanguage(uploadedFiles, audioFileMetas)
+    }
+
+    private[service] def matchFilesToLanguage(files: Map[String, Audio], audioFilesMetaData: Seq[NewAudioFile]): Try[Seq[Audio]] = {
+      val audioFilesMetaDataWithLanguage = files.map { case (oldFileName, uploadedFileMeta) =>
+        getLanguageForFile(oldFileName, audioFilesMetaData).map(language => uploadedFileMeta.copy(language = language))
+      }.toSeq
+
+      val failedToFindLanguageForFiles = audioFilesMetaDataWithLanguage.filter(_.isFailure)
+      if (failedToFindLanguageForFiles.nonEmpty) {
+        deleteFiles(files.values.toSeq)
+        val errorMessages = failedToFindLanguageForFiles.map(_.failed.get.getMessage)
+        return Failure(new ValidationException(errors = Seq(ValidationMessage("audioFiles", errorMessages.mkString(",")))))
       }
 
-      val failedToFindLanguage: Seq[String] = uploaded.filter(_.isFailure).map(_.failed.get.getMessage).toSeq
-      failedToFindLanguage.headOption match {
-        case Some(_) =>
-          deleteFiles(uploadedFiles.values.toSeq)
-          Failure(new ValidationException(errors = Seq(ValidationMessage("audioFiles", failedToFindLanguage.mkString(",")))))
-        case _ => Success(uploaded.flatMap(_.toOption).toSeq)
-      }
+      Success(audioFilesMetaDataWithLanguage.flatMap(_.toOption))
     }
 
     private[service] def deleteFiles(audioFiles: Seq[Audio]) = {
@@ -60,7 +74,7 @@ trait WriteService {
     private[service] def getLanguageForFile(oldFileName: String, audioFileMetas: Seq[NewAudioFile]): Try[Option[String]] = {
       audioFileMetas.find(_.fileName == oldFileName) match {
         case Some(e) => Success(e.language)
-        case None => Failure(new RuntimeException(s"Could not find entry for file '$oldFileName' in metadata"))
+        case None => Failure(new LanguageMappingException(s"Could not find entry for file '$oldFileName' in metadata"))
       }
     }
 

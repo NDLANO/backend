@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
-import no.ndla.audioapi.controller.{AudioApiController, HealthController, InternController}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service._
@@ -33,7 +33,7 @@ trait TestEnvironment
   with AudioStorageService
   with InternController
   with HealthController
-  with AudioApiController
+  with AudioController
   with ElasticClient
   with ElasticIndexService
   with SearchConverterService
@@ -60,7 +60,7 @@ trait TestEnvironment
 
   val internController = mock[InternController]
   val resourcesApp = mock[ResourcesApp]
-  val audioApiController = mock[AudioApiController]
+  val audioApiController = mock[AudioController]
   val healthController = mock[HealthController]
 
   val jestClient = mock[NdlaJestClient]

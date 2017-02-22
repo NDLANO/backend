@@ -24,11 +24,11 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 
 import scala.util.{Failure, Success, Try}
 
-trait AudioApiController {
+trait AudioController {
   this: AudioRepository with ReadService with WriteService with SearchService =>
-  val audioApiController: AudioApiController
+  val audioApiController: AudioController
 
-  class AudioApiController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
+  class AudioController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing audio from ndla.no."
 

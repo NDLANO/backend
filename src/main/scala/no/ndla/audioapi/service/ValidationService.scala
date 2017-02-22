@@ -33,9 +33,9 @@ trait ValidationService {
         validateCopyright(audio.copyright) ++
         validateTags(audio.tags)
 
-      validationMessages.isEmpty match {
-        case true => Success(audio)
-        case false => Failure(new ValidationException(errors=validationMessages))
+      validationMessages match {
+        case head :: tail => Failure(new ValidationException(errors=head :: tail))
+        case _ => Success(audio)
       }
     }
 
