@@ -19,9 +19,10 @@ import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.network.ApplicationUrl
+import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.{BoolQueryBuilder, MatchQueryBuilder, QueryBuilders}
+import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
 
@@ -75,13 +76,13 @@ trait SearchService {
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
-      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
+      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
 
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("titles", titleSearch))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch)))
+          .should(QueryBuilders.nestedQuery("titles", titleSearch, ScoreMode.None))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.None)))
 
       executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
     }
@@ -148,6 +149,7 @@ trait SearchService {
             }
             case _ => {
               logger.error(e.getResponse.getErrorMessage)
+              println(e.getResponse.getErrorMessage)
               throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", e.getResponse.getErrorMessage)
             }
           }
