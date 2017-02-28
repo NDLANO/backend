@@ -24,7 +24,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
 
   override val searchService = new SearchService
-  override val elasticIndexService = new ElasticIndexService
+  override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
@@ -37,18 +37,18 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val audio4 = AudioMetaInformation(Some(4), List(Title("Donald Duck kjører bil", Some("nb"))), List(Audio("file3.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("and"), Some("nb"))))
 
   override def beforeAll = {
-    elasticIndexService.createIndexWithName(AudioApiProperties.SearchIndex)
+    indexService.createIndexWithName(AudioApiProperties.SearchIndex)
 
-    elasticIndexService.indexDocument(audio1)
-    elasticIndexService.indexDocument(audio2)
-    elasticIndexService.indexDocument(audio3)
-    elasticIndexService.indexDocument(audio4)
+    indexService.indexDocument(audio1)
+    indexService.indexDocument(audio2)
+    indexService.indexDocument(audio3)
+    indexService.indexDocument(audio4)
 
     blockUntil(() => searchService.countDocuments() == 4)
   }
 
   override def afterAll() = {
-    elasticIndexService.delete(Some(AudioApiProperties.SearchIndex))
+    indexService.delete(Some(AudioApiProperties.SearchIndex))
   }
 
 

@@ -29,11 +29,11 @@ import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
-trait ElasticIndexService {
+trait IndexService {
   this: ElasticClient with SearchConverterService =>
-  val elasticIndexService: ElasticIndexService
+  val indexService: IndexService
 
-  class ElasticIndexService extends LazyLogging {
+  class IndexService extends LazyLogging {
 
     def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
       implicit val formats = SearchableLanguageFormats.JSonFormats
