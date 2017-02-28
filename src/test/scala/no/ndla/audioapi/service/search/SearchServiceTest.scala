@@ -13,8 +13,9 @@ import no.ndla.audioapi.integration.JestClientFactory
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.tag.IntegrationTest
 
-
+@IntegrationTest
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
