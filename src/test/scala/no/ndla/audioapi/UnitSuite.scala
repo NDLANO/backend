@@ -26,6 +26,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   setEnv("MIGRATION_HOST", "some-host")
   setEnv("MIGRATION_USER", "some-user")
   setEnv("MIGRATION_PASSWORD", "some-password")
+  setEnv("SEARCH_ALIAS", "integration-test-index")
 
 
   def setEnv(key: String, value: String) = {

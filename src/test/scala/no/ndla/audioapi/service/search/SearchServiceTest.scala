@@ -26,7 +26,6 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val searchService = new SearchService
   override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
-  val testIndexName = "integration-test-index"
 
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
   val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")))
@@ -38,7 +37,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val audio4 = AudioMetaInformation(Some(4), List(Title("Donald Duck kjører bil", Some("nb"))), List(Audio("file3.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("and"), Some("nb"))))
 
   override def beforeAll = {
-    indexService.createIndexWithName(testIndexName)
+    indexService.createIndexWithName(AudioApiProperties.SearchIndex)
 
     indexService.indexDocument(audio1)
     indexService.indexDocument(audio2)
@@ -49,7 +48,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    indexService.delete(Some(testIndexName))
+    indexService.delete(Some(AudioApiProperties.SearchIndex))
   }
 
 
