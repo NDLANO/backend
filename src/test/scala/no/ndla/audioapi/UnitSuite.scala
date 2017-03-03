@@ -10,9 +10,7 @@ package no.ndla.audioapi
 
 import no.ndla.network.secrets.PropertyKeys
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
-
-object IntegrationTest extends Tag("no.ndla.IntegrationTest")
+import org.scalatest.mockito.MockitoSugar
 
 abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll with PrivateMethodTester {
   setEnv("NDLA_ENVIRONMENT", "local")
@@ -28,6 +26,8 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   setEnv("MIGRATION_HOST", "some-host")
   setEnv("MIGRATION_USER", "some-user")
   setEnv("MIGRATION_PASSWORD", "some-password")
+  setEnv("SEARCH_INDEX_NAME", "audio-integration-test-index")
+
 
   def setEnv(key: String, value: String) = {
     val field = System.getenv().getClass.getDeclaredField("m")

@@ -14,7 +14,7 @@ import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioApiController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{ElasticIndexService, _}
+import no.ndla.audioapi.service.search.{IndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
@@ -36,7 +36,7 @@ object ComponentRegistry
   with AudioApiController
   with SearchService
   with ElasticClient
-  with ElasticIndexService
+  with IndexService
   with SearchConverterService
   with SearchIndexService
 {
@@ -74,7 +74,7 @@ object ComponentRegistry
   lazy val healthController = new HealthController
 
   lazy val jestClient = JestClientFactory.getClient()
-  lazy val elasticIndexService = new ElasticIndexService
+  lazy val indexService = new IndexService
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService
   lazy val searchService = new SearchService
