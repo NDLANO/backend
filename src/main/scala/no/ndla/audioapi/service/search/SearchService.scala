@@ -81,8 +81,8 @@ trait SearchService {
 
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("titles", titleSearch, ScoreMode.None))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.None)))
+          .should(QueryBuilders.nestedQuery("titles", titleSearch, ScoreMode.Avg))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg)))
 
       executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
     }
