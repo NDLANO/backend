@@ -9,27 +9,22 @@
 
 package no.ndla.audioapi.service.search
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.JestClientFactory
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.node.{Node, NodeBuilder}
+import no.ndla.tag.IntegrationTest
 
-import scala.reflect.io.Path
+@IntegrationTest
+class SearchServiceTest extends UnitSuite with TestEnvironment {
 
+  val esPort = 9200
 
-class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging {
+  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
-  val esHttpPort = 29999
-  val esDataDir = "esTestData"
-  var esNode: Node = _
-
-  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
 
   override val searchService = new SearchService
-  override val elasticIndexService = new ElasticIndexService
+  override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
@@ -42,27 +37,18 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging 
   val audio4 = AudioMetaInformation(Some(4), List(Title("Donald Duck kjører bil", Some("nb"))), List(Audio("file3.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("and"), Some("nb"))))
 
   override def beforeAll = {
-    val settings = Settings.settingsBuilder()
-      .put("path.home", esDataDir)
-      .put("index.number_of_shards", "1")
-      .put("index.number_of_replicas", "0")
-      .put("http.port", esHttpPort)
-      .put("cluster.name", getClass.getName)
-      .build()
+    indexService.createIndexWithName(AudioApiProperties.SearchIndex)
 
-    esNode = new NodeBuilder().settings(settings).node()
-    esNode.start()
-
-    val indexName = elasticIndexService.createIndex().get
-    elasticIndexService.updateAliasTarget(None, indexName)
-    elasticIndexService.indexDocuments(List(audio1, audio2, audio3, audio4), indexName)
+    indexService.indexDocument(audio1)
+    indexService.indexDocument(audio2)
+    indexService.indexDocument(audio3)
+    indexService.indexDocument(audio4)
 
     blockUntil(() => searchService.countDocuments() == 4)
   }
 
   override def afterAll() = {
-    esNode.close()
-    Path(esDataDir).deleteRecursively()
+    indexService.delete(Some(AudioApiProperties.SearchIndex))
   }
 
 
@@ -147,7 +133,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with LazyLogging 
       try {
         done = predicate()
       } catch {
-        case e: Throwable => logger.warn("problem while testing predicate", e)
+        case e: Throwable => println("problem while testing predicate", e)
       }
     }
 

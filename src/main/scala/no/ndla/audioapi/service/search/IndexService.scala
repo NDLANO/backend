@@ -12,9 +12,8 @@ package no.ndla.audioapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, StringType}
-import com.sksamuel.elastic4s.mappings.NestedFieldDefinition
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Bulk, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
@@ -30,11 +29,11 @@ import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
-trait ElasticIndexService {
+trait IndexService {
   this: ElasticClient with SearchConverterService =>
-  val elasticIndexService: ElasticIndexService
+  val indexService: IndexService
 
-  class ElasticIndexService extends LazyLogging {
+  class IndexService extends LazyLogging {
 
     def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
       implicit val formats = SearchableLanguageFormats.JSonFormats
@@ -64,7 +63,10 @@ trait ElasticIndexService {
     }
 
     def createIndex(): Try[String] = {
-      val indexName = AudioApiProperties.SearchIndex + "_" + getTimestamp
+      createIndexWithName(AudioApiProperties.SearchIndex + "_" + getTimestamp)
+    }
+
+    def createIndexWithName(indexName: String): Try[String] = {
       if (indexExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
@@ -79,20 +81,20 @@ trait ElasticIndexService {
     }
 
     def buildMapping(): String = {
-      mapping(AudioApiProperties.SearchDocument).fields(
-        "id" typed IntegerType,
+      MappingContentBuilder.buildWithName(mapping(AudioApiProperties.SearchDocument).fields(
+        intField("id"),
         languageSupportedField("titles", keepRaw = true),
         languageSupportedField("tags", keepRaw = false),
-        "license" typed StringType index "not_analyzed",
-        "authors" typed StringType
-      ).buildWithName.string()
+        keywordField("license") index "not_analyzed",
+        textField("authors").fielddata(true)
+      ), AudioApiProperties.SearchDocument).string()
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
       val languageSupportedField = new NestedFieldDefinition(fieldName)
       languageSupportedField._fields = keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => langAnalyzer.lang typed StringType analyzer langAnalyzer.analyzer fields ("raw" typed StringType index "not_analyzed"))
-        case false => languageAnalyzers.map(langAnalyzer => langAnalyzer.lang typed StringType analyzer langAnalyzer.analyzer)
+        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer fields (keywordField("raw") index "not_analyzed"))
+        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer)
       }
 
       languageSupportedField

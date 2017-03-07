@@ -35,7 +35,7 @@ trait TestEnvironment
   with HealthController
   with AudioController
   with ElasticClient
-  with ElasticIndexService
+  with IndexService
   with SearchConverterService
   with SearchIndexService
   with SearchService
@@ -65,7 +65,7 @@ trait TestEnvironment
 
   val jestClient = mock[NdlaJestClient]
   val searchService = mock[SearchService]
-  val elasticIndexService = mock[ElasticIndexService]
+  val indexService = mock[IndexService]
   val searchConverterService = mock[SearchConverterService]
   val searchIndexService = mock[SearchIndexService]
 }
