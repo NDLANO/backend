@@ -78,9 +78,17 @@ trait WriteService {
       }
     }
 
+    private[service] def getFileExtension(fileName: String): Option[String] = {
+      fileName.lastIndexOf(".") match {
+        case index: Int if index > -1 => Some(fileName.substring(index))
+        case _ => None
+      }
+    }
+
     private[service] def uploadFile(file: FileItem): Try[(String, Audio)] = {
+      val fileExtension = getFileExtension(file.name).getOrElse("")
       val contentType = file.getContentType.getOrElse("")
-      val fileName = Stream.continually(randomFileName(".mp3")).dropWhile(audioStorage.objectExists).head
+      val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
       audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName).map(filePath => {
         file.name -> Audio(filePath, contentType, file.size, None)

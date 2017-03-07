@@ -19,11 +19,11 @@ trait ValidationService {
       val actualMimeType = audioFile.contentType.getOrElse("")
 
       if (actualMimeType != validMimeType) {
-        return Some(ValidationMessage("file", s"The file ${audioFile.name} is not a valid audio file. Only valid type is '$validMimeType', but was '$actualMimeType'"))
+        return Some(ValidationMessage("files", s"The file ${audioFile.name} is not a valid audio file. Only valid type is '$validMimeType', but was '$actualMimeType'"))
       }
 
       audioFile.name.toLowerCase.endsWith(".mp3") match {
-        case false => Some(ValidationMessage("file", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
+        case false => Some(ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
         case true => None
       }
     }

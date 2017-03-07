@@ -64,7 +64,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     val sampleAudioMeta = AudioMetaInformation(1, Seq(), Seq(), Copyright(License("by", None, None), None, Seq()), Seq())
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Seq[FileItem]])).thenReturn(Success(sampleAudioMeta))
 
-    post("/", Map("metadata" -> sampleNewAudioMeta), Map("file" -> sampleUploadFile)) {
+    post("/", Map("metadata" -> sampleNewAudioMeta), Map("files" -> sampleUploadFile)) {
       status should equal (200)
     }
   }
@@ -72,7 +72,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   test("That POST / returns 500 if an unexpected error occurs") {
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Seq[FileItem]])).thenReturn(Failure(mock[RuntimeException]))
 
-    post("/", Map("metadata" -> sampleNewAudioMeta), Map("file" -> sampleUploadFile)) {
+    post("/", Map("metadata" -> sampleNewAudioMeta), Map("files" -> sampleUploadFile)) {
       status should equal (500)
     }
   }

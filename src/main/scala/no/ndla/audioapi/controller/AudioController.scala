@@ -74,7 +74,7 @@ trait AudioController {
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
         formParam[NewAudioMetaInformation]("metadata").description("The metadata for the audio file to submit."),
-        formParam[File]("file").description("The audio file(s) to upload.")
+        formParam[File]("files").description("The audio file(s) to upload.")
         )
         responseMessages(response400, response500))
 
@@ -118,7 +118,7 @@ trait AudioController {
       val newAudio = params.get("metadata")
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
-      val files = fileMultiParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one or more files"))))
+      val files = fileMultiParams.getOrElse("files", throw new ValidationException(errors=Seq(ValidationMessage("files", "The request must contain one or more files"))))
 
       writeService.storeNewAudio(newAudio, files) match {
         case Success(audioMeta) => audioMeta
