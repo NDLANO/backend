@@ -64,10 +64,10 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(audioPath))
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
-    when(audioRepository.insert(any[AudioMetaInformation], any[String])).thenReturn(newAudioMeta)
+    when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenReturn(newAudioMeta)
 
     service.importAudio(audioId) should equal (Success(newAudioMeta))
-    verify(audioRepository, times(1)).insert(any[AudioMetaInformation], any[String])
+    verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])
   }
 
 }

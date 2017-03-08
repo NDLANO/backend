@@ -11,12 +11,11 @@ package no.ndla.audioapi
 import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
-import io.searchbox.client.JestClient
-import no.ndla.audioapi.controller.{AudioApiController, HealthController, InternController}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search._
 import no.ndla.audioapi.service._
+import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
@@ -28,11 +27,13 @@ trait TestEnvironment
   with ImportService
   with AmazonClient
   with ReadService
+  with WriteService
+  with ValidationService
   with ConverterService
   with AudioStorageService
   with InternController
   with HealthController
-  with AudioApiController
+  with AudioController
   with ElasticClient
   with IndexService
   with SearchConverterService
@@ -52,12 +53,14 @@ trait TestEnvironment
 
   val importService = mock[ImportService]
   val readService = mock[ReadService]
+  val writeService = mock[WriteService]
+  val validationService = mock[ValidationService]
   val converterService = mock[ConverterService]
   val tagsService = mock[TagsService]
 
   val internController = mock[InternController]
   val resourcesApp = mock[ResourcesApp]
-  val audioApiController = mock[AudioApiController]
+  val audioApiController = mock[AudioController]
   val healthController = mock[HealthController]
 
   val jestClient = mock[NdlaJestClient]

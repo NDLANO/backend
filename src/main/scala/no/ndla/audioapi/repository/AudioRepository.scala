@@ -40,7 +40,16 @@ trait AudioRepository {
       }
     }
 
-    def insert(audioMetaInformation: AudioMetaInformation, externalId: String): AudioMetaInformation = {
+    def insert(audioMetaInformation: AudioMetaInformation)(implicit session: DBSession = AutoSession): AudioMetaInformation = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(audioMetaInformation))
+
+      val audioId = sql"insert into audiodata (document) values (${dataObject})".updateAndReturnGeneratedKey.apply
+      audioMetaInformation.copy(id = Some(audioId))
+    }
+
+    def insertFromImport(audioMetaInformation: AudioMetaInformation, externalId: String): AudioMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))

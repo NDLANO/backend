@@ -8,11 +8,12 @@
 
 package no.ndla.audioapi.service
 
+import java.io.InputStream
 import java.net.URL
 
 import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, PutObjectRequest}
-import no.ndla.audioapi.integration.AmazonClient
 import no.ndla.audioapi.AudioApiProperties.StorageName
+import no.ndla.audioapi.integration.AmazonClient
 
 import scala.util.{Failure, Success, Try}
 
@@ -22,11 +23,10 @@ trait AudioStorageService {
 
   class AudioStorage {
     def storeAudio(audioUrl: URL, contentType: String, size: String, destinationPath: String): Try[String] = {
-      if (objectExists(destinationPath)) {
-        return Success(destinationPath)
-      }
+      storeAudio(audioUrl.openStream, contentType, size.toLong, destinationPath)
+    }
 
-      val audioStream = audioUrl.openStream()
+    def storeAudio(audioStream: InputStream, contentType: String, size: Long, destinationPath: String): Try[String] = {
       val metadata = new ObjectMetadata()
       metadata.setContentType(contentType)
       metadata.setContentLength(size.toLong)
@@ -47,6 +47,11 @@ trait AudioStorageService {
         case Failure(_) => false
       }
     }
+
+    def deleteObject(storageKey: String): Try[_] = {
+      Try(amazonClient.deleteObject(StorageName, storageKey))
+    }
+
 
   }
 }

@@ -16,7 +16,7 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.repository.AudioRepository
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 trait ImportService {
   this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService =>
@@ -41,15 +41,19 @@ trait ImportService {
       val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid))
 
       audioRepository.withExternalId(mainNode.nid) match {
-        case None => audioRepository.insert(domainMetaData, mainNode.nid)
+        case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
         case Some(existingAudio) => audioRepository.update(domainMetaData, existingAudio.id.get)
       }
     }
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
-      val destinationPath = s"${audioMeta.fileName}"
-      audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, destinationPath)
-        .map(Audio(_, audioMeta.mimeType, audioMeta.fileSize.toLong, audioMeta.language))
+      val fileLocationTry = audioStorage.objectExists(audioMeta.fileName) match {
+        case true => Success(audioMeta.fileName)
+        case false => audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName)
+      }
+
+      fileLocationTry.map(fileLocation => Audio(fileLocation, audioMeta.mimeType, audioMeta.fileSize.toLong, audioMeta.language))
     }
+
   }
 }

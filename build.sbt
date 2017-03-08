@@ -61,7 +61,9 @@ lazy val audio_api = (project in file(".")).
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0",
-      "com.netaporter" %% "scala-uri" % "0.4.16")
+      "com.netaporter" %% "scala-uri" % "0.4.16",
+      "org.jsoup" % "jsoup" % "1.7.3"
+    )
   ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
 
 assemblyJarName in assembly := "audio-api.jar"

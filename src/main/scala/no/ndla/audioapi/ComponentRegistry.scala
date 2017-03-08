@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import no.ndla.audioapi.controller.HealthController
-import no.ndla.audioapi.controller.{AudioApiController, InternController}
+import no.ndla.audioapi.controller.{AudioController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, _}
@@ -29,11 +29,13 @@ object ComponentRegistry
   with TagsService
   with AmazonClient
   with ReadService
+  with WriteService
+  with ValidationService
   with ConverterService
   with AudioStorageService
   with InternController
   with HealthController
-  with AudioApiController
+  with AudioController
   with SearchService
   with ElasticClient
   with IndexService
@@ -65,12 +67,14 @@ object ComponentRegistry
 
   lazy val importService = new ImportService
   lazy val readService = new ReadService
+  lazy val writeService = new WriteService
+  lazy val validationService = new ValidationService
   lazy val converterService = new ConverterService
   lazy val tagsService = new TagsService
 
   lazy val internController = new InternController
   lazy val resourcesApp = new ResourcesApp
-  lazy val audioApiController = new AudioApiController
+  lazy val audioApiController = new AudioController
   lazy val healthController = new HealthController
 
   lazy val jestClient = JestClientFactory.getClient()

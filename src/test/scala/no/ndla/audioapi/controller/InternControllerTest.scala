@@ -23,7 +23,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
-  val DefaultApiImageMetaInformation = api.AudioMetaInformation(1, Seq(api.Title("title", Some("nb"))), Seq(api.Audio("audio/test.mp3", "audio/mpeg", 1024, Some("nb"))), api.Copyright(api.License("by-sa", "", None), None, Seq()), Seq())
+  val DefaultApiImageMetaInformation = api.AudioMetaInformation(1, Seq(api.Title("title", Some("nb"))), Seq(api.Audio("audio/test.mp3", "audio/mpeg", 1024, Some("nb"))), api.Copyright(api.License("by-sa", None, None), None, Seq()), Seq())
   val DefaultDomainImageMetaInformation = domain.AudioMetaInformation(Some(1), Seq(domain.Title("title", Some("nb"))), Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, Some("nb"))), domain.Copyright("by-sa", None, Seq()), Seq())
 
   test("That POST /import/123 returns 200 OK when import is a success") {
