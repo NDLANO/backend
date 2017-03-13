@@ -10,17 +10,19 @@ package no.ndla.audioapi.controller
 
 import java.io.File
 
+import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.audioapi.service.search.SearchService
-import no.ndla.audioapi.AudioApiProperties.MaxAudioFileSizeBytes
+import no.ndla.audioapi.AudioApiProperties.{MaxAudioFileSizeBytes, RoleWithWriteAccess}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.swagger._
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
+import org.scalatra.swagger.DataType.ValueDataType
 
 import scala.util.{Failure, Success, Try}
 
@@ -35,8 +37,10 @@ trait AudioController {
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
+    registerModel[NewAudioMetaInformation]()
 
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
@@ -53,6 +57,7 @@ trait AudioController {
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
         queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
         )
+        authorizations "oauth2"
         responseMessages(response404, response500))
 
     val getByAudioId =
@@ -64,19 +69,22 @@ trait AudioController {
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
         pathParam[String]("id").description("Audio_id of the audio that needs to be fetched.")
         )
+        authorizations "oauth2"
         responseMessages(response404, response500))
 
     val newAudio =
       (apiOperation[AudioMetaInformation]("newAudio")
         summary "Upload a new audio file with meta data"
         notes "Upload a new audio file with meta data"
+        consumes "multipart/form-data"
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        formParam[NewAudioMetaInformation]("metadata").description("The metadata for the audio file to submit."),
-        formParam[File]("files").description("The audio file(s) to upload.")
+        formParam[String]("metadata").description("The metadata for the audio file to submit. See NewAudioMetaInformation."),
+        Parameter(name = "files", `type` = ValueDataType("file"), description = Some("The image file(s) to upload"), paramType = ParamType.Form)
         )
-        responseMessages(response400, response500))
+        authorizations "oauth2"
+        responseMessages(response400, response403, response500))
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
@@ -115,6 +123,8 @@ trait AudioController {
     }
 
     post("/", operation(newAudio)) {
+      assertHasRole(RoleWithWriteAccess)
+
       val newAudio = params.get("metadata")
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))

@@ -11,13 +11,13 @@ package no.ndla.audioapi.controller
 import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.network.{ApplicationUrl, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import no.ndla.audioapi.AudioApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.audioapi.model.api.{Error, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.audioapi.model.api.{AccessDeniedException, Error, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.network.model.HttpRequestException
 import org.scalatra.servlet.SizeConstraintExceededException
 
@@ -29,6 +29,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
+    AuthUser.set(request)
     logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
   }
 
@@ -36,9 +37,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     CorrelationID.clear()
     ThreadContext.remove(CorrelationIdKey)
     ApplicationUrl.clear
+    AuthUser.clear()
   }
 
   error {
+    case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case hre: HttpRequestException => BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
     case _: SizeConstraintExceededException =>
@@ -61,6 +64,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
 
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
+  }
+
+  def assertHasRole(role: String): Unit = {
+    if (!AuthUser.hasRole(role))
+      throw new AccessDeniedException("User is missing required role to perform this operation")
   }
 
 }

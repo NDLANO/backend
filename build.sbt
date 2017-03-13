@@ -1,7 +1,7 @@
 import java.util.Properties
 
 val Scalaversion = "2.12.1"
-val Scalatraversion = "2.5.0"
+val Scalatraversion = "2.5.1-NDLA-3"
 val ScalaLoggingVersion = "3.5.0"
 val Log4JVersion = "2.7"
 val Jettyversion = "9.2.10.v20150310"
@@ -32,7 +32,7 @@ lazy val audio_api = (project in file(".")).
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8"),
     libraryDependencies ++= Seq(
-      "ndla" %% "network" % "0.16",
+      "ndla" %% "network" % "0.17",
       "ndla" %% "mapping" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,

@@ -28,12 +28,14 @@ object Error {
   val REMOTE_ERROR = "REMOTE_ERROR"
   val VALIDATION = "VALIDATION_ERROR"
   val FILE_TOO_BIG = "FILE TOO BIG"
+  val ACCESS_DENIED = "ACCESS DENIED"
 
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
   val FileTooBigError = Error(FILE_TOO_BIG, s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
 }
 
 class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)
+class AccessDeniedException(message: String) extends RuntimeException(message)
 case class ValidationMessage(field: String, message: String)
 class AudioStorageException(message: String) extends RuntimeException(message)
 class LanguageMappingException(message: String) extends RuntimeException(message)
