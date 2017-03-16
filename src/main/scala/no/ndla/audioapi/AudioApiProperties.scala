@@ -17,6 +17,8 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object AudioApiProperties extends LazyLogging {
+  val RoleWithWriteAccess = "audio:write"
+
   val SecretsFile = "audio-api.secrets"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
