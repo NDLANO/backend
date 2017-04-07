@@ -21,7 +21,7 @@ class LicenseTest extends UnitSuite {
   test("getLicenses returns a list of all licenses") {
     val byLicense = LicenseDefinition("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/"))
 
-    License.getLicenses.size should equal(12)
+    License.getLicenses.size should equal(15)
     License.getLicenses.find(_.license == "by").get should equal (byLicense)
   }
 }
