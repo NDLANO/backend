@@ -21,7 +21,11 @@ object License {
     LicenseDefinition("nolaw", "Public Domain Dedication", Some("http://opendatacommons.org/licenses/pddl/")),
     LicenseDefinition("nlod", "Norsk lisens for offentlige data", Some("http://data.norge.no/nlod/no/1.0")),
     LicenseDefinition("noc", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
-    LicenseDefinition("copyrighted", "Copyrighted", None)
+    LicenseDefinition("copyrighted", "Copyrighted", None),
+    LicenseDefinition("by-4.0", "Creative Commons Attribution 4.0 Generic", Some("https://creativecommons.org/licenses/by/4.0/")),
+    LicenseDefinition("by-sa-4.0", "Creative Commons Attribution-ShareAlike 4.0 Generic", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
+    LicenseDefinition("by-nc-4.0", "Creative Commons Attribution-NonCommercial 4.0 Generic", Some("https://creativecommons.org/licenses/by-nc/4.0/"))
+
   )
 
   private val licenseToLicenseDefinitionsMap = licenseToLicenseDefinitionsSeq.map(x => x.license -> x).toMap
