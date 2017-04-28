@@ -6,7 +6,7 @@ API for accessing audio from NDLA
 
 ## Usage
 
-Adds, lists and/or returns a `Audio` file with metadata. Implements ElasticSearch for search within the audio database.
+Adds, lists and/or returns an `Audio` file with metadata. Implements ElasticSearch for search within the audio database.
 
 To interact with the api, you need valid security credentials; see [Access Tokens usage](https://github.com/NDLANO/auth/blob/master/README.md).
 To write data to the api, you need write role access.
