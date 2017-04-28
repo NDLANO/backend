@@ -2,11 +2,9 @@
 
 [![Build Status](https://travis-ci.org/NDLANO/audio-api.svg?branch=master)](https://travis-ci.org/NDLANO/audio-api)
 
-API for accessing audio from NDLA
-
 ## Usage
 
-Adds, lists and/or returns an `Audio` file with metadata. Implements ElasticSearch for search within the audio database.
+API for accessing audio from NDLA. Adds, lists and/or returns an `Audio` file with metadata. Implements ElasticSearch for search within the audio database.
 
 To interact with the api, you need valid security credentials; see [Access Tokens usage](https://github.com/NDLANO/auth/blob/master/README.md).
 To write data to the api, you need write role access.
@@ -19,16 +17,13 @@ To write data to the api, you need write role access.
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://staging.api.ndla.no).
 
-## Building and distribution
+## Developer documentation
 
-### Compile
+**Compile:** sbt compile
 
-    sbt compile
+**Run tests:** sbt test
 
-### Run tests
-
-    #All tests except Tagged tests
-    sbt test
+**Create Docker Image:**./build.sh
 
 ### IntegrationTest Tag and sbt run problems
 
@@ -37,12 +32,3 @@ annotation test tag  ```IntegrationTag``` in ```/ndla/audio-api/src/test/java/no
 As of now we have no running elasticserach or tunnel to one on Travis and need to ignore these tests there or the build will fail.
 Therefore we have the
  ```testOptions in Test += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")``` in ```build.sbt```
-This, it seems, will unfortunalty override runs on your local commandline so that ```sbt "test-only -- -n no.ndla.tag.IntegrationTest"```
- will not run unless this line gets commented out or you comment out the ```@IntegrationTest``` annotation in ```SearchServiceTest.scala```
- This should be solved better!
-
-    sbt "test-only -- -n no.ndla.tag.IntegrationTest"
-
-### Create Docker Image
-
-    sbt docker
