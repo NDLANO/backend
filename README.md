@@ -15,7 +15,7 @@ To write data to the api, you need write role access.
 - `GET /audio-api/v1/audio/<id>` - Fetch a json-object containing the *audio id* of the *audio file* that needs to be fecthed.
 - `POST /audio-api/v1/audio/` - Upload a *new audio file* provided with metadata.
 
-For a more detailed documentation of the API, please refer to the API documentation (Staging: API documentation).
+For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
 
 ## Developer documentation
 
