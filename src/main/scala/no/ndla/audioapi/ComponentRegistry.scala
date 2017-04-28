@@ -41,6 +41,9 @@ object ComponentRegistry
   with IndexService
   with SearchConverterService
   with SearchIndexService
+  with AuthenticationUser
+  with AuthenticationRole
+  with Clock
 {
   implicit val swagger = new AudioSwagger
 
@@ -82,4 +85,9 @@ object ComponentRegistry
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService
   lazy val searchService = new SearchService
+
+  lazy val authRole = new AuthRole
+  lazy val authUser = new AuthUser
+  lazy val clock = new SystemClock
+
 }

@@ -20,6 +20,7 @@ import no.ndla.mapping.License.getLicense
 import scalaj.http.Base64
 
 trait ConverterService {
+  this: AuthenticationUser with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -62,7 +63,10 @@ trait ConverterService {
         audio.titles.map(toDomainTitle),
         filePaths,
         toDomainCopyright(audio.copyright),
-        audio.tags.getOrElse(Seq()).map(toDomainTag))
+        audio.tags.getOrElse(Seq()).map(toDomainTag),
+        authUser.id(),
+        clock.now()
+      )
     }
 
     def toDomainTitle(title: api.Title): domain.Title = {

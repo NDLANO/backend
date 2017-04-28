@@ -14,7 +14,7 @@ import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.{ReadService, WriteService}
+import no.ndla.audioapi.service.{AuthenticationRole, Clock, ReadService, WriteService}
 import no.ndla.audioapi.service.search.SearchService
 import no.ndla.audioapi.AudioApiProperties.{MaxAudioFileSizeBytes, RoleWithWriteAccess}
 import org.json4s.{DefaultFormats, Formats}
@@ -27,7 +27,7 @@ import org.scalatra.swagger.DataType.ValueDataType
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
-  this: AudioRepository with ReadService with WriteService with SearchService =>
+  this: AudioRepository with ReadService with WriteService with SearchService with AuthenticationRole with Clock=>
   val audioApiController: AudioController
 
   class AudioController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
@@ -123,7 +123,7 @@ trait AudioController {
     }
 
     post("/", operation(newAudio)) {
-      assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleWithWriteAccess)
 
       val newAudio = params.get("metadata")
         .map(extract[NewAudioMetaInformation])

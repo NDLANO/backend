@@ -19,7 +19,7 @@ import no.ndla.audioapi.repository.AudioRepository
 import scala.util.{Success, Try}
 
 trait ImportService {
-  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService =>
+  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with AuthenticationUser with Clock =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {
@@ -38,7 +38,7 @@ trait ImportService {
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
       val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
-      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid))
+      val domainMetaData = domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), authUser.id(), clock.now())
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)

@@ -41,6 +41,9 @@ trait TestEnvironment
   with SearchService
   with TagsService
   with MockitoSugar
+  with AuthenticationUser
+  with AuthenticationRole
+  with Clock
 {
   val dataSource = mock[sql.DataSource]
   val storageName = AudioApiProperties.StorageName
@@ -68,4 +71,9 @@ trait TestEnvironment
   val indexService = mock[IndexService]
   val searchConverterService = mock[SearchConverterService]
   val searchIndexService = mock[SearchIndexService]
+
+  val clock = mock[SystemClock]
+  val authUser = mock[AuthUser]
+  val authRole = new AuthRole
+
 }
