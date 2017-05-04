@@ -46,12 +46,12 @@ class V2_AddUpdatedColoums extends JdbcMigration {
   }
 
 
-  def update(imageMeta: V2_DBAudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V2_DBAudioMetaInformation)(implicit session: DBSession) = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
-    dataObject.setValue(imageMeta.document)
+    dataObject.setValue(audioMeta.document)
 
-    sql"update imagemetadata set metadata = $dataObject where id = ${imageMeta.id}".update().apply
+    sql"update audiometadata set metadata = $dataObject where id = ${audioMeta.id}".update().apply
   }
 
 
