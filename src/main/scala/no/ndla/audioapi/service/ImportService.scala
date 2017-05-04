@@ -11,6 +11,7 @@ package no.ndla.audioapi.service
 import java.net.URL
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
@@ -19,7 +20,7 @@ import no.ndla.audioapi.repository.AudioRepository
 import scala.util.{Success, Try}
 
 trait ImportService {
-  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with AuthenticationUser with Clock =>
+  this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with User with Clock =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {

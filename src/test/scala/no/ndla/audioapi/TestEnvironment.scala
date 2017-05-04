@@ -11,6 +11,7 @@ package no.ndla.audioapi
 import javax.sql
 
 import com.amazonaws.services.s3.AmazonS3Client
+import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
@@ -41,8 +42,8 @@ trait TestEnvironment
   with SearchService
   with TagsService
   with MockitoSugar
-  with AuthenticationUser
-  with AuthenticationRole
+  with User
+  with Role
   with Clock
 {
   val dataSource = mock[sql.DataSource]

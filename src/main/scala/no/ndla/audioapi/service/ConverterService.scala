@@ -12,6 +12,7 @@ import com.netaporter.uri.Uri
 import com.typesafe.scalalogging.LazyLogging
 import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NewAudioMetaInformation
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
@@ -20,7 +21,7 @@ import no.ndla.mapping.License.getLicense
 import scalaj.http.Base64
 
 trait ConverterService {
-  this: AuthenticationUser with Clock =>
+  this: User with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {

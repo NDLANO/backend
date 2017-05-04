@@ -5,12 +5,13 @@
  * See LICENSE
  */
 
-package no.ndla.audioapi.service
+package no.ndla.audioapi.auth
 
 import no.ndla.audioapi.model.api.AccessDeniedException
 import no.ndla.network.AuthUser
 
-trait AuthenticationRole {
+
+trait Role {
 
   val authRole: AuthRole
 
@@ -19,25 +20,6 @@ trait AuthenticationRole {
       if (!AuthUser.hasRole(role))
         throw new AccessDeniedException("User is missing required role to perform this operation")
     }
-  }
-
-}
-
-trait AuthenticationUser {
-
-  val authUser: AuthUser
-
-  class AuthUser {
-
-    def id(): String = {
-      if (AuthUser.get.isEmpty || AuthUser.get.get.isEmpty) {
-        throw new AccessDeniedException(("User id required to perform this operation"))
-      } else {
-        return AuthUser.get.get
-      }
-
-    }
-
   }
 
 }
