@@ -51,7 +51,7 @@ class V2_AddUpdatedColoums extends JdbcMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(audioMeta.document)
 
-    sql"update audiometadata set metadata = $dataObject where id = ${audioMeta.id}".update().apply
+    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply
   }
 
 
