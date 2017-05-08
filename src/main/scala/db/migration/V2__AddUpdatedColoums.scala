@@ -17,7 +17,7 @@ import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V2_AddUpdatedColoums extends JdbcMigration {
+class V2__AddUpdatedColoums extends JdbcMigration {
 
   implicit val formats = org.json4s.DefaultFormats
   val timeService = new TimeService()
@@ -59,10 +59,8 @@ class V2_AddUpdatedColoums extends JdbcMigration {
 
 case class V2_DBAudioMetaInformation(id: Long, document: String)
 
-
 class TimeService() {
   def nowAsString(): String = {
-    val formatter: DateTimeFormatter = DateTimeFormat.forPattern("YYYY-MM-DD'T'HH:mm:ssZ")
-    (new DateTime).toString(formatter)
+    (new DateTime()).toString("yyyy-MM-dd'T'HH:mm:ss'Z'")
   }
 }
