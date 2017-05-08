@@ -10,6 +10,7 @@ package no.ndla.audioapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioController, InternController}
 import no.ndla.audioapi.integration._
@@ -41,6 +42,9 @@ object ComponentRegistry
   with IndexService
   with SearchConverterService
   with SearchIndexService
+  with User
+  with Role
+  with Clock
 {
   implicit val swagger = new AudioSwagger
 
@@ -82,4 +86,9 @@ object ComponentRegistry
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService
   lazy val searchService = new SearchService
+
+  lazy val authRole = new AuthRole
+  lazy val authUser = new AuthUser
+  lazy val clock = new SystemClock
+
 }

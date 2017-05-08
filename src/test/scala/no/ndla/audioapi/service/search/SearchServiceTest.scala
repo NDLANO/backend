@@ -14,6 +14,7 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.tag.IntegrationTest
+import org.joda.time.{DateTime, DateTimeZone}
 
 @IntegrationTest
 class SearchServiceTest extends UnitSuite with TestEnvironment {
@@ -30,11 +31,13 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
   val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")))
   val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")))
+  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
-  val audio1 = AudioMetaInformation(Some(1), List(Title("Batmen er på vift med en bil", Some("nb"))), List(Audio("file.mp3", "audio/mpeg", 1024, Some("nb"))), copyrighted, List(Tag(List("fisk"), Some("nb"))))
-  val audio2 = AudioMetaInformation(Some(2), List(Title("Pingvinen er ute og går", Some("nb"))), List(Audio("file2.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("fugl"), Some("nb"))))
-  val audio3 = AudioMetaInformation(Some(3), List(Title("Superman er ute og flyr", Some("nb"))), List(Audio("file4.mp3", "audio/mpeg", 1024, Some("nb"))), byNcSa, List(Tag(List("supermann"), Some("nb"))))
-  val audio4 = AudioMetaInformation(Some(4), List(Title("Donald Duck kjører bil", Some("nb"))), List(Audio("file3.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("and"), Some("nb"))))
+
+  val audio1 = AudioMetaInformation(Some(1), List(Title("Batmen er på vift med en bil", Some("nb"))), List(Audio("file.mp3", "audio/mpeg", 1024, Some("nb"))), copyrighted, List(Tag(List("fisk"), Some("nb"))), "ndla124", updated())
+  val audio2 = AudioMetaInformation(Some(2), List(Title("Pingvinen er ute og går", Some("nb"))), List(Audio("file2.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("fugl"), Some("nb"))), "ndla124", updated())
+  val audio3 = AudioMetaInformation(Some(3), List(Title("Superman er ute og flyr", Some("nb"))), List(Audio("file4.mp3", "audio/mpeg", 1024, Some("nb"))), byNcSa, List(Tag(List("supermann"), Some("nb"))), "ndla124", updated())
+  val audio4 = AudioMetaInformation(Some(4), List(Title("Donald Duck kjører bil", Some("nb"))), List(Audio("file3.mp3", "audio/mpeg", 1024, Some("nb"))), publicDomain, List(Tag(List("and"), Some("nb"))), "ndla124", updated())
 
   override def beforeAll = {
     indexService.createIndexWithName(AudioApiProperties.SearchIndex)

@@ -6,6 +6,7 @@ import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatra.servlet.FileItem
@@ -29,6 +30,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     None
   )
   val domainAudioMeta = converterService.toDomainAudioMetaInformation(newAudioMeta, Seq(Audio(newFileName1, "audio/mp3", 1024, Some("en"))))
+  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+
 
   override def beforeEach = {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
@@ -43,6 +46,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     reset(audioRepository, searchIndexService)
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenReturn(domainAudioMeta.copy(id=Some(1)))
+  }
+
+  test("converter to domain should set updatedBy from authUser and updated date"){
+    when(authUser.id()).thenReturn("ndla54321")
+    when(clock.now()).thenReturn(updated())
+    val domain = converterService.toDomainAudioMetaInformation(newAudioMeta, Seq(Audio(newFileName1, "audio/mp3", 1024, Some("en"))))
+    domain.updatedBy should equal ("ndla54321")
+    domain.updated should equal(updated())
   }
 
   test("randomFileName should return a random filename with a given length and extension") {

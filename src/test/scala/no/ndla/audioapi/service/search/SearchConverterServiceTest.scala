@@ -12,12 +12,15 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageList, SearchableLanguageValues}
+import org.joda.time.{DateTime, DateTimeZone}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
+  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+
 
   val domainTitles = List(
     Title("Bokmål tittel", Some("nb")), Title("Nynorsk tittel", Some("nn")),
@@ -46,26 +49,26 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   test("That asSearchableAudioInformation converts titles with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags)
+    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
     val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
     verifyTitles(searchableAudio)
   }
 
 
   test("That asSearchableAudioInformation converts articles with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags)
+    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
     val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
   }
 
 
   test("That asSearchableAudioInformation converts tags with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags)
+    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
     val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
     verifyTags(searchableAudio)
   }
 
   test("That asSearchableAudioInformation converts all fields with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags)
+    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
     val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
 
     verifyTitles(searchableAudio)
@@ -73,7 +76,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asAudioSummary converts all fields with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags)
+    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
     val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
     val articleSummary = searchConverterService.asAudioSummary(searchableAudio)
 
