@@ -22,9 +22,9 @@ trait MigrationApiClient {
     val audioMetadataEndpoint = s"${AudioApiProperties.MigrationHost}/audio/:audio_id"
 
     def getAudioMetaData(audioNid: String): Try[Seq[MigrationAudioMeta]] = {
-      ndlaClient.fetch[Seq[MigrationAudioMeta]](
+      ndlaClient.fetchWithBasicAuth[Seq[MigrationAudioMeta]](
         Http(audioMetadataEndpoint.replace(":audio_id", audioNid)),
-        Some(AudioApiProperties.MigrationUser), Some(AudioApiProperties.MigrationPassword))
+        AudioApiProperties.MigrationUser, AudioApiProperties.MigrationPassword)
     }
   }
 }
