@@ -119,7 +119,7 @@ trait AudioController {
 
     get("/", operation(getAudioFiles)) {
       val query = paramOrNone("query")
-      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val language = paramOrDefault("language", Language.AllLanguages)
       val license = paramOrNone("license")
       val sort = paramOrNone("sort")
       val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)

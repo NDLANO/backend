@@ -18,7 +18,7 @@ import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage}
+import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage, AllLanguages}
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -48,7 +48,12 @@ trait SearchService {
           while (iterator.hasNext) {
             resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
           }
-          resultList.filter(summary => summary.title.nonEmpty)
+          if (language == AllLanguages) {
+            resultList
+          }
+          else {
+            resultList.filter(summary => summary.title.nonEmpty)
+          }
         }
         case _ => Seq()
       }
@@ -60,13 +65,17 @@ trait SearchService {
       val titles = hit.get("titles").getAsJsonObject.entrySet().to[Seq]
         .map(entr => Title(entr.getValue.getAsString, Some(entr.getKey)))
 
-      val title = titles
-        .filter(title => title.language.getOrElse(NoLanguage) == language)
-        .map(title => if (title.language.getOrElse(NoLanguage) == NoLanguage) "" else title.title)
-        .headOption
-        .getOrElse("")
-
       val supportedLanguages = titles.map(_.language.getOrElse(NoLanguage))
+
+      val title =
+        if (language == AllLanguages)
+          titles.find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage).getOrElse(titles.head).title
+        else titles
+          .filter(title => title.language.getOrElse(NoLanguage) == language)
+          .map(title => if (title.language.getOrElse(NoLanguage) == NoLanguage) "" else title.title)
+          .headOption
+          .getOrElse("")
+
 
       AudioSummary(
         hit.get("id").getAsLong,
@@ -79,7 +88,7 @@ trait SearchService {
 
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
-        language.getOrElse(DefaultLanguage),
+        language.getOrElse(AllLanguages),
         license,
         sort,
         page,
@@ -107,7 +116,8 @@ trait SearchService {
         case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
       }
 
-      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, language))
+      val searchLanguage = if (language == AllLanguages) DefaultLanguage else language
+      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, searchLanguage))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)

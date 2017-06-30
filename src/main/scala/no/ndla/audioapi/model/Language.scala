@@ -14,6 +14,7 @@ object Language {
   val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
   val NoLanguage = ""
+  val AllLanguages = "all"
 
   val languageAnalyzers = Seq(
     LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
