@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import java.io.File
 
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.{Clock, ReadService, WriteService}
@@ -91,7 +91,7 @@ trait AudioController {
 
     get("/", operation(getAudioFiles)) {
       val query = paramOrNone("query")
-      val language = paramOrNone("language")
+      val language = paramOrDefault("language", Language.DefaultLanguage)
       val license = paramOrNone("license")
       val sort = paramOrNone("sort")
       val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)

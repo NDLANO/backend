@@ -17,7 +17,8 @@ import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.Language.{DefaultLanguage, UnknownLanguage}
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -38,34 +39,47 @@ trait SearchService {
 
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
-    def getHits(response: JestSearchResult): Seq[AudioSummary] = {
+    def getHits(response: JestSearchResult, language: String): Seq[AudioSummary] = {
       var resultList = Seq[AudioSummary]()
       response.getTotal match {
         case count: Integer if count > 0 => {
           val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
           val iterator = resultArray.iterator()
           while (iterator.hasNext) {
-            resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
+            resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
           }
-          resultList
+          resultList.filter(summary => summary.title.nonEmpty)
         }
         case _ => Seq()
       }
     }
 
-    def hitAsAudioSummary(hit: JsonObject): AudioSummary = {
+    def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
       import scala.collection.JavaConversions._
+
+      val titles = hit.get("titles").getAsJsonObject.entrySet().to[Seq]
+        .map(entr => Title(entr.getValue.getAsString, Some(entr.getKey)))
+
+      val title = titles
+        .filter(title => title.language.getOrElse(UnknownLanguage) == language)
+        .map(title => if (title.language.getOrElse(UnknownLanguage) == UnknownLanguage) "" else title.title)
+        .headOption
+        .getOrElse("")
+
+      val supportedLanguages = titles.map(_.language.getOrElse(""))
 
       AudioSummary(
         hit.get("id").getAsLong,
-        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(entr => Title(entr.getValue.getAsString, Some(entr.getKey))),
+        title,
         ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString)
+        hit.get("license").getAsString,
+        supportedLanguages
+      )
     }
 
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
-        language.getOrElse(Language.DefaultLanguage),
+        language.getOrElse(DefaultLanguage),
         license,
         sort,
         page,
@@ -74,7 +88,7 @@ trait SearchService {
     }
 
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
+      val searchLanguage = language.getOrElse(DefaultLanguage)
 
       val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
       val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
@@ -102,7 +116,7 @@ trait SearchService {
         .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
+        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, language, getHits(response, language))
         case Failure(f) => errorHandler(Failure(f))
       }
     }
