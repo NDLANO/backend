@@ -66,7 +66,7 @@ trait SearchService {
         .headOption
         .getOrElse("")
 
-      val supportedLanguages = titles.map(_.language.getOrElse(""))
+      val supportedLanguages = titles.map(_.language.getOrElse(NoLanguage))
 
       AudioSummary(
         hit.get("id").getAsLong,
