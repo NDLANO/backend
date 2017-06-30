@@ -8,22 +8,19 @@
 
 package no.ndla.audioapi.controller
 
-import java.io.File
-
-import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.{Language, Sort}
-import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchResult, ValidationError, ValidationException, ValidationMessage}
-import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.{Clock, ReadService, WriteService}
-import no.ndla.audioapi.service.search.SearchService
 import no.ndla.audioapi.AudioApiProperties.{MaxAudioFileSizeBytes, RoleWithWriteAccess}
 import no.ndla.audioapi.auth.Role
-import org.json4s.{DefaultFormats, Formats}
+import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchParams, SearchResult, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.SearchService
+import no.ndla.audioapi.service.{Clock, ReadService, WriteService}
 import org.json4s.native.Serialization.read
-import org.scalatra.swagger._
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType
+import org.scalatra.swagger._
 
 import scala.util.{Failure, Success, Try}
 
@@ -61,6 +58,18 @@ trait AudioController {
         authorizations "oauth2"
         responseMessages(response404, response500))
 
+    val getAudioFilesPost =
+      (apiOperation[List[SearchResult]]("getAudioFilesPost")
+        summary "Show all audio files"
+        notes "Shows all the audio files in the ndla.no database. You can search it too."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        headerParam[Option[String]]("app-key").description("Your app-key"),
+        bodyParam[SearchParams]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
+
     val getByAudioId =
       (apiOperation[AudioMetaInformation]("findByAudioId")
         summary "Show audio info"
@@ -89,14 +98,7 @@ trait AudioController {
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
-    get("/", operation(getAudioFiles)) {
-      val query = paramOrNone("query")
-      val language = paramOrDefault("language", Language.DefaultLanguage)
-      val license = paramOrNone("license")
-      val sort = paramOrNone("sort")
-      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
-      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
-
+    def search(query: Option[String], language: Option[String], license: Option[String], sort: Option[String], pageSize: Option[Int], page: Option[Int]) = {
       query match {
         case Some(q) => searchService.matchingQuery(
           query = q.toLowerCase().split(" ").map(_.trim),
@@ -113,6 +115,29 @@ trait AudioController {
           pageSize = pageSize,
           sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc))
       }
+    }
+
+    get("/", operation(getAudioFiles)) {
+      val query = paramOrNone("query")
+      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val license = paramOrNone("license")
+      val sort = paramOrNone("sort")
+      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+
+      search(query, language, license, sort, pageSize, page)
+    }
+
+    post("/search/", operation(getAudioFilesPost)) {
+      val searchParams = extract[SearchParams](request.body)
+      val query = searchParams.query
+      val language = searchParams.language
+      val license = searchParams.license
+      val sort = searchParams.sort
+      val pageSize = searchParams.pageSize
+      val page = searchParams.page
+
+      search(query, language, license, sort, pageSize, page)
     }
 
     get("/:id", operation(getByAudioId)) {

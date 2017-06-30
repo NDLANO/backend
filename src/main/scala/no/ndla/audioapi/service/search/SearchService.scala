@@ -18,7 +18,7 @@ import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.Language.{DefaultLanguage, UnknownLanguage}
+import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage}
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -61,8 +61,8 @@ trait SearchService {
         .map(entr => Title(entr.getValue.getAsString, Some(entr.getKey)))
 
       val title = titles
-        .filter(title => title.language.getOrElse(UnknownLanguage) == language)
-        .map(title => if (title.language.getOrElse(UnknownLanguage) == UnknownLanguage) "" else title.title)
+        .filter(title => title.language.getOrElse(NoLanguage) == language)
+        .map(title => if (title.language.getOrElse(NoLanguage) == NoLanguage) "" else title.title)
         .headOption
         .getOrElse("")
 
