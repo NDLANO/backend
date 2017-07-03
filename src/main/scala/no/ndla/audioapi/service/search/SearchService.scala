@@ -126,7 +126,10 @@ trait SearchService {
         .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, language, getHits(response, language))
+        case Success(response) => {
+          val hits = getHits(response, language)
+          SearchResult(hits.size, page.getOrElse(1), numResults, language, hits)
+        }
         case Failure(f) => errorHandler(Failure(f))
       }
     }
