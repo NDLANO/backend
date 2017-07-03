@@ -67,15 +67,10 @@ trait SearchService {
 
       val supportedLanguages = titles.map(_.language.getOrElse(NoLanguage))
 
-      val title =
-        if (language == AllLanguages)
-          titles.find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage).getOrElse(titles.head).title
-        else titles
-          .filter(title => title.language.getOrElse(NoLanguage) == language)
-          .map(title => if (title.language.getOrElse(NoLanguage) == NoLanguage) "" else title.title)
-          .headOption
-          .getOrElse("")
-
+      val title = titles
+        .find(title => title.language.getOrElse(NoLanguage) == (if (language == AllLanguages) DefaultLanguage else language))
+        .getOrElse(titles.head)
+        .title
 
       AudioSummary(
         hit.get("id").getAsLong,
@@ -111,12 +106,20 @@ trait SearchService {
     }
 
     def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
-      val filteredSearch = license match {
-        case None => queryBuilder.filter(noCopyright)
-        case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+      val (filteredSearch, searchLanguage) = {
+
+        val licenseFilteredSearch = license match {
+          case None => queryBuilder.filter(noCopyright)
+          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+        }
+
+        language match {
+          case AllLanguages => (licenseFilteredSearch, DefaultLanguage)
+          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("titles", QueryBuilders.existsQuery(s"titles.$language"), ScoreMode.Avg)), language)
+        }
+
       }
 
-      val searchLanguage = if (language == AllLanguages) DefaultLanguage else language
       val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, searchLanguage))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
@@ -126,10 +129,7 @@ trait SearchService {
         .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
-        case Success(response) => {
-          val hits = getHits(response, language)
-          SearchResult(hits.size, page.getOrElse(1), numResults, language, hits)
-        }
+        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, language, getHits(response, language))
         case Failure(f) => errorHandler(Failure(f))
       }
     }
