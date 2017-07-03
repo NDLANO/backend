@@ -48,12 +48,7 @@ trait SearchService {
           while (iterator.hasNext) {
             resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
           }
-          if (language == AllLanguages) {
-            resultList
-          }
-          else {
-            resultList.filter(summary => summary.title.nonEmpty)
-          }
+          resultList
         }
         case _ => Seq()
       }
