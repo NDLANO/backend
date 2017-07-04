@@ -13,24 +13,37 @@ import com.typesafe.scalalogging.LazyLogging
 import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.api.NewAudioMetaInformation
-import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.model.domain.{Audio}
+import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage, AllLanguages}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
-import scalaj.http.Base64
 
 trait ConverterService {
   this: User with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation): api.AudioMetaInformation = {
-      api.AudioMetaInformation(audioMetaInformation.id.get,
-        audioMetaInformation.titles.map(toApiTitle),
+    def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): api.AudioMetaInformation = {
+      val title =
+        if (language == AllLanguages)
+          audioMetaInformation.titles
+            .find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage)
+            .getOrElse(audioMetaInformation.titles.head.title).toString
+        else
+          audioMetaInformation.titles
+            .filter(title => title.language.getOrElse(NoLanguage) == language)
+            .map(title => if (title.language.getOrElse(NoLanguage) == NoLanguage) "" else title.title)
+            .headOption
+            .getOrElse("")
+
+      api.AudioMetaInformation(
+        audioMetaInformation.id.get,
+        title,
         audioMetaInformation.filePaths.map(toApiAudio),
         toApiCopyright(audioMetaInformation.copyright),
-        audioMetaInformation.tags.map(toApiTags))
+        audioMetaInformation.tags.map(toApiTags)
+      )
     }
 
     def toApiTitle(title: domain.Title): api.Title =
