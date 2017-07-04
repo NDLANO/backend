@@ -126,6 +126,38 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     results.results.head.id should be (1)
   }
 
+  test("That searching for all languages and specifying no language should return the same") {
+    val results1 = searchService.all(Some("all"), None, None, None, Sort.ByTitleAsc)
+    val results2 = searchService.all(None, None, None, None, Sort.ByTitleAsc)
+
+    results1.totalCount should be (results2.totalCount)
+    results1.results(0) should be (results2.results(0))
+    results1.results(1) should be (results2.results(1))
+    results1.results(2) should be (results2.results(2))
+  }
+
+  test("That searching for 'nb' should return all results") {
+    val results = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
+    results.totalCount should be (3)
+  }
+
+  test("That searching for 'en' should only return 'Donald' (audio4) with the english title") {
+    val result = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
+    result.totalCount should be (1)
+    result.results.head.title should be ("Donald Duck drives a car")
+    result.language should be ("en")
+  }
+
+  test("That 'supported languages' should match all possible title languages") {
+    val result1 = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
+    val result2 = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
+
+    // 'Donald' with 'en', 'nb' and 'nn'
+    result1.results.head.supportedLanguages should be (audio4.titles.map(_.language.getOrElse("")))
+    // 'Pingvinen' with 'nb'
+    result2.results(2).supportedLanguages should be (audio1.titles.map(_.language.getOrElse("")))
+  }
+
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
     var done = false
