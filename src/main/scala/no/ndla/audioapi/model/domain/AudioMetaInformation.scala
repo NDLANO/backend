@@ -12,6 +12,7 @@ import java.util.Date
 
 import io.searchbox.client.JestResult
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.model.Language.{AllLanguages, NoLanguage, DefaultLanguage}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
@@ -23,7 +24,23 @@ case class AudioMetaInformation(id: Option[Long],
                                 copyright: Copyright,
                                 tags: Seq[Tag],
                                 updatedBy :String,
-                                updated :Date)
+                                updated :Date) {
+
+  def getTitleByLanguage(audio: AudioMetaInformation, language: String): Option[Title] = {
+    if (language == AllLanguages)
+      Option(audio.titles
+        .find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage)
+        .getOrElse(audio.titles.head))
+    else
+      Option(audio.titles
+        .filter(title => title.language.getOrElse(NoLanguage) == language)
+        .find(title => title.language.getOrElse(NoLanguage) != NoLanguage).get)
+  }
+
+  def getTagsByTitleLanguage(audio: AudioMetaInformation, language: String): Option[Tag] = {
+    audio.tags.find(value => language == value.language.get)
+  }
+}
 
 case class Title(title: String, language: Option[String])
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String])

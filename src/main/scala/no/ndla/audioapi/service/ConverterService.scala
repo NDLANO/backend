@@ -15,7 +15,7 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.Audio
-import no.ndla.audioapi.model.Language.{AllLanguages, DefaultLanguage, NoLanguage}
+import no.ndla.audioapi.model.Language.{NoLanguage}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
@@ -29,20 +29,10 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
       val supportedLanguages = audioMetaInformation.titles.map(_.language.getOrElse(NoLanguage))
-
+      
       if (supportedLanguages.contains(language)) {
-        val title =
-          if (language == AllLanguages)
-            Option(audioMetaInformation.titles
-              .find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage)
-              .getOrElse(audioMetaInformation.titles.head))
-          else
-            Option(audioMetaInformation.titles
-              .filter(title => title.language.getOrElse(NoLanguage) == language)
-              .find(title => title.language.getOrElse(NoLanguage) != NoLanguage).get)
-
-        val tags = audioMetaInformation.tags
-          .find(value => title.get.language.get == value.language.get)
+        val title = audioMetaInformation.getTitleByLanguage(audioMetaInformation, language)
+        val tags = audioMetaInformation.getTagsByTitleLanguage(audioMetaInformation, title.get.language.get)
 
         Success(api.AudioMetaInformation(
           audioMetaInformation.id.get,
