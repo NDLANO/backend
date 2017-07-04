@@ -39,7 +39,7 @@ trait WriteService {
         deleteFiles(audioFilesMeta)
       }
 
-      audioMetaInformation
+      audioMetaInformation.flatten
     }
 
     private[service] def uploadFiles(filesToUpload: Seq[FileItem], audioFileMetas: Seq[NewAudioFile]): Try[Seq[Audio]] = {

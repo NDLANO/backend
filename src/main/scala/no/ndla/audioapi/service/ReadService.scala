@@ -17,10 +17,10 @@ trait ReadService {
 
   class ReadService {
     def withId(id: Long, language: String): Option[api.AudioMetaInformation] =
-      audioRepository.withId(id).map(audio => converterService.toApiAudioMetaInformation(audio, language))
+      audioRepository.withId(id).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
     def withExternalId(externalId: String, language: String): Option[api.AudioMetaInformation] =
-      audioRepository.withExternalId(externalId).map(audio => converterService.toApiAudioMetaInformation(audio, language))
+      audioRepository.withExternalId(externalId).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
   }
 }
