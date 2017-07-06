@@ -36,6 +36,7 @@ trait ConverterService {
 
         Success(api.AudioMetaInformation(
           audioMetaInformation.id.get,
+          language,
           title.get.title,
           audioMetaInformation.filePaths.map(toApiAudio),
           toApiCopyright(audioMetaInformation.copyright),

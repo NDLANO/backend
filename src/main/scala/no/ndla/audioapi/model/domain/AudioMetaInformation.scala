@@ -12,7 +12,7 @@ import java.util.Date
 
 import io.searchbox.client.JestResult
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Language.{AllLanguages, NoLanguage, DefaultLanguage}
+import no.ndla.audioapi.model.Language.{AllLanguages, DefaultLanguage, NoLanguage}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
@@ -28,17 +28,16 @@ case class AudioMetaInformation(id: Option[Long],
 
   def getTitleByLanguage(audio: AudioMetaInformation, language: String): Option[Title] = {
     if (language == AllLanguages)
-      Option(audio.titles
-        .find(title => title.language.getOrElse(NoLanguage) == DefaultLanguage)
-        .getOrElse(audio.titles.head))
+      audio.titles
+        .find(_.language.getOrElse(NoLanguage) == DefaultLanguage)
+        .orElse(audio.titles.headOption)
     else
-      Option(audio.titles
-        .filter(title => title.language.getOrElse(NoLanguage) == language)
-        .find(title => title.language.getOrElse(NoLanguage) != NoLanguage).get)
+      audio.titles
+        .find(title => title.language.getOrElse(NoLanguage) == language)
   }
 
-  def getTagsByTitleLanguage(audio: AudioMetaInformation, language: String): Option[Tag] = {
-    audio.tags.find(value => language == value.language.get)
+  def getTagsByLanguage(audio: AudioMetaInformation, language: String): Option[Tag] = {
+    audio.tags.find(_.language.getOrElse(NoLanguage) == language)
   }
 }
 

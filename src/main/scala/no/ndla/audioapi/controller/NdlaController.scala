@@ -66,7 +66,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
 
-  def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): Option[String] =
-    Option(params.get(paramName).map(_.trim).filterNot(_.isEmpty()).getOrElse(default))
+  def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String =
+    params.get(paramName).map(_.trim).filterNot(_.isEmpty()).getOrElse(default)
 
 }

@@ -125,7 +125,7 @@ trait AudioController {
       val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
       val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
 
-      search(query, language, license, sort, pageSize, page)
+      search(query, Some(language), license, sort, pageSize, page)
     }
 
     post("/search/", operation(getAudioFilesPost)) {
@@ -142,7 +142,7 @@ trait AudioController {
 
     get("/:id", operation(getByAudioId)) {
       val id = long("id")
-      val language = paramOrDefault("language", Language.AllLanguages).get
+      val language = paramOrDefault("language", Language.AllLanguages)
       val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
       
       readService.withId(id, searchLanguage) match {

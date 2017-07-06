@@ -29,7 +29,9 @@ trait ValidationService {
     }
 
     def validate(audio: AudioMetaInformation): Try[AudioMetaInformation] = {
-      val validationMessages = audio.titles.flatMap(title => validateTitle("title", title))  ++
+      val validationMessages = validateNonEmpty("title", audio.titles).toSeq ++
+        audio.titles.flatMap(title => validateNonEmpty("title", title.language)) ++
+        audio.titles.flatMap(title => validateTitle("title", title)) ++
         validateCopyright(audio.copyright) ++
         validateTags(audio.tags)
 
@@ -86,6 +88,24 @@ trait ValidationService {
 
     private def languageCodeSupported6391(languageCode: String): Boolean =
       get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
+
+    private def validateNonEmpty(fieldPath: String, option: Option[Any]): Option[ValidationMessage] = {
+      option match {
+        case Some(_) =>
+          None
+        case None =>
+          Some(ValidationMessage(fieldPath, "There is no element to validate."))
+      }
+    }
+
+    private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
+      sequence match {
+        case head :: tail =>
+          None
+        case _ =>
+          Some(ValidationMessage(fieldPath, "There are no elements to validate."))
+      }
+    }
 
   }
 }

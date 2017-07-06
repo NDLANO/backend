@@ -62,10 +62,15 @@ trait SearchService {
 
       val supportedLanguages = titles.map(_.language.getOrElse(NoLanguage))
 
+      /*
+      * Find a title that matches the language parameter,
+      * the first title if no such language exists,
+      * or an empty string if there are no titles.
+      * */
       val title = titles
         .find(title => title.language.getOrElse(NoLanguage) == (if (language == AllLanguages) DefaultLanguage else language))
-        .getOrElse(titles.head)
-        .title
+        .orElse(titles.headOption).map(_.title)
+        .getOrElse("")
 
       AudioSummary(
         hit.get("id").getAsLong,
