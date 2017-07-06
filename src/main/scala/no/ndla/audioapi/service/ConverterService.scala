@@ -15,7 +15,7 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.Audio
-import no.ndla.audioapi.model.Language.{NoLanguage}
+import no.ndla.audioapi.model.Language.{AllLanguages, NoLanguage, UnknownLanguage}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
@@ -28,9 +28,12 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
-      val supportedLanguages = audioMetaInformation.titles.map(_.language.getOrElse(NoLanguage))
+      val supportedLanguages = audioMetaInformation.titles
+        .map(_.language.getOrElse(UnknownLanguage))
+        .map(lang => if (lang == NoLanguage) UnknownLanguage else lang)
+        .distinct
 
-      if (supportedLanguages.contains(language)) {
+      if (supportedLanguages.contains(language) || language == AllLanguages) {
         val title = audioMetaInformation.getTitleByLanguage(audioMetaInformation, language)
         val tags = audioMetaInformation.getTagsByLanguage(audioMetaInformation, title.get.language.get)
 
@@ -50,7 +53,7 @@ trait ConverterService {
 
     def toApiAudio(audio: domain.Audio): api.Audio = {
       val audioUrl: Uri = s"$Domain/$AudioFilesUrlSuffix/${audio.filePath}"
-      api.Audio(audioUrl, audio.mimeType, audio.fileSize, audio.language)
+      api.Audio(audioUrl, audio.mimeType, audio.fileSize)
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =

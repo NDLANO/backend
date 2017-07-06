@@ -143,9 +143,8 @@ trait AudioController {
     get("/:id", operation(getByAudioId)) {
       val id = long("id")
       val language = paramOrDefault("language", Language.AllLanguages)
-      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
-      
-      readService.withId(id, searchLanguage) match {
+
+      readService.withId(id, language) match {
         case Some(audio) => audio
         case None => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
       }
