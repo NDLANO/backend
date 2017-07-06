@@ -29,10 +29,10 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
       val supportedLanguages = audioMetaInformation.titles.map(_.language.getOrElse(NoLanguage))
-      
+
       if (supportedLanguages.contains(language)) {
         val title = audioMetaInformation.getTitleByLanguage(audioMetaInformation, language)
-        val tags = audioMetaInformation.getTagsByTitleLanguage(audioMetaInformation, title.get.language.get)
+        val tags = audioMetaInformation.getTagsByLanguage(audioMetaInformation, title.get.language.get)
 
         Success(api.AudioMetaInformation(
           audioMetaInformation.id.get,
