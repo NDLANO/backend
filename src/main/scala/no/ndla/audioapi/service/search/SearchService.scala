@@ -129,7 +129,13 @@ trait SearchService {
         .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, language, getHits(response, language))
+        case Success(response) =>
+            SearchResult(
+            response.getTotal.toLong,
+            page.getOrElse(1), numResults,
+            if (language == AllLanguages) "" else language,
+            getHits(response, language)
+          )
         case Failure(f) => errorHandler(Failure(f))
       }
     }

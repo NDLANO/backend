@@ -89,21 +89,17 @@ trait ValidationService {
     private def languageCodeSupported6391(languageCode: String): Boolean =
       get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
 
-    private def validateNonEmpty(fieldPath: String, option: Option[Any]): Option[ValidationMessage] = {
+    private def validateNonEmpty(fieldPath: String, option: Option[_]): Option[ValidationMessage] = {
       option match {
-        case Some(_) =>
-          None
-        case None =>
-          Some(ValidationMessage(fieldPath, "There is no element to validate."))
+        case Some(_) => None
+        case None => Some(ValidationMessage(fieldPath, "There is no element to validate."))
       }
     }
 
     private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
-      sequence match {
-        case head :: tail =>
-          None
-        case _ =>
-          Some(ValidationMessage(fieldPath, "There are no elements to validate."))
+      sequence.nonEmpty match {
+        case true => None
+        case false => Some(ValidationMessage(fieldPath, "There are no elements to validate."))
       }
     }
 
