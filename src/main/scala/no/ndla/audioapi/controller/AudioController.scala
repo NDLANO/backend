@@ -101,7 +101,7 @@ trait AudioController {
     def search(query: Option[String], language: Option[String], license: Option[String], sort: Option[String], pageSize: Option[Int], page: Option[Int]) = {
       query match {
         case Some(q) => searchService.matchingQuery(
-          query = q.toLowerCase().split(" ").map(_.trim),
+          query = q,
           language = language,
           license = license,
           page = page,

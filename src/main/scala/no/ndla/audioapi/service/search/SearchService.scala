@@ -73,11 +73,11 @@ trait SearchService {
         QueryBuilders.boolQuery())
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def matchingQuery(query: String, language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
-      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
-      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
+      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"titles.$searchLanguage").boost(1)
+      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$searchLanguage").boost(1)
 
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
