@@ -15,7 +15,7 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.Audio
-import no.ndla.audioapi.model.Language.{AllLanguages, NoLanguage, UnknownLanguage}
+import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
@@ -28,23 +28,22 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
-      val supportedLanguages = audioMetaInformation.titles
-        .map(_.language.getOrElse(UnknownLanguage))
-        .map(lang => if (lang == NoLanguage) UnknownLanguage else lang)
-        .distinct
+      val supportedLanguages = getSupportedLanguages(audioMetaInformation)
 
-      if (supportedLanguages.contains(language) || language == AllLanguages) {
-        val title = audioMetaInformation.getTitleByLanguage(audioMetaInformation, language)
-        val tags = audioMetaInformation.getTagsByLanguage(audioMetaInformation, title.get.language.get)
+      if (supportedLanguages.nonEmpty && supportedLanguages.contains(language)) {
+        val searchLanguage = getSearchLanguage(language, supportedLanguages)
+        val title = findValueByLanguage(audioMetaInformation.titles, searchLanguage).getOrElse("")
+        val apiAudio = findByLanguage(audioMetaInformation.filePaths, searchLanguage).asInstanceOf[Option[Audio]].map(toApiAudio).getOrElse(api.Audio("", "", -1))
+        val tags = findValueByLanguage(audioMetaInformation.tags, language).getOrElse(Seq.empty[String])
 
         Success(api.AudioMetaInformation(
           audioMetaInformation.id.get,
-          language,
-          title.get.title,
-          audioMetaInformation.filePaths.map(toApiAudio),
+          searchLanguage,
+          title,
+          apiAudio,
           toApiCopyright(audioMetaInformation.copyright),
-          supportedLanguages,
-          if (tags.isEmpty) Seq.empty else tags.get.tags
+          tags,
+          supportedLanguages
         ))
       } else {
         Failure(new NotFoundException)

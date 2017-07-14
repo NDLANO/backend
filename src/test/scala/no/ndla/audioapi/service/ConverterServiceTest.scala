@@ -36,10 +36,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       audioMeta.id.get,
       "nb",
       "Batmen er på vift med en bil",
-      audioMeta.filePaths.map(service.toApiAudio),
+      audioMeta.filePaths.map(service.toApiAudio).head,
       service.toApiCopyright(audioMeta.copyright),
-      Seq("nb"),
-      Seq("fisk")
+      Seq("fisk"),
+      Seq("nb")
     )
 
     service.toApiAudioMetaInformation(audioMeta, "nb") should equal(Success(expected))

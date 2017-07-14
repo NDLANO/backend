@@ -83,7 +83,7 @@ trait SearchService {
 
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
-        language.getOrElse(AllLanguages),
+        language.getOrElse(DefaultLanguage),
         license,
         sort,
         page,

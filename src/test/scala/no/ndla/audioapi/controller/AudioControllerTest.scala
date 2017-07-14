@@ -71,7 +71,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   }
 
   test("That POST / returns 200 if everything is fine and dandy") {
-    val sampleAudioMeta = AudioMetaInformation(1, "", "title", Seq(), Copyright(License("by", None, None), None, Seq()), Seq(), Seq())
+    val sampleAudioMeta = AudioMetaInformation(1, "", "title", Audio("", "", -1), Copyright(License("by", None, None), None, Seq()), Seq(), Seq())
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Seq[FileItem]])).thenReturn(Success(sampleAudioMeta))
 
     post("/", Map("metadata" -> sampleNewAudioMeta), Map("files" -> sampleUploadFile), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
