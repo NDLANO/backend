@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
-  def updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")))
   val audioMeta = AudioMetaInformation(
     Some(1),
