@@ -77,7 +77,8 @@ trait AudioController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting may apply on anonymous access."),
-        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched.")
+        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched."),
+        queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params. Return only fields with the provided language.")
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
