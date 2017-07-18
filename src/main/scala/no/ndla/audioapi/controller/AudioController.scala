@@ -143,7 +143,7 @@ trait AudioController {
 
     get("/:id", operation(getByAudioId)) {
       val id = long("id")
-      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val language = paramOrDefault("language", Language.AllLanguages)
 
       readService.withId(id, language) match {
         case Some(audio) => audio

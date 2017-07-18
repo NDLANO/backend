@@ -31,14 +31,6 @@ object Language {
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
-  def getSupportedLanguages(sequences: Seq[Seq[WithLanguage]]): Seq[String] = {
-    sequences.flatMap(_.flatMap(_.language)).distinct
-  }
-
-  def getSupportedLanguages(aMI: AudioMetaInformation): Seq[String] = {
-    getSupportedLanguages(Seq(aMI.titles, aMI.filePaths, aMI.tags))
-  }
-
   def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
     val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
     if (supportedLanguages.contains(l))
@@ -48,11 +40,16 @@ object Language {
   }
 
   def findByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
-    sequence.find(_.language.getOrElse("") == lang)
+    sequence.find(_.language.getOrElse(UnknownLanguage) == lang)
   }
 
   def findValueByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
     findByLanguage(sequence, lang).map(_.value)
+  }
+
+  def valueWithEitherLangOrMissingLang(lang: Option[String], searchLanguage: String): Boolean = {
+    if (searchLanguage == UnknownLanguage) lang.contains("") || lang.isEmpty
+    else lang.getOrElse("") == searchLanguage
   }
 }
 

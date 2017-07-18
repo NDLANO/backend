@@ -52,7 +52,7 @@ trait InternController {
 
       importedDocument match {
         case Success(audio) =>
-          val languages = audio.titles.map(title => title.language.getOrElse("")).filterNot(lang => lang == "")
+          val languages = audio.titles.map(title => title.language.getOrElse(""))
           val language = languages
             .find(lang => lang == Language.DefaultLanguage)
             .getOrElse(languages.head)

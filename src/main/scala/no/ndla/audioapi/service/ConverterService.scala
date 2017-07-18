@@ -14,7 +14,7 @@ import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
-import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.model.domain.{Audio, Tag, Title}
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
@@ -28,13 +28,23 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
     def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
-      val supportedLanguages = getSupportedLanguages(audioMetaInformation)
+      val supportedLanguages = audioMetaInformation.titles
+        .map(value => if (value.language.contains(NoLanguage)) UnknownLanguage else value.language.getOrElse(""))
 
-      if (supportedLanguages.nonEmpty && supportedLanguages.contains(language)) {
+      if (supportedLanguages.nonEmpty && (supportedLanguages.contains(language) || language == AllLanguages)) {
         val searchLanguage = getSearchLanguage(language, supportedLanguages)
-        val title = findValueByLanguage(audioMetaInformation.titles, searchLanguage).getOrElse("")
+
+        val title = audioMetaInformation.titles
+          .find(value => valueWithEitherLangOrMissingLang(value.language, searchLanguage))
+          .getOrElse(Title("", None))
+          .title
+
+        val tags = audioMetaInformation.tags
+          .find(x => valueWithEitherLangOrMissingLang(x.language, searchLanguage))
+          .getOrElse(Tag(Seq.empty, None))
+          .tags
+
         val apiAudio = findByLanguage(audioMetaInformation.filePaths, searchLanguage).asInstanceOf[Option[Audio]].map(toApiAudio).getOrElse(api.Audio("", "", -1))
-        val tags = findValueByLanguage(audioMetaInformation.tags, language).getOrElse(Seq.empty[String])
 
         Success(api.AudioMetaInformation(
           audioMetaInformation.id.get,
@@ -43,7 +53,7 @@ trait ConverterService {
           apiAudio,
           toApiCopyright(audioMetaInformation.copyright),
           tags,
-          supportedLanguages
+          supportedLanguages.distinct
         ))
       } else {
         Failure(new NotFoundException)

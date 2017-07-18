@@ -56,14 +56,12 @@ trait SearchService {
 
     def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
       import scala.collection.JavaConversions._
-
-      val titlesElement = hit.get("titles").getAsJsonObject
-      val supportedLanguages = titlesElement.entrySet().to[Seq].map(_.getKey)
+      val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
 
       val title = if (language == AllLanguages) {
-        titlesElement.entrySet().to[Seq].map(_.getValue.getAsString).headOption.getOrElse("")
+        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getValue.getAsString).headOption.getOrElse("")
       } else {
-        titlesElement.getAsJsonObject.get(language).getAsString
+        hit.get("titles").getAsJsonObject.get(language).getAsString
       }
 
       AudioSummary(
@@ -71,7 +69,7 @@ trait SearchService {
         title,
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
-        supportedLanguages
+        supportedLanguages.distinct
       )
     }
 
