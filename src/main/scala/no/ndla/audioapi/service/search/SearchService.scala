@@ -17,7 +17,8 @@ import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage, AllLanguages}
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -38,14 +39,14 @@ trait SearchService {
 
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
-    def getHits(response: JestSearchResult): Seq[AudioSummary] = {
+    def getHits(response: JestSearchResult, language: String): Seq[AudioSummary] = {
       var resultList = Seq[AudioSummary]()
       response.getTotal match {
         case count: Integer if count > 0 => {
           val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
           val iterator = resultArray.iterator()
           while (iterator.hasNext) {
-            resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
+            resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
           }
           resultList
         }
@@ -53,19 +54,28 @@ trait SearchService {
       }
     }
 
-    def hitAsAudioSummary(hit: JsonObject): AudioSummary = {
+    def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
       import scala.collection.JavaConversions._
+      val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
+
+      val title = if (language == AllLanguages) {
+        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getValue.getAsString).headOption.getOrElse("")
+      } else {
+        hit.get("titles").getAsJsonObject.get(language).getAsString
+      }
 
       AudioSummary(
         hit.get("id").getAsLong,
-        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(entr => Title(entr.getValue.getAsString, Some(entr.getKey))),
+        title,
         ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString)
+        hit.get("license").getAsString,
+        supportedLanguages.distinct
+      )
     }
 
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
-        language.getOrElse(Language.DefaultLanguage),
+        language.getOrElse(DefaultLanguage),
         license,
         sort,
         page,
@@ -74,7 +84,7 @@ trait SearchService {
     }
 
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
+      val searchLanguage = language.getOrElse(DefaultLanguage)
 
       val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
       val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
@@ -88,12 +98,21 @@ trait SearchService {
     }
 
     def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
-      val filteredSearch = license match {
-        case None => queryBuilder.filter(noCopyright)
-        case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+      val (filteredSearch, searchLanguage) = {
+
+        val licenseFilteredSearch = license match {
+          case None => queryBuilder.filter(noCopyright)
+          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+        }
+
+        language match {
+          case AllLanguages => (licenseFilteredSearch, DefaultLanguage)
+          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("titles", QueryBuilders.existsQuery(s"titles.$language"), ScoreMode.Avg)), language)
+        }
+
       }
 
-      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, language))
+      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, searchLanguage))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
@@ -102,15 +121,21 @@ trait SearchService {
         .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
+        case Success(response) =>
+            SearchResult(
+            response.getTotal.toLong,
+            page.getOrElse(1), numResults,
+            if (language == AllLanguages) "" else language,
+            getHits(response, language)
+          )
         case Failure(f) => errorHandler(Failure(f))
       }
     }
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSortBuilder = {
       sort match {
-        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.ASC).missing("_last").unmappedType("string")
+        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.DESC).missing("_last").unmappedType("string")
         case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
         case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
       }

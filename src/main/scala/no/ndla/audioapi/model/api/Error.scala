@@ -34,6 +34,7 @@ object Error {
   val FileTooBigError = Error(FILE_TOO_BIG, s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
 }
 
+class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
 class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)
 class AccessDeniedException(message: String) extends RuntimeException(message)
 case class ValidationMessage(field: String, message: String)

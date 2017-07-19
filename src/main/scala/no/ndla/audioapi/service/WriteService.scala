@@ -33,13 +33,13 @@ trait WriteService {
         _ <- validationService.validate(domainAudio)
         audioMetaData <- Try(audioRepository.insert(domainAudio))
         _ <- searchIndexService.indexDocument(audioMetaData)
-      } yield converterService.toApiAudioMetaInformation(audioMetaData)
+      } yield converterService.toApiAudioMetaInformation(audioMetaData, audioMetaData.titles.head.language.get)
 
       if (audioMetaInformation.isFailure) {
         deleteFiles(audioFilesMeta)
       }
 
-      audioMetaInformation
+      audioMetaInformation.flatten
     }
 
     private[service] def uploadFiles(filesToUpload: Seq[FileItem], audioFileMetas: Seq[NewAudioFile]): Try[Seq[Audio]] = {

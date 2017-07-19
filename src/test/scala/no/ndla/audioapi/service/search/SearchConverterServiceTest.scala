@@ -75,16 +75,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     verifyTags(searchableAudio)
   }
 
-  test("That asAudioSummary converts all fields with correct language") {
-    val audio = AudioMetaInformation(Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
-    val searchableAudio = searchConverterService.asSearchableAudioInformation(audio)
-    val articleSummary = searchConverterService.asAudioSummary(searchableAudio)
-
-    articleSummary.id should equal (audio.id.get)
-    articleSummary.license should equal (audio.copyright.license)
-    articleSummary.titles should equal (apiTitles)
-  }
-
   private def verifyTitles(searchableAudio: SearchableAudioInformation): Unit = {
     searchableAudio.titles.languageValues.size should equal(domainTitles.size)
     languageValueWithLang(searchableAudio.titles, "nb") should equal(titleForLang(domainTitles, "nb"))
