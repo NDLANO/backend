@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.controller
 
+import no.ndla.audioapi.model.Language
+import no.ndla.audioapi.model.api.Title
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
@@ -22,7 +24,9 @@ trait InternController {
   class InternController extends NdlaController {
 
     get("/external/:external_id") {
-      readService.withExternalId(params("external_id"))
+      val language = paramOrDefault("language", Language.DefaultLanguage)
+
+      readService.withExternalId(params("external_id"), language)
     }
 
     post("/index") {
@@ -47,7 +51,12 @@ trait InternController {
       } yield indexed
 
       importedDocument match {
-        case Success(audio) => converterService.toApiAudioMetaInformation(audio)
+        case Success(audio) =>
+          val languages = audio.titles.map(title => title.language.getOrElse(""))
+          val language = languages
+            .find(lang => lang == Language.DefaultLanguage)
+            .getOrElse(languages.head)
+          converterService.toApiAudioMetaInformation(audio, language)
         case Failure(ex) => {
           val errorMessage = s"Import of audio with external_id $externalId failed: ${ex.getMessage}"
           logger.warn(errorMessage, ex)

@@ -13,32 +13,56 @@ import com.typesafe.scalalogging.LazyLogging
 import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.api.NewAudioMetaInformation
-import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.model.api.NotFoundException
+import no.ndla.audioapi.model.domain.{Audio, Tag, Title}
+import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
-import scalaj.http.Base64
+import scala.util.{Failure, Success, Try}
+
 
 trait ConverterService {
   this: User with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation): api.AudioMetaInformation = {
-      api.AudioMetaInformation(audioMetaInformation.id.get,
-        audioMetaInformation.titles.map(toApiTitle),
-        audioMetaInformation.filePaths.map(toApiAudio),
-        toApiCopyright(audioMetaInformation.copyright),
-        audioMetaInformation.tags.map(toApiTags))
-    }
+    def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
+      val supportedLanguages = audioMetaInformation.titles
+        .map(value => if (value.language.contains(NoLanguage)) UnknownLanguage else value.language.getOrElse(""))
 
-    def toApiTitle(title: domain.Title): api.Title =
-      api.Title(title.title, title.language)
+      if (supportedLanguages.nonEmpty && (supportedLanguages.contains(language) || language == AllLanguages)) {
+        val searchLanguage = getSearchLanguage(language, supportedLanguages)
+
+        val title = audioMetaInformation.titles
+          .find(value => valueWithEitherLangOrMissingLang(value.language, searchLanguage))
+          .getOrElse(Title("", None))
+          .title
+
+        val tags = audioMetaInformation.tags
+          .find(x => valueWithEitherLangOrMissingLang(x.language, searchLanguage))
+          .getOrElse(Tag(Seq.empty, None))
+          .tags
+
+        val apiAudio = findByLanguage(audioMetaInformation.filePaths, searchLanguage).asInstanceOf[Option[Audio]].map(toApiAudio).getOrElse(api.Audio("", "", -1))
+
+        Success(api.AudioMetaInformation(
+          audioMetaInformation.id.get,
+          searchLanguage,
+          title,
+          apiAudio,
+          toApiCopyright(audioMetaInformation.copyright),
+          tags,
+          supportedLanguages.distinct
+        ))
+      } else {
+        Failure(new NotFoundException)
+      }
+    }
 
     def toApiAudio(audio: domain.Audio): api.Audio = {
       val audioUrl: Uri = s"$Domain/$AudioFilesUrlSuffix/${audio.filePath}"
-      api.Audio(audioUrl, audio.mimeType, audio.fileSize, audio.language)
+      api.Audio(audioUrl, audio.mimeType, audio.fileSize)
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
@@ -55,9 +79,6 @@ trait ConverterService {
 
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
-
-    def toApiTags(tags: domain.Tag): api.Tag =
-      api.Tag(tags.tags, tags.language)
 
     def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePaths: Seq[Audio]): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(None,

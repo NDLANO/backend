@@ -28,14 +28,6 @@ trait SearchConverterService {
         authors = ai.copyright.authors.map(_.name))
     }
 
-    def asAudioSummary(searchableArticleInformation: SearchableAudioInformation): AudioSummary = {
-      AudioSummary(
-        id = searchableArticleInformation.id.toLong,
-        titles = searchableArticleInformation.titles.languageValues.map(lv => Title(lv.value, lv.lang)),
-        url = createUrlToAudio(searchableArticleInformation.id),
-        license = searchableArticleInformation.license)
-    }
-
     def createUrlToAudio(id: String): String = {
       s"${ApplicationUrl.get}$id"
     }

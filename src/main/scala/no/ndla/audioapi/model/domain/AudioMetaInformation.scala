@@ -12,6 +12,7 @@ import java.util.Date
 
 import io.searchbox.client.JestResult
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.model.Language.{AllLanguages, DefaultLanguage, NoLanguage}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
@@ -23,13 +24,28 @@ case class AudioMetaInformation(id: Option[Long],
                                 copyright: Copyright,
                                 tags: Seq[Tag],
                                 updatedBy :String,
-                                updated :Date)
+                                updated :Date) {
 
-case class Title(title: String, language: Option[String])
-case class Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String])
+  def getTitleByLanguage(audio: AudioMetaInformation, language: String): Option[Title] = {
+    if (language == AllLanguages)
+      audio.titles
+        .find(_.language.getOrElse(NoLanguage) == DefaultLanguage)
+        .orElse(audio.titles.headOption)
+    else
+      audio.titles
+        .find(title => title.language.getOrElse(NoLanguage) == language)
+  }
+
+  def getTagsByLanguage(audio: AudioMetaInformation, language: String): Option[Tag] = {
+    audio.tags.find(_.language.getOrElse(NoLanguage) == language)
+  }
+}
+
+case class Title(title: String, language: Option[String]) extends LanguageField[String] { override def value: String = title }
+case class Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String]) extends LanguageField[String] { override def value: String = filePath }
 case class Copyright(license: String, origin: Option[String], authors: Seq[Author])
 case class Author(`type`: String, name: String)
-case class Tag(tags: Seq[String], language: Option[String])
+case class Tag(tags: Seq[String], language: Option[String]) extends LanguageField[Seq[String]] { override def value: Seq[String] = tags }
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   implicit val formats = org.json4s.DefaultFormats

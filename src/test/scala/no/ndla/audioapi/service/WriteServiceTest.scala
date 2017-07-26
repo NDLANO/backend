@@ -27,7 +27,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq(Title("title", Some("en"))),
     Seq(newAudioFile1),
     Copyright(License("by", None, None), None, Seq()),
-    None
+    Option(Seq(Tag(Seq("tag"), Some("en"))))
   )
   val domainAudioMeta = converterService.toDomainAudioMetaInformation(newAudioMeta, Seq(Audio(newFileName1, "audio/mp3", 1024, Some("en"))))
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
@@ -179,7 +179,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.storeNewAudio(newAudioMeta, Seq(fileMock1))
     result.isSuccess should be (true)
-    result should equal(Success(converterService.toApiAudioMetaInformation(afterInsert)))
+    result should equal(converterService.toApiAudioMetaInformation(afterInsert, afterInsert.tags.head.language.get))
 
     verify(audioRepository, times(1)).insert(any[domain.AudioMetaInformation])(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[domain.AudioMetaInformation])

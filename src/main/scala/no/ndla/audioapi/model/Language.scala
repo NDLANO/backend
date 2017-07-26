@@ -9,10 +9,13 @@
 package no.ndla.audioapi.model
 
 import com.sksamuel.elastic4s.analyzers._
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, LanguageField, WithLanguage}
 
 object Language {
   val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
+  val NoLanguage = ""
+  val AllLanguages = "all"
 
   val languageAnalyzers = Seq(
     LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
@@ -27,6 +30,27 @@ object Language {
   )
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
+
+  def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
+    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
+    if (supportedLanguages.contains(l))
+      l
+    else
+      supportedLanguages.head
+  }
+
+  def findByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
+    sequence.find(_.language.getOrElse(UnknownLanguage) == lang)
+  }
+
+  def findValueByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
+    findByLanguage(sequence, lang).map(_.value)
+  }
+
+  def valueWithEitherLangOrMissingLang(lang: Option[String], searchLanguage: String): Boolean = {
+    if (searchLanguage == UnknownLanguage) lang.contains("") || lang.isEmpty
+    else lang.getOrElse("") == searchLanguage
+  }
 }
 
 case class LanguageAnalyzer(lang: String, analyzer: Analyzer)
