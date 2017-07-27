@@ -27,37 +27,26 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toApiAudioMetaInformation(audioMetaInformation: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
-      val supportedLanguages = audioMetaInformation.titles
-        .map(value => if (value.language.contains(NoLanguage)) UnknownLanguage else value.language.getOrElse(""))
-
-      if (supportedLanguages.nonEmpty && (supportedLanguages.contains(language) || language == AllLanguages)) {
-        val searchLanguage = getSearchLanguage(language, supportedLanguages)
-
-        val title = audioMetaInformation.titles
-          .find(value => valueWithEitherLangOrMissingLang(value.language, searchLanguage))
-          .getOrElse(Title("", None))
-          .title
-
-        val tags = audioMetaInformation.tags
-          .find(x => valueWithEitherLangOrMissingLang(x.language, searchLanguage))
-          .getOrElse(Tag(Seq.empty, None))
-          .tags
-
-        val apiAudio = findByLanguage(audioMetaInformation.filePaths, searchLanguage).asInstanceOf[Option[Audio]].map(toApiAudio).getOrElse(api.Audio("", "", -1))
-
-        Success(api.AudioMetaInformation(
-          audioMetaInformation.id.get,
-          searchLanguage,
-          title,
-          apiAudio,
-          toApiCopyright(audioMetaInformation.copyright),
-          tags,
-          supportedLanguages.distinct
-        ))
-      } else {
-        Failure(new NotFoundException)
+    def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
+      val lang = language match {
+        case AllLanguages if audioMeta.supportedLanguages.contains(DefaultLanguage) => DefaultLanguage
+        case AllLanguages if audioMeta.supportedLanguages.nonEmpty => audioMeta.supportedLanguages.head
+        case l => l
       }
+
+      if (!audioMeta.supportedLanguages.contains(lang))
+        return Failure(new NotFoundException)
+
+      val audioFile = findByLanguage(audioMeta.filePaths, lang).getOrElse(audioMeta.filePaths.head)
+      Success(api.AudioMetaInformation(
+        audioMeta.id.get,
+        lang,
+        findByLanguage(audioMeta.titles, lang).getOrElse(""),
+        toApiAudio(audioFile),
+        toApiCopyright(audioMeta.copyright),
+        findByLanguage(audioMeta.tags, lang).getOrElse(Seq.empty),
+        audioMeta.supportedLanguages
+      ))
     }
 
     def toApiAudio(audio: domain.Audio): api.Audio = {

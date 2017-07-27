@@ -41,7 +41,7 @@ trait ImportService {
     }
 
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
-      val titles = audioMeta.map(x => Title(x.title, x.language))
+      val titles = audioMeta.map(x => Title(x.title, emptySomeToNone(x.language)))
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
@@ -60,7 +60,7 @@ trait ImportService {
         case false => audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName)
       }
 
-      fileLocationTry.map(fileLocation => Audio(fileLocation, audioMeta.mimeType, audioMeta.fileSize.toLong, audioMeta.language))
+      fileLocationTry.map(fileLocation => Audio(fileLocation, audioMeta.mimeType, audioMeta.fileSize.toLong, emptySomeToNone(audioMeta.language)))
     }
 
   }
