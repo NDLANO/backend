@@ -25,20 +25,9 @@ case class AudioMetaInformation(id: Option[Long],
                                 tags: Seq[Tag],
                                 updatedBy :String,
                                 updated :Date) {
-
-  def getTitleByLanguage(audio: AudioMetaInformation, language: String): Option[Title] = {
-    if (language == AllLanguages)
-      audio.titles
-        .find(_.language.getOrElse(NoLanguage) == DefaultLanguage)
-        .orElse(audio.titles.headOption)
-    else
-      audio.titles
-        .find(title => title.language.getOrElse(NoLanguage) == language)
-  }
-
-  def getTagsByLanguage(audio: AudioMetaInformation, language: String): Option[Tag] = {
-    audio.tags.find(_.language.getOrElse(NoLanguage) == language)
-  }
+  lazy val supportedLanguages = titles.map(_.language.getOrElse(NoLanguage))
+    .union(tags.map(_.language.getOrElse(NoLanguage)))
+    .distinct
 }
 
 case class Title(title: String, language: Option[String]) extends LanguageField[String] { override def value: String = title }

@@ -44,25 +44,12 @@ trait InternController {
     }
 
     post("/import/:external_id") {
-      val externalId = params("external_id")
-      val importedDocument = for {
-        imported <- importService.importAudio(externalId)
+      for {
+        imported <- importService.importAudio(params("external_id"))
         indexed <- searchIndexService.indexDocument(imported)
-      } yield indexed
-
-      importedDocument match {
-        case Success(audio) =>
-          val languages = audio.titles.map(title => title.language.getOrElse(""))
-          val language = languages
-            .find(lang => lang == Language.DefaultLanguage)
-            .getOrElse(languages.head)
-          converterService.toApiAudioMetaInformation(audio, language)
-        case Failure(ex) => {
-          val errorMessage = s"Import of audio with external_id $externalId failed: ${ex.getMessage}"
-          logger.warn(errorMessage, ex)
-          InternalServerError(errorMessage)
-        }
-      }
+        audio <- converterService.toApiAudioMetaInformation(indexed, indexed.supportedLanguages.headOption.getOrElse(Language.NoLanguage))
+      } yield audio
     }
+
   }
 }
