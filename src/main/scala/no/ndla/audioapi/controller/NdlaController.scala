@@ -21,6 +21,8 @@ import no.ndla.audioapi.model.api.{AccessDeniedException, Error, ValidationError
 import no.ndla.network.model.HttpRequestException
 import org.scalatra.servlet.SizeConstraintExceededException
 
+import scala.util.{Failure, Success}
+
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
@@ -50,9 +52,16 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
-      InternalServerError(Error(t.getMessage))
+      InternalServerError(Error(description=t.getMessage))
     }
   }
+
+  private val tryRenderer: RenderPipeline = {
+    case Failure(ex) => errorHandler(ex)
+    case Success(res) => res
+  }
+
+  override def renderPipeline = tryRenderer orElse super.renderPipeline
 
   def long(paramName: String)(implicit request: HttpServletRequest): Long = {
     val paramValue = params(paramName)

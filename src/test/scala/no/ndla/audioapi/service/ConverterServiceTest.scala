@@ -53,7 +53,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.toApiAudioMetaInformation(audioWithNoTitles, randomLanguage).isFailure should be (true)
   }
 
-  test("That toApiLicense invokes mapping api to retrieve license information") {
+  test("That toApiLicense converts to an api.License") {
     val licenseAbbr = "by-sa"
     val license = api.License(licenseAbbr, Some("Creative Commons Attribution-ShareAlike 2.0 Generic"), Some("https://creativecommons.org/licenses/by-sa/2.0/"))
 

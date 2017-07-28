@@ -29,28 +29,9 @@ object Language {
     LanguageAnalyzer(UnknownLanguage, StandardAnalyzer)
   )
 
-  val supportedLanguages = languageAnalyzers.map(_.lang)
+  def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
+    sequence.find(_.language.getOrElse(UnknownLanguage) == lang).map(_.value)
 
-  def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
-    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
-    if (supportedLanguages.contains(l))
-      l
-    else
-      supportedLanguages.head
-  }
-
-  def findByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
-    sequence.find(_.language.getOrElse(UnknownLanguage) == lang)
-  }
-
-  def findValueByLanguage[T <: Any](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
-    findByLanguage(sequence, lang).map(_.value)
-  }
-
-  def valueWithEitherLangOrMissingLang(lang: Option[String], searchLanguage: String): Boolean = {
-    if (searchLanguage == UnknownLanguage) lang.contains("") || lang.isEmpty
-    else lang.getOrElse("") == searchLanguage
-  }
 }
 
 case class LanguageAnalyzer(lang: String, analyzer: Analyzer)
