@@ -73,9 +73,9 @@ trait SearchService {
       )
     }
 
-    def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def all(language: String, license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
-        language.getOrElse(DefaultLanguage),
+        language,
         license,
         sort,
         page,
@@ -83,18 +83,16 @@ trait SearchService {
         QueryBuilders.boolQuery())
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(DefaultLanguage)
-
-      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
-      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
+    def matchingQuery(query: String, language: String, license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"titles.$language").boost(1)
+      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$language").boost(1)
 
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
           .should(QueryBuilders.nestedQuery("titles", titleSearch, ScoreMode.Avg))
           .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg)))
 
-      executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
+      executeSearch(language, license, sort, page, pageSize, fullSearch)
     }
 
     def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
@@ -122,7 +120,7 @@ trait SearchService {
 
       jestClient.execute(request.build()) match {
         case Success(response) =>
-            SearchResult(
+          SearchResult(
             response.getTotal.toLong,
             page.getOrElse(1), numResults,
             if (language == AllLanguages) "" else language,
@@ -166,7 +164,7 @@ trait SearchService {
     private def errorHandler[T](failure: Failure[T]) = {
       failure match {
         case Failure(e: NdlaSearchException) => {
-            e.getResponse.getResponseCode match {
+          e.getResponse.getResponseCode match {
             case notFound: Int if notFound == 404 => {
               logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()

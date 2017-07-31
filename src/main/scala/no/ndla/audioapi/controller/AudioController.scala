@@ -99,10 +99,10 @@ trait AudioController {
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
-    def search(query: Option[String], language: Option[String], license: Option[String], sort: Option[String], pageSize: Option[Int], page: Option[Int]) = {
+    def search(query: Option[String], language: String, license: Option[String], sort: Option[String], pageSize: Option[Int], page: Option[Int]) = {
       query match {
         case Some(q) => searchService.matchingQuery(
-          query = q.toLowerCase().split(" ").map(_.trim),
+          query = q,
           language = language,
           license = license,
           page = page,
@@ -126,13 +126,13 @@ trait AudioController {
       val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
       val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
 
-      search(query, Some(language), license, sort, pageSize, page)
+      search(query, language, license, sort, pageSize, page)
     }
 
     post("/search/", operation(getAudioFilesPost)) {
       val searchParams = extract[SearchParams](request.body)
       val query = searchParams.query
-      val language = searchParams.language
+      val language = searchParams.language.getOrElse(Language.AllLanguages)
       val license = searchParams.license
       val sort = searchParams.sort
       val pageSize = searchParams.pageSize
