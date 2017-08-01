@@ -18,12 +18,13 @@ import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.Language.{DefaultLanguage, NoLanguage, AllLanguages}
+import no.ndla.audioapi.model.Language.{AllLanguages, DefaultLanguage, NoLanguage, UnknownLanguage}
+import no.ndla.audioapi.model.Language
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilders}
+import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
 
@@ -58,17 +59,21 @@ trait SearchService {
       import scala.collection.JavaConversions._
       val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
 
-      val title = if (language == AllLanguages) {
-        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getValue.getAsString).headOption.getOrElse("")
-      } else {
-        hit.get("titles").getAsJsonObject.get(language).getAsString
+      val titleLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
+      val titleLanguage = language match {
+        case AllLanguages if titleLanguages.contains(DefaultLanguage) => DefaultLanguage
+        case AllLanguages if titleLanguages.nonEmpty => titleLanguages.headOption.getOrElse("")
+        case l => l
       }
+
+      val title = hit.get("titles").getAsJsonObject.get(titleLanguage).getAsString
 
       AudioSummary(
         hit.get("id").getAsLong,
         title,
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
+        titleLanguage,
         supportedLanguages.distinct
       )
     }
@@ -84,15 +89,25 @@ trait SearchService {
     }
 
     def matchingQuery(query: String, language: String, license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"titles.$language").boost(1)
-      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$language").boost(1)
-
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("titles", titleSearch, ScoreMode.Avg))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg)))
+          .should(languageSpecificSearch("titles", language, query, 1))
+          .should(languageSpecificSearch("tags", language, query, 1)))
 
       executeSearch(language, license, sort, page, pageSize, fullSearch)
+    }
+
+    private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Float): QueryBuilder = {
+      language match {
+        case AllLanguages =>
+          Language.supportedLanguages.foldLeft(QueryBuilders.boolQuery())((result, lang) => {
+            val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
+            result.should(QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost))
+          })
+        case lang =>
+          val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
+          QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost)
+      }
     }
 
     def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {

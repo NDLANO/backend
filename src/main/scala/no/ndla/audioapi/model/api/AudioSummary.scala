@@ -10,5 +10,6 @@ case class AudioSummary(@(ApiModelProperty @field)(description = "The unique id 
                         @(ApiModelProperty @field)(description = "The title of the audio") title: String,
                         @(ApiModelProperty @field)(description = "The full url to where the complete information about the audio can be found") url: String,
                         @(ApiModelProperty @field)(description = "Describes the license of the audio") license: String,
+                        @(ApiModelProperty @field)(description = "The current language for this audio") language: String,
                         @(ApiModelProperty @field)(description = "A list of available languages for this audio") supportedLanguages: Seq[String]
 )
