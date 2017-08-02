@@ -17,7 +17,7 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.repository.AudioRepository
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait ImportService {
   this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with User with Clock =>
@@ -55,12 +55,9 @@ trait ImportService {
     }
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
-      val fileLocationTry = audioStorage.objectExists(audioMeta.fileName) match {
-        case true => Success(audioMeta.fileName)
-        case false => audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName)
-      }
-
-      fileLocationTry.map(fileLocation => Audio(fileLocation, audioMeta.mimeType, audioMeta.fileSize.toLong, emptySomeToNone(audioMeta.language)))
+      audioStorage.getObjectMetaData(audioMeta.fileName)
+        .orElse(audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
+        .map(s3ObjectMeta => Audio(audioMeta.fileName, s3ObjectMeta.getContentType, s3ObjectMeta.getContentLength, emptySomeToNone(audioMeta.language)))
     }
 
   }
