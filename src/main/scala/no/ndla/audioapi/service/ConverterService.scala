@@ -69,12 +69,12 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePaths: Seq[Audio]): domain.AudioMetaInformation = {
+    def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePath: Audio): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(None,
-        audio.titles.map(toDomainTitle),
-        filePaths,
+        Seq(domain.Title(audio.title, Some(audio.language))),
+        Seq(filePath),
         toDomainCopyright(audio.copyright),
-        audio.tags.getOrElse(Seq()).map(toDomainTag),
+        if (audio.tags.nonEmpty) Seq(domain.Tag(audio.tags, Some(audio.language))) else Seq(),
         authUser.id(),
         clock.now()
       )
@@ -91,10 +91,5 @@ trait ConverterService {
     def toDomainAuthor(author: api.Author): domain.Author = {
       domain.Author(author.`type`, author.name)
     }
-
-    def toDomainTag(tag: api.Tag): domain.Tag = {
-      domain.Tag(tag.tags, tag.language)
-    }
-
   }
 }

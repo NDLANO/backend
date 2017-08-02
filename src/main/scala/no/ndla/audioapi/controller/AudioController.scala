@@ -157,9 +157,10 @@ trait AudioController {
       val newAudio = params.get("metadata")
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
-      val files = fileMultiParams.getOrElse("files", throw new ValidationException(errors=Seq(ValidationMessage("files", "The request must contain one or more files"))))
 
-      writeService.storeNewAudio(newAudio, files) match {
+      val file = fileParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one file"))))
+
+      writeService.storeNewAudio(newAudio, file) match {
         case Success(audioMeta) => audioMeta
         case Failure(e) => errorHandler(e)
       }

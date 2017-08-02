@@ -43,24 +43,16 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   val sampleNewAudioMeta =
     """
       |{
-      |    "titles": [{
-      |        "title": "Test",
-      |        "language": "nb"
-      |    }],
-      |    "audioFiles": [{
-      |        "fileName": "test.mp3",
-      |        "language": "nb"
-      |    }],
+      |    "title": "Test",
+      |    "language": "nb",
+      |    "audioFile": "test.mp3",
       |    "copyright": {
       |        "license": {
       |            "license": "by-sa"
       |        },
       |        "authors": []
       |    },
-      |    "tags": [{
-      |        "tags": ["test"],
-      |        "language": "nb"
-      |    }]
+      |    "tags": ["test"]
       |}
     """.stripMargin
 
@@ -72,17 +64,17 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
   test("That POST / returns 200 if everything is fine and dandy") {
     val sampleAudioMeta = AudioMetaInformation(1, "", "title", Audio("", "", -1), Copyright(License("by", None, None), None, Seq()), Seq(), Seq())
-    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Seq[FileItem]])).thenReturn(Success(sampleAudioMeta))
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Success(sampleAudioMeta))
 
-    post("/", Map("metadata" -> sampleNewAudioMeta), Map("files" -> sampleUploadFile), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post("/", Map("metadata" -> sampleNewAudioMeta), Map("file" -> sampleUploadFile), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal (200)
     }
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Seq[FileItem]])).thenReturn(Failure(mock[RuntimeException]))
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Failure(mock[RuntimeException]))
 
-    post("/", Map("metadata" -> sampleNewAudioMeta), Map("files" -> sampleUploadFile), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post("/", Map("metadata" -> sampleNewAudioMeta), Map("file" -> sampleUploadFile), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal (500)
     }
   }

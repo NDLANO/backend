@@ -17,58 +17,33 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
-    def storeNewAudio(newAudioMeta: NewAudioMetaInformation, files: Seq[FileItem]): Try[AudioMetaInformation] = {
-      val fileValidationMessages = files.flatMap(validationService.validateAudioFile)
+    def storeNewAudio(newAudioMeta: NewAudioMetaInformation, file: FileItem): Try[AudioMetaInformation] = {
+      val fileValidationMessages = validationService.validateAudioFile(file)
       if (fileValidationMessages.nonEmpty) {
-        return Failure(new ValidationException(errors=fileValidationMessages))
+        return Failure(new ValidationException(errors=Seq(fileValidationMessages.get)))
       }
 
-      val audioFilesMeta = uploadFiles(files, newAudioMeta.audioFiles) match {
+      val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
         case Failure(e) => return Failure(e)
         case Success(audioMeta) => audioMeta
       }
 
       val audioMetaInformation = for {
-        domainAudio <-  Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFilesMeta))
+        domainAudio <-  Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
         _ <- validationService.validate(domainAudio)
         audioMetaData <- Try(audioRepository.insert(domainAudio))
         _ <- searchIndexService.indexDocument(audioMetaData)
       } yield converterService.toApiAudioMetaInformation(audioMetaData, audioMetaData.titles.head.language.get)
 
       if (audioMetaInformation.isFailure) {
-        deleteFiles(audioFilesMeta)
+        deleteFile(audioFileMeta)
       }
 
       audioMetaInformation.flatten
     }
 
-    private[service] def uploadFiles(filesToUpload: Seq[FileItem], audioFileMetas: Seq[NewAudioFile]): Try[Seq[Audio]] = {
-      val uploadedFiles = filesToUpload.flatMap(x => uploadFile(x).toOption).toMap
-      if (uploadedFiles.size != filesToUpload.size) {
-        deleteFiles(uploadedFiles.values.toSeq)
-        return Failure(new AudioStorageException("Failed to save file(s)"))
-      }
-
-      matchFilesToLanguage(uploadedFiles, audioFileMetas)
-    }
-
-    private[service] def matchFilesToLanguage(files: Map[String, Audio], audioFilesMetaData: Seq[NewAudioFile]): Try[Seq[Audio]] = {
-      val audioFilesMetaDataWithLanguage = files.map { case (oldFileName, uploadedFileMeta) =>
-        getLanguageForFile(oldFileName, audioFilesMetaData).map(language => uploadedFileMeta.copy(language = language))
-      }.toSeq
-
-      val failedToFindLanguageForFiles = audioFilesMetaDataWithLanguage.filter(_.isFailure)
-      if (failedToFindLanguageForFiles.nonEmpty) {
-        deleteFiles(files.values.toSeq)
-        val errorMessages = failedToFindLanguageForFiles.map(_.failed.get.getMessage)
-        return Failure(new ValidationException(errors = Seq(ValidationMessage("audioFiles", errorMessages.mkString(",")))))
-      }
-
-      Success(audioFilesMetaDataWithLanguage.flatMap(_.toOption))
-    }
-
-    private[service] def deleteFiles(audioFiles: Seq[Audio]) = {
-      audioFiles.foreach(fileToDelete => audioStorage.deleteObject(fileToDelete.filePath))
+    private[service] def deleteFile(audioFile: Audio) = {
+      audioStorage.deleteObject(audioFile.filePath)
     }
 
     private[service] def getLanguageForFile(oldFileName: String, audioFileMetas: Seq[NewAudioFile]): Try[Option[String]] = {
@@ -85,13 +60,13 @@ trait WriteService {
       }
     }
 
-    private[service] def uploadFile(file: FileItem): Try[(String, Audio)] = {
+    private[service] def uploadFile(file: FileItem, language: String): Try[Audio] = {
       val fileExtension = getFileExtension(file.name).getOrElse("")
       val contentType = file.getContentType.getOrElse("")
       val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
       audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName).map(filePath => {
-        file.name -> Audio(filePath, contentType, file.size, None)
+        Audio(filePath, contentType, file.size, Some(language))
       })
     }
 

@@ -15,11 +15,11 @@ trait ValidationService {
 
   class ValidationService {
     def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
-      val validMimeType = "audio/mp3"
+      val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
       val actualMimeType = audioFile.contentType.getOrElse("")
 
-      if (actualMimeType != validMimeType) {
-        return Some(ValidationMessage("files", s"The file ${audioFile.name} is not a valid audio file. Only valid type is '$validMimeType', but was '$actualMimeType'"))
+      if (!validMimeTypes.contains(actualMimeType)) {
+        return Some(ValidationMessage("files", s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
       }
 
       audioFile.name.toLowerCase.endsWith(".mp3") match {
