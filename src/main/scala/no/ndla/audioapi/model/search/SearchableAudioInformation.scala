@@ -9,7 +9,6 @@
 package no.ndla.audioapi.model.search
 
 import no.ndla.audioapi.model.domain.emptySomeToNone
-import no.ndla.audioapi.model.search.LanguageValue.LanguageValue
 
 object LanguageValue {
 
@@ -20,9 +19,9 @@ object LanguageValue {
 }
 
 
-case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
+case class SearchableLanguageValues(languageValues: Seq[LanguageValue.LanguageValue[String]])
 
-case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
+case class SearchableLanguageList(languageValues: Seq[LanguageValue.LanguageValue[Seq[String]]])
 
 case class SearchableAudioInformation(
   id: String,
