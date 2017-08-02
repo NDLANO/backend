@@ -40,6 +40,7 @@ trait ConverterService {
       val audioFile = findByLanguage(audioMeta.filePaths, lang).getOrElse(audioMeta.filePaths.head)
       Success(api.AudioMetaInformation(
         audioMeta.id.get,
+        audioMeta.revision.get,
         lang,
         findByLanguage(audioMeta.titles, lang).getOrElse(""),
         toApiAudio(audioFile),
@@ -70,7 +71,7 @@ trait ConverterService {
       api.Author(author.`type`, author.name)
 
     def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePath: Audio): domain.AudioMetaInformation = {
-      domain.AudioMetaInformation(None,
+      domain.AudioMetaInformation(None, None,
         Seq(domain.Title(audio.title, Some(audio.language))),
         Seq(filePath),
         toDomainCopyright(audio.copyright),

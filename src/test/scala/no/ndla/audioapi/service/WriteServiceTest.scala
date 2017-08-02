@@ -46,7 +46,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock2.name).thenReturn(newAudioFile2.fileName)
 
     reset(audioRepository, searchIndexService)
-    when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenReturn(domainAudioMeta.copy(id=Some(1)))
+    when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenReturn(domainAudioMeta.copy(id=Some(1), revision=Some(1)))
   }
 
   test("converter to domain should set updatedBy from authUser and updated date"){
@@ -161,7 +161,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewAudio should return Success if creation of new audio file succeeded") {
-    val afterInsert = domainAudioMeta.copy(id=Some(1))
+    val afterInsert = domainAudioMeta.copy(id=Some(1), revision = Some(1))
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
     when(validationService.validate(any[domain.AudioMetaInformation])).thenReturn(Success(domainAudioMeta))
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))

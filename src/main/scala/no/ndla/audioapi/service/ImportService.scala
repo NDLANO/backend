@@ -25,10 +25,10 @@ trait ImportService {
 
   class ImportService extends LazyLogging {
     def importAudio(audioId: String): Try[domain.AudioMetaInformation] = {
-      migrationApiClient.getAudioMetaData(audioId).map(uploadAndPersist)
+      migrationApiClient.getAudioMetaData(audioId).flatMap(uploadAndPersist)
     }
 
-    private def uploadAndPersist(audioMeta: Seq[MigrationAudioMeta]): domain.AudioMetaInformation = {
+    private def uploadAndPersist(audioMeta: Seq[MigrationAudioMeta]): Try[domain.AudioMetaInformation] = {
       val audioFilePaths = audioMeta.map(uploadAudioFile(_).get)
       persistMetaData(audioMeta, audioFilePaths)
     }
@@ -40,17 +40,17 @@ trait ImportService {
       audio.copy(tags = tags)
     }
 
-    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
+    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
       val titles = audioMeta.map(x => Title(x.title, emptySomeToNone(x.language)))
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
       val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
-      val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), "content-import-client", clock.now()))
+      val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), "content-import-client", clock.now()))
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
-        case Some(existingAudio) => audioRepository.update(domainMetaData, existingAudio.id.get)
+        case Some(existingAudio) => audioRepository.update(domainMetaData.copy(revision = existingAudio.revision), existingAudio.id.get)
       }
     }
 

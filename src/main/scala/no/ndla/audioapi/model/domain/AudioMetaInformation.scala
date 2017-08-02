@@ -20,6 +20,7 @@ import org.json4s.native.Serialization._
 import scalikejdbc._
 
 case class AudioMetaInformation(id: Option[Long],
+                                revision: Option[Int],
                                 titles: Seq[Title],
                                 filePaths: Seq[Audio],
                                 copyright: Copyright,
@@ -45,10 +46,22 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   def apply(au: SyntaxProvider[AudioMetaInformation])(rs:WrappedResultSet): AudioMetaInformation = apply(au.resultName)(rs)
   def apply(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
-    AudioMetaInformation(Some(rs.long(au.c("id"))), meta.titles, meta.filePaths, meta.copyright, meta.tags, meta.updatedBy, meta.updated)
+    AudioMetaInformation(
+      Some(rs.long(au.c("id"))),
+      Some(rs.int(au.c("revision"))),
+      meta.titles,
+      meta.filePaths,
+      meta.copyright,
+      meta.tags,
+      meta.updatedBy,
+      meta.updated)
   }
 
-  val JSonSerializer = FieldSerializer[AudioMetaInformation](ignore("id") orElse ignore("external_id"))
+  val JSonSerializer = FieldSerializer[AudioMetaInformation](
+    ignore("id") orElse
+    ignore("revision") orElse
+    ignore("external_id")
+  )
 }
 
 class NdlaSearchException(jestResponse: JestResult) extends RuntimeException(jestResponse.getErrorMessage) {
