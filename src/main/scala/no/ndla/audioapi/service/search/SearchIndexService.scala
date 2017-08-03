@@ -39,8 +39,8 @@ trait SearchIndexService {
           val operations = for {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- indexService.aliasTarget
-            updatedTarget <- indexService.updateAliasTarget(aliasTarget, indexName)
-            deleted <- indexService.delete(aliasTarget)
+            _ <- indexService.updateAliasTarget(aliasTarget, indexName)
+            _ <- indexService.delete(aliasTarget)
           } yield numIndexed
 
           operations match {

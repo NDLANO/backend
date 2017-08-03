@@ -2,6 +2,7 @@ package no.ndla.audioapi.service
 
 import java.io.InputStream
 
+import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.Audio
@@ -22,6 +23,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newAudioFile2 = NewAudioFile("test2.mp3", Some("nb"))
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
+  val s3ObjectMock = mock[ObjectMetadata]
 
   val newAudioMeta = NewAudioMetaInformation(
     Seq(Title("title", Some("en"))),
@@ -30,7 +32,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Option(Seq(Tag(Seq("tag"), Some("en"))))
   )
   val domainAudioMeta = converterService.toDomainAudioMetaInformation(newAudioMeta, Seq(Audio(newFileName1, "audio/mp3", 1024, Some("en"))))
-  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
 
   override def beforeEach = {
@@ -44,16 +46,20 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock2.size).thenReturn(2048)
     when(fileMock2.name).thenReturn(newAudioFile2.fileName)
 
+    when(s3ObjectMock.getContentLength).thenReturn(1024)
+    when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
+
     reset(audioRepository, searchIndexService)
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenReturn(domainAudioMeta.copy(id=Some(1)))
+    reset(audioStorage)
   }
 
   test("converter to domain should set updatedBy from authUser and updated date"){
     when(authUser.id()).thenReturn("ndla54321")
-    when(clock.now()).thenReturn(updated())
+    when(clock.now()).thenReturn(updated)
     val domain = converterService.toDomainAudioMetaInformation(newAudioMeta, Seq(Audio(newFileName1, "audio/mp3", 1024, Some("en"))))
     domain.updatedBy should equal ("ndla54321")
-    domain.updated should equal(updated())
+    domain.updated should equal(updated)
   }
 
   test("randomFileName should return a random filename with a given length and extension") {
@@ -70,11 +76,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("uploadFile should return Success if file upload succeeds") {
     when(audioStorage.objectExists(any[String])).thenReturn(false)
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(s3ObjectMock))
+
     val result = writeService.uploadFile(fileMock1)
     verify(audioStorage, times(1)).storeAudio(any[InputStream], any[String], any[Long], any[String])
 
-    result should equal(Success(newAudioFile1.fileName, Audio(newFileName1, "audio/mp3", 1024, None)))
+    result should equal(Success(newAudioFile1.fileName, Audio(result.get._2.filePath, "audio/mp3", 1024, None)))
   }
 
   test("uploadFiles should return Failure if file upload failed") {
@@ -108,27 +115,28 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("uploadFiles should return Failure if entry for does not exist in metadata") {
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
     val result = writeService.uploadFiles(Seq(fileMock1), Seq(newAudioFile2))
 
     result.isFailure should be (true)
     val errors: Seq[ValidationMessage] = result.failed.get.asInstanceOf[ValidationException].errors
     errors.length should be (1)
     errors.head.message.contains("Could not find entry for file") should be (true)
-    verify(audioStorage, times(1)).deleteObject(newFileName1)
+    verify(audioStorage, times(1)).deleteObject(any[String])
   }
 
   test("uploadFiles should return a sequence of Audio objects if everything went ok") {
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
-    val result = writeService.uploadFiles(Seq(fileMock1), Seq(newAudioFile1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(s3ObjectMock))
 
+    val result = writeService.uploadFiles(Seq(fileMock1), Seq(newAudioFile1))
     result.isSuccess should be (true)
-    result should equal (Success(Seq(Audio(newFileName1, "audio/mp3", 1024, newAudioFile1.language))))
+    result should equal (Success(Seq(Audio(result.get.head.filePath, "audio/mp3", 1024, newAudioFile1.language))))
   }
 
   test("storeNewAudio should return Failure if filetype is invalid") {
     when(fileMock1.contentType).thenReturn(Some("application/text"))
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
 
     writeService.storeNewAudio(newAudioMeta, Seq(fileMock1)).isFailure should be (true)
   }
@@ -143,7 +151,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewAudio should return Failure if validation fails") {
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
     when(validationService.validate(any[domain.AudioMetaInformation])).thenReturn(Failure(new ValidationException(errors=Seq())))
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
 
     writeService.storeNewAudio(newAudioMeta, Seq(fileMock1)).isFailure should be (true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(any[DBSession])
@@ -153,7 +161,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewAudio should return Failure if failed to insert into database") {
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
     when(validationService.validate(any[domain.AudioMetaInformation])).thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession])).thenThrow(new RuntimeException)
 
     writeService.storeNewAudio(newAudioMeta, Seq(fileMock1)).isFailure should be (true)
@@ -163,7 +171,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewAudio should return Failure if failed to index audio metadata") {
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
     when(validationService.validate(any[domain.AudioMetaInformation])).thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
     when(searchIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
 
     writeService.storeNewAudio(newAudioMeta, Seq(fileMock1)).isFailure should be (true)
@@ -174,7 +182,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val afterInsert = domainAudioMeta.copy(id=Some(1))
     when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
     when(validationService.validate(any[domain.AudioMetaInformation])).thenReturn(Success(domainAudioMeta))
-    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(newFileName1))
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(mock[ObjectMetadata]))
     when(searchIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
 
     val result = writeService.storeNewAudio(newAudioMeta, Seq(fileMock1))
