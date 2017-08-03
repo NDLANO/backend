@@ -29,6 +29,8 @@ object Language {
     LanguageAnalyzer(UnknownLanguage, StandardAnalyzer)
   )
 
+  val supportedLanguages = languageAnalyzers.map(_.lang)
+
   def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
     sequence.find(_.language.getOrElse(UnknownLanguage) == lang).map(_.value)
 
