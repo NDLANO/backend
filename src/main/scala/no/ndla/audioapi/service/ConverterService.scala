@@ -70,12 +70,12 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePath: Audio): domain.AudioMetaInformation = {
+    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation, audio: Audio): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(None, None,
-        Seq(domain.Title(audio.title, Some(audio.language))),
-        Seq(filePath),
-        toDomainCopyright(audio.copyright),
-        if (audio.tags.nonEmpty) Seq(domain.Tag(audio.tags, Some(audio.language))) else Seq(),
+        Seq(domain.Title(audioMeta.title, Some(audioMeta.language))),
+        Seq(audio),
+        toDomainCopyright(audioMeta.copyright),
+        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, Some(audioMeta.language))) else Seq(),
         authUser.id(),
         clock.now()
       )

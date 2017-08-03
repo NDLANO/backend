@@ -16,7 +16,7 @@ trait ValidationService {
   class ValidationService {
     def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
-      val actualMimeType = audioFile.contentType.getOrElse("")
+      val actualMimeType = audioFile.getContentType.getOrElse("")
 
       if (!validMimeTypes.contains(actualMimeType)) {
         return Some(ValidationMessage("files", s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
