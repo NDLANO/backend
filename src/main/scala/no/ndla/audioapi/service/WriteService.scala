@@ -133,9 +133,8 @@ trait WriteService {
       val contentType = file.getContentType.getOrElse("")
       val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
-      audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName).map(filePath => {
-        Audio(filePath, contentType, file.size, Some(language))
-      })
+      audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)
+        .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, Some(language)))
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {

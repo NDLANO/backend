@@ -27,7 +27,7 @@ import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
-
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -56,10 +56,9 @@ trait SearchService {
     }
 
     def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
-      import scala.collection.JavaConversions._
-      val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
+      val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
 
-      val titleLanguages = hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(_.getKey)
+      val titleLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
       val titleLanguage = language match {
         case AllLanguages if titleLanguages.contains(DefaultLanguage) => DefaultLanguage
         case AllLanguages if titleLanguages.nonEmpty => titleLanguages.headOption.getOrElse("")
@@ -202,8 +201,8 @@ trait SearchService {
         searchIndexService.indexDocuments
       }
 
-      f onFailure { case t => logger.warn("Unable to create index: " + t.getMessage, t) }
-      f onSuccess {
+      f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
+      f.foreach {
         case Success(reindexResult)  => logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
