@@ -23,6 +23,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")))
   val audioMeta = AudioMetaInformation(
     Some(1),
+    Some(1),
     Seq(Title("Batmen er på vift med en bil", Some("nb"))),
     Seq(Audio("file.mp3", "audio/mpeg", 1024, Some("nb"))),
     copyrighted,
@@ -34,6 +35,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expected = api.AudioMetaInformation(
       audioMeta.id.get,
+      audioMeta.revision.get,
       "nb",
       "Batmen er på vift med en bil",
       audioMeta.filePaths.map(service.toApiAudio).head,

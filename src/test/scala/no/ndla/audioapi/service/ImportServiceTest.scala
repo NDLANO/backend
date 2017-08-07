@@ -60,7 +60,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(Some(existingAudioMeta))
     when(existingAudioMeta.id).thenReturn(Some(1: Long))
-    when(audioRepository.update(any[AudioMetaInformation], any[Long])).thenReturn(existingAudioMeta)
+    when(audioRepository.update(any[AudioMetaInformation], any[Long])).thenReturn(Success(existingAudioMeta))
 
     service.importAudio(audioId) should equal (Success(existingAudioMeta))
     verify(audioRepository, times(1)).update(any[AudioMetaInformation], any[Long])
@@ -74,7 +74,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
-    when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenReturn(newAudioMeta)
+    when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenReturn(Success(newAudioMeta))
 
     service.importAudio(audioId) should equal (Success(newAudioMeta))
     verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])

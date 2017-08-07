@@ -21,10 +21,9 @@ trait User {
     def id(): String = {
       if (AuthUser.get.isEmpty || AuthUser.get.get.isEmpty) {
         throw new AccessDeniedException(("User id required to perform this operation"))
-      } else {
-        return AuthUser.get.get
       }
 
+      AuthUser.get.get
     }
 
   }

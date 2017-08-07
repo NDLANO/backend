@@ -11,12 +11,13 @@ package no.ndla.audioapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.DataSource
+import no.ndla.audioapi.model.api.OptimisticLockException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 
 trait AudioRepository {
@@ -45,29 +46,40 @@ trait AudioRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))
 
-      val audioId = sql"insert into audiodata (document) values (${dataObject})".updateAndReturnGeneratedKey.apply
-      audioMetaInformation.copy(id = Some(audioId))
+      val startRevision = 1
+      val audioId = sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey.apply
+      audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
     }
 
-    def insertFromImport(audioMetaInformation: AudioMetaInformation, externalId: String): AudioMetaInformation = {
+    def insertFromImport(audioMetaInformation: AudioMetaInformation, externalId: String): Try[AudioMetaInformation] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
-        val audioId = sql"insert into audiodata(external_id, document) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey.apply
-        audioMetaInformation.copy(id = Some(audioId))
+        val startRevision = 1
+        val audioId = sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)".updateAndReturnGeneratedKey.apply
+        Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))
       }
     }
 
-    def update(audioMetaInformation: AudioMetaInformation, id: Long): AudioMetaInformation = {
+    def update(audioMetaInformation: AudioMetaInformation, id: Long): Try[AudioMetaInformation] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))
 
       DB localTx { implicit session =>
-        sql"update audiodata set document = ${dataObject} where id = ${id}".update.apply
-        audioMetaInformation.copy(id = Some(id))
+        val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
+
+        val count = sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}".update.apply
+        if (count != 1) {
+          val message = s"Found revision mismatch when attempting to update audio with id $id"
+          logger.info(message)
+          Failure(new OptimisticLockException)
+        } else {
+          logger.info(s"Updated audio with id $id")
+          Success(audioMetaInformation.copy(id = Some(id), revision = Some(newRevision)))
+        }
       }
     }
 

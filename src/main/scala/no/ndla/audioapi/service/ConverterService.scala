@@ -40,6 +40,7 @@ trait ConverterService {
       val audioFile = findByLanguage(audioMeta.filePaths, lang).getOrElse(audioMeta.filePaths.head)
       Success(api.AudioMetaInformation(
         audioMeta.id.get,
+        audioMeta.revision.get,
         lang,
         findByLanguage(audioMeta.titles, lang).getOrElse(""),
         toApiAudio(audioFile),
@@ -69,12 +70,12 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toDomainAudioMetaInformation(audio: api.NewAudioMetaInformation, filePaths: Seq[Audio]): domain.AudioMetaInformation = {
-      domain.AudioMetaInformation(None,
-        audio.titles.map(toDomainTitle),
-        filePaths,
-        toDomainCopyright(audio.copyright),
-        audio.tags.getOrElse(Seq()).map(toDomainTag),
+    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation, audio: Audio): domain.AudioMetaInformation = {
+      domain.AudioMetaInformation(None, None,
+        Seq(domain.Title(audioMeta.title, Some(audioMeta.language))),
+        Seq(audio),
+        toDomainCopyright(audioMeta.copyright),
+        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, Some(audioMeta.language))) else Seq(),
         authUser.id(),
         clock.now()
       )
@@ -91,10 +92,5 @@ trait ConverterService {
     def toDomainAuthor(author: api.Author): domain.Author = {
       domain.Author(author.`type`, author.name)
     }
-
-    def toDomainTag(tag: api.Tag): domain.Tag = {
-      domain.Tag(tag.tags, tag.language)
-    }
-
   }
 }

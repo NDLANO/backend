@@ -16,6 +16,7 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Meta information about the audio object")
 case class AudioMetaInformation(@(ApiModelProperty@field)(description = "The unique id of this audio") id: Long,
+                                @(ApiModelProperty@field)(description = "The revision number of this audio") revision: Int,
                                 @(ApiModelProperty@field)(description = "The current language for this audio") language: String,
                                 @(ApiModelProperty@field)(description = "The title of the audio file") title: String,
                                 @(ApiModelProperty@field)(description = "The audio file for this language") audioFile: Audio,
