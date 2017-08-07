@@ -12,10 +12,9 @@ import com.sksamuel.elastic4s.analyzers._
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, LanguageField, WithLanguage}
 
 object Language {
+
   val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
-  val NoLanguage = ""
-  val AllLanguages = "all"
 
   val languageAnalyzers = Seq(
     LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
@@ -31,9 +30,31 @@ object Language {
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
-  def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
-    sequence.find(_.language.getOrElse(UnknownLanguage) == lang).map(_.value)
+  def findByLanguageOrBestEffort[T,P <: LanguageField[T]](sequence: Seq[P], lang: Option[String]): Option[P] = {
+    def findFirstLanguageMatching(sequence: Seq[P], lang: Seq[String]): Option[P] = {
+      lang match {
+        case Nil => sequence.headOption
+        case head :: tail =>
+          sequence.find(_.language == head) match {
+            case Some(x) => Some(x)
+            case None => findFirstLanguageMatching(sequence, tail)
+          }
+      }
+    }
 
+    findFirstLanguageMatching(sequence, lang.toList :+ DefaultLanguage)
+  }
+
+
+  def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
+    sequence.find(_.language == lang).map(_.value)
+
+  def languageOrUnknown(language: Option[String]): String = {
+    language.filter(_.nonEmpty) match {
+      case Some(x) => x
+      case None => UnknownLanguage
+    }
+  }
 }
 
 case class LanguageAnalyzer(lang: String, analyzer: Analyzer)

@@ -24,10 +24,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val audioMeta = AudioMetaInformation(
     Some(1),
     Some(1),
-    Seq(Title("Batmen er på vift med en bil", Some("nb"))),
-    Seq(Audio("file.mp3", "audio/mpeg", 1024, Some("nb"))),
+    Seq(Title("Batmen er på vift med en bil", "nb")),
+    Seq(Audio("file.mp3", "audio/mpeg", 1024, "nb")),
     copyrighted,
-    Seq(Tag(Seq("fisk"), Some("nb"))),
+    Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
     updated)
 
@@ -36,23 +36,35 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expected = api.AudioMetaInformation(
       audioMeta.id.get,
       audioMeta.revision.get,
-      "nb",
-      "Batmen er på vift med en bil",
-      audioMeta.filePaths.map(service.toApiAudio).head,
+      api.Title("Batmen er på vift med en bil", "nb"),
+      service.toApiAudio(audioMeta.filePaths.headOption),
       service.toApiCopyright(audioMeta.copyright),
-      Seq("fisk"),
+      api.Tag(Seq("fisk"), "nb"),
       Seq("nb")
     )
 
-    service.toApiAudioMetaInformation(audioMeta, "nb") should equal(Success(expected))
+    service.toApiAudioMetaInformation(audioMeta, Some("nb")) should equal(Success(expected))
   }
 
-  test("that toApiAudioMetaInformation should return Failure if language is not supported") {
+  test("that toApiAudioMetaInformation should return DefaultLanguage if language is not supported") {
+    val expectedDefaultLanguage = api.AudioMetaInformation(
+      audioMeta.id.get,
+      audioMeta.revision.get,
+      api.Title("Batmen er på vift med en bil", "nb"),
+      service.toApiAudio(audioMeta.filePaths.headOption),
+      service.toApiCopyright(audioMeta.copyright),
+      api.Tag(Seq("fisk"), "nb"),
+      Seq("nb")
+    )
+
+    val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))
+
+
     val audioWithNoTitles = audioMeta.copy(titles = Seq.empty)
     val randomLanguage = "norsk"
 
-    service.toApiAudioMetaInformation(audioMeta, randomLanguage).isFailure should be (true)
-    service.toApiAudioMetaInformation(audioWithNoTitles, randomLanguage).isFailure should be (true)
+    service.toApiAudioMetaInformation(audioMeta, Some(randomLanguage)) should equal(Success(expectedDefaultLanguage))
+    service.toApiAudioMetaInformation(audioWithNoTitles, Some(randomLanguage)) should equal(Success(expectedNoTitles))
   }
 
   test("That toApiLicense converts to an api.License") {

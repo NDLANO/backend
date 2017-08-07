@@ -13,11 +13,11 @@ import java.net.URL
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
-import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait ImportService {
   this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with User with Clock =>
@@ -41,7 +41,7 @@ trait ImportService {
     }
 
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
-      val titles = audioMeta.map(x => Title(x.title, emptySomeToNone(x.language)))
+      val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
@@ -57,7 +57,7 @@ trait ImportService {
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
       audioStorage.getObjectMetaData(audioMeta.fileName)
         .orElse(audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
-        .map(s3ObjectMeta => Audio(audioMeta.fileName, s3ObjectMeta.getContentType, s3ObjectMeta.getContentLength, emptySomeToNone(audioMeta.language)))
+        .map(s3ObjectMeta => Audio(audioMeta.fileName, s3ObjectMeta.getContentType, s3ObjectMeta.getContentLength, Language.languageOrUnknown(audioMeta.language)))
     }
 
   }

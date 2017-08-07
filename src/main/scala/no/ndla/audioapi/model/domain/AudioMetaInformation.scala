@@ -27,16 +27,14 @@ case class AudioMetaInformation(id: Option[Long],
                                 tags: Seq[Tag],
                                 updatedBy :String,
                                 updated :Date) {
-  lazy val supportedLanguages = titles.map(_.language.getOrElse(Language.UnknownLanguage))
-    .union(tags.map(_.language.getOrElse(UnknownLanguage)))
-    .distinct
+  lazy val supportedLanguages = titles.map(_.language).union(tags.map(_.language)).distinct
 }
 
-case class Title(title: String, language: Option[String]) extends LanguageField[String] { override def value: String = title }
-case class Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String]) extends LanguageField[Audio] { override def value: Audio = this }
+case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
+case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] { override def value: Audio = this }
 case class Copyright(license: String, origin: Option[String], authors: Seq[Author])
 case class Author(`type`: String, name: String)
-case class Tag(tags: Seq[String], language: Option[String]) extends LanguageField[Seq[String]] { override def value: Seq[String] = tags }
+case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] { override def value: Seq[String] = tags }
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   implicit val formats = org.json4s.DefaultFormats

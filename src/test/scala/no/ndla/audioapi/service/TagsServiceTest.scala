@@ -62,10 +62,10 @@ class TagsServiceTest extends UnitSuite with TestEnvironment {
         ]
       }]}"""
     val expectedResult = List(
-      Tag(List("folkevise"),Some("nn")),
-      Tag(List("folkevise"),Some("nb")),
-      Tag(List("folk song"),None),
-      Tag(List("folk song"),Some("en"))
+      Tag(List("folkevise"),"nn"),
+      Tag(List("folkevise"),"nb"),
+      Tag(List("folk song"),"unknown"),
+      Tag(List("folk song"),"en")
     )
     service.keywordsJsonToImageTags(jsonString) should equal (expectedResult)
   }

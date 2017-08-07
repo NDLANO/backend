@@ -37,7 +37,7 @@ trait WriteService {
         _ <- validationService.validate(domainAudio)
         audioMetaData <- Try(audioRepository.insert(domainAudio))
         _ <- searchIndexService.indexDocument(audioMetaData)
-      } yield converterService.toApiAudioMetaInformation(audioMetaData, audioMetaData.titles.head.language.get)
+      } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
       if (audioMetaInformation.isFailure) {
         deleteFile(audioFileMeta)
@@ -73,7 +73,7 @@ trait WriteService {
             validated <- validationService.validate(toSave)
             updated <- audioRepository.update(validated, id)
             indexed <- searchIndexService.indexDocument(updated)
-            converted <- converterService.toApiAudioMetaInformation(indexed, metadataToUpdate.language)
+            converted <- converterService.toApiAudioMetaInformation(indexed, Some(metadataToUpdate.language))
           } yield converted
 
           if(finished.isFailure && !savedAudio.isFailure) {
@@ -93,8 +93,8 @@ trait WriteService {
 
       val merged = existing.copy(
         revision = Some(toUpdate.revision),
-        titles = mergeLanguageField[String, domain.Title](existing.titles, domain.Title(toUpdate.title, Option(toUpdate.language))),
-        tags = mergeLanguageField[Seq[String], domain.Tag](existing.tags, domain.Tag(toUpdate.tags, Option(toUpdate.language))),
+        titles = mergeLanguageField[String, domain.Title](existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+        tags = mergeLanguageField[Seq[String], domain.Tag](existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
@@ -114,13 +114,6 @@ trait WriteService {
       audioStorage.deleteObject(audioFile.filePath)
     }
 
-    private[service] def getLanguageForFile(oldFileName: String, audioFileMetas: Seq[NewAudioFile]): Try[Option[String]] = {
-      audioFileMetas.find(_.fileName == oldFileName) match {
-        case Some(e) => Success(e.language)
-        case None => Failure(new LanguageMappingException(s"Could not find entry for file '$oldFileName' in metadata"))
-      }
-    }
-
     private[service] def getFileExtension(fileName: String): Option[String] = {
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 => Some(fileName.substring(index))
@@ -134,7 +127,7 @@ trait WriteService {
       val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
       audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)
-        .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, Some(language)))
+        .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {

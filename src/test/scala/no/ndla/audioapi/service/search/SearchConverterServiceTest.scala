@@ -23,29 +23,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
 
   val domainTitles = List(
-    Title("Bokmål tittel", Some("nb")), Title("Nynorsk tittel", Some("nn")),
-    Title("English title", Some("en")), Title("Titre francais", Some("fr")),
-    Title("Deutsch titel", Some("de")), Title("Titulo espanol", Some("es")),
-    Title("Nekonata titolo", None))
+    Title("Bokmål tittel", "nb"), Title("Nynorsk tittel", "nn"),
+    Title("English title", "en"), Title("Titre francais", "fr"),
+    Title("Deutsch titel", "de"), Title("Titulo espanol", "es"),
+    Title("Nekonata titolo", "unknown"))
 
   val apiTitles = List(
-    api.Title("Bokmål tittel", Some("nb")), api.Title("Nynorsk tittel", Some("nn")),
-    api.Title("English title", Some("en")), api.Title("Titre francais", Some("fr")),
-    api.Title("Deutsch titel", Some("de")), api.Title("Titulo espanol", Some("es")),
-    api.Title("Nekonata titolo", None))
+    api.Title("Bokmål tittel", "nb"), api.Title("Nynorsk tittel", "nn"),
+    api.Title("English title", "en"), api.Title("Titre francais", "fr"),
+    api.Title("Deutsch titel", "de"), api.Title("Titulo espanol", "es"),
+    api.Title("Nekonata titolo", "unknown"))
 
   val audioFiles = Seq(
-    Audio("file.mp3", "audio/mpeg", 1024, Some("nb")),
-    Audio("file2.mp3", "audio/mpeg", 2048, Some("nb")),
-    Audio("file3.mp3", "audio/mpeg", 4096, Some("nb")),
-    Audio("file4.mp3", "audio/mpeg", 8192, Some("nb"))
+    Audio("file.mp3", "audio/mpeg", 1024, "nb"),
+    Audio("file2.mp3", "audio/mpeg", 2048, "nb"),
+    Audio("file3.mp3", "audio/mpeg", 4096, "nb"),
+    Audio("file4.mp3", "audio/mpeg", 8192, "nb")
   )
 
   val audioTags = Seq(
-    Tag(Seq("fugl", "fisk"), Some("nb")), Tag(Seq("fugl", "fisk"), Some("nn")),
-    Tag(Seq("bird", "fish"), Some("en")), Tag(Seq("got", "tired"), Some("fr")),
-    Tag(Seq("of", "translating"), Some("de")), Tag(Seq("all", "of"), Some("es")),
-    Tag(Seq("the", "words"), None)
+    Tag(Seq("fugl", "fisk"), "nb"), Tag(Seq("fugl", "fisk"), "nn"),
+    Tag(Seq("bird", "fish"), "en"), Tag(Seq("got", "tired"), "fr"),
+    Tag(Seq("of", "translating"), "de"), Tag(Seq("all", "of"), "es"),
+    Tag(Seq("the", "words"), "unknown")
   )
 
   test("That asSearchableAudioInformation converts titles with correct language") {
@@ -83,7 +83,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageValueWithLang(searchableAudio.titles, "fr") should equal(titleForLang(domainTitles, "fr"))
     languageValueWithLang(searchableAudio.titles, "de") should equal(titleForLang(domainTitles, "de"))
     languageValueWithLang(searchableAudio.titles, "es") should equal(titleForLang(domainTitles, "es"))
-    searchableAudio.titles.languageValues.find(_.lang.isEmpty).get.value should equal(domainTitles.find(_.language.isEmpty).get.title)
   }
 
   private def verifyTags(searchableAudio: SearchableAudioInformation): Unit = {
@@ -93,22 +92,21 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageListWithLang(searchableAudio.tags, "fr") should equal(tagsForLang(audioTags, "fr"))
     languageListWithLang(searchableAudio.tags, "de") should equal(tagsForLang(audioTags, "de"))
     languageListWithLang(searchableAudio.tags, "es") should equal(tagsForLang(audioTags, "es"))
-    languageListWithLang(searchableAudio.tags, null) should equal(tagsForLang(audioTags))
   }
 
-  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = null): String = {
-    languageValues.languageValues.find(_.lang == Option(lang)).get.value
+  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String): String = {
+    languageValues.languageValues.find(_.lang == lang).get.value
   }
 
-  private def languageListWithLang(languageList: SearchableLanguageList, lang: String = null): Seq[String] = {
-    languageList.languageValues.find(_.lang == Option(lang)).get.value
+  private def languageListWithLang(languageList: SearchableLanguageList, lang: String): Seq[String] = {
+    languageList.languageValues.find(_.lang == lang).get.value
   }
 
-  private def titleForLang(titles: Seq[Title], lang: String = null): String = {
-    titles.find(_.language == Option(lang)).get.title
+  private def titleForLang(titles: Seq[Title], lang: String): String = {
+    titles.find(_.language == lang).get.title
   }
 
-  private def tagsForLang(tags: Seq[Tag], lang: String = null) = {
-    tags.find(_.language == Option(lang)).get.tags
+  private def tagsForLang(tags: Seq[Tag], lang: String) = {
+    tags.find(_.language == lang).get.tags
   }
 }

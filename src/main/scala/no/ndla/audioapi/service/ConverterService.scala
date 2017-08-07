@@ -8,18 +8,14 @@
 
 package no.ndla.audioapi.service
 
-import com.netaporter.uri.Uri
 import com.typesafe.scalalogging.LazyLogging
-import com.netaporter.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.api.NotFoundException
-import no.ndla.audioapi.model.domain.{Audio, Tag, Title}
-import no.ndla.audioapi.model.Language._
+import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, DefaultLanguage}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 
 trait ConverterService {
@@ -27,32 +23,38 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: String): Try[api.AudioMetaInformation] = {
-      val lang = language match {
-        case AllLanguages if audioMeta.supportedLanguages.contains(DefaultLanguage) => DefaultLanguage
-        case AllLanguages if audioMeta.supportedLanguages.nonEmpty => audioMeta.supportedLanguages.head
-        case l => l
-      }
 
-      if (!audioMeta.supportedLanguages.contains(lang))
-        return Failure(new NotFoundException)
-
-      val audioFile = findByLanguage(audioMeta.filePaths, lang).getOrElse(audioMeta.filePaths.head)
+    def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: Option[String]): Try[api.AudioMetaInformation] = {
       Success(api.AudioMetaInformation(
         audioMeta.id.get,
         audioMeta.revision.get,
-        lang,
-        findByLanguage(audioMeta.titles, lang).getOrElse(""),
-        toApiAudio(audioFile),
+        toApiTitle(findByLanguageOrBestEffort[String, domain.Title](audioMeta.titles, language)),
+        toApiAudio(findByLanguageOrBestEffort[domain.Audio, domain.Audio](audioMeta.filePaths, language)),
         toApiCopyright(audioMeta.copyright),
-        findByLanguage(audioMeta.tags, lang).getOrElse(Seq.empty),
+        toApiTags(findByLanguageOrBestEffort[Seq[String], domain.Tag](audioMeta.tags, language)),
         audioMeta.supportedLanguages
       ))
     }
 
-    def toApiAudio(audio: domain.Audio): api.Audio = {
-      val audioUrl: Uri = s"$Domain/$AudioFilesUrlSuffix/${audio.filePath}"
-      api.Audio(audioUrl, audio.mimeType, audio.fileSize)
+    def toApiTitle(maybeTitle: Option[domain.Title]): api.Title = {
+      maybeTitle match {
+        case Some(title) => api.Title(title.title, title.language)
+        case None => api.Title("", DefaultLanguage)
+      }
+    }
+
+    def toApiTags(maybeTag: Option[domain.Tag]) = {
+      maybeTag match {
+        case Some(tag) => api.Tag(tag.tags, tag.language)
+        case None => api.Tag(Seq(), DefaultLanguage)
+      }
+    }
+
+    def toApiAudio(audio: Option[domain.Audio]): api.Audio = {
+      audio match {
+        case Some(x) => api.Audio(s"$Domain/$AudioFilesUrlSuffix/${x.filePath}", x.mimeType, x.fileSize, x.language)
+        case None => api.Audio("", "", 0, DefaultLanguage)
+      }
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
@@ -70,12 +72,19 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation, audio: Audio): domain.AudioMetaInformation = {
+    def toDomainTags(tags: api.Tag): Seq[domain.Tag] = {
+      tags.tags.nonEmpty match {
+        case false => Seq(domain.Tag(tags.tags, tags.language))
+        case true => Seq()
+      }
+    }
+
+    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation, audio: domain.Audio): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(None, None,
-        Seq(domain.Title(audioMeta.title, Some(audioMeta.language))),
+        Seq(domain.Title(audioMeta.title, audioMeta.language)),
         Seq(audio),
         toDomainCopyright(audioMeta.copyright),
-        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, Some(audioMeta.language))) else Seq(),
+        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
         authUser.id(),
         clock.now()
       )
