@@ -58,7 +58,7 @@ trait SearchService {
     def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
       val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
       val titles = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(en => domain.Title(en.getValue.getAsString, en.getKey))
-      val title = findByLanguageOrBestEffort[String, domain.Title](titles, Some(language)) match {
+      val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }

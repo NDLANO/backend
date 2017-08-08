@@ -28,10 +28,10 @@ trait ConverterService {
       Success(api.AudioMetaInformation(
         audioMeta.id.get,
         audioMeta.revision.get,
-        toApiTitle(findByLanguageOrBestEffort[String, domain.Title](audioMeta.titles, language)),
-        toApiAudio(findByLanguageOrBestEffort[domain.Audio, domain.Audio](audioMeta.filePaths, language)),
+        toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
+        toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
         toApiCopyright(audioMeta.copyright),
-        toApiTags(findByLanguageOrBestEffort[Seq[String], domain.Tag](audioMeta.tags, language)),
+        toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
         audioMeta.supportedLanguages
       ))
     }

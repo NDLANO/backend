@@ -30,7 +30,7 @@ object Language {
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
-  def findByLanguageOrBestEffort[T,P <: LanguageField[T]](sequence: Seq[P], lang: Option[String]): Option[P] = {
+  def findByLanguageOrBestEffort[P <: LanguageField[_]](sequence: Seq[P], lang: Option[String]): Option[P] = {
     def findFirstLanguageMatching(sequence: Seq[P], lang: Seq[String]): Option[P] = {
       lang match {
         case Nil => sequence.headOption
