@@ -24,9 +24,7 @@ trait InternController {
   class InternController extends NdlaController {
 
     get("/external/:external_id") {
-      val language = paramOrDefault("language", Language.DefaultLanguage)
-
-      readService.withExternalId(params("external_id"), language)
+      readService.withExternalId(params("external_id"), paramOrNone("language"))
     }
 
     post("/index") {
@@ -47,7 +45,7 @@ trait InternController {
       for {
         imported <- importService.importAudio(params("external_id"))
         indexed <- searchIndexService.indexDocument(imported)
-        audio <- converterService.toApiAudioMetaInformation(indexed, Language.AllLanguages)
+        audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
     }
 

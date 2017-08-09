@@ -11,7 +11,9 @@ package no.ndla.audioapi.service
 
 import no.ndla.audioapi.model.domain.Tag
 import no.ndla.audioapi.AudioApiProperties.TopicAPIUrl
+import no.ndla.audioapi.model.Language
 import no.ndla.mapping.ISO639
+
 import scala.io.Source
 import scala.util.matching.Regex
 
@@ -37,7 +39,7 @@ trait TagsService {
         .flatMap(_.toIterable)
         .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
         .groupBy(_._1).map(entry => (entry._1, entry._2.map(_._2)))
-        .map(t => Tag(t._2, t._1)).toList
+        .map(t => Tag(t._2, Language.languageOrUnknown(t._1))).toList
     }
 
     def getISO639(languageUrl:String): Option[String] = {

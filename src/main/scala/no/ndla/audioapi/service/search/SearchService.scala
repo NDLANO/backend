@@ -17,9 +17,8 @@ import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.ElasticClient
 import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
-import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.Language.{AllLanguages, DefaultLanguage, NoLanguage, UnknownLanguage}
-import no.ndla.audioapi.model.Language
+import no.ndla.audioapi.model.{Language, Sort, domain}
+import no.ndla.audioapi.model.Language._
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -27,6 +26,7 @@ import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
+
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -57,27 +57,22 @@ trait SearchService {
 
     def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
       val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
-
-      val titleLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
-      val titleLanguage = language match {
-        case AllLanguages if titleLanguages.contains(DefaultLanguage) => DefaultLanguage
-        case AllLanguages if titleLanguages.nonEmpty => titleLanguages.headOption.getOrElse("")
-        case l => l
+      val titles = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(en => domain.Title(en.getValue.getAsString, en.getKey))
+      val title = findByLanguageOrBestEffort(titles, Some(language)) match {
+        case None => Title("", language)
+        case Some(x) => Title(x.title, x.language)
       }
-
-      val title = hit.get("titles").getAsJsonObject.get(titleLanguage).getAsString
 
       AudioSummary(
         hit.get("id").getAsLong,
         title,
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
-        titleLanguage,
         supportedLanguages.distinct
       )
     }
 
-    def all(language: String, license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
         language,
         license,
@@ -87,7 +82,7 @@ trait SearchService {
         QueryBuilders.boolQuery())
     }
 
-    def matchingQuery(query: String, language: String, license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def matchingQuery(query: String, language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
           .should(languageSpecificSearch("titles", language, query, 1))
@@ -96,20 +91,20 @@ trait SearchService {
       executeSearch(language, license, sort, page, pageSize, fullSearch)
     }
 
-    private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Float): QueryBuilder = {
+    private def languageSpecificSearch(searchField: String, language: Option[String], query: String, boost: Float): QueryBuilder = {
       language match {
-        case AllLanguages =>
+        case None =>
           Language.supportedLanguages.foldLeft(QueryBuilders.boolQuery())((result, lang) => {
             val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
             result.should(QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost))
           })
-        case lang =>
+        case Some(lang) =>
           val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
           QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost)
       }
     }
 
-    def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
+    def executeSearch(language: Option[String], license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
       val (filteredSearch, searchLanguage) = {
 
         val licenseFilteredSearch = license match {
@@ -118,8 +113,8 @@ trait SearchService {
         }
 
         language match {
-          case AllLanguages => (licenseFilteredSearch, DefaultLanguage)
-          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("titles", QueryBuilders.existsQuery(s"titles.$language"), ScoreMode.Avg)), language)
+          case None => (licenseFilteredSearch, DefaultLanguage)
+          case Some(lang) => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("titles", QueryBuilders.existsQuery(s"titles.$lang"), ScoreMode.Avg)), lang)
         }
 
       }
@@ -137,8 +132,8 @@ trait SearchService {
           SearchResult(
             response.getTotal.toLong,
             page.getOrElse(1), numResults,
-            if (language == AllLanguages) "" else language,
-            getHits(response, language)
+            Language.languageOrUnknown(language),
+            getHits(response, Language.languageOrUnknown(language))
           )
         case Failure(f) => errorHandler(Failure(f))
       }

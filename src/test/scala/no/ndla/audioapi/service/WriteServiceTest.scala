@@ -19,8 +19,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
   override val converterService = new ConverterService
   val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val newAudioFile1 = NewAudioFile("test.mp3", Some("nb"))
-  val newAudioFile2 = NewAudioFile("test2.mp3", Some("nb"))
+  val newAudioFile1 = NewAudioFile("test.mp3", "nb")
+  val newAudioFile2 = NewAudioFile("test2.mp3", "nb")
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
   val s3ObjectMock = mock[ObjectMetadata]
@@ -40,7 +40,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   
-  val someAudio = Audio(newFileName1, "audio/mp3", 1024, Some("en"))
+  val someAudio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
   val domainAudioMeta = converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
 
@@ -66,7 +66,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("converter to domain should set updatedBy from authUser and updated date"){
     when(authUser.id()).thenReturn("ndla54321")
     when(clock.now()).thenReturn(updated)
-    val domain = converterService.toDomainAudioMetaInformation(newAudioMeta, Audio(newFileName1, "audio/mp3", 1024, Some("en")))
+    val domain = converterService.toDomainAudioMetaInformation(newAudioMeta, Audio(newFileName1, "audio/mp3", 1024, "en"))
     domain.updatedBy should equal ("ndla54321")
     domain.updated should equal(updated)
   }
@@ -90,17 +90,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.uploadFile(fileMock1, "en").isFailure should be (true)
   }
 
-  test("getLanguageForFile should return Success if metadata contains entry with name of file to be uploaded") {
-    val newFiles = Seq(newAudioFile1, newAudioFile2)
-    writeService.getLanguageForFile(newAudioFile1.fileName, newFiles) should equal(Success(Some("nb")))
-  }
-
-  test("getLanguageForFile should return Failure if metadata does not contain entry with name of file to be uploaded") {
-    writeService.getLanguageForFile("random.mp3", Seq(newAudioFile1)).isFailure should be (true)
-  }
-
   test("deleteFiles should delete all files in a list") {
-    writeService.deleteFile(Audio("mp3.mp3", "audio/mp3", 1024, None))
+    writeService.deleteFile(Audio("mp3.mp3", "audio/mp3", 1024, "unknown"))
     verify(audioStorage, times(1)).deleteObject(any[String])
   }
 
@@ -115,7 +106,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("uploadFiles should return an Audio objects if everything went ok") {
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String])).thenReturn(Success(s3ObjectMock))
-    val result = writeService.uploadFile(fileMock1, newAudioFile1.language.get)
+    val result = writeService.uploadFile(fileMock1, newAudioFile1.language)
 
     result.isSuccess should be (true)
     inside(result.get) { case Audio(filepath, mimetype, filesize, language) =>
@@ -179,7 +170,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val result = writeService.storeNewAudio(newAudioMeta, fileMock1)
     result.isSuccess should be (true)
-    result should equal(converterService.toApiAudioMetaInformation(afterInsert, afterInsert.tags.head.language.get))
+    result should equal(converterService.toApiAudioMetaInformation(afterInsert, Some(newAudioMeta.language)))
 
     verify(audioRepository, times(1)).insert(any[domain.AudioMetaInformation])(any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[domain.AudioMetaInformation])
@@ -217,7 +208,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that mergeAudioMeta overwrites filepath if new audio for same language") {
     when(authUser.id()).thenReturn("ndla54321")
 
-    val newAudio = Audio(newFileName2, "audio/mp3", 1024, Some("en"))
+    val newAudio = Audio(newFileName2, "audio/mp3", 1024, "en")
 
     val toUpdate = UpdatedAudioMetaInformation(1, "A new english title", "en", converterService.toApiCopyright(domainAudioMeta.copyright), Seq())
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
@@ -231,7 +222,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that mergeAudioMeta adds filepath if new audio for new language") {
     when(authUser.id()).thenReturn("ndla54321")
 
-    val newAudio = Audio(newFileName2, "audio/mp3", 1024, Some("nb"))
+    val newAudio = Audio(newFileName2, "audio/mp3", 1024, "nb")
 
     val toUpdate = UpdatedAudioMetaInformation(1, "En ny norsk tittel", "nb", converterService.toApiCopyright(domainAudioMeta.copyright), Seq())
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
