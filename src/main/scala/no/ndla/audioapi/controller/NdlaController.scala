@@ -17,7 +17,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import no.ndla.audioapi.AudioApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.audioapi.model.api.{AccessDeniedException, Error, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.audioapi.model.api.{AccessDeniedException, Error, ResultWindowTooLargeException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.network.model.HttpRequestException
 import org.scalatra.servlet.SizeConstraintExceededException
 
@@ -46,6 +46,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case hre: HttpRequestException => BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
+    case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
     case _: SizeConstraintExceededException =>
       contentType = formats("json")
       RequestEntityTooLarge(body=Error.FileTooBigError)
