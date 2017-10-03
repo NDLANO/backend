@@ -15,7 +15,7 @@ import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.ElasticClient
-import no.ndla.audioapi.model.api.{AudioSummary, SearchResult, Title}
+import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.{Language, Sort, domain}
 import no.ndla.audioapi.model.Language._
@@ -126,6 +126,12 @@ trait SearchService {
         .addIndex(AudioApiProperties.SearchIndex)
         .setParameter(Parameters.SIZE, numResults)
         .setParameter("from", startAt)
+
+      val requestedResultWindow = page.getOrElse(1)*numResults
+      if(requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
+        logger.info(s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        throw new ResultWindowTooLargeException()
+      }
 
       jestClient.execute(request.build()) match {
         case Success(response) =>
