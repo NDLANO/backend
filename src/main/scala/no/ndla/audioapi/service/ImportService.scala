@@ -18,6 +18,7 @@ import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
 
 import scala.util.Try
+import com.netaporter.uri.dsl._
 
 trait ImportService {
   this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with User with Clock =>
@@ -56,7 +57,7 @@ trait ImportService {
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
       audioStorage.getObjectMetaData(audioMeta.fileName)
-        .orElse(audioStorage.storeAudio(new URL(audioMeta.url), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
+        .orElse(audioStorage.storeAudio(new URL(audioMeta.url.withScheme("https")), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
         .map(s3ObjectMeta => Audio(audioMeta.fileName, s3ObjectMeta.getContentType, s3ObjectMeta.getContentLength, Language.languageOrUnknown(audioMeta.language)))
     }
 
