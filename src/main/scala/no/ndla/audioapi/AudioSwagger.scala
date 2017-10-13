@@ -28,5 +28,5 @@ object AudioApiInfo {
 }
 
 class AudioSwagger extends Swagger("2.0", "0.8", AudioApiInfo.apiInfo) {
-  addAuthorization(OAuth(List("audio:all"), List(ApplicationGrant(TokenEndpoint("/auth/tokens", "access_token")))))
+  addAuthorization(OAuth(List("openid"), List(ApplicationGrant(TokenEndpoint("https://ndla.eu.auth0.com/oauth/token", "access_token")))))
 }
