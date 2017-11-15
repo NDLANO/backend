@@ -8,8 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.model.Language
-import no.ndla.audioapi.model.api.Title
+import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
@@ -18,7 +17,7 @@ import org.scalatra.{InternalServerError, Ok}
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportService with ConverterService with SearchIndexService with AudioRepository with IndexService with ReadService =>
+  this: ImportService with ConverterService with SearchIndexService with AudioRepository with IndexService with ReadService with User =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -42,6 +41,7 @@ trait InternController {
     }
 
     post("/import/:external_id") {
+      authUser.assertHasId()
       for {
         imported <- importService.importAudio(params("external_id"))
         indexed <- searchIndexService.indexDocument(imported)

@@ -47,7 +47,7 @@ trait ImportService {
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
       val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
-      val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), "content-import-client", clock.now()))
+      val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), authUser.userOrClientid(), clock.now()))
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
