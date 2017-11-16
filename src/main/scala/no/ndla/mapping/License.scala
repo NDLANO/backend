@@ -16,8 +16,8 @@ object License {
     LicenseDefinition("by-nd", "Creative Commons Attribution-NoDerivs 2.0 Generic", Some("https://creativecommons.org/licenses/by-nd/2.0/")),
     LicenseDefinition("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")),
     LicenseDefinition("by-nc-nd", "Creative Commons Attribution-NonCommercial-NoDerivs 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-nd/2.0/")),
-    LicenseDefinition("cc0", "Public Domain Dedication", Some("https://creativecommons.org/about/cc0")), // endre til CC0
-    LicenseDefinition("pd", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")), //Endres til PD (public domain mark)
+    LicenseDefinition("cc0", "Public Domain Dedication", Some("https://creativecommons.org/about/cc0")),
+    LicenseDefinition("pd", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
     LicenseDefinition("copyrighted", "Copyrighted", None),
     LicenseDefinition("by-4.0", "Creative Commons Attribution 4.0 Generic", Some("https://creativecommons.org/licenses/by/4.0/")),
     LicenseDefinition("by-sa-4.0", "Creative Commons Attribution-ShareAlike 4.0 Generic", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
