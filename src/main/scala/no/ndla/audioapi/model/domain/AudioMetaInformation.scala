@@ -32,7 +32,7 @@ case class AudioMetaInformation(id: Option[Long],
 
 case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] { override def value: Audio = this }
-case class Copyright(license: String, origin: Option[String], authors: Seq[Author])
+case class Copyright(license: String, origin: Option[String], creators: Seq[Author], processors: Seq[Author], rightsholders: Seq[Author], agreementId: Option[Long], validFrom: Option[Date], validTo: Option[Date])
 case class Author(`type`: String, name: String)
 case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] { override def value: Seq[String] = tags }
 

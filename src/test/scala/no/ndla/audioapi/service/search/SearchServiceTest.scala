@@ -151,7 +151,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   test("That searching for 'en' should only return 'Donald' (audio4) with the english title") {
     val result = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
     result.totalCount should be (1)
-    result.results.head.title should be ("Donald Duck drives a car")
+    result.results.head.title.title should be ("Donald Duck drives a car")
     result.language should be ("en")
   }
 

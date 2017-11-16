@@ -58,7 +58,15 @@ trait ConverterService {
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
-      api.Copyright(toApiLicence(copyright.license), copyright.origin, copyright.authors.map(toApiAuthor))
+      api.Copyright(toApiLicence(copyright.license),
+        copyright.origin,
+        copyright.creators.map(toApiAuthor),
+        copyright.processors.map(toApiAuthor),
+        copyright.rightsholders.map(toApiAuthor),
+        copyright.agreementId,
+        copyright.validFrom,
+        copyright.validTo
+      )
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
       getLicense(licenseAbbrevation) match {
@@ -95,7 +103,16 @@ trait ConverterService {
     }
 
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
+      domain.Copyright(
+        copyright.license.license,
+        copyright.origin,
+        copyright.creators.map(toDomainAuthor),
+        copyright.processors.map(toDomainAuthor),
+        copyright.rightsholders.map(toDomainAuthor),
+        copyright.agreementId,
+        copyright.validFrom,
+        copyright.validTo
+      )
     }
 
     def toDomainAuthor(author: api.Author): domain.Author = {

@@ -16,6 +16,7 @@ import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.AudioApiProperties._
 
 import scala.util.Try
 import com.netaporter.uri.dsl._
@@ -41,12 +42,35 @@ trait ImportService {
       audio.copy(tags = tags)
     }
 
+    private def toNewAuthorType(author: Author): domain.Author = {
+      val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+      val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+      val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
+
+      (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+        case (t: String, None, None) => domain.Author(t.capitalize, author.name)
+        case (None, t: String, None) => domain.Author(t.capitalize, author.name)
+        case (None, None, t: String) => domain.Author(t.capitalize, author.name)
+        case (_, _, _) => domain.Author(author.`type`, author.name)
+      }
+    }
+
     private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
       val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
-      val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
+      //TODO: REMOVE => val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
+      val copyright =domain.Copyright(
+        mainNode.license,
+        origin.map(_.name),
+        creators,
+        processors,
+        rightsholders,
+        None,
+        None,
+        None
+      )
       val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), "content-import-client", clock.now()))
 
       audioRepository.withExternalId(mainNode.nid) match {
