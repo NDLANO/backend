@@ -12,7 +12,7 @@ import java.net.URL
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta}
+import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta, MigrationAuthor}
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
@@ -42,7 +42,7 @@ trait ImportService {
       audio.copy(tags = tags)
     }
 
-    private def toNewAuthorType(author: Author): domain.Author = {
+    private def toNewAuthorType(author: MigrationAuthor): domain.Author = {
       val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
       val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
       val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
@@ -60,8 +60,13 @@ trait ImportService {
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
-      //TODO: REMOVE => val copyright = Copyright(mainNode.license, origin.map(_.name), authors.diff(Seq(origin)).map(x => Author(x.`type`, x.name)))
-      val copyright =domain.Copyright(
+
+      val creators = authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
+      val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
+      val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+
+      val copyright = domain.Copyright(
         mainNode.license,
         origin.map(_.name),
         creators,
@@ -86,4 +91,5 @@ trait ImportService {
     }
 
   }
+
 }

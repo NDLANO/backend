@@ -1,5 +1,6 @@
 package no.ndla.audioapi.service
 
+import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain._
 import org.jsoup.Jsoup
@@ -48,7 +49,10 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-      copyright.authors.flatMap(validateAuthor) ++
+      copyright.creators.flatMap(a => validateAuthor("copyright.creators", a)) ++
+      copyright.processors.flatMap(a => validateAuthor("copyright.processors", a)) ++
+      copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a)) ++
+      validateAgreement(copyright) ++
       copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
@@ -59,9 +63,29 @@ trait ValidationService {
       }
     }
 
-    def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      containsNoHtml("author.type", author.`type`).toList ++
-        containsNoHtml("author.name", author.name).toList
+    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+      copyright.agreementId match {
+        case Some(id) =>
+          draftApiClient.agreementExists(id) match {
+            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
+            case _ => Seq()
+          }
+        case _ => Seq()
+      }
+    }
+
+    def validateAuthor(fieldPath: String, author: Author): Seq[ValidationMessage] = {
+      containsNoHtml(s"$fieldPath.type", author.`type`).toList ++
+        containsNoHtml(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(fieldPath, author.`type`).toList
+    }
+
+    def validateAuthorType(fieldPath: String, `type`: String): Option[ValidationMessage] = {
+      if(AudioApiProperties.allowedAuthors.contains(`type`.toLowerCase)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${AudioApiProperties.allowedAuthors.mkString(", ")}"))
+      }
     }
 
     def validateTags(tags: Seq[Tag]): Seq[ValidationMessage] = {
