@@ -10,15 +10,14 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.integration.JestClientFactory
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
-import no.ndla.audioapi.model.api
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.tag.IntegrationTest
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.Mockito._
 import org.mockito.Matchers.any
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
 
 @IntegrationTest
 class SearchServiceTest extends UnitSuite with TestEnvironment {

@@ -14,7 +14,7 @@ import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.model.api.{AudioMetaInformation, Error, NewAudioMetaInformation, SearchParams, SearchResult, UpdatedAudioMetaInformation, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.SearchService
-import no.ndla.audioapi.service.{Clock, ReadService, WriteService}
+import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
@@ -25,7 +25,7 @@ import org.scalatra.swagger._
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
-  this: AudioRepository with ReadService with WriteService with SearchService with Role with Clock=>
+  this: AudioRepository with ReadService with WriteService with SearchService with Role with Clock with ConverterService =>
   val audioApiController: AudioController
 
   class AudioController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
@@ -155,7 +155,7 @@ trait AudioController {
       val language = paramOrNone("language")
 
       readService.withId(id, language) match {
-        case Some(audio) => audio
+        case Some(audio) => converterService.withAgreementCopyright(audio)
         case None => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
       }
     }
@@ -170,7 +170,7 @@ trait AudioController {
       val file = fileParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one file"))))
 
       writeService.storeNewAudio(newAudio, file) match {
-        case Success(audioMeta) => audioMeta
+        case Success(audioMeta) => converterService.withAgreementCopyright(audioMeta)
         case Failure(e) => errorHandler(e)
       }
     }
@@ -185,7 +185,7 @@ trait AudioController {
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
 
       writeService.updateAudio(id, updatedAudio, fileOpt) match {
-        case Success(audioMeta) => audioMeta
+        case Success(audioMeta) => converterService.withAgreementCopyright(audioMeta)
         case Failure(e) => errorHandler(e)
       }
 
