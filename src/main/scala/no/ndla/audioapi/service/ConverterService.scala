@@ -11,7 +11,9 @@ package no.ndla.audioapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, DefaultLanguage}
+import no.ndla.audioapi.integration.DraftApiClient
+import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort}
+import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
@@ -19,10 +21,37 @@ import scala.util.{Success, Try}
 
 
 trait ConverterService {
-  this: User with Clock =>
+  this: User with Clock with DraftApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
+      val agreementCopyright = audio.copyright.agreementId.flatMap(aid =>
+        draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright)
+      ).getOrElse(audio.copyright)
+
+      audio.copy(copyright = audio.copyright.copy(
+        license = agreementCopyright.license,
+        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else audio.copyright.creators,
+        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else audio.copyright.rightsholders,
+        validFrom = if (agreementCopyright.validFrom.nonEmpty) agreementCopyright.validFrom else audio.copyright.validFrom,
+        validTo = if (agreementCopyright.validTo.nonEmpty) agreementCopyright.validTo else audio.copyright.validTo
+      ))
+    }
+
+    def withAgreementCopyright(audio: api.AudioMetaInformation): AudioMetaInformation = {
+      val agreementCopyright = audio.copyright.agreementId.flatMap(aid =>
+        draftApiClient.getAgreementCopyright(aid)
+      ).getOrElse(audio.copyright)
+
+      audio.copy(copyright = audio.copyright.copy(
+        license = agreementCopyright.license,
+        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else audio.copyright.creators,
+        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else audio.copyright.rightsholders,
+        validFrom = if (agreementCopyright.validFrom.nonEmpty) agreementCopyright.validFrom else audio.copyright.validFrom,
+        validTo = if (agreementCopyright.validTo.nonEmpty) agreementCopyright.validTo else audio.copyright.validTo
+      ))
+    }
 
     def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: Option[String]): Try[api.AudioMetaInformation] = {
       Success(api.AudioMetaInformation(
