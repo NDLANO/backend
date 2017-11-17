@@ -20,7 +20,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")))
+  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
   val audioMeta = AudioMetaInformation(
     Some(1),
     Some(1),

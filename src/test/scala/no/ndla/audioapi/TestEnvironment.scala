@@ -29,6 +29,7 @@ trait TestEnvironment
   with AmazonClient
   with ReadService
   with WriteService
+  with DraftApiClient
   with ValidationService
   with ConverterService
   with AudioStorageService
@@ -54,6 +55,7 @@ trait TestEnvironment
   val amazonClient = mock[AmazonS3Client]
   val ndlaClient = mock[NdlaClient]
   val migrationApiClient = mock[MigrationApiClient]
+  val draftApiClient = mock[DraftApiClient]
 
   val importService = mock[ImportService]
   val readService = mock[ReadService]

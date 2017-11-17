@@ -28,9 +28,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
-  val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")))
-  val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")))
+  val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
+  val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")), Seq(), Seq(), None, None, None)
+  val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val audio1 = AudioMetaInformation(Some(1), Some(1), List(Title("Batmen er på vift med en bil", "nb")), List(Audio("file.mp3", "audio/mpeg", 1024, "nb")), copyrighted, List(Tag(List("fisk"), "nb")), "ndla124", updated)
