@@ -39,7 +39,7 @@ trait ConverterService {
       ))
     }
 
-    def withAgreementCopyright(audio: api.AudioMetaInformation): AudioMetaInformation = {
+    def withAgreementCopyright(audio: api.AudioMetaInformation): api.AudioMetaInformation = {
       val agreementCopyright = audio.copyright.agreementId.flatMap(aid =>
         draftApiClient.getAgreementCopyright(aid)
       ).getOrElse(audio.copyright)

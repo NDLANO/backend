@@ -79,4 +79,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     service.toApiLicence(licenseAbbr) should equal (api.License("unknown", None, None))
   }
+
+  //TODO: Add withAgreementCopyright here
 }

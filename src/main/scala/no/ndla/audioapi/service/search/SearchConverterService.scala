@@ -9,7 +9,6 @@
 package no.ndla.audioapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.model.api.{AudioSummary, Title}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.{LanguageValue, SearchableAudioInformation, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.audioapi.service.ConverterService
