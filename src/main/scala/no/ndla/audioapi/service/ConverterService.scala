@@ -32,10 +32,10 @@ trait ConverterService {
 
       audio.copy(copyright = audio.copyright.copy(
         license = agreementCopyright.license,
-        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else audio.copyright.creators,
-        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else audio.copyright.rightsholders,
-        validFrom = if (agreementCopyright.validFrom.nonEmpty) agreementCopyright.validFrom else audio.copyright.validFrom,
-        validTo = if (agreementCopyright.validTo.nonEmpty) agreementCopyright.validTo else audio.copyright.validTo
+        creators = agreementCopyright.creators ,
+        rightsholders = agreementCopyright.rightsholders,
+        validFrom = agreementCopyright.validFrom,
+        validTo = agreementCopyright.validTo
       ))
     }
 
@@ -46,10 +46,10 @@ trait ConverterService {
 
       audio.copy(copyright = audio.copyright.copy(
         license = agreementCopyright.license,
-        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else audio.copyright.creators,
-        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else audio.copyright.rightsholders,
-        validFrom = if (agreementCopyright.validFrom.nonEmpty) agreementCopyright.validFrom else audio.copyright.validFrom,
-        validTo = if (agreementCopyright.validTo.nonEmpty) agreementCopyright.validTo else audio.copyright.validTo
+        creators = agreementCopyright.creators ,
+        rightsholders = agreementCopyright.rightsholders,
+        validFrom = agreementCopyright.validFrom,
+        validTo = agreementCopyright.validTo
       ))
     }
 
