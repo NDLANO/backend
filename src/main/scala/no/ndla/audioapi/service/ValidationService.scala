@@ -1,6 +1,7 @@
 package no.ndla.audioapi.service
 
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain._
 import org.jsoup.Jsoup
@@ -12,6 +13,7 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
+  this: DraftApiClient =>
   val validationService: ValidationService
 
   class ValidationService {

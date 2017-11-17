@@ -1,5 +1,5 @@
 /*
- * Part of NDLA image_api.
+ * Part of NDLA audio_api.
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -49,7 +49,7 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
   }
 
   def updateAuthorFormat(id: Long, revision: Int, metaString: String): V5_AudioMetaInformation = {
-    val meta = read[Old_AudioMetaInformation](metaString)
+    val meta = read[V4_AudioMetaInformation](metaString)
     val metaV5 = read[V5_AudioMetaInformation](metaString)
 
     // If entry contains V6 features -> Don't update.
@@ -67,26 +67,16 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
       val processors = meta.copyright.authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
       val rightsholders = meta.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
 
-      val x = V5_AudioMetaInformation(
+      V5_AudioMetaInformation(
         Some(id),
         Some(revision),
         meta.titles,
         meta.filePaths,
-        V5_Copyright(V5_License(meta.copyright.license.license, meta.copyright.license.description, meta.copyright.license.url), meta.copyright.origin, creators, processors, rightsholders, None, None, None),
+        V5_Copyright(meta.copyright.license, meta.copyright.origin, creators, processors, rightsholders, None, None, None),
         meta.tags,
         meta.updatedBy,
         meta.updated
       )
-
-      import java.io._
-      val pw = new PrintWriter(new File(s"${x.id.getOrElse("NOP")}_NEW.json"))
-      pw.write(x.toString)
-      pw.close()
-      val ow = new PrintWriter(new File(s"${meta.id.getOrElse("NOP")}_OLD.json"))
-      ow.write(meta.toString)
-      ow.close()
-
-      x
     }
   }
 
@@ -95,21 +85,11 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
 
-    //sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update().apply
+    sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update().apply
   }
 
 }
-case class V5_License( license: String, description: Option[String], url: Option[String])
-case class V5_Copyright(license: V5_License, origin: String, creators: Seq[V4_Author], processors: Seq[V4_Author], rightsholders: Seq[V4_Author], agreementId: Option[Long], validFrom: Option[Date], validTo: Option[Date])
-case class Old_Copyright(license: V5_License, origin: String, authors: Seq[V4_Author])
-case class Old_AudioMetaInformation(id: Option[Long],
-                                   revision: Option[Int],
-                                   titles: Seq[V4_Title],
-                                   filePaths: Seq[V4_Audio],
-                                   copyright: Old_Copyright,
-                                   tags: Seq[V4_Tag],
-                                   updatedBy: String,
-                                   updated: Date)
+case class V5_Copyright(license: String, origin: Option[String], creators: Seq[V4_Author], processors: Seq[V4_Author], rightsholders: Seq[V4_Author], agreementId: Option[Long], validFrom: Option[Date], validTo: Option[Date])
 case class V5_AudioMetaInformation(id: Option[Long],
                                    revision: Option[Int],
                                    titles: Seq[V4_Title],
