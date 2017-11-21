@@ -23,7 +23,6 @@ trait DraftApiClient {
 
   class DraftApiClient {
     private val draftApiGetAgreementEndpoint = s"http://${AudioApiProperties.DraftApiHost}/draft-api/v1/agreements/:agreement_id"
-    private val draftApiHealthEndpoint = s"http://${AudioApiProperties.DraftApiHost}/health"
 
     def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
       implicit val formats = org.json4s.DefaultFormats
@@ -35,13 +34,6 @@ trait DraftApiClient {
     }
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
-
-    def isHealthy: Boolean = {
-      Try(Http(draftApiHealthEndpoint).execute()) match {
-        case Success(resp) => resp.isSuccess
-        case _ => false
-      }
-    }
   }
 }
 
