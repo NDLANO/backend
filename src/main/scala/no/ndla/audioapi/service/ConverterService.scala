@@ -32,25 +32,22 @@ trait ConverterService {
 
       audio.copy(copyright = audio.copyright.copy(
         license = agreementCopyright.license,
-        creators = agreementCopyright.creators ,
+        creators = agreementCopyright.creators,
         rightsholders = agreementCopyright.rightsholders,
         validFrom = agreementCopyright.validFrom,
         validTo = agreementCopyright.validTo
       ))
     }
 
-    def withAgreementCopyright(audio: api.AudioMetaInformation): api.AudioMetaInformation = {
-      val agreementCopyright = audio.copyright.agreementId.flatMap(aid =>
-        draftApiClient.getAgreementCopyright(aid)
-      ).getOrElse(audio.copyright)
-
-      audio.copy(copyright = audio.copyright.copy(
+    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
+      val agreementCopyright = copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
+      copyright.copy(
         license = agreementCopyright.license,
-        creators = agreementCopyright.creators ,
+        creators = agreementCopyright.creators,
         rightsholders = agreementCopyright.rightsholders,
         validFrom = agreementCopyright.validFrom,
         validTo = agreementCopyright.validTo
-      ))
+      )
     }
 
     def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: Option[String]): Try[api.AudioMetaInformation] = {
@@ -59,7 +56,7 @@ trait ConverterService {
         audioMeta.revision.get,
         toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
         toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-        toApiCopyright(audioMeta.copyright),
+        withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
         toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
         audioMeta.supportedLanguages
       ))
@@ -87,14 +84,16 @@ trait ConverterService {
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
-      api.Copyright(toApiLicence(copyright.license),
-        copyright.origin,
-        copyright.creators.map(toApiAuthor),
-        copyright.processors.map(toApiAuthor),
-        copyright.rightsholders.map(toApiAuthor),
-        copyright.agreementId,
-        copyright.validFrom,
-        copyright.validTo
+      withAgreementCopyright(
+        api.Copyright(toApiLicence(copyright.license),
+          copyright.origin,
+          copyright.creators.map(toApiAuthor),
+          copyright.processors.map(toApiAuthor),
+          copyright.rightsholders.map(toApiAuthor),
+          copyright.agreementId,
+          copyright.validFrom,
+          copyright.validTo
+        )
       )
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
@@ -148,4 +147,5 @@ trait ConverterService {
       domain.Author(author.`type`, author.name)
     }
   }
+
 }

@@ -111,15 +111,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That api version of withAgreementCopyright returns with copyright") {
-    val meta = api.AudioMetaInformation(
-      audioMeta.id.get,
-      audioMeta.revision.get,
-      api.Title("Batmen er på vift med en bil", "nb"),
-      service.toApiAudio(audioMeta.filePaths.headOption),
-      service.toApiCopyright(audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test")))),
-      api.Tag(Seq("fisk"), "nb"),
-      Seq("nb")
-    )
+    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
     val today = new DateTime().toDate()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
@@ -132,26 +124,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       validTo = None)
 
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
-    val result = service.withAgreementCopyright(meta)
-    result.copyright.license.license should equal ("gnu")
-    result.copyright.creators.head.name should equal("Christian Traktor")
-    result.copyright.processors.head.name should equal("Tommy Test")
-    result.copyright.rightsholders.head.name should equal("Marius Muffins")
-    result.copyright.validFrom should equal(Some(today))
+    val result = service.withAgreementCopyright(copyright)
+    result.license.license should equal ("gnu")
+    result.creators.head.name should equal("Christian Traktor")
+    result.processors.head.name should equal("Tommy Test")
+    result.rightsholders.head.name should equal("Marius Muffins")
+    result.validFrom should equal(Some(today))
   }
 
   test("That api version of withAgreementCopyright doesnt change anything if no agreement found") {
-    val meta = api.AudioMetaInformation(
-      audioMeta.id.get,
-      audioMeta.revision.get,
-      api.Title("Batmen er på vift med en bil", "nb"),
-      service.toApiAudio(audioMeta.filePaths.headOption),
-      service.toApiCopyright(audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test")))),
-      api.Tag(Seq("fisk"), "nb"),
-      Seq("nb")
-    )
-    val result = service.withAgreementCopyright(meta)
-    result should equal(meta)
+    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val result = service.withAgreementCopyright(copyright)
+    result should equal(copyright)
   }
 
 }

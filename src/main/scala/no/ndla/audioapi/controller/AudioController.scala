@@ -155,7 +155,7 @@ trait AudioController {
       val language = paramOrNone("language")
 
       readService.withId(id, language) match {
-        case Some(audio) => converterService.withAgreementCopyright(audio)
+        case Some(audio) => audio
         case None => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
       }
     }
@@ -170,7 +170,7 @@ trait AudioController {
       val file = fileParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one file"))))
 
       writeService.storeNewAudio(newAudio, file) match {
-        case Success(audioMeta) => converterService.withAgreementCopyright(audioMeta)
+        case Success(audioMeta) => audioMeta
         case Failure(e) => errorHandler(e)
       }
     }
@@ -185,7 +185,7 @@ trait AudioController {
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
 
       writeService.updateAudio(id, updatedAudio, fileOpt) match {
-        case Success(audioMeta) => converterService.withAgreementCopyright(audioMeta)
+        case Success(audioMeta) => audioMeta
         case Failure(e) => errorHandler(e)
       }
 
