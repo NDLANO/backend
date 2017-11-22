@@ -53,7 +53,7 @@ trait ValidationService {
       validateLicense(copyright.license).toList ++
       copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, AudioApiProperties.creatorTypes)) ++
       copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, AudioApiProperties.processorTypes)) ++
-      copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderType)) ++
+      copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderTypes)) ++
       validateAgreement(copyright) ++
       copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
