@@ -27,6 +27,7 @@ object AudioApiProperties extends LazyLogging {
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
+  val AudioControllerPath = "/audio-api/v1/audio/"
 
   val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
   val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
