@@ -31,6 +31,7 @@ object ComponentRegistry
   with AmazonClient
   with ReadService
   with WriteService
+  with DraftApiClient
   with ValidationService
   with ConverterService
   with AudioStorageService
@@ -68,6 +69,7 @@ object ComponentRegistry
 
   lazy val ndlaClient = new NdlaClient
   lazy val migrationApiClient = new MigrationApiClient
+  lazy val draftApiClient = new DraftApiClient
 
   lazy val importService = new ImportService
   lazy val readService = new ReadService

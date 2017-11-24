@@ -22,7 +22,7 @@ object AudioApiProperties extends LazyLogging {
   val SecretsFile = "audio-api.secrets"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
-  val ApplicationPort = 80
+  val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
@@ -42,6 +42,7 @@ object AudioApiProperties extends LazyLogging {
   val StorageName = s"$Environment.audio.ndla"
 
   val SearchServer = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
+  val DraftApiHost = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val SearchIndex = propOrElse("SEARCH_INDEX_NAME", "audios")
@@ -59,6 +60,18 @@ object AudioApiProperties extends LazyLogging {
   val ElasticSearchIndexMaxResultWindow = 10000
 
   val AudioFilesUrlSuffix = "audio/files"
+
+
+  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
+  val creatorTypes = List("originator", "photographer", "artist", "editorial", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
+
+  val oldProcessorTypes = List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
+
+  val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
+  val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
+  val allowedAuthors = AudioApiProperties.creatorTypes ++ AudioApiProperties.processorTypes ++ AudioApiProperties.rightsholderTypes
+
 
   lazy val Domain = Domains.get(Environment)
 
