@@ -30,11 +30,13 @@ object Error {
   val FILE_TOO_BIG = "FILE TOO BIG"
   val ACCESS_DENIED = "ACCESS DENIED"
   val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
+  val IMPORT_FAILED = "IMPORT_FAILED"
 
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
   val FileTooBigError = Error(FILE_TOO_BIG, s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
   val WINDOW_TOO_LARGE_DESCRIPTION = s"The result window is too large. Fetching pages above ${AudioApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
+
 }
 
 class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
@@ -45,3 +47,4 @@ case class ValidationMessage(field: String, message: String)
 class AudioStorageException(message: String) extends RuntimeException(message)
 class LanguageMappingException(message: String) extends RuntimeException(message)
 class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
+class ImportException(message: String) extends RuntimeException(message)
