@@ -57,7 +57,7 @@ trait ImportService {
       }
     }
 
-    private def mapOldToNewLicenseKey(license: String): String = {
+    private[service] def mapOldToNewLicenseKey(license: String): String = {
       val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
       val newLicense = licenses.getOrElse(license, license)
 
