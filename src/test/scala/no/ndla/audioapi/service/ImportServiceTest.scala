@@ -92,7 +92,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     service.mapOldToNewLicenseKey("noc") should be("pd")
   }
 
-  test("That mapOldToNewLicenseKey converts nolaw to cc0") {
+  test("That mapOldToNewLicenseKey does not convert an license that should not be converted") {
     service.mapOldToNewLicenseKey("by-sa") should be("by-sa")
   }
 }
