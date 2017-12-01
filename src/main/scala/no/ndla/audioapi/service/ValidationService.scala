@@ -1,5 +1,7 @@
 package no.ndla.audioapi.service
 
+import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain._
 import org.jsoup.Jsoup
@@ -11,6 +13,7 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
+  this: DraftApiClient =>
   val validationService: ValidationService
 
   class ValidationService {
@@ -48,7 +51,10 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-      copyright.authors.flatMap(validateAuthor) ++
+      copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, AudioApiProperties.creatorTypes)) ++
+      copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, AudioApiProperties.processorTypes)) ++
+      copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderTypes)) ++
+      validateAgreement(copyright) ++
       copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
@@ -59,9 +65,29 @@ trait ValidationService {
       }
     }
 
-    def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      containsNoHtml("author.type", author.`type`).toList ++
-        containsNoHtml("author.name", author.name).toList
+    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+      copyright.agreementId match {
+        case Some(id) =>
+          draftApiClient.agreementExists(id) match {
+            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
+            case _ => Seq()
+          }
+        case _ => Seq()
+      }
+    }
+
+    def validateAuthor(fieldPath: String, author: Author, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
+      containsNoHtml(s"$fieldPath.type", author.`type`).toList ++
+        containsNoHtml(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(fieldPath, author.`type`, allowedTypes).toList
+    }
+
+    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
+      if(allowedTypes.contains(`type`.toLowerCase)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     def validateTags(tags: Seq[Tag]): Seq[ValidationMessage] = {

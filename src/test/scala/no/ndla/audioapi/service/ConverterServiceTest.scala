@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.service
 
+import java.util.Date
+
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.domain.{Audio, AudioMetaInformation, Author, Copyright, Tag, Title, _}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
@@ -20,7 +22,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")))
+  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
   val audioMeta = AudioMetaInformation(
     Some(1),
     Some(1),
@@ -79,4 +81,61 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     service.toApiLicence(licenseAbbr) should equal (api.License("unknown", None, None))
   }
+
+  test("That withAgreementCopyright returns with copyright") {
+    val meta = audioMeta.copy(copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val today = new DateTime().toDate()
+    val agreementCopyright = api.Copyright(
+      license = api.License("gnu", None, None),
+      origin = Some("Originstuff"),
+      creators = Seq(api.Author("Originator", "Christian Traktor")),
+      processors = Seq(),
+      rightsholders = Seq(api.Author("Publisher", "Marius Muffins")),
+      agreementId = None,
+      validFrom = Some(today),
+      validTo = None)
+
+    when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
+    val result = service.withAgreementCopyright(meta)
+    result.copyright.license should equal ("gnu")
+    result.copyright.creators.head.name should equal("Christian Traktor")
+    result.copyright.processors.head.name should equal("Tommy Test")
+    result.copyright.rightsholders.head.name should equal("Marius Muffins")
+    result.copyright.validFrom should equal(Some(today))
+  }
+
+  test("That withAgreementCopyright doesnt change anything if no agreement found") {
+    val meta = audioMeta.copy(copyright = audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val result = service.withAgreementCopyright(meta)
+    result should equal(meta)
+  }
+
+  test("That api version of withAgreementCopyright returns with copyright") {
+    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val today = new DateTime().toDate()
+    val agreementCopyright = api.Copyright(
+      license = api.License("gnu", None, None),
+      origin = Some("Originstuff"),
+      creators = Seq(api.Author("Originator", "Christian Traktor")),
+      processors = Seq(),
+      rightsholders = Seq(api.Author("Publisher", "Marius Muffins")),
+      agreementId = None,
+      validFrom = Some(today),
+      validTo = None)
+
+    when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
+    val result = service.withAgreementCopyright(copyright)
+    result.license.license should equal ("gnu")
+    result.creators.head.name should equal("Christian Traktor")
+    result.processors.head.name should equal("Tommy Test")
+    result.rightsholders.head.name should equal("Marius Muffins")
+    result.validFrom should equal(Some(today))
+  }
+
+  test("That api version of withAgreementCopyright doesnt change anything if no agreement found") {
+    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val result = service.withAgreementCopyright(copyright)
+    result should equal(copyright)
+  }
+
 }

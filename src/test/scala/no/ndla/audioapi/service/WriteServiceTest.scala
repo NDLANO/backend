@@ -28,14 +28,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newAudioMeta = NewAudioMetaInformation(
     "title",
     "en",
-    Copyright(License("by", None, None), None, Seq()),
+    Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     Seq("tag"))
 
   val updatedAudioMeta = UpdatedAudioMetaInformation(
     revision = 1,
     title = "title",
     language = "en",
-    copyright = Copyright(License("by", None, None), None, Seq()),
+    copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     tags = Seq("tag"))
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
