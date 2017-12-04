@@ -98,7 +98,7 @@ trait WriteService {
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
-        updatedBy = authUser.id()
+        updatedBy = authUser.userOrClientid()
       )
       (merged, savedAudio)
     }

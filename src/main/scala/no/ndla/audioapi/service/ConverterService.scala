@@ -121,7 +121,7 @@ trait ConverterService {
         Seq(audio),
         toDomainCopyright(audioMeta.copyright),
         if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
-        authUser.id(),
+        authUser.userOrClientid(),
         clock.now()
       )
     }
