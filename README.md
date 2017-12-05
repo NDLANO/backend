@@ -10,6 +10,8 @@ It accepts a string as input on the format "LanguageCode-Script-Region"
 * _Script_ is optional, but if used must be a valid iso1924 value
 * _Region_ is optional, but if used must be a valid iso3155 value
 
+A `LanguageNotSupportedException` will be thrown if the string given as input is not valid.
+
 Example:
 
     class MyClass {
@@ -42,9 +44,9 @@ Output from the above println
 ## Updating the library, when standards change
 The following files are the used as input to this library:
 
-_iso-639-3_20170202.tab_ - Can be downloaded at [http://www-01.sil.org/iso639-3/download.asp]
-_iso-3166-2.csv_ - Can be downloaded at [https://datahub.io/core/country-list]
-_iso15924-utf8-20170726.txt_ - Can be downloaded at [http://unicode.org/iso15924/codelists.html]
+* iso-639-3_20170202.tab - Can be downloaded at [http://www-01.sil.org/iso639-3/download.asp]
+* iso-3166-2.csv - Can be downloaded at [https://datahub.io/core/country-list]
+* iso15924-utf8-20170726.txt - Can be downloaded at [http://unicode.org/iso15924/codelists.html]
 
 To update this library, download the above mentioned files, and run ./generator/generate.py
 
