@@ -69,6 +69,4 @@ class LanguageTagTest extends UnitSuite {
   test("that displayName returns 'language (script, region)' when all defined"){
     LanguageTag("eng-latn-gb").displayName should equal ("English (Latin, United Kingdom)")
   }
-
-
 }

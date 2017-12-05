@@ -36,7 +36,6 @@ object Iso639 {
       case Some(x) => Some(x)
       case None => iso639Definitions.find(_.part2b.getOrElse("").equalsIgnoreCase(code))
     }
-
   }
 }
 
