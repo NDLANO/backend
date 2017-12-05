@@ -7,41 +7,64 @@
 
 package io.digitallibrary.language.model
 
-import io.digitallibrary.language.service.LanguageProvider
+import io.digitallibrary.language.model.CodeLists.{Iso15924, Iso3166, Iso639}
 
-case class LanguageTag (language: String, script: Option[String], region: Option[String]) {
+import scala.util.{Failure, Try}
+
+case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Option[Iso3166]) {
 
   override def toString: String = {
-    Seq(Some(language), script, region).filter(_.isDefined).map(_.get).mkString("-")
+    Seq(Some(language.id), script.map(_.code), region.map(_.code)).flatten.mkString("-").toLowerCase
+
   }
 
-  def validate(implicit provider: LanguageProvider): LanguageTag = {
-    provider.validate(this)
-  }
-
-  def displayName(implicit provider: LanguageProvider): String = {
-    provider.validate(this)
-    provider.displayName(this).getOrElse(this.toString)
-  }
-
-  def withIso639_3(implicit provider: LanguageProvider): LanguageTag = {
-    provider.withIso639_3(this)
+  def displayName: String = {
+    val scriptAndRegion = (script.map(_.englishName) :: region.map(_.name) :: Nil).flatten.mkString(", ")
+    if (scriptAndRegion.isEmpty) {
+      language.refName
+    } else {
+      s"${language.refName} ($scriptAndRegion)"
+    }
   }
 }
 
 object LanguageTag {
-  def fromString(languageTagAsString: String)(implicit provider: LanguageProvider): LanguageTag = {
-    LanguageTag.apply(languageTagAsString).validate.withIso639_3
-  }
-
   def apply(languageTagAsString: String): LanguageTag = {
     val parts = languageTagAsString.split("-")
-    parts.size match {
-      case 1 => LanguageTag(parts(0), None, None)
-      case 2 if parts(1).length == 2 => LanguageTag(parts(0), None, Option(parts(1)))
-      case 2 if parts(1).length == 4 => LanguageTag(parts(0), Option(parts(1)), None)
-      case 3 => LanguageTag(parts(0), Option(parts(1)), Option(parts(2)))
-      case _ => throw new LanguageNotSupportedException(s"The language language tag '$languageTagAsString' is not supported.")
+    val tag = parts.size match {
+      case 1 => withLanguage(parts(0))
+      case 2 if parts(1).length == 2 => withLanguageAndRegion(parts(0), parts(1))
+      case 2 if parts(1).length == 4 => withLanguageAndScript(parts(0), parts(1))
+      case 3 => withLanguageScriptAndRegion(parts(0), parts(1), parts(2))
+      case _ => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
     }
+
+    tag.get //throws the exception if it is a failure.
+  }
+
+  private def withLanguageScriptAndRegion(language: String, script: String, region: String): Try[LanguageTag] = {
+    for {
+      iso639 <- Iso639.get(language)
+      iso3166 <- Iso3166.get(region)
+      iso15924 <- Iso15924.get(script)
+    } yield LanguageTag(iso639, Some(iso15924), Some(iso3166))
+  }
+
+  private def withLanguageAndScript(language: String, script: String): Try[LanguageTag] = {
+    for {
+      iso639 <- Iso639.get(language)
+      iso15924 <- Iso15924.get(script)
+    } yield LanguageTag(iso639, Some(iso15924), None)
+  }
+
+  private def withLanguageAndRegion(language: String, region: String): Try[LanguageTag] = {
+    for {
+      iso639 <- Iso639.get(language)
+      iso3166 <- Iso3166.get(region)
+    } yield LanguageTag(iso639, None, Some(iso3166))
+  }
+
+  private def withLanguage(language: String): Try[LanguageTag] = {
+    Iso639.get(language).map(LanguageTag(_, None, None))
   }
 }

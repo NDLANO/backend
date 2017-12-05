@@ -4,42 +4,51 @@ Library for handling language in APIs from Global Digital Library.
 # Usage
 Add dependency to this library: `"gdl" %% "language" % "<version>",`
 
-The main method of using this library is with the trait `LanguageSupport` and with the `LanguageTag` case class.
+The main way of using this library is with the case class `LanguageTag`.
+It accepts a string as input on the format "LanguageCode-Script-Region"
+* _LanguageCode_ is required, and supports iso639-1/2/3
+* _Script_ is optional, but if used must be a valid iso1924 value
+* _Region_ is optional, but if used must be a valid iso3155 value
 
 Example:
 
-    class MyService extends LanguageSupport {
-       override implicit val languageProvider: LanguageProvider = new LanguageProvider(new Iso639, new Iso3166, new Iso15924)
-       
-       def asLanguageTag(asString: String): LanguageTag = {
-          LanguageTag.fromString(asString)
+    class MyClass {
+       def doSomeLanguageHandling = {
+          val tag1 = LanguageTag("amh")
+          val tag2 = LanguageTag("en-latn-gb")
+          val tag3 = LanguageTag("eng-gb")
+          
+          println(tag1)
+          println(tag1.displayName)
+          println(tag2)
+          println(tag2.displayName)
+          println(tag3) 
+          println(tag3.displayName)
        }
     }
     
-Example in an environment with Cake-pattern:
+Output from the above println
 
-    object ComponentRegistry extends MyController with LanguageSupport {
-        lazy val myController = new MyController
-        implicit lazy val languageProvider: LanguageProvider = new LanguageProvider(new Iso639, new Iso3166, new Iso15924)
-    }
-     
-    
-    trait MyController {
-       this: LanguageSupport =>
-       val myController: MyController
-       
-       class MyController extends ScalatraServlet with NativeJsonSupport {
-          get("/:lang/") {
-            val langAsString = params("lang")
-            val validatedLanguage = LanguageTag.fromString(langAsString)
-            
-            // do something with language
-          }
-       }
-    }
+    "amh"
+    "Amharic"
+    "eng-latn-gb"
+    "English (Latin, United Kingdom)
+    "eng-gb"
+    "English (United Kingdom)"
  
 
 # Building and distribution
+
+## Updating the library, when standards change
+The following files are the used as input to this library:
+
+_iso-639-3_20170202.tab_ - Can be downloaded at [http://www-01.sil.org/iso639-3/download.asp]
+_iso-3166-2.csv_ - Can be downloaded at [https://datahub.io/core/country-list]
+_iso15924-utf8-20170726.txt_ - Can be downloaded at [http://unicode.org/iso15924/codelists.html]
+
+To update this library, download the above mentioned files, and run ./generator/generate.py
+
+This will regenerate the content of CodeLists and adjacent files.
 
 ## Compile
     sbt compile
