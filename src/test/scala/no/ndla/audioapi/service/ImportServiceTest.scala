@@ -13,6 +13,7 @@ import java.net.URL
 import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.integration.MigrationAudioMeta
+import no.ndla.audioapi.model.api.ImportException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
@@ -80,4 +81,18 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])
   }
 
+  test("That oldToNewLicenseKey throws on invalid license") {
+    assertThrows[ImportException] {
+      service.oldToNewLicenseKey("publicdomain")
+    }
+  }
+
+  test("That oldToNewLicenseKey converts correctly") {
+    service.oldToNewLicenseKey("nolaw") should be("cc0")
+    service.oldToNewLicenseKey("noc") should be("pd")
+  }
+
+  test("That oldToNewLicenseKey does not convert an license that should not be converted") {
+    service.oldToNewLicenseKey("by-sa") should be("by-sa")
+  }
 }
