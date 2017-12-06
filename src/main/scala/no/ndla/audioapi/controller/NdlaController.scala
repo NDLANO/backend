@@ -18,8 +18,11 @@ import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import no.ndla.audioapi.AudioApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.ComponentRegistry
 import no.ndla.network.model.HttpRequestException
+import org.postgresql.util.PSQLException
 import org.scalatra.servlet.SizeConstraintExceededException
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Failure, Success}
 
@@ -51,6 +54,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case _: SizeConstraintExceededException =>
       contentType = formats("json")
       RequestEntityTooLarge(body=Error.FileTooBigError)
+    case _: PSQLException =>
+      ConnectionPool.singleton(new DataSourceConnectionPool(ComponentRegistry.dataSource))
+      InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)

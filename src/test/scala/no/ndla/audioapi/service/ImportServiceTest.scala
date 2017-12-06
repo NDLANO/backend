@@ -81,18 +81,18 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])
   }
 
-  test("That mapOldToNewLicenseKey throws on invalid license") {
+  test("That oldToNewLicenseKey throws on invalid license") {
     assertThrows[ImportException] {
-      service.mapOldToNewLicenseKey("publicdomain")
+      service.oldToNewLicenseKey("publicdomain")
     }
   }
 
-  test("That mapOldToNewLicenseKey converts correctly") {
-    service.mapOldToNewLicenseKey("nolaw") should be("cc0")
-    service.mapOldToNewLicenseKey("noc") should be("pd")
+  test("That oldToNewLicenseKey converts correctly") {
+    service.oldToNewLicenseKey("nolaw") should be("cc0")
+    service.oldToNewLicenseKey("noc") should be("pd")
   }
 
-  test("That mapOldToNewLicenseKey does not convert an license that should not be converted") {
-    service.mapOldToNewLicenseKey("by-sa") should be("by-sa")
+  test("That oldToNewLicenseKey does not convert an license that should not be converted") {
+    service.oldToNewLicenseKey("by-sa") should be("by-sa")
   }
 }
