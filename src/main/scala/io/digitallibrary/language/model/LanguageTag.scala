@@ -30,12 +30,11 @@ case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Opti
 
 object LanguageTag {
   def apply(languageTagAsString: String): LanguageTag = {
-    val parts = languageTagAsString.split("-")
-    val tag = parts.size match {
-      case 1 => withLanguage(parts(0))
-      case 2 if parts(1).length == 2 => withLanguageAndRegion(parts(0), parts(1))
-      case 2 if parts(1).length == 4 => withLanguageAndScript(parts(0), parts(1))
-      case 3 => withLanguageScriptAndRegion(parts(0), parts(1), parts(2))
+    val tag = languageTagAsString.split("-").toList match {
+      case lang :: Nil => withLanguage(lang)
+      case lang :: region :: Nil if region.length == 2 => withLanguageAndRegion(lang, region)
+      case lang :: script :: Nil if script.length == 4 => withLanguageAndScript(lang, script)
+      case lang :: script :: region :: Nil => withLanguageScriptAndRegion(lang, script, region)
       case _ => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
     }
 

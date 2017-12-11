@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # coding:utf-8
 
-import sys
 import os
 import csv
 import re
+from datetime import datetime
 
 codelist_template = """
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) %YEAR% Global Digital Library
  *
  * See LICENSE
  */
@@ -62,7 +62,7 @@ object CodeLists {
 iso_639_part_template = """
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) %YEAR% Global Digital Library
  *
  * See LICENSE
  */
@@ -122,32 +122,29 @@ def create_iso15924(template):
 
 
 def create_iso639(template):
+    def chunks(l, n):
+        return [l[i:i + n] for i in xrange(0, len(l), n)]
+
+    def process_row(row):
+        id = row[0]
+        part_2b = 'Some("{}")'.format(row[1]) if row[1] else "None"
+        part_2t = 'Some("{}")'.format(row[2]) if row[2] else "None"
+        part_1 = 'Some("{}")'.format(row[3]) if row[3] else "None"
+        scope = 'Some("{}")'.format(row[4]) if row[4] else "None"
+        language_type = 'Some("{}")'.format(row[5]) if row[5] else "None"
+        ref_name = row[6]
+        comment = 'Some("{}")'.format(row[7]) if row[7] else "None"
+        return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope, language_type, ref_name, comment)
+
     with open(iso_639_definitions_file, 'r') as f:
         reader = csv.reader(f, delimiter='\t')
-        counter = 0
-        lines = []
+        lines = map(process_row, reader)
 
-        for row in reader:
-            id = row[0]
-            part_2b = 'Some("{}")'.format(row[1]) if row[1] else "None"
-            part_2t = 'Some("{}")'.format(row[2]) if row[2] else "None"
-            part_1 = 'Some("{}")'.format(row[3]) if row[3] else "None"
-            scope = 'Some("{}")'.format(row[4]) if row[4] else "None"
-            language_type = 'Some("{}")'.format(row[5]) if row[5] else "None"
-            ref_name = row[6]
-            comment = 'Some("{}")'.format(row[7]) if row[7] else "None"
-            lines.append('Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope, language_type, ref_name, comment))
+        sublists = chunks(lines, 800)
+        for i, sublist in enumerate(sublists):
+            create_iso_639_part_file(sublist, i + 1)
 
-            if len(lines) >= 800:
-                counter = counter + 1
-                create_iso_639_part_file(lines, counter)
-                lines = []
-
-        if len(lines) > 0:
-            counter = counter + 1
-            create_iso_639_part_file(lines, counter)
-
-        seq = " ++ ".join(["Iso639List_{}.items".format(i+1) for i in range(counter)])
+        seq = " ++ ".join(["Iso639List_{}.items".format(i+1) for i in range(len(sublists))])
 
     return template.replace("%ISO639%", seq)
 
@@ -156,11 +153,12 @@ def create_iso_639_part_file(lines, counter):
     defs = ",\n    ".join(lines)
     with_defs = iso_639_part_template.replace("%CODELIST%", defs)
     with_classname = with_defs.replace("%NUM%", str(counter))
+    with_year = with_classname.replace("%YEAR%", str(datetime.now().year))
 
     filename = os.path.join(project_dir, iso639_part_file.replace("%NUM%", str(counter)))
 
     with open(filename, 'w') as f:
-        f.write(with_classname)
+        f.write(with_year)
 
     print ">> Added {} entries in file {} for ISO-639".format(len(lines), filename)
 
@@ -176,6 +174,7 @@ if __name__ == '__main__':
     with_iso639 = create_iso639(codelist_template)
     with_iso15924 = create_iso15924(with_iso639)
     with_iso3166 = create_iso3166(with_iso15924)
+    with_year = with_iso3166.replace("%YEAR%", str(datetime.now().year))
 
     with open(codelists_file, 'w') as f:
-        f.write(with_iso3166)
+        f.write(with_year)

@@ -5,7 +5,7 @@ Library for handling language in APIs from Global Digital Library.
 Add dependency to this library: `"gdl" %% "language" % "<version>",`
 
 The main way of using this library is with the case class `LanguageTag`.
-It accepts a string as input on the format "LanguageCode-Script-Region"
+It accepts a string as input on the format `<LanguageCode>[-<Script>[-<Region>]]`
 * _LanguageCode_ is required, and supports iso639-1/2/3
 * _Script_ is optional, but if used must be a valid iso1924 value
 * _Region_ is optional, but if used must be a valid iso3155 value
