@@ -17,7 +17,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
-  // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
+  // Translates authors that wasn't translated in V5
   implicit val formats = org.json4s.DefaultFormats
 
   override def migrate(connection: Connection): Unit = {
@@ -34,7 +34,7 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
       (rs.long("id"), rs.int("revision"), rs.string("document"))).list().apply()
   }
 
-  def toNewAuthorType(author: V4_Author): V4_Author = {
+  private def toNewAuthorType(author: V4_Author): V4_Author = {
     val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
@@ -43,7 +43,7 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
       case (t: String, _, _) => V4_Author(t.capitalize, author.name)
       case (_, t: String, _) => V4_Author(t.capitalize, author.name)
       case (_, _, t: String) => V4_Author(t.capitalize, author.name)
-      case (_, _, _) => V4_Author(author.`type`, author.name)
+      case (_, _, _) => author
     }
   }
 
@@ -54,7 +54,10 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
     val processors = meta.copyright.processors.map(toNewAuthorType)
     val rightsholders = meta.copyright.rightsholders.map(toNewAuthorType)
 
-    meta.copy(copyright = meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
+    meta.copy(
+      id = Some(id),
+      revision = Some(revision),
+      copyright = meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
   }
 
   def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {
