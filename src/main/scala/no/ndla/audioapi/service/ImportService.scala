@@ -13,10 +13,12 @@ import java.net.URL
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.{MigrationApiClient, MigrationAudioMeta, MigrationAuthor}
+import no.ndla.audioapi.model.api.ImportException
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.mapping.License._
 
 import scala.util.Try
 import com.netaporter.uri.dsl._
@@ -55,6 +57,16 @@ trait ImportService {
       }
     }
 
+    private[service] def oldToNewLicenseKey(license: String): String = {
+      val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
+      val newLicense = licenses.getOrElse(license, license)
+
+      if (getLicense(newLicense).isEmpty) {
+        throw new ImportException(s"License $license is not supported.")
+      }
+      newLicense
+    }
+
     private[service] def toDomainCopyright(license: String, authors: Seq[MigrationAuthor]): domain.Copyright = {
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
 
@@ -64,7 +76,7 @@ trait ImportService {
       val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
 
       domain.Copyright(
-        license,
+        oldToNewLicenseKey(license),
         origin.map(_.name),
         creators,
         processors,

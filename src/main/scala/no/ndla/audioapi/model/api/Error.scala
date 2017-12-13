@@ -30,6 +30,7 @@ object Error {
   val FILE_TOO_BIG = "FILE TOO BIG"
   val ACCESS_DENIED = "ACCESS DENIED"
   val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
+  val IMPORT_FAILED = "IMPORT_FAILED"
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
 
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
@@ -47,3 +48,4 @@ case class ValidationMessage(field: String, message: String)
 class AudioStorageException(message: String) extends RuntimeException(message)
 class LanguageMappingException(message: String) extends RuntimeException(message)
 class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
+class ImportException(message: String) extends RuntimeException(message)

@@ -15,6 +15,8 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.integration.MigrationAudioMeta
 import no.ndla.audioapi.integration.MigrationAuthor
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author}
+import no.ndla.audioapi.model.api.ImportException
+import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
 import org.mockito.Mockito._
@@ -105,4 +107,18 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
   }
 
+  test("That oldToNewLicenseKey throws on invalid license") {
+    assertThrows[ImportException] {
+      service.oldToNewLicenseKey("publicdomain")
+    }
+  }
+
+  test("That oldToNewLicenseKey converts correctly") {
+    service.oldToNewLicenseKey("nolaw") should be("cc0")
+    service.oldToNewLicenseKey("noc") should be("pd")
+  }
+
+  test("That oldToNewLicenseKey does not convert an license that should not be converted") {
+    service.oldToNewLicenseKey("by-sa") should be("by-sa")
+  }
 }
