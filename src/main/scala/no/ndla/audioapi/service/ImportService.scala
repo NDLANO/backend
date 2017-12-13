@@ -50,9 +50,9 @@ trait ImportService {
       val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
       (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
-        case (t: String, None, None) => domain.Author(t.capitalize, author.name)
-        case (None, t: String, None) => domain.Author(t.capitalize, author.name)
-        case (None, None, t: String) => domain.Author(t.capitalize, author.name)
+        case (t: String, _, _) => domain.Author(t.capitalize, author.name)
+        case (_, t: String, _) => domain.Author(t.capitalize, author.name)
+        case (_, _, t: String) => domain.Author(t.capitalize, author.name)
         case (_, _, _) => domain.Author(author.`type`, author.name)
       }
     }
@@ -67,10 +67,7 @@ trait ImportService {
       newLicense
     }
 
-    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
-      val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
-      val mainNode = audioMeta.find(_.isMainNode).get
-      val authors = audioMeta.flatMap(_.authors).distinct
+    private[service] def toDomainCopyright(license: String, authors: Seq[MigrationAuthor]): domain.Copyright = {
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
 
       val creators = authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
@@ -78,8 +75,8 @@ trait ImportService {
       val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
       val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
 
-      val copyright = domain.Copyright(
-        oldToNewLicenseKey(mainNode.license),
+      domain.Copyright(
+        oldToNewLicenseKey(license),
         origin.map(_.name),
         creators,
         processors,
@@ -88,6 +85,16 @@ trait ImportService {
         None,
         None
       )
+
+    }
+
+    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
+      val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
+      val mainNode = audioMeta.find(_.isMainNode).get
+      val authors = audioMeta.flatMap(_.authors).distinct
+
+
+      val copyright = toDomainCopyright(mainNode.license, authors)
       val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), authUser.userOrClientid(), clock.now()))
 
       audioRepository.withExternalId(mainNode.nid) match {
