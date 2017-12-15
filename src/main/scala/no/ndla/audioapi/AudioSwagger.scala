@@ -28,5 +28,6 @@ object AudioApiInfo {
 }
 
 class AudioSwagger extends Swagger("2.0", "0.8", AudioApiInfo.apiInfo) {
-  addAuthorization(OAuth(List("openid"), List(ApplicationGrant(TokenEndpoint("https://ndla.eu.auth0.com/oauth/token", "access_token")))))
+  val roleWithWriteAccessInTest = AudioApiProperties.RoleWithWriteAccess.replace(":", "-test:")
+  addAuthorization(OAuth(List(roleWithWriteAccessInTest), List(ImplicitGrant(LoginEndpoint(AudioApiProperties.Auth0LoginEndpoint),"access_token"))))
 }
