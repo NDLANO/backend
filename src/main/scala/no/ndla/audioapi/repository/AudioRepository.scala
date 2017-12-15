@@ -132,5 +132,11 @@ trait AudioRepository {
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause".map(AudioMetaInformation(au)).list().apply()
     }
 
+    def getRandomAudio(): Option[AudioMetaInformation] = {
+      val au = AudioMetaInformation.syntax("au")
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1".map(AudioMetaInformation(au)).single().apply()
+    }
+
+
   }
 }
