@@ -13,6 +13,9 @@ import java.net.URL
 import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.integration.MigrationAudioMeta
+import no.ndla.audioapi.integration.MigrationAuthor
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author}
+import no.ndla.audioapi.model.api.ImportException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
@@ -80,4 +83,42 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])
   }
 
+  test("That authors are translated correctly") {
+    val authors = List(
+      MigrationAuthor("Opphavsmann", "A"),
+      MigrationAuthor("Redaksjonelt", "B"),
+      MigrationAuthor("redaKsJoNelT", "C"),
+      MigrationAuthor("distributør", "D"),
+      MigrationAuthor("leVerandør", "E"),
+      MigrationAuthor("Språklig", "F")
+
+    )
+    val meta = MigrationAudioMeta("1", "1", "Lydar", "lydar.mp3", "lydary", "file/mp3", "123141", Some("nb"), "by-sa", authors)
+
+    val copyright = service.toDomainCopyright("by-sa", authors)
+    copyright.creators should contain(Author("Originator", "A"))
+    copyright.creators should contain(Author("Editorial", "B"))
+    copyright.creators should contain(Author("Editorial", "C"))
+
+    copyright.rightsholders should contain(Author("Distributor", "D"))
+    copyright.rightsholders should contain(Author("Supplier", "E"))
+
+    copyright.processors should contain(Author("Linguistic", "F"))
+
+  }
+
+  test("That oldToNewLicenseKey throws on invalid license") {
+    assertThrows[ImportException] {
+      service.oldToNewLicenseKey("publicdomain")
+    }
+  }
+
+  test("That oldToNewLicenseKey converts correctly") {
+    service.oldToNewLicenseKey("nolaw") should be("cc0")
+    service.oldToNewLicenseKey("noc") should be("pd")
+  }
+
+  test("That oldToNewLicenseKey does not convert an license that should not be converted") {
+    service.oldToNewLicenseKey("by-sa") should be("by-sa")
+  }
 }

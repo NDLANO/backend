@@ -28,14 +28,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newAudioMeta = NewAudioMetaInformation(
     "title",
     "en",
-    Copyright(License("by", None, None), None, Seq()),
+    Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     Seq("tag"))
 
   val updatedAudioMeta = UpdatedAudioMetaInformation(
     revision = 1,
     title = "title",
     language = "en",
-    copyright = Copyright(License("by", None, None), None, Seq()),
+    copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     tags = Seq("tag"))
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
@@ -64,7 +64,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("converter to domain should set updatedBy from authUser and updated date"){
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
     when(clock.now()).thenReturn(updated)
     val domain = converterService.toDomainAudioMetaInformation(newAudioMeta, Audio(newFileName1, "audio/mp3", 1024, "en"))
     domain.updatedBy should equal ("ndla54321")
@@ -177,7 +177,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta overwrites fields from toUpdate for given language") {
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
     val toUpdate = UpdatedAudioMetaInformation(1, "A new english title", "en", converterService.toApiCopyright(domainAudioMeta.copyright), Seq())
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -186,7 +186,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta adds fields from toUpdate for new language") {
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
     val toUpdate = UpdatedAudioMetaInformation(1, "En ny norsk tittel", "nb", converterService.toApiCopyright(domainAudioMeta.copyright), Seq())
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -196,7 +196,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta does not merge filePaths if no new audio") {
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
     val toUpdate = UpdatedAudioMetaInformation(1, "A new english title", "en", converterService.toApiCopyright(domainAudioMeta.copyright), Seq())
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -206,7 +206,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta overwrites filepath if new audio for same language") {
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
     val newAudio = Audio(newFileName2, "audio/mp3", 1024, "en")
 
@@ -220,7 +220,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that mergeAudioMeta adds filepath if new audio for new language") {
-    when(authUser.id()).thenReturn("ndla54321")
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
     val newAudio = Audio(newFileName2, "audio/mp3", 1024, "nb")
 

@@ -10,11 +10,14 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.integration.JestClientFactory
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.tag.IntegrationTest
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mockito.Matchers.any
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
 
 @IntegrationTest
 class SearchServiceTest extends UnitSuite with TestEnvironment {
@@ -28,25 +31,31 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")))
-  val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")))
-  val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")))
+  val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
+  val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")), Seq(), Seq(), None, None, None)
+  val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val audio1 = AudioMetaInformation(Some(1), Some(1), List(Title("Batmen er på vift med en bil", "nb")), List(Audio("file.mp3", "audio/mpeg", 1024, "nb")), copyrighted, List(Tag(List("fisk"), "nb")), "ndla124", updated)
   val audio2 = AudioMetaInformation(Some(2), Some(1), List(Title("Pingvinen er ute og går", "nb")), List(Audio("file2.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("fugl"), "nb")), "ndla124", updated)
   val audio3 = AudioMetaInformation(Some(3), Some(1), List(Title("Superman er ute og flyr", "nb")), List(Audio("file4.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("supermann"), "nb")), "ndla124", updated)
   val audio4 = AudioMetaInformation(Some(4), Some(1), List(Title("Donald Duck kjører bil", "nb"), Title("Donald Duck kjører bil", "nn"), Title("Donald Duck drives a car", "en")), List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("and"), "nb")), "ndla124", updated)
+  val audio5 = AudioMetaInformation(Some(5), Some(1), List(Title("Synge sangen", "nb")), List(Audio("file5.mp3", "audio/mpeg", 1024, "nb")), byNcSa.copy(agreementId = Some(1)), List(Tag(List("synge"), "nb")), "ndla124", updated)
 
   override def beforeAll = {
+    when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      i.getArgumentAt(0, audio1.getClass))
+    when(converterService.withAgreementCopyright(audio5)).thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
+
     indexService.createIndexWithName(AudioApiProperties.SearchIndex)
 
     indexService.indexDocument(audio1)
     indexService.indexDocument(audio2)
     indexService.indexDocument(audio3)
     indexService.indexDocument(audio4)
+    indexService.indexDocument(audio5)
 
-    blockUntil(() => searchService.countDocuments() == 4)
+    blockUntil(() => searchService.countDocuments() == 5)
   }
 
   override def afterAll() = {
@@ -76,9 +85,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That no language returns all documents ordered by title ascending") {
     val results = searchService.all(None, None, None, None, Sort.ByTitleAsc)
-    results.totalCount should be (3)
+    results.totalCount should be (4)
     results.results.head.id should be (4)
-    results.results.last.id should be (3)
+    results.results.last.id should be (5)
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
@@ -91,14 +100,14 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   test("That paging returns only hits on current page and not more than page-size") {
     val page1 = searchService.all(None, None, Some(1), Some(2), Sort.ByTitleAsc)
     val page2 = searchService.all(None, None, Some(2), Some(2), Sort.ByTitleAsc)
-    page1.totalCount should be (3)
+    page1.totalCount should be (4)
     page1.page should be (1)
     page1.results.size should be (2)
     page1.results.head.id should be (4)
     page1.results.last.id should be (2)
-    page2.totalCount should be (3)
+    page2.totalCount should be (4)
     page2.page should be (2)
-    page2.results.size should be (1)
+    page2.results.size should be (2)
     page2.results.head.id should be (3)
   }
 
@@ -145,13 +154,13 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That searching for 'nb' should return all results") {
     val results = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
-    results.totalCount should be (3)
+    results.totalCount should be (4)
   }
 
   test("That searching for 'en' should only return 'Donald' (audio4) with the english title") {
     val result = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
     result.totalCount should be (1)
-    result.results.head.title should be ("Donald Duck drives a car")
+    result.results.head.title.title should be ("Donald Duck drives a car")
     result.language should be ("en")
   }
 
@@ -163,6 +172,14 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     result1.results.head.supportedLanguages should be (audio4.titles.map(_.language))
     // 'Pingvinen' with 'nb'
     result2.results(2).supportedLanguages should be (audio1.titles.map(_.language))
+  }
+
+  test("Agreement information should be used in search") {
+    val searchResult = searchService.matchingQuery("Synge sangen", None, None, None, None, Sort.ByTitleAsc)
+    searchResult.totalCount should be (1)
+    searchResult.results.size should be (1)
+    searchResult.results.head.id should be (5)
+    searchResult.results.head.license should equal("gnu")
   }
 
   def blockUntil(predicate: () => Boolean) = {

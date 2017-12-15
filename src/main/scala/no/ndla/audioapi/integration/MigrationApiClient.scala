@@ -20,7 +20,8 @@ trait MigrationApiClient {
   val migrationApiClient: MigrationApiClient
 
   class MigrationApiClient {
-    val DBSource = if (Environment == "prod") "cm" else "red"
+    val CMSourceEnvironments = "prod" :: Nil
+    val DBSource = if (CMSourceEnvironments.contains(Environment)) "cm" else "red"
     val AudioMetadataEndpoint = s"$MigrationHost/audio/:audio_id" ? (s"db-source" -> s"$DBSource")
 
     def getAudioMetaData(audioNid: String): Try[Seq[MigrationAudioMeta]] = {
