@@ -111,33 +111,36 @@ trait SearchService {
     }
 
     def executeSearch(language: Option[String], license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryDefinition): SearchResult = {
-      val (licenseFilter, searchLanguage) = {
 
-        val filter = license match {
-          case None => Some(noCopyright)
-          case Some(lic) => Some(termQuery("license", lic))
-        }
-
-        language match {
-          case None | Some(Language.AllLanguages) => (filter, "*")
-          case Some(lang) => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
-        }
-
+      val licenseFilter = license match {
+        case None => Some(noCopyright)
+        case Some(lic) => Some(termQuery("license", lic))
       }
 
-      val filters = List(licenseFilter)
+      val (languageFilter, searchLanguage) = language match {
+        case None | Some(Language.AllLanguages) => (None, "*")
+        case Some(lang) => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
+      }
+
+
+      val filters = List(licenseFilter, languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = page.getOrElse(1)*numResults
       if(requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        logger.info(s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
 
       e4sClient.execute{
-        search(AudioApiProperties.SearchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+        search(AudioApiProperties.SearchIndex)
+          .size(numResults)
+          .from(startAt)
+          .query(filteredSearch)
+          .sortBy(getSortDefinition(sort, searchLanguage))
+
       } match {
         case Success(response) =>
           SearchResult(response.result.totalHits, page.getOrElse(1), numResults, searchLanguage, getHits(response.result, searchLanguage))
