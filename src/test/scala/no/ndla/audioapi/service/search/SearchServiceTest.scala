@@ -56,7 +56,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.indexDocument(audio4)
     indexService.indexDocument(audio5)
 
-    blockUntil(() => searchService.countDocuments() == 5)
+    blockUntil(() => searchService.countDocuments == 5)
   }
 
   override def afterAll() = {
@@ -181,6 +181,22 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     searchResult.results.size should be (1)
     searchResult.results.head.id should be (5)
     searchResult.results.head.license should equal("gnu")
+  }
+
+  test("that hit is converted to summary correctly") {
+    val id = 5
+    val title = "Synge sangen"
+    val license = "gnu"
+    val tag = "synge"
+    val supportedLanguages = Set("nb")
+    val hitString = s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","authors":["DC Comics"]}"""
+
+    val result = searchService.hitAsAudioSummary(hitString, "nb")
+
+    result.id should equal(id)
+    result.title.title should equal(title)
+    result.license should equal(license)
+    result.supportedLanguages.toSet should equal(supportedLanguages)
   }
 
   def blockUntil(predicate: () => Boolean) = {

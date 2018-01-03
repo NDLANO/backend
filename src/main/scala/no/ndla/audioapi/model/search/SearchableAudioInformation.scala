@@ -27,5 +27,6 @@ case class SearchableAudioInformation(
   titles: SearchableLanguageValues,
   tags: SearchableLanguageList,
   license: String,
-  authors: Seq[String]
+  authors: Seq[String],
+  defaultTitle: Option[String]
 )

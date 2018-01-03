@@ -9,66 +9,72 @@
 
 package no.ndla.audioapi.service.search
 
-import com.google.gson.JsonObject
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.ScoreMode
+import com.sksamuel.elastic4s.searches.queries.{BoolQueryDefinition, QueryDefinition}
+import com.sksamuel.elastic4s.searches.sort.{SortDefinition, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
-import io.searchbox.params.Parameters
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.ElasticClient
+import no.ndla.audioapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import no.ndla.audioapi.model.{Language, Sort, domain}
-import no.ndla.audioapi.model.Language._
 import no.ndla.network.ApplicationUrl
-import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.{BoolQueryBuilder, Operator, QueryBuilder, QueryBuilders}
-import org.elasticsearch.search.builder.SearchSourceBuilder
-import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait SearchService {
-  this: ElasticClient with SearchIndexService with SearchConverterService =>
+  this: Elastic4sClient with ElasticClient with SearchIndexService with SearchConverterService =>
   val searchService: SearchService
 
   class SearchService extends LazyLogging {
 
-    private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
+    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
 
-    def getHits(response: JestSearchResult, language: String): Seq[AudioSummary] = {
-      var resultList = Seq[AudioSummary]()
-      response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsAudioSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
-          }
-          resultList
-        }
+    def getHits(response: SearchResponse, language: String): Seq[AudioSummary] = {
+      response.totalHits match {
+        case count if count > 0 =>
+          val resultArray = response.hits.hits
+
+          resultArray.map(result => {
+            val matchedLanguage = language match {
+              case Language.AllLanguages | "*" =>
+                searchConverterService.getLanguageFromHit(result).getOrElse(language)
+              case _ => language
+            }
+            val hitString = result.sourceAsString
+            hitAsAudioSummary(hitString, matchedLanguage)
+          })
         case _ => Seq()
       }
     }
 
-    def hitAsAudioSummary(hit: JsonObject, language: String): AudioSummary = {
-      val supportedLanguages = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(_.getKey)
-      val titles = hit.get("titles").getAsJsonObject.entrySet().asScala.to[Seq].map(en => domain.Title(en.getValue.getAsString, en.getKey))
+    def hitAsAudioSummary(hitString: String, language: String): AudioSummary = {
+      implicit val formats = DefaultFormats
+      val hit = parse(hitString)
+
+      val supportedLanguages = (hit \ "titles").extract[Map[String, _]].keySet.toSeq
+      val titles = (hit \ "titles").extract[Map[String, String]].map(title => domain.Title(title._2, title._1)).toSeq
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }
+      val id = (hit \ "id").extract[String].toLong
 
       AudioSummary(
-        hit.get("id").getAsLong,
+        id,
         title,
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        supportedLanguages.distinct
+        ApplicationUrl.get + (hit \ "id").extract[String],
+        (hit \ "license").extract[String],
+        supportedLanguages
       )
     }
 
@@ -79,86 +85,102 @@ trait SearchService {
         sort,
         page,
         pageSize,
-        QueryBuilders.boolQuery())
+        boolQuery())
     }
 
     def matchingQuery(query: String, language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val fullSearch = QueryBuilders.boolQuery()
-        .must(QueryBuilders.boolQuery()
-          .should(languageSpecificSearch("titles", language, query, 1))
-          .should(languageSpecificSearch("tags", language, query, 1)))
+      val fullSearch = boolQuery()
+        .must(boolQuery()
+          .should(
+            languageSpecificSearch("titles", language, query, 1),
+            languageSpecificSearch("tags", language, query, 1))
+        )
 
       executeSearch(language, license, sort, page, pageSize, fullSearch)
     }
 
-    private def languageSpecificSearch(searchField: String, language: Option[String], query: String, boost: Float): QueryBuilder = {
+    private def languageSpecificSearch(searchField: String, language: Option[String], query: String, boost: Float): QueryDefinition = {
       language match {
-        case None =>
-          Language.supportedLanguages.foldLeft(QueryBuilders.boolQuery())((result, lang) => {
-            val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
-            result.should(QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost))
-          })
+        case None | Some(Language.AllLanguages) | Some("*") =>
+          val searchQuery = simpleStringQuery(query).field(s"$searchField.*", 1)
+          nestedQuery(searchField, searchQuery).boost(boost)
         case Some(lang) =>
-          val searchQuery = QueryBuilders.simpleQueryStringQuery(query).field(s"$searchField.$lang")
-          QueryBuilders.nestedQuery(searchField, searchQuery, ScoreMode.Avg).boost(boost)
+          val searchQuery = simpleStringQuery(query).field(s"$searchField.$lang", 1)
+          nestedQuery(searchField, searchQuery).boost(boost)
       }
     }
 
-    def executeSearch(language: Option[String], license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
-      val (filteredSearch, searchLanguage) = {
+    def executeSearch(language: Option[String], license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryDefinition): SearchResult = {
+      val (licenseFilter, searchLanguage) = {
 
-        val licenseFilteredSearch = license match {
-          case None => queryBuilder.filter(noCopyright)
-          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+        val filter = license match {
+          case None => Some(noCopyright)
+          case Some(lic) => Some(termQuery("license", lic))
         }
 
         language match {
-          case None => (licenseFilteredSearch, DefaultLanguage)
-          case Some(lang) => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("titles", QueryBuilders.existsQuery(s"titles.$lang"), ScoreMode.Avg)), lang)
+          case None | Some(Language.AllLanguages) => (filter, "*")
+          case Some(lang) => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
         }
 
       }
 
-      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, searchLanguage))
+      val filters = List(licenseFilter)
+      val filteredSearch = queryBuilder.filter(filters.flatten)
+
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val request = new Search.Builder(searchQuery.toString)
-        .addIndex(AudioApiProperties.SearchIndex)
-        .setParameter(Parameters.SIZE, numResults)
-        .setParameter("from", startAt)
-
       val requestedResultWindow = page.getOrElse(1)*numResults
       if(requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
         throw new ResultWindowTooLargeException()
       }
 
-      jestClient.execute(request.build()) match {
+      e4sClient.execute{
+        search(AudioApiProperties.SearchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+      } match {
         case Success(response) =>
-          SearchResult(
-            response.getTotal.toLong,
-            page.getOrElse(1), numResults,
-            Language.languageOrUnknown(language),
-            getHits(response, Language.languageOrUnknown(language))
-          )
-        case Failure(f) => errorHandler(Failure(f))
+          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, searchLanguage, getHits(response.result, searchLanguage))
+        case Failure(ex) =>
+          errorHandler(Failure(ex))
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSortBuilder = {
+    def getSortDefinition(sort: Sort.Value, language: String) = {
+      val sortLanguage = language match {
+        case Language.NoLanguage | Language.AllLanguages => "*"
+        case _ => language
+      }
+
       sort match {
-        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.ASC).missing("_last").unmappedType("string")
-        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.DESC).missing("_last").unmappedType("string")
-        case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
-        case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
+        case (Sort.ByTitleAsc) =>
+          language match {
+            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.ASC).missing("_last")
+            case _ => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
+          }
+        case (Sort.ByTitleDesc) =>
+          language match {
+            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.DESC).missing("_last")
+            case _ => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
+          }
+        case (Sort.ByRelevanceAsc) => fieldSort("_score").order(SortOrder.ASC)
+        case (Sort.ByRelevanceDesc) => fieldSort("_score").order(SortOrder.DESC)
+        case (Sort.ByLastUpdatedAsc) => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByLastUpdatedDesc) => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByIdAsc) => fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByIdDesc) => fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 
-    def countDocuments(): Int = {
-      val ret = jestClient.execute(
-        new Count.Builder().addIndex(AudioApiProperties.SearchIndex).build()
-      ).map(result => result.getCount.toInt)
-      ret.getOrElse(0)
+    def countDocuments: Long = {
+      val response = e4sClient.execute{
+        catCount(AudioApiProperties.SearchIndex)
+      }
+
+      response match {
+        case Success(resp) => resp.result.count
+        case Failure(_) => 0
+      }
     }
 
     def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {

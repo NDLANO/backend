@@ -16,7 +16,7 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
@@ -25,7 +25,7 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: ElasticClient with Elastic4sClient with SearchConverterService =>
+  this: Elastic4sClient with SearchConverterService =>
   val indexService: IndexService
 
   class IndexService extends LazyLogging {
@@ -89,6 +89,7 @@ trait IndexService {
         languageSupportedField("titles", keepRaw = true),
         languageSupportedField("tags", keepRaw = false),
         keywordField("license"),
+        keywordField("defaultTitle"),
         textField("authors").fielddata(true)
       )
     }
