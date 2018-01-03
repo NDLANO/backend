@@ -15,51 +15,50 @@ import java.util.Calendar
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.{Bulk, Index}
-import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
-import io.searchbox.indices.mapping.PutMapping
-import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.ElasticClient
+import no.ndla.audioapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, NdlaSearchException}
+import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
-import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: ElasticClient with SearchConverterService =>
+  this: ElasticClient with Elastic4sClient with SearchConverterService =>
   val indexService: IndexService
 
   class IndexService extends LazyLogging {
+    implicit val formats = SearchableLanguageFormats.JSonFormats
 
     def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
-      implicit val formats = SearchableLanguageFormats.JSonFormats
+      val source = write(searchConverterService.asSearchableAudioInformation(toIndex))
 
-      val searchableAudio = searchConverterService.asSearchableAudioInformation(toIndex)
-      val indexRequest = new Index.Builder(write(searchableAudio)).index(AudioApiProperties.SearchIndex).`type`(AudioApiProperties.SearchDocument).id(searchableAudio.id).build
-      val result = jestClient.execute(indexRequest)
+      val response = e4sClient.execute {
+        indexInto(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument).doc(source).id(toIndex.id.get.toString)
+      }
 
-      result.map(_ => toIndex)
+      response match {
+        case Success(_) => Success(toIndex)
+        case Failure(ex) => Failure(ex)
+      }
     }
 
     def indexDocuments(audioData: List[AudioMetaInformation], indexName: String): Try[Int] = {
-      implicit val formats = SearchableLanguageFormats.JSonFormats
-      val searchableAudio = audioData.map(searchConverterService.asSearchableAudioInformation)
-
-      val bulkBuilder = new Bulk.Builder()
-      searchableAudio.foreach(audioMeta => {
-        val source = write(audioMeta)
-        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(AudioApiProperties.SearchDocument).id(audioMeta.id).build)
-      })
-
-      val response = jestClient.execute(bulkBuilder.build())
-      response.map(_ => {
-        logger.info(s"Indexed ${searchableAudio.size} documents")
-        searchableAudio.size
-      })
+      if (audioData.isEmpty) {
+        Success(0)
+      } else {
+        val response = e4sClient.execute {
+          bulk(audioData.map(audio => {
+            val source = write(searchConverterService.asSearchableAudioInformation(audio))
+            indexInto(indexName / AudioApiProperties.SearchDocument).doc(source).id(audio.id.get.toString)
+          }))
+        }
+        response match {
+          case Success(_) => Success(audioData.size)
+          case Failure(ex) => Failure(ex)
+        }
+      }
     }
 
     def createIndexWithGeneratedName(): Try[String] = {
@@ -67,14 +66,20 @@ trait IndexService {
     }
 
     def createIndexWithName(indexName: String): Try[String] = {
-      if (indexExists(indexName).getOrElse(false)) {
+      if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
-        val response = e4sClient.execute{
+        val response = e4sClient.execute {
           createIndex(indexName)
             .mappings(buildMapping)
             .indexSetting("max_result_window", AudioApiProperties.ElasticSearchIndexMaxResultWindow)
         }
+
+        response match {
+          case Success(_) => Success(indexName)
+          case Failure(ex) => Failure(ex)
+        }
+
       }
     }
 
@@ -90,63 +95,62 @@ trait IndexService {
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedFieldDefinition = {
       NestedFieldDefinition(fieldName).fields(
-      keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
-      })
+        keepRaw match {
+          case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+          case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
+        })
     }
 
     def aliasTarget: Try[Option[String]] = {
-      val getAliasRequest = new GetAliases.Builder().addIndex(s"${AudioApiProperties.SearchIndex}").build()
-      jestClient.execute(getAliasRequest) match {
-        case Success(result) => {
-          val aliasIterator = result.getJsonObject.entrySet().iterator()
-          aliasIterator.hasNext match {
-            case true => Success(Some(aliasIterator.next().getKey))
-            case false => Success(None)
-          }
-        }
-        case Failure(_: NdlaSearchException) => Success(None)
-        case Failure(t: Throwable) => Failure(t)
+      val response = e4sClient.execute{
+        getAliases(Nil, List(AudioApiProperties.SearchIndex))
       }
+
+      response match {
+        case Success(results) => Success(results.result.mappings.headOption.map(t => t._1.name))
+        case Failure(ex) => Failure(ex)
+      }
+
     }
 
     def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
-      if (!indexExists(newIndexName).getOrElse(false)) {
+      if (!indexWithNameExists(newIndexName).getOrElse(false)) {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
-        val addAliasDefinition = new AddAliasMapping.Builder(newIndexName, AudioApiProperties.SearchIndex).build()
-        val modifyAliasRequest = oldIndexName match {
-          case None => new ModifyAliases.Builder(addAliasDefinition).build()
-          case Some(oldIndex) => {
-            new ModifyAliases.Builder(
-              new RemoveAliasMapping.Builder(oldIndex, AudioApiProperties.SearchIndex).build()
-            ).addAlias(addAliasDefinition).build()
-          }
+        oldIndexName match {
+          case None => e4sClient.execute(addAlias(AudioApiProperties.SearchIndex).on(newIndexName))
+          case Some(oldIndex) =>
+            e4sClient.execute {
+              removeAlias(AudioApiProperties.SearchIndex).on(oldIndex)
+              addAlias(AudioApiProperties.SearchIndex).on(newIndexName)
+            }
         }
 
-        jestClient.execute(modifyAliasRequest)
       }
     }
 
-    def delete(optIndexName: Option[String]): Try[_] = {
+    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
         case None => Success(optIndexName)
         case Some(indexName) => {
-          if (!indexExists(indexName).getOrElse(false)) {
+          if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
-            jestClient.execute(new DeleteIndex.Builder(indexName).build())
+            e4sClient.execute(deleteIndex(indexName))
           }
         }
       }
     }
 
-    def indexExists(indexName: String): Try[Boolean] = {
-      jestClient.execute(new IndicesExists.Builder(indexName).build()) match {
-        case Success(_) => Success(true)
-        case Failure(_: ElasticsearchException) => Success(false)
-        case Failure(t: Throwable) => Failure(t)
+    def indexWithNameExists(indexName: String): Try[Boolean] = {
+      val response = e4sClient.execute{
+        indexExists(indexName)
+      }
+
+      response match {
+        case Success(resp) if resp.status != 404 => Success(true)
+        case Success(_) => Success(false)
+        case Failure(ex) => Failure(ex)
       }
     }
 
@@ -154,4 +158,5 @@ trait IndexService {
       new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
     }
   }
+
 }

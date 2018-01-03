@@ -40,12 +40,12 @@ trait SearchIndexService {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- indexService.aliasTarget
             _ <- indexService.updateAliasTarget(aliasTarget, indexName)
-            _ <- indexService.delete(aliasTarget)
+            _ <- indexService.deleteIndexWithName(aliasTarget)
           } yield numIndexed
 
           operations match {
             case Failure(f) => {
-              indexService.delete(Some(indexName))
+              indexService.deleteIndexWithName(Some(indexName))
               Failure(f)
             }
             case Success(totalIndexed) => {

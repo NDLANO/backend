@@ -40,6 +40,7 @@ object ComponentRegistry
   with AudioController
   with SearchService
   with ElasticClient
+  with Elastic4sClient
   with IndexService
   with SearchConverterService
   with SearchIndexService
@@ -84,6 +85,7 @@ object ComponentRegistry
   lazy val healthController = new HealthController
 
   lazy val jestClient = JestClientFactory.getClient()
+  lazy val e4sClient = Elastic4sClientFactory.getClient()
   lazy val indexService = new IndexService
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService

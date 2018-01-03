@@ -37,6 +37,7 @@ trait TestEnvironment
   with HealthController
   with AudioController
   with ElasticClient
+  with Elastic4sClient
   with IndexService
   with SearchConverterService
   with SearchIndexService
@@ -70,6 +71,7 @@ trait TestEnvironment
   val healthController = mock[HealthController]
 
   val jestClient = mock[NdlaJestClient]
+  val e4sClient = mock[NdlaE4sClient]
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchConverterService = mock[SearchConverterService]
