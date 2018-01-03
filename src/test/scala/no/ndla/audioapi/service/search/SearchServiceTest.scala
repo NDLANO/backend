@@ -42,6 +42,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val audio3 = AudioMetaInformation(Some(3), Some(1), List(Title("Superman er ute og flyr", "nb")), List(Audio("file4.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("supermann"), "nb")), "ndla124", updated)
   val audio4 = AudioMetaInformation(Some(4), Some(1), List(Title("Donald Duck kjører bil", "nb"), Title("Donald Duck kjører bil", "nn"), Title("Donald Duck drives a car", "en")), List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("and"), "nb")), "ndla124", updated)
   val audio5 = AudioMetaInformation(Some(5), Some(1), List(Title("Synge sangen", "nb")), List(Audio("file5.mp3", "audio/mpeg", 1024, "nb")), byNcSa.copy(agreementId = Some(1)), List(Tag(List("synge"), "nb")), "ndla124", updated)
+  val audio6 = AudioMetaInformation(Some(6), Some(1), List(Title("Urelatert", "nb"), Title("Unrelated", "en")), List(Audio("en.mp3", "audio/mpeg", 1024, "en"), Audio("nb.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")), "ndla123", updated)
 
   override def beforeAll = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
@@ -55,8 +56,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.indexDocument(audio3)
     indexService.indexDocument(audio4)
     indexService.indexDocument(audio5)
+    indexService.indexDocument(audio6)
 
-    blockUntil(() => searchService.countDocuments == 5)
+    blockUntil(() => searchService.countDocuments == 6)
   }
 
   override def afterAll() = {
@@ -86,9 +88,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That no language returns all documents ordered by title ascending") {
     val results = searchService.all(None, None, None, None, Sort.ByTitleAsc)
-    results.totalCount should be (4)
+    results.totalCount should be (5)
     results.results.head.id should be (4)
-    results.results.last.id should be (5)
+    results.results.last.id should be (6)
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
@@ -101,12 +103,12 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   test("That paging returns only hits on current page and not more than page-size") {
     val page1 = searchService.all(None, None, Some(1), Some(2), Sort.ByTitleAsc)
     val page2 = searchService.all(None, None, Some(2), Some(2), Sort.ByTitleAsc)
-    page1.totalCount should be (4)
+    page1.totalCount should be (5)
     page1.page should be (1)
     page1.results.size should be (2)
     page1.results.head.id should be (4)
     page1.results.last.id should be (2)
-    page2.totalCount should be (4)
+    page2.totalCount should be (5)
     page2.page should be (2)
     page2.results.size should be (2)
     page2.results.head.id should be (3)
@@ -155,14 +157,19 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That searching for 'nb' should return all results") {
     val results = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
-    results.totalCount should be (4)
+    results.totalCount should be (5)
   }
 
-  test("That searching for 'en' should only return 'Donald' (audio4) with the english title") {
+  test("That searching for 'en' should only return results with english title") {
     val result = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
-    result.totalCount should be (1)
-    result.results.head.title.title should be ("Donald Duck drives a car")
+    result.totalCount should be (2)
     result.language should be ("en")
+
+    result.results.head.title.title should be ("Donald Duck drives a car")
+    result.results.head.title.language should be("en")
+
+    result.results.last.title.title should be("Unrelated")
+    result.results.last.title.language should be("en")
   }
 
   test("That 'supported languages' should match all possible title languages") {
@@ -198,6 +205,14 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     result.license should equal(license)
     result.supportedLanguages.toSet should equal(supportedLanguages)
   }
+
+  test("That hit is returned in the matched language") {
+    //TODO: Test that search is returned in matched language
+
+  }
+
+  //TODO: Implement and test lastUpdated sorting
+  //TODO: Implement and test id sorting
 
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
