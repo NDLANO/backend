@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Bulk, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
@@ -62,7 +62,7 @@ trait IndexService {
       })
     }
 
-    def createIndex(): Try[String] = {
+    def createIndexWithGeneratedName(): Try[String] = {
       createIndexWithName(AudioApiProperties.SearchIndex + "_" + getTimestamp)
     }
 
@@ -70,37 +70,30 @@ trait IndexService {
       if (indexExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
-        val createIndexResponse = jestClient.execute(
-          new CreateIndex.Builder(indexName)
-            .settings(s"""{"index":{"max_result_window":${AudioApiProperties.ElasticSearchIndexMaxResultWindow}}}""")
-            .build())
-        createIndexResponse.map(_ => createMapping(indexName)).map(_ => indexName)
+        val response = e4sClient.execute{
+          createIndex(indexName)
+            .mappings(buildMapping)
+            .indexSetting("max_result_window", AudioApiProperties.ElasticSearchIndexMaxResultWindow)
+        }
       }
     }
 
-    def createMapping(indexName: String): Try[String] = {
-      val mappingResponse = jestClient.execute(new PutMapping.Builder(indexName, AudioApiProperties.SearchDocument, buildMapping()).build())
-      mappingResponse.map(_ => indexName)
-    }
-
-    def buildMapping(): String = {
-      MappingContentBuilder.buildWithName(mapping(AudioApiProperties.SearchDocument).fields(
+    def buildMapping: MappingDefinition = {
+      mapping(AudioApiProperties.SearchDocument).fields(
         intField("id"),
         languageSupportedField("titles", keepRaw = true),
         languageSupportedField("tags", keepRaw = false),
-        keywordField("license") index "not_analyzed",
+        keywordField("license"),
         textField("authors").fielddata(true)
-      ), AudioApiProperties.SearchDocument).string()
+      )
     }
 
-    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
-      val languageSupportedField = new NestedFieldDefinition(fieldName)
-      languageSupportedField._fields = keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer fields (keywordField("raw") index "not_analyzed"))
-        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer)
-      }
-
-      languageSupportedField
+    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedFieldDefinition = {
+      NestedFieldDefinition(fieldName).fields(
+      keepRaw match {
+        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
+      })
     }
 
     def aliasTarget: Try[Option[String]] = {
