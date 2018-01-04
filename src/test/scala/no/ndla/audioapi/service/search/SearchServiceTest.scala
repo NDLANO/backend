@@ -9,7 +9,7 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.integration.{Elastic4sClientFactory, JestClientFactory}
+import no.ndla.audioapi.integration.Elastic4sClientFactory
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
@@ -24,7 +24,6 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
 
-  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
   override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
 

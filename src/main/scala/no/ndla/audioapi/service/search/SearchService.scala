@@ -16,7 +16,7 @@ import com.sksamuel.elastic4s.searches.queries.{BoolQueryDefinition, QueryDefini
 import com.sksamuel.elastic4s.searches.sort.{SortDefinition, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, SearchResult, Title}
 import no.ndla.audioapi.model.domain.NdlaSearchException
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait SearchService {
-  this: Elastic4sClient with ElasticClient with SearchIndexService with SearchConverterService =>
+  this: Elastic4sClient with SearchIndexService with SearchConverterService =>
   val searchService: SearchService
 
   class SearchService extends LazyLogging {
@@ -206,16 +206,16 @@ trait SearchService {
     private def errorHandler[T](failure: Failure[T]) = {
       failure match {
         case Failure(e: NdlaSearchException) => {
-          e.getResponse.getResponseCode match {
+          e.rf.status match {
             case notFound: Int if notFound == 404 => {
               logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
               throw new IndexNotFoundException(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
             }
             case _ => {
-              logger.error(e.getResponse.getErrorMessage)
-              println(e.getResponse.getErrorMessage)
-              throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", e.getResponse.getErrorMessage)
+              logger.error(e.getMessage)
+              println(e.getMessage)
+              throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", e.getMessage)
             }
           }
 

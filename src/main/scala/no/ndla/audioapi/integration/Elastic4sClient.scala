@@ -16,7 +16,7 @@ import com.sksamuel.elastic4s.ElasticsearchClientUri
 import com.sksamuel.elastic4s.aws._
 import com.sksamuel.elastic4s.http.{HttpClient, HttpExecutable, RequestSuccess}
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.domain.Ndla4sSearchException
+import no.ndla.audioapi.model.domain.NdlaSearchException
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -35,7 +35,7 @@ case class NdlaE4sClient(httpClient: HttpClient) {
     response match {
       case Success(either) => either match {
         case Right(result) => Success(result)
-        case Left(requestFailure) => Failure(Ndla4sSearchException(requestFailure))
+        case Left(requestFailure) => Failure(NdlaSearchException(requestFailure))
       }
       case Failure(ex) => Failure(ex)
     }
