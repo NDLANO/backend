@@ -10,7 +10,7 @@ package no.ndla.audioapi.model.domain
 
 import java.util.Date
 
-import io.searchbox.client.JestResult
+import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.Language.UnknownLanguage
@@ -62,8 +62,14 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   )
 }
 
-class NdlaSearchException(jestResponse: JestResult) extends RuntimeException(jestResponse.getErrorMessage) {
-  def getResponse: JestResult = jestResponse
-}
+case class NdlaSearchException(rf: RequestFailure) extends RuntimeException(
+  s"""
+     |index: ${rf.error.index.getOrElse("Error did not contain index")}
+     |reason: ${rf.error.reason}
+     |body: ${rf.body}
+     |shard: ${rf.error.shard.getOrElse("Error did not contain shard")}
+     |type: ${rf.error.`type`}
+   """.stripMargin
+)
 
 case class ReindexResult(totalIndexed: Int, millisUsed: Long)

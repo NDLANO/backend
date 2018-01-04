@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.model.search
 
+import java.util.Date
+
 
 object LanguageValue {
 
@@ -27,5 +29,7 @@ case class SearchableAudioInformation(
   titles: SearchableLanguageValues,
   tags: SearchableLanguageList,
   license: String,
-  authors: Seq[String]
+  authors: Seq[String],
+  lastUpdated: Date,
+  defaultTitle: Option[String]
 )
