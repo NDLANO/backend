@@ -35,14 +35,20 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
   val publicDomain = Copyright("publicdomain", Some("Metropolis"), List(Author("Forfatter", "Bruce Wayne")), Seq(), Seq(), None, None, None)
   val copyrighted = Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val audio1 = AudioMetaInformation(Some(1), Some(1), List(Title("Batmen er på vift med en bil", "nb")), List(Audio("file.mp3", "audio/mpeg", 1024, "nb")), copyrighted, List(Tag(List("fisk"), "nb")), "ndla124", updated)
-  val audio2 = AudioMetaInformation(Some(2), Some(1), List(Title("Pingvinen er ute og går", "nb")), List(Audio("file2.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("fugl"), "nb")), "ndla124", updated)
-  val audio3 = AudioMetaInformation(Some(3), Some(1), List(Title("Superman er ute og flyr", "nb")), List(Audio("file4.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("supermann"), "nb")), "ndla124", updated)
-  val audio4 = AudioMetaInformation(Some(4), Some(1), List(Title("Donald Duck kjører bil", "nb"), Title("Donald Duck kjører bil", "nn"), Title("Donald Duck drives a car", "en")), List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("and"), "nb")), "ndla124", updated)
-  val audio5 = AudioMetaInformation(Some(5), Some(1), List(Title("Synge sangen", "nb")), List(Audio("file5.mp3", "audio/mpeg", 1024, "nb")), byNcSa.copy(agreementId = Some(1)), List(Tag(List("synge"), "nb")), "ndla124", updated)
-  val audio6 = AudioMetaInformation(Some(6), Some(1), List(Title("Urelatert", "nb"), Title("Unrelated", "en")), List(Audio("en.mp3", "audio/mpeg", 1024, "en"), Audio("nb.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")), "ndla123", updated)
+  val updated1 = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated2 = new DateTime(2017, 5, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated3 = new DateTime(2017, 6, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated4 = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated5 = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated6 = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+
+  val audio1 = AudioMetaInformation(Some(1), Some(1), List(Title("Batmen er på vift med en bil", "nb")), List(Audio("file.mp3", "audio/mpeg", 1024, "nb")), copyrighted, List(Tag(List("fisk"), "nb")), "ndla124", updated2)
+  val audio2 = AudioMetaInformation(Some(2), Some(1), List(Title("Pingvinen er ute og går", "nb")), List(Audio("file2.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("fugl"), "nb")), "ndla124", updated4)
+  val audio3 = AudioMetaInformation(Some(3), Some(1), List(Title("Superman er ute og flyr", "nb")), List(Audio("file4.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("supermann"), "nb")), "ndla124", updated3)
+  val audio4 = AudioMetaInformation(Some(4), Some(1), List(Title("Donald Duck kjører bil", "nb"), Title("Donald Duck kjører bil", "nn"), Title("Donald Duck drives a car", "en")), List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")), publicDomain, List(Tag(List("and"), "nb")), "ndla124", updated5)
+  val audio5 = AudioMetaInformation(Some(5), Some(1), List(Title("Synge sangen", "nb")), List(Audio("file5.mp3", "audio/mpeg", 1024, "nb")), byNcSa.copy(agreementId = Some(1)), List(Tag(List("synge"), "nb")), "ndla124", updated1)
+  val audio6 = AudioMetaInformation(Some(6), Some(1), List(Title("Urelatert", "nb"), Title("Unrelated", "en")), List(Audio("en.mp3", "audio/mpeg", 1024, "en"), Audio("nb.mp3", "audio/mpeg", 1024, "nb")), byNcSa, List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")), "ndla123", updated6)
 
   override def beforeAll = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
@@ -207,12 +213,64 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That hit is returned in the matched language") {
-    //TODO: Test that search is returned in matched language
+    val searchResultEn = searchService.matchingQuery("Unrelated", None, None, None, None, Sort.ByTitleAsc)
+    val searchResultNb = searchService.matchingQuery("Urelatert", None, None, None, None, Sort.ByTitleAsc)
+
+    searchResultNb.totalCount should be(1)
+    searchResultNb.results.head.title.language should be ("nb")
+    searchResultNb.results.head.title.title should be ("Urelatert")
+
+    searchResultEn.totalCount should be(1)
+    searchResultEn.results.head.title.language should be ("en")
+    searchResultEn.results.head.title.title should be ("Unrelated")
+  }
+
+  test("That sorting by lastUpdated asc functions correctly") {
+    val search = searchService.all(None, None, None, None, Sort.ByLastUpdatedAsc)
+
+    search.totalCount should be(5)
+    search.results(0).id should be (5)
+    search.results(1).id should be (3)
+    search.results(2).id should be (2)
+    search.results(3).id should be (4)
+    search.results(4).id should be (6)
 
   }
 
-  //TODO: Implement and test lastUpdated sorting
-  //TODO: Implement and test id sorting
+  test("That sorting by lastUpdated desc functions correctly") {
+    val search = searchService.all(None, None, None, None, Sort.ByLastUpdatedDesc)
+
+    search.totalCount should be(5)
+    search.results(0).id should be (6)
+    search.results(1).id should be (4)
+    search.results(2).id should be (2)
+    search.results(3).id should be (3)
+    search.results(4).id should be (5)
+  }
+
+  test("That sorting by id asc functions correctly") {
+    val search = searchService.all(None, None, None, None, Sort.ByIdAsc)
+
+
+    search.totalCount should be(5)
+    search.results(0).id should be (2)
+    search.results(1).id should be (3)
+    search.results(2).id should be (4)
+    search.results(3).id should be (5)
+    search.results(4).id should be (6)
+  }
+
+  test("That sorting by id desc functions correctly") {
+    val search = searchService.all(None, None, None, None, Sort.ByIdDesc)
+
+    search.totalCount should be(5)
+    search.results(0).id should be (6)
+    search.results(1).id should be (5)
+    search.results(2).id should be (4)
+    search.results(3).id should be (3)
+    search.results(4).id should be (2)
+  }
+
 
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0

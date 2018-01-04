@@ -49,7 +49,7 @@ object Elastic4sClientFactory {
       case false => NdlaE4sClient(getNonSigningClient(searchServer))
     }
   }
-  //TODO: Update build.sbt to make elastic4s refresh credentials for us or change this to recreate client
+
   private def getNonSigningClient(searchServer: String): HttpClient = {
     val uri = ElasticsearchClientUri(searchServer.host.getOrElse("localhost"), searchServer.port.getOrElse(9200))
     HttpClient(uri)

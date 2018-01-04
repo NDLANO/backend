@@ -36,6 +36,7 @@ trait SearchConverterService {
         tags = SearchableLanguageList(metaWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         license = metaWithAgreement.copyright.license,
         authors = metaWithAgreement.copyright.creators.map(_.name) ++ metaWithAgreement.copyright.processors.map(_.name) ++ metaWithAgreement.copyright.rightsholders.map(_.name),
+        lastUpdated = metaWithAgreement.updated,
         defaultTitle = defaultTitle.map(t => t.title)
       )
     }
@@ -52,7 +53,9 @@ trait SearchConverterService {
       val matchLanguage = sortedInnerHits.headOption.flatMap{
         case (_, innerHit) =>
           innerHit.hits.sortBy(hit => hit.score).reverse.headOption.flatMap(hit => {
-            hit.highlight.headOption.map(hl => hl._1.split('.').last)
+            hit.highlight.headOption.map(hl => {
+              hl._1.split('.').filterNot(_ == "raw").last
+            })
           })
       }
 

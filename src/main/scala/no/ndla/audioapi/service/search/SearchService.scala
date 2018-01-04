@@ -102,11 +102,13 @@ trait SearchService {
     private def languageSpecificSearch(searchField: String, language: Option[String], query: String, boost: Float): QueryDefinition = {
       language match {
         case None | Some(Language.AllLanguages) | Some("*") =>
+          val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
+          val ih = innerHits(searchField).highlighting(hi)
           val searchQuery = simpleStringQuery(query).field(s"$searchField.*", 1)
-          nestedQuery(searchField, searchQuery).boost(boost)
+          nestedQuery(searchField, searchQuery).scoreMode(ScoreMode.Avg).boost(boost).inner(ih)
         case Some(lang) =>
           val searchQuery = simpleStringQuery(query).field(s"$searchField.$lang", 1)
-          nestedQuery(searchField, searchQuery).boost(boost)
+          nestedQuery(searchField, searchQuery).scoreMode(ScoreMode.Avg).boost(boost)
       }
     }
 
