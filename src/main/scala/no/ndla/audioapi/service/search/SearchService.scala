@@ -145,7 +145,7 @@ trait SearchService {
 
       } match {
         case Success(response) =>
-          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, searchLanguage, getHits(response.result, searchLanguage))
+          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, if (searchLanguage == "*") Language.AllLanguages else searchLanguage , getHits(response.result, searchLanguage))
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }
