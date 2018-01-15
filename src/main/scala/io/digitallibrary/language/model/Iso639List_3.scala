@@ -1,7 +1,7 @@
 
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) 2018 Global Digital Library
  *
  * See LICENSE
  */
@@ -72,7 +72,7 @@ object Iso639List_3 {
     Iso639Val("doe", None, None, None, Some("I"), Some("L"), "Doe", None),
     Iso639Val("dof", None, None, None, Some("I"), Some("L"), "Domu", None),
     Iso639Val("doh", None, None, None, Some("I"), Some("L"), "Dong", None),
-    Iso639Val("doi", Some("doi"), Some("doi"), None, Some("M"), Some("L"), "Dogri (macrolanguage)", None),
+    Iso639Val("doi", Some("doi"), Some("doi"), None, Some("M"), Some("L"), "Dogri", None),
     Iso639Val("dok", None, None, None, Some("I"), Some("L"), "Dondo", None),
     Iso639Val("dol", None, None, None, Some("I"), Some("L"), "Doso", None),
     Iso639Val("don", None, None, None, Some("I"), Some("L"), "Toura (Papua New Guinea)", None),

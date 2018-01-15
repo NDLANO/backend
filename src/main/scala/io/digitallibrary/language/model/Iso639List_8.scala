@@ -1,7 +1,7 @@
 
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) 2018 Global Digital Library
  *
  * See LICENSE
  */
@@ -519,7 +519,7 @@ object Iso639List_8 {
     Iso639Val("svm", None, None, None, Some("I"), Some("L"), "Slavomolisano", None),
     Iso639Val("svs", None, None, None, Some("I"), Some("L"), "Savosavo", None),
     Iso639Val("svx", None, None, None, Some("I"), Some("E"), "Skalvian", None),
-    Iso639Val("swa", Some("swa"), Some("swa"), Some("sw"), Some("M"), Some("L"), "Swahili (macrolanguage)", None),
+    Iso639Val("swa", Some("swa"), Some("swa"), Some("sw"), Some("M"), Some("L"), "Swahili", None),
     Iso639Val("swb", None, None, None, Some("I"), Some("L"), "Maore Comorian", None),
     Iso639Val("swc", None, None, None, Some("I"), Some("L"), "Congo Swahili", None),
     Iso639Val("swe", Some("swe"), Some("swe"), Some("sv"), Some("I"), Some("L"), "Swedish", None),
