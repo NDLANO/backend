@@ -78,7 +78,6 @@ object Iso639List_%NUM% {
 }
 """
 
-
 comment_pattern = re.compile(r'\s*#.*$')
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -96,7 +95,7 @@ def create_iso3166(template):
     with open(iso_3166_definitions_file, 'r') as f:
         lines = []
         reader = csv.reader(f, delimiter=',')
-        next(reader) # skip heading
+        next(reader)  # skip heading
         for row in reader:
             lines.append('Iso3166Val("{}", "{}")'.format(row[1], row[0]))
 
@@ -115,7 +114,8 @@ def create_iso15924(template):
             frenchName = row[3]
             pva = 'Some("{}")'.format(row[4]) if row[4] else "None"
             date = row[5]
-            lines.append('Iso15924Val("{}", {}, "{}", "{}", {}, "{}")'.format(code, no, englishName, frenchName, pva, date))
+            lines.append(
+                'Iso15924Val("{}", {}, "{}", "{}", {}, "{}")'.format(code, no, englishName, frenchName, pva, date))
 
         print ">> Adding {} entries for ISO-15924".format(len(lines))
         return template.replace("%ISO15924%", ",\n    ".join(lines))
@@ -134,7 +134,8 @@ def create_iso639(template):
         language_type = 'Some("{}")'.format(row[5]) if row[5] else "None"
         ref_name = row[6]
         comment = 'Some("{}")'.format(row[7]) if row[7] else "None"
-        return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope, language_type, ref_name, comment)
+        return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope,
+                                                                      language_type, ref_name, comment)
 
     with open(iso_639_definitions_file, 'r') as f:
         reader = csv.reader(f, delimiter='\t')
@@ -144,7 +145,7 @@ def create_iso639(template):
         for i, sublist in enumerate(sublists):
             create_iso_639_part_file(sublist, i + 1)
 
-        seq = " ++ ".join(["Iso639List_{}.items".format(i+1) for i in range(len(sublists))])
+        seq = " ++ ".join(["Iso639List_{}.items".format(i + 1) for i in range(len(sublists))])
 
     return template.replace("%ISO639%", seq)
 
