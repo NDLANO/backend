@@ -1,7 +1,7 @@
 
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) 2018 Global Digital Library
  *
  * See LICENSE
  */
@@ -256,7 +256,7 @@ object Iso639List_7 {
     Iso639Val("ore", None, None, None, Some("I"), Some("L"), "Orejón", None),
     Iso639Val("org", None, None, None, Some("I"), Some("L"), "Oring", None),
     Iso639Val("orh", None, None, None, Some("I"), Some("L"), "Oroqen", None),
-    Iso639Val("ori", Some("ori"), Some("ori"), Some("or"), Some("M"), Some("L"), "Oriya (macrolanguage)", None),
+    Iso639Val("ori", Some("ori"), Some("ori"), Some("or"), Some("M"), Some("L"), "Oriya", None),
     Iso639Val("orm", Some("orm"), Some("orm"), Some("om"), Some("M"), Some("L"), "Oromo", None),
     Iso639Val("orn", None, None, None, Some("I"), Some("L"), "Orang Kanaq", None),
     Iso639Val("oro", None, None, None, Some("I"), Some("L"), "Orokolo", None),

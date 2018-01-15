@@ -126,13 +126,15 @@ def create_iso639(template):
         return [l[i:i + n] for i in xrange(0, len(l), n)]
 
     def process_row(row):
+        def clean_language_name(language_name):
+            return language_name.replace('(macrolanguage)', '').strip()
         id = row[0]
         part_2b = 'Some("{}")'.format(row[1]) if row[1] else "None"
         part_2t = 'Some("{}")'.format(row[2]) if row[2] else "None"
         part_1 = 'Some("{}")'.format(row[3]) if row[3] else "None"
         scope = 'Some("{}")'.format(row[4]) if row[4] else "None"
         language_type = 'Some("{}")'.format(row[5]) if row[5] else "None"
-        ref_name = row[6]
+        ref_name = clean_language_name(row[6])
         comment = 'Some("{}")'.format(row[7]) if row[7] else "None"
         return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope,
                                                                       language_type, ref_name, comment)

@@ -1,7 +1,7 @@
 
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) 2018 Global Digital Library
  *
  * See LICENSE
  */
@@ -252,7 +252,7 @@ object Iso639List_6 {
     Iso639Val("mrx", None, None, None, Some("I"), Some("L"), "Maremgi", None),
     Iso639Val("mry", None, None, None, Some("I"), Some("L"), "Mandaya", None),
     Iso639Val("mrz", None, None, None, Some("I"), Some("L"), "Marind", None),
-    Iso639Val("msa", Some("may"), Some("msa"), Some("ms"), Some("M"), Some("L"), "Malay (macrolanguage)", None),
+    Iso639Val("msa", Some("may"), Some("msa"), Some("ms"), Some("M"), Some("L"), "Malay", None),
     Iso639Val("msb", None, None, None, Some("I"), Some("L"), "Masbatenyo", None),
     Iso639Val("msc", None, None, None, Some("I"), Some("L"), "Sankaran Maninka", None),
     Iso639Val("msd", None, None, None, Some("I"), Some("L"), "Yucatec Maya Sign Language", None),
@@ -556,7 +556,7 @@ object Iso639List_6 {
     Iso639Val("nem", None, None, None, Some("I"), Some("L"), "Nemi", None),
     Iso639Val("nen", None, None, None, Some("I"), Some("L"), "Nengone", None),
     Iso639Val("neo", None, None, None, Some("I"), Some("L"), "Ná-Meo", None),
-    Iso639Val("nep", Some("nep"), Some("nep"), Some("ne"), Some("M"), Some("L"), "Nepali (macrolanguage)", None),
+    Iso639Val("nep", Some("nep"), Some("nep"), Some("ne"), Some("M"), Some("L"), "Nepali", None),
     Iso639Val("neq", None, None, None, Some("I"), Some("L"), "North Central Mixe", None),
     Iso639Val("ner", None, None, None, Some("I"), Some("L"), "Yahadian", None),
     Iso639Val("nes", None, None, None, Some("I"), Some("L"), "Bhoti Kinnauri", None),

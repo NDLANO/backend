@@ -1,7 +1,7 @@
 
 /*
  * Part of GDL language.
- * Copyright (C) 2017 Global Digital Library
+ * Copyright (C) 2018 Global Digital Library
  *
  * See LICENSE
  */
@@ -778,7 +778,7 @@ object Iso639List_4 {
     Iso639Val("kog", None, None, None, Some("I"), Some("L"), "Cogui", None),
     Iso639Val("koh", None, None, None, Some("I"), Some("L"), "Koyo", None),
     Iso639Val("koi", None, None, None, Some("I"), Some("L"), "Komi-Permyak", None),
-    Iso639Val("kok", Some("kok"), Some("kok"), None, Some("M"), Some("L"), "Konkani (macrolanguage)", None),
+    Iso639Val("kok", Some("kok"), Some("kok"), None, Some("M"), Some("L"), "Konkani", None),
     Iso639Val("kol", None, None, None, Some("I"), Some("L"), "Kol (Papua New Guinea)", None),
     Iso639Val("kom", Some("kom"), Some("kom"), Some("kv"), Some("M"), Some("L"), "Komi", None),
     Iso639Val("kon", Some("kon"), Some("kon"), Some("kg"), Some("M"), Some("L"), "Kongo", None),
