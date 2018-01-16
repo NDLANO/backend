@@ -8,6 +8,8 @@
 
 package no.ndla.mapping
 
+import scala.collection.immutable.ListMap
+
 object ISO639 {
   private val NORWEGIAN_BOKMAL = "nb"
   private val NORWEGIAN_NYNORSK = "nn"
@@ -19,11 +21,11 @@ object ISO639 {
   private val CHINESE = "zh"
   private val UNKNOWN = "unknown"
 
-  private val iso639Map = Map(
+  private val iso639Map = ListMap(
     "nob" -> NORWEGIAN_BOKMAL,
+    "nno" -> NORWEGIAN_NYNORSK,
     "eng" -> ENGLISH,
     "fra" -> FRENCH,
-    "nno" -> NORWEGIAN_NYNORSK,
     "sme" -> SAMI,
     "sma" -> SAMI,
     "smj" -> SAMI,
@@ -39,4 +41,7 @@ object ISO639 {
   def get6391CodeFor6392Code(code6392: String): Option[String] = {
     iso639Map.get(code6392)
   }
+
+  val languagePriority: List[String] = UNKNOWN +: supportedLanguages.toList
+
 }
