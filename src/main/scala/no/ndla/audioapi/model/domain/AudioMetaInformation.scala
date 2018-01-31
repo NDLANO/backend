@@ -27,7 +27,7 @@ case class AudioMetaInformation(id: Option[Long],
                                 tags: Seq[Tag],
                                 updatedBy :String,
                                 updated :Date) {
-  lazy val supportedLanguages = titles.map(_.language).union(tags.map(_.language)).distinct
+  lazy val supportedLanguages = Language.getSupportedLanguages(titles, filePaths, tags)
 }
 
 case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
