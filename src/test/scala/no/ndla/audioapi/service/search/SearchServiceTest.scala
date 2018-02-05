@@ -200,7 +200,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val title = "Synge sangen"
     val license = "gnu"
     val tag = "synge"
-    val supportedLanguages = Set("nb")
+    val supportedLanguages = Seq("nb")
     val hitString = s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","authors":["DC Comics"]}"""
 
     val result = searchService.hitAsAudioSummary(hitString, "nb")
@@ -208,7 +208,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     result.id should equal(id)
     result.title.title should equal(title)
     result.license should equal(license)
-    result.supportedLanguages.toSet should equal(supportedLanguages)
+    result.supportedLanguages should equal(supportedLanguages)
   }
 
   test("That hit is returned in the matched language") {
@@ -267,6 +267,11 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     search.results(2).id should be(4)
     search.results(3).id should be(3)
     search.results(4).id should be(2)
+  }
+
+  test("That supportedLanguages are sorted correctly") {
+    val result = searchService.matchingQuery("Unrelated", None, None, None, None, Sort.ByTitleAsc)
+    result.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
 
