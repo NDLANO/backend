@@ -61,8 +61,8 @@ trait SearchService {
       implicit val formats = DefaultFormats
       val hit = parse(hitString)
 
-      val supportedLanguages = (hit \ "titles").extract[Map[String, _]].keySet.toSeq
       val titles = (hit \ "titles").extract[Map[String, String]].map(title => domain.Title(title._2, title._1)).toSeq
+      val supportedLanguages = getSupportedLanguages(titles)
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None => Title("", language)
         case Some(x) => Title(x.title, x.language)
@@ -145,7 +145,7 @@ trait SearchService {
 
       } match {
         case Success(response) =>
-          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, searchLanguage, getHits(response.result, searchLanguage))
+          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, if (searchLanguage == "*") Language.AllLanguages else searchLanguage , getHits(response.result, searchLanguage))
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }

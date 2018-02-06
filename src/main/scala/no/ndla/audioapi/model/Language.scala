@@ -10,6 +10,7 @@ package no.ndla.audioapi.model
 
 import com.sksamuel.elastic4s.analyzers._
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, LanguageField, WithLanguage}
+import no.ndla.mapping.ISO639
 
 object Language {
 
@@ -58,10 +59,11 @@ object Language {
     }
   }
 
-  def getSupportedLanguages(sequences: Seq[Seq[WithLanguage]]): Seq[String] = {
-    sequences.flatMap(_.map(_.language)).distinct
+  def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
+    sequences.flatMap(_.map(_.language)).distinct.sortBy{lang =>
+      ISO639.languagePriority.indexOf(lang)
+    }
   }
-
 }
 
 case class LanguageAnalyzer(lang: String, analyzer: Analyzer)
