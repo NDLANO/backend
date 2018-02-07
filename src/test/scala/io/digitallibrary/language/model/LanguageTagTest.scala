@@ -69,4 +69,12 @@ class LanguageTagTest extends UnitSuite {
   test("that displayName returns 'language (script, region)' when all defined"){
     LanguageTag("eng-latn-gb").displayName should equal ("English (Latin, United Kingdom)")
   }
+
+  test("that localDisplayName returns None for Language that does not have a mapping") {
+    LanguageTag("eng").localDisplayName should be (None)
+  }
+
+  test("that localDisplayName returns a displayname in the local language when it does have a mapping") {
+    LanguageTag("nob").localDisplayName should equal (Some("Norsk Bokmål"))
+  }
 }
