@@ -170,14 +170,13 @@ def create_iso_639_part_file(lines, counter):
 
 
 def load_localized_language_names():
-    local_names = {}
-    with open(iso_639_localized_file, 'r') as f:
-        reader = csv.reader(f, delimiter=';')
-        next(reader)  # skip heading
-        for row in reader:
-            local_names[row[0]] = row[1]
-
-    return local_names
+    def extract_pairs():
+        with open(iso_639_localized_file, 'r') as f:
+            reader = csv.reader(f, delimiter=';')
+            next(reader)  # skip heading
+            for language_code, localized_name in reader:
+                yield language_code, localized_name
+    return dict(extract_pairs())
 
 
 def skip_comments(lines):

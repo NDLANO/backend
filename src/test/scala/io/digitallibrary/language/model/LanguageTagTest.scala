@@ -75,6 +75,6 @@ class LanguageTagTest extends UnitSuite {
   }
 
   test("that localDisplayName returns a displayname in the local language when it does have a mapping") {
-    LanguageTag("nob").localDisplayName should equal (Some("Norsk Bokmål"))
+    LanguageTag("nob").localDisplayName should equal (Some("Norsk (bokmål)"))
   }
 }
