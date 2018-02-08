@@ -26,6 +26,7 @@ object CodeLists {
     def scope: Option[String]
     def languageType: Option[String]
     def refName: String
+    def localName: Option[String]
     def comment: Option[String]
   }
 
@@ -43,7 +44,7 @@ object CodeLists {
     def name: String
   }
 
-  case class Iso639Val(id: String, part2b: Option[String], part2t: Option[String], part1: Option[String], scope: Option[String], languageType: Option[String], refName: String, comment: Option[String]) extends Iso639
+  case class Iso639Val(id: String, part2b: Option[String], part2t: Option[String], part1: Option[String], scope: Option[String], languageType: Option[String], refName: String, localName: Option[String], comment: Option[String]) extends Iso639
   case class Iso15924Val(code: String, no: Int, englishName: String, frenchName: String, pva: Option[String], date: String) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
@@ -87,6 +88,7 @@ codelists_file = os.path.join(project_dir, "src/main/scala/io/digitallibrary/lan
 iso639_part_file = os.path.join(project_dir, "src/main/scala/io/digitallibrary/language/model/Iso639List_%NUM%.scala")
 
 iso_639_definitions_file = os.path.join(script_dir, "iso-639-3_20170202.tab")
+iso_639_localized_file = os.path.join(script_dir, "iso-639-localized.csv")
 iso_3166_definitions_file = os.path.join(script_dir, "iso-3166-2.csv")
 iso15924_definitions_file = os.path.join(script_dir, "iso15924-utf8-20170726.txt")
 
@@ -121,7 +123,7 @@ def create_iso15924(template):
         return template.replace("%ISO15924%", ",\n    ".join(lines))
 
 
-def create_iso639(template):
+def create_iso639(template, localized_language_names):
     def chunks(l, n):
         return [l[i:i + n] for i in xrange(0, len(l), n)]
 
@@ -135,9 +137,10 @@ def create_iso639(template):
         scope = 'Some("{}")'.format(row[4]) if row[4] else "None"
         language_type = 'Some("{}")'.format(row[5]) if row[5] else "None"
         ref_name = clean_language_name(row[6])
+        local_name = 'Some("{}")'.format(localized_language_names.get(id)) if id in localized_language_names.keys() else "None"
         comment = 'Some("{}")'.format(row[7]) if row[7] else "None"
-        return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {})'.format(id, part_2b, part_2t, part_1, scope,
-                                                                      language_type, ref_name, comment)
+        return 'Iso639Val("{}", {}, {}, {}, {}, {}, "{}", {}, {})'.format(id, part_2b, part_2t, part_1, scope,
+                                                                      language_type, ref_name, local_name, comment)
 
     with open(iso_639_definitions_file, 'r') as f:
         reader = csv.reader(f, delimiter='\t')
@@ -166,6 +169,16 @@ def create_iso_639_part_file(lines, counter):
     print ">> Added {} entries in file {} for ISO-639".format(len(lines), filename)
 
 
+def load_localized_language_names():
+    def extract_pairs():
+        with open(iso_639_localized_file, 'r') as f:
+            reader = csv.reader(f, delimiter=';')
+            next(reader)  # skip heading
+            for language_code, localized_name in reader:
+                yield language_code, localized_name
+    return dict(extract_pairs())
+
+
 def skip_comments(lines):
     for line in lines:
         line = re.sub(comment_pattern, '', line).strip()
@@ -174,7 +187,7 @@ def skip_comments(lines):
 
 
 if __name__ == '__main__':
-    with_iso639 = create_iso639(codelist_template)
+    with_iso639 = create_iso639(codelist_template, load_localized_language_names())
     with_iso15924 = create_iso15924(with_iso639)
     with_iso3166 = create_iso3166(with_iso15924)
     with_year = with_iso3166.replace("%YEAR%", str(datetime.now().year))

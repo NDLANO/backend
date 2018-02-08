@@ -26,6 +26,17 @@ case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Opti
       s"${language.refName} ($scriptAndRegion)"
     }
   }
+
+  def localDisplayName: Option[String] = {
+    language.localName.map(languageName => {
+      val scriptAndRegion = (script.map(_.englishName) :: region.map(_.name) :: Nil).flatten.mkString(", ")
+      if (scriptAndRegion.isEmpty) {
+        languageName
+      } else {
+        s"$languageName ($scriptAndRegion)"
+      }
+    })
+  }
 }
 
 object LanguageTag {

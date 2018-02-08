@@ -18,6 +18,7 @@ object CodeLists {
     def scope: Option[String]
     def languageType: Option[String]
     def refName: String
+    def localName: Option[String]
     def comment: Option[String]
   }
 
@@ -35,7 +36,7 @@ object CodeLists {
     def name: String
   }
 
-  case class Iso639Val(id: String, part2b: Option[String], part2t: Option[String], part1: Option[String], scope: Option[String], languageType: Option[String], refName: String, comment: Option[String]) extends Iso639
+  case class Iso639Val(id: String, part2b: Option[String], part2t: Option[String], part1: Option[String], scope: Option[String], languageType: Option[String], refName: String, localName: Option[String], comment: Option[String]) extends Iso639
   case class Iso15924Val(code: String, no: Int, englishName: String, frenchName: String, pva: Option[String], date: String) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
