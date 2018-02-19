@@ -47,6 +47,7 @@ object ComponentRegistry
   with Role
   with Clock
 {
+  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   implicit val swagger = new AudioSwagger
 
   lazy val dataSource = new PGPoolingDataSource()
@@ -59,7 +60,7 @@ object ComponentRegistry
   dataSource.setMaxConnections(AudioApiProperties.MetaMaxConnections)
   dataSource.setCurrentSchema(AudioApiProperties.MetaSchema)
 
-  ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+  connectToDatabase()
 
   val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
   lazy val storageName = AudioApiProperties.StorageName
