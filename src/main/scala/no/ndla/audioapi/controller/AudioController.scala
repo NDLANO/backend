@@ -21,6 +21,7 @@ import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
+import org.scalatra.util.NotNothing
 
 import scala.util.{Failure, Success, Try}
 
@@ -30,7 +31,7 @@ trait AudioController {
 
   class AudioController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for accessing audio from ndla.no."
+    protected val applicationDescription = "Services for accessing audio."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -42,71 +43,95 @@ trait AudioController {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
+    case class Param(paramName:String, description:String)
+
+    private val correlationId = Param("X-Correlation-ID","User supplied correlation-id. May be omitted.")
+    private val query = Param("query","Return only results with titles or tags matching the specified query.")
+    private val language = Param("language", "The ISO 639-1 language code describing language.")
+    private val license = Param("license","Return only audio with provided license.")
+    private val sort = Param("sort",
+      """The sorting used on results.
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+    private val pageNo = Param("page","The page number of the search hits to display.")
+    private val pageSize = Param("page-size","The number of search hits to display for each page.")
+    private val audioId = Param("audio_id","Id of audio.")
+    private val metadataNewAudio = Param("metadata",
+      """The metadata for the audio file to submit. Format (as JSON):
+            {
+             title: String,
+             language: String,
+             copyritght: Copyright,
+             tags: Array[String]
+             }""".stripMargin)
+    private val metadataUpdatedAudio = Param("metadata",
+      """The metadata for the audio file to submit. Format (as JSON):
+            {
+             revision: Int,
+             title: String,
+             language: String,
+             copyritght: Copyright,
+             tags: Array[String]
+             }""".stripMargin)
+    private val file = Param("file", "The audio file to upload")
+
+
+    private def asQueryParam[T: Manifest: NotNothing](param: Param) = queryParam[T](param.paramName).description(param.description)
+    private def asHeaderParam[T: Manifest: NotNothing](param: Param) = headerParam[T](param.paramName).description(param.description)
+    private def asPathParam[T: Manifest: NotNothing](param: Param) = pathParam[T](param.paramName).description(param.description)
+    private def asFormParam[T: Manifest: NotNothing](param: Param) = formParam[T](param.paramName).description(param.description)
+    private def asFileParam(param: Param) = Parameter(name = param.paramName, `type` = ValueDataType("file"), description = Some(param.description), paramType = ParamType.Form)
+
+
     val getAudioFiles =
       (apiOperation[SearchResult]("getAudioFiles")
-        summary "Show all audio files"
+        summary "Find audio files"
         notes "Shows all the audio files in the ndla.no database. You can search it too."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[Option[String]]("query").description("Return only audio with titles or tags matching the specified query."),
-        queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params. Return only audio with the provided language."),
-        queryParam[Option[String]]("license").description("Return only audio with provided license."),
-        queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
+        asHeaderParam[Option[String]](correlationId),
+        asQueryParam[Option[String]](query),
+        asQueryParam[Option[String]](language),
+        asQueryParam[Option[String]](license),
+        asQueryParam[Option[String]](sort),
+        asQueryParam[Option[Int]](pageNo),
+        asQueryParam[Option[Int]](pageSize)
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
 
+    get("/", operation(getAudioFiles)) {
+      val query = paramOrNone("query")
+      val language = paramOrNone("language")
+      val license = paramOrNone("license")
+      val sort = paramOrNone("sort")
+      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+
+      search(query, language, license, sort, pageSize, page)
+    }
+
     val getAudioFilesPost =
       (apiOperation[List[SearchResult]]("getAudioFilesPost")
-        summary "Show all audio files"
+        summary "Find audio files"
         notes "Shows all the audio files in the ndla.no database. You can search it too."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        asHeaderParam[Option[String]](correlationId),
         bodyParam[SearchParams]
       )
         authorizations "oauth2"
         responseMessages(response400, response500))
 
-    val getByAudioId =
-      (apiOperation[AudioMetaInformation]("findByAudioId")
-        summary "Show audio info"
-        notes "Shows info of the audio with submitted id."
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        pathParam[String]("id").description("Audio_id of the audio that needs to be fetched."),
-        queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params. Return only fields with the provided language.")
-        )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
+    post("/search/", operation(getAudioFilesPost)) {
+      val searchParams = extract[SearchParams](request.body)
+      val query = searchParams.query
+      val language = searchParams.language
+      val license = searchParams.license
+      val sort = searchParams.sort
+      val pageSize = searchParams.pageSize
+      val page = searchParams.page
 
-    val newAudio =
-      (apiOperation[AudioMetaInformation]("newAudio")
-        summary "Upload a new audio file with meta data"
-        notes "Upload a new audio file with meta data"
-        consumes "multipart/form-data"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        formParam[String]("metadata").description("The metadata for the audio file to submit. See NewAudioMetaInformation."),
-        Parameter(name = "file", `type` = ValueDataType("file"), description = Some("The audio file to upload"), paramType = ParamType.Form)
-        )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response500))
-
-    val updateAudio =
-      (apiOperation[AudioMetaInformation]("updateAudio")
-        summary "Upload audio for a different language or update only metadata for an existing audio-file"
-        notes "Update the metadata for an existing language, or upload metadata for a new language."
-        consumes "multipart/form-data"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        formParam[String]("metadata").description("The metadata for the audio file to submit. See UpdatedAudioMetaInformation."),
-        Parameter(name = "file", `type` = ValueDataType("file"), description = Some("The optional audio file to upload"), paramType = ParamType.Form)
-        )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response500))
-
-    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
+      search(query, language, license, sort, pageSize, page)
+    }
 
     def search(query: Option[String], language: Option[String], license: Option[String], sort: Option[String], pageSize: Option[Int], page: Option[Int]) = {
       query match {
@@ -127,32 +152,21 @@ trait AudioController {
       }
     }
 
-    get("/", operation(getAudioFiles)) {
-      val query = paramOrNone("query")
-      val language = paramOrNone("language")
-      val license = paramOrNone("license")
-      val sort = paramOrNone("sort")
-      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
-      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+    val getByAudioId =
+      (apiOperation[AudioMetaInformation]("findByAudioId")
+        summary "Fetch information for audio file"
+        notes "Shows info of the audio with submitted id."
+        parameters(
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[String](audioId),
+          asQueryParam[Option[String]](language)
+        )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
 
-      search(query, language, license, sort, pageSize, page)
-    }
-
-    post("/search/", operation(getAudioFilesPost)) {
-      val searchParams = extract[SearchParams](request.body)
-      val query = searchParams.query
-      val language = searchParams.language
-      val license = searchParams.license
-      val sort = searchParams.sort
-      val pageSize = searchParams.pageSize
-      val page = searchParams.page
-
-      search(query, language, license, sort, pageSize, page)
-    }
-
-    get("/:id", operation(getByAudioId)) {
-      val id = long("id")
-      val language = paramOrNone("language")
+    get("/:audio_id", operation(getByAudioId)) {
+      val id = long(this.audioId.paramName)
+      val language = paramOrNone(this.language.paramName)
 
       readService.withId(id, language) match {
         case Some(audio) => audio
@@ -160,15 +174,28 @@ trait AudioController {
       }
     }
 
+    val newAudio =
+      (apiOperation[AudioMetaInformation]("newAudio")
+        summary "Upload a new audio file with meta information"
+        notes "Upload a new audio file with meta data"
+        consumes "multipart/form-data"
+        parameters(
+        asHeaderParam[Option[String]](correlationId),
+        asFormParam[String](metadataNewAudio),
+        asFileParam(file)
+        )
+        authorizations "oauth2"
+        responseMessages(response400, response403, response500))
+
     post("/", operation(newAudio)) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
 
-      val newAudio = params.get("metadata")
+      val newAudio = params.get(this.metadataNewAudio.paramName)
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
 
-      val file = fileParams.getOrElse("file", throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one file"))))
+      val file = fileParams.getOrElse(this.file.paramName, throw new ValidationException(errors=Seq(ValidationMessage("file", "The request must contain one file"))))
 
       writeService.storeNewAudio(newAudio, file) match {
         case Success(audioMeta) => audioMeta
@@ -176,13 +203,27 @@ trait AudioController {
       }
     }
 
-    put("/:id", operation(updateAudio)) {
+    val updateAudio =
+      (apiOperation[AudioMetaInformation]("updateAudio")
+        summary "Upload audio for a different language or update metadata for an existing audio-file"
+        notes "Update the metadata for an existing language, or upload metadata for a new language."
+        consumes "multipart/form-data"
+        parameters(
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[String](audioId),
+          asFormParam[String](metadataUpdatedAudio),
+          asFileParam(file)
+        )
+        authorizations "oauth2"
+        responseMessages(response400, response403, response500))
+
+    put("/:audio_id", operation(updateAudio)) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
-      val id = long("id")
-      val fileOpt = fileParams.get("file")
+      val id = long(this.audioId.paramName)
+      val fileOpt = fileParams.get(this.file.paramName)
 
-      val updatedAudio = params.get("metadata")
+      val updatedAudio = params.get(this.metadataUpdatedAudio.paramName)
         .map(extract[UpdatedAudioMetaInformation])
         .getOrElse(throw new ValidationException(errors=Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
 
@@ -192,6 +233,8 @@ trait AudioController {
       }
 
     }
+
+    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
       Try(read[T](json)) match {
