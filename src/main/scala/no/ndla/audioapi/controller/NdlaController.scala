@@ -55,7 +55,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       contentType = formats("json")
       RequestEntityTooLarge(body=Error.FileTooBigError)
     case _: PSQLException =>
-      ConnectionPool.singleton(new DataSourceConnectionPool(ComponentRegistry.dataSource))
+      ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case t: Throwable => {
       t.printStackTrace()
