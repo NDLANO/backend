@@ -38,6 +38,8 @@ trait AudioController {
     registerModel[Error]()
     registerModel[NewAudioMetaInformation]()
 
+    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
+
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
@@ -233,8 +235,6 @@ trait AudioController {
       }
 
     }
-
-    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
       Try(read[T](json)) match {
