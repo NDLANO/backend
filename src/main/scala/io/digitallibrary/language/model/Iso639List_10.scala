@@ -649,7 +649,7 @@ object Iso639List_10 {
     Iso639Val("zty", None, None, None, Some("I"), Some("L"), "Yatee Zapotec", None, None),
     Iso639Val("zua", None, None, None, Some("I"), Some("L"), "Zeem", None, None),
     Iso639Val("zuh", None, None, None, Some("I"), Some("L"), "Tokano", None, None),
-    Iso639Val("zul", Some("zul"), Some("zul"), Some("zu"), Some("I"), Some("L"), "Zulu", None, None),
+    Iso639Val("zul", Some("zul"), Some("zul"), Some("zu"), Some("I"), Some("L"), "Zulu", Some("isiZulu"), None),
     Iso639Val("zum", None, None, None, Some("I"), Some("L"), "Kumzari", None, None),
     Iso639Val("zun", Some("zun"), Some("zun"), None, Some("I"), Some("L"), "Zuni", None, None),
     Iso639Val("zuy", None, None, None, Some("I"), Some("L"), "Zumaya", None, None),

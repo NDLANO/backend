@@ -207,7 +207,7 @@ object Iso639List_4 {
     Iso639Val("imy", None, None, None, Some("I"), Some("A"), "Milyan", None, None),
     Iso639Val("ina", Some("ina"), Some("ina"), Some("ia"), Some("I"), Some("C"), "Interlingua (International Auxiliary Language Association)", None, None),
     Iso639Val("inb", None, None, None, Some("I"), Some("L"), "Inga", None, None),
-    Iso639Val("ind", Some("ind"), Some("ind"), Some("id"), Some("I"), Some("L"), "Indonesian", None, None),
+    Iso639Val("ind", Some("ind"), Some("ind"), Some("id"), Some("I"), Some("L"), "Indonesian", Some("bahasa Indonesia"), None),
     Iso639Val("ing", None, None, None, Some("I"), Some("L"), "Degexit'an", None, None),
     Iso639Val("inh", Some("inh"), Some("inh"), None, Some("I"), Some("L"), "Ingush", None, None),
     Iso639Val("inj", None, None, None, Some("I"), Some("L"), "Jungle Inga", None, None),
