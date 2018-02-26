@@ -480,7 +480,7 @@ object Iso639List_6 {
     Iso639Val("nbi", None, None, None, Some("I"), Some("L"), "Mao Naga", None, None),
     Iso639Val("nbj", None, None, None, Some("I"), Some("L"), "Ngarinman", None, None),
     Iso639Val("nbk", None, None, None, Some("I"), Some("L"), "Nake", None, None),
-    Iso639Val("nbl", Some("nbl"), Some("nbl"), Some("nr"), Some("I"), Some("L"), "South Ndebele", None, None),
+    Iso639Val("nbl", Some("nbl"), Some("nbl"), Some("nr"), Some("I"), Some("L"), "South Ndebele", Some("isiNdebele seSewula"), None),
     Iso639Val("nbm", None, None, None, Some("I"), Some("L"), "Ngbaka Ma'bo", None, None),
     Iso639Val("nbn", None, None, None, Some("I"), Some("L"), "Kuri", None, None),
     Iso639Val("nbo", None, None, None, Some("I"), Some("L"), "Nkukoli", None, None),
