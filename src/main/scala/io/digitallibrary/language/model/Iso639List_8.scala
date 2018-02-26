@@ -519,7 +519,7 @@ object Iso639List_8 {
     Iso639Val("svm", None, None, None, Some("I"), Some("L"), "Slavomolisano", None, None),
     Iso639Val("svs", None, None, None, Some("I"), Some("L"), "Savosavo", None, None),
     Iso639Val("svx", None, None, None, Some("I"), Some("E"), "Skalvian", None, None),
-    Iso639Val("swa", Some("swa"), Some("swa"), Some("sw"), Some("M"), Some("L"), "Swahili", None, None),
+    Iso639Val("swa", Some("swa"), Some("swa"), Some("sw"), Some("M"), Some("L"), "Swahili", Some("Kiswahili"), None),
     Iso639Val("swb", None, None, None, Some("I"), Some("L"), "Maore Comorian", None, None),
     Iso639Val("swc", None, None, None, Some("I"), Some("L"), "Congo Swahili", None, None),
     Iso639Val("swe", Some("swe"), Some("swe"), Some("sv"), Some("I"), Some("L"), "Swedish", None, None),
