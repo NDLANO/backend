@@ -12,21 +12,21 @@ import io.digitallibrary.language.UnitSuite
 class LanguageTagTest extends UnitSuite {
 
   test("that toString outputs language-script when no region") {
-    LanguageTag("am-deva").toString should equal ("amh-deva")
+    LanguageTag("am-deva").toString should equal ("am-deva")
   }
 
   test("that toString outputs language-script-region") {
-    LanguageTag("en-latn-gb").toString should equal ("eng-latn-gb")
+    LanguageTag("en-latn-gb").toString should equal ("en-latn-gb")
   }
 
   test("that toString outputs language and region when no script") {
-    LanguageTag("en-gb").toString should equal ("eng-gb")
+    LanguageTag("en-gb").toString should equal ("en-gb")
   }
 
   test("that to string only outputs language-code when no script and no region") {
-    LanguageTag("fra").toString should equal ("fra")
-    LanguageTag("fre").toString should equal ("fra")
-    LanguageTag("fr").toString should equal ("fra")
+    LanguageTag("fra").toString should equal ("fr")
+    LanguageTag("fre").toString should equal ("fr")
+    LanguageTag("fr").toString should equal ("fr")
   }
 
   test("that apply throws LanguageNotSupportedException when invalid number of subtags") {
@@ -77,4 +77,13 @@ class LanguageTagTest extends UnitSuite {
   test("that localDisplayName returns a displayname in the local language when it does have a mapping") {
     LanguageTag("nob").localDisplayName should equal (Some("Norsk (bokmål)"))
   }
+
+  test("that two-lettered code is used when it exists") {
+    LanguageTag("eng").toString should equal ("en")
+  }
+
+  test("that three-lettered code is used when two-lettered code doesn't exist") {
+    LanguageTag("hrc").toString should equal ("hrc")
+  }
+
 }
