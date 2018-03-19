@@ -14,7 +14,7 @@ import scala.util.{Failure, Try}
 case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Option[Iso3166]) {
 
   override def toString: String = {
-    Seq(Some(language.id), script.map(_.code), region.map(_.code)).flatten.mkString("-").toLowerCase
+    Seq(Some(language.part1.getOrElse(language.id)), script.map(_.code), region.map(_.code)).flatten.mkString("-").toLowerCase
 
   }
 
