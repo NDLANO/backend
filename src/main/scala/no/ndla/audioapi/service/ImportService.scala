@@ -71,8 +71,7 @@ trait ImportService {
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
 
       val creators = authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
-      // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
-      val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
+      val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
 
       domain.Copyright(
