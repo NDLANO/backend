@@ -257,7 +257,7 @@ object Iso639List_7 {
     Iso639Val("org", None, None, None, Some("I"), Some("L"), "Oring", None, None),
     Iso639Val("orh", None, None, None, Some("I"), Some("L"), "Oroqen", None, None),
     Iso639Val("ori", Some("ori"), Some("ori"), Some("or"), Some("M"), Some("L"), "Oriya", None, None),
-    Iso639Val("orm", Some("orm"), Some("orm"), Some("om"), Some("M"), Some("L"), "Oromo", None, None),
+    Iso639Val("orm", Some("orm"), Some("orm"), Some("om"), Some("M"), Some("L"), "Oromo", Some("Afaan Oromoo"), None),
     Iso639Val("orn", None, None, None, Some("I"), Some("L"), "Orang Kanaq", None, None),
     Iso639Val("oro", None, None, None, Some("I"), Some("L"), "Orokolo", None, None),
     Iso639Val("orr", None, None, None, Some("I"), Some("L"), "Oruma", None, None),
