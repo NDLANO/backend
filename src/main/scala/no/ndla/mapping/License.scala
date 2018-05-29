@@ -19,9 +19,18 @@ object License {
     LicenseDefinition("cc0", "Public Domain Dedication", Some("https://creativecommons.org/about/cc0")),
     LicenseDefinition("pd", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
     LicenseDefinition("copyrighted", "Copyrighted", None),
-    LicenseDefinition("by-4.0", "Creative Commons Attribution 4.0 Generic", Some("https://creativecommons.org/licenses/by/4.0/")),
-    LicenseDefinition("by-sa-4.0", "Creative Commons Attribution-ShareAlike 4.0 Generic", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
-    LicenseDefinition("by-nc-4.0", "Creative Commons Attribution-NonCommercial 4.0 Generic", Some("https://creativecommons.org/licenses/by-nc/4.0/"))
+    LicenseDefinition("by-3.0", "Creative Commons Attribution 4.0 Unported", Some("https://creativecommons.org/licenses/by/3.0/")),
+    LicenseDefinition("by-sa-3.0", "Creative Commons Attribution-ShareAlike 3.0 Unported", Some("https://creativecommons.org/licenses/by-sa/3.0/")),
+    LicenseDefinition("by-nc-3.0", "Creative Commons Attribution-NonCommercial 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc/3.0/")),
+    LicenseDefinition("by-nd-3.0", "Creative Commons Attribution-NoDerivs 3.0 Unported", Some("https://creativecommons.org/licenses/by-nd/3.0/")),
+    LicenseDefinition("by-nc-sa-3.0", "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc-sa/3.0/")),
+    LicenseDefinition("by-nc-nd-3.0", "Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc-nd/3.0/")),
+    LicenseDefinition("by-4.0", "Creative Commons Attribution 4.0 International", Some("https://creativecommons.org/licenses/by/4.0/")),
+    LicenseDefinition("by-sa-4.0", "Creative Commons Attribution-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
+    LicenseDefinition("by-nc-4.0", "Creative Commons Attribution-NonCommercial 4.0 International", Some("https://creativecommons.org/licenses/by-nc/4.0/")),
+    LicenseDefinition("by-nd-4.0", "Creative Commons Attribution-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nd/4.0/")),
+    LicenseDefinition("by-nc-sa-4.0", "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")),
+    LicenseDefinition("by-nc-nd-4.0", "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"))
 
   )
 
