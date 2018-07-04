@@ -64,24 +64,44 @@ object AudioApiProperties extends LazyLogging {
 
   val AudioFilesUrlSuffix = "audio/files"
 
+  val oldCreatorTypes = List("opphavsmann",
+                             "fotograf",
+                             "kunstner",
+                             "forfatter",
+                             "manusforfatter",
+                             "innleser",
+                             "oversetter",
+                             "regissør",
+                             "illustratør",
+                             "medforfatter",
+                             "komponist")
 
-  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
-  val creatorTypes = List("originator", "photographer", "artist", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
+  val creatorTypes = List("originator",
+                          "photographer",
+                          "artist",
+                          "writer",
+                          "scriptwriter",
+                          "reader",
+                          "translator",
+                          "director",
+                          "illustrator",
+                          "cowriter",
+                          "composer")
 
-  val oldProcessorTypes = List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val oldProcessorTypes =
+    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
   val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
 
   val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
   val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
   val allowedAuthors = AudioApiProperties.creatorTypes ++ AudioApiProperties.processorTypes ++ AudioApiProperties.rightsholderTypes
 
-
   lazy val Domain = Domains.get(Environment)
 
   lazy val secrets = readSecrets(SecretsFile) match {
-     case Success(values) => values
-     case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
-   }
+    case Success(values)    => values
+    case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+  }
 
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
@@ -93,7 +113,7 @@ object AudioApiProperties extends LazyLogging {
       case None =>
         envOrNone(key) match {
           case Some(env) => env
-          case None => default
+          case None      => default
         }
     }
   }

@@ -40,7 +40,7 @@ object Language {
         case head :: tail =>
           sequence.find(_.language == head) match {
             case Some(x) => Some(x)
-            case None => findFirstLanguageMatching(sequence, tail)
+            case None    => findFirstLanguageMatching(sequence, tail)
           }
       }
     }
@@ -48,19 +48,18 @@ object Language {
     findFirstLanguageMatching(sequence, lang.toList :+ DefaultLanguage)
   }
 
-
   def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
     sequence.find(_.language == lang).map(_.value)
 
   def languageOrUnknown(language: Option[String]): String = {
     language.filter(_.nonEmpty) match {
       case Some(x) => x
-      case None => UnknownLanguage
+      case None    => UnknownLanguage
     }
   }
 
   def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
-    sequences.flatMap(_.map(_.language)).distinct.sortBy{lang =>
+    sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>
       ISO639.languagePriority.indexOf(lang)
     }
   }

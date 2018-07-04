@@ -21,32 +21,31 @@ import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
-  extends DataSource
-  with AudioRepository
-  with NdlaClient
-  with MigrationApiClient
-  with ImportService
-  with AmazonClient
-  with ReadService
-  with WriteService
-  with DraftApiClient
-  with ValidationService
-  with ConverterService
-  with AudioStorageService
-  with InternController
-  with HealthController
-  with AudioController
-  with Elastic4sClient
-  with IndexService
-  with SearchConverterService
-  with SearchIndexService
-  with SearchService
-  with TagsService
-  with MockitoSugar
-  with User
-  with Role
-  with Clock
-{
+    extends DataSource
+    with AudioRepository
+    with NdlaClient
+    with MigrationApiClient
+    with ImportService
+    with AmazonClient
+    with ReadService
+    with WriteService
+    with DraftApiClient
+    with ValidationService
+    with ConverterService
+    with AudioStorageService
+    with InternController
+    with HealthController
+    with AudioController
+    with Elastic4sClient
+    with IndexService
+    with SearchConverterService
+    with SearchIndexService
+    with SearchService
+    with TagsService
+    with MockitoSugar
+    with User
+    with Role
+    with Clock {
   val dataSource = mock[sql.DataSource]
   val storageName = AudioApiProperties.StorageName
   val audioStorage = mock[AudioStorage]

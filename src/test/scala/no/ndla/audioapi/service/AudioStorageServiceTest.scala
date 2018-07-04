@@ -19,11 +19,11 @@ class AudioStorageServiceTest extends UnitSuite with TestEnvironment {
 
   test("That objectExists returns true if an object exists") {
     when(amazonClient.getObjectMetadata(any[String], any[String])).thenReturn(mock[ObjectMetadata])
-    storage.objectExists("some/audio/file.mp3") should equal (true)
+    storage.objectExists("some/audio/file.mp3") should equal(true)
   }
 
   test("That objectExists returns false if an object does not exist") {
     when(amazonClient.getObjectMetadata(any[String], any[String])).thenThrow(mock[AmazonClientException])
-    storage.objectExists("some/audio/file.mp3") should equal (false)
+    storage.objectExists("some/audio/file.mp3") should equal(false)
   }
 }

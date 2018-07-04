@@ -31,9 +31,11 @@ class V2__AddUpdatedColoums extends JdbcMigration {
     }
   }
 
-
   def allAudios(implicit session: DBSession): List[V2_DBAudioMetaInformation] = {
-    sql"select id, document from audiodata".map(rs => V2_DBAudioMetaInformation(rs.long("id"), rs.string("document"))).list().apply()
+    sql"select id, document from audiodata"
+      .map(rs => V2_DBAudioMetaInformation(rs.long("id"), rs.string("document")))
+      .list()
+      .apply()
   }
 
   def convertAudioUpdate(audioMeta: V2_DBAudioMetaInformation) = {
@@ -45,7 +47,6 @@ class V2__AddUpdatedColoums extends JdbcMigration {
     audioMeta.copy(document = compact(render(mergedDoc)))
   }
 
-
   def update(audioMeta: V2_DBAudioMetaInformation)(implicit session: DBSession) = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
@@ -54,12 +55,12 @@ class V2__AddUpdatedColoums extends JdbcMigration {
     sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply
   }
 
-
 }
 
 case class V2_DBAudioMetaInformation(id: Long, document: String)
 
 class TimeService() {
+
   def nowAsString(): String = {
     (new DateTime()).toString("yyyy-MM-dd'T'HH:mm:ss'Z'")
   }

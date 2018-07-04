@@ -16,11 +16,14 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+
     def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformation] =
       audioRepository.withId(id).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
     def withExternalId(externalId: String, language: Option[String]): Option[api.AudioMetaInformation] =
-      audioRepository.withExternalId(externalId).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
+      audioRepository
+        .withExternalId(externalId)
+        .flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
   }
 }

@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.audioapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
@@ -26,7 +25,8 @@ trait SearchIndexService {
       for {
         _ <- indexService.aliasTarget.map {
           case Some(index) => Success(index)
-          case None => indexService.createIndexWithGeneratedName().map(newIndex => indexService.updateAliasTarget(None, newIndex))
+          case None =>
+            indexService.createIndexWithGeneratedName().map(newIndex => indexService.updateAliasTarget(None, newIndex))
         }
         imported <- indexService.indexDocument(imported)
       } yield imported
@@ -35,24 +35,26 @@ trait SearchIndexService {
     def indexDocuments: Try[ReindexResult] = {
       synchronized {
         val start = System.currentTimeMillis()
-        indexService.createIndexWithGeneratedName().flatMap(indexName => {
-          val operations = for {
-            numIndexed <- sendToElastic(indexName)
-            aliasTarget <- indexService.aliasTarget
-            _ <- indexService.updateAliasTarget(aliasTarget, indexName)
-            _ <- indexService.deleteIndexWithName(aliasTarget)
-          } yield numIndexed
+        indexService
+          .createIndexWithGeneratedName()
+          .flatMap(indexName => {
+            val operations = for {
+              numIndexed <- sendToElastic(indexName)
+              aliasTarget <- indexService.aliasTarget
+              _ <- indexService.updateAliasTarget(aliasTarget, indexName)
+              _ <- indexService.deleteIndexWithName(aliasTarget)
+            } yield numIndexed
 
-          operations match {
-            case Failure(f) => {
-              indexService.deleteIndexWithName(Some(indexName))
-              Failure(f)
+            operations match {
+              case Failure(f) => {
+                indexService.deleteIndexWithName(Some(indexName))
+                Failure(f)
+              }
+              case Success(totalIndexed) => {
+                Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
+              }
             }
-            case Success(totalIndexed) => {
-              Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-            }
-          }
-        })
+          })
       }
     }
 
@@ -60,20 +62,25 @@ trait SearchIndexService {
       var numIndexed = 0
       getRanges.map(ranges => {
         ranges.foreach(range => {
-          val numberInBulk = indexService.indexDocuments(audioRepository.audiosWithIdBetween(range._1, range._2), indexName)
+          val numberInBulk =
+            indexService.indexDocuments(audioRepository.audiosWithIdBetween(range._1, range._2), indexName)
           numberInBulk match {
             case Success(num) => numIndexed += num
-            case Failure(f) => return Failure(f)
+            case Failure(f)   => return Failure(f)
           }
         })
         numIndexed
       })
     }
 
-    def getRanges:Try[List[(Long,Long)]] = {
-      Try{
+    def getRanges: Try[List[(Long, Long)]] = {
+      Try {
         val (minId, maxId) = audioRepository.minMaxId
-        Seq.range(minId, maxId).grouped(AudioApiProperties.IndexBulkSize).map(group => (group.head, group.last + 1)).toList
+        Seq
+          .range(minId, maxId)
+          .grouped(AudioApiProperties.IndexBulkSize)
+          .map(group => (group.head, group.last + 1))
+          .toList
       }
     }
   }

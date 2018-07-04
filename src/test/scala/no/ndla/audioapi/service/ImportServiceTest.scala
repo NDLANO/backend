@@ -29,7 +29,17 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
   val s3ObjectMock = mock[ObjectMetadata]
   val audioId = "1234"
-  val defaultMigrationAudioMeta = MigrationAudioMeta("1", "1", "title", "file.mp3", "http://something.com", "audio/mpeg", "1024", None, "by-sa", Seq())
+
+  val defaultMigrationAudioMeta = MigrationAudioMeta("1",
+                                                     "1",
+                                                     "title",
+                                                     "file.mp3",
+                                                     "http://something.com",
+                                                     "audio/mpeg",
+                                                     "1024",
+                                                     None,
+                                                     "by-sa",
+                                                     Seq())
 
   override def beforeEach() = {
     when(s3ObjectMock.getContentLength).thenReturn(1024)
@@ -40,7 +50,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     val audioId = "1234"
     val exceptionMock = mock[HttpRequestException]
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Failure(exceptionMock))
-    service.importAudio(audioId) should equal (Failure(exceptionMock))
+    service.importAudio(audioId) should equal(Failure(exceptionMock))
   }
 
   test("importAudio returns Failure if upload to S3 fails") {
@@ -50,7 +60,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioStorage.getObjectMetaData(any[String])).thenReturn(Failure(mock[AmazonClientException]))
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Failure(clientException))
-    service.importAudio(audioId) should equal (Failure(clientException))
+    service.importAudio(audioId) should equal(Failure(clientException))
   }
 
   test("importAudio updates the database entry if already exists") {
@@ -65,7 +75,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(existingAudioMeta.id).thenReturn(Some(1: Long))
     when(audioRepository.update(any[AudioMetaInformation], any[Long])).thenReturn(Success(existingAudioMeta))
 
-    service.importAudio(audioId) should equal (Success(existingAudioMeta))
+    service.importAudio(audioId) should equal(Success(existingAudioMeta))
     verify(audioRepository, times(1)).update(any[AudioMetaInformation], any[Long])
   }
 
@@ -79,7 +89,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
     when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenReturn(Success(newAudioMeta))
 
-    service.importAudio(audioId) should equal (Success(newAudioMeta))
+    service.importAudio(audioId) should equal(Success(newAudioMeta))
     verify(audioRepository, times(1)).insertFromImport(any[AudioMetaInformation], any[String])
   }
 
@@ -91,9 +101,9 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
       MigrationAuthor("distributør", "D"),
       MigrationAuthor("leVerandør", "E"),
       MigrationAuthor("Språklig", "F")
-
     )
-    val meta = MigrationAudioMeta("1", "1", "Lydar", "lydar.mp3", "lydary", "file/mp3", "123141", Some("nb"), "by-sa", authors)
+    val meta =
+      MigrationAudioMeta("1", "1", "Lydar", "lydar.mp3", "lydary", "file/mp3", "123141", Some("nb"), "by-sa", authors)
 
     val copyright = service.toDomainCopyright("by-sa", authors)
     copyright.creators should contain(Author("Originator", "A"))
