@@ -92,7 +92,6 @@ trait ImportService {
       val mainNode = audioMeta.find(_.isMainNode).get
       val authors = audioMeta.flatMap(_.authors).distinct
 
-
       val copyright = toDomainCopyright(mainNode.license, authors)
       val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), authUser.userOrClientid(), clock.now()))
 

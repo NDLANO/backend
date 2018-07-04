@@ -21,3 +21,5 @@ project/plugins/project/
 **/target
 **/.DS_Store
 /log
+
+.env

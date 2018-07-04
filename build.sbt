@@ -1,6 +1,6 @@
 import java.util.Properties
 
-val Scalaversion = "2.12.1"
+val Scalaversion = "2.12.6"
 val Scalatraversion = "2.5.1"
 val ScalaLoggingVersion = "3.5.0"
 val Log4JVersion = "2.9.1"
@@ -64,11 +64,11 @@ lazy val audio_api = (project in file(".")).
       "com.netaporter" %% "scala-uri" % "0.4.16",
       "org.jsoup" % "jsoup" % "1.11.2"
     )
-  ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
+  ).enablePlugins(DockerPlugin).enablePlugins(JettyPlugin)
 
-assemblyJarName in assembly := "audio-api.jar"
-mainClass in assembly := Some("no.ndla.audioapi.JettyLauncher")
-assemblyMergeStrategy in assembly := {
+assembly / assemblyJarName := "audio-api.jar"
+assembly / mainClass := Some("no.ndla.audioapi.JettyLauncher")
+assembly / assemblyMergeStrategy := {
   case "mime.types" => MergeStrategy.filterDistinctLines
   case PathList("org", "joda", "convert", "ToString.class")  => MergeStrategy.first
   case PathList("org", "joda", "convert", "FromString.class")  => MergeStrategy.first
@@ -83,13 +83,13 @@ assemblyMergeStrategy in assembly := {
 // sbt "test-only -- -n no.ndla.tag.IntegrationTest"
 // will not run unless this line gets commented out or you remove the tag over the test class
 // This should be solved better!
-testOptions in Test += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
+Test / testOptions += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker := (docker dependsOn assembly).value
 
-dockerfile in docker := {
-  val artifact = (assemblyOutputPath in assembly).value
+docker / dockerfile := {
+  val artifact = (assembly / assemblyOutputPath).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("openjdk:8-jre-alpine")
@@ -99,16 +99,13 @@ dockerfile in docker := {
   }
 }
 
-val gitHeadCommitSha = settingKey[String]("current git commit SHA")
-gitHeadCommitSha in ThisBuild := Process("git log --pretty=format:%h -n 1").lines.head
-
-imageNames in docker := Seq(
+docker / imageNames := Seq(
   ImageName(
     namespace = Some(organization.value),
     repository = name.value,
     tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
-parallelExecution in Test := false
+Test / parallelExecution := false
 
 resolvers ++= scala.util.Properties.envOrNone("NDLA_RELEASES").map(repo => "Release Sonatype Nexus Repository Manager" at repo).toSeq
