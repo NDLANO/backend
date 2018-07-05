@@ -22,17 +22,38 @@ trait MigrationApiClient {
   class MigrationApiClient {
     val DBSource = "red"
     val AudioMetadataEndpoint = s"$MigrationHost/audio/:audio_id" ? (s"db-source" -> s"$DBSource")
+    val NodeDataEndpoint = s"$MigrationHost/contents/:node_id" ? (s"db-source" -> s"$DBSource")
 
     def getAudioMetaData(audioNid: String): Try[Seq[MigrationAudioMeta]] = {
-      ndlaClient.fetchWithBasicAuth[Seq[MigrationAudioMeta]](
-        Http(AudioMetadataEndpoint.replace(":audio_id", audioNid)),
-        MigrationUser, MigrationPassword)
+      ndlaClient.fetchWithBasicAuth[Seq[MigrationAudioMeta]](Http(AudioMetadataEndpoint.replace(":audio_id", audioNid)),
+                                                             MigrationUser,
+                                                             MigrationPassword)
+    }
+
+    def getNodeData(nid: String): Try[MigrationNodeData] = {
+      ndlaClient.fetchWithBasicAuth[MigrationNodeData](Http(NodeDataEndpoint.replace(":node_id", nid)),
+                                                       MigrationUser,
+                                                       MigrationPassword)
     }
   }
 }
 
-case class MigrationAudioMeta(nid: String, tnid: String, title: String, fileName: String, url: String, mimeType: String,
-                            fileSize: String, language: Option[String], license: String, authors: Seq[MigrationAuthor]) {
+case class MigrationNodeData(
+    titles: Seq[MigrationTitle]
+)
+
+case class MigrationTitle(title: String, language: String)
+
+case class MigrationAudioMeta(nid: String,
+                              tnid: String,
+                              title: String,
+                              fileName: String,
+                              url: String,
+                              mimeType: String,
+                              fileSize: String,
+                              language: Option[String],
+                              license: String,
+                              authors: Seq[MigrationAuthor]) {
   def isMainNode = nid == tnid || tnid == "0"
 
 }

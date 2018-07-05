@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
@@ -64,7 +63,7 @@ trait SearchService {
       val titles = (hit \ "titles").extract[Map[String, String]].map(title => domain.Title(title._2, title._1)).toSeq
       val supportedLanguages = getSupportedLanguages(titles)
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
-        case None => Title("", language)
+        case None    => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }
       val id = (hit \ "id").extract[String].toLong
@@ -78,28 +77,33 @@ trait SearchService {
       )
     }
 
-    def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      executeSearch(
-        language,
-        license,
-        sort,
-        page,
-        pageSize,
-        boolQuery())
+    def all(language: Option[String],
+            license: Option[String],
+            page: Option[Int],
+            pageSize: Option[Int],
+            sort: Sort.Value): SearchResult = {
+      executeSearch(language, license, sort, page, pageSize, boolQuery())
     }
 
-    def matchingQuery(query: String, language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def matchingQuery(query: String,
+                      language: Option[String],
+                      license: Option[String],
+                      page: Option[Int],
+                      pageSize: Option[Int],
+                      sort: Sort.Value): SearchResult = {
       val fullSearch = boolQuery()
-        .must(boolQuery()
-          .should(
-            languageSpecificSearch("titles", language, query, 1),
-            languageSpecificSearch("tags", language, query, 1))
-        )
+        .must(
+          boolQuery()
+            .should(languageSpecificSearch("titles", language, query, 1),
+                    languageSpecificSearch("tags", language, query, 1)))
 
       executeSearch(language, license, sort, page, pageSize, fullSearch)
     }
 
-    private def languageSpecificSearch(searchField: String, language: Option[String], query: String, boost: Float): QueryDefinition = {
+    private def languageSpecificSearch(searchField: String,
+                                       language: Option[String],
+                                       query: String,
+                                       boost: Float): QueryDefinition = {
       language match {
         case None | Some(Language.AllLanguages) | Some("*") =>
           val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
@@ -112,31 +116,35 @@ trait SearchService {
       }
     }
 
-    def executeSearch(language: Option[String], license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryDefinition): SearchResult = {
+    def executeSearch(language: Option[String],
+                      license: Option[String],
+                      sort: Sort.Value,
+                      page: Option[Int],
+                      pageSize: Option[Int],
+                      queryBuilder: BoolQueryDefinition): SearchResult = {
 
       val licenseFilter = license match {
-        case None => Some(noCopyright)
+        case None      => Some(noCopyright)
         case Some(lic) => Some(termQuery("license", lic))
       }
 
       val (languageFilter, searchLanguage) = language match {
         case None | Some(Language.AllLanguages) => (None, "*")
-        case Some(lang) => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
+        case Some(lang)                         => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
       }
-
 
       val filters = List(licenseFilter, languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
-
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val requestedResultWindow = page.getOrElse(1)*numResults
-      if(requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+      val requestedResultWindow = page.getOrElse(1) * numResults
+      if (requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
+        logger.info(
+          s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
 
-      e4sClient.execute{
+      e4sClient.execute {
         search(AudioApiProperties.SearchIndex)
           .size(numResults)
           .from(startAt)
@@ -145,7 +153,13 @@ trait SearchService {
 
       } match {
         case Success(response) =>
-          SearchResult(response.result.totalHits, page.getOrElse(1), numResults, if (searchLanguage == "*") Language.AllLanguages else searchLanguage , getHits(response.result, searchLanguage))
+          SearchResult(
+            response.result.totalHits,
+            page.getOrElse(1),
+            numResults,
+            if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+            getHits(response.result, searchLanguage)
+          )
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }
@@ -154,37 +168,37 @@ trait SearchService {
     def getSortDefinition(sort: Sort.Value, language: String) = {
       val sortLanguage = language match {
         case Language.NoLanguage | Language.AllLanguages => "*"
-        case _ => language
+        case _                                           => language
       }
 
       sort match {
         case (Sort.ByTitleAsc) =>
           language match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.ASC).missing("_last")
-            case _ => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
           }
         case (Sort.ByTitleDesc) =>
           language match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.DESC).missing("_last")
-            case _ => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
           }
-        case (Sort.ByRelevanceAsc) => fieldSort("_score").order(SortOrder.ASC)
-        case (Sort.ByRelevanceDesc) => fieldSort("_score").order(SortOrder.DESC)
-        case (Sort.ByLastUpdatedAsc) => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByRelevanceAsc)    => fieldSort("_score").order(SortOrder.ASC)
+        case (Sort.ByRelevanceDesc)   => fieldSort("_score").order(SortOrder.DESC)
+        case (Sort.ByLastUpdatedAsc)  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
         case (Sort.ByLastUpdatedDesc) => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
-        case (Sort.ByIdAsc) => fieldSort("id").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByIdDesc) => fieldSort("id").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByIdAsc)           => fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByIdDesc)          => fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 
     def countDocuments: Long = {
-      val response = e4sClient.execute{
+      val response = e4sClient.execute {
         catCount(AudioApiProperties.SearchIndex)
       }
 
       response match {
         case Success(resp) => resp.result.count
-        case Failure(_) => 0
+        case Failure(_)    => 0
       }
     }
 
@@ -197,7 +211,7 @@ trait SearchService {
 
       val startAt = page match {
         case Some(sa) => (sa - 1).max(0) * numResults
-        case None => 0
+        case None     => 0
       }
 
       (startAt, numResults)
@@ -210,12 +224,14 @@ trait SearchService {
             case notFound: Int if notFound == 404 => {
               logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
-              throw new IndexNotFoundException(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
+              throw new IndexNotFoundException(
+                s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
             }
             case _ => {
               logger.error(e.getMessage)
               println(e.getMessage)
-              throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}", e.getMessage)
+              throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}",
+                                               e.getMessage)
             }
           }
 
@@ -231,7 +247,9 @@ trait SearchService {
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {
-        case Success(reindexResult)  => logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+        case Success(reindexResult) =>
+          logger.info(
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

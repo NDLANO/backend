@@ -8,4 +8,3 @@ trait LanguageField[T] extends WithLanguage {
   def value: T
   def language: String
 }
-

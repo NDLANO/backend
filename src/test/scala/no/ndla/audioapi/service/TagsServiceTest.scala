@@ -15,20 +15,20 @@ class TagsServiceTest extends UnitSuite with TestEnvironment {
   val service = new TagsService
 
   test("getISO639 returns a iso639 language code for a valid language url") {
-    service.getISO639("http://psi.some.url.org/#nob") should equal (Option("nb"))
-    service.getISO639("http://psi.some.url.org/#nno") should equal (Option("nn"))
-    service.getISO639("http://psi.some.url.org/#eng") should equal (Option("en"))
+    service.getISO639("http://psi.some.url.org/#nob") should equal(Option("nb"))
+    service.getISO639("http://psi.some.url.org/#nno") should equal(Option("nn"))
+    service.getISO639("http://psi.some.url.org/#eng") should equal(Option("en"))
   }
 
   test("getISO639 returns None for an invalid language url") {
-    service.getISO639("http://psi.some.url.org/#XXX") should equal (None)
-    service.getISO639("http://psi.some.url.org/#YYY") should equal (None)
-    service.getISO639("http://psi.some.url.org/#ZZZ") should equal (None)
+    service.getISO639("http://psi.some.url.org/#XXX") should equal(None)
+    service.getISO639("http://psi.some.url.org/#YYY") should equal(None)
+    service.getISO639("http://psi.some.url.org/#ZZZ") should equal(None)
   }
 
   test("keywordsJsonToImageTags returns an empty list for an unparsable json body") {
     val jsonString = """{"keyword": [{"""
-    service.keywordsJsonToImageTags(jsonString) should equal (List())
+    service.keywordsJsonToImageTags(jsonString) should equal(List())
   }
 
   test("keywordsJsonToImageTags converts a keyword json string to a ImageTag List") {
@@ -62,12 +62,12 @@ class TagsServiceTest extends UnitSuite with TestEnvironment {
         ]
       }]}"""
     val expectedResult = List(
-      Tag(List("folkevise"),"nn"),
-      Tag(List("folkevise"),"nb"),
-      Tag(List("folk song"),"unknown"),
-      Tag(List("folk song"),"en")
+      Tag(List("folkevise"), "nn"),
+      Tag(List("folkevise"), "nb"),
+      Tag(List("folk song"), "unknown"),
+      Tag(List("folk song"), "en")
     )
-    service.keywordsJsonToImageTags(jsonString) should equal (expectedResult)
+    service.keywordsJsonToImageTags(jsonString) should equal(expectedResult)
   }
 
 }

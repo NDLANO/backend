@@ -19,7 +19,6 @@ import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 
 import scala.util.{Failure, Success, Try}
 
-
 trait AudioRepository {
   this: DataSource =>
   val audioRepository: AudioRepository
@@ -41,13 +40,15 @@ trait AudioRepository {
       }
     }
 
-    def insert(audioMetaInformation: AudioMetaInformation)(implicit session: DBSession = AutoSession): AudioMetaInformation = {
+    def insert(audioMetaInformation: AudioMetaInformation)(
+        implicit session: DBSession = AutoSession): AudioMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))
 
       val startRevision = 1
-      val audioId = sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey.apply
+      val audioId =
+        sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey.apply
       audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
     }
 
@@ -58,7 +59,8 @@ trait AudioRepository {
 
       DB localTx { implicit session =>
         val startRevision = 1
-        val audioId = sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)".updateAndReturnGeneratedKey.apply
+        val audioId =
+          sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)".updateAndReturnGeneratedKey.apply
         Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))
       }
     }
@@ -71,7 +73,8 @@ trait AudioRepository {
       DB localTx { implicit session =>
         val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
-        val count = sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}".update.apply
+        val count =
+          sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}".update.apply
         if (count != 1) {
           val message = s"Found revision mismatch when attempting to update audio with id $id"
           logger.info(message)
@@ -85,22 +88,29 @@ trait AudioRepository {
 
     def numElements: Int = {
       DB readOnly { implicit session =>
-        sql"select count(*) from audiodata".map(rs => {
-          rs.int("count")
-        }).list.first().apply() match {
+        sql"select count(*) from audiodata"
+          .map(rs => {
+            rs.int("count")
+          })
+          .list
+          .first()
+          .apply() match {
           case Some(count) => count
-          case None => 0
+          case None        => 0
         }
       }
     }
 
     def minMaxId: (Long, Long) = {
       DB readOnly { implicit session =>
-        sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata".map(rs => {
-          (rs.long("mi"), rs.long("ma"))
-        }).single().apply() match {
+        sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
+          .map(rs => {
+            (rs.long("mi"), rs.long("ma"))
+          })
+          .single()
+          .apply() match {
           case Some(minmax) => minmax
-          case None => (0L, 0L)
+          case None         => (0L, 0L)
         }
       }
     }
@@ -110,9 +120,13 @@ trait AudioRepository {
       val numberOfBulks = math.ceil(numElements.toFloat / AudioApiProperties.IndexBulkSize).toInt
 
       DB readOnly { implicit session =>
-        for(i <- 0 until numberOfBulks) {
+        for (i <- 0 until numberOfBulks) {
           func(
-            sql"""select ${au.result.*} from ${AudioMetaInformation.as(au)} limit ${AudioApiProperties.IndexBulkSize} offset ${i * AudioApiProperties.IndexBulkSize}""".map(AudioMetaInformation(au)).list.apply()
+            sql"""select ${au.result.*} from ${AudioMetaInformation
+              .as(au)} limit ${AudioApiProperties.IndexBulkSize} offset ${i * AudioApiProperties.IndexBulkSize}"""
+              .map(AudioMetaInformation(au))
+              .list
+              .apply()
           )
         }
       }
@@ -122,21 +136,31 @@ trait AudioRepository {
       audioMetaInformationsWhere(sqls"au.id between $min and $max")
     }
 
-    private def audioMetaInformationWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
+    private def audioMetaInformationWhere(whereClause: SQLSyntax)(
+        implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause".map(AudioMetaInformation(au)).single().apply()
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
+        .map(AudioMetaInformation(au))
+        .single()
+        .apply()
     }
 
-    private def audioMetaInformationsWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): List[AudioMetaInformation] = {
+    private def audioMetaInformationsWhere(whereClause: SQLSyntax)(
+        implicit session: DBSession = ReadOnlyAutoSession): List[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause".map(AudioMetaInformation(au)).list().apply()
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
+        .map(AudioMetaInformation(au))
+        .list()
+        .apply()
     }
 
     def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1".map(AudioMetaInformation(au)).single().apply()
+      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1"
+        .map(AudioMetaInformation(au))
+        .single()
+        .apply()
     }
-
 
   }
 }

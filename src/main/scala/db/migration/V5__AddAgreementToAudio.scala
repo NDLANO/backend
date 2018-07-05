@@ -17,7 +17,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
+class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging {
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
   implicit val formats = org.json4s.DefaultFormats
 
@@ -31,8 +31,10 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
   }
 
   def allAudios(implicit session: DBSession): List[(Long, Int, String)] = {
-    sql"select id, revision, document from audiodata".map(rs =>
-      (rs.long("id"), rs.int("revision"), rs.string("document"))).list().apply()
+    sql"select id, revision, document from audiodata"
+      .map(rs => (rs.long("id"), rs.int("revision"), rs.string("document")))
+      .list()
+      .apply()
   }
 
   def toNewAuthorType(author: V4_Author): V4_Author = {
@@ -40,11 +42,13 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorMap(author.`type`.toLowerCase),
+     processorMap(author.`type`.toLowerCase),
+     rightsholderMap(author.`type`.toLowerCase)) match {
       case (t: String, None, None) => V4_Author(t.capitalize, author.name)
       case (None, t: String, None) => V4_Author(t.capitalize, author.name)
       case (None, None, t: String) => V4_Author(t.capitalize, author.name)
-      case (_, _, _) => V4_Author(author.`type`, author.name)
+      case (_, _, _)               => V4_Author(author.`type`, author.name)
     }
   }
 
@@ -53,26 +57,37 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
     val metaV5 = read[V5_AudioMetaInformation](metaString)
 
     // If entry contains V6 features -> Don't update.
-    if(metaV5.copyright.creators.nonEmpty ||
-      metaV5.copyright.processors.nonEmpty ||
-      metaV5.copyright.rightsholders.nonEmpty ||
-      metaV5.copyright.agreementId.nonEmpty ||
-      metaV5.copyright.validFrom.nonEmpty ||
-      metaV5.copyright.validTo.nonEmpty
-    ) {
+    if (metaV5.copyright.creators.nonEmpty ||
+        metaV5.copyright.processors.nonEmpty ||
+        metaV5.copyright.rightsholders.nonEmpty ||
+        metaV5.copyright.agreementId.nonEmpty ||
+        metaV5.copyright.validFrom.nonEmpty ||
+        metaV5.copyright.validTo.nonEmpty) {
       metaV5.copy(id = None)
     } else {
-      val creators = meta.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val creators =
+        meta.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
-      val processors = meta.copyright.authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
-      val rightsholders = meta.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val processors = meta.copyright.authors
+        .filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase))
+        .filterNot(a => a.`type`.toLowerCase == "redaksjonelt")
+        .map(toNewAuthorType)
+      val rightsholders =
+        meta.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
 
       V5_AudioMetaInformation(
         Some(id),
         Some(revision),
         meta.titles,
         meta.filePaths,
-        V5_Copyright(meta.copyright.license, meta.copyright.origin, creators, processors, rightsholders, None, None, None),
+        V5_Copyright(meta.copyright.license,
+                     meta.copyright.origin,
+                     creators,
+                     processors,
+                     rightsholders,
+                     None,
+                     None,
+                     None),
         meta.tags,
         meta.updatedBy,
         meta.updated
@@ -89,7 +104,14 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging  {
   }
 
 }
-case class V5_Copyright(license: String, origin: Option[String], creators: Seq[V4_Author], processors: Seq[V4_Author], rightsholders: Seq[V4_Author], agreementId: Option[Long], validFrom: Option[Date], validTo: Option[Date])
+case class V5_Copyright(license: String,
+                        origin: Option[String],
+                        creators: Seq[V4_Author],
+                        processors: Seq[V4_Author],
+                        rightsholders: Seq[V4_Author],
+                        agreementId: Option[Long],
+                        validFrom: Option[Date],
+                        validTo: Option[Date])
 case class V5_AudioMetaInformation(id: Option[Long],
                                    revision: Option[Int],
                                    titles: Seq[V4_Title],
@@ -98,4 +120,3 @@ case class V5_AudioMetaInformation(id: Option[Long],
                                    tags: Seq[V4_Tag],
                                    updatedBy: String,
                                    updated: Date)
-

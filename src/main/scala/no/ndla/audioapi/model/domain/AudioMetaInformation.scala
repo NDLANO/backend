@@ -25,51 +25,64 @@ case class AudioMetaInformation(id: Option[Long],
                                 filePaths: Seq[Audio],
                                 copyright: Copyright,
                                 tags: Seq[Tag],
-                                updatedBy :String,
-                                updated :Date) {
+                                updatedBy: String,
+                                updated: Date) {
   lazy val supportedLanguages = Language.getSupportedLanguages(titles, filePaths, tags)
 }
 
 case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
-case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] { override def value: Audio = this }
-case class Copyright(license: String, origin: Option[String], creators: Seq[Author], processors: Seq[Author], rightsholders: Seq[Author], agreementId: Option[Long], validFrom: Option[Date], validTo: Option[Date])
+case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] {
+  override def value: Audio = this
+}
+case class Copyright(license: String,
+                     origin: Option[String],
+                     creators: Seq[Author],
+                     processors: Seq[Author],
+                     rightsholders: Seq[Author],
+                     agreementId: Option[Long],
+                     validFrom: Option[Date],
+                     validTo: Option[Date])
 case class Author(`type`: String, name: String)
-case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] { override def value: Seq[String] = tags }
+case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
+  override def value: Seq[String] = tags
+}
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   implicit val formats = org.json4s.DefaultFormats
   override val tableName = "audiodata"
   override val schemaName = Some(AudioApiProperties.MetaSchema)
 
-  def apply(au: SyntaxProvider[AudioMetaInformation])(rs:WrappedResultSet): AudioMetaInformation = apply(au.resultName)(rs)
+  def apply(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
+    apply(au.resultName)(rs)
+
   def apply(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
-    AudioMetaInformation(
-      Some(rs.long(au.c("id"))),
-      Some(rs.int(au.c("revision"))),
-      meta.titles,
-      meta.filePaths,
-      meta.copyright,
-      meta.tags,
-      meta.updatedBy,
-      meta.updated)
+    AudioMetaInformation(Some(rs.long(au.c("id"))),
+                         Some(rs.int(au.c("revision"))),
+                         meta.titles,
+                         meta.filePaths,
+                         meta.copyright,
+                         meta.tags,
+                         meta.updatedBy,
+                         meta.updated)
   }
 
   val JSonSerializer = FieldSerializer[AudioMetaInformation](
     ignore("id") orElse
-    ignore("revision") orElse
-    ignore("external_id")
+      ignore("revision") orElse
+      ignore("external_id")
   )
 }
 
-case class NdlaSearchException(rf: RequestFailure) extends RuntimeException(
-  s"""
+case class NdlaSearchException(rf: RequestFailure)
+    extends RuntimeException(
+      s"""
      |index: ${rf.error.index.getOrElse("Error did not contain index")}
      |reason: ${rf.error.reason}
      |body: ${rf.body}
      |shard: ${rf.error.shard.getOrElse("Error did not contain shard")}
      |type: ${rf.error.`type`}
    """.stripMargin
-)
+    )
 
 case class ReindexResult(totalIndexed: Int, millisUsed: Long)

@@ -19,28 +19,30 @@ import no.ndla.mapping.License.getLicense
 
 import scala.util.{Success, Try}
 
-
 trait ConverterService {
   this: User with Clock with DraftApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
-      val agreementCopyright = audio.copyright.agreementId.flatMap(aid =>
-        draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright)
-      ).getOrElse(audio.copyright)
 
-      audio.copy(copyright = audio.copyright.copy(
-        license = agreementCopyright.license,
-        creators = agreementCopyright.creators,
-        rightsholders = agreementCopyright.rightsholders,
-        validFrom = agreementCopyright.validFrom,
-        validTo = agreementCopyright.validTo
-      ))
+    def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
+      val agreementCopyright = audio.copyright.agreementId
+        .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
+        .getOrElse(audio.copyright)
+
+      audio.copy(
+        copyright = audio.copyright.copy(
+          license = agreementCopyright.license,
+          creators = agreementCopyright.creators,
+          rightsholders = agreementCopyright.rightsholders,
+          validFrom = agreementCopyright.validFrom,
+          validTo = agreementCopyright.validTo
+        ))
     }
 
     def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
-      val agreementCopyright = copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
+      val agreementCopyright =
+        copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
       copyright.copy(
         license = agreementCopyright.license,
         creators = agreementCopyright.creators,
@@ -50,42 +52,45 @@ trait ConverterService {
       )
     }
 
-    def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation, language: Option[String]): Try[api.AudioMetaInformation] = {
-      Success(api.AudioMetaInformation(
-        audioMeta.id.get,
-        audioMeta.revision.get,
-        toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
-        toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-        withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
-        toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
-        audioMeta.supportedLanguages
-      ))
+    def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation,
+                                  language: Option[String]): Try[api.AudioMetaInformation] = {
+      Success(
+        api.AudioMetaInformation(
+          audioMeta.id.get,
+          audioMeta.revision.get,
+          toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
+          toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
+          withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
+          toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
+          audioMeta.supportedLanguages
+        ))
     }
 
     def toApiTitle(maybeTitle: Option[domain.Title]): api.Title = {
       maybeTitle match {
         case Some(title) => api.Title(title.title, title.language)
-        case None => api.Title("", DefaultLanguage)
+        case None        => api.Title("", DefaultLanguage)
       }
     }
 
     def toApiTags(maybeTag: Option[domain.Tag]) = {
       maybeTag match {
         case Some(tag) => api.Tag(tag.tags, tag.language)
-        case None => api.Tag(Seq(), DefaultLanguage)
+        case None      => api.Tag(Seq(), DefaultLanguage)
       }
     }
 
     def toApiAudio(audio: Option[domain.Audio]): api.Audio = {
       audio match {
         case Some(x) => api.Audio(s"$Domain/$AudioFilesUrlSuffix/${x.filePath}", x.mimeType, x.fileSize, x.language)
-        case None => api.Audio("", "", 0, DefaultLanguage)
+        case None    => api.Audio("", "", 0, DefaultLanguage)
       }
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright =
       withAgreementCopyright(
-        api.Copyright(toApiLicence(copyright.license),
+        api.Copyright(
+          toApiLicence(copyright.license),
           copyright.origin,
           copyright.creators.map(toApiAuthor),
           copyright.processors.map(toApiAuthor),
@@ -111,12 +116,15 @@ trait ConverterService {
     def toDomainTags(tags: api.Tag): Seq[domain.Tag] = {
       tags.tags.nonEmpty match {
         case false => Seq(domain.Tag(tags.tags, tags.language))
-        case true => Seq()
+        case true  => Seq()
       }
     }
 
-    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation, audio: domain.Audio): domain.AudioMetaInformation = {
-      domain.AudioMetaInformation(None, None,
+    def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
+                                     audio: domain.Audio): domain.AudioMetaInformation = {
+      domain.AudioMetaInformation(
+        None,
+        None,
         Seq(domain.Title(audioMeta.title, audioMeta.language)),
         Seq(audio),
         toDomainCopyright(audioMeta.copyright),

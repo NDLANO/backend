@@ -20,7 +20,8 @@ class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
     val filePaths = Seq(V4_Audio("", "", 0, Some("")), V4_Audio("", "", 0, Some("nb")))
     val titles = Seq(V4_Title("En tittel", None), V4_Title("abc", Some("nb")))
 
-    val before = V4_AudioMetaInformation(Some(1), Some(1), titles, filePaths, V4_Copyright("", None, Seq()), tags, "", new Date())
+    val before =
+      V4_AudioMetaInformation(Some(1), Some(1), titles, filePaths, V4_Copyright("", None, Seq()), tags, "", new Date())
     val after = migration.convertAudioUpdate(before)
 
     after.titles.head.language should equal(Some("unknown"))
@@ -31,4 +32,3 @@ class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
     after.tags.last.language should equal(Some("unknown"))
   }
 }
-

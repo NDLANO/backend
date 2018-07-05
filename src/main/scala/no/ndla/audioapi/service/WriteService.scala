@@ -15,25 +15,31 @@ import java.lang.Math.max
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.domain
 
-
 trait WriteService {
-  this: ConverterService with ValidationService with AudioRepository with SearchIndexService with AudioStorageService with Clock with User =>
+  this: ConverterService
+    with ValidationService
+    with AudioRepository
+    with SearchIndexService
+    with AudioStorageService
+    with Clock
+    with User =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
+
     def storeNewAudio(newAudioMeta: NewAudioMetaInformation, file: FileItem): Try[AudioMetaInformation] = {
       val fileValidationMessages = validationService.validateAudioFile(file)
       if (fileValidationMessages.nonEmpty) {
-        return Failure(new ValidationException(errors=Seq(fileValidationMessages.get)))
+        return Failure(new ValidationException(errors = Seq(fileValidationMessages.get)))
       }
 
       val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
-        case Failure(e) => return Failure(e)
+        case Failure(e)         => return Failure(e)
         case Success(audioMeta) => audioMeta
       }
 
       val audioMetaInformation = for {
-        domainAudio <-  Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
+        domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
         _ <- validationService.validate(domainAudio)
         audioMetaData <- Try(audioRepository.insert(domainAudio))
         _ <- searchIndexService.indexDocument(audioMetaData)
@@ -46,7 +52,9 @@ trait WriteService {
       audioMetaInformation.flatten
     }
 
-    def updateAudio(id: Long, metadataToUpdate: UpdatedAudioMetaInformation, fileOpt: Option[FileItem]): Try[AudioMetaInformation] = {
+    def updateAudio(id: Long,
+                    metadataToUpdate: UpdatedAudioMetaInformation,
+                    fileOpt: Option[FileItem]): Try[AudioMetaInformation] = {
       audioRepository.withId(id) match {
         case None => Failure(new NotFoundException)
         case Some(existingMetadata) => {
@@ -60,7 +68,8 @@ trait WriteService {
 
               uploadFile(file, metadataToUpdate.language) match {
                 case Failure(err) => Failure(err)
-                case Success(uploadedFile) => Success(mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile)))
+                case Success(uploadedFile) =>
+                  Success(mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile)))
               }
             }
           }
@@ -76,7 +85,7 @@ trait WriteService {
             converted <- converterService.toApiAudioMetaInformation(indexed, Some(metadataToUpdate.language))
           } yield converted
 
-          if(finished.isFailure && !savedAudio.isFailure) {
+          if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
           }
 
@@ -85,15 +94,22 @@ trait WriteService {
       }
     }
 
-    private[service] def mergeAudioMeta(existing: domain.AudioMetaInformation, toUpdate: UpdatedAudioMetaInformation, savedAudio: Option[Audio] = None): (domain.AudioMetaInformation, Option[Audio]) = {
+    private[service] def mergeAudioMeta(
+        existing: domain.AudioMetaInformation,
+        toUpdate: UpdatedAudioMetaInformation,
+        savedAudio: Option[Audio] = None): (domain.AudioMetaInformation, Option[Audio]) = {
       val mergedFilePaths = savedAudio match {
         case None => existing.filePaths
-        case Some(audio) => mergeLanguageField[Audio, domain.Audio](existing.filePaths, domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
+        case Some(audio) =>
+          mergeLanguageField[Audio, domain.Audio](
+            existing.filePaths,
+            domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
       }
 
       val merged = existing.copy(
         revision = Some(toUpdate.revision),
-        titles = mergeLanguageField[String, domain.Title](existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+        titles =
+          mergeLanguageField[String, domain.Title](existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
         tags = mergeLanguageField[Seq[String], domain.Tag](existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
@@ -106,7 +122,7 @@ trait WriteService {
     private[service] def mergeLanguageField[T, Y <: LanguageField[T]](field: Seq[Y], toMerge: Y): Seq[Y] = {
       field.indexWhere(_.language == toMerge.language) match {
         case idx if idx >= 0 => field.patch(idx, Seq(toMerge), 1)
-        case _ => field ++ Seq(toMerge)
+        case _               => field ++ Seq(toMerge)
       }
     }
 
@@ -117,7 +133,7 @@ trait WriteService {
     private[service] def getFileExtension(fileName: String): Option[String] = {
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 => Some(fileName.substring(index))
-        case _ => None
+        case _                        => None
       }
     }
 
@@ -126,7 +142,8 @@ trait WriteService {
       val contentType = file.getContentType.getOrElse("")
       val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
-      audioStorage.storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)
+      audioStorage
+        .storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 

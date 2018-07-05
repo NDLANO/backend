@@ -17,9 +17,10 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 import scala.annotation.meta.field
 
 @ApiModel(description = "Information about an error")
-case class Error(@(ApiModelProperty@field)(description = "Code stating the type of error") code: String = Error.GENERIC,
-                 @(ApiModelProperty@field)(description = "Description of the error") description: String = Error.GENERIC_DESCRIPTION,
-                 @(ApiModelProperty@field)(description = "When the error occured") occuredAt: Date = new Date())
+case class Error(
+    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String = Error.GENERIC,
+    @(ApiModelProperty @field)(description = "Description of the error") description: String = Error.GENERIC_DESCRIPTION,
+    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date())
 
 object Error {
   val GENERIC = "GENERIC"
@@ -34,18 +35,29 @@ object Error {
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
 
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
-  val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
-  val FileTooBigError = Error(FILE_TOO_BIG, s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
-  val WINDOW_TOO_LARGE_DESCRIPTION = s"The result window is too large. Fetching pages above ${AudioApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
+
+  val GENERIC_DESCRIPTION =
+    s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${AudioApiProperties.ContactEmail} if the error persists."
+
+  val FileTooBigError = Error(
+    FILE_TOO_BIG,
+    s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
+
+  val WINDOW_TOO_LARGE_DESCRIPTION =
+    s"The result window is too large. Fetching pages above ${AudioApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
   val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
 }
 
 class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
-class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)
+
+class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage])
+    extends RuntimeException(message)
 class AccessDeniedException(message: String) extends RuntimeException(message)
 class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
 case class ValidationMessage(field: String, message: String)
 class AudioStorageException(message: String) extends RuntimeException(message)
 class LanguageMappingException(message: String) extends RuntimeException(message)
-class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
+
+class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION)
+    extends RuntimeException(message)
 class ImportException(message: String) extends RuntimeException(message)

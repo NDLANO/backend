@@ -14,8 +14,8 @@ import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
 import scala.io.Source
 
-
 object JettyLauncher extends LazyLogging {
+
   def main(args: Array[String]) {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
 
@@ -44,4 +44,3 @@ object JettyLauncher extends LazyLogging {
     server.join()
   }
 }
-  

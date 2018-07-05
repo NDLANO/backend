@@ -30,8 +30,10 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
   }
 
   def allAudios(implicit session: DBSession): List[(Long, Int, String)] = {
-    sql"select id, revision, document from audiodata".map(rs =>
-      (rs.long("id"), rs.int("revision"), rs.string("document"))).list().apply()
+    sql"select id, revision, document from audiodata"
+      .map(rs => (rs.long("id"), rs.int("revision"), rs.string("document")))
+      .list()
+      .apply()
   }
 
   private def toNewAuthorType(author: V4_Author): V4_Author = {
@@ -39,11 +41,13 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorMap(author.`type`.toLowerCase),
+     processorMap(author.`type`.toLowerCase),
+     rightsholderMap(author.`type`.toLowerCase)) match {
       case (t: String, _, _) => V4_Author(t.capitalize, author.name)
       case (_, t: String, _) => V4_Author(t.capitalize, author.name)
       case (_, _, t: String) => V4_Author(t.capitalize, author.name)
-      case (_, _, _) => author
+      case (_, _, _)         => author
     }
   }
 
@@ -54,10 +58,10 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
     val processors = meta.copyright.processors.map(toNewAuthorType)
     val rightsholders = meta.copyright.rightsholders.map(toNewAuthorType)
 
-    meta.copy(
-      id = Some(id),
-      revision = Some(revision),
-      copyright = meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
+    meta.copy(id = Some(id),
+              revision = Some(revision),
+              copyright =
+                meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
   }
 
   def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {
@@ -69,4 +73,3 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
   }
 
 }
-

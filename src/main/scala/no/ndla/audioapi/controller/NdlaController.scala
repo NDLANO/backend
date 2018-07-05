@@ -35,7 +35,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info("{} {}{}",
+                request.getMethod,
+                request.getRequestURI,
+                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
   }
 
   after() {
@@ -46,26 +49,26 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   }
 
   error {
-    case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
-    case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
-    case hre: HttpRequestException => BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
-    case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
-    case i: ImportException => UnprocessableEntity(body=Error(Error.IMPORT_FAILED, i.getMessage))
+    case a: AccessDeniedException          => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
+    case v: ValidationException            => BadRequest(body = ValidationError(messages = v.errors))
+    case hre: HttpRequestException         => BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
+    case rw: ResultWindowTooLargeException => UnprocessableEntity(body = Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
+    case i: ImportException                => UnprocessableEntity(body = Error(Error.IMPORT_FAILED, i.getMessage))
     case _: SizeConstraintExceededException =>
       contentType = formats("json")
-      RequestEntityTooLarge(body=Error.FileTooBigError)
+      RequestEntityTooLarge(body = Error.FileTooBigError)
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
-      InternalServerError(Error(description=t.getMessage))
+      InternalServerError(Error(description = t.getMessage))
     }
   }
 
   private val tryRenderer: RenderPipeline = {
-    case Failure(ex) => errorHandler(ex)
+    case Failure(ex)  => errorHandler(ex)
     case Success(res) => res
   }
 
@@ -75,7 +78,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     val paramValue = params(paramName)
     paramValue.forall(_.isDigit) match {
       case true => paramValue.toLong
-      case false => throw new ValidationException(errors=Seq(ValidationMessage("parameter", s"Invalid value for $paramName. Only digits are allowed.")))
+      case false =>
+        throw new ValidationException(
+          errors = Seq(ValidationMessage("parameter", s"Invalid value for $paramName. Only digits are allowed.")))
     }
   }
 

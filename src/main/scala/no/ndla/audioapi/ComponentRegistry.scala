@@ -22,31 +22,30 @@ import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
-  extends DataSource
-  with AudioRepository
-  with NdlaClient
-  with MigrationApiClient
-  with ImportService
-  with TagsService
-  with AmazonClient
-  with ReadService
-  with WriteService
-  with DraftApiClient
-  with ValidationService
-  with ConverterService
-  with AudioStorageService
-  with InternController
-  with HealthController
-  with AudioController
-  with SearchService
-  with Elastic4sClient
-  with IndexService
-  with SearchConverterService
-  with SearchIndexService
-  with User
-  with Role
-  with Clock
-{
+    extends DataSource
+    with AudioRepository
+    with NdlaClient
+    with MigrationApiClient
+    with ImportService
+    with TagsService
+    with AmazonClient
+    with ReadService
+    with WriteService
+    with DraftApiClient
+    with ValidationService
+    with ConverterService
+    with AudioStorageService
+    with InternController
+    with HealthController
+    with AudioController
+    with SearchService
+    with Elastic4sClient
+    with IndexService
+    with SearchConverterService
+    with SearchIndexService
+    with User
+    with Role
+    with Clock {
   def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   implicit val swagger = new AudioSwagger
 

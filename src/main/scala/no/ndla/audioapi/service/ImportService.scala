@@ -28,6 +28,7 @@ trait ImportService {
   val importService: ImportService
 
   class ImportService extends LazyLogging {
+
     def importAudio(audioId: String): Try[domain.AudioMetaInformation] = {
       migrationApiClient.getAudioMetaData(audioId).flatMap(uploadAndPersist)
     }
@@ -49,11 +50,13 @@ trait ImportService {
       val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
       val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-      (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+      (creatorMap(author.`type`.toLowerCase),
+       processorMap(author.`type`.toLowerCase),
+       rightsholderMap(author.`type`.toLowerCase)) match {
         case (t: String, _, _) => domain.Author(t.capitalize, author.name)
         case (_, t: String, _) => domain.Author(t.capitalize, author.name)
         case (_, _, t: String) => domain.Author(t.capitalize, author.name)
-        case (_, _, _) => domain.Author(author.`type`, author.name)
+        case (_, _, _)         => domain.Author(author.`type`, author.name)
       }
     }
 
@@ -87,25 +90,62 @@ trait ImportService {
 
     }
 
-    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta], audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
-      val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
+    private[service] def persistMetaData(audioMeta: Seq[MigrationAudioMeta],
+                                         audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
       val mainNode = audioMeta.find(_.isMainNode).get
+      val nodeData = migrationApiClient.getNodeData(mainNode.nid)
+
+      val audioTitles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
+
+      val nodeDataTitles = nodeData
+        .map(_.titles.map(t => { Title(t.title, Language.languageOrUnknown(emptySomeToNone(Some(t.language)))) }))
+        .getOrElse(Seq.empty)
+
+      // Combine titles from audio meta and node data with only one from each language
+      val titles = (audioTitles ++ nodeDataTitles)
+        .foldLeft(List.empty[Title]) { (acc, elem) =>
+          acc.find(i => i.language == elem.language) match {
+            case Some(_)                  => acc
+            case None if elem.title != "" => elem :: acc
+            case None                     => acc
+          }
+        }
+        .reverse
+
       val authors = audioMeta.flatMap(_.authors).distinct
 
-
       val copyright = toDomainCopyright(mainNode.license, authors)
-      val domainMetaData = cleanAudioMeta(domain.AudioMetaInformation(None, None, titles, audioObjects, copyright, tagsService.forAudio(mainNode.nid), authUser.userOrClientid(), clock.now()))
+      val domainMetaData = cleanAudioMeta(
+        domain.AudioMetaInformation(None,
+                                    None,
+                                    titles,
+                                    audioObjects,
+                                    copyright,
+                                    tagsService.forAudio(mainNode.nid),
+                                    authUser.userOrClientid(),
+                                    clock.now()))
 
       audioRepository.withExternalId(mainNode.nid) match {
         case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
-        case Some(existingAudio) => audioRepository.update(domainMetaData.copy(revision = existingAudio.revision), existingAudio.id.get)
+        case Some(existingAudio) =>
+          audioRepository.update(domainMetaData.copy(revision = existingAudio.revision), existingAudio.id.get)
       }
     }
 
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
-      audioStorage.getObjectMetaData(audioMeta.fileName)
-        .orElse(audioStorage.storeAudio(new URL(audioMeta.url.withScheme("https")), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
-        .map(s3ObjectMeta => Audio(audioMeta.fileName, s3ObjectMeta.getContentType, s3ObjectMeta.getContentLength, Language.languageOrUnknown(audioMeta.language)))
+      audioStorage
+        .getObjectMetaData(audioMeta.fileName)
+        .orElse(
+          audioStorage.storeAudio(new URL(audioMeta.url.withScheme("https")),
+                                  audioMeta.mimeType,
+                                  audioMeta.fileSize,
+                                  audioMeta.fileName))
+        .map(
+          s3ObjectMeta =>
+            Audio(audioMeta.fileName,
+                  s3ObjectMeta.getContentType,
+                  s3ObjectMeta.getContentLength,
+                  Language.languageOrUnknown(audioMeta.language)))
     }
 
   }

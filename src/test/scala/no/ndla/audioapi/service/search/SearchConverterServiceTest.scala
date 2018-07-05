@@ -21,21 +21,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
+  val byNcSa =
+    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
-
   val domainTitles = List(
-    Title("Bokmål tittel", "nb"), Title("Nynorsk tittel", "nn"),
-    Title("English title", "en"), Title("Titre francais", "fr"),
-    Title("Deutsch titel", "de"), Title("Titulo espanol", "es"),
-    Title("Nekonata titolo", "unknown"))
+    Title("Bokmål tittel", "nb"),
+    Title("Nynorsk tittel", "nn"),
+    Title("English title", "en"),
+    Title("Titre francais", "fr"),
+    Title("Deutsch titel", "de"),
+    Title("Titulo espanol", "es"),
+    Title("Nekonata titolo", "unknown")
+  )
 
   val apiTitles = List(
-    api.Title("Bokmål tittel", "nb"), api.Title("Nynorsk tittel", "nn"),
-    api.Title("English title", "en"), api.Title("Titre francais", "fr"),
-    api.Title("Deutsch titel", "de"), api.Title("Titulo espanol", "es"),
-    api.Title("Nekonata titolo", "unknown"))
+    api.Title("Bokmål tittel", "nb"),
+    api.Title("Nynorsk tittel", "nn"),
+    api.Title("English title", "en"),
+    api.Title("Titre francais", "fr"),
+    api.Title("Deutsch titel", "de"),
+    api.Title("Titulo espanol", "es"),
+    api.Title("Nekonata titolo", "unknown")
+  )
 
   val audioFiles = Seq(
     Audio("file.mp3", "audio/mpeg", 1024, "nb"),
@@ -45,14 +53,17 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val audioTags = Seq(
-    Tag(Seq("fugl", "fisk"), "nb"), Tag(Seq("fugl", "fisk"), "nn"),
-    Tag(Seq("bird", "fish"), "en"), Tag(Seq("got", "tired"), "fr"),
-    Tag(Seq("of", "translating"), "de"), Tag(Seq("all", "of"), "es"),
+    Tag(Seq("fugl", "fisk"), "nb"),
+    Tag(Seq("fugl", "fisk"), "nn"),
+    Tag(Seq("bird", "fish"), "en"),
+    Tag(Seq("got", "tired"), "fr"),
+    Tag(Seq("of", "translating"), "de"),
+    Tag(Seq("all", "of"), "es"),
     Tag(Seq("the", "words"), "unknown")
   )
 
-  val sampleAudio = AudioMetaInformation(Some(1), Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
-
+  val sampleAudio =
+    AudioMetaInformation(Some(1), Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
 
   override def beforeAll() = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
@@ -64,11 +75,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     verifyTitles(searchableAudio)
   }
 
-
   test("That asSearchableAudioInformation converts articles with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
   }
-
 
   test("That asSearchableAudioInformation converts tags with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
@@ -83,7 +92,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableArticle converts audio with license from agreement") {
-    when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenReturn(sampleAudio.copy(copyright = sampleAudio.copyright.copy(license="gnu")))
+    when(converterService.withAgreementCopyright(any[AudioMetaInformation]))
+      .thenReturn(sampleAudio.copy(copyright = sampleAudio.copyright.copy(license = "gnu")))
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
     searchableAudio.license should equal("gnu")
   }

@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.audioapi.service.search
 
 import java.text.SimpleDateFormat
@@ -35,11 +34,13 @@ trait IndexService {
       val source = write(searchConverterService.asSearchableAudioInformation(toIndex))
 
       val response = e4sClient.execute {
-        indexInto(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument).doc(source).id(toIndex.id.get.toString)
+        indexInto(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument)
+          .doc(source)
+          .id(toIndex.id.get.toString)
       }
 
       response match {
-        case Success(_) => Success(toIndex)
+        case Success(_)  => Success(toIndex)
         case Failure(ex) => Failure(ex)
       }
     }
@@ -55,7 +56,7 @@ trait IndexService {
           }))
         }
         response match {
-          case Success(_) => Success(audioData.size)
+          case Success(_)  => Success(audioData.size)
           case Failure(ex) => Failure(ex)
         }
       }
@@ -76,7 +77,7 @@ trait IndexService {
         }
 
         response match {
-          case Success(_) => Success(indexName)
+          case Success(_)  => Success(indexName)
           case Failure(ex) => Failure(ex)
         }
 
@@ -95,21 +96,24 @@ trait IndexService {
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedFieldDefinition = {
-      NestedFieldDefinition(fieldName).fields(
-        keepRaw match {
-          case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-          case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
-        })
+      NestedFieldDefinition(fieldName).fields(keepRaw match {
+        case true =>
+          languageAnalyzers.map(langAnalyzer =>
+            textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+        case false =>
+          languageAnalyzers.map(langAnalyzer =>
+            textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
+      })
     }
 
     def aliasTarget: Try[Option[String]] = {
-      val response = e4sClient.execute{
+      val response = e4sClient.execute {
         getAliases(Nil, List(AudioApiProperties.SearchIndex))
       }
 
       response match {
         case Success(results) => Success(results.result.mappings.headOption.map(t => t._1.name))
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)      => Failure(ex)
       }
 
     }
@@ -144,14 +148,14 @@ trait IndexService {
     }
 
     def indexWithNameExists(indexName: String): Try[Boolean] = {
-      val response = e4sClient.execute{
+      val response = e4sClient.execute {
         indexExists(indexName)
       }
 
       response match {
         case Success(resp) if resp.status != 404 => Success(true)
-        case Success(_) => Success(false)
-        case Failure(ex) => Failure(ex)
+        case Success(_)                          => Success(false)
+        case Failure(ex)                         => Failure(ex)
       }
     }
 

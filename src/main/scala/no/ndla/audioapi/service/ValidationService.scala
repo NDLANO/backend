@@ -17,16 +17,22 @@ trait ValidationService {
   val validationService: ValidationService
 
   class ValidationService {
+
     def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
       val actualMimeType = audioFile.getContentType.getOrElse("")
 
       if (!validMimeTypes.contains(actualMimeType)) {
-        return Some(ValidationMessage("files", s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
+        return Some(ValidationMessage(
+          "files",
+          s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
       }
 
       audioFile.name.toLowerCase.endsWith(".mp3") match {
-        case false => Some(ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
+        case false =>
+          Some(
+            ValidationMessage("files",
+                              s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
         case true => None
       }
     }
@@ -39,8 +45,8 @@ trait ValidationService {
         validateTags(audio.tags)
 
       validationMessages match {
-        case head :: tail => Failure(new ValidationException(errors=head :: tail))
-        case _ => Success(audio)
+        case head :: tail => Failure(new ValidationException(errors = head :: tail))
+        case _            => Success(audio)
       }
     }
 
@@ -51,17 +57,18 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-      copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, AudioApiProperties.creatorTypes)) ++
-      copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, AudioApiProperties.processorTypes)) ++
-      copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderTypes)) ++
-      validateAgreement(copyright) ++
-      copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, AudioApiProperties.creatorTypes)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, AudioApiProperties.processorTypes)) ++
+        copyright.rightsholders.flatMap(a =>
+          validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderTypes)) ++
+        validateAgreement(copyright) ++
+        copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
     def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
-        case _ => Seq()
+        case _    => Seq()
       }
     }
 
@@ -69,8 +76,8 @@ trait ValidationService {
       copyright.agreementId match {
         case Some(id) =>
           draftApiClient.agreementExists(id) match {
-            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
-            case _ => Seq()
+            case false => Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
+            case _     => Seq()
           }
         case _ => Seq()
       }
@@ -83,7 +90,7 @@ trait ValidationService {
     }
 
     def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
-      if(allowedTypes.contains(`type`.toLowerCase)) {
+      if (allowedTypes.contains(`type`.toLowerCase)) {
         None
       } else {
         Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
@@ -100,13 +107,14 @@ trait ValidationService {
     private def containsNoHtml(fieldPath: String, text: String): Option[ValidationMessage] = {
       Jsoup.isValid(text, Whitelist.none()) match {
         case true => None
-        case false => Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))
+        case false =>
+          Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))
       }
     }
 
     private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
       languageCodeSupported6391(languageCode) match {
-        case true => None
+        case true  => None
         case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
@@ -117,13 +125,13 @@ trait ValidationService {
     private def validateNonEmpty(fieldPath: String, option: Option[_]): Option[ValidationMessage] = {
       option match {
         case Some(_) => None
-        case None => Some(ValidationMessage(fieldPath, "There is no element to validate."))
+        case None    => Some(ValidationMessage(fieldPath, "There is no element to validate."))
       }
     }
 
     private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
       sequence.nonEmpty match {
-        case true => None
+        case true  => None
         case false => Some(ValidationMessage(fieldPath, "There are no elements to validate."))
       }
     }

@@ -22,7 +22,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
+
+  val copyrighted =
+    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
+
   val audioMeta = AudioMetaInformation(
     Some(1),
     Some(1),
@@ -31,7 +34,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyrighted,
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
-    updated)
+    updated
+  )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
 
@@ -61,7 +65,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))
 
-
     val audioWithNoTitles = audioMeta.copy(titles = Seq.empty)
     val randomLanguage = "norsk"
 
@@ -71,19 +74,22 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense converts to an api.License") {
     val licenseAbbr = "by-sa"
-    val license = api.License(licenseAbbr, Some("Creative Commons Attribution-ShareAlike 2.0 Generic"), Some("https://creativecommons.org/licenses/by-sa/2.0/"))
+    val license = api.License(licenseAbbr,
+                              Some("Creative Commons Attribution-ShareAlike 2.0 Generic"),
+                              Some("https://creativecommons.org/licenses/by-sa/2.0/"))
 
-    service.toApiLicence(licenseAbbr) should equal (license)
+    service.toApiLicence(licenseAbbr) should equal(license)
   }
 
   test("That toApiLicense returns unknown if the license is invalid") {
     val licenseAbbr = "garbage"
 
-    service.toApiLicence(licenseAbbr) should equal (api.License("unknown", None, None))
+    service.toApiLicence(licenseAbbr) should equal(api.License("unknown", None, None))
   }
 
   test("That withAgreementCopyright returns with copyright") {
-    val meta = audioMeta.copy(copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val meta = audioMeta.copy(
+      copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
     val today = new DateTime().toDate()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
@@ -93,11 +99,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       rightsholders = Seq(api.Author("Publisher", "Marius Muffins")),
       agreementId = None,
       validFrom = Some(today),
-      validTo = None)
+      validTo = None
+    )
 
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
     val result = service.withAgreementCopyright(meta)
-    result.copyright.license should equal ("gnu")
+    result.copyright.license should equal("gnu")
     result.copyright.creators.head.name should equal("Christian Traktor")
     result.copyright.processors.head.name should equal("Tommy Test")
     result.copyright.rightsholders.head.name should equal("Marius Muffins")
@@ -105,13 +112,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That withAgreementCopyright doesnt change anything if no agreement found") {
-    val meta = audioMeta.copy(copyright = audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val meta = audioMeta.copy(
+      copyright = audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
     val result = service.withAgreementCopyright(meta)
     result should equal(meta)
   }
 
   test("That api version of withAgreementCopyright returns with copyright") {
-    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val copyright = service.toApiCopyright(
+      audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
     val today = new DateTime().toDate()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
@@ -121,11 +130,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       rightsholders = Seq(api.Author("Publisher", "Marius Muffins")),
       agreementId = None,
       validFrom = Some(today),
-      validTo = None)
+      validTo = None
+    )
 
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
     val result = service.withAgreementCopyright(copyright)
-    result.license.license should equal ("gnu")
+    result.license.license should equal("gnu")
     result.creators.head.name should equal("Christian Traktor")
     result.processors.head.name should equal("Tommy Test")
     result.rightsholders.head.name should equal("Marius Muffins")
@@ -133,7 +143,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That api version of withAgreementCopyright doesnt change anything if no agreement found") {
-    val copyright = service.toApiCopyright(audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+    val copyright = service.toApiCopyright(
+      audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
     val result = service.withAgreementCopyright(copyright)
     result should equal(copyright)
   }

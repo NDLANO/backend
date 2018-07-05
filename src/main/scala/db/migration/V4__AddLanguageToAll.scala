@@ -31,25 +31,27 @@ class V4__AddLanguageToAll extends JdbcMigration {
   def convertAudioUpdate(audioMeta: V4_AudioMetaInformation): V4_AudioMetaInformation = {
     audioMeta.copy(
       titles = audioMeta.titles.map(t => V4_Title(t.title, Some(Language.languageOrUnknown(t.language)))),
-      filePaths = audioMeta.filePaths.map(f => V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(Language.languageOrUnknown(f.language)))),
+      filePaths = audioMeta.filePaths.map(f =>
+        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(Language.languageOrUnknown(f.language)))),
       tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(Language.languageOrUnknown(t.language))))
     )
   }
 
   def allAudios(implicit session: DBSession): List[V4_AudioMetaInformation] = {
-    sql"select id, revision, document from audiodata".map(rs => {
-      val meta = read[V4_AudioMetaInformation](rs.string("document"))
-      V4_AudioMetaInformation(
-        Some(rs.long("id")),
-        Some(rs.int("revision")),
-        meta.titles,
-        meta.filePaths,
-        meta.copyright,
-        meta.tags,
-        meta.updatedBy,
-        meta.updated)
-    }
-    ).list().apply()
+    sql"select id, revision, document from audiodata"
+      .map(rs => {
+        val meta = read[V4_AudioMetaInformation](rs.string("document"))
+        V4_AudioMetaInformation(Some(rs.long("id")),
+                                Some(rs.int("revision")),
+                                meta.titles,
+                                meta.filePaths,
+                                meta.copyright,
+                                meta.tags,
+                                meta.updatedBy,
+                                meta.updated)
+      })
+      .list()
+      .apply()
   }
 
   def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession) = {
@@ -63,13 +65,13 @@ class V4__AddLanguageToAll extends JdbcMigration {
 }
 
 case class V4_AudioMetaInformation(id: Option[Long],
-                                revision: Option[Int],
-                                titles: Seq[V4_Title],
-                                filePaths: Seq[V4_Audio],
-                                copyright: V4_Copyright,
-                                tags: Seq[V4_Tag],
-                                updatedBy :String,
-                                updated :Date)
+                                   revision: Option[Int],
+                                   titles: Seq[V4_Title],
+                                   filePaths: Seq[V4_Audio],
+                                   copyright: V4_Copyright,
+                                   tags: Seq[V4_Tag],
+                                   updatedBy: String,
+                                   updated: Date)
 
 case class V4_Title(title: String, language: Option[String])
 case class V4_Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String])

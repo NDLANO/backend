@@ -37,7 +37,7 @@ trait HealthController {
     def getReturnCode(imageResponse: HttpResponse[String]): ActionResult = {
       imageResponse.code match {
         case 200 => Ok()
-        case _ => InternalServerError()
+        case _   => InternalServerError()
       }
     }
 
@@ -46,11 +46,14 @@ trait HealthController {
       val host = applicationUrl.host.getOrElse("0")
       val port = applicationUrl.port.getOrElse("80")
 
-      audioRepository.getRandomAudio().map(audio => {
-        val id = audio.id.get
-        val previewUrl = s"http://$host:$port${AudioApiProperties.AudioControllerPath}$id"
-        getReturnCode(getApiResponse(previewUrl))
-      }).getOrElse(Ok())
+      audioRepository
+        .getRandomAudio()
+        .map(audio => {
+          val id = audio.id.get
+          val previewUrl = s"http://$host:$port${AudioApiProperties.AudioControllerPath}$id"
+          getReturnCode(getApiResponse(previewUrl))
+        })
+        .getOrElse(Ok())
     }
   }
 

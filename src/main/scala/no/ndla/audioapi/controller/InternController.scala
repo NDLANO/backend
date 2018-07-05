@@ -17,7 +17,13 @@ import org.scalatra.{InternalServerError, Ok}
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportService with ConverterService with SearchIndexService with AudioRepository with IndexService with ReadService with User =>
+  this: ImportService
+    with ConverterService
+    with SearchIndexService
+    with AudioRepository
+    with IndexService
+    with ReadService
+    with User =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -29,7 +35,8 @@ trait InternController {
     post("/index") {
       searchIndexService.indexDocuments match {
         case Success(reindexResult) => {
-          val result = s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+          val result =
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
           logger.info(result)
           Ok(result)
         }

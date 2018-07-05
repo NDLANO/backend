@@ -1,6 +1,6 @@
 import java.util.Properties
 
-val Scalaversion = "2.12.1"
+val Scalaversion = "2.12.6"
 val Scalatraversion = "2.5.1"
 val ScalaLoggingVersion = "3.5.0"
 val Log4JVersion = "2.9.1"
@@ -26,9 +26,9 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-lazy val audio_api = (project in file(".")).
-  settings(commonSettings: _*).
-  settings(
+lazy val audio_api = (project in file("."))
+  .settings(commonSettings: _*)
+  .settings(
     name := "audio-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
@@ -38,7 +38,7 @@ lazy val audio_api = (project in file(".")).
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
-      "org.scalatra" %% "scalatra-swagger"  % Scalatraversion,
+      "org.scalatra" %% "scalatra-swagger" % Scalatraversion,
       "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
       "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
       "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
@@ -47,7 +47,7 @@ lazy val audio_api = (project in file(".")).
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
-      "org.json4s"   %% "json4s-native" % "3.5.0",
+      "org.json4s" %% "json4s-native" % "3.5.0",
       "org.scalikejdbc" %% "scalikejdbc" % "2.5.0",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
@@ -64,15 +64,35 @@ lazy val audio_api = (project in file(".")).
       "com.netaporter" %% "scala-uri" % "0.4.16",
       "org.jsoup" % "jsoup" % "1.11.2"
     )
-  ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
+  )
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(JettyPlugin)
 
-assemblyJarName in assembly := "audio-api.jar"
-mainClass in assembly := Some("no.ndla.audioapi.JettyLauncher")
-assemblyMergeStrategy in assembly := {
-  case "mime.types" => MergeStrategy.filterDistinctLines
-  case PathList("org", "joda", "convert", "ToString.class")  => MergeStrategy.first
-  case PathList("org", "joda", "convert", "FromString.class")  => MergeStrategy.first
-  case PathList("org", "joda", "time", "base", "BaseDateTime.class")  => MergeStrategy.first
+val checkfmt = taskKey[Boolean]("Check for code style errors")
+checkfmt := {
+  val noErrorsInMainFiles = (Compile / scalafmtCheck).value
+  val noErrorsInTestFiles = (Test / scalafmtCheck).value
+  val noErrorsInSbtConfigFiles = (Compile / scalafmtSbtCheck).value
+
+  noErrorsInMainFiles && noErrorsInTestFiles && noErrorsInSbtConfigFiles
+}
+
+Test / test := ((Test / test).dependsOn(Test / checkfmt)).value
+
+val fmt = taskKey[Unit]("Automatically apply code style fixes")
+fmt := {
+  (Compile / scalafmt).value
+  (Test / scalafmt).value
+  (Compile / scalafmtSbt).value
+}
+
+assembly / assemblyJarName := "audio-api.jar"
+assembly / mainClass := Some("no.ndla.audioapi.JettyLauncher")
+assembly / assemblyMergeStrategy := {
+  case "mime.types"                                                  => MergeStrategy.filterDistinctLines
+  case PathList("org", "joda", "convert", "ToString.class")          => MergeStrategy.first
+  case PathList("org", "joda", "convert", "FromString.class")        => MergeStrategy.first
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class") => MergeStrategy.first
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
@@ -83,13 +103,13 @@ assemblyMergeStrategy in assembly := {
 // sbt "test-only -- -n no.ndla.tag.IntegrationTest"
 // will not run unless this line gets commented out or you remove the tag over the test class
 // This should be solved better!
-testOptions in Test += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
+Test / testOptions += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker := (docker dependsOn assembly).value
 
-dockerfile in docker := {
-  val artifact = (assemblyOutputPath in assembly).value
+docker / dockerfile := {
+  val artifact = (assembly / assemblyOutputPath).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("openjdk:8-jre-alpine")
@@ -99,16 +119,15 @@ dockerfile in docker := {
   }
 }
 
-val gitHeadCommitSha = settingKey[String]("current git commit SHA")
-gitHeadCommitSha in ThisBuild := Process("git log --pretty=format:%h -n 1").lines.head
-
-imageNames in docker := Seq(
-  ImageName(
-    namespace = Some(organization.value),
-    repository = name.value,
-    tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
+docker / imageNames := Seq(
+  ImageName(namespace = Some(organization.value),
+            repository = name.value,
+            tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
-parallelExecution in Test := false
+Test / parallelExecution := false
 
-resolvers ++= scala.util.Properties.envOrNone("NDLA_RELEASES").map(repo => "Release Sonatype Nexus Repository Manager" at repo).toSeq
+resolvers ++= scala.util.Properties
+  .envOrNone("NDLA_RELEASES")
+  .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
+  .toSeq

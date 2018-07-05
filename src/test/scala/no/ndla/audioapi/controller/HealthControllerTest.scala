@@ -27,7 +27,10 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val copyrighted = Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
+
+  val copyrighted =
+    Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
+
   val audioMeta = AudioMetaInformation(
     Some(1),
     Some(1),
@@ -36,7 +39,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     copyrighted,
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
-    updated)
+    updated
+  )
 
   addServlet(controller, "/")
   when(httpResponseMock.code).thenReturn(404)
@@ -47,7 +51,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     get("/") {
-      status should equal (200)
+      status should equal(200)
     }
   }
 
