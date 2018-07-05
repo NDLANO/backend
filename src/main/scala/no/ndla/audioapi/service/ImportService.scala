@@ -90,10 +90,28 @@ trait ImportService {
 
     }
 
-    private def persistMetaData(audioMeta: Seq[MigrationAudioMeta],
-                                audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
-      val titles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
+    private[service] def persistMetaData(audioMeta: Seq[MigrationAudioMeta],
+                                         audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
       val mainNode = audioMeta.find(_.isMainNode).get
+      val nodeData = migrationApiClient.getNodeData(mainNode.nid)
+
+      val audioTitles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
+
+      val nodeDataTitles = nodeData
+        .map(_.titles.map(t => { Title(t.title, Language.languageOrUnknown(emptySomeToNone(Some(t.language)))) }))
+        .getOrElse(Seq.empty)
+
+      // Combine titles from audio meta and node data with only one from each language
+      val titles = (audioTitles ++ nodeDataTitles)
+        .foldLeft(List.empty[Title]) { (acc, elem) =>
+          acc.find(i => i.language == elem.language) match {
+            case Some(_)                  => acc
+            case None if elem.title != "" => elem :: acc
+            case None                     => acc
+          }
+        }
+        .reverse
+
       val authors = audioMeta.flatMap(_.authors).distinct
 
       val copyright = toDomainCopyright(mainNode.license, authors)

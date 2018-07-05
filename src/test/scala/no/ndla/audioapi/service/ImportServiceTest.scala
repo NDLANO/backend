@@ -12,15 +12,14 @@ import java.net.URL
 
 import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.model.ObjectMetadata
-import no.ndla.audioapi.integration.MigrationAudioMeta
-import no.ndla.audioapi.integration.MigrationAuthor
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author}
+import no.ndla.audioapi.integration.{MigrationAudioMeta, MigrationAuthor, MigrationNodeData, MigrationTitle}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author, Title}
 import no.ndla.audioapi.model.api.ImportException
-import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.invocation.InvocationOnMock
 
 import scala.util.{Failure, Success}
 
@@ -68,6 +67,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     val existingAudioMeta = mock[AudioMetaInformation]
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
+    when(migrationApiClient.getNodeData(any[String])).thenReturn(Success(MigrationNodeData(Seq.empty)))
     when(audioStorage.getObjectMetaData(any[String])).thenReturn(Failure(mock[AmazonClientException]))
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
     when(tagsService.forAudio("1")).thenReturn(List())
@@ -84,6 +84,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     val newAudioMeta = mock[AudioMetaInformation]
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
+    when(migrationApiClient.getNodeData(any[String])).thenReturn(Success(MigrationNodeData(Seq.empty)))
     when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
@@ -130,5 +131,32 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
   test("That oldToNewLicenseKey does not convert an license that should not be converted") {
     service.oldToNewLicenseKey("by-sa") should be("by-sa")
+  }
+
+  test("That title from node data endpoint is combined with audio meta titles") {
+    when(tagsService.forAudio("1")).thenReturn(List())
+    when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
+    when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgumentAt(0, AudioMetaInformation.getClass)))
+    when(migrationApiClient.getNodeData(defaultMigrationAudioMeta.nid))
+      .thenReturn(
+        Success(
+          MigrationNodeData(
+            Seq(
+              MigrationTitle("a", "nb"),
+              MigrationTitle("b", "en")
+            ))))
+
+    val result = service.persistMetaData(
+      Seq(defaultMigrationAudioMeta.copy(language = Some("nb"), title = "Kek")),
+      Seq.empty
+    )
+    result.get.titles should be(Seq(Title("Kek", "nb"), Title("b", "en")))
+
+    val result2 = service.persistMetaData(
+      Seq(defaultMigrationAudioMeta.copy(language = Some("nb"), title = "")),
+      Seq.empty
+    )
+    result2.get.titles should be(Seq(Title("a", "nb"), Title("b", "en")))
   }
 }
