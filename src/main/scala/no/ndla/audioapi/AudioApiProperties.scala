@@ -17,6 +17,7 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object AudioApiProperties extends LazyLogging {
+  val ApplicationName = "audio-api"
   val Auth0LoginEndpoint = "https://ndla.eu.auth0.com/authorize"
 
   val RoleWithWriteAccess = "audio:write"
