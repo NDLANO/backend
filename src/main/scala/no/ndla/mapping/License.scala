@@ -10,28 +10,15 @@ package no.ndla.mapping
 
 object License {
   private val licenseToLicenseDefinitionsSeq = Seq(
-    LicenseDefinition("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")),
-    LicenseDefinition("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-sa/2.0/")),
-    LicenseDefinition("by-nc", "Creative Commons Attribution-NonCommercial 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc/2.0/")),
-    LicenseDefinition("by-nd", "Creative Commons Attribution-NoDerivs 2.0 Generic", Some("https://creativecommons.org/licenses/by-nd/2.0/")),
-    LicenseDefinition("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")),
-    LicenseDefinition("by-nc-nd", "Creative Commons Attribution-NonCommercial-NoDerivs 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-nd/2.0/")),
-    LicenseDefinition("cc0", "Public Domain Dedication", Some("https://creativecommons.org/about/cc0")),
-    LicenseDefinition("pd", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
-    LicenseDefinition("copyrighted", "Copyrighted", None),
-    LicenseDefinition("by-3.0", "Creative Commons Attribution 4.0 Unported", Some("https://creativecommons.org/licenses/by/3.0/")),
-    LicenseDefinition("by-sa-3.0", "Creative Commons Attribution-ShareAlike 3.0 Unported", Some("https://creativecommons.org/licenses/by-sa/3.0/")),
-    LicenseDefinition("by-nc-3.0", "Creative Commons Attribution-NonCommercial 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc/3.0/")),
-    LicenseDefinition("by-nd-3.0", "Creative Commons Attribution-NoDerivs 3.0 Unported", Some("https://creativecommons.org/licenses/by-nd/3.0/")),
-    LicenseDefinition("by-nc-sa-3.0", "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc-sa/3.0/")),
-    LicenseDefinition("by-nc-nd-3.0", "Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported", Some("https://creativecommons.org/licenses/by-nc-nd/3.0/")),
-    LicenseDefinition("by-4.0", "Creative Commons Attribution 4.0 International", Some("https://creativecommons.org/licenses/by/4.0/")),
-    LicenseDefinition("by-sa-4.0", "Creative Commons Attribution-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
-    LicenseDefinition("by-nc-4.0", "Creative Commons Attribution-NonCommercial 4.0 International", Some("https://creativecommons.org/licenses/by-nc/4.0/")),
-    LicenseDefinition("by-nd-4.0", "Creative Commons Attribution-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nd/4.0/")),
-    LicenseDefinition("by-nc-sa-4.0", "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")),
-    LicenseDefinition("by-nc-nd-4.0", "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"))
-
+    LicenseDefinition("CC0-1.0", "Creative Commons Zero", Some("https://creativecommons.org/publicdomain/zero/1.0/legalcode")),
+    LicenseDefinition("PD", "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
+    LicenseDefinition("COPYRIGHTED", "Copyrighted", None),
+    LicenseDefinition("CC-BY-4.0", "Creative Commons Attribution 4.0 International", Some("https://creativecommons.org/licenses/by/4.0/")),
+    LicenseDefinition("CC-BY-SA-4.0", "Creative Commons Attribution-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-sa/4.0/")),
+    LicenseDefinition("CC-BY-NC-4.0", "Creative Commons Attribution-NonCommercial 4.0 International", Some("https://creativecommons.org/licenses/by-nc/4.0/")),
+    LicenseDefinition("CC-BY-ND-4.0", "Creative Commons Attribution-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nd/4.0/")),
+    LicenseDefinition("CC-BY-NC-SA-4.0", "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International", Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")),
+    LicenseDefinition("CC-BY-NC-ND-4.0", "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International", Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"))
   )
 
   private val licenseToLicenseDefinitionsMap = licenseToLicenseDefinitionsSeq.map(x => x.license -> x).toMap
