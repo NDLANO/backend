@@ -103,7 +103,7 @@ trait ConverterService {
 
     def toApiLicence(licenseAbbrevation: String): api.License = {
       getLicense(licenseAbbrevation) match {
-        case Some(license) => api.License(license.license, Option(license.description), license.url)
+        case Some(license) => api.License(license.license.toString, Option(license.description), license.url)
         case None =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
           api.License("unknown", None, None)

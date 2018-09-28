@@ -22,6 +22,7 @@ import no.ndla.mapping.License._
 
 import scala.util.Try
 import com.netaporter.uri.dsl._
+import no.ndla.mapping.LicenseDefinition
 
 trait ImportService {
   this: MigrationApiClient with AudioStorageService with AudioRepository with TagsService with User with Clock =>
@@ -60,11 +61,28 @@ trait ImportService {
       }
     }
 
-    private[service] def oldToNewLicenseKey(license: String): String = {
-      val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
-      val newLicense = licenses.getOrElse(license, license)
-
-      if (getLicense(newLicense).isEmpty) {
+    private[service] def oldToNewLicenseKey(license: String): Option[LicenseDefinition] = {
+      val licenses = Map(
+        "by" -> "CC-BY-4.0",
+        "by-sa" -> "CC-BY-SA-4.0",
+        "by-nc" -> "CC-BY-NC-4.0",
+        "by-nd" -> "CC-BY-ND-4.0",
+        "by-nc-sa" -> "CC-BY-NC-SA-4.0",
+        "by-nc-nd" -> "CC-BY-NC-ND-4.0",
+        "by-3.0" -> "CC-BY-4.0",
+        "by-sa-3.0" -> "CC-BY-SA-4.0",
+        "by-nc-3.0" -> "CC-BY-NC-4.0",
+        "by-nd-3.0" -> "CC-BY-ND-4.0",
+        "by-nc-sa-3.0" -> "CC-BY-NC-SA-4.0",
+        "by-nc-nd-3.0" -> "CC-BY-NC-ND-4.0",
+        "copyrighted" -> "COPYRIGHTED",
+        "cc0" -> "CC0-1.0",
+        "pd" -> "PD",
+        "nolaw" -> "CC0-1.0",
+        "noc" -> "PD"
+      )
+      val newLicense = getLicense(licenses.getOrElse(license, license))
+      if (newLicense.isEmpty) {
         throw new ImportException(s"License $license is not supported.")
       }
       newLicense
@@ -76,9 +94,10 @@ trait ImportService {
       val creators = authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val domainLicense = oldToNewLicenseKey(license).map(_.license.toString).getOrElse("COPYRIGHTED")
 
       domain.Copyright(
-        oldToNewLicenseKey(license),
+        domainLicense,
         origin.map(_.name),
         creators,
         processors,
