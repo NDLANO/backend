@@ -8,15 +8,14 @@
 
 package no.ndla.audioapi.service
 
-import java.util.Date
-
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.domain.{Audio, AudioMetaInformation, Author, Copyright, Tag, Title, _}
+import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
+import no.ndla.mapping.License.{CC_BY_SA}
 
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
@@ -73,10 +72,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That toApiLicense converts to an api.License") {
-    val licenseAbbr = "by-sa"
+    val licenseAbbr = CC_BY_SA.toString
     val license = api.License(licenseAbbr,
-                              Some("Creative Commons Attribution-ShareAlike 2.0 Generic"),
-                              Some("https://creativecommons.org/licenses/by-sa/2.0/"))
+                              Some("Creative Commons Attribution-ShareAlike 4.0 International"),
+                              Some("https://creativecommons.org/licenses/by-sa/4.0/"))
 
     service.toApiLicence(licenseAbbr) should equal(license)
   }

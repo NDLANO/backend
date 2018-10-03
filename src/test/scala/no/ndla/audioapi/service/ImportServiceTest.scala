@@ -17,6 +17,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author, Title}
 import no.ndla.audioapi.model.api.ImportException
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
+import no.ndla.mapping.License.{CC0, PublicDomain, CC_BY_SA}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.mockito.invocation.InvocationOnMock
@@ -125,12 +126,12 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That oldToNewLicenseKey converts correctly") {
-    service.oldToNewLicenseKey("nolaw") should be("cc0")
-    service.oldToNewLicenseKey("noc") should be("pd")
+    service.oldToNewLicenseKey("nolaw").get.license should be(CC0)
+    service.oldToNewLicenseKey("noc").get.license should be(PublicDomain)
   }
 
   test("That oldToNewLicenseKey does not convert an license that should not be converted") {
-    service.oldToNewLicenseKey("by-sa") should be("by-sa")
+    service.oldToNewLicenseKey("by-sa").get.license should be(CC_BY_SA)
   }
 
   test("That title from node data endpoint is combined with audio meta titles") {
