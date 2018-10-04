@@ -13,11 +13,11 @@ import java.net.URL
 import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.integration.{MigrationAudioMeta, MigrationAuthor, MigrationNodeData, MigrationTitle}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author, Title}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Author, Tag, Title}
 import no.ndla.audioapi.model.api.ImportException
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
-import no.ndla.mapping.License.{CC0, PublicDomain, CC_BY_SA}
+import no.ndla.mapping.License.{CC0, CC_BY_SA, PublicDomain}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.mockito.invocation.InvocationOnMock
@@ -159,5 +159,39 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
       Seq.empty
     )
     result2.get.titles should be(Seq(Title("a", "nb"), Title("b", "en")))
+  }
+
+  test("That only tags with relevant languages are stored") {
+
+    val nbTags = Tag(Seq("hei", "norge", "knekkebrød"), "nb")
+    val nbTags2 = Tag(Seq("brunost", "også"), "nb")
+    val nbMerged = Tag(nbTags.tags ++ nbTags2.tags, "nb")
+    val enTags = Tag(Seq("hello", "englang", "chips"), "en")
+    val zhTags = Tag(Seq("我不懂中文", "亨里克"), "zh")
+
+    when(tagsService.forAudio("1")).thenReturn(List(nbTags, enTags))
+    when(tagsService.forAudio("2")).thenReturn(List(nbTags2, zhTags))
+
+    when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
+    when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgumentAt(0, AudioMetaInformation.getClass)))
+    when(migrationApiClient.getNodeData(defaultMigrationAudioMeta.nid))
+      .thenReturn(
+        Success(
+          MigrationNodeData(
+            Seq(
+              MigrationTitle("a", "nb"),
+              MigrationTitle("b", "en")
+            ))))
+
+    val Success(result) = service.persistMetaData(
+      Seq(
+        defaultMigrationAudioMeta.copy(nid = "1", tnid = "1", language = Some("nb"), title = "Norskesten"),
+        defaultMigrationAudioMeta.copy(nid = "2", tnid = "1", language = Some("nb"), title = "Engelskesten")
+      ),
+      Seq.empty
+    )
+
+    result.tags should be(Seq(enTags, nbMerged))
   }
 }
