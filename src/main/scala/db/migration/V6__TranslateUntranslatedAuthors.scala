@@ -37,13 +37,9 @@ class V6__TranslateUntranslatedAuthors extends JdbcMigration with LazyLogging {
   }
 
   private def toNewAuthorType(author: V4_Author): V4_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
-    val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
-
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+     processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+     rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)) match {
       case (t: String, _, _) => V4_Author(t.capitalize, author.name)
       case (_, t: String, _) => V4_Author(t.capitalize, author.name)
       case (_, _, t: String) => V4_Author(t.capitalize, author.name)

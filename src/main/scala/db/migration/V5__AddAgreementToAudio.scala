@@ -38,13 +38,9 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging {
   }
 
   def toNewAuthorType(author: V4_Author): V4_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
-    val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
-
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+     processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+     rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)) match {
       case (t: String, None, None) => V4_Author(t.capitalize, author.name)
       case (None, t: String, None) => V4_Author(t.capitalize, author.name)
       case (None, None, t: String) => V4_Author(t.capitalize, author.name)
@@ -66,14 +62,16 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging {
       metaV5.copy(id = None)
     } else {
       val creators =
-        meta.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+        meta.copyright.authors.filter(a => creatorTypeMap.keySet.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
       val processors = meta.copyright.authors
-        .filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase))
+        .filter(a => processorTypeMap.keySet.contains(a.`type`.toLowerCase))
         .filterNot(a => a.`type`.toLowerCase == "redaksjonelt")
         .map(toNewAuthorType)
       val rightsholders =
-        meta.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+        meta.copyright.authors
+          .filter(a => rightsholderTypeMap.keySet.contains(a.`type`.toLowerCase))
+          .map(toNewAuthorType)
 
       V5_AudioMetaInformation(
         Some(id),

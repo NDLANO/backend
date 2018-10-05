@@ -148,17 +148,17 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
               MigrationTitle("b", "en")
             ))))
 
-    val result = service.persistMetaData(
+    val result = service.asAudioMetaInformation(
       Seq(defaultMigrationAudioMeta.copy(language = Some("nb"), title = "Kek")),
       Seq.empty
     )
-    result.get.titles should be(Seq(Title("Kek", "nb"), Title("b", "en")))
+    result.titles should be(Seq(Title("Kek", "nb"), Title("b", "en")))
 
-    val result2 = service.persistMetaData(
+    val result2 = service.asAudioMetaInformation(
       Seq(defaultMigrationAudioMeta.copy(language = Some("nb"), title = "")),
       Seq.empty
     )
-    result2.get.titles should be(Seq(Title("a", "nb"), Title("b", "en")))
+    result2.titles should be(Seq(Title("a", "nb"), Title("b", "en")))
   }
 
   test("That only tags with relevant languages are stored") {
@@ -184,7 +184,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
               MigrationTitle("b", "en")
             ))))
 
-    val Success(result) = service.persistMetaData(
+    val result = service.asAudioMetaInformation(
       Seq(
         defaultMigrationAudioMeta.copy(nid = "1", tnid = "1", language = Some("nb"), title = "Norskesten"),
         defaultMigrationAudioMeta.copy(nid = "2", tnid = "1", language = Some("nb"), title = "Engelskesten")
