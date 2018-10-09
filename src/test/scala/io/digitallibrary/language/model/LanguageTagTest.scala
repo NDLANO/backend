@@ -86,4 +86,25 @@ class LanguageTagTest extends UnitSuite {
     LanguageTag("hrc").toString should equal ("hrc")
   }
 
+  test("that arabic without script is considered RTL-script") {
+    LanguageTag("ar").isRightToLeft should be (true)
+  }
+
+  test("that arabic with latin script is not considered RTL-script") {
+    LanguageTag("ar-latn").isRightToLeft should be (false)
+  }
+
+  test("that norwegian with hebrew script is considered RTL") {
+    LanguageTag("nb-hebr").isRightToLeft should be (true)
+  }
+
+  test("that hausa as spoken in Ethiopia with arabic script is considered RTL") {
+    LanguageTag("ha-arab-et").isRightToLeft should be(true)
+  }
+
+  test("that Norwegian is not considered RTL") {
+    LanguageTag("nb").isRightToLeft should be (false)
+  }
+
+
 }

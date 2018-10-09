@@ -37,6 +37,13 @@ case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Opti
       }
     })
   }
+
+  def isRightToLeft: Boolean = {
+    script match {
+      case Some(s) => s.no > 99 && s.no < 200
+      case None => CodeLists.rtlLanguageCodes.contains(language.part1.getOrElse(language.id))
+    }
+  }
 }
 
 object LanguageTag {
