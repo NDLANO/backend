@@ -40,6 +40,10 @@ object CodeLists {
   case class Iso15924Val(code: String, no: Int, englishName: String, frenchName: String, pva: Option[String], date: String) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
+  val rtlLanguageCodes = Seq(
+    "ae", "ar", "arc", "bcc", "bqi", "ckb", "dv", "fa", "glk", "he", "ku", "mzn", "nqo", "pnb", "ps", "sd", "ug", "ur", "yi"
+  )
+
   val iso15924Definitions = Seq(
     Iso15924Val("Adlm", 166, "Adlam", "adlam", Some("Adlam"), "2016-12-05"),
     Iso15924Val("Afak", 439, "Afaka", "afaka", None, "2010-12-21"),

@@ -48,6 +48,10 @@ object CodeLists {
   case class Iso15924Val(code: String, no: Int, englishName: String, frenchName: String, pva: Option[String], date: String) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
+  val rtlLanguageCodes = Seq(
+    %RTL_DEFAULT_CODES%
+  )
+
   val iso15924Definitions = Seq(
     %ISO15924%
   )
@@ -91,6 +95,7 @@ iso_639_definitions_file = os.path.join(script_dir, "iso-639-3_20170202.tab")
 iso_639_localized_file = os.path.join(script_dir, "iso-639-localized.csv")
 iso_3166_definitions_file = os.path.join(script_dir, "iso-3166-2.csv")
 iso15924_definitions_file = os.path.join(script_dir, "iso15924-utf8-20170726.txt")
+rtl_list_file = os.path.join(script_dir, "default_rtl_language_codes.txt")
 
 
 def create_iso3166(template):
@@ -121,6 +126,12 @@ def create_iso15924(template):
 
         print ">> Adding {} entries for ISO-15924".format(len(lines))
         return template.replace("%ISO15924%", ",\n    ".join(lines))
+
+
+def create_rtl_language_codes(template):
+    with open(rtl_list_file, 'r') as f:
+        noe = ["\"{}\"".format(line.strip()) for line in f.readlines()]
+        return template.replace("%RTL_DEFAULT_CODES%", ", ".join(noe))
 
 
 def create_iso639(template, localized_language_names):
@@ -191,6 +202,7 @@ if __name__ == '__main__':
     with_iso15924 = create_iso15924(with_iso639)
     with_iso3166 = create_iso3166(with_iso15924)
     with_year = with_iso3166.replace("%YEAR%", str(datetime.now().year))
+    with_rtl = create_rtl_language_codes(with_year)
 
     with open(codelists_file, 'w') as f:
-        f.write(with_year)
+        f.write(with_rtl)
