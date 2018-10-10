@@ -38,13 +38,13 @@ class V5__AddAgreementToAudio extends JdbcMigration with LazyLogging {
   }
 
   def toNewAuthorType(author: V4_Author): V4_Author = {
-    (creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-     processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-     rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)) match {
-      case (t: String, None, None) => V4_Author(t.capitalize, author.name)
-      case (None, t: String, None) => V4_Author(t.capitalize, author.name)
-      case (None, None, t: String) => V4_Author(t.capitalize, author.name)
-      case (_, _, _)               => V4_Author(author.`type`, author.name)
+    (creatorTypeMap.get(author.`type`.toLowerCase),
+     processorTypeMap.get(author.`type`.toLowerCase),
+     rightsholderTypeMap.get(author.`type`.toLowerCase)) match {
+      case (Some(t), None, None) => V4_Author(t.capitalize, author.name)
+      case (None, Some(t), None) => V4_Author(t.capitalize, author.name)
+      case (None, None, Some(t)) => V4_Author(t.capitalize, author.name)
+      case (_, _, _)             => V4_Author(author.`type`, author.name)
     }
   }
 

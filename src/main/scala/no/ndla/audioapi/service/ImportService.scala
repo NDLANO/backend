@@ -42,13 +42,13 @@ trait ImportService {
     }
 
     private def toNewAuthorType(author: MigrationAuthor): domain.Author = {
-      (creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-       processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-       rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)) match {
-        case (t: String, _, _) => domain.Author(t.capitalize, author.name)
-        case (_, t: String, _) => domain.Author(t.capitalize, author.name)
-        case (_, _, t: String) => domain.Author(t.capitalize, author.name)
-        case (_, _, _)         => domain.Author(author.`type`, author.name)
+      (creatorTypeMap.get(author.`type`.toLowerCase),
+       processorTypeMap.get(author.`type`.toLowerCase),
+       rightsholderTypeMap.get(author.`type`.toLowerCase)) match {
+        case (Some(t), _, _) => domain.Author(t.capitalize, author.name)
+        case (_, Some(t), _) => domain.Author(t.capitalize, author.name)
+        case (_, _, Some(t)) => domain.Author(t.capitalize, author.name)
+        case (_, _, _)       => domain.Author(author.`type`, author.name)
       }
     }
 
