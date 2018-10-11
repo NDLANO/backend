@@ -36,28 +36,19 @@ trait ImportService {
 
     private def uploadAndPersist(audioMeta: Seq[MigrationAudioMeta]): Try[domain.AudioMetaInformation] = {
       val audioFilePaths = audioMeta.map(uploadAudioFile(_).get)
-      persistMetaData(audioMeta, audioFilePaths)
-    }
-
-    private def cleanAudioMeta(audio: domain.AudioMetaInformation): domain.AudioMetaInformation = {
-      val titleLanguages = audio.titles.map(_.language)
-      val tags = audio.tags.filter(tag => titleLanguages.contains(tag.language))
-
-      audio.copy(tags = tags)
+      val mainNode = audioMeta.find(_.isMainNode).orElse(audioMeta.headOption).map(_.nid).getOrElse("0")
+      val metaInfo = asAudioMetaInformation(audioMeta, audioFilePaths)
+      persistMetaInformation(mainNode, metaInfo)
     }
 
     private def toNewAuthorType(author: MigrationAuthor): domain.Author = {
-      val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-      val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
-      val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
-
-      (creatorMap(author.`type`.toLowerCase),
-       processorMap(author.`type`.toLowerCase),
-       rightsholderMap(author.`type`.toLowerCase)) match {
-        case (t: String, _, _) => domain.Author(t.capitalize, author.name)
-        case (_, t: String, _) => domain.Author(t.capitalize, author.name)
-        case (_, _, t: String) => domain.Author(t.capitalize, author.name)
-        case (_, _, _)         => domain.Author(author.`type`, author.name)
+      (creatorTypeMap.get(author.`type`.toLowerCase),
+       processorTypeMap.get(author.`type`.toLowerCase),
+       rightsholderTypeMap.get(author.`type`.toLowerCase)) match {
+        case (Some(t), _, _) => domain.Author(t.capitalize, author.name)
+        case (_, Some(t), _) => domain.Author(t.capitalize, author.name)
+        case (_, _, Some(t)) => domain.Author(t.capitalize, author.name)
+        case (_, _, _)       => domain.Author(author.`type`, author.name)
       }
     }
 
@@ -91,9 +82,10 @@ trait ImportService {
     private[service] def toDomainCopyright(license: String, authors: Seq[MigrationAuthor]): domain.Copyright = {
       val origin = authors.find(_.`type`.toLowerCase() == "opphavsmann")
 
-      val creators = authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
-      val processors = authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
-      val rightsholders = authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val creators = authors.filter(a => creatorTypeMap.keySet.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val processors = authors.filter(a => processorTypeMap.keySet.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val rightsholders =
+        authors.filter(a => rightsholderTypeMap.keySet.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       val domainLicense = oldToNewLicenseKey(license).map(_.license.toString).getOrElse("COPYRIGHTED")
 
       domain.Copyright(
@@ -109,13 +101,20 @@ trait ImportService {
 
     }
 
-    private[service] def persistMetaData(audioMeta: Seq[MigrationAudioMeta],
-                                         audioObjects: Seq[Audio]): Try[domain.AudioMetaInformation] = {
+    private def getTags(nodeIds: Seq[String], langs: Seq[String]): Seq[Tag] = {
+      nodeIds
+        .flatMap(tagsService.forAudio)
+        .groupBy(_.language)
+        .map { case (lang, t) => Tag(t.flatMap(_.tags), lang) }
+        .filter(tag => langs.contains(tag.language))
+        .toSeq
+    }
+
+    private[service] def asAudioMetaInformation(audioMeta: Seq[MigrationAudioMeta],
+                                                audioObjects: Seq[Audio]): domain.AudioMetaInformation = {
       val mainNode = audioMeta.find(_.isMainNode).get
       val nodeData = migrationApiClient.getNodeData(mainNode.nid)
-
       val audioTitles = audioMeta.map(x => Title(x.title, Language.languageOrUnknown(x.language)))
-
       val nodeDataTitles = nodeData
         .map(_.titles.map(t => { Title(t.title, Language.languageOrUnknown(emptySomeToNone(Some(t.language)))) }))
         .getOrElse(Seq.empty)
@@ -131,23 +130,24 @@ trait ImportService {
         }
         .reverse
 
+      val tags = getTags(audioMeta.map(_.nid), Language.getSupportedLanguages(titles, audioObjects))
       val authors = audioMeta.flatMap(_.authors).distinct
-
       val copyright = toDomainCopyright(mainNode.license, authors)
-      val domainMetaData = cleanAudioMeta(
-        domain.AudioMetaInformation(None,
-                                    None,
-                                    titles,
-                                    audioObjects,
-                                    copyright,
-                                    tagsService.forAudio(mainNode.nid),
-                                    authUser.userOrClientid(),
-                                    clock.now()))
+      domain.AudioMetaInformation(None,
+                                  None,
+                                  titles,
+                                  audioObjects,
+                                  copyright,
+                                  tags,
+                                  authUser.userOrClientid(),
+                                  clock.now())
+    }
 
-      audioRepository.withExternalId(mainNode.nid) match {
-        case None => audioRepository.insertFromImport(domainMetaData, mainNode.nid)
+    private def persistMetaInformation(mainNid: String, metaInformation: domain.AudioMetaInformation) = {
+      audioRepository.withExternalId(mainNid) match {
+        case None => audioRepository.insertFromImport(metaInformation, mainNid)
         case Some(existingAudio) =>
-          audioRepository.update(domainMetaData.copy(revision = existingAudio.revision), existingAudio.id.get)
+          audioRepository.update(metaInformation.copy(revision = existingAudio.revision), existingAudio.id.get)
       }
     }
 

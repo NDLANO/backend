@@ -1,6 +1,7 @@
 package no.ndla.audioapi.service
 
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.AudioApiProperties.{creatorTypeMap, processorTypeMap, rightsholderTypeMap}
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain._
@@ -57,10 +58,10 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, AudioApiProperties.creatorTypes)) ++
-        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, AudioApiProperties.processorTypes)) ++
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, creatorTypeMap.values.toList)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, processorTypeMap.values.toList)) ++
         copyright.rightsholders.flatMap(a =>
-          validateAuthor("copyright.rightsholders", a, AudioApiProperties.rightsholderTypes)) ++
+          validateAuthor("copyright.rightsholders", a, rightsholderTypeMap.values.toList)) ++
         validateAgreement(copyright) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }

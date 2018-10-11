@@ -65,37 +65,36 @@ object AudioApiProperties extends LazyLogging {
 
   val AudioFilesUrlSuffix = "audio/files"
 
-  val oldCreatorTypes = List("opphavsmann",
-                             "fotograf",
-                             "kunstner",
-                             "forfatter",
-                             "manusforfatter",
-                             "innleser",
-                             "oversetter",
-                             "regissør",
-                             "illustratør",
-                             "medforfatter",
-                             "komponist")
+  val creatorTypeMap = Map(
+    "opphavsmann" -> "originator",
+    "fotograf" -> "photographer",
+    "kunstner" -> "artist",
+    "forfatter" -> "writer",
+    "manusforfatter" -> "scriptwriter",
+    "innleser" -> "reader",
+    "oversetter" -> "translator",
+    "regissør" -> "director",
+    "illustratør" -> "illustrator",
+    "medforfatter" -> "cowriter",
+    "komponist" -> "composer"
+  )
 
-  val creatorTypes = List("originator",
-                          "photographer",
-                          "artist",
-                          "writer",
-                          "scriptwriter",
-                          "reader",
-                          "translator",
-                          "director",
-                          "illustrator",
-                          "cowriter",
-                          "composer")
+  val processorTypeMap = Map(
+    "bearbeider" -> "processor",
+    "tilrettelegger" -> "facilitator",
+    "redaksjonelt" -> "editorial",
+    "språklig" -> "linguistic",
+    "ide" -> "idea",
+    "sammenstiller" -> "compiler",
+    "korrektur" -> "correction"
+  )
 
-  val oldProcessorTypes =
-    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
-
-  val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
-  val allowedAuthors = AudioApiProperties.creatorTypes ++ AudioApiProperties.processorTypes ++ AudioApiProperties.rightsholderTypes
+  val rightsholderTypeMap = Map(
+    "rettighetshaver" -> "rightsholder",
+    "forlag" -> "publisher",
+    "distributør" -> "distributor",
+    "leverandør" -> "supplier"
+  )
 
   lazy val Domain = Domains.get(Environment)
 
