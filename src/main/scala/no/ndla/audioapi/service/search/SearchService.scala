@@ -11,8 +11,8 @@ package no.ndla.audioapi.service.search
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.{BoolQueryDefinition, QueryDefinition}
-import com.sksamuel.elastic4s.searches.sort.{SortDefinition, SortOrder}
+import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
+import com.sksamuel.elastic4s.searches.sort.{FieldSort, Sort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
@@ -103,13 +103,11 @@ trait SearchService {
     private def languageSpecificSearch(searchField: String,
                                        language: Option[String],
                                        query: String,
-                                       boost: Float): QueryDefinition = {
+                                       boost: Float): Query = {
       language match {
         case None | Some(Language.AllLanguages) | Some("*") =>
-          val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-          val ih = innerHits(searchField).highlighting(hi)
           val searchQuery = simpleStringQuery(query).field(s"$searchField.*", 1)
-          nestedQuery(searchField, searchQuery).scoreMode(ScoreMode.Avg).boost(boost).inner(ih)
+          nestedQuery(searchField, searchQuery).scoreMode(ScoreMode.Avg).boost(boost)
         case Some(lang) =>
           val searchQuery = simpleStringQuery(query).field(s"$searchField.$lang", 1)
           nestedQuery(searchField, searchQuery).scoreMode(ScoreMode.Avg).boost(boost)
@@ -121,7 +119,7 @@ trait SearchService {
                       sort: Sort.Value,
                       page: Option[Int],
                       pageSize: Option[Int],
-                      queryBuilder: BoolQueryDefinition): SearchResult = {
+                      queryBuilder: BoolQuery): SearchResult = {
 
       val licenseFilter = license match {
         case None      => Some(noCopyright)
@@ -149,6 +147,7 @@ trait SearchService {
           .size(numResults)
           .from(startAt)
           .query(filteredSearch)
+          .highlighting(highlight("*"))
           .sortBy(getSortDefinition(sort, searchLanguage))
 
       } match {
@@ -165,29 +164,29 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String) = {
+    private def getSortDefinition(sort: Sort.Value, language: String) = {
       val sortLanguage = language match {
         case Language.NoLanguage | Language.AllLanguages => "*"
         case _                                           => language
       }
 
       sort match {
-        case (Sort.ByTitleAsc) =>
+        case Sort.ByTitleAsc =>
           language match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.ASC).missing("_last")
             case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
           }
-        case (Sort.ByTitleDesc) =>
+        case Sort.ByTitleDesc =>
           language match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.DESC).missing("_last")
             case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
           }
-        case (Sort.ByRelevanceAsc)    => fieldSort("_score").order(SortOrder.ASC)
-        case (Sort.ByRelevanceDesc)   => fieldSort("_score").order(SortOrder.DESC)
-        case (Sort.ByLastUpdatedAsc)  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByLastUpdatedDesc) => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
-        case (Sort.ByIdAsc)           => fieldSort("id").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByIdDesc)          => fieldSort("id").order(SortOrder.DESC).missing("_last")
+        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
+        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
+        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
+        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
+        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 

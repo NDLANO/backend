@@ -9,7 +9,8 @@
 package no.ndla.audioapi
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioController, InternController}
@@ -18,7 +19,6 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
-import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -47,22 +47,13 @@ object ComponentRegistry
     with Role
     with Clock {
   def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-  implicit val swagger = new AudioSwagger
+  implicit val swagger: AudioSwagger = new AudioSwagger
 
-  lazy val dataSource = new PGPoolingDataSource()
-  dataSource.setUser(AudioApiProperties.MetaUserName)
-  dataSource.setPassword(AudioApiProperties.MetaPassword)
-  dataSource.setDatabaseName(AudioApiProperties.MetaResource)
-  dataSource.setServerName(AudioApiProperties.MetaServer)
-  dataSource.setPortNumber(AudioApiProperties.MetaPort)
-  dataSource.setInitialConnections(AudioApiProperties.MetaInitialConnections)
-  dataSource.setMaxConnections(AudioApiProperties.MetaMaxConnections)
-  dataSource.setCurrentSchema(AudioApiProperties.MetaSchema)
-
+  lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
   connectToDatabase()
 
-  val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
-  lazy val storageName = AudioApiProperties.StorageName
+  val amazonClient: AmazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
+  lazy val storageName: String = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository
   lazy val audioStorage = new AudioStorage
@@ -83,7 +74,7 @@ object ComponentRegistry
   lazy val audioApiController = new AudioController
   lazy val healthController = new HealthController
 
-  lazy val e4sClient = Elastic4sClientFactory.getClient()
+  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val indexService = new IndexService
   lazy val searchConverterService = new SearchConverterService
   lazy val searchIndexService = new SearchIndexService

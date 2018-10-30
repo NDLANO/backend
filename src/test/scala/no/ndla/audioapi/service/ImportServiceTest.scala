@@ -19,7 +19,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.mapping.License.{CC0, CC_BY_SA, PublicDomain}
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 
 import scala.util.{Failure, Success}
@@ -138,7 +138,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
     when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgumentAt(0, AudioMetaInformation.getClass)))
+      Success(i.getArgument[AudioMetaInformation](0)))
     when(migrationApiClient.getNodeData(defaultMigrationAudioMeta.nid))
       .thenReturn(
         Success(
@@ -174,7 +174,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
     when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgumentAt(0, AudioMetaInformation.getClass)))
+      Success(i.getArgument[AudioMetaInformation](0)))
     when(migrationApiClient.getNodeData(defaultMigrationAudioMeta.nid))
       .thenReturn(
         Success(

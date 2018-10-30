@@ -10,7 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.{AudioSwagger, TestEnvironment, UnitSuite}
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable

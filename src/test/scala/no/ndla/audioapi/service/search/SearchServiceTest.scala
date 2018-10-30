@@ -8,22 +8,24 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.integration.Elastic4sClientFactory
+import java.nio.file.{Files, Path}
+
+import com.sksamuel.elastic4s.embedded.{InternalLocalNode, LocalNode}
+import no.ndla.audioapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.tag.IntegrationTest
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 
-@IntegrationTest
 class SearchServiceTest extends UnitSuite with TestEnvironment {
-
-  val esPort = 9200
-
-  override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
+  val tmpDir: Path = Files.createTempDirectory(this.getClass.getName)
+  val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
+  val localNode: InternalLocalNode = LocalNode(localNodeSettings)
+  override val e4sClient: NdlaE4sClient = NdlaE4sClient(localNode.client(true))
 
   override val searchService = new SearchService
   override val indexService = new IndexService
@@ -119,9 +121,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     updated6
   )
 
-  override def beforeAll = {
+  override def beforeAll: Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgumentAt(0, audio1.getClass))
+      i.getArgument[AudioMetaInformation](0))
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
@@ -137,7 +139,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     blockUntil(() => searchService.countDocuments == 6)
   }
 
-  override def afterAll() = {
+  override def afterAll(): Unit = {
     indexService.deleteIndexWithName(Some(AudioApiProperties.SearchIndex))
   }
 

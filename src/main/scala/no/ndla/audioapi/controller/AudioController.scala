@@ -120,7 +120,7 @@ trait AudioController {
     val getAudioFiles =
       (apiOperation[SearchResult]("getAudioFiles")
         summary "Find audio files"
-        notes "Shows all the audio files in the ndla.no database. You can search it too."
+        description "Shows all the audio files in the ndla.no database. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asQueryParam[Option[String]](query),
@@ -147,7 +147,7 @@ trait AudioController {
     val getAudioFilesPost =
       (apiOperation[List[SearchResult]]("getAudioFilesPost")
         summary "Find audio files"
-        notes "Shows all the audio files in the ndla.no database. You can search it too."
+        description "Shows all the audio files in the ndla.no database. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           bodyParam[SearchParams]
@@ -194,7 +194,7 @@ trait AudioController {
     val getByAudioId =
       (apiOperation[AudioMetaInformation]("findByAudioId")
         summary "Fetch information for audio file"
-        notes "Shows info of the audio with submitted id."
+        description "Shows info of the audio with submitted id."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asPathParam[String](audioId),
@@ -216,7 +216,7 @@ trait AudioController {
     val newAudio =
       (apiOperation[AudioMetaInformation]("newAudio")
         summary "Upload a new audio file with meta information"
-        notes "Upload a new audio file with meta data"
+        description "Upload a new audio file with meta data"
         consumes "multipart/form-data"
         parameters (
           asHeaderParam[Option[String]](correlationId),
@@ -249,7 +249,7 @@ trait AudioController {
     val updateAudio =
       (apiOperation[AudioMetaInformation]("updateAudio")
         summary "Upload audio for a different language or update metadata for an existing audio-file"
-        notes "Update the metadata for an existing language, or upload metadata for a new language."
+        description "Update the metadata for an existing language, or upload metadata for a new language."
         consumes "multipart/form-data"
         parameters (
           asHeaderParam[Option[String]](correlationId),

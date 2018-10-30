@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedField}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
@@ -95,8 +95,8 @@ trait IndexService {
       )
     }
 
-    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedFieldDefinition = {
-      NestedFieldDefinition(fieldName).fields(keepRaw match {
+    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedField = {
+      NestedField(fieldName).fields(keepRaw match {
         case true =>
           languageAnalyzers.map(langAnalyzer =>
             textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
