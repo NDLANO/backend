@@ -21,7 +21,7 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.mapping.License._
 
 import scala.util.Try
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.dsl._
 import no.ndla.mapping.LicenseDefinition
 
 trait ImportService {

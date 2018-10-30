@@ -9,8 +9,8 @@
 package no.ndla.audioapi
 
 import javax.sql
-
 import com.amazonaws.services.s3.AmazonS3Client
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController}
 import no.ndla.audioapi.integration._
@@ -46,7 +46,7 @@ trait TestEnvironment
     with User
     with Role
     with Clock {
-  val dataSource = mock[sql.DataSource]
+  val dataSource = mock[HikariDataSource]
   val storageName = AudioApiProperties.StorageName
   val audioStorage = mock[AudioStorage]
   val audioRepository = mock[AudioRepository]

@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Matchers.{eq => eqTo}
+import org.mockito.ArgumentMatchers.{eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraSuite
 

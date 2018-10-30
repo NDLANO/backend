@@ -7,20 +7,18 @@
 
 package db.migration
 
-import java.sql.Connection
 import java.util.Date
-
 import no.ndla.audioapi.model.Language
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration
+import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V4__AddLanguageToAll extends JdbcMigration {
+class V4__AddLanguageToAll extends BaseJavaMigration {
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(connection: Connection): Unit = {
-    val db = DB(connection)
+  override def migrate(context: Context): Unit = {
+    val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>

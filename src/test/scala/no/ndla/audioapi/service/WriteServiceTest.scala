@@ -1,6 +1,7 @@
 package no.ndla.audioapi.service
 
 import java.io.InputStream
+import java.util.Date
 
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
@@ -9,7 +10,7 @@ import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
@@ -23,7 +24,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newAudioFile2 = NewAudioFile("test2.mp3", "nb")
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
-  val s3ObjectMock = mock[ObjectMetadata]
+  val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
 
   val newAudioMeta = NewAudioMetaInformation(
     "title",
@@ -38,13 +39,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     tags = Seq("tag"))
 
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val someAudio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
-  val domainAudioMeta = converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
+  val domainAudioMeta: domain.AudioMetaInformation =
+    converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
 
-  override def beforeEach = {
+  override def beforeEach: Unit = {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
     when(fileMock1.get).thenReturn(Array[Byte](0x49, 0x44, 0x33))
     when(fileMock1.size).thenReturn(1024)

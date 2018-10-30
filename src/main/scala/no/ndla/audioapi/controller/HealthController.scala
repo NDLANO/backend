@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.ApplicationUrl
@@ -43,7 +43,7 @@ trait HealthController {
 
     get("/") {
       val applicationUrl = ApplicationUrl.get
-      val host = applicationUrl.host.getOrElse("0")
+      val host = applicationUrl.hostOption.map(_.toString).getOrElse("0")
       val port = applicationUrl.port.getOrElse("80")
 
       audioRepository

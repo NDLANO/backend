@@ -13,7 +13,7 @@ import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 
@@ -67,7 +67,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll() = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgumentAt(0, sampleAudio.getClass))
+      i.getArgument[AudioMetaInformation](0))
   }
 
   test("That asSearchableAudioInformation converts titles with correct language") {
