@@ -9,7 +9,7 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.network.Domains
+import no.ndla.network.{AuthUser, Domains}
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets._
 
@@ -17,13 +17,13 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object AudioApiProperties extends LazyLogging {
+  val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "audio-api"
-  val Auth0LoginEndpoint = "https://ndla.eu.auth0.com/authorize"
+  val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val RoleWithWriteAccess = "audio:write"
 
   val SecretsFile = "audio-api.secrets"
-  val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
