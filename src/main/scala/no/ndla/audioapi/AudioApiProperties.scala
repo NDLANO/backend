@@ -23,8 +23,6 @@ object AudioApiProperties extends LazyLogging {
 
   val RoleWithWriteAccess = "audio:write"
 
-  val SecretsFile = "audio-api.secrets"
-
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
   val CorrelationIdKey = "correlationID"
@@ -98,9 +96,13 @@ object AudioApiProperties extends LazyLogging {
 
   lazy val Domain = Domains.get(Environment)
 
-  lazy val secrets = readSecrets(SecretsFile) match {
-    case Success(values)    => values
-    case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+  lazy val secrets = {
+    val SecretsFile = "audio-api.secrets"
+    readSecrets(SecretsFile) match {
+      case Success(values) => values
+      case Failure(exception) =>
+        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+    }
   }
 
   def prop(key: String): String = {
