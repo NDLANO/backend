@@ -33,6 +33,7 @@ object Error {
   val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
   val IMPORT_FAILED = "IMPORT_FAILED"
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
+  val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
 
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 
@@ -44,8 +45,12 @@ object Error {
     s"The file is too big. Max file size is ${AudioApiProperties.MaxAudioFileSizeBytes / 1024 / 1024} MiB")
 
   val WINDOW_TOO_LARGE_DESCRIPTION =
-    s"The result window is too large. Fetching pages above ${AudioApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
+    s"The result window is too large. Fetching pages above ${AudioApiProperties.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
   val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
+
+  val InvalidSearchContext = Error(
+    INVALID_SEARCH_CONTEXT,
+    "The search-context specified was not expected. Please create one by searching from page 1.")
 }
 
 class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
