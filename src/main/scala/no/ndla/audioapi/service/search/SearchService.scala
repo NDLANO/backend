@@ -12,9 +12,10 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.ScoreMode
 import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, Sort, SortOrder}
+import com.sksamuel.elastic4s.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.AudioApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, SearchResult, Title}
@@ -28,7 +29,7 @@ import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait SearchService {
   this: Elastic4sClient with SearchIndexService with SearchConverterService =>
@@ -36,7 +37,23 @@ trait SearchService {
 
   class SearchService extends LazyLogging {
 
-    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
+    def scroll(scrollId: String, language: String): Try[domain.SearchResult] =
+      e4sClient
+        .execute {
+          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+        }
+        .map(response => {
+          val hits = getHits(response.result, language)
+
+          domain.SearchResult(
+            totalCount = response.result.totalHits,
+            page = None,
+            pageSize = response.result.hits.hits.length,
+            language = if (language == "*") Language.AllLanguages else language,
+            results = hits,
+            scrollId = response.result.scrollId
+          )
+        })
 
     def getHits(response: SearchResponse, language: String): Seq[AudioSummary] = {
       response.totalHits match {
@@ -57,7 +74,7 @@ trait SearchService {
     }
 
     def hitAsAudioSummary(hitString: String, language: String): AudioSummary = {
-      implicit val formats = DefaultFormats
+      implicit val formats: DefaultFormats.type = DefaultFormats
       val hit = parse(hitString)
 
       val titles = (hit \ "titles").extract[Map[String, String]].map(title => domain.Title(title._2, title._1)).toSeq
@@ -81,7 +98,7 @@ trait SearchService {
             license: Option[String],
             page: Option[Int],
             pageSize: Option[Int],
-            sort: Sort.Value): SearchResult = {
+            sort: Sort.Value): Try[domain.SearchResult] = {
       executeSearch(language, license, sort, page, pageSize, boolQuery())
     }
 
@@ -90,7 +107,7 @@ trait SearchService {
                       license: Option[String],
                       page: Option[Int],
                       pageSize: Option[Int],
-                      sort: Sort.Value): SearchResult = {
+                      sort: Sort.Value): Try[domain.SearchResult] = {
       val fullSearch = boolQuery()
         .must(
           boolQuery()
@@ -119,10 +136,10 @@ trait SearchService {
                       sort: Sort.Value,
                       page: Option[Int],
                       pageSize: Option[Int],
-                      queryBuilder: BoolQuery): SearchResult = {
+                      queryBuilder: BoolQuery): Try[domain.SearchResult] = {
 
       val licenseFilter = license match {
-        case None      => Some(noCopyright)
+        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
         case Some(lic) => Some(termQuery("license", lic))
       }
 
@@ -136,32 +153,39 @@ trait SearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = page.getOrElse(1) * numResults
-      if (requestedResultWindow > AudioApiProperties.ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${AudioApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
-        throw new ResultWindowTooLargeException()
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+        Failure(new ResultWindowTooLargeException())
+      } else {
+
+        val searchToExecute =
+          search(AudioApiProperties.SearchIndex)
+            .size(numResults)
+            .from(startAt)
+            .query(filteredSearch)
+            .highlighting(highlight("*"))
+            .sortBy(getSortDefinition(sort, searchLanguage))
+
+        // Only add scroll param if it is first page
+        val searchWithScroll =
+          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+
+        e4sClient.execute(searchWithScroll) match {
+          case Success(response) =>
+            Success(
+              domain.SearchResult(
+                response.result.totalHits,
+                Some(page.getOrElse(1)),
+                numResults,
+                if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+                getHits(response.result, searchLanguage),
+                response.result.scrollId
+              ))
+          case Failure(ex) => errorHandler(ex)
+        }
       }
 
-      e4sClient.execute {
-        search(AudioApiProperties.SearchIndex)
-          .size(numResults)
-          .from(startAt)
-          .query(filteredSearch)
-          .highlighting(highlight("*"))
-          .sortBy(getSortDefinition(sort, searchLanguage))
-
-      } match {
-        case Success(response) =>
-          SearchResult(
-            response.result.totalHits,
-            page.getOrElse(1),
-            numResults,
-            if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
-            getHits(response.result, searchLanguage)
-          )
-        case Failure(ex) =>
-          errorHandler(Failure(ex))
-      }
     }
 
     private def getSortDefinition(sort: Sort.Value, language: String) = {
@@ -216,30 +240,26 @@ trait SearchService {
       (startAt, numResults)
     }
 
-    private def errorHandler[T](failure: Failure[T]) = {
-      failure match {
-        case Failure(e: NdlaSearchException) => {
+    private def errorHandler[T](exception: Throwable): Failure[T] = {
+      exception match {
+        case e: NdlaSearchException =>
           e.rf.status match {
-            case notFound: Int if notFound == 404 => {
+            case notFound: Int if notFound == 404 =>
               logger.error(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
-              throw new IndexNotFoundException(
-                s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex")
-            }
-            case _ => {
+              Failure(
+                new IndexNotFoundException(s"Index ${AudioApiProperties.SearchIndex} not found. Scheduling a reindex"))
+            case _ =>
               logger.error(e.getMessage)
               println(e.getMessage)
               throw new ElasticsearchException(s"Unable to execute search in ${AudioApiProperties.SearchIndex}",
                                                e.getMessage)
-            }
           }
-
-        }
-        case Failure(t: Throwable) => throw t
+        case ex => Failure(ex)
       }
     }
 
-    private def scheduleIndexDocuments() = {
+    private def scheduleIndexDocuments(): Unit = {
       val f = Future {
         searchIndexService.indexDocuments
       }
