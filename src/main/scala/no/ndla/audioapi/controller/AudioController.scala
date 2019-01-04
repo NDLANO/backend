@@ -9,10 +9,10 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties.{
-  MaxAudioFileSizeBytes,
-  RoleWithWriteAccess,
+  ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
-  ElasticSearchIndexMaxResultWindow
+  MaxAudioFileSizeBytes,
+  RoleWithWriteAccess
 }
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.{Language, Sort}
@@ -28,7 +28,7 @@ import no.ndla.audioapi.model.api.{
   ValidationMessage
 }
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.SearchService
+import no.ndla.audioapi.service.search.{SearchConverterService, SearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -48,6 +48,7 @@ trait AudioController {
     with Role
     with User
     with Clock
+    with SearchConverterService
     with ConverterService =>
   val audioApiController: AudioController
 
@@ -62,6 +63,7 @@ trait AudioController {
     registerModel[ValidationError]()
     registerModel[Error]()
     registerModel[NewAudioMetaInformation]()
+    registerModel[UpdatedAudioMetaInformation]()
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxAudioFileSizeBytes)))
 
@@ -87,8 +89,10 @@ trait AudioController {
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
     private val audioId = Param[String]("audio_id", "Id of audio.")
-    private val metadataNewAudio = Param[String]("metadata", "The metadata for the audio file to submit.")
-    private val metadataUpdatedAudio = Param[String]("metadata", "The metadata for the audio file to submit.")
+    private val metadataNewAudio =
+      Param[NewAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
+    private val metadataUpdatedAudio =
+      Param[UpdatedAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
     private val file = Param("file", "The audio file to upload")
 
     private val scrollId = Param[Option[String]](
@@ -125,6 +129,28 @@ trait AudioController {
                 description = Some(param.description),
                 paramType = ParamType.Form)
 
+    /**
+      * Does a scroll with [[SearchService]]
+      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+      *
+      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
+      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      */
+    private def scrollOr(orFunction: => Any): Any = {
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+      paramOrNone(this.scrollId.paramName) match {
+        case Some(scroll) =>
+          searchService.scroll(scroll, language) match {
+            case Success(scrollResult) =>
+              val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
+              Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
+            case Failure(ex) => errorHandler(ex)
+          }
+        case None => orFunction
+      }
+    }
+
     get(
       "/",
       operation(
@@ -144,14 +170,16 @@ trait AudioController {
           authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
-      val query = paramOrNone("query")
-      val language = paramOrNone("language")
-      val license = paramOrNone("license")
-      val sort = paramOrNone("sort")
-      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
-      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+      scrollOr {
+        val query = paramOrNone("query")
+        val language = paramOrNone("language")
+        val license = paramOrNone("license")
+        val sort = paramOrNone("sort")
+        val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+        val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
 
-      search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page)
+      }
     }
 
     post(
@@ -168,15 +196,17 @@ trait AudioController {
           authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
-      val searchParams = extract[SearchParams](request.body)
-      val query = searchParams.query
-      val language = searchParams.language
-      val license = searchParams.license
-      val sort = searchParams.sort
-      val pageSize = searchParams.pageSize
-      val page = searchParams.page
+      scrollOr {
+        val searchParams = extract[SearchParams](request.body)
+        val query = searchParams.query
+        val language = searchParams.language
+        val license = searchParams.license
+        val sort = searchParams.sort
+        val pageSize = searchParams.pageSize
+        val page = searchParams.page
 
-      search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page)
+      }
     }
 
     private def search(query: Option[String],
@@ -185,21 +215,32 @@ trait AudioController {
                        sort: Option[String],
                        pageSize: Option[Int],
                        page: Option[Int]) = {
-      query match {
+      val result = query match {
         case Some(q) =>
-          searchService.matchingQuery(query = q,
-                                      language = language,
-                                      license = license,
-                                      page = page,
-                                      pageSize = pageSize,
-                                      sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc))
+          searchService.matchingQuery(
+            query = q,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = pageSize,
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc)
+          )
 
         case None =>
-          searchService.all(language = language,
-                            license = license,
-                            page = page,
-                            pageSize = pageSize,
-                            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc))
+          searchService.all(
+            language = language,
+            license = license,
+            page = page,
+            pageSize = pageSize,
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc)
+          )
+      }
+
+      result match {
+        case Success(searchResult) =>
+          val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
+          Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
+        case Failure(ex) => errorHandler(ex)
       }
     }
 
@@ -234,7 +275,7 @@ trait AudioController {
           description "Upload a new audio file with meta data"
           consumes "multipart/form-data"
           parameters (
-            asHeaderParam[Option[String]](correlationId),
+            asHeaderParam(correlationId),
             asObjectFormParam(metadataNewAudio),
             asFileParam(file)
         )
