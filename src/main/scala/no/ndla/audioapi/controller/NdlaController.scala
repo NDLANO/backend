@@ -8,21 +8,20 @@
 
 package no.ndla.audioapi.controller
 
-import javax.servlet.http.HttpServletRequest
-
 import com.typesafe.scalalogging.LazyLogging
+import javax.servlet.http.HttpServletRequest
+import no.ndla.audioapi.AudioApiProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.audioapi.ComponentRegistry
+import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.domain.NdlaSearchException
+import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.{DefaultFormats, Formats}
+import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
-import no.ndla.audioapi.AudioApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.ComponentRegistry
-import no.ndla.network.model.HttpRequestException
-import org.postgresql.util.PSQLException
 import org.scalatra.servlet.SizeConstraintExceededException
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Failure, Success}
 
@@ -60,6 +59,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
+    case nse: NdlaSearchException
+        if nse.rf.error.rootCause.exists(x =>
+          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
