@@ -9,6 +9,8 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties.{
+  DefaultPageSize,
+  MaxPageSize,
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
   MaxAudioFileSizeBytes,
@@ -82,12 +84,14 @@ trait AudioController {
     private val license = Param[Option[String]]("license", "Return only audio with provided license.")
     private val sort = Param[Option[String]](
       "sort",
-      """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+      s"""The sorting used on results.
+             The following are supported: ${Sort.values.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
-    private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+    private val pageSize = Param[Option[Int]](
+      "page-size",
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
     private val audioId = Param[String]("audio_id", "Id of audio.")
     private val metadataNewAudio =
       Param[NewAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
@@ -167,7 +171,6 @@ trait AudioController {
             asQueryParam(pageSize),
             asQueryParam(scrollId)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       scrollSearchOr {
@@ -193,7 +196,6 @@ trait AudioController {
             bodyParam[SearchParams],
             asQueryParam(scrollId)
         )
-          authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
       scrollSearchOr {
@@ -255,7 +257,6 @@ trait AudioController {
             asPathParam(audioId),
             asQueryParam(language)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       val id = long(this.audioId.paramName)
@@ -289,11 +290,11 @@ trait AudioController {
         .get(this.metadataNewAudio.paramName)
         .map(extract[NewAudioMetaInformation])
         .getOrElse(throw new ValidationException(
-          errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
+          errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata."))))
 
       val file = fileParams.getOrElse(
         this.file.paramName,
-        throw new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file"))))
+        throw new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file."))))
 
       writeService.storeNewAudio(newAudio, file) match {
         case Success(audioMeta) => audioMeta
