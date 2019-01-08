@@ -9,8 +9,9 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{AudioSwagger, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
@@ -29,7 +30,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
-  implicit val swagger = new AudioSwagger
+  implicit val swagger: AudioSwagger = new AudioSwagger
   lazy val controller = new AudioController
   addServlet(controller, "/*")
 
@@ -109,5 +110,107 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     post("/", Map("metadata" -> sampleNewAudioMeta), headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
       status should equal(403)
     }
+  }
+
+  test("That scrollId is in header, and not in body") {
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = domain.SearchResult(
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty,
+      Some(scrollId)
+    )
+    when(
+      searchService.all(
+        any[Option[String]],
+        any[Option[String]],
+        any[Option[Int]],
+        any[Option[Int]],
+        any[Sort.Value]
+      ))
+      .thenReturn(Success(searchResponse))
+
+    get(s"/") {
+      status should be(200)
+      body.contains(scrollId) should be(false)
+      header("search-context") should be(scrollId)
+    }
+  }
+
+  test("That scrolling uses scroll and not searches normally") {
+    reset(searchService)
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = domain.SearchResult(
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty,
+      Some(scrollId)
+    )
+
+    when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+
+    get(s"/?search-context=$scrollId") {
+      status should be(200)
+    }
+
+    verify(searchService, times(0)).all(
+      any[Option[String]],
+      any[Option[String]],
+      any[Option[Int]],
+      any[Option[Int]],
+      any[Sort.Value]
+    )
+    verify(searchService, times(0)).matchingQuery(
+      any[String],
+      any[Option[String]],
+      any[Option[String]],
+      any[Option[Int]],
+      any[Option[Int]],
+      any[Sort.Value]
+    )
+    verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
+  }
+
+  test("That scrolling with POST uses scroll and not searches normally") {
+    reset(searchService)
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = domain.SearchResult(
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty,
+      Some(scrollId)
+    )
+
+    when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+
+    post(s"/search/?search-context=$scrollId") {
+      status should be(200)
+    }
+
+    verify(searchService, times(0)).all(
+      any[Option[String]],
+      any[Option[String]],
+      any[Option[Int]],
+      any[Option[Int]],
+      any[Sort.Value]
+    )
+    verify(searchService, times(0)).matchingQuery(
+      any[String],
+      any[Option[String]],
+      any[Option[String]],
+      any[Option[Int]],
+      any[Option[Int]],
+      any[Sort.Value]
+    )
+    verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 }
