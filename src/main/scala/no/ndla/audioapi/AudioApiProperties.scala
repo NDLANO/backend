@@ -57,6 +57,9 @@ object AudioApiProperties extends LazyLogging {
   val MigrationUser = prop("MIGRATION_USER")
   val MigrationPassword = prop("MIGRATION_PASSWORD")
 
+  val NdlaRedUsername = prop("NDLA_RED_USERNAME")
+  val NdlaRedPassword = prop("NDLA_RED_PASSWORD")
+
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val ElasticSearchIndexMaxResultWindow = 10000

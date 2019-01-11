@@ -59,7 +59,8 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
 
     when(audioStorage.getObjectMetaData(any[String])).thenReturn(Failure(mock[AmazonClientException]))
-    when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Failure(clientException))
+    when(audioStorage.storeAudio(any[String], any[String], any[String], any[String]))
+      .thenReturn(Failure(clientException))
     service.importAudio(audioId) should equal(Failure(clientException))
   }
 
@@ -70,7 +71,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
     when(migrationApiClient.getNodeData(any[String])).thenReturn(Success(MigrationNodeData(Seq.empty)))
     when(audioStorage.getObjectMetaData(any[String])).thenReturn(Failure(mock[AmazonClientException]))
-    when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
+    when(audioStorage.storeAudio(any[String], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(Some(existingAudioMeta))
     when(existingAudioMeta.id).thenReturn(Some(1: Long))
@@ -86,7 +87,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
     when(migrationApiClient.getNodeData(any[String])).thenReturn(Success(MigrationNodeData(Seq.empty)))
-    when(audioStorage.storeAudio(any[URL], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
+    when(audioStorage.storeAudio(any[String], any[String], any[String], any[String])).thenReturn(Success(s3ObjectMock))
     when(tagsService.forAudio("1")).thenReturn(List())
     when(audioRepository.withExternalId(defaultMigrationAudioMeta.nid)).thenReturn(None)
     when(audioRepository.insertFromImport(any[AudioMetaInformation], any[String])).thenReturn(Success(newAudioMeta))
