@@ -154,11 +154,8 @@ trait ImportService {
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
       audioStorage
         .getObjectMetaData(audioMeta.fileName)
-        .orElse(
-          audioStorage.storeAudio(new URL(audioMeta.url.withScheme("https")),
-                                  audioMeta.mimeType,
-                                  audioMeta.fileSize,
-                                  audioMeta.fileName))
+        .orElse(audioStorage
+          .storeAudio(audioMeta.url.withScheme("https"), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
         .map(
           s3ObjectMeta =>
             Audio(audioMeta.fileName,

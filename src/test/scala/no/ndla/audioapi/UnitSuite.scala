@@ -36,6 +36,8 @@ abstract class UnitSuite
   setEnv("MIGRATION_USER", "some-user")
   setEnv("MIGRATION_PASSWORD", "some-password")
   setEnv("SEARCH_INDEX_NAME", "audio-integration-test-index")
+  setEnv("NDLA_RED_USERNAME", "redusername")
+  setEnv("NDLA_RED_PASSWORD", "redpassword")
 
   def setEnv(key: String, value: String) = {
     val field = System.getenv().getClass.getDeclaredField("m")

@@ -12,8 +12,9 @@ import java.io.InputStream
 import java.net.URL
 
 import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, PutObjectRequest}
-import no.ndla.audioapi.AudioApiProperties.StorageName
+import no.ndla.audioapi.AudioApiProperties.{StorageName, NdlaRedUsername, NdlaRedPassword}
 import no.ndla.audioapi.integration.AmazonClient
+import scalaj.http.Http
 
 import scala.util.{Failure, Success, Try}
 
@@ -23,8 +24,16 @@ trait AudioStorageService {
 
   class AudioStorage {
 
-    def storeAudio(audioUrl: URL, contentType: String, size: String, destinationPath: String): Try[ObjectMetadata] = {
-      storeAudio(audioUrl.openStream, contentType, size.toLong, destinationPath)
+    def storeAudio(audioUrl: String,
+                   contentType: String,
+                   size: String,
+                   destinationPath: String): Try[ObjectMetadata] = {
+      Http(audioUrl)
+        .auth(NdlaRedUsername, NdlaRedPassword)
+        .execute(stream => {
+          storeAudio(stream, contentType, size.toLong, destinationPath)
+        })
+        .body
     }
 
     def storeAudio(audioStream: InputStream,
