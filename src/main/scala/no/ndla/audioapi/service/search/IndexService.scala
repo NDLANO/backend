@@ -84,6 +84,19 @@ trait IndexService {
       }
     }
 
+    def findAllIndexes(indexName: String): Try[Seq[String]] = {
+      val response = e4sClient.execute {
+        getAliases()
+      }
+
+      response match {
+        case Success(results) =>
+          Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
+        case Failure(ex) =>
+          Failure(ex)
+      }
+    }
+
     def buildMapping: MappingDefinition = {
       mapping(AudioApiProperties.SearchDocument).fields(
         intField("id"),
