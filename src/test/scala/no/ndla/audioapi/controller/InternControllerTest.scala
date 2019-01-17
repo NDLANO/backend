@@ -9,9 +9,9 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.ArgumentMatchers.{eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraSuite
 
@@ -85,4 +85,56 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       body indexOf "nullpointer" should be > 0
     }
   }
+
+  test("That DELETE /index removes all indexes") {
+    reset(indexService)
+    when(indexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    delete("/index") {
+      status should equal(200)
+      body should equal("Deleted 3 indexes")
+    }
+    verify(indexService).findAllIndexes(AudioApiProperties.SearchIndex)
+    verify(indexService).deleteIndexWithName(Some("index1"))
+    verify(indexService).deleteIndexWithName(Some("index2"))
+    verify(indexService).deleteIndexWithName(Some("index3"))
+    verifyNoMoreInteractions(indexService)
+  }
+
+  test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
+    reset(indexService)
+    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
+      .when(indexService)
+      .findAllIndexes(AudioApiProperties.SearchIndex)
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    delete("/index") {
+      status should equal(500)
+      body should equal("Failed to find indexes")
+    }
+    verify(indexService, never()).deleteIndexWithName(any[Option[String]])
+  }
+
+  test(
+    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
+    reset(indexService)
+    when(indexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
+    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
+      .when(indexService)
+      .deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    delete("/index") {
+      status should equal(500)
+      body should equal(
+        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully.")
+    }
+    verify(indexService).deleteIndexWithName(Some("index1"))
+    verify(indexService).deleteIndexWithName(Some("index2"))
+    verify(indexService).deleteIndexWithName(Some("index3"))
+  }
+
 }
