@@ -52,7 +52,14 @@ object ComponentRegistry
   lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
   connectToDatabase()
 
-  val amazonClient: AmazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
+  val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
+
+  val amazonClient: AmazonS3 =
+    AmazonS3ClientBuilder
+      .standard()
+      .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
+      .build()
+
   lazy val storageName: String = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository
