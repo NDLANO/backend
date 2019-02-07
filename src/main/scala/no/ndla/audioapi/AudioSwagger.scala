@@ -21,7 +21,10 @@ object AudioApiInfo {
 
   val apiInfo = ApiInfo(
     "Audio API",
-    "Services for accessing audio from NDLA",
+    "Searching and fetching all audio used in the NDLA platform.\n\n" +
+      "The Audio API provides an endpoint for searching and fetching audio used in NDLA resources. " +
+      "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
+      "The media file is provided as an URL with the mime type.",
     "http://ndla.no",
     AudioApiProperties.ContactEmail,
     "GPL v3.0",
