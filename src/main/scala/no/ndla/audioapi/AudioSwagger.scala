@@ -25,7 +25,7 @@ object AudioApiInfo {
       "The Audio API provides an endpoint for searching and fetching audio used in NDLA resources. " +
       "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
       "The media file is provided as an URL with the mime type.",
-    "http://ndla.no",
+    "https://om.ndla.no/tos",
     AudioApiProperties.ContactEmail,
     "GPL v3.0",
     "http://www.gnu.org/licenses/gpl-3.0.en.html"
