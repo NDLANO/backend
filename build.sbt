@@ -121,7 +121,7 @@ docker / dockerfile := {
   val artifact = (assembly / assemblyOutputPath).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
-    from("openjdk:8-jre-alpine")
+    from("adoptopenjdk/openjdk11:alpine-slim")
     run("apk", "--no-cache", "add", "ttf-dejavu")
     add(artifact, artifactTargetPath)
     entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
