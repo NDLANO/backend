@@ -17,6 +17,7 @@ object ISO639 {
   private val FRENCH = "fr"
   private val GERMAN = "de"
   private val SAMI = "se"
+  private val SOUTHERN_SAMI = "sma"
   private val SPANISH = "es"
   private val CHINESE = "zh"
   private val UNKNOWN = "unknown"
@@ -27,7 +28,7 @@ object ISO639 {
     "eng" -> ENGLISH,
     "fra" -> FRENCH,
     "sme" -> SAMI,
-    "sma" -> SAMI,
+    "sma" -> SOUTHERN_SAMI,
     "smj" -> SAMI,
     "deu" -> GERMAN,
     "spa" -> SPANISH,
