@@ -111,8 +111,9 @@ trait SearchService {
       val fullSearch = boolQuery()
         .must(
           boolQuery()
-            .should(languageSpecificSearch("titles", language, query, 1),
-                    languageSpecificSearch("tags", language, query, 1)))
+            .should(languageSpecificSearch("titles", language, query, 2),
+                    languageSpecificSearch("tags", language, query, 1),
+                    idsQuery(query)))
 
       executeSearch(language, license, sort, page, pageSize, fullSearch)
     }

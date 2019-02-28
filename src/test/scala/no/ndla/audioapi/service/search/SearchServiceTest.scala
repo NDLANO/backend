@@ -202,6 +202,12 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     results.results.head.id should be(2)
   }
 
+  test("That search matches id") {
+    val Success(results) = searchService.matchingQuery("2", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    results.totalCount should be(1)
+    results.results.head.id should be(2)
+  }
+
   test("That search matches tags") {
     val Success(results) = searchService.matchingQuery("and", Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be(1)
