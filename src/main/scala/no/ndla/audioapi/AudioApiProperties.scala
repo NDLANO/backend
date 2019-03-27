@@ -43,7 +43,7 @@ object AudioApiProperties extends LazyLogging {
 
   val MaxAudioFileSizeBytes = 1024 * 1024 * 40 // 40 MiB
 
-  val StorageName = s"${Environment.replace('_', '-')}.audio.ndla"
+  val StorageName: String = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
 
   val SearchServer = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val DraftApiHost = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
