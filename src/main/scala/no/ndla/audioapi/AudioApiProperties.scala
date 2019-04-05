@@ -39,7 +39,7 @@ object AudioApiProperties extends LazyLogging {
   val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
   val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
   val MetaInitialConnections = 3
-  val MetaMaxConnections = 20
+  val MetaMaxConnections = 10
 
   val MaxAudioFileSizeBytes = 1024 * 1024 * 40 // 40 MiB
 
