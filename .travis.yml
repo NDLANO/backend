@@ -1,9 +1,3 @@
-dist: trusty
-language: scala
-scala:
-    - 2.12.7
-jdk:
-  - oraclejdk8
 # Use container-based infrastructure
 sudo: false
 # These directories are cached to S3 at the end of the build
@@ -21,3 +15,38 @@ notifications:
     on_failure: always
     rooms:
       secure: Lom/nQiWZ7aCcBa3u0dk6ZazKJ/ou5ZaXd8Yo3JuffOEZ6vPzXsms8zwWuthOssDLkeKVCOfQM+7ETQkBJHe0gJ32JjiSoI46eYXlxjYUSwlQMRWoYZHOzV0GHRP3ul+CC/dDa8uiSzU5QPA/IQbJqTYPScx1dPFrgZlIip4uPOY0oJSUDVaiibls/IVpUi6peEou1ffJgu8YmIr72NV60yZrzrB7XDADjeTkdqvV0XkAtRR6YkVMIP/3XDN+k3YKcBDIUDmQ12GnDV45YdHTjo8zTHMwGS7R+ySRcnA7RB7inXd4U0xkedpin9XOvQ2+A7BqQMv5f7aCSfNsUYU8trMWXkpALJiSRIaEsTMcM2ikJvZHZX3QG+ED1R4u4T4obuz5U2mRaH+IOjvZeN58XWu7LrQfZe3PgQ6jDjo22eyuRDQkHWqKQBEJKfDWFCkNAx8thfR3aiaL002RqsKArnmkXl0MTLFggbgKbgKgzdYskAUvXTQu7PSewhn6zUyfZx5nLv91JZl6C4VJuC1ys9baEWlSkb77d7ecKfnNb2R7e3zj/zaxRUk8UlChrDDT0D0uLQ9Cc+R0SYRotjfUJiDC8hDm2vNSmAXS2clHvq6IreYedOMeDySE3xSHoyofrDsX0VxC4Zu57K8QRQSov4jALvSBHMLAPR5Uypbwnw=
+
+matrix:
+  fast_finish: true
+  include:
+    - stage: "Test"
+      language: scala
+      dist: trusty
+      scala:
+          - 2.12.7
+      jdk:
+        - oraclejdk8
+
+    - stage: "Release"
+      language: python
+      python: 3.7
+      dist: bionic
+      # TODO: Cache the requirements?
+      services:
+        - docker
+      before_install: 
+        - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git
+        - touch /tmp/mock_sock
+      install:
+        - export NDLA_HOME=$(pwd)/
+        - export NDLA_DEPLOY=$NDLA_HOME/deploy
+
+        - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
+      env:
+        - SSH_AUTH_SOCK=/tmp/mock_sock
+      script:
+        - ndla release test audio-api
+  allow_failures:
+      - python: 3.7
+      
+    
