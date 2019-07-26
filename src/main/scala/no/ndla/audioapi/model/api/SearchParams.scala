@@ -22,4 +22,8 @@ case class SearchParams(
     @(ApiModelProperty @field)(description = "The number of search hits to display for each page.") pageSize: Option[
       Int],
     @(ApiModelProperty @field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[
-      String])
+      String],
+    @(ApiModelProperty @field)(
+      description = "A search context retrieved from the response header of a previous search.") scrollId: Option[
+      String]
+)

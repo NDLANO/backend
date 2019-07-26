@@ -192,7 +192,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
     when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    post(s"/search/?search-context=$scrollId") {
+    post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 

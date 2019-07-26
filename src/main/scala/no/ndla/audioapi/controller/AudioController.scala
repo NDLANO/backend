@@ -140,10 +140,8 @@ trait AudioController {
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
       * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(orFunction: => Any): Any = {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-
-      paramOrNone(this.scrollId.paramName) match {
+    private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
+      scrollId match {
         case Some(scroll) =>
           searchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
@@ -153,7 +151,6 @@ trait AudioController {
           }
         case None => orFunction
       }
-    }
 
     get(
       "/",
@@ -173,9 +170,11 @@ trait AudioController {
         )
           responseMessages (response404, response500))
     ) {
-      scrollSearchOr {
+      val language = paramOrNone("language")
+      val scrollId = paramOrNone(this.scrollId.paramName)
+
+      scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
         val query = paramOrNone("query")
-        val language = paramOrNone("language")
         val license = paramOrNone("license")
         val sort = paramOrNone("sort")
         val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
@@ -198,8 +197,8 @@ trait AudioController {
         )
           responseMessages (response400, response500))
     ) {
-      scrollSearchOr {
-        val searchParams = extract[SearchParams](request.body)
+      val searchParams = extract[SearchParams](request.body)
+      scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
         val query = searchParams.query
         val language = searchParams.language
         val license = searchParams.license
