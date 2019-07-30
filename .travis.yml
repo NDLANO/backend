@@ -19,14 +19,6 @@ notifications:
 matrix:
   fast_finish: true
   include:
-    - stage: "Test"
-      language: scala
-      dist: trusty
-      scala:
-          - 2.12.7
-      jdk:
-        - oraclejdk8
-
     - stage: "Release"
       language: python
       python: 3.7
@@ -35,18 +27,30 @@ matrix:
       services:
         - docker
       before_install: 
-        - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git
-        - touch /tmp/mock_sock
-      install:
-        - export NDLA_HOME=$(pwd)/
+        - export NDLA_HOME=$(realpath $(pwd)/../)
         - export NDLA_DEPLOY=$NDLA_HOME/deploy
 
+      # - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+        - git clone https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+          # TODO: --depth 1
+        - git -C $NDLA_DEPLOY checkout "NDLANO/Issues#1586-auto-release" # TODO: Dont checkout
+        - touch /tmp/mock_sock
+      install:
         - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
       env:
         - SSH_AUTH_SOCK=/tmp/mock_sock
         - NDLA_ENVIRONMENT=travis
       script:
         - ndla release test audio-api
+
+    - stage: "Test" # TODO: Move to before release stage
+      language: scala
+      dist: trusty
+      scala:
+          - 2.12.7
+      jdk:
+        - oraclejdk8
+
   allow_failures:
       - python: 3.7
       
