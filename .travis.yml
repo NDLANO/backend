@@ -44,6 +44,7 @@ matrix:
         - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
       env:
         - SSH_AUTH_SOCK=/tmp/mock_sock
+        - NDLA_ENVIRONMENT=travis
       script:
         - ndla release test audio-api
   allow_failures:
