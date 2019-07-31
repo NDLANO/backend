@@ -16,7 +16,6 @@ matrix:
       language: python
       python: 3.7
       dist: bionic
-      # TODO: Cache the requirements?
       services:
         - docker
       before_install: 
@@ -32,9 +31,9 @@ matrix:
         - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
       env:
         - SSH_AUTH_SOCK=/tmp/mock_sock
-        - NDLA_ENVIRONMENT=travis
       script:
         - ndla release test audio-api --update-chart
+        - ndla release staging audio-api
 
     - stage: "Test" # TODO: Move to before release stage
       language: scala
