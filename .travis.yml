@@ -1,7 +1,5 @@
 # Use container-based infrastructure
 sudo: false
-# These directories are cached to S3 at the end of the build
-
 notifications:
   slack:
     on_success: change
@@ -12,38 +10,7 @@ notifications:
 matrix:
   fast_finish: true
   include:
-    - stage: "Release"
-      language: python
-      python: 3.7
-      dist: bionic
-      services:
-        - docker
-      cache:
-        directories:
-          - /tmp/deploy-docker
-      before_install: 
-        - export NDLA_HOME=$(realpath $(pwd)/../)
-        - export NDLA_DEPLOY=$NDLA_HOME/deploy
-
-        - docker load -i /tmp/deploy-docker/image.tar || true # || true so we don't fail if cache is missing
-
-      # - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
-        - git clone https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
-          # TODO: --depth 1
-        - git -C $NDLA_DEPLOY checkout "NDLANO/Issues#1586-auto-release" # TODO: Dont checkout
-        - touch /tmp/mock_sock
-      install:
-        - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
-      env:
-        - SSH_AUTH_SOCK=/tmp/mock_sock
-      script:
-        - ndla release test audio-api --update-chart
-        - ndla release staging audio-api
-
-      before_cache: # Save docker image as cache
-        - docker save -o /tmp/deploy-docker/image.tar ndladeploy
-
-    - stage: "Test" # TODO: Move to before release stage
+    - stage: "Test"
       language: scala
       dist: trusty
       scala:
@@ -59,7 +26,33 @@ matrix:
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
 
+    - stage: "Release"
+      language: python
+      python: 3.7
+      dist: bionic
+      services:
+        - docker
+      cache:
+        directories:
+          - /tmp/deploy-docker
+      before_install: 
+        - export NDLA_HOME=$(realpath $(pwd)/../)
+        - export NDLA_DEPLOY=$NDLA_HOME/deploy
+
+        - docker load -i /tmp/deploy-docker/image.tar || true # || true so we don't fail if cache is missing
+
+        - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+        - touch /tmp/mock_sock
+      install:
+        - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
+      env:
+        - SSH_AUTH_SOCK=/tmp/mock_sock
+      script:
+        - ndla release test audio-api --update-chart
+        - ndla release staging audio-api
+
+      before_cache: # Save docker image as cache
+        - docker save -o /tmp/deploy-docker/image.tar ndladeploy
   allow_failures:
-      - python: 3.7
-      
+      - stage: "Release"
     
