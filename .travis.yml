@@ -27,6 +27,7 @@ matrix:
         - find $HOME/.sbt -name "*.lock" -delete
 
     - stage: "Release"
+      if: branch = master AND type = push
       language: python
       python: 3.7
       dist: bionic
