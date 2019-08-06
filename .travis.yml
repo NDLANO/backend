@@ -10,10 +10,26 @@ notifications:
 matrix:
   fast_finish: true
   include:
-    - stage: "Release"
+    # Test job
+    - language: scala
+      dist: trusty
+      scala:
+          - 2.12.7
+      jdk:
+        - oraclejdk8
+      cache:
+        directories:
+          - $HOME/.ivy2/cache
+          - $HOME/.sbt/boot/
+      before_cache:
+        # Tricks to avoid unnecessary cache updates
+        - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+        - find $HOME/.sbt -name "*.lock" -delete
+
+    # Release job
+    - language: python
       # TODO: uncomment
       # if: branch = master AND type = push
-      language: python
       python: 3.7
       dist: bionic
       services:
@@ -43,24 +59,10 @@ matrix:
 
       before_cache: # Save docker image as cache
         - docker save -o /tmp/deploy-docker/image.tar ndladeploy
-
-    # TODO: Move this first
-    - stage: "Test"
-      language: scala
-      dist: trusty
-      scala:
-          - 2.12.7
-      jdk:
-        - oraclejdk8
-      cache:
-        directories:
-          - $HOME/.ivy2/cache
-          - $HOME/.sbt/boot/
-      before_cache:
         # Tricks to avoid unnecessary cache updates
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
 
   allow_failures:
-      - stage: "Release"
+      - language: python
     
