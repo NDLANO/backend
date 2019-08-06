@@ -10,8 +10,8 @@ notifications:
 matrix:
   fast_finish: true
   include:
-    # Test job
-    - language: scala
+    - name: "Test"
+      language: scala
       dist: trusty
       scala:
           - 2.12.7
@@ -26,8 +26,8 @@ matrix:
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
 
-    # Release job
-    - language: python
+    - name: "Release"
+      language: python
       # TODO: uncomment
       # if: branch = master AND type = push
       python: 3.7
@@ -36,18 +36,23 @@ matrix:
         - docker
       cache:
         directories:
-          - /tmp/deploy-docker
           - $HOME/.ivy2/cache
           - $HOME/.sbt/boot/
       before_install: 
+        # Authenticate docker client to deploy aws registry
+        - pip install awscli
+        - $(aws ecr get-login --no-include-email --region eu-west-1)
+
+        - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+
         - export NDLA_HOME=$(realpath $(pwd)/../)
         - export NDLA_DEPLOY=$NDLA_HOME/deploy
+        - export DEPLOY_VERSION=$(git -C $NDLA_DEPLOY rev-parse --short=7 HEAD)
+        - export DEPLOY_DOCKER_REPO=784120951859.dkr.ecr.eu-west-1.amazonaws.com/ndla/deploy
 
-        - docker load -i /tmp/deploy-docker/image.tar || true # || true so we don't fail if cache is missing
+        # Get cache, and don't fail if missing
+        - docker pull $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION || true
 
-          # TODO: - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
-        - git clone https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
-        - git -C $NDLA_DEPLOY checkout dontbuildifalreadybuilt
         - touch /tmp/mock_sock
       install:
         - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
@@ -58,7 +63,9 @@ matrix:
         - ndla release staging audio-api
 
       before_cache: # Save docker image as cache
-        - docker save -o /tmp/deploy-docker/image.tar ndladeploy
+        - docker tag ndladeploy:$DEPLOY_VERSION $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION
+        - docker push $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION
+
         # Tricks to avoid unnecessary cache updates
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
