@@ -10,6 +10,41 @@ notifications:
 matrix:
   fast_finish: true
   include:
+    - stage: "Release"
+      # TODO: uncomment
+      # if: branch = master AND type = push
+      language: python
+      python: 3.7
+      dist: bionic
+      services:
+        - docker
+      cache:
+        directories:
+          - /tmp/deploy-docker
+          - $HOME/.ivy2/cache
+          - $HOME/.sbt/boot/
+      before_install: 
+        - export NDLA_HOME=$(realpath $(pwd)/../)
+        - export NDLA_DEPLOY=$NDLA_HOME/deploy
+
+        - docker load -i /tmp/deploy-docker/image.tar || true # || true so we don't fail if cache is missing
+
+          # TODO: - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+        - git clone https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
+        - git -C $NDLA_DEPLOY checkout dontbuildifalreadybuilt
+        - touch /tmp/mock_sock
+      install:
+        - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
+      env:
+        - SSH_AUTH_SOCK=/tmp/mock_sock
+      script:
+        - ndla release test audio-api --update-chart
+        - ndla release staging audio-api
+
+      before_cache: # Save docker image as cache
+        - docker save -o /tmp/deploy-docker/image.tar ndladeploy
+
+    # TODO: Move this first
     - stage: "Test"
       language: scala
       dist: trusty
@@ -26,34 +61,6 @@ matrix:
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
 
-    - stage: "Release"
-      if: branch = master AND type = push
-      language: python
-      python: 3.7
-      dist: bionic
-      services:
-        - docker
-      cache:
-        directories:
-          - /tmp/deploy-docker
-      before_install: 
-        - export NDLA_HOME=$(realpath $(pwd)/../)
-        - export NDLA_DEPLOY=$NDLA_HOME/deploy
-
-        - docker load -i /tmp/deploy-docker/image.tar || true # || true so we don't fail if cache is missing
-
-        - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
-        - touch /tmp/mock_sock
-      install:
-        - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
-      env:
-        - SSH_AUTH_SOCK=/tmp/mock_sock
-      script:
-        - ndla release test audio-api --update-chart
-        - ndla release staging audio-api
-
-      before_cache: # Save docker image as cache
-        - docker save -o /tmp/deploy-docker/image.tar ndladeploy
   allow_failures:
       - stage: "Release"
     
