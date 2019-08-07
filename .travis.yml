@@ -28,23 +28,25 @@ matrix:
 
     - name: "Release"
       language: python
-      # TODO: uncomment
-      # if: branch = master AND type = push
+      if: branch = master AND type = push
       python: 3.7
       dist: bionic
       services:
         - docker
       cache:
+        pip: true
         directories:
           - $HOME/.ivy2/cache
           - $HOME/.sbt/boot/
-      before_install: 
+      before_install:
         # Authenticate docker client to deploy aws registry
         - pip install awscli
         - $(aws ecr get-login --no-include-email --region eu-west-1)
 
+        # Fetch deploy repo
         - git clone --depth 1 https://knowit-at-ndla:$TRAVIS_RELEASE_GITHUB_TOKEN@github.com/ndlano/deploy.git ../deploy
 
+        # Setup env
         - export NDLA_HOME=$(realpath $(pwd)/../)
         - export NDLA_DEPLOY=$NDLA_HOME/deploy
         - export DEPLOY_VERSION=$(git -C $NDLA_DEPLOY rev-parse --short=7 HEAD)
@@ -52,8 +54,6 @@ matrix:
 
         # Get cache, and don't fail if missing
         - docker pull $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION || true
-
-        - touch /tmp/mock_sock
       install:
         - eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
       env:
@@ -63,7 +63,6 @@ matrix:
         - ndla release staging audio-api
 
       before_cache: # Save docker image as cache
-        - docker tag ndladeploy:$DEPLOY_VERSION $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION
         - docker push $DEPLOY_DOCKER_REPO:$DEPLOY_VERSION
 
         # Tricks to avoid unnecessary cache updates
