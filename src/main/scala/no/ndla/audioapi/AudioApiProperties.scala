@@ -52,7 +52,7 @@ object AudioApiProperties extends LazyLogging {
   val SearchIndex = propOrElse("SEARCH_INDEX_NAME", "audios")
   val SearchDocument = "audio"
   val DefaultPageSize = 10
-  val MaxPageSize = 100
+  val MaxPageSize = 10000
   val IndexBulkSize = 200
 
   val MigrationHost = prop("MIGRATION_HOST")
