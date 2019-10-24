@@ -63,6 +63,7 @@ lazy val audio_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "com.google.guava" % "guava" % "28.1-jre", // Overridden because vulnerability in request interceptor
+      "org.apache.httpcomponents" % "httpclient" % "4.5.10", // Overridden because vulnerability in request interceptor
       "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       "org.mockito" % "mockito-core" % MockitoVersion % "test",
