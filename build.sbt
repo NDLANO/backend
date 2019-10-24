@@ -6,7 +6,7 @@ val ScalaLoggingVersion = "3.9.0"
 val ScalaTestVersion = "3.0.5"
 val Log4JVersion = "2.11.1"
 val Jettyversion = "9.4.18.v20190429"
-val AwsSdkversion = "1.11.434"
+val AwsSdkversion = "1.11.658"
 val MockitoVersion = "2.23.0"
 val Elastic4sVersion = "6.7.3"
 val JacksonVersion = "2.9.10.1"
@@ -57,6 +57,7 @@ lazy val audio_api = (project in file("."))
       "org.postgresql" % "postgresql" % PostgresVersion,
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolVersion,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
+      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "2.4.1",
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
@@ -71,7 +72,6 @@ lazy val audio_api = (project in file("."))
       "log4j" % "log4j" % "1.2.16",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkversion,
       "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
       "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
       "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion // Overridden because vulnerability in elastic4s
