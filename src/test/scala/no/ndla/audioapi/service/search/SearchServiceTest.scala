@@ -8,26 +8,30 @@
 
 package no.ndla.audioapi.service.search
 
-import java.nio.file.{Files, Path}
-
-import com.sksamuel.elastic4s.embedded.{InternalLocalNode, LocalNode}
 import no.ndla.audioapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.tag.IntegrationTest
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
+import org.scalatest.Outcome
+import org.testcontainers.elasticsearch.ElasticsearchContainer
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
-  val tmpDir: Path = Files.createTempDirectory(this.getClass.getName)
-  val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
-  val localNode: InternalLocalNode = LocalNode(localNodeSettings)
-  override val e4sClient: NdlaE4sClient = NdlaE4sClient(localNode.client(true))
+  val esVersion = "6.3.2"
+
+  val container = Try {
+    val c = new ElasticsearchContainer(s"docker.elastic.co/elasticsearch/elasticsearch:$esVersion")
+    c.start()
+    c
+  }
+
+  val host = container.map(c => s"http://${c.getHttpHostAddress}")
+  override val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(host.getOrElse("http://localhost:9200"))
 
   override val searchService = new SearchService
   override val indexService = new IndexService
@@ -123,26 +127,33 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     updated6
   )
 
+  // Skip tests if no docker environment available
+  override def withFixture(test: NoArgTest): Outcome = {
+    assume(container.isSuccess)
+    super.withFixture(test)
+  }
+
   override def beforeAll: Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[AudioMetaInformation](0))
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
-    indexService.createIndexWithName(AudioApiProperties.SearchIndex)
+    if (container.isSuccess) {
+      indexService.createIndexWithName(AudioApiProperties.SearchIndex)
+      indexService.indexDocument(audio1)
+      indexService.indexDocument(audio2)
+      indexService.indexDocument(audio3)
+      indexService.indexDocument(audio4)
+      indexService.indexDocument(audio5)
+      indexService.indexDocument(audio6)
 
-    indexService.indexDocument(audio1)
-    indexService.indexDocument(audio2)
-    indexService.indexDocument(audio3)
-    indexService.indexDocument(audio4)
-    indexService.indexDocument(audio5)
-    indexService.indexDocument(audio6)
-
-    blockUntil(() => searchService.countDocuments == 6)
+      blockUntil(() => searchService.countDocuments == 6)
+    }
   }
 
   override def afterAll(): Unit = {
-    indexService.deleteIndexWithName(Some(AudioApiProperties.SearchIndex))
+    if (container.isSuccess) indexService.deleteIndexWithName(Some(AudioApiProperties.SearchIndex))
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
