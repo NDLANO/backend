@@ -116,7 +116,7 @@ trait AudioRepository {
 
     def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession) = {
       sql"delete from ${AudioMetaInformation.table} where id=$audioId"
-        .execute()
+        .update()
         .apply()
     }
 

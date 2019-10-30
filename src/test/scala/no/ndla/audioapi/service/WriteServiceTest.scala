@@ -354,7 +354,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audioId = 4444.toLong
 
     when(audioRepository.withId(audioId)).thenReturn(Some(domainAudioMeta))
-    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(true)
+    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
     when(audioStorage.deleteObject(any[String])).thenReturn(Success(true))
     when(searchIndexService.deleteDocument(any[Long])).thenReturn(Success(true))
 
