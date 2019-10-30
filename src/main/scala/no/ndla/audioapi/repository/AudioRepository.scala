@@ -9,7 +9,6 @@
 package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.OptimisticLockException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
@@ -115,21 +114,10 @@ trait AudioRepository {
       }
     }
 
-    def applyToAllNew(func: List[AudioMetaInformation] => Try[Unit]) = {
-      val au = AudioMetaInformation.syntax("au")
-      val numberOfBulks = math.ceil(numElements.toFloat / AudioApiProperties.IndexBulkSize).toInt
-
-      DB readOnly { implicit session =>
-        for (i <- 0 until numberOfBulks) {
-          func(
-            sql"""select ${au.result.*} from ${AudioMetaInformation
-              .as(au)} limit ${AudioApiProperties.IndexBulkSize} offset ${i * AudioApiProperties.IndexBulkSize}"""
-              .map(AudioMetaInformation(au))
-              .list
-              .apply()
-          )
-        }
-      }
+    def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession) = {
+      sql"delete from ${AudioMetaInformation.table} where id=$audioId"
+        .execute()
+        .apply()
     }
 
     def audiosWithIdBetween(min: Long, max: Long): List[AudioMetaInformation] = {

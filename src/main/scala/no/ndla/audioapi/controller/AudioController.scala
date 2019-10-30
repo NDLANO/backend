@@ -267,6 +267,26 @@ trait AudioController {
       }
     }
 
+    delete(
+      "/:audio_id",
+      operation(
+        apiOperation[Nothing]("deleteAudio")
+          summary "Deletes audio with the specified id"
+          description "Deletes audio with the specified id"
+          parameters (
+            asHeaderParam(correlationId),
+            asPathParam(audioId)
+        )
+          responseMessages (response403, response404, response500)
+      )
+    ) {
+      authUser.assertHasId()
+      authRole.assertHasRole(RoleWithWriteAccess)
+
+      val audioId = long(this.audioId.paramName)
+      writeService.deleteAudioAndFiles(audioId)
+    }
+
     post(
       "/",
       operation(

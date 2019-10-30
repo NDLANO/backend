@@ -9,10 +9,9 @@
 package no.ndla.audioapi.service
 
 import java.io.InputStream
-import java.net.URL
 
-import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, PutObjectRequest}
-import no.ndla.audioapi.AudioApiProperties.{StorageName, NdlaRedUsername, NdlaRedPassword}
+import com.amazonaws.services.s3.model.{ObjectMetadata, PutObjectRequest}
+import no.ndla.audioapi.AudioApiProperties.{NdlaRedPassword, NdlaRedUsername, StorageName}
 import no.ndla.audioapi.integration.AmazonClient
 import scalaj.http.Http
 
@@ -56,8 +55,11 @@ trait AudioStorageService {
     def objectExists(storageKey: String): Boolean =
       getObjectMetaData(storageKey).isSuccess
 
-    def deleteObject(storageKey: String): Try[_] = {
-      Try(amazonClient.deleteObject(StorageName, storageKey))
+    def deleteObject(storageKey: String): Try[Boolean] = {
+      Try {
+        amazonClient.deleteObject(StorageName, storageKey)
+        true
+      }
     }
 
   }
