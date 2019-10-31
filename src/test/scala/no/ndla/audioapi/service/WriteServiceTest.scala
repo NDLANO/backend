@@ -355,7 +355,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioRepository.withId(audioId)).thenReturn(Some(domainAudioMeta))
     when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(true))
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(searchIndexService.deleteDocument(any[Long])).thenReturn(Success(true))
 
     writeService.deleteAudioAndFiles(audioId)

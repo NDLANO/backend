@@ -55,12 +55,7 @@ trait AudioStorageService {
     def objectExists(storageKey: String): Boolean =
       getObjectMetaData(storageKey).isSuccess
 
-    def deleteObject(storageKey: String): Try[Boolean] = {
-      Try {
-        amazonClient.deleteObject(StorageName, storageKey)
-        true
-      }
-    }
+    def deleteObject(storageKey: String): Try[Unit] = Try(amazonClient.deleteObject(StorageName, storageKey))
 
   }
 }
