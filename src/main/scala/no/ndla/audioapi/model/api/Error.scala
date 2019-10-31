@@ -66,3 +66,4 @@ class LanguageMappingException(message: String) extends RuntimeException(message
 class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION)
     extends RuntimeException(message)
 class ImportException(message: String) extends RuntimeException(message)
+case class ElasticIndexingException(message: String) extends RuntimeException(message)

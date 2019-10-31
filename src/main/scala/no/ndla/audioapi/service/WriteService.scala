@@ -75,9 +75,14 @@ trait WriteService {
             val exceptions = filesDeleted.collect { case Failure(ex) => ex }
             val msg = exceptions.map(_.getMessage).mkString("\n")
             Failure(new AudioStorageException(msg))
-          } else if (indexDeleted.isFailure) {
-            indexDeleted.map(_ => audioId)
-          } else { Success(audioId) }
+          } else {
+            indexDeleted match {
+              case Failure(ex)   => Failure(ex)
+              case Success(true) => Success(audioId)
+              case Success(false) =>
+                Failure(ElasticIndexingException(s"Something went wrong when deleting search index of $audioId"))
+            }
+          }
 
         case None => Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
       }
