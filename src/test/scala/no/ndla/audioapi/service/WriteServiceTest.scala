@@ -10,11 +10,11 @@ import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
@@ -344,6 +344,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.isSuccess should be(true)
 
     verify(audioStorage, times(0)).deleteObject(any[String])
+  }
+
+  test("that deleting audio both deletes database entry, s3 object, and indexed document") {
+    reset(audioRepository)
+    reset(audioStorage)
+    reset(searchIndexService)
+
+    val audioId = 4444.toLong
+
+    when(audioRepository.withId(audioId)).thenReturn(Some(domainAudioMeta))
+    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(searchIndexService.deleteDocument(any[Long])).thenReturn(Success(true))
+
+    writeService.deleteAudioAndFiles(audioId)
+
+    verify(audioStorage, times(1)).deleteObject(domainAudioMeta.filePaths.head.filePath)
+    verify(searchIndexService, times(1)).deleteDocument(audioId)
+    verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
   }
 
 }

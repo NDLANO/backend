@@ -30,6 +30,14 @@ trait IndexService {
   class IndexService extends LazyLogging {
     implicit val formats = SearchableLanguageFormats.JSonFormats
 
+    def deleteDocument(idToDelete: Long) = {
+      e4sClient
+        .execute {
+          delete(idToDelete.toString).from(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument)
+        }
+        .map(_.isSuccess)
+    }
+
     def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
       val source = write(searchConverterService.asSearchableAudioInformation(toIndex))
 

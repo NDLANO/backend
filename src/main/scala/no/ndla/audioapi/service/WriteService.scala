@@ -52,6 +52,42 @@ trait WriteService {
       audioMetaInformation.flatten
     }
 
+    def deleteAudioAndFiles(audioId: Long) = {
+      audioRepository
+        .withId(audioId) match {
+        case Some(toDelete) =>
+          val metaDeleted = audioRepository.deleteAudio(audioId)
+          val filesDeleted = toDelete.filePaths.map(fileToDelete => {
+            deleteFile(fileToDelete) match {
+              case Failure(ex) =>
+                Failure(
+                  new AudioStorageException(
+                    s"Deletion of file at '${fileToDelete.filePath}' failed with: ${ex.getMessage}"))
+              case ok => ok
+            }
+          })
+          val indexDeleted = searchIndexService.deleteDocument(audioId)
+
+          if (metaDeleted < 1) {
+            Failure(
+              new NotFoundException(s"Metadata for audio with id $audioId was not found, and could not be deleted."))
+          } else if (filesDeleted.exists(_.isFailure)) {
+            val exceptions = filesDeleted.collect { case Failure(ex) => ex }
+            val msg = exceptions.map(_.getMessage).mkString("\n")
+            Failure(new AudioStorageException(msg))
+          } else {
+            indexDeleted match {
+              case Failure(ex)   => Failure(ex)
+              case Success(true) => Success(audioId)
+              case Success(false) =>
+                Failure(ElasticIndexingException(s"Something went wrong when deleting search index of $audioId"))
+            }
+          }
+
+        case None => Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
+      }
+    }
+
     def updateAudio(id: Long,
                     metadataToUpdate: UpdatedAudioMetaInformation,
                     fileOpt: Option[FileItem]): Try[AudioMetaInformation] = {

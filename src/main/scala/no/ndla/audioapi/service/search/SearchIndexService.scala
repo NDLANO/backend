@@ -32,6 +32,13 @@ trait SearchIndexService {
       } yield imported
     }
 
+    def deleteDocument(idToDelete: Long) = {
+      indexService.aliasTarget match {
+        case Failure(_) => Success(false)
+        case Success(_) => indexService.deleteDocument(idToDelete)
+      }
+    }
+
     def indexDocuments: Try[ReindexResult] = {
       synchronized {
         val start = System.currentTimeMillis()
@@ -58,7 +65,7 @@ trait SearchIndexService {
       }
     }
 
-    def sendToElastic(indexName: String): Try[Int] = {
+    private def sendToElastic(indexName: String): Try[Int] = {
       var numIndexed = 0
       getRanges.map(ranges => {
         ranges.foreach(range => {
@@ -73,7 +80,7 @@ trait SearchIndexService {
       })
     }
 
-    def getRanges: Try[List[(Long, Long)]] = {
+    private def getRanges: Try[List[(Long, Long)]] = {
       Try {
         val (minId, maxId) = audioRepository.minMaxId
         Seq
