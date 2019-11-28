@@ -38,12 +38,16 @@ trait ValidationService {
       }
     }
 
-    def validate(audio: AudioMetaInformation): Try[AudioMetaInformation] = {
+    def validate(audio: AudioMetaInformation, oldAudio: Option[AudioMetaInformation]): Try[AudioMetaInformation] = {
+      val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
+      val oldTagsLanguages = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
+      val oldLanguages = (oldTitleLanguages ++ oldTagsLanguages).distinct
+
       val validationMessages = validateNonEmpty("title", audio.titles).toSeq ++
         audio.titles.flatMap(title => validateNonEmpty("title", title.language)) ++
-        audio.titles.flatMap(title => validateTitle("title", title)) ++
+        audio.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
         validateCopyright(audio.copyright) ++
-        validateTags(audio.tags)
+        validateTags(audio.tags, oldLanguages)
 
       validationMessages match {
         case head :: tail => Failure(new ValidationException(errors = head :: tail))
@@ -51,9 +55,9 @@ trait ValidationService {
       }
     }
 
-    private def validateTitle(fieldPath: String, title: Title): Seq[ValidationMessage] = {
+    private def validateTitle(fieldPath: String, title: Title, oldLanguages: Seq[String]): Seq[ValidationMessage] = {
       containsNoHtml(fieldPath, title.title).toList ++
-        validateLanguage(fieldPath, title.language)
+        validateLanguage(fieldPath, title.language, oldLanguages)
     }
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
@@ -98,10 +102,10 @@ trait ValidationService {
       }
     }
 
-    def validateTags(tags: Seq[Tag]): Seq[ValidationMessage] = {
+    def validateTags(tags: Seq[Tag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(containsNoHtml("tags.tags", _)).toList :::
-          validateLanguage("tags.language", tagList.language).toList
+          validateLanguage("tags.language", tagList.language, oldLanguages).toList
       })
     }
 
@@ -113,10 +117,13 @@ trait ValidationService {
       }
     }
 
-    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
-      languageCodeSupported6391(languageCode) match {
-        case true  => None
-        case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+    private def validateLanguage(fieldPath: String,
+                                 languageCode: String,
+                                 oldLanguages: Seq[String]): Option[ValidationMessage] = {
+      if (languageCodeSupported6391(languageCode) || oldLanguages.contains(languageCode)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 

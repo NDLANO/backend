@@ -40,7 +40,7 @@ trait WriteService {
 
       val audioMetaInformation = for {
         domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
-        _ <- validationService.validate(domainAudio)
+        _ <- validationService.validate(domainAudio, None)
         audioMetaData <- Try(audioRepository.insert(domainAudio))
         _ <- searchIndexService.indexDocument(audioMetaData)
       } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
@@ -115,7 +115,7 @@ trait WriteService {
 
           val finished = for {
             toSave <- metadataToSave
-            validated <- validationService.validate(toSave)
+            validated <- validationService.validate(toSave, Some(existingMetadata))
             updated <- audioRepository.update(validated, id)
             indexed <- searchIndexService.indexDocument(updated)
             converted <- converterService.toApiAudioMetaInformation(indexed, Some(metadataToUpdate.language))
