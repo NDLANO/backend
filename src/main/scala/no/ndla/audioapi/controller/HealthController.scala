@@ -43,8 +43,8 @@ trait HealthController {
 
     get("/") {
       val applicationUrl = ApplicationUrl.get
-      val host = applicationUrl.hostOption.map(_.toString).getOrElse("0")
-      val port = applicationUrl.port.getOrElse("80")
+      val host = "localhost"
+      val port = AudioApiProperties.ApplicationPort
 
       audioRepository
         .getRandomAudio()
