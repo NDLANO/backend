@@ -11,6 +11,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
@@ -45,6 +46,37 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val domainAudioMeta: domain.AudioMetaInformation =
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
+  val updated1 = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+
+  val publicDomain = domain.Copyright("publicdomain",
+                                      Some("Metropolis"),
+                                      List(domain.Author("Forfatter", "Bruce Wayne")),
+                                      Seq(),
+                                      Seq(),
+                                      None,
+                                      None,
+                                      None)
+
+  val multiLangAudio = domain.AudioMetaInformation(
+    Some(4),
+    Some(1),
+    List(domain.Title("Donald Duck kjører bil", "nb"),
+         domain.Title("Donald Duck kjører bil", "nn"),
+         domain.Title("Donald Duck drives a car", "en")),
+    List(
+      domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
+      domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
+      domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+    ),
+    publicDomain,
+    List(
+      domain.Tag(List("and"), "nb"),
+      domain.Tag(List("and"), "nn"),
+      domain.Tag(List("duck"), "en")
+    ),
+    "ndla124",
+    updated1
+  )
 
   override def beforeEach: Unit = {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
@@ -366,6 +398,90 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.deleteAudioAndFiles(audioId)
 
     verify(audioStorage, times(1)).deleteObject(domainAudioMeta.filePaths.head.filePath)
+    verify(searchIndexService, times(1)).deleteDocument(audioId)
+    verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
+  }
+
+  test("That deleting language version deletes language") {
+    reset(audioRepository)
+    reset(audioStorage)
+    reset(searchIndexService)
+
+    val audioId = 5555.toLong
+    val audio = multiLangAudio.copy(
+      id = Some(audioId),
+      titles = List(
+        domain.Title("Donald Duck kjører bil", "nb"),
+        domain.Title("Donald Duck kjører bil", "nn"),
+        domain.Title("Donald Duck drives a car", "en")
+      ),
+      filePaths = List(
+        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
+        domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+      ),
+      tags = List(
+        domain.Tag(List("and"), "nb"),
+        domain.Tag(List("and"), "nn"),
+        domain.Tag(List("duck"), "en")
+      )
+    )
+
+    val expectedAudio = audio.copy(
+      titles = List(
+        domain.Title("Donald Duck kjører bil", "nb"),
+        domain.Title("Donald Duck drives a car", "en")
+      ),
+      filePaths = List(
+        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+      ),
+      tags = List(
+        domain.Tag(List("and"), "nb"),
+        domain.Tag(List("duck"), "en")
+      )
+    )
+
+    when(audioRepository.withId(audioId)).thenReturn(Some(audio))
+    when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
+      i.getArgument[domain.AudioMetaInformation](0))
+    when(validationService.validate(any[domain.AudioMetaInformation], any[Option[domain.AudioMetaInformation]]))
+      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(searchIndexService.indexDocument(any[domain.AudioMetaInformation]))
+      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+
+    writeService.deleteAudioLanguageVersion(audioId, "nn")
+
+    verify(audioRepository, times(1)).update(expectedAudio, audioId)
+  }
+
+  test("That deleting last language version deletes entire image") {
+    reset(audioRepository)
+    reset(audioStorage)
+    reset(searchIndexService)
+
+    val audioId = 5555.toLong
+    val audio = multiLangAudio.copy(
+      id = Some(audioId),
+      titles = List(
+        domain.Title("Donald Duck drives a car", "en")
+      ),
+      filePaths = List(
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+      ),
+      tags = List(
+        domain.Tag(List("duck"), "en")
+      )
+    )
+
+    when(audioRepository.withId(audioId)).thenReturn(Some(audio))
+    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(searchIndexService.deleteDocument(any[Long])).thenReturn(Success(true))
+
+    writeService.deleteAudioLanguageVersion(audioId, "en")
+
+    verify(audioStorage, times(1)).deleteObject(audio.filePaths.head.filePath)
     verify(searchIndexService, times(1)).deleteDocument(audioId)
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
   }

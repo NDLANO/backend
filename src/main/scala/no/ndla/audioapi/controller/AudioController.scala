@@ -93,6 +93,7 @@ trait AudioController {
       "page-size",
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
     private val audioId = Param[String]("audio_id", "Id of audio.")
+    private val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
     private val metadataNewAudio =
       Param[NewAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
     private val metadataUpdatedAudio =
@@ -287,6 +288,31 @@ trait AudioController {
       writeService.deleteAudioAndFiles(audioId) match {
         case Failure(ex) => errorHandler(ex)
         case Success(_)  => Ok()
+      }
+    }
+
+    delete(
+      "/:audio_id/language/:language",
+      operation(
+        apiOperation[AudioMetaInformation]("deleteLanguage")
+          summary "Delete language version of audio metadata."
+          description "Delete language version of audio metadata."
+          parameters (asHeaderParam(correlationId),
+          asPathParam(audioId),
+          asPathParam(pathLanguage))
+          authorizations "oauth2"
+          responseMessages (response400, response403, response500))
+    ) {
+      authUser.assertHasId()
+      authRole.assertHasRole(RoleWithWriteAccess)
+
+      val audioId = long(this.audioId.paramName)
+      val language = params(this.language.paramName)
+
+      writeService.deleteAudioLanguageVersion(audioId, language) match {
+        case Failure(ex)          => errorHandler(ex)
+        case Success(Some(image)) => Ok(image)
+        case Success(None)        => NoContent()
       }
     }
 

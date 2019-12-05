@@ -27,29 +27,45 @@ trait WriteService {
 
   class WriteService extends LazyLogging {
 
+    def deleteAudioLanguageVersion(audioId: Long, language: String) =
+      audioRepository.withId(audioId) match {
+        case Some(existing) if existing.supportedLanguages.contains(language) =>
+          val newAudio = converterService.withoutLanguage(existing, language)
+
+          // If last language version delete entire audio
+          if (newAudio.supportedLanguages.isEmpty)
+            deleteAudioAndFiles(audioId).map(_ => None)
+          else
+            validateAndUpdateMetaData(audioId, newAudio, existing, None).map(Some(_))
+
+        case Some(_) =>
+          Failure(new NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
+        case None =>
+          Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
+      }
+
     def storeNewAudio(newAudioMeta: NewAudioMetaInformation, file: FileItem): Try[AudioMetaInformation] = {
-      val fileValidationMessages = validationService.validateAudioFile(file)
-      if (fileValidationMessages.nonEmpty) {
-        return Failure(new ValidationException(errors = Seq(fileValidationMessages.get)))
+      validationService.validateAudioFile(file) match {
+        case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
+        case None =>
+          val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
+            case Failure(e)         => return Failure(e)
+            case Success(audioMeta) => audioMeta
+          }
+
+          val audioMetaInformation = for {
+            domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
+            _ <- validationService.validate(domainAudio, None)
+            audioMetaData <- Try(audioRepository.insert(domainAudio))
+            _ <- searchIndexService.indexDocument(audioMetaData)
+          } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
+
+          if (audioMetaInformation.isFailure) {
+            deleteFile(audioFileMeta)
+          }
+
+          audioMetaInformation.flatten
       }
-
-      val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
-        case Failure(e)         => return Failure(e)
-        case Success(audioMeta) => audioMeta
-      }
-
-      val audioMetaInformation = for {
-        domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
-        _ <- validationService.validate(domainAudio, None)
-        audioMetaData <- Try(audioRepository.insert(domainAudio))
-        _ <- searchIndexService.indexDocument(audioMetaData)
-      } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
-
-      if (audioMetaInformation.isFailure) {
-        deleteFile(audioFileMeta)
-      }
-
-      audioMetaInformation.flatten
     }
 
     def deleteAudioAndFiles(audioId: Long) = {
@@ -113,13 +129,8 @@ trait WriteService {
           val savedAudio = metadataAndFile.map(_._2)
           val metadataToSave = metadataAndFile.map(_._1)
 
-          val finished = for {
-            toSave <- metadataToSave
-            validated <- validationService.validate(toSave, Some(existingMetadata))
-            updated <- audioRepository.update(validated, id)
-            indexed <- searchIndexService.indexDocument(updated)
-            converted <- converterService.toApiAudioMetaInformation(indexed, Some(metadataToUpdate.language))
-          } yield converted
+          val finished =
+            metadataToSave.flatMap(validateAndUpdateMetaData(id, _, existingMetadata, Some(metadataToUpdate.language)))
 
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
@@ -128,6 +139,18 @@ trait WriteService {
           finished
         }
       }
+    }
+
+    private def validateAndUpdateMetaData(audioId: Long,
+                                          toSave: domain.AudioMetaInformation,
+                                          oldAudio: domain.AudioMetaInformation,
+                                          language: Option[String]) = {
+      for {
+        validated <- validationService.validate(toSave, Some(oldAudio))
+        updated <- audioRepository.update(validated, audioId)
+        indexed <- searchIndexService.indexDocument(updated)
+        converted <- converterService.toApiAudioMetaInformation(indexed, language)
+      } yield converted
     }
 
     private[service] def mergeAudioMeta(

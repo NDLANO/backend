@@ -25,6 +25,13 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
+    def withoutLanguage(audio: AudioMetaInformation, language: String) =
+      audio.copy(
+        titles = audio.titles.filterNot(_.language == language),
+        filePaths = audio.filePaths.filterNot(_.language == language),
+        tags = audio.tags.filterNot(_.language == language)
+      )
+
     def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
       val agreementCopyright = audio.copyright.agreementId
         .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
