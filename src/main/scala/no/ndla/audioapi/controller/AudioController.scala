@@ -307,7 +307,7 @@ trait AudioController {
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val audioId = long(this.audioId.paramName)
-      val language = params(this.language.paramName)
+      val language = params(this.pathLanguage.paramName)
 
       writeService.deleteAudioLanguageVersion(audioId, language) match {
         case Failure(ex)          => errorHandler(ex)
