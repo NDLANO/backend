@@ -340,13 +340,15 @@ trait AudioController {
         .getOrElse(throw new ValidationException(
           errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata."))))
 
-      val file = fileParams.getOrElse(
-        this.file.paramName,
-        throw new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file."))))
-
-      writeService.storeNewAudio(newAudio, file) match {
-        case Success(audioMeta) => audioMeta
-        case Failure(e)         => errorHandler(e)
+      fileParams.get(this.file.paramName) match {
+        case Some(file) =>
+          writeService.storeNewAudio(newAudio, file) match {
+            case Success(audioMeta) => audioMeta
+            case Failure(e)         => errorHandler(e)
+          }
+        case None =>
+          errorHandler(
+            new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file."))))
       }
     }
 

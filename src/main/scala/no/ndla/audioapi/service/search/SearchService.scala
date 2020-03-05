@@ -58,7 +58,7 @@ trait SearchService {
     def getHits(response: SearchResponse, language: String): Seq[AudioSummary] = {
       response.totalHits match {
         case count if count > 0 =>
-          val resultArray = response.hits.hits
+          val resultArray = response.hits.hits.toList
 
           resultArray.map(result => {
             val matchedLanguage = language match {
