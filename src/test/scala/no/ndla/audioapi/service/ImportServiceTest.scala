@@ -66,7 +66,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
   test("importAudio updates the database entry if already exists") {
     val audioPath = "audio/file.mp3"
-    val existingAudioMeta = mock[AudioMetaInformation]
+    val existingAudioMeta = mock[AudioMetaInformation](withSettings.lenient())
 
     when(migrationApiClient.getAudioMetaData(audioId)).thenReturn(Success(Seq(defaultMigrationAudioMeta)))
     when(migrationApiClient.getNodeData(any[String])).thenReturn(Success(MigrationNodeData(Seq.empty)))
@@ -193,6 +193,6 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
       Seq.empty
     )
 
-    result.tags should be(Seq(enTags, nbMerged))
+    result.tags.sortBy(_.language) should be(Seq(enTags, nbMerged))
   }
 }

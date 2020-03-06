@@ -18,7 +18,7 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
-import org.scalatest.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends DataSource

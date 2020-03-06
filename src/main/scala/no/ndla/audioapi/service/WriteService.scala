@@ -199,7 +199,7 @@ trait WriteService {
     private[service] def uploadFile(file: FileItem, language: String): Try[Audio] = {
       val fileExtension = getFileExtension(file.name).getOrElse("")
       val contentType = file.getContentType.getOrElse("")
-      val fileName = Stream.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
+      val fileName = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
       audioStorage
         .storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)

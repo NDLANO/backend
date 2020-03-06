@@ -19,6 +19,17 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
 
 object AudioApiInfo {
 
+  val contactInfo = ContactInfo(
+    "NDLA",
+    "ndla.no",
+    AudioApiProperties.ContactEmail
+  )
+
+  val licenseInfo = LicenseInfo(
+    "GPL v3.0",
+    "http://www.gnu.org/licenses/gpl-3.0.en.html"
+  )
+
   val apiInfo = ApiInfo(
     "Audio API",
     "Searching and fetching all audio used in the NDLA platform.\n\n" +
@@ -26,9 +37,8 @@ object AudioApiInfo {
       "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
       "The media file is provided as an URL with the mime type.",
     "https://om.ndla.no/tos",
-    AudioApiProperties.ContactEmail,
-    "GPL v3.0",
-    "http://www.gnu.org/licenses/gpl-3.0.en.html"
+    contactInfo,
+    licenseInfo
   )
 }
 
