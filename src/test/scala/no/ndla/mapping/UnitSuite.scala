@@ -9,10 +9,10 @@
 package no.ndla.mapping
 
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.funsuite.AnyFunSuite
 
 abstract class UnitSuite
-    extends FunSuite
+    extends AnyFunSuite
     with Matchers
     with OptionValues
     with Inside
