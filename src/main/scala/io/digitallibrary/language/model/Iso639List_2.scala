@@ -631,6 +631,7 @@ object Iso639List_2 {
     Iso639Val("csv", None, None, None, Some("I"), Some("L"), "Sumtu Chin", None, None),
     Iso639Val("csw", None, None, None, Some("I"), Some("L"), "Swampy Cree", None, None),
     Iso639Val("csy", None, None, None, Some("I"), Some("L"), "Siyin Chin", None, None),
+    Iso639Val("csx", None, None, None, Some("I"), Some("L"), "Cambodian Sign Language", None, None),
     Iso639Val("csz", None, None, None, Some("I"), Some("L"), "Coos", None, None),
     Iso639Val("cta", None, None, None, Some("I"), Some("L"), "Tataltepec Chatino", None, None),
     Iso639Val("ctc", None, None, None, Some("I"), Some("L"), "Chetco", None, None),

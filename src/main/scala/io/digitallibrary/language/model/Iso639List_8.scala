@@ -195,7 +195,6 @@ object Iso639List_8 {
     Iso639Val("sgk", None, None, None, Some("I"), Some("L"), "Sangkong", None, None),
     Iso639Val("sgm", None, None, None, Some("I"), Some("E"), "Singa", None, None),
     Iso639Val("sgn", None, None, None, Some("C"), Some("G"), "Sign Languages", None, None),
-    Iso639Val("sgn_kh", None, None, None, Some("I"), Some("L"), "Cambodian Sign Language", None, None),
     Iso639Val("sgp", None, None, None, Some("I"), Some("L"), "Singpho", None, None),
     Iso639Val("sgr", None, None, None, Some("I"), Some("L"), "Sangisari", None, None),
     Iso639Val("sgs", None, None, None, Some("I"), Some("L"), "Samogitian", None, None),
