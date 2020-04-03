@@ -51,7 +51,7 @@ object License extends Enumeration {
       CC_BY_NC_ND,
       "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International",
       Some("https://creativecommons.org/licenses/by-nc-nd/4.0/")),
-    LicenseDefinition(NA, "Ikke relevant", None),
+    LicenseDefinition(NA, "Not Applicable", None),
   )
 
   private val licenseToLicenseDefinitionsMap =

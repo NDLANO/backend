@@ -35,7 +35,7 @@ class LicenseTest extends UnitSuite {
 
   test("getLicense returns a NA license") {
     val expectedResult =
-      Some(LicenseDefinition(License.NA, "Ikke relevant", None))
+      Some(LicenseDefinition(License.NA, "Not Applicable", None))
     License.getLicense("N/A") should equal(expectedResult)
   }
 }
