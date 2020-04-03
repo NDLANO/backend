@@ -18,6 +18,7 @@ object License extends Enumeration {
   val CC_BY_ND = Value("CC-BY-ND-4.0")
   val CC_BY_NC_SA = Value("CC-BY-NC-SA-4.0")
   val CC_BY_NC_ND = Value("CC-BY-NC-ND-4.0")
+  val NA = Value("N/A")
 
   private val licenseToLicenseDefinitionsSeq = Seq(
     LicenseDefinition(
@@ -49,7 +50,8 @@ object License extends Enumeration {
     LicenseDefinition(
       CC_BY_NC_ND,
       "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"))
+      Some("https://creativecommons.org/licenses/by-nc-nd/4.0/")),
+    LicenseDefinition(NA, "Not Applicable", None),
   )
 
   private val licenseToLicenseDefinitionsMap =
