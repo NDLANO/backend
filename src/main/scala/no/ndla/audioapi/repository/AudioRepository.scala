@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.OptimisticLockException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
+import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
@@ -23,7 +24,15 @@ trait AudioRepository {
   val audioRepository: AudioRepository
 
   class AudioRepository extends LazyLogging {
-    implicit val formats = org.json4s.DefaultFormats + AudioMetaInformation.JSonSerializer
+
+    def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+      sql"select count(*) from ${AudioMetaInformation.table}"
+        .map(rs => rs.long("count"))
+        .single()
+        .apply()
+        .getOrElse(0)
+
+    implicit val formats: Formats = AudioMetaInformation.repositorySerializer
 
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
@@ -128,7 +137,7 @@ trait AudioRepository {
         implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
-        .map(AudioMetaInformation(au))
+        .map(AudioMetaInformation.fromResultSet(au))
         .single()
         .apply()
     }
@@ -137,7 +146,7 @@ trait AudioRepository {
         implicit session: DBSession = ReadOnlyAutoSession): List[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
-        .map(AudioMetaInformation(au))
+        .map(AudioMetaInformation.fromResultSet(au))
         .list()
         .apply()
     }
@@ -145,8 +154,23 @@ trait AudioRepository {
     def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1"
-        .map(AudioMetaInformation(au))
+        .map(AudioMetaInformation.fromResultSet(au))
         .single()
+        .apply()
+    }
+
+    def getByPage(pageSize: Int, offset: Int)(
+        implicit session: DBSession = ReadOnlyAutoSession): Seq[AudioMetaInformation] = {
+      val au = AudioMetaInformation.syntax("au")
+      sql"""
+           select ${au.result.*}
+           from ${AudioMetaInformation.as(au)}
+           where document is not null
+           offset $offset
+           limit $pageSize
+      """
+        .map(AudioMetaInformation.fromResultSet(au))
+        .list
         .apply()
     }
 

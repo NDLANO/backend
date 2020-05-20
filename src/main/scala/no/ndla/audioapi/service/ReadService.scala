@@ -25,5 +25,11 @@ trait ReadService {
         .withExternalId(externalId)
         .flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
+    def getMetaAudioDomainDump(pageNo: Int, pageSize: Int): api.AudioMetaDomainDump = {
+      val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
+      val results = audioRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+
+      api.AudioMetaDomainDump(audioRepository.audioCount, pageNo, pageSize, results)
+    }
   }
 }
