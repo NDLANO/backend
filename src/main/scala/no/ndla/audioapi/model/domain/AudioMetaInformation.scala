@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.Language.UnknownLanguage
-import org.json4s.FieldSerializer
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
@@ -48,14 +48,23 @@ case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[St
 }
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
-  implicit val formats = org.json4s.DefaultFormats
   override val tableName = "audiodata"
   override val schemaName = Some(AudioApiProperties.MetaSchema)
 
-  def apply(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
-    apply(au.resultName)(rs)
+  val jsonEncoder: Formats = DefaultFormats
 
-  def apply(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
+  val repositorySerializer: Formats = jsonEncoder +
+    FieldSerializer[AudioMetaInformation](
+      ignore("id") orElse
+        ignore("revision") orElse
+        ignore("external_id")
+    )
+
+  def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
+    fromResultSet(au.resultName)(rs)
+
+  def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
+    implicit val formats: Formats = jsonEncoder
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
     AudioMetaInformation(Some(rs.long(au.c("id"))),
                          Some(rs.int(au.c("revision"))),
@@ -67,11 +76,6 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
                          meta.updated)
   }
 
-  val JSonSerializer = FieldSerializer[AudioMetaInformation](
-    ignore("id") orElse
-      ignore("revision") orElse
-      ignore("external_id")
-  )
 }
 
 case class NdlaSearchException(rf: RequestFailure)

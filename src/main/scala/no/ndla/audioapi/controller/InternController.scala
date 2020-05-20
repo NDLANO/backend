@@ -10,6 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.auth.User
+import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
@@ -76,6 +77,20 @@ trait InternController {
         indexed <- searchIndexService.indexDocument(imported)
         audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
+    }
+
+    get("/dump/audio/") {
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+      readService.getMetaAudioDomainDump(pageNo, pageSize)
+    }
+
+    get("/dump/audio/:id") {
+      val id = long("id")
+      audioRepository.withId(id) match {
+        case Some(image) => Ok(image)
+        case None        => errorHandler(new NotFoundException(s"Could not find audio with id: '$id'"))
+      }
     }
 
   }

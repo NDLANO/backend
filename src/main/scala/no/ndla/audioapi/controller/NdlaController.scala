@@ -23,7 +23,7 @@ import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.servlet.SizeConstraintExceededException
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -92,7 +92,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
 
+  def intOrNone(name: String)(implicit request: HttpServletRequest): Option[Int] =
+    paramOrNone(name).flatMap(i => Try(i.toInt).toOption)
+
   def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String =
     paramOrNone(paramName).getOrElse(default)
 
+  def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
 }
