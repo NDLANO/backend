@@ -11,6 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
+import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
@@ -42,10 +43,9 @@ trait InternController {
           logger.info(result)
           Ok(result)
         }
-        case Failure(f) => {
+        case Failure(f) =>
           logger.warn(f.getMessage, f)
           InternalServerError(f.getMessage)
-        }
       }
     }
 
@@ -91,6 +91,11 @@ trait InternController {
         case Some(image) => Ok(image)
         case None        => errorHandler(new NotFoundException(s"Could not find audio with id: '$id'"))
       }
+    }
+
+    post("/dump/audio/") {
+      val domainMeta = extract[AudioMetaInformation](request.body)
+      Ok(audioRepository.insert(domainMeta))
     }
 
   }
