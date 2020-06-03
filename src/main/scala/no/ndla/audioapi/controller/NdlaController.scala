@@ -18,6 +18,7 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.{DefaultFormats, Formats}
+import org.json4s.native.Serialization.read
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
@@ -99,4 +100,13 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     paramOrNone(paramName).getOrElse(default)
 
   def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
+
+  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
+    Try(read[T](json)) match {
+      case Success(data) => data
+      case Failure(e) =>
+        logger.error(e.getMessage, e)
+        throw new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))
+    }
+  }
 }
