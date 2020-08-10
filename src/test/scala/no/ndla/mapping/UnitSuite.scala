@@ -10,6 +10,7 @@ package no.ndla.mapping
 
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 abstract class UnitSuite
     extends AnyFunSuite
