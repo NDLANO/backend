@@ -202,7 +202,7 @@ trait WriteService {
       val fileName = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
       audioStorage
-        .storeAudio(new ByteArrayInputStream(file.get), contentType, file.size, fileName)
+        .storeAudio(new ByteArrayInputStream(file.get()), contentType, file.size, fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 

@@ -56,7 +56,9 @@ trait AudioRepository {
 
       val startRevision = 1
       val audioId =
-        sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey.apply
+        sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)"
+          .updateAndReturnGeneratedKey()
+          .apply()
       audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
     }
 
@@ -68,7 +70,9 @@ trait AudioRepository {
       DB localTx { implicit session =>
         val startRevision = 1
         val audioId =
-          sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)".updateAndReturnGeneratedKey.apply
+          sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
+            .updateAndReturnGeneratedKey()
+            .apply()
         Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))
       }
     }
@@ -82,7 +86,9 @@ trait AudioRepository {
         val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
         val count =
-          sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}".update.apply
+          sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}"
+            .update()
+            .apply()
         if (count != 1) {
           val message = s"Found revision mismatch when attempting to update audio with id $id"
           logger.info(message)
@@ -100,7 +106,7 @@ trait AudioRepository {
           .map(rs => {
             rs.int("count")
           })
-          .list
+          .list()
           .first()
           .apply() match {
           case Some(count) => count
@@ -170,7 +176,7 @@ trait AudioRepository {
            limit $pageSize
       """
         .map(AudioMetaInformation.fromResultSet(au))
-        .list
+        .list()
         .apply()
     }
 

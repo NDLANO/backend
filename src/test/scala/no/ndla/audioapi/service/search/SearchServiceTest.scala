@@ -133,7 +133,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     super.withFixture(test)
   }
 
-  override def beforeAll: Unit = {
+  override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[AudioMetaInformation](0))
     when(converterService.withAgreementCopyright(audio5))

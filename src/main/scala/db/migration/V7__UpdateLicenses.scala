@@ -77,7 +77,7 @@ class V7__UpdateLicenses extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update().apply
+    sql"update audiodata set document = ${dataObject} where id = $id".update().apply()
   }
 
 }
