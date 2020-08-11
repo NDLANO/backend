@@ -13,7 +13,7 @@ matrix:
     - name: "Test"
       language: scala
       dist: trusty
-      scala: 2.13.1
+      scala: 2.13.3
       jdk:
         - oraclejdk8
       cache:
