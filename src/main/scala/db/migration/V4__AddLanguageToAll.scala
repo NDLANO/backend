@@ -57,7 +57,7 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
 
-    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply
+    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply()
   }
 
 }

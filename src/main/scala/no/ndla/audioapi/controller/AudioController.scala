@@ -157,9 +157,9 @@ trait AudioController {
       "/",
       operation(
         apiOperation[SearchResult]("getAudioFiles")
-          summary "Find audio files"
-          description "Shows all the audio files in the ndla.no database. You can search it too."
-          parameters (
+          .summary("Find audio files")
+          .description("Shows all the audio files in the ndla.no database. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
             asQueryParam(language),
@@ -168,8 +168,8 @@ trait AudioController {
             asQueryParam(pageNo),
             asQueryParam(pageSize),
             asQueryParam(scrollId)
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
       val language = paramOrNone("language")
       val scrollId = paramOrNone(this.scrollId.paramName)
@@ -189,14 +189,14 @@ trait AudioController {
       "/search/",
       operation(
         apiOperation[List[SearchResult]]("getAudioFilesPost")
-          summary "Find audio files"
-          description "Shows all the audio files in the ndla.no database. You can search it too."
-          parameters (
+          .summary("Find audio files")
+          .description("Shows all the audio files in the ndla.no database. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             bodyParam[SearchParams],
             asQueryParam(scrollId)
-        )
-          responseMessages (response400, response500))
+          )
+          .responseMessages(response400, response500))
     ) {
       val searchParams = extract[SearchParams](request.body)
       scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
@@ -250,14 +250,14 @@ trait AudioController {
       "/:audio_id",
       operation(
         apiOperation[AudioMetaInformation]("findByAudioId")
-          summary "Fetch information for audio file"
-          description "Shows info of the audio with submitted id."
-          parameters (
+          .summary("Fetch information for audio file")
+          .description("Shows info of the audio with submitted id.")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(audioId),
             asQueryParam(language)
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
       val id = long(this.audioId.paramName)
       val language = paramOrNone(this.language.paramName)
@@ -272,13 +272,13 @@ trait AudioController {
       "/:audio_id",
       operation(
         apiOperation[Unit]("deleteAudio")
-          summary "Deletes audio with the specified id"
-          description "Deletes audio with the specified id"
-          parameters (
+          .summary("Deletes audio with the specified id")
+          .description("Deletes audio with the specified id")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(audioId)
-        )
-          responseMessages (response403, response404, response500)
+          )
+          .responseMessages(response403, response404, response500)
       )
     ) {
       authUser.assertHasId()
@@ -295,13 +295,15 @@ trait AudioController {
       "/:audio_id/language/:language",
       operation(
         apiOperation[AudioMetaInformation]("deleteLanguage")
-          summary "Delete language version of audio metadata."
-          description "Delete language version of audio metadata."
-          parameters (asHeaderParam(correlationId),
-          asPathParam(audioId),
-          asPathParam(pathLanguage))
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
+          .summary("Delete language version of audio metadata.")
+          .description("Delete language version of audio metadata.")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(audioId),
+            asPathParam(pathLanguage)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500))
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -320,16 +322,16 @@ trait AudioController {
       "/",
       operation(
         apiOperation[AudioMetaInformation]("newAudio")
-          summary "Upload a new audio file with meta information"
-          description "Upload a new audio file with meta data"
-          consumes "multipart/form-data"
-          parameters (
+          .summary("Upload a new audio file with meta information")
+          .description("Upload a new audio file with meta data")
+          .consumes("multipart/form-data")
+          .parameters(
             asHeaderParam(correlationId),
             asObjectFormParam(metadataNewAudio),
             asFileParam(file)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500))
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -356,17 +358,17 @@ trait AudioController {
       "/:audio_id",
       operation(
         apiOperation[AudioMetaInformation]("updateAudio")
-          summary "Upload audio for a different language or update metadata for an existing audio-file"
-          description "Update the metadata for an existing language, or upload metadata for a new language."
-          consumes "multipart/form-data"
-          parameters (
+          .summary("Upload audio for a different language or update metadata for an existing audio-file")
+          .description("Update the metadata for an existing language, or upload metadata for a new language.")
+          .consumes("multipart/form-data")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(audioId),
             asObjectFormParam(metadataUpdatedAudio),
             asFileParam(file)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500))
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)

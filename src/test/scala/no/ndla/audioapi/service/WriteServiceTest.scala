@@ -78,14 +78,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     updated1
   )
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
-    when(fileMock1.get).thenReturn(Array[Byte](0x49, 0x44, 0x33))
+    when(fileMock1.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
     when(fileMock1.size).thenReturn(1024)
     when(fileMock1.name).thenReturn(newAudioFile1.fileName)
 
     when(fileMock2.getContentType).thenReturn(Some("audio/mp3"))
-    when(fileMock2.get).thenReturn(Array[Byte](0x49, 0x44, 0x33))
+    when(fileMock2.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
     when(fileMock2.size).thenReturn(2048)
     when(fileMock2.name).thenReturn(newAudioFile2.fileName)
 

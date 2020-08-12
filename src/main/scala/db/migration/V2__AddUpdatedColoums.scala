@@ -49,7 +49,7 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(audioMeta.document)
 
-    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply
+    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply()
   }
 
 }
