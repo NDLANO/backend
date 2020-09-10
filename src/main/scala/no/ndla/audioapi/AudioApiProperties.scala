@@ -65,7 +65,8 @@ object AudioApiProperties extends LazyLogging {
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val ElasticSearchIndexMaxResultWindow = 10000
-  val ElasticSearchScrollKeepAlive = "10s"
+  val ElasticSearchScrollKeepAlive = "1m"
+  val InitialScrollContextKeywords = List("0", "initial", "start", "first")
 
   val AudioFilesUrlSuffix = "audio/files"
 

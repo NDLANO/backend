@@ -157,7 +157,9 @@ trait SearchService {
 
         // Only add scroll param if it is first page
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          if (startAt == 0 && settings.shouldScroll) {
+            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+          } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>

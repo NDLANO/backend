@@ -12,6 +12,7 @@ import no.ndla.audioapi.AudioApiProperties.{
   DefaultPageSize,
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
+  InitialScrollContextKeywords,
   MaxAudioFileSizeBytes,
   MaxPageSize,
   RoleWithWriteAccess
@@ -104,7 +105,9 @@ trait AudioController {
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A search context retrieved from the response header of a previous search.
-         |If search-context is specified, all other query parameters, except '${this.language.paramName}' is ignored.
+         |To get the initial one from a search supply search-context equal any of the following ${InitialScrollContextKeywords
+           .mkString("[", ",", "]")}.
+         |If search-context is specified, all other query parameters, except '${this.language.paramName}' are ignored
          |For the rest of the parameters the original search of the search-context is used.
          |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
          |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
@@ -181,8 +184,9 @@ trait AudioController {
         val sort = paramOrNone("sort")
         val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
         val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+        val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
 
-        search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page, shouldScroll)
       }
     }
 
@@ -207,8 +211,9 @@ trait AudioController {
         val sort = searchParams.sort
         val pageSize = searchParams.pageSize
         val page = searchParams.page
+        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
-        search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page, shouldScroll)
       }
     }
 
@@ -217,7 +222,8 @@ trait AudioController {
                        license: Option[String],
                        sort: Option[String],
                        pageSize: Option[Int],
-                       page: Option[Int]) = {
+                       page: Option[Int],
+                       shouldScroll: Boolean) = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -226,7 +232,8 @@ trait AudioController {
             license = license,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc)
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
+            shouldScroll = shouldScroll
           )
 
         case None =>
@@ -236,7 +243,8 @@ trait AudioController {
             license = license,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc)
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
+            shouldScroll = shouldScroll
           )
       }
 

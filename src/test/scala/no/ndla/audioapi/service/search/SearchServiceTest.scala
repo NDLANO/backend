@@ -133,7 +133,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     license = None,
     page = None,
     pageSize = None,
-    sort = Sort.ByTitleAsc
+    sort = Sort.ByTitleAsc,
+    shouldScroll = false
   )
 
   // Skip tests if no docker environment available
@@ -411,7 +412,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val expectedIds = List(2, 3, 4, 5, 6).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
-      searchService.matchingQuery(searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc))
+      searchService.matchingQuery(
+        searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true))
 
     val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all")
     val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all")

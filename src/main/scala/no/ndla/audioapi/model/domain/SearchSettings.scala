@@ -8,5 +8,6 @@ case class SearchSettings(
     license: Option[String],
     page: Option[Int],
     pageSize: Option[Int],
-    sort: Sort.Value
+    sort: Sort.Value,
+    shouldScroll: Boolean
 )
