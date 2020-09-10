@@ -127,6 +127,15 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     updated6
   )
 
+  val searchSettings: SearchSettings = SearchSettings(
+    query = None,
+    language = None,
+    license = None,
+    page = None,
+    pageSize = None,
+    sort = Sort.ByTitleAsc
+  )
+
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
     assume(container.isSuccess)
@@ -180,22 +189,22 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That no language returns all documents ordered by title ascending") {
-    val Success(results) = searchService.all(None, None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(searchSettings.copy())
     results.totalCount should be(5)
     results.results.head.id should be(4)
     results.results.last.id should be(6)
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
-    val Success(results) = searchService.all(None, Some("publicdomain"), None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
     results.totalCount should be(2)
     results.results.head.id should be(4)
     results.results.last.id should be(2)
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val Success(page1) = searchService.all(None, None, Some(1), Some(2), Sort.ByTitleAsc)
-    val Success(page2) = searchService.all(None, None, Some(2), Some(2), Sort.ByTitleAsc)
+    val Success(page1) = searchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)))
+    val Success(page2) = searchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)))
     page1.totalCount should be(5)
     page1.page.get should be(1)
     page1.results.size should be(2)
@@ -208,46 +217,74 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That search matches title") {
-    val Success(results) = searchService.matchingQuery("Pingvinen", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("Pingvinen"),
+        language = Some("nb")
+      ))
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
 
   test("That search matches id") {
-    val Success(results) = searchService.matchingQuery("2", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("2"),
+        language = Some("nb")
+      ))
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
 
   test("That search matches tags") {
-    val Success(results) = searchService.matchingQuery("and", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("and"),
+        language = Some("nb")
+      ))
     results.totalCount should be(1)
     results.results.head.id should be(4)
   }
 
   test("That search does not return batmen since it has license copyrighted and license is not specified") {
-    val Success(results) = searchService.matchingQuery("batmen", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("batmen"),
+        language = Some("nb")
+      ))
     results.totalCount should be(0)
   }
 
   test("That search returns batmen since license is specified as copyrighted") {
-    val Success(results) =
-      searchService.matchingQuery("batmen", Some("nb"), Some("copyrighted"), None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("batmen"),
+        language = Some("nb"),
+        license = Some("copyrighted")
+      ))
     results.totalCount should be(1)
     results.results.head.id should be(1)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) = searchService.matchingQuery("bilde + bil", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(search1) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("bilde + bil"),
+        language = Some("nb"),
+      ))
     search1.results.map(_.id) should equal(Seq.empty)
 
-    val Success(search2) = searchService.matchingQuery("ute + -går", Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(search2) = searchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("ute + -går"),
+        language = Some("nb"),
+      ))
     search2.results.map(_.id) should equal(Seq(3))
   }
 
   test("That searching for all languages and specifying no language should return the same") {
-    val Success(results1) = searchService.all(None, None, None, None, Sort.ByTitleAsc)
-    val Success(results2) = searchService.all(None, None, None, None, Sort.ByTitleAsc)
+    val Success(results1) = searchService.matchingQuery(searchSettings.copy(language = Some("all")))
+    val Success(results2) = searchService.matchingQuery(searchSettings.copy(language = None))
 
     results1.totalCount should be(results2.totalCount)
     results1.results.head should be(results2.results.head)
@@ -256,12 +293,12 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That searching for 'nb' should return all results") {
-    val Success(results) = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(results) = searchService.matchingQuery(searchSettings.copy(language = Some("nb")))
     results.totalCount should be(5)
   }
 
   test("That searching for 'en' should only return results with english title") {
-    val Success(result) = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
+    val Success(result) = searchService.matchingQuery(searchSettings.copy(language = Some("en")))
     result.totalCount should be(2)
     result.language should be("en")
 
@@ -273,8 +310,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That 'supported languages' should match all possible title languages") {
-    val Success(result1) = searchService.all(Some("en"), None, None, None, Sort.ByTitleAsc)
-    val Success(result2) = searchService.all(Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val Success(result1) = searchService.matchingQuery(searchSettings.copy(language = Some("en")))
+    val Success(result2) = searchService.matchingQuery(searchSettings.copy(language = Some("nb")))
 
     // 'Donald' with 'en', 'nb' and 'nn'
     result1.results.head.supportedLanguages should be(audio4.titles.map(_.language))
@@ -283,7 +320,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Agreement information should be used in search") {
-    val Success(searchResult) = searchService.matchingQuery("Synge sangen", None, None, None, None, Sort.ByTitleAsc)
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(query = Some("Synge sangen")))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be(5)
@@ -308,8 +345,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That hit is returned in the matched language") {
-    val Success(searchResultEn) = searchService.matchingQuery("Unrelated", None, None, None, None, Sort.ByTitleAsc)
-    val Success(searchResultNb) = searchService.matchingQuery("Urelatert", None, None, None, None, Sort.ByTitleAsc)
+    val Success(searchResultEn) = searchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
+    val Success(searchResultNb) = searchService.matchingQuery(searchSettings.copy(query = Some("Urelatert")))
 
     searchResultNb.totalCount should be(1)
     searchResultNb.results.head.title.language should be("nb")
@@ -321,7 +358,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That sorting by lastUpdated asc functions correctly") {
-    val Success(search) = searchService.all(None, None, None, None, Sort.ByLastUpdatedAsc)
+    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
 
     search.totalCount should be(5)
     search.results.head.id should be(5)
@@ -332,7 +369,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That sorting by lastUpdated desc functions correctly") {
-    val Success(search) = searchService.all(None, None, None, None, Sort.ByLastUpdatedDesc)
+    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
 
     search.totalCount should be(5)
     search.results.head.id should be(6)
@@ -343,7 +380,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That sorting by id asc functions correctly") {
-    val Success(search) = searchService.all(None, None, None, None, Sort.ByIdAsc)
+    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc))
 
     search.totalCount should be(5)
     search.results.head.id should be(2)
@@ -354,7 +391,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That sorting by id desc functions correctly") {
-    val Success(search) = searchService.all(None, None, None, None, Sort.ByIdDesc)
+    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc))
 
     search.totalCount should be(5)
     search.results.head.id should be(6)
@@ -365,7 +402,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That supportedLanguages are sorted correctly") {
-    val Success(result) = searchService.matchingQuery("Unrelated", None, None, None, None, Sort.ByTitleAsc)
+    val Success(result) = searchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
     result.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
@@ -374,7 +411,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val expectedIds = List(2, 3, 4, 5, 6).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
-      searchService.all(None, None, None, Some(pageSize), Sort.ByIdAsc)
+      searchService.matchingQuery(searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc))
 
     val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all")
     val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all")

@@ -10,10 +10,10 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties.{
   DefaultPageSize,
-  MaxPageSize,
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
   MaxAudioFileSizeBytes,
+  MaxPageSize,
   RoleWithWriteAccess
 }
 import no.ndla.audioapi.auth.{Role, User}
@@ -29,6 +29,7 @@ import no.ndla.audioapi.model.api.{
   ValidationException,
   ValidationMessage
 }
+import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{SearchConverterService, SearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
@@ -217,10 +218,10 @@ trait AudioController {
                        sort: Option[String],
                        pageSize: Option[Int],
                        page: Option[Int]) = {
-      val result = query match {
+      val searchSettings = query match {
         case Some(q) =>
-          searchService.matchingQuery(
-            query = q,
+          SearchSettings(
+            query = Some(q),
             language = language,
             license = license,
             page = page,
@@ -229,7 +230,8 @@ trait AudioController {
           )
 
         case None =>
-          searchService.all(
+          SearchSettings(
+            query = None,
             language = language,
             license = license,
             page = page,
@@ -238,7 +240,7 @@ trait AudioController {
           )
       }
 
-      result match {
+      searchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)

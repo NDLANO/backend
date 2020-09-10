@@ -9,6 +9,7 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{AudioSwagger, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
@@ -127,15 +128,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       Seq.empty,
       Some(scrollId)
     )
-    when(
-      searchService.all(
-        any[Option[String]],
-        any[Option[String]],
-        any[Option[Int]],
-        any[Option[Int]],
-        any[Sort.Value]
-      ))
-      .thenReturn(Success(searchResponse))
+    when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
     get(s"/") {
       status should be(200)
@@ -163,21 +156,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       status should be(200)
     }
 
-    verify(searchService, times(0)).all(
-      any[Option[String]],
-      any[Option[String]],
-      any[Option[Int]],
-      any[Option[Int]],
-      any[Sort.Value]
-    )
-    verify(searchService, times(0)).matchingQuery(
-      any[String],
-      any[Option[String]],
-      any[Option[String]],
-      any[Option[Int]],
-      any[Option[Int]],
-      any[Sort.Value]
-    )
+    verify(searchService, times(0)).matchingQuery(any[SearchSettings])
     verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 
@@ -200,21 +179,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       status should be(200)
     }
 
-    verify(searchService, times(0)).all(
-      any[Option[String]],
-      any[Option[String]],
-      any[Option[Int]],
-      any[Option[Int]],
-      any[Sort.Value]
-    )
-    verify(searchService, times(0)).matchingQuery(
-      any[String],
-      any[Option[String]],
-      any[Option[String]],
-      any[Option[Int]],
-      any[Option[Int]],
-      any[Sort.Value]
-    )
+    verify(searchService, times(0)).matchingQuery(any[SearchSettings])
     verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 }
