@@ -10,10 +10,11 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties.{
   DefaultPageSize,
-  MaxPageSize,
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
+  InitialScrollContextKeywords,
   MaxAudioFileSizeBytes,
+  MaxPageSize,
   RoleWithWriteAccess
 }
 import no.ndla.audioapi.auth.{Role, User}
@@ -29,6 +30,7 @@ import no.ndla.audioapi.model.api.{
   ValidationException,
   ValidationMessage
 }
+import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{SearchConverterService, SearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
@@ -102,12 +104,12 @@ trait AudioController {
 
     private val scrollId = Param[Option[String]](
       "search-context",
-      s"""A search context retrieved from the response header of a previous search.
-         |If search-context is specified, all other query parameters, except '${this.language.paramName}' is ignored.
-         |For the rest of the parameters the original search of the search-context is used.
-         |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
-         |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
-      """.stripMargin
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+           .mkString("[", ",", "]")}.
+         |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}'.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
+         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
+         |""".stripMargin
     )
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
@@ -180,8 +182,9 @@ trait AudioController {
         val sort = paramOrNone("sort")
         val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
         val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+        val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
 
-        search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page, shouldScroll)
       }
     }
 
@@ -206,8 +209,9 @@ trait AudioController {
         val sort = searchParams.sort
         val pageSize = searchParams.pageSize
         val page = searchParams.page
+        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
-        search(query, language, license, sort, pageSize, page)
+        search(query, language, license, sort, pageSize, page, shouldScroll)
       }
     }
 
@@ -216,29 +220,33 @@ trait AudioController {
                        license: Option[String],
                        sort: Option[String],
                        pageSize: Option[Int],
-                       page: Option[Int]) = {
-      val result = query match {
+                       page: Option[Int],
+                       shouldScroll: Boolean) = {
+      val searchSettings = query match {
         case Some(q) =>
-          searchService.matchingQuery(
-            query = q,
+          SearchSettings(
+            query = Some(q),
             language = language,
             license = license,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc)
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
+            shouldScroll = shouldScroll
           )
 
         case None =>
-          searchService.all(
+          SearchSettings(
+            query = None,
             language = language,
             license = license,
             page = page,
             pageSize = pageSize,
-            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc)
+            sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
+            shouldScroll = shouldScroll
           )
       }
 
-      result match {
+      searchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)

@@ -19,7 +19,7 @@ import no.ndla.audioapi.AudioApiProperties.{ElasticSearchIndexMaxResultWindow, E
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, SearchResult, Title}
-import no.ndla.audioapi.model.domain.NdlaSearchException
+import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchSettings}
 import no.ndla.audioapi.model.{Language, Sort, domain}
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.ElasticsearchException
@@ -94,28 +94,20 @@ trait SearchService {
       )
     }
 
-    def all(language: Option[String],
-            license: Option[String],
-            page: Option[Int],
-            pageSize: Option[Int],
-            sort: Sort.Value): Try[domain.SearchResult] = {
-      executeSearch(language, license, sort, page, pageSize, boolQuery())
-    }
+    def matchingQuery(settings: SearchSettings): Try[domain.SearchResult] = {
 
-    def matchingQuery(query: String,
-                      language: Option[String],
-                      license: Option[String],
-                      page: Option[Int],
-                      pageSize: Option[Int],
-                      sort: Sort.Value): Try[domain.SearchResult] = {
-      val fullSearch = boolQuery()
-        .must(
+      val fullSearch = settings.query match {
+        case Some(query) =>
           boolQuery()
-            .should(languageSpecificSearch("titles", language, query, 2),
-                    languageSpecificSearch("tags", language, query, 1),
-                    idsQuery(query)))
+            .must(
+              boolQuery()
+                .should(languageSpecificSearch("titles", settings.language, query, 2),
+                        languageSpecificSearch("tags", settings.language, query, 1),
+                        idsQuery(query)))
+        case None => boolQuery()
+      }
 
-      executeSearch(language, license, sort, page, pageSize, fullSearch)
+      executeSearch(settings, fullSearch)
     }
 
     private def languageSpecificSearch(searchField: String,
@@ -132,19 +124,14 @@ trait SearchService {
       }
     }
 
-    def executeSearch(language: Option[String],
-                      license: Option[String],
-                      sort: Sort.Value,
-                      page: Option[Int],
-                      pageSize: Option[Int],
-                      queryBuilder: BoolQuery): Try[domain.SearchResult] = {
+    def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[domain.SearchResult] = {
 
-      val licenseFilter = license match {
+      val licenseFilter = settings.license match {
         case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
         case Some(lic) => Some(termQuery("license", lic))
       }
 
-      val (languageFilter, searchLanguage) = language match {
+      val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(Language.AllLanguages) => (None, "*")
         case Some(lang)                         => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
       }
@@ -152,8 +139,8 @@ trait SearchService {
       val filters = List(licenseFilter, languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
-      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val requestedResultWindow = page.getOrElse(1) * numResults
+      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+      val requestedResultWindow = settings.page.getOrElse(1) * numResults
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
@@ -166,18 +153,20 @@ trait SearchService {
             .from(startAt)
             .query(filteredSearch)
             .highlighting(highlight("*"))
-            .sortBy(getSortDefinition(sort, searchLanguage))
+            .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         // Only add scroll param if it is first page
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          if (startAt == 0 && settings.shouldScroll) {
+            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+          } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
               domain.SearchResult(
                 response.result.totalHits,
-                Some(page.getOrElse(1)),
+                Some(settings.page.getOrElse(1)),
                 numResults,
                 if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
                 getHits(response.result, searchLanguage),
@@ -198,20 +187,20 @@ trait SearchService {
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.ASC).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
+            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.Asc).missing("_last")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.DESC).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
+            case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").nestedPath("titles").order(SortOrder.Desc).missing("_last")
           }
-        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
-        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
-        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.ASC).missing("_last")
-        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.DESC).missing("_last")
+        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
+        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
+        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
+        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
+        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
       }
     }
 
