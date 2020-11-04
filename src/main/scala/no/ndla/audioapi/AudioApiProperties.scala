@@ -41,7 +41,7 @@ object AudioApiProperties extends LazyLogging {
   val MetaInitialConnections = 3
   val MetaMaxConnections = 10
 
-  val MaxAudioFileSizeBytes = 1024 * 1024 * 40 // 40 MiB
+  val MaxAudioFileSizeBytes = 1024 * 1024 * 100 // 100 MiB
 
   val StorageName: String = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
 
