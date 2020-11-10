@@ -12,11 +12,11 @@ import org.mockito.Mockito.when
 
 class V2__AddUpdatedColoumsTest extends UnitSuite with TestEnvironment {
 
-  val migration = new V2_Test
-
-  class V2_Test extends V2__AddUpdatedColoums {
+  class V2__MockedTest extends V2__AddUpdatedColoums {
     override val timeService = mock[TimeService]
   }
+
+  val migration = new V2__MockedTest
 
   test("add updatedBy and updated on audio object") {
     val before =
