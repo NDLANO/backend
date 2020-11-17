@@ -12,7 +12,7 @@ val Elastic4sVersion = "6.7.8"
 val JacksonVersion = "2.11.2"
 val ElasticsearchVersion = "6.8.13"
 val Json4SVersion = "3.6.7"
-val FlywayVersion = "5.2.0"
+val FlywayVersion = "7.1.1"
 val PostgresVersion = "42.2.14"
 val HikariConnectionPoolVersion = "3.4.5"
 val TestContainersVersion = "1.12.2"
@@ -48,6 +48,7 @@ lazy val audio_api = (project in file("."))
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
+      "ndla" %% "scalatestsuite" % "0.1" % "test",
       "joda-time" % "joda-time" % "2.10",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
