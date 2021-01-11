@@ -57,17 +57,18 @@ trait ValidationService {
     }
 
     private def validatePodcastMeta(audioType: AudioType.Value, meta: Seq[PodcastMeta]): Seq[ValidationMessage] = {
-      meta.flatMap(m => {
-        if (audioType != AudioType.Podcast) {
-          Seq(
-            ValidationMessage("podcastMeta",
-                              s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
-        } else
+      if (meta.nonEmpty && audioType != AudioType.Podcast) {
+        Seq(
+          ValidationMessage("podcastMeta",
+                            s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
+      } else {
+        meta.flatMap(m => {
           Seq.empty ++
             validateNonEmpty("podcastMeta.header", m.header) ++
             validateNonEmpty("podcastMeta.introduction", m.introduction) ++
             validateNonEmpty("podcastMeta.manuscript", m.manuscript)
-      })
+        })
+      }
     }
 
     private def validateTitle(fieldPath: String, title: Title, oldLanguages: Seq[String]): Seq[ValidationMessage] = {
