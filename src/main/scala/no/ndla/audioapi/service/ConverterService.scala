@@ -141,6 +141,7 @@ trait ConverterService {
     private def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
       api.CoverPhoto(
         id = meta.imageId,
+        url = s"$RawImageApiUrl/${meta.imageId}",
         altText = meta.altText
       )
     }

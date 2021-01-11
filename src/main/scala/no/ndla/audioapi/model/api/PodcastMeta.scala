@@ -17,8 +17,9 @@ case class PodcastMeta(
 
 @ApiModel(description = "Meta information about podcast audio")
 case class CoverPhoto(
-  @(ApiModelProperty @field)(description = "Header for the podcast") id: String,
-  @(ApiModelProperty @field)(description = "Introduction for the podcast") altText: String,
+  @(ApiModelProperty @field)(description = "Id for the coverPhoto in image-api") id: String,
+  @(ApiModelProperty @field)(description = "Url to the coverPhoto") url: String,
+  @(ApiModelProperty @field)(description = "Alttext for the coverPhoto") altText: String,
 )
 
 // format: on
