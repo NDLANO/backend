@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import no.ndla.audioapi.model.domain.AudioType
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -32,7 +33,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
     api.Copyright(api.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     api.Tag(Seq("tag"), "nb"),
-    Seq("nb")
+    Seq("nb"),
+    "standard",
+    None
   )
 
   val DefaultDomainImageMetaInformation = domain.AudioMetaInformation(
@@ -43,7 +46,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, None),
     Seq(domain.Tag(Seq("tag"), "nb")),
     "ndla124",
-    updated
+    updated,
+    None,
+    AudioType.Standard
   )
 
   val DefaultDomainAudioNoLanguage = domain.AudioMetaInformation(
@@ -54,7 +59,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, None),
     Seq(domain.Tag(Seq("tag"), "unknown")),
     "ndla124",
-    updated
+    updated,
+    None,
+    AudioType.Standard
   )
 
   test("That POST /import/123 returns 200 OK when import is a success") {

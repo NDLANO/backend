@@ -133,14 +133,18 @@ trait ImportService {
       val tags = getTags(audioMeta.map(_.nid), Language.getSupportedLanguages(titles, audioObjects))
       val authors = audioMeta.flatMap(_.authors).distinct
       val copyright = toDomainCopyright(mainNode.license, authors)
-      domain.AudioMetaInformation(None,
-                                  None,
-                                  titles,
-                                  audioObjects,
-                                  copyright,
-                                  tags,
-                                  authUser.userOrClientid(),
-                                  clock.now())
+      domain.AudioMetaInformation(
+        id = None,
+        revision = None,
+        titles = titles,
+        filePaths = audioObjects,
+        copyright = copyright,
+        tags = tags,
+        updatedBy = authUser.userOrClientid(),
+        updated = clock.now(),
+        podcastMeta = None,
+        audioType = AudioType.Standard
+      )
     }
 
     private def persistMetaInformation(mainNid: String, metaInformation: domain.AudioMetaInformation) = {

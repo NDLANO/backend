@@ -2,11 +2,10 @@ package no.ndla.audioapi.service
 
 import java.io.InputStream
 import java.util.Date
-
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
@@ -31,14 +30,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "title",
     "en",
     Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
-    Seq("tag"))
+    Seq("tag"),
+    None,
+    None)
 
   val updatedAudioMeta = UpdatedAudioMetaInformation(
     revision = 1,
     title = "title",
     language = "en",
     copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
-    tags = Seq("tag"))
+    tags = Seq("tag"),
+    audioType = None,
+    podcastMeta = None
+  )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
@@ -75,7 +79,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       domain.Tag(List("duck"), "en")
     ),
     "ndla124",
-    updated1
+    updated1,
+    None,
+    AudioType.Standard
   )
 
   override def beforeEach(): Unit = {
@@ -233,7 +239,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "A new english title",
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
-                                               Seq())
+                                               Seq(),
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -246,7 +254,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "En ny norsk tittel",
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
-                                               Seq())
+                                               Seq(),
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(2)
     merged.titles.filter(_.language.contains("nb")).head.title should equal("En ny norsk tittel")
@@ -260,7 +270,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "A new english title",
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
-                                               Seq())
+                                               Seq(),
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -276,7 +288,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "A new english title",
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
-                                               Seq())
+                                               Seq(),
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -294,7 +308,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "En ny norsk tittel",
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
-                                               Seq())
+                                               Seq(),
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
     merged.titles.length should be(2)
     merged.filePaths.length should be(2)

@@ -63,7 +63,16 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val sampleAudio =
-    AudioMetaInformation(Some(1), Some(1), domainTitles, audioFiles, byNcSa, audioTags, "ndla124", updated())
+    AudioMetaInformation(Some(1),
+                         Some(1),
+                         domainTitles,
+                         audioFiles,
+                         byNcSa,
+                         audioTags,
+                         "ndla124",
+                         updated(),
+                         None,
+                         AudioType.Standard)
 
   override def beforeAll() = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>

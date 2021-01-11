@@ -63,7 +63,9 @@ class SearchServiceTest
     copyrighted,
     List(Tag(List("fisk"), "nb")),
     "ndla124",
-    updated2
+    updated2,
+    None,
+    AudioType.Standard
   )
 
   val audio2 = AudioMetaInformation(
@@ -74,7 +76,9 @@ class SearchServiceTest
     publicDomain,
     List(Tag(List("fugl"), "nb")),
     "ndla124",
-    updated4
+    updated4,
+    None,
+    AudioType.Standard
   )
 
   val audio3 = AudioMetaInformation(
@@ -85,7 +89,9 @@ class SearchServiceTest
     byNcSa,
     List(Tag(List("supermann"), "nb")),
     "ndla124",
-    updated3
+    updated3,
+    None,
+    AudioType.Standard
   )
 
   val audio4 = AudioMetaInformation(
@@ -98,7 +104,9 @@ class SearchServiceTest
     publicDomain,
     List(Tag(List("and"), "nb")),
     "ndla124",
-    updated5
+    updated5,
+    None,
+    AudioType.Standard
   )
 
   val audio5 = AudioMetaInformation(
@@ -109,7 +117,9 @@ class SearchServiceTest
     byNcSa.copy(agreementId = Some(1)),
     List(Tag(List("synge"), "nb")),
     "ndla124",
-    updated1
+    updated1,
+    None,
+    AudioType.Standard
   )
 
   val audio6 = AudioMetaInformation(
@@ -120,7 +130,9 @@ class SearchServiceTest
     byNcSa,
     List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")),
     "ndla123",
-    updated6
+    updated6,
+    None,
+    AudioType.Standard
   )
 
   val searchSettings: SearchSettings = SearchSettings(

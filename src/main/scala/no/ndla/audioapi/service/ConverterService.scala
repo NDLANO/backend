@@ -13,7 +13,7 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort}
-import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
 
@@ -63,13 +63,15 @@ trait ConverterService {
                                   language: Option[String]): Try[api.AudioMetaInformation] = {
       Success(
         api.AudioMetaInformation(
-          audioMeta.id.get,
-          audioMeta.revision.get,
-          toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
-          toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-          withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
-          toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
-          audioMeta.supportedLanguages
+          id = audioMeta.id.get,
+          revision = audioMeta.revision.get,
+          title = toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
+          audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
+          copyright = withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
+          tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
+          supportedLanguages = audioMeta.supportedLanguages,
+          audioType = audioMeta.audioType.toString,
+          podcastMeta = audioMeta.podcastMeta.flatMap(m => toApiPodcastMeta(m, language))
         ))
     }
 
@@ -127,17 +129,48 @@ trait ConverterService {
       }
     }
 
+    private def toApiPodcastMeta(meta: domain.PodcastMeta, language: Option[String]): Option[api.PodcastMeta] = {
+      for {
+        header <- findByLanguageOrBestEffort(meta.header, language)
+        intro <- findByLanguageOrBestEffort(meta.introduction, language)
+        cover <- findByLanguageOrBestEffort(meta.coverPhoto, language)
+        manu <- findByLanguageOrBestEffort(meta.manuscript, language)
+      } yield
+        api.PodcastMeta(
+          header = header.header,
+          introduction = intro.introduction,
+          coverPhoto = toApiCoverPhoto(cover),
+          manuscript = manu.manuscript
+        )
+    }
+    private def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
+      api.CoverPhoto(
+        id = meta.imageId,
+        altText = meta.altText
+      )
+    }
+
+    private def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
+      domain.PodcastMeta(
+        header = Seq(domain.Header(meta.header, language)),
+        introduction = Seq(domain.Introduction(meta.introduction, language)),
+        coverPhoto = Seq(domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText, language)),
+        manuscript = Seq(domain.Manuscript(meta.manuscript, language))
+      )
+    }
+
     def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
                                      audio: domain.Audio): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(
-        None,
-        None,
-        Seq(domain.Title(audioMeta.title, audioMeta.language)),
-        Seq(audio),
-        toDomainCopyright(audioMeta.copyright),
-        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
-        authUser.userOrClientid(),
-        clock.now()
+        id = None,
+        revision = None,
+        titles = Seq(domain.Title(audioMeta.title, audioMeta.language)),
+        filePaths = Seq(audio),
+        copyright = toDomainCopyright(audioMeta.copyright),
+        tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
+        updatedBy = authUser.userOrClientid(),
+        updated = clock.now(),
+        podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language))
       )
     }
 

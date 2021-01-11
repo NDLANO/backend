@@ -9,7 +9,6 @@
 package no.ndla.audioapi.model.domain
 
 import java.util.Date
-
 import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
@@ -19,15 +18,27 @@ import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
-case class AudioMetaInformation(id: Option[Long],
-                                revision: Option[Int],
-                                titles: Seq[Title],
-                                filePaths: Seq[Audio],
-                                copyright: Copyright,
-                                tags: Seq[Tag],
-                                updatedBy: String,
-                                updated: Date) {
+case class AudioMetaInformation(
+    id: Option[Long],
+    revision: Option[Int],
+    titles: Seq[Title],
+    filePaths: Seq[Audio],
+    copyright: Copyright,
+    tags: Seq[Tag],
+    updatedBy: String,
+    updated: Date,
+    podcastMeta: Option[PodcastMeta],
+    audioType: AudioType.Value = AudioType.Standard
+) {
   lazy val supportedLanguages = Language.getSupportedLanguages(titles, filePaths, tags)
+}
+
+object AudioType extends Enumeration {
+  val Standard: this.Value = Value("standard")
+  val Podcast: this.Value = Value("podcast")
+
+  def all: Seq[String] = this.values.map(_.toString).toSeq
+  def valueOf(s: String): Option[this.Value] = this.values.find(_.toString == s)
 }
 
 case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
@@ -66,16 +77,11 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
     implicit val formats: Formats = jsonEncoder
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
-    AudioMetaInformation(Some(rs.long(au.c("id"))),
-                         Some(rs.int(au.c("revision"))),
-                         meta.titles,
-                         meta.filePaths,
-                         meta.copyright,
-                         meta.tags,
-                         meta.updatedBy,
-                         meta.updated)
+    meta.copy(
+      id = Some(rs.long(au.c("id"))),
+      revision = Some(rs.int(au.c("revision")))
+    )
   }
-
 }
 
 case class NdlaSearchException(rf: RequestFailure)
