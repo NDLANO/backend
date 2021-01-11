@@ -47,12 +47,27 @@ trait ValidationService {
         audio.titles.flatMap(title => validateNonEmpty("title", title.language)) ++
         audio.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
         validateCopyright(audio.copyright) ++
-        validateTags(audio.tags, oldLanguages)
+        validateTags(audio.tags, oldLanguages) ++
+        validatePodcastMeta(audio.audioType, audio.podcastMeta)
 
       validationMessages match {
         case head :: tail => Failure(new ValidationException(errors = head :: tail))
         case _            => Success(audio)
       }
+    }
+
+    private def validatePodcastMeta(audioType: AudioType.Value, meta: Seq[PodcastMeta]): Seq[ValidationMessage] = {
+      meta.flatMap(m => {
+        if (audioType != AudioType.Podcast) {
+          Seq(
+            ValidationMessage("podcastMeta",
+                              s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
+        } else
+          Seq.empty ++
+            validateNonEmpty("podcastMeta.header", m.header) ++
+            validateNonEmpty("podcastMeta.introduction", m.introduction) ++
+            validateNonEmpty("podcastMeta.manuscript", m.manuscript)
+      })
     }
 
     private def validateTitle(fieldPath: String, title: Title, oldLanguages: Seq[String]): Seq[ValidationMessage] = {

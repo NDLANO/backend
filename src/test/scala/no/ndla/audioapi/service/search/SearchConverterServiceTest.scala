@@ -71,7 +71,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
                          audioTags,
                          "ndla124",
                          updated(),
-                         None,
+                         Seq.empty,
                          AudioType.Standard)
 
   override def beforeAll() = {

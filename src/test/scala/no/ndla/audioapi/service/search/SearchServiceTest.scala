@@ -64,7 +64,7 @@ class SearchServiceTest
     List(Tag(List("fisk"), "nb")),
     "ndla124",
     updated2,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -77,7 +77,7 @@ class SearchServiceTest
     List(Tag(List("fugl"), "nb")),
     "ndla124",
     updated4,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -90,7 +90,7 @@ class SearchServiceTest
     List(Tag(List("supermann"), "nb")),
     "ndla124",
     updated3,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -105,7 +105,7 @@ class SearchServiceTest
     List(Tag(List("and"), "nb")),
     "ndla124",
     updated5,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -118,7 +118,7 @@ class SearchServiceTest
     List(Tag(List("synge"), "nb")),
     "ndla124",
     updated1,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -131,7 +131,7 @@ class SearchServiceTest
     List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")),
     "ndla123",
     updated6,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 

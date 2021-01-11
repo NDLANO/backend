@@ -15,6 +15,7 @@ import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.Language.UnknownLanguage
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
+import org.json4s.ext.EnumSerializer
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
@@ -27,7 +28,7 @@ case class AudioMetaInformation(
     tags: Seq[Tag],
     updatedBy: String,
     updated: Date,
-    podcastMeta: Option[PodcastMeta],
+    podcastMeta: Seq[PodcastMeta],
     audioType: AudioType.Value = AudioType.Standard
 ) {
   lazy val supportedLanguages = Language.getSupportedLanguages(titles, filePaths, tags)
@@ -62,7 +63,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   override val tableName = "audiodata"
   override val schemaName = Some(AudioApiProperties.MetaSchema)
 
-  val jsonEncoder: Formats = DefaultFormats
+  val jsonEncoder: Formats = DefaultFormats + new EnumSerializer(AudioType)
 
   val repositorySerializer: Formats = jsonEncoder +
     FieldSerializer[AudioMetaInformation](

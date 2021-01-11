@@ -40,7 +40,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
     updated,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 

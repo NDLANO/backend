@@ -142,7 +142,7 @@ trait ImportService {
         tags = tags,
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
-        podcastMeta = None,
+        podcastMeta = Seq.empty,
         audioType = AudioType.Standard
       )
     }

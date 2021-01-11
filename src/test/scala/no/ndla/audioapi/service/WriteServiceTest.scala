@@ -80,7 +80,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     ),
     "ndla124",
     updated1,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 

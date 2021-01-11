@@ -47,7 +47,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq(domain.Tag(Seq("tag"), "nb")),
     "ndla124",
     updated,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 
@@ -60,7 +60,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq(domain.Tag(Seq("tag"), "unknown")),
     "ndla124",
     updated,
-    None,
+    Seq.empty,
     AudioType.Standard
   )
 

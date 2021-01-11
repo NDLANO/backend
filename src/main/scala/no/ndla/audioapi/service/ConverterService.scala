@@ -13,8 +13,8 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, PodcastMeta}
-import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
+import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.mapping.License.getLicense
 
 import scala.util.{Success, Try}
@@ -71,7 +71,7 @@ trait ConverterService {
           tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
           supportedLanguages = audioMeta.supportedLanguages,
           audioType = audioMeta.audioType.toString,
-          podcastMeta = audioMeta.podcastMeta.flatMap(m => toApiPodcastMeta(m, language))
+          podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta)
         ))
     }
 
@@ -129,19 +129,14 @@ trait ConverterService {
       }
     }
 
-    private def toApiPodcastMeta(meta: domain.PodcastMeta, language: Option[String]): Option[api.PodcastMeta] = {
-      for {
-        header <- findByLanguageOrBestEffort(meta.header, language)
-        intro <- findByLanguageOrBestEffort(meta.introduction, language)
-        cover <- findByLanguageOrBestEffort(meta.coverPhoto, language)
-        manu <- findByLanguageOrBestEffort(meta.manuscript, language)
-      } yield
-        api.PodcastMeta(
-          header = header.header,
-          introduction = intro.introduction,
-          coverPhoto = toApiCoverPhoto(cover),
-          manuscript = manu.manuscript
-        )
+    private def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
+      api.PodcastMeta(
+        header = meta.header,
+        introduction = meta.introduction,
+        coverPhoto = toApiCoverPhoto(meta.coverPhoto),
+        manuscript = meta.manuscript,
+        language = meta.language
+      )
     }
     private def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
       api.CoverPhoto(
@@ -152,10 +147,11 @@ trait ConverterService {
 
     private def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
       domain.PodcastMeta(
-        header = Seq(domain.Header(meta.header, language)),
-        introduction = Seq(domain.Introduction(meta.introduction, language)),
-        coverPhoto = Seq(domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText, language)),
-        manuscript = Seq(domain.Manuscript(meta.manuscript, language))
+        header = meta.header,
+        introduction = meta.introduction,
+        coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
+        manuscript = meta.manuscript,
+        language = language
       )
     }
 
@@ -170,7 +166,8 @@ trait ConverterService {
         tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
-        podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language))
+        podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
+        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard)
       )
     }
 
