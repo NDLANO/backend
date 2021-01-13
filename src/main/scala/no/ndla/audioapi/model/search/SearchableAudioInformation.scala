@@ -29,5 +29,6 @@ case class SearchableAudioInformation(
     license: String,
     authors: Seq[String],
     lastUpdated: Date,
-    defaultTitle: Option[String]
+    defaultTitle: Option[String],
+    audioType: String
 )

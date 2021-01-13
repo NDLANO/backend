@@ -136,7 +136,12 @@ trait SearchService {
         case Some(lang)                         => (Some(nestedQuery("titles", existsQuery(s"titles.$lang")).scoreMode(ScoreMode.Avg)), lang)
       }
 
-      val filters = List(licenseFilter, languageFilter)
+      val audioTypeFilter = settings.audioType match {
+        case Some(audioType) => Some(termQuery("audioType", audioType.toString))
+        case None            => None
+      }
+
+      val filters = List(licenseFilter, languageFilter, audioTypeFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

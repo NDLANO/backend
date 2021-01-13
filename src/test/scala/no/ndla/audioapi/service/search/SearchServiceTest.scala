@@ -132,7 +132,7 @@ class SearchServiceTest
     "ndla123",
     updated6,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Podcast
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -142,7 +142,8 @@ class SearchServiceTest
     page = None,
     pageSize = None,
     sort = Sort.ByTitleAsc,
-    shouldScroll = false
+    shouldScroll = false,
+    audioType = None
   )
 
   // Skip tests if no docker environment available
@@ -428,6 +429,17 @@ class SearchServiceTest
     scroll1.results.map(_.id) should be(expectedIds(1))
     scroll2.results.map(_.id) should be(expectedIds(2))
     scroll3.results.map(_.id) should be(List.empty)
+  }
+
+  test("That filtering for audio-type works as expected") {
+    val Success(search1) = searchService.matchingQuery(searchSettings.copy(audioType = None))
+    search1.totalCount should be(5)
+    search1.results.head.id should be(4)
+    search1.results.last.id should be(6)
+
+    val Success(search2) = searchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
+    search2.totalCount should be(1)
+    search2.results.map(_.id) should be(Seq(6))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
