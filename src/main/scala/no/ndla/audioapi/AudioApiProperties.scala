@@ -103,6 +103,8 @@ object AudioApiProperties extends LazyLogging {
 
   lazy val Domain = Domains.get(Environment)
 
+  lazy val RawImageApiUrl = s"$Domain/image-api/raw/id"
+
   lazy val secrets = {
     val SecretsFile = "audio-api.secrets"
     readSecrets(SecretsFile) match {

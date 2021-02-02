@@ -112,7 +112,8 @@ trait IndexService {
         languageSupportedField("tags", keepRaw = false),
         keywordField("license"),
         keywordField("defaultTitle"),
-        textField("authors").fielddata(true)
+        textField("authors").fielddata(true),
+        keywordField("audioType")
       )
     }
 

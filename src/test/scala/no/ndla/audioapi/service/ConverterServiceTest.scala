@@ -33,7 +33,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyrighted,
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
-    updated
+    updated,
+    Seq.empty,
+    AudioType.Standard
   )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
@@ -45,7 +47,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toApiAudio(audioMeta.filePaths.headOption),
       service.toApiCopyright(audioMeta.copyright),
       api.Tag(Seq("fisk"), "nb"),
-      Seq("nb")
+      Seq("nb"),
+      "standard",
+      None
     )
 
     service.toApiAudioMetaInformation(audioMeta, Some("nb")) should equal(Success(expected))
@@ -59,7 +63,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toApiAudio(audioMeta.filePaths.headOption),
       service.toApiCopyright(audioMeta.copyright),
       api.Tag(Seq("fisk"), "nb"),
-      Seq("nb")
+      Seq("nb"),
+      "standard",
+      None
     )
 
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))

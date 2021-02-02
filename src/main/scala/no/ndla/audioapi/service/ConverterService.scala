@@ -13,8 +13,8 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort}
-import no.ndla.audioapi.model.domain.AudioMetaInformation
-import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
+import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.mapping.License.getLicense
 
 import scala.util.{Success, Try}
@@ -63,13 +63,15 @@ trait ConverterService {
                                   language: Option[String]): Try[api.AudioMetaInformation] = {
       Success(
         api.AudioMetaInformation(
-          audioMeta.id.get,
-          audioMeta.revision.get,
-          toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
-          toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-          withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
-          toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
-          audioMeta.supportedLanguages
+          id = audioMeta.id.get,
+          revision = audioMeta.revision.get,
+          title = toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
+          audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
+          copyright = withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
+          tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
+          supportedLanguages = audioMeta.supportedLanguages,
+          audioType = audioMeta.audioType.toString,
+          podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta)
         ))
     }
 
@@ -127,17 +129,46 @@ trait ConverterService {
       }
     }
 
+    private def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
+      api.PodcastMeta(
+        header = meta.header,
+        introduction = meta.introduction,
+        coverPhoto = toApiCoverPhoto(meta.coverPhoto),
+        manuscript = meta.manuscript,
+        language = meta.language
+      )
+    }
+    private def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
+      api.CoverPhoto(
+        id = meta.imageId,
+        url = s"$RawImageApiUrl/${meta.imageId}",
+        altText = meta.altText
+      )
+    }
+
+    private def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
+      domain.PodcastMeta(
+        header = meta.header,
+        introduction = meta.introduction,
+        coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
+        manuscript = meta.manuscript,
+        language = language
+      )
+    }
+
     def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
                                      audio: domain.Audio): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(
-        None,
-        None,
-        Seq(domain.Title(audioMeta.title, audioMeta.language)),
-        Seq(audio),
-        toDomainCopyright(audioMeta.copyright),
-        if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
-        authUser.userOrClientid(),
-        clock.now()
+        id = None,
+        revision = None,
+        titles = Seq(domain.Title(audioMeta.title, audioMeta.language)),
+        filePaths = Seq(audio),
+        copyright = toDomainCopyright(audioMeta.copyright),
+        tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
+        updatedBy = authUser.userOrClientid(),
+        updated = clock.now(),
+        podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
+        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard)
       )
     }
 

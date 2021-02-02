@@ -49,7 +49,8 @@ trait SearchConverterService {
         authors = metaWithAgreement.copyright.creators.map(_.name) ++ metaWithAgreement.copyright.processors
           .map(_.name) ++ metaWithAgreement.copyright.rightsholders.map(_.name),
         lastUpdated = metaWithAgreement.updated,
-        defaultTitle = defaultTitle.map(t => t.title)
+        defaultTitle = defaultTitle.map(t => t.title),
+        audioType = metaWithAgreement.audioType.toString
       )
     }
 

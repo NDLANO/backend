@@ -63,7 +63,9 @@ class SearchServiceTest
     copyrighted,
     List(Tag(List("fisk"), "nb")),
     "ndla124",
-    updated2
+    updated2,
+    Seq.empty,
+    AudioType.Standard
   )
 
   val audio2 = AudioMetaInformation(
@@ -74,7 +76,9 @@ class SearchServiceTest
     publicDomain,
     List(Tag(List("fugl"), "nb")),
     "ndla124",
-    updated4
+    updated4,
+    Seq.empty,
+    AudioType.Standard
   )
 
   val audio3 = AudioMetaInformation(
@@ -85,7 +89,9 @@ class SearchServiceTest
     byNcSa,
     List(Tag(List("supermann"), "nb")),
     "ndla124",
-    updated3
+    updated3,
+    Seq.empty,
+    AudioType.Standard
   )
 
   val audio4 = AudioMetaInformation(
@@ -98,7 +104,9 @@ class SearchServiceTest
     publicDomain,
     List(Tag(List("and"), "nb")),
     "ndla124",
-    updated5
+    updated5,
+    Seq.empty,
+    AudioType.Standard
   )
 
   val audio5 = AudioMetaInformation(
@@ -109,7 +117,9 @@ class SearchServiceTest
     byNcSa.copy(agreementId = Some(1)),
     List(Tag(List("synge"), "nb")),
     "ndla124",
-    updated1
+    updated1,
+    Seq.empty,
+    AudioType.Standard
   )
 
   val audio6 = AudioMetaInformation(
@@ -120,7 +130,9 @@ class SearchServiceTest
     byNcSa,
     List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")),
     "ndla123",
-    updated6
+    updated6,
+    Seq.empty,
+    AudioType.Podcast
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -130,7 +142,8 @@ class SearchServiceTest
     page = None,
     pageSize = None,
     sort = Sort.ByTitleAsc,
-    shouldScroll = false
+    shouldScroll = false,
+    audioType = None
   )
 
   // Skip tests if no docker environment available
@@ -416,6 +429,17 @@ class SearchServiceTest
     scroll1.results.map(_.id) should be(expectedIds(1))
     scroll2.results.map(_.id) should be(expectedIds(2))
     scroll3.results.map(_.id) should be(List.empty)
+  }
+
+  test("That filtering for audio-type works as expected") {
+    val Success(search1) = searchService.matchingQuery(searchSettings.copy(audioType = None))
+    search1.totalCount should be(5)
+    search1.results.head.id should be(4)
+    search1.results.last.id should be(6)
+
+    val Success(search2) = searchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
+    search2.totalCount should be(1)
+    search2.results.map(_.id) should be(Seq(6))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
