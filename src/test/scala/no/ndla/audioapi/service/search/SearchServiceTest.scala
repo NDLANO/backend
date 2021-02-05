@@ -8,19 +8,17 @@
 
 package no.ndla.audioapi.service.search
 
+import no.ndla.audioapi.TestData.searchSettings
 import no.ndla.audioapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
-import org.testcontainers.elasticsearch.ElasticsearchContainer
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class SearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -133,17 +131,6 @@ class SearchServiceTest
     updated6,
     Seq.empty,
     AudioType.Podcast
-  )
-
-  val searchSettings: SearchSettings = SearchSettings(
-    query = None,
-    language = None,
-    license = None,
-    page = None,
-    pageSize = None,
-    sort = Sort.ByTitleAsc,
-    shouldScroll = false,
-    audioType = None
   )
 
   // Skip tests if no docker environment available
