@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{Sort, domain}
-import no.ndla.audioapi.{AudioSwagger, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{AudioSwagger, TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatra.servlet.FileItem
@@ -185,5 +185,32 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
     verify(searchService, times(0)).matchingQuery(any[SearchSettings])
     verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
+  }
+
+  test("That initial scroll-context searches normally") {
+    reset(searchService)
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = domain.SearchResult(
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty,
+      Some(scrollId)
+    )
+
+    when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+
+    val expectedSettings = TestData.searchSettings.copy(
+      shouldScroll = true
+    )
+
+    post(s"/search/", body = s"""{"scrollId":"initial"}""") {
+      status should be(200)
+    }
+
+    verify(searchService, times(1)).matchingQuery(expectedSettings)
+    verify(searchService, times(0)).scroll(any[String], any[String])
   }
 }
