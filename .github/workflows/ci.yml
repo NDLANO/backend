@@ -1,0 +1,58 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  unit_tests:
+    name: "Unit tests"
+    env:
+      NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
+
+      AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_CLIENT_SECRET }}
+      AWS_DEFAULT_REGION: "eu-west-1"
+
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      CI: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Coursier cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: ${{ runner.OS }}-coursier-cache-${{ matrix.scala }}-${{ hashFiles('**/*.sbt') }}
+          restore-keys: |
+            ${{ runner.OS }}-coursier-cache-${{ matrix.scala }}-${{ hashFiles('**/*.sbt') }}-
+            ${{ runner.OS }}-coursier-cache-${{ matrix.scala }}-
+            ${{ runner.OS }}-coursier-cache-
+      - name: Ivy cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ivy2/cache
+            ~/.sbt/boot/
+          key: ivy-cache
+      - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
+      - name: "Install awscli"
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+      - name: "Login to ECR repo"
+        run: RES=$(aws sts assume-role --role-arn arn:aws:iam::950645517739:role/releaseAccess --role-session-name travis-test-release-pull-whatever)
+          AWS_ACCESS_KEY_ID=$(echo $RES | jq -r .Credentials.AccessKeyId)
+          AWS_SECRET_ACCESS_KEY=$(echo $RES | jq -r .Credentials.SecretAccessKey)
+          AWS_SESSION_TOKEN=$(echo $RES | jq -r .Credentials.SessionToken)
+          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 950645517739.dkr.ecr.eu-central-1.amazonaws.com
+      - name: "Login to dockerhub"
+        run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+      - name: "Unit tests"
+        run: sbt test
+
+      - name: "Cache tricks"
+        run: |
+          find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+          find $HOME/.sbt -name "*.lock" -delete
