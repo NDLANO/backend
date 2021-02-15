@@ -1,5 +1,5 @@
 # Mapping
-[![Build Status](https://travis-ci.org/NDLANO/mapping.svg?branch=master)](https://travis-ci.org/NDLANO/mapping)
+![CI](https://github.com/NDLANO/mapping/workflows/CI/badge.svg)
 
 Library that provides common mapping to NDLA components
 
