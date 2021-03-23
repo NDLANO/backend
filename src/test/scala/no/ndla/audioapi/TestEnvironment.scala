@@ -39,7 +39,6 @@ trait TestEnvironment
     with Elastic4sClient
     with IndexService
     with SearchConverterService
-    with SearchIndexService
     with SearchService
     with TagsService
     with MockitoSugar
@@ -72,7 +71,6 @@ trait TestEnvironment
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchConverterService = mock[SearchConverterService]
-  val searchIndexService = mock[SearchIndexService]
 
   val clock = mock[SystemClock]
   val authUser = mock[AuthUser]

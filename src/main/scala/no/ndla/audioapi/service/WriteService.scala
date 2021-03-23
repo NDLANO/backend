@@ -1,17 +1,15 @@
 package no.ndla.audioapi.service
 
 import java.io.ByteArrayInputStream
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.{Audio, LanguageField}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.SearchIndexService
+import no.ndla.audioapi.service.search.IndexService
 import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Random, Success, Try}
 import java.lang.Math.max
-
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.domain
 
@@ -19,7 +17,7 @@ trait WriteService {
   this: ConverterService
     with ValidationService
     with AudioRepository
-    with SearchIndexService
+    with IndexService
     with AudioStorageService
     with Clock
     with User =>
@@ -57,7 +55,7 @@ trait WriteService {
             domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
             _ <- validationService.validate(domainAudio, None)
             audioMetaData <- Try(audioRepository.insert(domainAudio))
-            _ <- searchIndexService.indexDocument(audioMetaData)
+            _ <- indexService.indexDocument(audioMetaData)
           } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
           if (audioMetaInformation.isFailure) {
@@ -82,7 +80,7 @@ trait WriteService {
               case ok => ok
             }
           })
-          val indexDeleted = searchIndexService.deleteDocument(audioId)
+          val indexDeleted = indexService.deleteDocument(audioId)
 
           if (metaDeleted < 1) {
             Failure(
@@ -93,10 +91,8 @@ trait WriteService {
             Failure(new AudioStorageException(msg))
           } else {
             indexDeleted match {
-              case Failure(ex)   => Failure(ex)
-              case Success(true) => Success(audioId)
-              case Success(false) =>
-                Failure(ElasticIndexingException(s"Something went wrong when deleting search index of $audioId"))
+              case Failure(ex)        => Failure(ex)
+              case Success(deletedId) => Success(deletedId)
             }
           }
 
@@ -148,7 +144,7 @@ trait WriteService {
       for {
         validated <- validationService.validate(toSave, Some(oldAudio))
         updated <- audioRepository.update(validated, audioId)
-        indexed <- searchIndexService.indexDocument(updated)
+        indexed <- indexService.indexDocument(updated)
         converted <- converterService.toApiAudioMetaInformation(indexed, language)
       } yield converted
     }

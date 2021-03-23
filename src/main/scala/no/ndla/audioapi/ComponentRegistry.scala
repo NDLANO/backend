@@ -42,7 +42,6 @@ object ComponentRegistry
     with Elastic4sClient
     with IndexService
     with SearchConverterService
-    with SearchIndexService
     with User
     with Role
     with Clock {
@@ -84,7 +83,6 @@ object ComponentRegistry
   lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val indexService = new IndexService
   lazy val searchConverterService = new SearchConverterService
-  lazy val searchIndexService = new SearchIndexService
   lazy val searchService = new SearchService
 
   lazy val authRole = new AuthRole

@@ -66,7 +66,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when import is a success") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainImageMetaInformation))
-    when(searchIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
+    when(indexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
       .thenReturn(Success(DefaultDomainImageMetaInformation))
     post("/import/123") {
       status should equal(200)
@@ -75,7 +75,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when imported resource does not have a language") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainAudioNoLanguage))
-    when(searchIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
+    when(indexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
       .thenReturn(Success(DefaultDomainAudioNoLanguage))
 
     post("/import/123") {

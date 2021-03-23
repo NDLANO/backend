@@ -32,7 +32,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchIndexService with SearchConverterService =>
+  this: Elastic4sClient with IndexService with SearchConverterService =>
   val searchService: SearchService
 
   class SearchService extends LazyLogging {
@@ -256,7 +256,7 @@ trait SearchService {
 
     private def scheduleIndexDocuments(): Unit = {
       val f = Future {
-        searchIndexService.indexDocuments
+        indexService.indexDocuments
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

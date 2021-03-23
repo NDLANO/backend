@@ -10,32 +10,51 @@ package no.ndla.audioapi.service.search
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
-
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedField}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, ReindexResult}
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
+import no.ndla.audioapi.repository.AudioRepository
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with SearchConverterService =>
+  this: Elastic4sClient with SearchConverterService with AudioRepository =>
+
   val indexService: IndexService
 
   class IndexService extends LazyLogging {
     implicit val formats = SearchableLanguageFormats.JSonFormats
 
-    def deleteDocument(idToDelete: Long) = {
-      e4sClient
-        .execute {
+    private def createIndexIfNotExists(): Try[_] = aliasTarget.flatMap {
+      case Some(index) => Success(index)
+      case None        => createIndexWithGeneratedName().flatMap(newIndex => updateAliasTarget(None, newIndex))
+    }
+
+    def buildMapping: MappingDefinition = {
+      mapping(AudioApiProperties.SearchDocument).fields(
+        intField("id"),
+        languageSupportedField("titles", keepRaw = true),
+        languageSupportedField("tags", keepRaw = false),
+        keywordField("license"),
+        keywordField("defaultTitle"),
+        textField("authors").fielddata(true),
+        keywordField("audioType")
+      )
+    }
+
+    def deleteDocument(idToDelete: Long): Try[Long] = {
+      for {
+        _ <- createIndexWithGeneratedName()
+        _ <- e4sClient.execute {
           delete(idToDelete.toString).from(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument)
         }
-        .map(_.isSuccess)
+      } yield idToDelete
     }
 
     def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
@@ -105,18 +124,6 @@ trait IndexService {
       }
     }
 
-    def buildMapping: MappingDefinition = {
-      mapping(AudioApiProperties.SearchDocument).fields(
-        intField("id"),
-        languageSupportedField("titles", keepRaw = true),
-        languageSupportedField("tags", keepRaw = false),
-        keywordField("license"),
-        keywordField("defaultTitle"),
-        textField("authors").fielddata(true),
-        keywordField("audioType")
-      )
-    }
-
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedField = {
       NestedField(fieldName).fields(keepRaw match {
         case true =>
@@ -183,6 +190,57 @@ trait IndexService {
 
     def getTimestamp: String = {
       new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
+    }
+
+    def indexDocuments: Try[ReindexResult] = {
+      synchronized {
+        val start = System.currentTimeMillis()
+        createIndexWithGeneratedName()
+          .flatMap(indexName => {
+            val operations = for {
+              numIndexed <- sendToElastic(indexName)
+              aliasTarget <- aliasTarget
+              _ <- updateAliasTarget(aliasTarget, indexName)
+              _ <- deleteIndexWithName(aliasTarget)
+            } yield numIndexed
+
+            operations match {
+              case Failure(f) => {
+                deleteIndexWithName(Some(indexName))
+                Failure(f)
+              }
+              case Success(totalIndexed) => {
+                Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
+              }
+            }
+          })
+      }
+    }
+
+    private def sendToElastic(indexName: String): Try[Int] = {
+      var numIndexed = 0
+      getRanges.map(ranges => {
+        ranges.foreach(range => {
+          val numberInBulk =
+            indexDocuments(audioRepository.audiosWithIdBetween(range._1, range._2), indexName)
+          numberInBulk match {
+            case Success(num) => numIndexed += num
+            case Failure(f)   => return Failure(f)
+          }
+        })
+        numIndexed
+      })
+    }
+
+    private def getRanges: Try[List[(Long, Long)]] = {
+      Try {
+        val (minId, maxId) = audioRepository.minMaxId
+        Seq
+          .range(minId, maxId)
+          .grouped(AudioApiProperties.IndexBulkSize)
+          .map(group => (group.head, group.last + 1))
+          .toList
+      }
     }
   }
 

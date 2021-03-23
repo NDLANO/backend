@@ -9,11 +9,12 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.ComponentRegistry.indexService
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
+import no.ndla.audioapi.service.search.IndexService
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
@@ -21,8 +22,8 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ImportService
+    with IndexService
     with ConverterService
-    with SearchIndexService
     with AudioRepository
     with IndexService
     with ReadService
@@ -36,7 +37,7 @@ trait InternController {
     }
 
     post("/index") {
-      searchIndexService.indexDocuments match {
+      indexService.indexDocuments match {
         case Success(reindexResult) => {
           val result =
             s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
@@ -74,7 +75,7 @@ trait InternController {
       authUser.assertHasId()
       for {
         imported <- importService.importAudio(params("external_id"))
-        indexed <- searchIndexService.indexDocument(imported)
+        indexed <- indexService.indexDocument(imported)
         audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
     }
