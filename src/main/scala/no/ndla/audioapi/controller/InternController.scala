@@ -9,12 +9,12 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.ComponentRegistry.indexService
+import no.ndla.audioapi.ComponentRegistry.audioIndexService
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.IndexService
+import no.ndla.audioapi.service.search.AudioIndexService
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
@@ -22,10 +22,10 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ImportService
-    with IndexService
+    with AudioIndexService
     with ConverterService
     with AudioRepository
-    with IndexService
+    with AudioIndexService
     with ReadService
     with User =>
   val internController: InternController
@@ -37,7 +37,7 @@ trait InternController {
     }
 
     post("/index") {
-      indexService.indexDocuments match {
+      audioIndexService.indexDocuments match {
         case Success(reindexResult) => {
           val result =
             s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
@@ -52,12 +52,12 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      val deleteResults = indexService.findAllIndexes(AudioApiProperties.SearchIndex) match {
+      val deleteResults = audioIndexService.findAllIndexes(AudioApiProperties.SearchIndex) match {
         case Failure(f) => halt(status = 500, body = f.getMessage)
         case Success(indexes) =>
           indexes.map(index => {
             logger.info(s"Deleting index $index")
-            indexService.deleteIndexWithName(Option(index))
+            audioIndexService.deleteIndexWithName(Option(index))
           })
       }
       val (errors, successes) = deleteResults.partition(_.isFailure)
@@ -75,7 +75,7 @@ trait InternController {
       authUser.assertHasId()
       for {
         imported <- importService.importAudio(params("external_id"))
-        indexed <- indexService.indexDocument(imported)
+        indexed <- audioIndexService.indexDocument(imported)
         audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
     }

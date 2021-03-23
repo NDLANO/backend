@@ -18,42 +18,43 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
+import java.util.Date
 import scala.util.Success
 
-class SearchServiceTest
+class AudioSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
   override val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val searchService = new SearchService
-  override val indexService = new IndexService
+  override val audioSearchService = new AudioSearchService
+  override val audioIndexService = new AudioIndexService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa =
+  val byNcSa: Copyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
 
-  val publicDomain = Copyright("publicdomain",
-                               Some("Metropolis"),
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               Seq(),
-                               Seq(),
-                               None,
-                               None,
-                               None)
+  val publicDomain: Copyright = Copyright("publicdomain",
+                                          Some("Metropolis"),
+                                          List(Author("Forfatter", "Bruce Wayne")),
+                                          Seq(),
+                                          Seq(),
+                                          None,
+                                          None,
+                                          None)
 
-  val copyrighted =
+  val copyrighted: Copyright =
     Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val updated1 = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated2 = new DateTime(2017, 5, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated3 = new DateTime(2017, 6, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated4 = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated5 = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated6 = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated1: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated2: Date = new DateTime(2017, 5, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated3: Date = new DateTime(2017, 6, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated4: Date = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val audio1 = AudioMetaInformation(
+  val audio1: AudioMetaInformation = AudioMetaInformation(
     Some(1),
     Some(1),
     List(Title("Batmen er på vift med en bil", "nb")),
@@ -66,7 +67,7 @@ class SearchServiceTest
     AudioType.Standard
   )
 
-  val audio2 = AudioMetaInformation(
+  val audio2: AudioMetaInformation = AudioMetaInformation(
     Some(2),
     Some(1),
     List(Title("Pingvinen er ute og går", "nb")),
@@ -79,7 +80,7 @@ class SearchServiceTest
     AudioType.Standard
   )
 
-  val audio3 = AudioMetaInformation(
+  val audio3: AudioMetaInformation = AudioMetaInformation(
     Some(3),
     Some(1),
     List(Title("Superman er ute og flyr", "nb")),
@@ -92,7 +93,7 @@ class SearchServiceTest
     AudioType.Standard
   )
 
-  val audio4 = AudioMetaInformation(
+  val audio4: AudioMetaInformation = AudioMetaInformation(
     Some(4),
     Some(1),
     List(Title("Donald Duck kjører bil", "nb"),
@@ -107,7 +108,7 @@ class SearchServiceTest
     AudioType.Standard
   )
 
-  val audio5 = AudioMetaInformation(
+  val audio5: AudioMetaInformation = AudioMetaInformation(
     Some(5),
     Some(1),
     List(Title("Synge sangen", "nb")),
@@ -120,7 +121,7 @@ class SearchServiceTest
     AudioType.Standard
   )
 
-  val audio6 = AudioMetaInformation(
+  val audio6: AudioMetaInformation = AudioMetaInformation(
     Some(6),
     Some(1),
     List(Title("Urelatert", "nb"), Title("Unrelated", "en")),
@@ -147,58 +148,58 @@ class SearchServiceTest
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
     if (elasticSearchContainer.isSuccess) {
-      indexService.createIndexWithName(AudioApiProperties.SearchIndex)
-      indexService.indexDocument(audio1)
-      indexService.indexDocument(audio2)
-      indexService.indexDocument(audio3)
-      indexService.indexDocument(audio4)
-      indexService.indexDocument(audio5)
-      indexService.indexDocument(audio6)
+      audioIndexService.createIndexWithName(AudioApiProperties.SearchIndex)
+      audioIndexService.indexDocument(audio1)
+      audioIndexService.indexDocument(audio2)
+      audioIndexService.indexDocument(audio3)
+      audioIndexService.indexDocument(audio4)
+      audioIndexService.indexDocument(audio5)
+      audioIndexService.indexDocument(audio6)
 
-      blockUntil(() => searchService.countDocuments == 6)
+      blockUntil(() => audioSearchService.countDocuments == 6)
     }
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    searchService.getStartAtAndNumResults(None, None) should equal((0, AudioApiProperties.DefaultPageSize))
+    audioSearchService.getStartAtAndNumResults(None, None) should equal((0, AudioApiProperties.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    searchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, AudioApiProperties.MaxPageSize))
+    audioSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, AudioApiProperties.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
     val page = 74
     val expectedStartAt = (page - 1) * AudioApiProperties.DefaultPageSize
-    searchService.getStartAtAndNumResults(Some(page), None) should equal(
+    audioSearchService.getStartAtAndNumResults(Some(page), None) should equal(
       (expectedStartAt, AudioApiProperties.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page = 123
     val expectedStartAt = (page - 1) * AudioApiProperties.MaxPageSize
-    searchService.getStartAtAndNumResults(Some(page), Some(AudioApiProperties.MaxPageSize)) should equal(
+    audioSearchService.getStartAtAndNumResults(Some(page), Some(AudioApiProperties.MaxPageSize)) should equal(
       (expectedStartAt, AudioApiProperties.MaxPageSize))
   }
 
   test("That no language returns all documents ordered by title ascending") {
-    val Success(results) = searchService.matchingQuery(searchSettings.copy())
+    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy())
     results.totalCount should be(5)
     results.results.head.id should be(4)
     results.results.last.id should be(6)
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
-    val Success(results) = searchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
+    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
     results.totalCount should be(2)
     results.results.head.id should be(4)
     results.results.last.id should be(2)
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val Success(page1) = searchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)))
-    val Success(page2) = searchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)))
+    val Success(page1) = audioSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)))
+    val Success(page2) = audioSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)))
     page1.totalCount should be(5)
     page1.page.get should be(1)
     page1.results.size should be(2)
@@ -211,7 +212,7 @@ class SearchServiceTest
   }
 
   test("That search matches title") {
-    val Success(results) = searchService.matchingQuery(
+    val Success(results) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("Pingvinen"),
         language = Some("nb")
@@ -221,7 +222,7 @@ class SearchServiceTest
   }
 
   test("That search matches id") {
-    val Success(results) = searchService.matchingQuery(
+    val Success(results) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("2"),
         language = Some("nb")
@@ -231,7 +232,7 @@ class SearchServiceTest
   }
 
   test("That search matches tags") {
-    val Success(results) = searchService.matchingQuery(
+    val Success(results) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("and"),
         language = Some("nb")
@@ -241,7 +242,7 @@ class SearchServiceTest
   }
 
   test("That search does not return batmen since it has license copyrighted and license is not specified") {
-    val Success(results) = searchService.matchingQuery(
+    val Success(results) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb")
@@ -250,7 +251,7 @@ class SearchServiceTest
   }
 
   test("That search returns batmen since license is specified as copyrighted") {
-    val Success(results) = searchService.matchingQuery(
+    val Success(results) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb"),
@@ -261,14 +262,14 @@ class SearchServiceTest
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) = searchService.matchingQuery(
+    val Success(search1) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("bilde + bil"),
         language = Some("nb"),
       ))
     search1.results.map(_.id) should equal(Seq.empty)
 
-    val Success(search2) = searchService.matchingQuery(
+    val Success(search2) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("ute + -går"),
         language = Some("nb"),
@@ -277,8 +278,8 @@ class SearchServiceTest
   }
 
   test("That searching for all languages and specifying no language should return the same") {
-    val Success(results1) = searchService.matchingQuery(searchSettings.copy(language = Some("all")))
-    val Success(results2) = searchService.matchingQuery(searchSettings.copy(language = None))
+    val Success(results1) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("all")))
+    val Success(results2) = audioSearchService.matchingQuery(searchSettings.copy(language = None))
 
     results1.totalCount should be(results2.totalCount)
     results1.results.head should be(results2.results.head)
@@ -287,12 +288,12 @@ class SearchServiceTest
   }
 
   test("That searching for 'nb' should return all results") {
-    val Success(results) = searchService.matchingQuery(searchSettings.copy(language = Some("nb")))
+    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("nb")))
     results.totalCount should be(5)
   }
 
   test("That searching for 'en' should only return results with english title") {
-    val Success(result) = searchService.matchingQuery(searchSettings.copy(language = Some("en")))
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("en")))
     result.totalCount should be(2)
     result.language should be("en")
 
@@ -304,8 +305,8 @@ class SearchServiceTest
   }
 
   test("That 'supported languages' should match all possible title languages") {
-    val Success(result1) = searchService.matchingQuery(searchSettings.copy(language = Some("en")))
-    val Success(result2) = searchService.matchingQuery(searchSettings.copy(language = Some("nb")))
+    val Success(result1) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("en")))
+    val Success(result2) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("nb")))
 
     // 'Donald' with 'en', 'nb' and 'nn'
     result1.results.head.supportedLanguages should be(audio4.titles.map(_.language))
@@ -314,7 +315,7 @@ class SearchServiceTest
   }
 
   test("Agreement information should be used in search") {
-    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(query = Some("Synge sangen")))
+    val Success(searchResult) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("Synge sangen")))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be(5)
@@ -330,7 +331,7 @@ class SearchServiceTest
     val hitString =
       s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","authors":["DC Comics"]}"""
 
-    val result = searchService.hitAsAudioSummary(hitString, "nb")
+    val result = audioSearchService.hitToApiModel(hitString, "nb")
 
     result.id should equal(id)
     result.title.title should equal(title)
@@ -339,8 +340,8 @@ class SearchServiceTest
   }
 
   test("That hit is returned in the matched language") {
-    val Success(searchResultEn) = searchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
-    val Success(searchResultNb) = searchService.matchingQuery(searchSettings.copy(query = Some("Urelatert")))
+    val Success(searchResultEn) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
+    val Success(searchResultNb) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("Urelatert")))
 
     searchResultNb.totalCount should be(1)
     searchResultNb.results.head.title.language should be("nb")
@@ -352,7 +353,7 @@ class SearchServiceTest
   }
 
   test("That sorting by lastUpdated asc functions correctly") {
-    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
+    val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
 
     search.totalCount should be(5)
     search.results.head.id should be(5)
@@ -363,7 +364,7 @@ class SearchServiceTest
   }
 
   test("That sorting by lastUpdated desc functions correctly") {
-    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
+    val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
 
     search.totalCount should be(5)
     search.results.head.id should be(6)
@@ -374,7 +375,7 @@ class SearchServiceTest
   }
 
   test("That sorting by id asc functions correctly") {
-    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc))
+    val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc))
 
     search.totalCount should be(5)
     search.results.head.id should be(2)
@@ -385,7 +386,7 @@ class SearchServiceTest
   }
 
   test("That sorting by id desc functions correctly") {
-    val Success(search) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc))
+    val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc))
 
     search.totalCount should be(5)
     search.results.head.id should be(6)
@@ -396,7 +397,7 @@ class SearchServiceTest
   }
 
   test("That supportedLanguages are sorted correctly") {
-    val Success(result) = searchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("Unrelated")))
     result.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
@@ -405,12 +406,12 @@ class SearchServiceTest
     val expectedIds = List(2, 3, 4, 5, 6).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
-      searchService.matchingQuery(
+      audioSearchService.matchingQuery(
         searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true))
 
-    val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all")
-    val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all")
-    val Success(scroll3) = searchService.scroll(scroll2.scrollId.get, "all")
+    val Success(scroll1) = audioSearchService.scroll(initialSearch.scrollId.get, "all")
+    val Success(scroll2) = audioSearchService.scroll(scroll1.scrollId.get, "all")
+    val Success(scroll3) = audioSearchService.scroll(scroll2.scrollId.get, "all")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -419,12 +420,12 @@ class SearchServiceTest
   }
 
   test("That filtering for audio-type works as expected") {
-    val Success(search1) = searchService.matchingQuery(searchSettings.copy(audioType = None))
+    val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(audioType = None))
     search1.totalCount should be(5)
     search1.results.head.id should be(4)
     search1.results.last.id should be(6)
 
-    val Success(search2) = searchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
+    val Success(search2) = audioSearchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
     search2.totalCount should be(1)
     search2.results.map(_.id) should be(Seq(6))
   }

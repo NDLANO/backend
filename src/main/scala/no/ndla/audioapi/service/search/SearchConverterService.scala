@@ -11,7 +11,7 @@ package no.ndla.audioapi.service.search
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.Language
-import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.search.{
@@ -84,7 +84,7 @@ trait SearchConverterService {
       }
     }
 
-    def asApiSearchResult(searchResult: domain.SearchResult): api.SearchResult =
+    def asApiSearchResult(searchResult: domain.SearchResult[api.AudioSummary]): api.SearchResult =
       api.SearchResult(
         searchResult.totalCount,
         searchResult.page,
@@ -92,5 +92,15 @@ trait SearchConverterService {
         searchResult.language,
         searchResult.results
       )
+
+    def asSearchableTags(audio: domain.AudioMetaInformation): Seq[SearchableTag] =
+      audio.tags.flatMap(
+        audioTags =>
+          audioTags.tags.map(
+            tag =>
+              SearchableTag(
+                tag = tag,
+                language = audioTags.language
+            )))
   }
 }

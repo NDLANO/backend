@@ -16,7 +16,7 @@ import no.ndla.audioapi.repository.AudioRepository
 import scala.util.{Failure, Success, Try}
 
 trait SearchIndexService {
-  this: AudioRepository with IndexService =>
+  this: AudioRepository with AudioIndexService =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends LazyLogging {}

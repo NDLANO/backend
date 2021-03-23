@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.{Audio, LanguageField}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.IndexService
+import no.ndla.audioapi.service.search.AudioIndexService
 import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Random, Success, Try}
@@ -17,7 +17,7 @@ trait WriteService {
   this: ConverterService
     with ValidationService
     with AudioRepository
-    with IndexService
+    with AudioIndexService
     with AudioStorageService
     with Clock
     with User =>
@@ -55,7 +55,7 @@ trait WriteService {
             domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
             _ <- validationService.validate(domainAudio, None)
             audioMetaData <- Try(audioRepository.insert(domainAudio))
-            _ <- indexService.indexDocument(audioMetaData)
+            _ <- audioIndexService.indexDocument(audioMetaData)
           } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
           if (audioMetaInformation.isFailure) {
@@ -80,7 +80,7 @@ trait WriteService {
               case ok => ok
             }
           })
-          val indexDeleted = indexService.deleteDocument(audioId)
+          val indexDeleted = audioIndexService.deleteDocument(audioId)
 
           if (metaDeleted < 1) {
             Failure(
@@ -144,7 +144,7 @@ trait WriteService {
       for {
         validated <- validationService.validate(toSave, Some(oldAudio))
         updated <- audioRepository.update(validated, audioId)
-        indexed <- indexService.indexDocument(updated)
+        indexed <- audioIndexService.indexDocument(updated)
         converted <- converterService.toApiAudioMetaInformation(indexed, language)
       } yield converted
     }

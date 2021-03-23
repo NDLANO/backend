@@ -8,90 +8,127 @@
 
 package no.ndla.audioapi.service.search
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedField}
+import com.sksamuel.elastic4s.indexes.IndexRequest
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition, NestedField}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, ReindexResult}
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
-import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.repository.{AudioRepository, Repository}
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
   this: Elastic4sClient with SearchConverterService with AudioRepository =>
 
-  val indexService: IndexService
+  trait IndexService[D, T] extends LazyLogging {
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
-  class IndexService extends LazyLogging {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
+    val documentType: String
+    val searchIndex: String
+    val repository: Repository[D]
 
-    private def createIndexIfNotExists(): Try[_] = aliasTarget.flatMap {
+    def getMapping: MappingDefinition
+    def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
+
+    private def createIndexIfNotExists() = getAliasTarget.map {
       case Some(index) => Success(index)
-      case None        => createIndexWithGeneratedName().flatMap(newIndex => updateAliasTarget(None, newIndex))
+      case None        => createIndexWithGeneratedName.flatMap(newIndex => updateAliasTarget(None, newIndex))
     }
 
-    def buildMapping: MappingDefinition = {
-      mapping(AudioApiProperties.SearchDocument).fields(
-        intField("id"),
-        languageSupportedField("titles", keepRaw = true),
-        languageSupportedField("tags", keepRaw = false),
-        keywordField("license"),
-        keywordField("defaultTitle"),
-        textField("authors").fielddata(true),
-        keywordField("audioType")
-      )
-    }
-
-    def deleteDocument(idToDelete: Long): Try[Long] = {
+    def indexDocument(imported: D): Try[D] = {
       for {
-        _ <- createIndexWithGeneratedName()
-        _ <- e4sClient.execute {
-          delete(idToDelete.toString).from(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument)
-        }
-      } yield idToDelete
+        _ <- createIndexIfNotExists()
+        requests = createIndexRequests(imported, searchIndex)
+        _ <- executeRequests(requests)
+      } yield imported
     }
 
-    def indexDocument(toIndex: AudioMetaInformation): Try[AudioMetaInformation] = {
-      val source = write(searchConverterService.asSearchableAudioInformation(toIndex))
+    def indexDocuments: Try[ReindexResult] = {
+      synchronized {
+        val start = System.currentTimeMillis()
+        createIndexWithGeneratedName.flatMap(indexName => {
+          val operations = for {
+            numIndexed <- sendToElastic(indexName)
+            aliasTarget <- getAliasTarget
+            _ <- updateAliasTarget(aliasTarget, indexName)
+            _ <- deleteIndexWithName(aliasTarget)
+          } yield numIndexed
 
-      val response = e4sClient.execute {
-        indexInto(AudioApiProperties.SearchIndex / AudioApiProperties.SearchDocument)
-          .doc(source)
-          .id(toIndex.id.get.toString)
-      }
-
-      response match {
-        case Success(_)  => Success(toIndex)
-        case Failure(ex) => Failure(ex)
+          operations match {
+            case Failure(f) => {
+              deleteIndexWithName(Some(indexName))
+              Failure(f)
+            }
+            case Success(totalIndexed) => {
+              Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
+            }
+          }
+        })
       }
     }
 
-    def indexDocuments(audioData: List[AudioMetaInformation], indexName: String): Try[Int] = {
-      if (audioData.isEmpty) {
+    def sendToElastic(indexName: String): Try[Int] = {
+      var numIndexed = 0
+      getRanges.map(ranges => {
+        ranges.foreach(range => {
+          val numberInBulk = indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
+          numberInBulk match {
+            case Success(num) => numIndexed += num
+            case Failure(f)   => return Failure(f)
+          }
+        })
+        numIndexed
+      })
+    }
+
+    def getRanges: Try[List[(Long, Long)]] = {
+      Try {
+        val (minId, maxId) = repository.minMaxId
+        Seq
+          .range(minId, maxId + 1)
+          .grouped(AudioApiProperties.IndexBulkSize)
+          .map(group => (group.head, group.last))
+          .toList
+      }
+    }
+
+    def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
+      if (contents.isEmpty) {
         Success(0)
       } else {
-        val response = e4sClient.execute {
-          bulk(audioData.map(audio => {
-            val source = write(searchConverterService.asSearchableAudioInformation(audio))
-            indexInto(indexName / AudioApiProperties.SearchDocument).doc(source).id(audio.id.get.toString)
-          }))
-        }
-        response match {
-          case Success(_)  => Success(audioData.size)
+        val requests = contents.flatMap(content => {
+          createIndexRequests(content, indexName)
+        })
+
+        executeRequests(requests) match {
+          case Success((numSuccessful, numFailures)) =>
+            logger.info(s"Indexed $numSuccessful documents ($searchIndex). No of failed items: $numFailures")
+            Success(contents.size)
           case Failure(ex) => Failure(ex)
         }
       }
     }
 
-    def createIndexWithGeneratedName(): Try[String] = {
-      createIndexWithName(AudioApiProperties.SearchIndex + "_" + getTimestamp)
+    def deleteDocument(contentId: Long): Try[Long] = {
+      for {
+        _ <- createIndexIfNotExists()
+        _ <- {
+          e4sClient.execute(
+            delete(s"$contentId").from(searchIndex / documentType)
+          )
+        }
+      } yield contentId
     }
+
+    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
 
     def createIndexWithName(indexName: String): Try[String] = {
       if (indexWithNameExists(indexName).getOrElse(false)) {
@@ -99,7 +136,7 @@ trait IndexService {
       } else {
         val response = e4sClient.execute {
           createIndex(indexName)
-            .mappings(buildMapping)
+            .mappings(getMapping)
             .indexSetting("max_result_window", AudioApiProperties.ElasticSearchIndexMaxResultWindow)
         }
 
@@ -124,27 +161,16 @@ trait IndexService {
       }
     }
 
-    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false): NestedField = {
-      NestedField(fieldName).fields(keepRaw match {
-        case true =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-        case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
-      })
-    }
-
-    def aliasTarget: Try[Option[String]] = {
+    def getAliasTarget: Try[Option[String]] = {
       val response = e4sClient.execute {
-        getAliases(Nil, List(AudioApiProperties.SearchIndex))
+        getAliases(Nil, List(searchIndex))
       }
 
       response match {
-        case Success(results) => Success(results.result.mappings.headOption.map(t => t._1.name))
-        case Failure(ex)      => Failure(ex)
+        case Success(results) =>
+          Success(results.result.mappings.headOption.map((t) => t._1.name))
+        case Failure(ex) => Failure(ex)
       }
-
     }
 
     def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
@@ -152,14 +178,13 @@ trait IndexService {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
         oldIndexName match {
-          case None => e4sClient.execute(addAlias(AudioApiProperties.SearchIndex).on(newIndexName))
+          case None => e4sClient.execute(addAlias(searchIndex).on(newIndexName))
           case Some(oldIndex) =>
             e4sClient.execute {
-              removeAlias(AudioApiProperties.SearchIndex).on(oldIndex)
-              addAlias(AudioApiProperties.SearchIndex).on(newIndexName)
+              removeAlias(searchIndex).on(oldIndex)
+              addAlias(searchIndex).on(newIndexName)
             }
         }
-
       }
     }
 
@@ -170,10 +195,13 @@ trait IndexService {
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
-            e4sClient.execute(deleteIndex(indexName))
+            e4sClient.execute {
+              deleteIndex(indexName)
+            }
           }
         }
       }
+
     }
 
     def indexWithNameExists(indexName: String): Try[Boolean] = {
@@ -188,60 +216,47 @@ trait IndexService {
       }
     }
 
-    def getTimestamp: String = {
-      new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
-    }
-
-    def indexDocuments: Try[ReindexResult] = {
-      synchronized {
-        val start = System.currentTimeMillis()
-        createIndexWithGeneratedName()
-          .flatMap(indexName => {
-            val operations = for {
-              numIndexed <- sendToElastic(indexName)
-              aliasTarget <- aliasTarget
-              _ <- updateAliasTarget(aliasTarget, indexName)
-              _ <- deleteIndexWithName(aliasTarget)
-            } yield numIndexed
-
-            operations match {
-              case Failure(f) => {
-                deleteIndexWithName(Some(indexName))
-                Failure(f)
-              }
-              case Success(totalIndexed) => {
-                Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-              }
-            }
-          })
+    /**
+      * Executes elasticsearch requests in bulk.
+      * Returns success (without executing anything) if supplied with an empty list.
+      *
+      * @param requests a list of elasticsearch [[IndexRequest]]'s
+      * @return A Try suggesting if the request was successful or not with a tuple containing number of successful requests and number of failed requests (in that order)
+      */
+    private def executeRequests(requests: Seq[IndexRequest]): Try[(Long, Long)] = {
+      requests match {
+        case Nil         => Success((0, 0))
+        case head :: Nil => e4sClient.execute(head).map(r => if (r.isSuccess) (1, 0) else (0, 1))
+        case reqs        => e4sClient.execute(bulk(reqs)).map(r => (r.result.successes.size, r.result.failures.size))
       }
     }
 
-    private def sendToElastic(indexName: String): Try[Int] = {
-      var numIndexed = 0
-      getRanges.map(ranges => {
-        ranges.foreach(range => {
-          val numberInBulk =
-            indexDocuments(audioRepository.audiosWithIdBetween(range._1, range._2), indexName)
-          numberInBulk match {
-            case Success(num) => numIndexed += num
-            case Failure(f)   => return Failure(f)
-          }
-        })
-        numIndexed
-      })
-    }
+    def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 
-    private def getRanges: Try[List[(Long, Long)]] = {
-      Try {
-        val (minId, maxId) = audioRepository.minMaxId
-        Seq
-          .range(minId, maxId)
-          .grouped(AudioApiProperties.IndexBulkSize)
-          .map(group => (group.head, group.last + 1))
-          .toList
+    /**
+      * Returns Sequence of FieldDefinitions for a given field.
+      *
+      * @param fieldName Name of field in mapping.
+      * @param keepRaw   Whether to add a keywordField named raw.
+      *                  Usually used for sorting, aggregations or scripts.
+      * @return Sequence of FieldDefinitions for a field.
+      */
+    protected def generateLanguageSupportedFieldList(fieldName: String,
+                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+      keepRaw match {
+        case true =>
+          languageAnalyzers.map(
+            langAnalyzer =>
+              textField(s"$fieldName.${langAnalyzer.lang}")
+                .fielddata(false)
+                .analyzer(langAnalyzer.analyzer)
+                .fields(keywordField("raw")))
+        case false =>
+          languageAnalyzers.map(langAnalyzer =>
+            textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
       }
     }
+
   }
 
 }

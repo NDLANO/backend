@@ -38,8 +38,12 @@ trait TestEnvironment
     with AudioController
     with Elastic4sClient
     with IndexService
+    with AudioIndexService
     with SearchConverterService
     with SearchService
+    with AudioSearchService
+    with TagIndexService
+    with TagSearchService
     with TagsService
     with MockitoSugar
     with User
@@ -68,8 +72,10 @@ trait TestEnvironment
   val healthController = mock[HealthController]
 
   val e4sClient = mock[NdlaE4sClient]
-  val searchService = mock[SearchService]
-  val indexService = mock[IndexService]
+  val audioSearchService = mock[AudioSearchService]
+  val audioIndexService = mock[AudioIndexService]
+  val tagSearchService = mock[TagSearchService]
+  val tagIndexService = mock[TagIndexService]
   val searchConverterService = mock[SearchConverterService]
 
   val clock = mock[SystemClock]

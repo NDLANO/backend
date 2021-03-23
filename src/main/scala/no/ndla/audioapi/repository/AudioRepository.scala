@@ -23,7 +23,7 @@ trait AudioRepository {
   this: DataSource =>
   val audioRepository: AudioRepository
 
-  class AudioRepository extends LazyLogging {
+  class AudioRepository extends LazyLogging with Repository[AudioMetaInformation] {
 
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${AudioMetaInformation.table}"
@@ -56,7 +56,7 @@ trait AudioRepository {
 
       val startRevision = 1
       val audioId =
-        sql"insert into audiodata (document, revision) values (${dataObject}, $startRevision)"
+        sql"insert into audiodata (document, revision) values ($dataObject, $startRevision)"
           .updateAndReturnGeneratedKey()
           .apply()
       audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
@@ -86,7 +86,7 @@ trait AudioRepository {
         val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
         val count =
-          sql"update audiodata set document = ${dataObject}, revision = ${newRevision} where id = ${id} and revision = ${audioMetaInformation.revision}"
+          sql"update audiodata set document = $dataObject, revision = $newRevision where id = $id and revision = ${audioMetaInformation.revision}"
             .update()
             .apply()
         if (count != 1) {
@@ -115,27 +115,25 @@ trait AudioRepository {
       }
     }
 
-    def minMaxId: (Long, Long) = {
-      DB readOnly { implicit session =>
-        sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
-          .map(rs => {
-            (rs.long("mi"), rs.long("ma"))
-          })
-          .single()
-          .apply() match {
-          case Some(minmax) => minmax
-          case None         => (0L, 0L)
-        }
+    override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): (Long, Long) = {
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
+        .map(rs => {
+          (rs.long("mi"), rs.long("ma"))
+        })
+        .single()
+        .apply() match {
+        case Some(minmax) => minmax
+        case None         => (0L, 0L)
       }
     }
 
-    def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession) = {
+    def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
       sql"delete from ${AudioMetaInformation.table} where id=$audioId"
         .update()
         .apply()
     }
 
-    def audiosWithIdBetween(min: Long, max: Long): List[AudioMetaInformation] = {
+    override def documentsWithIdBetween(min: Long, max: Long): List[AudioMetaInformation] = {
       audioMetaInformationsWhere(sqls"au.id between $min and $max")
     }
 
