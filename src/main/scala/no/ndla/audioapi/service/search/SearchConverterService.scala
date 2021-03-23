@@ -11,7 +11,7 @@ package no.ndla.audioapi.service.search
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.Language
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.search.{
@@ -102,5 +102,14 @@ trait SearchConverterService {
                 tag = tag,
                 language = audioTags.language
             )))
+
+    def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResult =
+      api.TagsSearchResult(
+        searchResult.totalCount,
+        searchResult.page.getOrElse(1),
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
   }
 }

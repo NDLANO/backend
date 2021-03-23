@@ -25,6 +25,7 @@ import no.ndla.audioapi.model.api.{
   NewAudioMetaInformation,
   SearchParams,
   SearchResult,
+  TagsSearchResult,
   UpdatedAudioMetaInformation,
   ValidationError,
   ValidationException,
@@ -32,7 +33,7 @@ import no.ndla.audioapi.model.api.{
 }
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{SearchConverterService, AudioSearchService}
+import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -406,6 +407,41 @@ trait AudioController {
         case Failure(e)         => errorHandler(e)
       }
 
+    }
+
+    get(
+      "/tag-search/",
+      operation(
+        apiOperation[TagsSearchResult]("getTags-paginated")
+          .summary("Retrieves a list of all previously used tags in articles")
+          .description("Retrieves a list of all previously used tags in articles")
+          .parameters(
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+          )
+          .responseMessages(response403, response500)
+          .authorizations("oauth2"))
+    ) {
+      authUser.assertHasId()
+      authRole.assertHasRole(RoleWithWriteAccess)
+      val query = paramOrDefault(this.query.paramName, "")
+      val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => DefaultPageSize
+        case x                        => x
+      }
+      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+      readService.getAllTags(query, pageSize, pageNo, language) match {
+        case Failure(ex)     => errorHandler(ex)
+        case Success(result) => Ok(result)
+      }
     }
   }
 }

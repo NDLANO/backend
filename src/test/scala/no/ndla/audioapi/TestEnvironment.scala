@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi
 
-import javax.sql
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
@@ -49,37 +48,37 @@ trait TestEnvironment
     with User
     with Role
     with Clock {
-  val dataSource = mock[HikariDataSource]
-  val storageName = AudioApiProperties.StorageName
-  val audioStorage = mock[AudioStorage]
-  val audioRepository = mock[AudioRepository]
+  val dataSource: HikariDataSource = mock[HikariDataSource]
+  val storageName: String = AudioApiProperties.StorageName
+  val audioStorage: AudioStorage = mock[AudioStorage]
+  val audioRepository: AudioRepository = mock[AudioRepository]
 
-  val amazonClient = mock[AmazonS3Client]
-  val ndlaClient = mock[NdlaClient]
-  val migrationApiClient = mock[MigrationApiClient]
-  val draftApiClient = mock[DraftApiClient]
+  val amazonClient: AmazonS3Client = mock[AmazonS3Client]
+  val ndlaClient: NdlaClient = mock[NdlaClient]
+  val migrationApiClient: MigrationApiClient = mock[MigrationApiClient]
+  val draftApiClient: DraftApiClient = mock[DraftApiClient]
 
-  val importService = mock[ImportService]
-  val readService = mock[ReadService]
-  val writeService = mock[WriteService]
-  val validationService = mock[ValidationService]
-  val converterService = mock[ConverterService]
-  val tagsService = mock[TagsService]
+  val importService: ImportService = mock[ImportService]
+  val readService: ReadService = mock[ReadService]
+  val writeService: WriteService = mock[WriteService]
+  val validationService: ValidationService = mock[ValidationService]
+  val converterService: ConverterService = mock[ConverterService]
+  val tagsService: TagsService = mock[TagsService]
 
-  val internController = mock[InternController]
-  val resourcesApp = mock[ResourcesApp]
-  val audioApiController = mock[AudioController]
-  val healthController = mock[HealthController]
+  val internController: InternController = mock[InternController]
+  val resourcesApp: ResourcesApp = mock[ResourcesApp]
+  val audioApiController: AudioController = mock[AudioController]
+  val healthController: HealthController = mock[HealthController]
 
-  val e4sClient = mock[NdlaE4sClient]
-  val audioSearchService = mock[AudioSearchService]
-  val audioIndexService = mock[AudioIndexService]
-  val tagSearchService = mock[TagSearchService]
-  val tagIndexService = mock[TagIndexService]
-  val searchConverterService = mock[SearchConverterService]
+  val e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
+  val audioSearchService: AudioSearchService = mock[AudioSearchService]
+  val audioIndexService: AudioIndexService = mock[AudioIndexService]
+  val tagSearchService: TagSearchService = mock[TagSearchService]
+  val tagIndexService: TagIndexService = mock[TagIndexService]
+  val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
-  val clock = mock[SystemClock]
-  val authUser = mock[AuthUser]
+  val clock: SystemClock = mock[SystemClock]
+  val authUser: AuthUser = mock[AuthUser]
   val authRole = new AuthRole
 
 }
