@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.{Audio, LanguageField}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.AudioIndexService
+import no.ndla.audioapi.service.search.{AudioIndexService, TagIndexService}
 import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Random, Success, Try}
@@ -18,6 +18,7 @@ trait WriteService {
     with ValidationService
     with AudioRepository
     with AudioIndexService
+    with TagIndexService
     with AudioStorageService
     with Clock
     with User =>
@@ -25,7 +26,7 @@ trait WriteService {
 
   class WriteService extends LazyLogging {
 
-    def deleteAudioLanguageVersion(audioId: Long, language: String) =
+    def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[AudioMetaInformation]] =
       audioRepository.withId(audioId) match {
         case Some(existing) if existing.supportedLanguages.contains(language) =>
           val newAudio = converterService.withoutLanguage(existing, language)
@@ -56,6 +57,7 @@ trait WriteService {
             _ <- validationService.validate(domainAudio, None)
             audioMetaData <- Try(audioRepository.insert(domainAudio))
             _ <- audioIndexService.indexDocument(audioMetaData)
+            _ <- tagIndexService.indexDocument(audioMetaData)
           } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
           if (audioMetaInformation.isFailure) {
@@ -66,7 +68,7 @@ trait WriteService {
       }
     }
 
-    def deleteAudioAndFiles(audioId: Long) = {
+    def deleteAudioAndFiles(audioId: Long): Try[Long] = {
       audioRepository
         .withId(audioId) match {
         case Some(toDelete) =>
@@ -145,6 +147,7 @@ trait WriteService {
         validated <- validationService.validate(toSave, Some(oldAudio))
         updated <- audioRepository.update(validated, audioId)
         indexed <- audioIndexService.indexDocument(updated)
+        _ <- tagIndexService.indexDocument(updated)
         converted <- converterService.toApiAudioMetaInformation(indexed, language)
       } yield converted
     }

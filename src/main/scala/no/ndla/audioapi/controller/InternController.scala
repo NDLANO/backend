@@ -81,6 +81,7 @@ trait InternController {
       for {
         imported <- importService.importAudio(params("external_id"))
         indexed <- audioIndexService.indexDocument(imported)
+        _ <- tagIndexService.indexDocument(imported)
         audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
     }

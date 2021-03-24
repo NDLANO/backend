@@ -413,8 +413,8 @@ trait AudioController {
       "/tag-search/",
       operation(
         apiOperation[TagsSearchResult]("getTags-paginated")
-          .summary("Retrieves a list of all previously used tags in articles")
-          .description("Retrieves a list of all previously used tags in articles")
+          .summary("Retrieves a list of all previously used tags in audios")
+          .description("Retrieves a list of all previously used tags in audios")
           .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
@@ -425,8 +425,6 @@ trait AudioController {
           .responseMessages(response403, response500)
           .authorizations("oauth2"))
     ) {
-      authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
       val query = paramOrDefault(this.query.paramName, "")
       val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
         case tooSmall if tooSmall < 1 => DefaultPageSize
