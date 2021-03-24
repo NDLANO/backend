@@ -1,6 +1,6 @@
 # audio-api
 
-[![Build Status](https://travis-ci.org/NDLANO/audio-api.svg?branch=master)](https://travis-ci.org/NDLANO/audio-api)
+![CI](https://github.com/NDLANO/audio-api/workflows/CI/badge.svg)
 
 ## Usage
 
