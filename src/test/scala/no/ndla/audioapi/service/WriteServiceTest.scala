@@ -98,7 +98,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(s3ObjectMock.getContentLength).thenReturn(1024)
     when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
 
-    reset(audioRepository, audioIndexService, audioStorage)
+    reset(audioRepository, audioIndexService, tagIndexService, audioStorage)
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession]))
       .thenReturn(domainAudioMeta.copy(id = Some(1), revision = Some(1)))
   }
@@ -189,6 +189,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.storeNewAudio(newAudioMeta, fileMock1).isFailure should be(true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(any[DBSession])
     verify(audioIndexService, times(0)).indexDocument(any[domain.AudioMetaInformation])
+    verify(tagIndexService, times(0)).indexDocument(any[domain.AudioMetaInformation])
   }
 
   test("storeNewAudio should return Failure if failed to insert into database") {
@@ -201,6 +202,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.storeNewAudio(newAudioMeta, fileMock1).isFailure should be(true)
     verify(audioIndexService, times(0)).indexDocument(any[domain.AudioMetaInformation])
+    verify(tagIndexService, times(0)).indexDocument(any[domain.AudioMetaInformation])
   }
 
   test("storeNewAudio should return Failure if failed to index audio metadata") {
@@ -210,6 +212,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
       .thenReturn(Success(mock[ObjectMetadata](withSettings.lenient())))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
+    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
 
     writeService.storeNewAudio(newAudioMeta, fileMock1).isFailure should be(true)
     verify(audioRepository, times(1)).insert(any[domain.AudioMetaInformation])(any[DBSession])
@@ -223,6 +226,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
       .thenReturn(Success(mock[ObjectMetadata](withSettings.lenient())))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
 
     val result = writeService.storeNewAudio(newAudioMeta, fileMock1)
     result.isSuccess should be(true)
@@ -230,6 +234,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(audioRepository, times(1)).insert(any[domain.AudioMetaInformation])(any[DBSession])
     verify(audioIndexService, times(1)).indexDocument(any[domain.AudioMetaInformation])
+    verify(tagIndexService, times(1)).indexDocument(any[domain.AudioMetaInformation])
   }
 
   test("that mergeAudioMeta overwrites fields from toUpdate for given language") {
@@ -392,6 +397,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(domainAudioMeta))
     when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(fileMock1))
     result.isSuccess should be(true)
