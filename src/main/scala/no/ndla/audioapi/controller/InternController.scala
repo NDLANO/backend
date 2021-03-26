@@ -9,11 +9,12 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.ComponentRegistry.audioIndexService
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{IndexService, SearchIndexService}
+import no.ndla.audioapi.service.search.{AudioIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
@@ -21,10 +22,11 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ImportService
+    with AudioIndexService
     with ConverterService
-    with SearchIndexService
     with AudioRepository
-    with IndexService
+    with AudioIndexService
+    with TagIndexService
     with ReadService
     with User =>
   val internController: InternController
@@ -36,14 +38,18 @@ trait InternController {
     }
 
     post("/index") {
-      searchIndexService.indexDocuments match {
-        case Success(reindexResult) => {
+      (audioIndexService.indexDocuments, tagIndexService.indexDocuments) match {
+        case (Success(audioReindexResult), Success(tagReindexResult)) => {
           val result =
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+            s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.
+               |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.""".stripMargin
           logger.info(result)
           Ok(result)
         }
-        case Failure(f) =>
+        case (Failure(f), _) =>
+          logger.warn(f.getMessage, f)
+          InternalServerError(f.getMessage)
+        case (_, Failure(f)) =>
           logger.warn(f.getMessage, f)
           InternalServerError(f.getMessage)
       }
@@ -51,12 +57,12 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      val deleteResults = indexService.findAllIndexes(AudioApiProperties.SearchIndex) match {
+      val deleteResults = audioIndexService.findAllIndexes(AudioApiProperties.SearchIndex) match {
         case Failure(f) => halt(status = 500, body = f.getMessage)
         case Success(indexes) =>
           indexes.map(index => {
             logger.info(s"Deleting index $index")
-            indexService.deleteIndexWithName(Option(index))
+            audioIndexService.deleteIndexWithName(Option(index))
           })
       }
       val (errors, successes) = deleteResults.partition(_.isFailure)
@@ -74,7 +80,8 @@ trait InternController {
       authUser.assertHasId()
       for {
         imported <- importService.importAudio(params("external_id"))
-        indexed <- searchIndexService.indexDocument(imported)
+        indexed <- audioIndexService.indexDocument(imported)
+        _ <- tagIndexService.indexDocument(imported)
         audio <- converterService.toApiAudioMetaInformation(indexed, None)
       } yield audio
     }

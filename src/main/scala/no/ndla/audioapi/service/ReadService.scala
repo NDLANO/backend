@@ -10,12 +10,26 @@ package no.ndla.audioapi.service
 
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.{SearchConverterService, TagSearchService}
+
+import scala.util.Try
 
 trait ReadService {
-  this: AudioRepository with ConverterService =>
+  this: AudioRepository with ConverterService with TagSearchService with SearchConverterService =>
   val readService: ReadService
 
   class ReadService {
+
+    def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResult] = {
+      val result = tagSearchService.matchingQuery(
+        query = input,
+        searchLanguage = language,
+        page = page,
+        pageSize = pageSize
+      )
+
+      result.map(searchConverterService.tagSearchResultAsApiResult)
+    }
 
     def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformation] =
       audioRepository.withId(id).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)

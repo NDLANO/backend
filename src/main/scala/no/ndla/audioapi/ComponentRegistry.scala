@@ -16,7 +16,7 @@ import no.ndla.audioapi.controller.HealthController
 import no.ndla.audioapi.controller.{AudioController, InternController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{IndexService, _}
+import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -39,10 +39,13 @@ object ComponentRegistry
     with HealthController
     with AudioController
     with SearchService
+    with AudioSearchService
+    with TagSearchService
     with Elastic4sClient
     with IndexService
+    with AudioIndexService
+    with TagIndexService
     with SearchConverterService
-    with SearchIndexService
     with User
     with Role
     with Clock {
@@ -82,10 +85,11 @@ object ComponentRegistry
   lazy val healthController = new HealthController
 
   lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
-  lazy val indexService = new IndexService
   lazy val searchConverterService = new SearchConverterService
-  lazy val searchIndexService = new SearchIndexService
-  lazy val searchService = new SearchService
+  lazy val audioIndexService = new AudioIndexService
+  lazy val audioSearchService = new AudioSearchService
+  lazy val tagIndexService = new TagIndexService
+  lazy val tagSearchService = new TagSearchService
 
   lazy val authRole = new AuthRole
   lazy val authUser = new AuthUser

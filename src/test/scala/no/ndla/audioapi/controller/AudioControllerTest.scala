@@ -10,10 +10,9 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
-import no.ndla.audioapi.model.{Sort, domain}
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{AudioSwagger, TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -35,14 +34,14 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   lazy val controller = new AudioController
   addServlet(controller, "/*")
 
-  val sampleUploadFile = new Uploadable {
+  val sampleUploadFile: Uploadable = new Uploadable {
     override def contentLength = 3
-    override def content = Array[Byte](0x49, 0x44, 0x33)
+    override def content: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
     override def contentType = "audio/mp3"
     override def fileName = "test.mp3"
   }
 
-  val sampleNewAudioMeta =
+  val sampleNewAudioMeta: String =
     """
       |{
       |    "title": "Test",
@@ -124,7 +123,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult(
+    val searchResponse = domain.SearchResult[api.AudioSummary](
       0,
       Some(1),
       10,
@@ -132,20 +131,20 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       Seq.empty,
       Some(scrollId)
     )
-    when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
     get(s"/") {
       status should be(200)
       body.contains(scrollId) should be(false)
-      header("search-context") should be(scrollId)
+      response.getHeader("search-context") should be(scrollId)
     }
   }
 
   test("That scrolling uses scroll and not searches normally") {
-    reset(searchService)
+    reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult(
+    val searchResponse = domain.SearchResult[api.AudioSummary](
       0,
       Some(1),
       10,
@@ -154,21 +153,21 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       Some(scrollId)
     )
 
-    when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
     get(s"/?search-context=$scrollId") {
       status should be(200)
     }
 
-    verify(searchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
+    verify(audioSearchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 
   test("That scrolling with POST uses scroll and not searches normally") {
-    reset(searchService)
+    reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult(
+    val searchResponse = domain.SearchResult[api.AudioSummary](
       0,
       Some(1),
       10,
@@ -177,21 +176,21 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       Some(scrollId)
     )
 
-    when(searchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
     post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
-    verify(searchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(searchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
+    verify(audioSearchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 
   test("That initial scroll-context searches normally") {
-    reset(searchService)
+    reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult(
+    val searchResponse = domain.SearchResult[api.AudioSummary](
       0,
       Some(1),
       10,
@@ -200,7 +199,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       Some(scrollId)
     )
 
-    when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
     val expectedSettings = TestData.searchSettings.copy(
       shouldScroll = true
@@ -210,7 +209,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       status should be(200)
     }
 
-    verify(searchService, times(1)).matchingQuery(expectedSettings)
-    verify(searchService, times(0)).scroll(any[String], any[String])
+    verify(audioSearchService, times(1)).matchingQuery(expectedSettings)
+    verify(audioSearchService, times(0)).scroll(any[String], any[String])
   }
 }

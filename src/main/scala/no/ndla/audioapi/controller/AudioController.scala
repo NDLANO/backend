@@ -25,6 +25,7 @@ import no.ndla.audioapi.model.api.{
   NewAudioMetaInformation,
   SearchParams,
   SearchResult,
+  TagsSearchResult,
   UpdatedAudioMetaInformation,
   ValidationError,
   ValidationException,
@@ -32,7 +33,7 @@ import no.ndla.audioapi.model.api.{
 }
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{SearchConverterService, SearchService}
+import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -48,7 +49,7 @@ trait AudioController {
   this: AudioRepository
     with ReadService
     with WriteService
-    with SearchService
+    with AudioSearchService
     with Role
     with User
     with Clock
@@ -143,7 +144,7 @@ trait AudioController {
                 paramType = ParamType.Form)
 
     /**
-      * Does a scroll with [[SearchService]]
+      * Does a scroll with [[AudioSearchService]]
       * If no scrollId is specified execute the function @orFunction in the second parameter list.
       *
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
@@ -152,7 +153,7 @@ trait AudioController {
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          searchService.scroll(scroll, language) match {
+          audioSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
               Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
@@ -258,7 +259,7 @@ trait AudioController {
           )
       }
 
-      searchService.matchingQuery(searchSettings) match {
+      audioSearchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
@@ -406,6 +407,39 @@ trait AudioController {
         case Failure(e)         => errorHandler(e)
       }
 
+    }
+
+    get(
+      "/tag-search/",
+      operation(
+        apiOperation[TagsSearchResult]("getTags-paginated")
+          .summary("Retrieves a list of all previously used tags in audios")
+          .description("Retrieves a list of all previously used tags in audios")
+          .parameters(
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+          )
+          .responseMessages(response403, response500)
+          .authorizations("oauth2"))
+    ) {
+      val query = paramOrDefault(this.query.paramName, "")
+      val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => DefaultPageSize
+        case x                        => x
+      }
+      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+      readService.getAllTags(query, pageSize, pageNo, language) match {
+        case Failure(ex)     => errorHandler(ex)
+        case Success(result) => Ok(result)
+      }
     }
   }
 }

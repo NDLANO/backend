@@ -66,7 +66,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when import is a success") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainImageMetaInformation))
-    when(searchIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
+    when(audioIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
+      .thenReturn(Success(DefaultDomainImageMetaInformation))
+    when(tagIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
       .thenReturn(Success(DefaultDomainImageMetaInformation))
     post("/import/123") {
       status should equal(200)
@@ -75,7 +77,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   test("That POST /import/123 returns 200 OK when imported resource does not have a language") {
     when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainAudioNoLanguage))
-    when(searchIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
+    when(audioIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
+      .thenReturn(Success(DefaultDomainAudioNoLanguage))
+    when(tagIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
       .thenReturn(Success(DefaultDomainAudioNoLanguage))
 
     post("/import/123") {
@@ -94,54 +98,54 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   }
 
   test("That DELETE /index removes all indexes") {
-    reset(indexService)
-    when(indexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    reset(audioIndexService)
+    when(audioIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
     delete("/index") {
       status should equal(200)
       body should equal("Deleted 3 indexes")
     }
-    verify(indexService).findAllIndexes(AudioApiProperties.SearchIndex)
-    verify(indexService).deleteIndexWithName(Some("index1"))
-    verify(indexService).deleteIndexWithName(Some("index2"))
-    verify(indexService).deleteIndexWithName(Some("index3"))
-    verifyNoMoreInteractions(indexService)
+    verify(audioIndexService).findAllIndexes(AudioApiProperties.SearchIndex)
+    verify(audioIndexService).deleteIndexWithName(Some("index1"))
+    verify(audioIndexService).deleteIndexWithName(Some("index2"))
+    verify(audioIndexService).deleteIndexWithName(Some("index3"))
+    verifyNoMoreInteractions(audioIndexService)
   }
 
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
-    reset(indexService)
+    reset(audioIndexService)
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
-      .when(indexService)
+      .when(audioIndexService)
       .findAllIndexes(AudioApiProperties.SearchIndex)
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
     delete("/index") {
       status should equal(500)
       body should equal("Failed to find indexes")
     }
-    verify(indexService, never).deleteIndexWithName(any[Option[String]])
+    verify(audioIndexService, never).deleteIndexWithName(any[Option[String]])
   }
 
   test(
     "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
-    reset(indexService)
-    when(indexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index1"))
+    reset(audioIndexService)
+    when(audioIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
-      .when(indexService)
+      .when(audioIndexService)
       .deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(indexService).deleteIndexWithName(Some("index3"))
+    doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
     delete("/index") {
       status should equal(500)
       body should equal(
         "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully.")
     }
-    verify(indexService).deleteIndexWithName(Some("index1"))
-    verify(indexService).deleteIndexWithName(Some("index2"))
-    verify(indexService).deleteIndexWithName(Some("index3"))
+    verify(audioIndexService).deleteIndexWithName(Some("index1"))
+    verify(audioIndexService).deleteIndexWithName(Some("index2"))
+    verify(audioIndexService).deleteIndexWithName(Some("index3"))
   }
 
 }
