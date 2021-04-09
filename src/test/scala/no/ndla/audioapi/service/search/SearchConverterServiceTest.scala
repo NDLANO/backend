@@ -13,17 +13,17 @@ import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
+
+import java.util.Date
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa =
+  val byNcSa: Copyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
-  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+  def updated(): Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val domainTitles = List(
     Title("Bokmål tittel", "nb"),
@@ -62,7 +62,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("the", "words"), "unknown")
   )
 
-  val sampleAudio =
+  val sampleAudio: AudioMetaInformation =
     AudioMetaInformation(Some(1),
                          Some(1),
                          domainTitles,
@@ -74,7 +74,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
                          Seq.empty,
                          AudioType.Standard)
 
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[AudioMetaInformation](0))
   }
@@ -85,7 +85,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableAudioInformation converts articles with correct language") {
-    val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
+    searchConverterService.asSearchableAudioInformation(sampleAudio)
   }
 
   test("That asSearchableAudioInformation converts tags with correct language") {
