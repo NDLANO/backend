@@ -49,10 +49,12 @@ trait AudioSearchService {
         case Some(x) => Title(x.title, x.language)
       }
       val id = (hit \ "id").extract[String].toLong
+      val audioType = (hit \ "audioType").extract[String]
 
       AudioSummary(
         id,
         title,
+        audioType,
         ApplicationUrl.get + (hit \ "id").extract[String],
         (hit \ "license").extract[String],
         supportedLanguages

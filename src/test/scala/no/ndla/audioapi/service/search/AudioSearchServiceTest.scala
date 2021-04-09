@@ -325,11 +325,12 @@ class AudioSearchServiceTest
   test("that hit is converted to summary correctly") {
     val id = 5
     val title = "Synge sangen"
+    val audioType = "standard"
     val license = "gnu"
     val tag = "synge"
     val supportedLanguages = Seq("nb")
     val hitString =
-      s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","authors":["DC Comics"]}"""
+      s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"]}"""
 
     val result = audioSearchService.hitToApiModel(hitString, "nb")
 
@@ -337,6 +338,7 @@ class AudioSearchServiceTest
     result.title.title should equal(title)
     result.license should equal(license)
     result.supportedLanguages should equal(supportedLanguages)
+    result.audioType should equal(audioType)
   }
 
   test("That hit is returned in the matched language") {

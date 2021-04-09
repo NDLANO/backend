@@ -8,21 +8,16 @@
 
 package no.ndla.audioapi.service.search
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedField}
+import com.sksamuel.elastic4s.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, ReindexResult}
-import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageFormats}
+import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import org.json4s.native.Serialization.write
-
-import scala.util.{Failure, Success, Try}
 
 trait AudioIndexService {
   this: Elastic4sClient with SearchConverterService with IndexService with AudioRepository =>
