@@ -13,7 +13,6 @@ import com.sksamuel.elastic4s.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{AudioTagSearchDocument, AudioTagSearchIndex}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
-import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import org.json4s.native.Serialization.write
 

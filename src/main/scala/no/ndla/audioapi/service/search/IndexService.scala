@@ -63,13 +63,11 @@ trait IndexService {
           } yield numIndexed
 
           operations match {
-            case Failure(f) => {
+            case Failure(f) =>
               deleteIndexWithName(Some(indexName))
               Failure(f)
-            }
-            case Success(totalIndexed) => {
+            case Success(totalIndexed) =>
               Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
-            }
           }
         })
       }
@@ -191,7 +189,7 @@ trait IndexService {
     def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
         case None => Success(optIndexName)
-        case Some(indexName) => {
+        case Some(indexName) =>
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
@@ -199,7 +197,6 @@ trait IndexService {
               deleteIndex(indexName)
             }
           }
-        }
       }
 
     }
