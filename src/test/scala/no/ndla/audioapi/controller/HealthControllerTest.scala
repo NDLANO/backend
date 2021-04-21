@@ -41,7 +41,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     "ndla124",
     updated,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   addServlet(controller, "/")

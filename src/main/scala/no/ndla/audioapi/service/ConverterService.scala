@@ -71,7 +71,8 @@ trait ConverterService {
           tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
           supportedLanguages = audioMeta.supportedLanguages,
           audioType = audioMeta.audioType.toString,
-          podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta)
+          podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta),
+          manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript)
         ))
     }
 
@@ -134,6 +135,12 @@ trait ConverterService {
         header = meta.header,
         introduction = meta.introduction,
         coverPhoto = toApiCoverPhoto(meta.coverPhoto),
+        language = meta.language
+      )
+    }
+
+    private def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
+      api.Manuscript(
         manuscript = meta.manuscript,
         language = meta.language
       )
@@ -151,9 +158,12 @@ trait ConverterService {
         header = meta.header,
         introduction = meta.introduction,
         coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
-        manuscript = meta.manuscript,
         language = language
       )
+    }
+
+    def toDomainManuscript(manuscript: String, language: String): domain.Manuscript = {
+      domain.Manuscript(manuscript = manuscript, language = language)
     }
 
     def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
@@ -168,7 +178,8 @@ trait ConverterService {
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
-        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard)
+        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
+        manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq
       )
     }
 

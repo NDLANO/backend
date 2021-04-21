@@ -29,9 +29,10 @@ case class AudioMetaInformation(
     updatedBy: String,
     updated: Date,
     podcastMeta: Seq[PodcastMeta],
-    audioType: AudioType.Value = AudioType.Standard
+    audioType: AudioType.Value = AudioType.Standard,
+    manuscript: Seq[Manuscript]
 ) {
-  lazy val supportedLanguages = Language.getSupportedLanguages(titles, filePaths, tags)
+  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(titles, filePaths, tags)
 }
 
 object AudioType extends Enumeration {
@@ -43,6 +44,9 @@ object AudioType extends Enumeration {
 }
 
 case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
+case class Manuscript(manuscript: String, language: String) extends LanguageField[String] {
+  override def value: String = manuscript
+}
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] {
   override def value: Audio = this
 }

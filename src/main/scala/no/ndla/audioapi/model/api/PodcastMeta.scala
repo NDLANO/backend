@@ -11,8 +11,7 @@ case class PodcastMeta(
   @(ApiModelProperty @field)(description = "Header for the podcast") header: String,
   @(ApiModelProperty @field)(description = "Introduction for the podcast") introduction: String,
   @(ApiModelProperty @field)(description = "Cover photo for the podcast") coverPhoto: CoverPhoto,
-  @(ApiModelProperty @field)(description = "Manuscript for the podcast") manuscript: String,
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in the title") language: String
+  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in the title") language: String
 )
 
 @ApiModel(description = "Meta information about podcast audio")

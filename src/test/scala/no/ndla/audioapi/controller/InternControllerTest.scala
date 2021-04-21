@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.model.domain.AudioType
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -16,6 +16,7 @@ import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import java.util.Date
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
@@ -24,9 +25,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val DefaultApiImageMetaInformation = api.AudioMetaInformation(
+  val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
     1,
     1,
     api.Title("title", "nb"),
@@ -35,10 +36,11 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     api.Tag(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",
+    None,
     None
   )
 
-  val DefaultDomainImageMetaInformation = domain.AudioMetaInformation(
+  val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     Seq(domain.Title("title", "nb")),
@@ -48,10 +50,11 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     "ndla124",
     updated,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
-  val DefaultDomainAudioNoLanguage = domain.AudioMetaInformation(
+  val DefaultDomainAudioNoLanguage: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     Seq(domain.Title("title", "unknown")),
@@ -61,7 +64,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     "ndla124",
     updated,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   test("That POST /import/123 returns 200 OK when import is a success") {

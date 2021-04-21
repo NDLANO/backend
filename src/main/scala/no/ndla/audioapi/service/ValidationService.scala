@@ -65,8 +65,7 @@ trait ValidationService {
         meta.flatMap(m => {
           Seq.empty ++
             validateNonEmpty("podcastMeta.header", m.header) ++
-            validateNonEmpty("podcastMeta.introduction", m.introduction) ++
-            validateNonEmpty("podcastMeta.manuscript", m.manuscript)
+            validateNonEmpty("podcastMeta.introduction", m.introduction)
         })
       }
     }

@@ -167,6 +167,7 @@ trait WriteService {
       val newPodcastMeta =
         toUpdate.podcastMeta.map(meta => converterService.toDomainPodcastMeta(meta, toUpdate.language))
 
+      val newManuscript = toUpdate.manuscript.map(manu => converterService.toDomainManuscript(manu, toUpdate.language))
       val merged = existing.copy(
         revision = Some(toUpdate.revision),
         titles = mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
@@ -175,8 +176,10 @@ trait WriteService {
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid(),
-        podcastMeta = mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language)
+        podcastMeta = mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
+        manuscript = mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language)
       )
+
       (merged, savedAudio)
     }
 

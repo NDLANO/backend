@@ -5,7 +5,6 @@ case class PodcastMeta(
     header: String,
     introduction: String,
     coverPhoto: CoverPhoto,
-    manuscript: String,
     language: String
 ) extends WithLanguage
 

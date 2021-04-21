@@ -64,7 +64,8 @@ class AudioSearchServiceTest
     "ndla124",
     updated2,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   val audio2: AudioMetaInformation = AudioMetaInformation(
@@ -77,7 +78,8 @@ class AudioSearchServiceTest
     "ndla124",
     updated4,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   val audio3: AudioMetaInformation = AudioMetaInformation(
@@ -90,7 +92,8 @@ class AudioSearchServiceTest
     "ndla124",
     updated3,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   val audio4: AudioMetaInformation = AudioMetaInformation(
@@ -105,7 +108,8 @@ class AudioSearchServiceTest
     "ndla124",
     updated5,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   val audio5: AudioMetaInformation = AudioMetaInformation(
@@ -118,7 +122,8 @@ class AudioSearchServiceTest
     "ndla124",
     updated1,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   val audio6: AudioMetaInformation = AudioMetaInformation(
@@ -131,7 +136,8 @@ class AudioSearchServiceTest
     "ndla123",
     updated6,
     Seq.empty,
-    AudioType.Podcast
+    AudioType.Podcast,
+    Seq.empty
   )
 
   // Skip tests if no docker environment available

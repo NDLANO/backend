@@ -20,48 +20,51 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
   override val converterService = new ConverterService
   val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val newAudioFile1 = NewAudioFile("test.mp3", "nb")
-  val newAudioFile2 = NewAudioFile("test2.mp3", "nb")
+  val newAudioFile1: NewAudioFile = NewAudioFile("test.mp3", "nb")
+  val newAudioFile2: NewAudioFile = NewAudioFile("test2.mp3", "nb")
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
   val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
 
-  val newAudioMeta = NewAudioMetaInformation(
+  val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
     "title",
     "en",
     Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     Seq("tag"),
     None,
-    None)
+    None,
+    None
+  )
 
-  val updatedAudioMeta = UpdatedAudioMetaInformation(
+  val updatedAudioMeta: UpdatedAudioMetaInformation = UpdatedAudioMetaInformation(
     revision = 1,
     title = "title",
     language = "en",
     copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     tags = Seq("tag"),
     audioType = None,
-    podcastMeta = None
+    podcastMeta = None,
+    manuscript = None
   )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val someAudio = Audio(newFileName1, "audio/mp3", 1024, "en")
+  val someAudio: Audio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
   val domainAudioMeta: domain.AudioMetaInformation =
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
-  val updated1 = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated1: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val publicDomain = domain.Copyright("publicdomain",
-                                      Some("Metropolis"),
-                                      List(domain.Author("Forfatter", "Bruce Wayne")),
-                                      Seq(),
-                                      Seq(),
-                                      None,
-                                      None,
-                                      None)
+  val publicDomain: domain.Copyright = domain.Copyright("publicdomain",
+                                                        Some("Metropolis"),
+                                                        List(domain.Author("Forfatter", "Bruce Wayne")),
+                                                        Seq(),
+                                                        Seq(),
+                                                        None,
+                                                        None,
+                                                        None)
 
-  val multiLangAudio = domain.AudioMetaInformation(
+  val multiLangAudio: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(4),
     Some(1),
     List(domain.Title("Donald Duck kjører bil", "nb"),
@@ -81,7 +84,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     "ndla124",
     updated1,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -246,6 +250,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
                                                None,
+                                               None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
@@ -260,6 +265,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -276,6 +282,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -294,6 +301,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
@@ -314,6 +322,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
@@ -506,6 +515,34 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioStorage, times(1)).deleteObject(audio.filePaths.head.filePath)
     verify(audioIndexService, times(1)).deleteDocument(audioId)
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
+  }
+
+  test("That mergeLanguageField merges language fields as expected") {
+    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+
+    val res1 = writeService.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
+    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    res1 should be(expected1)
+
+    val res2 = writeService.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
+    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    res2 should be(expected2)
+  }
+
+  test("That mergeLanguageField deletes language fields as expected") {
+    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+
+    val res1 = writeService.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
+    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    res1 should be(expected1)
+
+    val res2 = writeService.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
+    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    res2 should be(expected2)
+
+    val res3 = writeService.mergeLanguageField(existingTitles, None, "en")
+    val expected3 = Seq(domain.Title("Tittel", "nb"))
+    res3 should be(expected3)
   }
 
 }

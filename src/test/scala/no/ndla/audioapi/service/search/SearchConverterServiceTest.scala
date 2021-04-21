@@ -72,7 +72,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
                          "ndla124",
                          updated(),
                          Seq.empty,
-                         AudioType.Standard)
+                         AudioType.Standard,
+                         Seq.empty)
 
   override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>

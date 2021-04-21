@@ -35,7 +35,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     "ndla124",
     updated,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty
   )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
@@ -49,6 +50,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
       None
     )
 
@@ -65,6 +67,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
       None
     )
 
