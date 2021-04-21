@@ -65,7 +65,7 @@ case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[St
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   override val tableName = "audiodata"
-  override val schemaName = Some(AudioApiProperties.MetaSchema)
+  override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
 
   val jsonEncoder: Formats = DefaultFormats + new EnumSerializer(AudioType)
 

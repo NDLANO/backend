@@ -22,6 +22,7 @@ case class SearchableLanguageValues(languageValues: Seq[LanguageValue.LanguageVa
 
 case class SearchableLanguageList(languageValues: Seq[LanguageValue.LanguageValue[Seq[String]]])
 
+// TODO: Add podcastmeta here for searching for podcast descriptions
 case class SearchableAudioInformation(
     id: String,
     titles: SearchableLanguageValues,

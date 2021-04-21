@@ -168,7 +168,9 @@ trait WriteService {
         toUpdate.podcastMeta.map(meta => converterService.toDomainPodcastMeta(meta, toUpdate.language))
 
       val newManuscript = toUpdate.manuscript.map(manu => converterService.toDomainManuscript(manu, toUpdate.language))
-      val merged = existing.copy(
+
+      val merged = domain.AudioMetaInformation(
+        id = existing.id,
         revision = Some(toUpdate.revision),
         titles = mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
         tags = mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
