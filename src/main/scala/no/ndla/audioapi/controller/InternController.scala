@@ -9,12 +9,12 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.ComponentRegistry.audioIndexService
+import no.ndla.audioapi.ComponentRegistry.{audioIndexService, seriesController}
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{AudioIndexService, TagIndexService}
+import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
@@ -26,6 +26,7 @@ trait InternController {
     with ConverterService
     with AudioRepository
     with AudioIndexService
+    with SeriesIndexService
     with TagIndexService
     with ReadService
     with User =>
@@ -38,18 +39,22 @@ trait InternController {
     }
 
     post("/index") {
-      (audioIndexService.indexDocuments, tagIndexService.indexDocuments) match {
-        case (Success(audioReindexResult), Success(tagReindexResult)) => {
+      (audioIndexService.indexDocuments, tagIndexService.indexDocuments, seriesIndexService.indexDocuments) match {
+        case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) => {
           val result =
             s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.
-               |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.""".stripMargin
+               |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.
+               |Completed indexing of ${seriesReIndexResult.totalIndexed} documents in ${seriesReIndexResult.millisUsed} (series) ms.""".stripMargin
           logger.info(result)
           Ok(result)
         }
-        case (Failure(f), _) =>
+        case (Failure(f), _, _) =>
           logger.warn(f.getMessage, f)
           InternalServerError(f.getMessage)
-        case (_, Failure(f)) =>
+        case (_, Failure(f), _) =>
+          logger.warn(f.getMessage, f)
+          InternalServerError(f.getMessage)
+        case (_, _, Failure(f)) =>
           logger.warn(f.getMessage, f)
           InternalServerError(f.getMessage)
       }

@@ -58,7 +58,7 @@ object Language {
     }
   }
 
-  def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
+  def getSupportedLanguages[P <: WithLanguage](sequences: Seq[P]*): Seq[String] = {
     sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>
       ISO639.languagePriority.indexOf(lang)
     }

@@ -19,6 +19,8 @@ import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import org.json4s.native.Serialization.write
 
+import scala.util.{Success, Try}
+
 trait AudioIndexService {
   this: Elastic4sClient with SearchConverterService with IndexService with AudioRepository =>
 
@@ -29,9 +31,9 @@ trait AudioIndexService {
     override val searchIndex: String = AudioApiProperties.SearchIndex
     override val repository: AudioRepository = audioRepository
 
-    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Seq[IndexRequest] = {
+    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
       val source = write(searchConverterService.asSearchableAudioInformation(domainModel))
-      Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+      Success(Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))) // TODO: Maybe actually utilize try here?
     }
 
     def getMapping: MappingDefinition = {
@@ -44,7 +46,7 @@ trait AudioIndexService {
           keywordField("audioType")
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-          generateLanguageSupportedFieldList("tags", keepRaw = false)
+          generateLanguageSupportedFieldList("tags")
       )
     }
   }

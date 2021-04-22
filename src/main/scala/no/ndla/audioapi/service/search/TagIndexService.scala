@@ -16,6 +16,8 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import org.json4s.native.Serialization.write
 
+import scala.util.{Success, Try}
+
 trait TagIndexService {
   this: SearchConverterService with IndexService with AudioRepository =>
   val tagIndexService: TagIndexService
@@ -25,13 +27,15 @@ trait TagIndexService {
     override val searchIndex: String = AudioTagSearchIndex
     override val repository: Repository[AudioMetaInformation] = audioRepository
 
-    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Seq[IndexRequest] = {
+    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
       val tags = searchConverterService.asSearchableTags(domainModel)
 
-      tags.map(t => {
-        val source = write(t)
-        indexInto(indexName / documentType).doc(source).id(s"${t.language}.${t.tag}")
-      })
+      Success(
+        tags.map(t => {
+          val source = write(t)
+          indexInto(indexName / documentType).doc(source).id(s"${t.language}.${t.tag}")
+        })
+      )
     }
 
     def getMapping: MappingDefinition = {

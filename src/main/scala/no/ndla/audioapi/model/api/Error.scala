@@ -54,6 +54,7 @@ object Error {
 }
 
 class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
+case class MissingIdException(message: String) extends RuntimeException(message)
 
 class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage])
     extends RuntimeException(message)

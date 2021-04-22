@@ -1,14 +1,15 @@
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.AudioApiProperties
+import cats.implicits._
 import no.ndla.audioapi.AudioApiProperties.{creatorTypeMap, processorTypeMap, rightsholderTypeMap}
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
+import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
-import org.jsoup.Jsoup
-import org.jsoup.safety.Whitelist
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
+import org.jsoup.Jsoup
+import org.jsoup.safety.Whitelist
 import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Success, Try}
@@ -18,6 +19,56 @@ trait ValidationService {
   val validationService: ValidationService
 
   class ValidationService {
+
+    def validatePodcastEpisodes(episodes: Seq[(Long, Option[AudioMetaInformation])],
+                                seriesId: Option[Long]): Try[Seq[AudioMetaInformation]] = {
+      val validated = episodes.map {
+        case (id, Some(ep)) =>
+          validatePodcastEpisode(id, ep, seriesId) match {
+            case Nil  => Right(ep)
+            case msgs => Left(msgs)
+          }
+        case (id, None) =>
+          Left(
+            Seq(
+              ValidationMessage(
+                s"episodes.$id",
+                s"Provided episode with id '$id' was not found in the database."
+              )))
+      }
+
+      val (errors, eps) = validated.separate
+      val messages = errors.flatten
+
+      validationTry(eps, messages)
+    }
+
+    private def validatePodcastEpisode(episodeId: Long,
+                                       episode: AudioMetaInformation,
+                                       seriesId: Option[Long]): Seq[ValidationMessage] = {
+      val correctTypeError =
+        if (episode.audioType != AudioType.Podcast)
+          Seq(
+            ValidationMessage(
+              s"episodes.$episodeId",
+              s"Provided episode $episodeId, is not of '${AudioType.Podcast}' type"
+            ))
+        else Seq.empty
+
+      val overrideSeriesIdError = episode.seriesId match {
+        case Some(episodeSeriesId) if !seriesId.contains(episodeSeriesId) =>
+          Some(
+            ValidationMessage(
+              s"episodes.$episodeId",
+              s"Provided episode $episodeId, is already a part of a series (With id: '$episodeSeriesId')."
+            ))
+        case _ => None
+      }
+
+      val hasPodcastMetaError = validateNonEmpty(s"episodes.$episodeId.podcastMeta", episode.podcastMeta)
+
+      correctTypeError ++ overrideSeriesIdError ++ hasPodcastMetaError
+    }
 
     def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
@@ -29,13 +80,10 @@ trait ValidationService {
           s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
       }
 
-      audioFile.name.toLowerCase.endsWith(".mp3") match {
-        case false =>
-          Some(
-            ValidationMessage("files",
-                              s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
-        case true => None
-      }
+      if (audioFile.name.toLowerCase.endsWith(".mp3")) None
+      else
+        Some(
+          ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
     }
 
     def validate(audio: AudioMetaInformation, oldAudio: Option[AudioMetaInformation]): Try[AudioMetaInformation] = {
@@ -50,9 +98,22 @@ trait ValidationService {
         validateTags(audio.tags, oldLanguages) ++
         validatePodcastMeta(audio.audioType, audio.podcastMeta)
 
-      validationMessages match {
+      validationTry(audio, validationMessages)
+
+    }
+
+    def validate[T <: domain.SeriesWithoutId](series: T): Try[T] = {
+      val validationMessages = validateNonEmpty("title", series.title).toSeq ++
+        series.title.flatMap(title => validateNonEmpty("title", title.language)) ++
+        series.title.flatMap(title => validateTitle("title", title, Seq.empty))
+
+      validationTry(series, validationMessages)
+    }
+
+    private def validationTry[T](successCase: T, messages: Seq[ValidationMessage]): Try[T] = {
+      messages match {
         case head :: tail => Failure(new ValidationException(errors = head :: tail))
-        case _            => Success(audio)
+        case _            => Success(successCase)
       }
     }
 
@@ -94,12 +155,9 @@ trait ValidationService {
 
     def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
       copyright.agreementId match {
-        case Some(id) =>
-          draftApiClient.agreementExists(id) match {
-            case false => Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
-            case _     => Seq()
-          }
-        case _ => Seq()
+        case Some(id) if !draftApiClient.agreementExists(id) =>
+          Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
+        case _ => Seq.empty
       }
     }
 
@@ -125,10 +183,10 @@ trait ValidationService {
     }
 
     private def containsNoHtml(fieldPath: String, text: String): Option[ValidationMessage] = {
-      Jsoup.isValid(text, Whitelist.none()) match {
-        case true => None
-        case false =>
-          Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))
+      if (Jsoup.isValid(text, Whitelist.none())) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))
       }
     }
 
@@ -153,9 +211,10 @@ trait ValidationService {
     }
 
     private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
-      sequence.nonEmpty match {
-        case true  => None
-        case false => Some(ValidationMessage(fieldPath, "There are no elements to validate."))
+      if (sequence.nonEmpty) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, "There are no elements to validate."))
       }
     }
 

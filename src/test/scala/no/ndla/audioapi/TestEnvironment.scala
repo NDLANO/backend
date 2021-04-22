@@ -11,9 +11,9 @@ package no.ndla.audioapi
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.{AudioController, HealthController, InternController}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
-import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
@@ -22,6 +22,7 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends DataSource
     with AudioRepository
+    with SeriesRepository
     with NdlaClient
     with MigrationApiClient
     with ImportService
@@ -35,12 +36,15 @@ trait TestEnvironment
     with InternController
     with HealthController
     with AudioController
+    with SeriesController
     with Elastic4sClient
     with IndexService
     with AudioIndexService
+    with SeriesIndexService
     with SearchConverterService
     with SearchService
     with AudioSearchService
+    with SeriesSearchService
     with TagIndexService
     with TagSearchService
     with TagsService
@@ -52,6 +56,7 @@ trait TestEnvironment
   val storageName: String = AudioApiProperties.StorageName
   val audioStorage: AudioStorage = mock[AudioStorage]
   val audioRepository: AudioRepository = mock[AudioRepository]
+  val seriesRepository: SeriesRepository = mock[SeriesRepository]
 
   val amazonClient: AmazonS3Client = mock[AmazonS3Client]
   val ndlaClient: NdlaClient = mock[NdlaClient]
@@ -69,10 +74,13 @@ trait TestEnvironment
   val resourcesApp: ResourcesApp = mock[ResourcesApp]
   val audioApiController: AudioController = mock[AudioController]
   val healthController: HealthController = mock[HealthController]
+  val seriesController: SeriesController = mock[SeriesController]
 
   val e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
   val audioSearchService: AudioSearchService = mock[AudioSearchService]
   val audioIndexService: AudioIndexService = mock[AudioIndexService]
+  val seriesSearchService: SeriesSearchService = mock[SeriesSearchService]
+  val seriesIndexService: SeriesIndexService = mock[SeriesIndexService]
   val tagSearchService: TagSearchService = mock[TagSearchService]
   val tagIndexService: TagIndexService = mock[TagIndexService]
   val searchConverterService: SearchConverterService = mock[SearchConverterService]

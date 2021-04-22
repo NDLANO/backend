@@ -65,7 +65,8 @@ class AudioSearchServiceTest
     updated2,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val audio2: AudioMetaInformation = AudioMetaInformation(
@@ -79,7 +80,8 @@ class AudioSearchServiceTest
     updated4,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val audio3: AudioMetaInformation = AudioMetaInformation(
@@ -93,7 +95,8 @@ class AudioSearchServiceTest
     updated3,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val audio4: AudioMetaInformation = AudioMetaInformation(
@@ -109,7 +112,8 @@ class AudioSearchServiceTest
     updated5,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val audio5: AudioMetaInformation = AudioMetaInformation(
@@ -123,7 +127,8 @@ class AudioSearchServiceTest
     updated1,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val audio6: AudioMetaInformation = AudioMetaInformation(
@@ -137,7 +142,8 @@ class AudioSearchServiceTest
     updated6,
     Seq.empty,
     AudioType.Podcast,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   // Skip tests if no docker environment available
@@ -336,15 +342,15 @@ class AudioSearchServiceTest
     val tag = "synge"
     val supportedLanguages = Seq("nb")
     val hitString =
-      s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"]}"""
+      s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
 
     val result = audioSearchService.hitToApiModel(hitString, "nb")
 
-    result.id should equal(id)
-    result.title.title should equal(title)
-    result.license should equal(license)
-    result.supportedLanguages should equal(supportedLanguages)
-    result.audioType should equal(audioType)
+    result.get.id should equal(id)
+    result.get.title.title should equal(title)
+    result.get.license should equal(license)
+    result.get.supportedLanguages should equal(supportedLanguages)
+    result.get.audioType should equal(audioType)
   }
 
   test("That hit is returned in the matched language") {

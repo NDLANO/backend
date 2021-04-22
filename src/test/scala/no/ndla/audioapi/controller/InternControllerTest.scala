@@ -51,7 +51,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val DefaultDomainAudioNoLanguage: AudioMetaInformation = domain.AudioMetaInformation(
@@ -65,7 +66,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   test("That POST /import/123 returns 200 OK when import is a success") {

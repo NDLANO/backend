@@ -24,6 +24,8 @@ trait AudioRepository {
   val audioRepository: AudioRepository
 
   class AudioRepository extends LazyLogging with Repository[AudioMetaInformation] {
+    implicit val formats: Formats = AudioMetaInformation.repositorySerializer
+    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${AudioMetaInformation.table}"
@@ -31,10 +33,6 @@ trait AudioRepository {
         .single()
         .apply()
         .getOrElse(0)
-
-    implicit val formats: Formats = AudioMetaInformation.repositorySerializer
-
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
     def withId(id: Long): Option[AudioMetaInformation] = {
       DB readOnly { implicit session =>
@@ -86,7 +84,11 @@ trait AudioRepository {
         val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
         val count =
-          sql"update audiodata set document = $dataObject, revision = $newRevision where id = $id and revision = ${audioMetaInformation.revision}"
+          sql"""
+             update audiodata
+             set document = $dataObject, revision = $newRevision
+             where id = $id and revision = ${audioMetaInformation.revision}
+             """
             .update()
             .apply()
         if (count != 1) {
@@ -98,6 +100,18 @@ trait AudioRepository {
           Success(audioMetaInformation.copy(id = Some(id), revision = Some(newRevision)))
         }
       }
+    }
+
+    def setSeriesId(audioMetaId: Long, seriesId: Option[Long])(implicit session: DBSession = AutoSession): Try[Long] = {
+      Try(
+        sql"""
+           update ${AudioMetaInformation.table}
+           set series_id = $seriesId
+           where id = $audioMetaId
+           """
+          .update()
+          .apply()
+      ).map(_ => audioMetaId)
     }
 
     def numElements: Int = {
@@ -115,16 +129,17 @@ trait AudioRepository {
       }
     }
 
-    override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
-        .map(rs => {
-          (rs.long("mi"), rs.long("ma"))
+    override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
+      Try(
+        sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
+          .map(rs => {
+            (rs.long("mi"), rs.long("ma"))
+          })
+          .single()
+          .apply() match {
+          case Some(minmax) => minmax
+          case None         => (0L, 0L)
         })
-        .single()
-        .apply() match {
-        case Some(minmax) => minmax
-        case None         => (0L, 0L)
-      }
     }
 
     def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
@@ -133,7 +148,7 @@ trait AudioRepository {
         .apply()
     }
 
-    override def documentsWithIdBetween(min: Long, max: Long): List[AudioMetaInformation] = {
+    override def documentsWithIdBetween(min: Long, max: Long): Try[List[AudioMetaInformation]] = {
       audioMetaInformationsWhere(sqls"au.id between $min and $max")
     }
 
@@ -147,12 +162,14 @@ trait AudioRepository {
     }
 
     private def audioMetaInformationsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): List[AudioMetaInformation] = {
+        implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
-        .map(AudioMetaInformation.fromResultSet(au))
-        .list()
-        .apply()
+      Try(
+        sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
+          .map(AudioMetaInformation.fromResultSet(au))
+          .list()
+          .apply()
+      )
     }
 
     def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {

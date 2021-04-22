@@ -1,31 +1,91 @@
 package no.ndla.audioapi.service
 
-import java.io.ByteArrayInputStream
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.domain.{Audio, LanguageField, WithLanguage}
-import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{AudioIndexService, TagIndexService}
+import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
+import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import org.scalatra.servlet.FileItem
 
-import scala.util.{Failure, Random, Success, Try}
+import java.io.ByteArrayInputStream
 import java.lang.Math.max
-import no.ndla.audioapi.auth.{Role, User}
+import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
   this: ConverterService
     with ValidationService
     with AudioRepository
+    with SeriesRepository
     with AudioIndexService
+    with SeriesIndexService
     with TagIndexService
     with AudioStorageService
+    with ReadService
     with Clock
     with User =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
+
+    def updateSeries(id: Long, toUpdateSeries: api.NewSeries): Try[api.Series] = {
+      seriesRepository.withId(id) match {
+        case Failure(ex)   => Failure(ex)
+        case Success(None) => Failure(new NotFoundException(s"Could not find series to update with id: '$id'"))
+        case Success(Some(existingSeries)) =>
+          val merged = converterService.updateSeries(existingSeries, toUpdateSeries)
+          val oldEpisodesIds = existingSeries.episodes.traverse(_.flatMap(_.id)).flatten.toSet
+          val episodesToDelete = oldEpisodesIds.diff(toUpdateSeries.episodes)
+          val episodesToAdd = toUpdateSeries.episodes.diff(oldEpisodesIds)
+          val episodesToValidate = toUpdateSeries.episodes.map(id => id -> audioRepository.withId(id))
+
+          for {
+            validatedEpisodes <- validationService.validatePodcastEpisodes(episodesToValidate.toSeq,
+                                                                           Some(existingSeries.id))
+            validatedSeries <- validationService.validate(merged)
+            updatedSeries <- seriesRepository.update(validatedSeries)
+            _ <- updateSeriesForEpisodes(None, episodesToDelete.toSeq)
+            _ <- updateSeriesForEpisodes(Some(validatedSeries.id), episodesToAdd.toSeq)
+            updatedWithEpisodes = updatedSeries.copy(episodes = Some(validatedEpisodes))
+            _ <- seriesIndexService.indexDocument(updatedWithEpisodes)
+            converted <- converterService.toApiSeries(updatedWithEpisodes, Some(toUpdateSeries.language))
+          } yield converted
+
+      }
+    }
+
+    def newSeries(newSeries: api.NewSeries): Try[api.Series] = {
+      val domainSeries = converterService.toDomainSeries(newSeries)
+      val episodes = newSeries.episodes.map(id => id -> audioRepository.withId(id))
+
+      for {
+        validatedEpisodes <- validationService.validatePodcastEpisodes(episodes.toSeq, None)
+        validatedSeries <- validationService.validate(domainSeries)
+        inserted <- seriesRepository.insert(validatedSeries)
+        _ <- updateSeriesForEpisodes(Some(inserted.id), newSeries.episodes.toSeq)
+        insertedWithEpisodes = inserted.copy(episodes = Some(validatedEpisodes))
+        _ <- seriesIndexService.indexDocument(insertedWithEpisodes)
+        converted <- converterService.toApiSeries(insertedWithEpisodes, Some(newSeries.language))
+      } yield converted
+
+    }
+
+    def updateSeriesForEpisodes(seriesId: Option[Long], episodeIds: Seq[Long]): Try[_] =
+      episodeIds.traverse(
+        id =>
+          audioRepository.setSeriesId(
+            audioMetaId = id,
+            seriesId = seriesId
+        ))
+
+    def deleteSeries(seriesId: Long): Try[Long] =
+      seriesRepository.deleteWithId(seriesId) match {
+        case Success(numRows) if numRows > 0 => seriesIndexService.deleteDocument(seriesId)
+        case Success(_)                      => Failure(new NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
+        case Failure(ex)                     => Failure(ex)
+      }
 
     def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[AudioMetaInformation]] =
       audioRepository.withId(audioId) match {
@@ -160,8 +220,9 @@ trait WriteService {
       val mergedFilePaths = savedAudio match {
         case None => existing.filePaths
         case Some(audio) =>
-          mergeLanguageField(existing.filePaths,
-                             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
+          converterService.mergeLanguageField(
+            existing.filePaths,
+            domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
       }
 
       val newPodcastMeta =
@@ -172,33 +233,18 @@ trait WriteService {
       val merged = domain.AudioMetaInformation(
         id = existing.id,
         revision = Some(toUpdate.revision),
-        titles = mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
-        tags = mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
+        titles = converterService.mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+        tags = converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid(),
-        podcastMeta = mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
-        manuscript = mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language)
+        podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
+        manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
+        seriesId = existing.seriesId // TODO: Do we do updates here? Do we add episodes to series or series to episodes? /shrug
       )
 
       (merged, savedAudio)
-    }
-
-    private[service] def mergeLanguageField[T <: WithLanguage](field: Seq[T],
-                                                               toAdd: Option[T],
-                                                               language: String): Seq[T] = {
-      field.indexWhere(_.language == language) match {
-        case idx if idx >= 0 => field.patch(idx, toAdd.toSeq, 1)
-        case _               => field ++ toAdd.toSeq
-      }
-    }
-
-    private[service] def mergeLanguageField[Y <: WithLanguage](field: Seq[Y], toMerge: Y): Seq[Y] = {
-      field.indexWhere(_.language == toMerge.language) match {
-        case idx if idx >= 0 => field.patch(idx, Seq(toMerge), 1)
-        case _               => field ++ Seq(toMerge)
-      }
     }
 
     private[service] def deleteFile(audioFile: Audio) = {

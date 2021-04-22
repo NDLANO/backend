@@ -7,5 +7,3 @@ case class PodcastMeta(
     coverPhoto: CoverPhoto,
     language: String
 ) extends WithLanguage
-
-case class CoverPhoto(imageId: String, altText: String)

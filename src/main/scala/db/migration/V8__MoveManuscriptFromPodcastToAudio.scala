@@ -46,15 +46,15 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
 
   def convertDocument(document: String): String = {
     val oldArticle = parse(document)
-    val podcastManus = (oldArticle \ "podcastMeta").extract[Seq[V7__PodcastMeta]]
+    val oldPodcastMetas = (oldArticle \ "podcastMeta").extract[Seq[V7__PodcastMeta]]
 
-    val newManuscripts = podcastManus.map(
+    val newManuscripts = oldPodcastMetas.map(
       meta =>
         V8__Manuscripts(
           meta.manuscript,
           meta.language
       ))
-    val newPodcastMetas = podcastManus.map(
+    val newPodcastMetas = oldPodcastMetas.map(
       meta =>
         V8__PodcastMeta(
           meta.header,

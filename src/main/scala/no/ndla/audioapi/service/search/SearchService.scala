@@ -18,6 +18,7 @@ import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchResult}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 trait SearchService {
   this: Elastic4sClient with SearchConverterService =>
@@ -30,27 +31,27 @@ trait SearchService {
         .execute {
           searchScroll(scrollId, ElasticSearchScrollKeepAlive)
         }
-        .map(response => {
-          val hits = getHits(response.result, language)
-
-          SearchResult[T](
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language = if (language == "*") Language.AllLanguages else language,
-            results = hits,
-            scrollId = response.result.scrollId
-          )
+        .flatMap(response => {
+          getHits(response.result, language).map(hits => {
+            SearchResult[T](
+              totalCount = response.result.totalHits,
+              page = None,
+              pageSize = response.result.hits.hits.length,
+              language = if (language == "*") Language.AllLanguages else language,
+              results = hits,
+              scrollId = response.result.scrollId
+            )
+          })
         })
 
-    def hitToApiModel(hit: String, language: String): T
+    def hitToApiModel(hit: String, language: String): Try[T]
 
-    def getHits(response: SearchResponse, language: String): Seq[T] = {
+    def getHits(response: SearchResponse, language: String): Try[Seq[T]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
 
-          resultArray.map(result => {
+          resultArray.traverse(result => {
             val matchedLanguage = language match {
               case Language.AllLanguages | "*" =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
@@ -59,7 +60,7 @@ trait SearchService {
 
             hitToApiModel(result.sourceAsString, matchedLanguage)
           })
-        case _ => Seq()
+        case _ => Success(Seq.empty)
       }
     }
 

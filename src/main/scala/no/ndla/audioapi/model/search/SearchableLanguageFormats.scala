@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi.model.search
 
-import no.ndla.audioapi.model.Language.UnknownLanguage
 import org.json4s.JsonAST.{JArray, JField, JObject, JString}
 import org.json4s.{CustomSerializer, MappingException}
 

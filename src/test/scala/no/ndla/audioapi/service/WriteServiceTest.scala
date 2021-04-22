@@ -1,20 +1,18 @@
 package no.ndla.audioapi.service
 
-import java.io.InputStream
-import java.util.Date
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.domain
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success, Try}
+import java.io.InputStream
+import java.util.Date
+import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
@@ -85,7 +83,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     updated1,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   override def beforeEach(): Unit = {
@@ -517,32 +516,211 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
   }
 
-  test("That mergeLanguageField merges language fields as expected") {
-    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+  def setupSuccessfulSeriesValidation(): Unit = {
+    when(
+      validationService.validatePodcastEpisodes(any[Seq[(Long, Option[domain.AudioMetaInformation])]],
+                                                any[Option[Long]])).thenAnswer((i: InvocationOnMock) => {
+      val inputArgument = i.getArgument[Seq[(Long, Option[domain.AudioMetaInformation])]](0)
+      val passedEpisodes = inputArgument.map(_._2.get)
+      Success(passedEpisodes)
+    })
 
-    val res1 = writeService.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
-    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
-    res1 should be(expected1)
-
-    val res2 = writeService.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
-    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
-    res2 should be(expected2)
+    when(validationService.validate(any[domain.Series])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
   }
 
-  test("That mergeLanguageField deletes language fields as expected") {
-    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+  test("That failed insertion does not updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
 
-    val res1 = writeService.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
-    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
-    res1 should be(expected1)
+    val series = TestData.SampleSeries
 
-    val res2 = writeService.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
-    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
-    res2 should be(expected2)
+    setupSuccessfulSeriesValidation()
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(seriesRepository.insert(any[domain.Series])(any[DBSession]))
+      .thenReturn(Failure(new RuntimeException("weird failure there buddy")))
 
-    val res3 = writeService.mergeLanguageField(existingTitles, None, "en")
-    val expected3 = Seq(domain.Title("Tittel", "nb"))
-    res3 should be(expected3)
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    writeService.newSeries(updateSeries).isFailure should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+  }
+
+  test("That failed updating does not updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val series = TestData.SampleSeries
+
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenReturn(Failure(new OptimisticLockException))
+    setupSuccessfulSeriesValidation()
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    writeService.updateSeries(1, updateSeries).isFailure should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+  }
+
+  test("That successful insertion updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+
+    when(seriesRepository.insert(any[domain.SeriesWithoutId])(any[DBSession]))
+      .thenAnswer((i: InvocationOnMock) => {
+        Success(
+          domain.Series.fromId(
+            id = 1,
+            revision = 1,
+            i.getArgument[domain.SeriesWithoutId](0)
+          )
+        )
+      })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.newSeries(updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(1)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+
+  }
+
+  test("That successful updating updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val episodesMap = Map(
+      1L -> TestData.samplePodcast.copy(id = Some(1)),
+      2L -> TestData.samplePodcast.copy(id = Some(2))
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      episodesMap.get(id)
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(2),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.updateSeries(1, updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(1)).setSeriesId(eqTo(1), eqTo(None))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(2), eqTo(Some(1)))(any[DBSession])
+  }
+
+  test("That successful updating doesnt update existing episodes") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val episodesMap = Map(
+      1L -> TestData.samplePodcast.copy(id = Some(1)),
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      episodesMap.get(id)
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.updateSeries(1, updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
   }
 
 }
