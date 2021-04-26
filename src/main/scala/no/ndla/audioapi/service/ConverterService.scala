@@ -146,7 +146,7 @@ trait ConverterService {
       )
     }
 
-    private def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
+    def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
       domain.PodcastMeta(
         header = meta.header,
         introduction = meta.introduction,
