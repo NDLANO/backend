@@ -3,7 +3,9 @@ package no.ndla.audioapi.service
 import java.io.ByteArrayInputStream
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.domain.{Audio, LanguageField}
+import no.ndla.audioapi.model.api
+import no.ndla.audioapi.model.domain
+import no.ndla.audioapi.model.domain.{Audio, LanguageField, WithLanguage}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, TagIndexService}
 import org.scalatra.servlet.FileItem
@@ -11,7 +13,6 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Random, Success, Try}
 import java.lang.Math.max
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.model.domain
 
 trait WriteService {
   this: ConverterService
@@ -159,25 +160,36 @@ trait WriteService {
       val mergedFilePaths = savedAudio match {
         case None => existing.filePaths
         case Some(audio) =>
-          mergeLanguageField[Audio, domain.Audio](
-            existing.filePaths,
-            domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
+          mergeLanguageField(existing.filePaths,
+                             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
       }
+
+      val newPodcastMeta =
+        toUpdate.podcastMeta.map(meta => converterService.toDomainPodcastMeta(meta, toUpdate.language))
 
       val merged = existing.copy(
         revision = Some(toUpdate.revision),
-        titles =
-          mergeLanguageField[String, domain.Title](existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
-        tags = mergeLanguageField[Seq[String], domain.Tag](existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
+        titles = mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+        tags = mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
-        updatedBy = authUser.userOrClientid()
+        updatedBy = authUser.userOrClientid(),
+        podcastMeta = mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language)
       )
       (merged, savedAudio)
     }
 
-    private[service] def mergeLanguageField[T, Y <: LanguageField[T]](field: Seq[Y], toMerge: Y): Seq[Y] = {
+    private[service] def mergeLanguageField[T <: WithLanguage](field: Seq[T],
+                                                               toAdd: Option[T],
+                                                               language: String): Seq[T] = {
+      field.indexWhere(_.language == language) match {
+        case idx if idx >= 0 => field.patch(idx, toAdd.toSeq, 1)
+        case _               => field ++ toAdd.toSeq
+      }
+    }
+
+    private[service] def mergeLanguageField[Y <: WithLanguage](field: Seq[Y], toMerge: Y): Seq[Y] = {
       field.indexWhere(_.language == toMerge.language) match {
         case idx if idx >= 0 => field.patch(idx, Seq(toMerge), 1)
         case _               => field ++ Seq(toMerge)
