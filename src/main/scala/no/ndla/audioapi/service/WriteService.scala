@@ -241,7 +241,7 @@ trait WriteService {
         updatedBy = authUser.userOrClientid(),
         podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
         manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
-        seriesId = existing.seriesId // TODO: Do we do updates here? Do we add episodes to series or series to episodes? /shrug
+        seriesId = existing.seriesId
       )
 
       (merged, savedAudio)
