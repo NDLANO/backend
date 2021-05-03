@@ -4,10 +4,6 @@ CREATE TABLE seriesdata (
   document JSONB
 );
 
--- ALTER TABLE audiodata
---     ADD COLUMN series_id BIGSERIAL
---         REFERENCES seriesdata(id);
-
 ALTER TABLE audiodata
     ADD COLUMN series_id BIGINT NULL;
 
