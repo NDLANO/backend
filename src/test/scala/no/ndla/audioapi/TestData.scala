@@ -39,6 +39,7 @@ object TestData {
     tags = Seq(domain.Tag(Seq("Some", "Tags"), "nb")),
     updatedBy = "someuser",
     updated = new Date(),
+    created = new Date(),
     podcastMeta = Seq.empty,
     audioType = AudioType.Standard,
     manuscript = Seq.empty,
@@ -54,6 +55,7 @@ object TestData {
     tags = Seq(domain.Tag(Seq("PODCAST", "påddkæst"), "nb")),
     updatedBy = "someuser",
     updated = new Date(),
+    created = new Date(),
     podcastMeta = Seq(
       domain.PodcastMeta(
         header = "Header",

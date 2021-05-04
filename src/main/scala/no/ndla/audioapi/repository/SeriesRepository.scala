@@ -118,7 +118,7 @@ trait SeriesRepository {
           .one(Series.fromResultSet(se.resultName))
           .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
           .map { (series, audios) =>
-            series.map(_.copy(episodes = Some(audios.toSeq)))
+            series.map(_.copy(episodes = Some(audios.sortBy(_.updated).toSeq)))
           }
           .single()
           .apply()

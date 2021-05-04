@@ -26,6 +26,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   addServlet(controller, "/*")
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
     1,
@@ -49,6 +50,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq(domain.Tag(Seq("tag"), "nb")),
     "ndla124",
     updated,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -64,6 +66,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq(domain.Tag(Seq("tag"), "unknown")),
     "ndla124",
     updated,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,

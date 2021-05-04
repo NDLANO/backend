@@ -238,6 +238,7 @@ trait WriteService {
         filePaths = mergedFilePaths,
         copyright = converterService.toDomainCopyright(toUpdate.copyright),
         updated = clock.now(),
+        created = existing.created,
         updatedBy = authUser.userOrClientid(),
         podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
         manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),

@@ -27,6 +27,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
@@ -40,6 +41,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
     updated,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,

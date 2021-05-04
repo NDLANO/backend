@@ -28,10 +28,11 @@ case class AudioMetaInformation(
     tags: Seq[Tag],
     updatedBy: String,
     updated: Date,
+    created: Date,
     podcastMeta: Seq[PodcastMeta],
     audioType: AudioType.Value = AudioType.Standard,
     manuscript: Seq[Manuscript],
-    seriesId: Option[Long]
+    seriesId: Option[Long],
 ) {
   lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(titles, filePaths, tags)
 }

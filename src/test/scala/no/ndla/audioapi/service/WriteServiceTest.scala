@@ -46,6 +46,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val someAudio: Audio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
@@ -81,6 +82,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     ),
     "ndla124",
     updated1,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,

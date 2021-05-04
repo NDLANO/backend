@@ -53,6 +53,7 @@ class AudioSearchServiceTest
   val updated4: Date = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val audio1: AudioMetaInformation = AudioMetaInformation(
     Some(1),
@@ -63,6 +64,7 @@ class AudioSearchServiceTest
     List(Tag(List("fisk"), "nb")),
     "ndla124",
     updated2,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -78,6 +80,7 @@ class AudioSearchServiceTest
     List(Tag(List("fugl"), "nb")),
     "ndla124",
     updated4,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -93,6 +96,7 @@ class AudioSearchServiceTest
     List(Tag(List("supermann"), "nb")),
     "ndla124",
     updated3,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -110,6 +114,7 @@ class AudioSearchServiceTest
     List(Tag(List("and"), "nb")),
     "ndla124",
     updated5,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -125,6 +130,7 @@ class AudioSearchServiceTest
     List(Tag(List("synge"), "nb")),
     "ndla124",
     updated1,
+    created,
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
@@ -140,6 +146,7 @@ class AudioSearchServiceTest
     List(Tag(List("wubbi"), "nb"), Tag(List("knakki"), "en")),
     "ndla123",
     updated6,
+    created,
     Seq.empty,
     AudioType.Podcast,
     Seq.empty,

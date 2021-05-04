@@ -210,6 +210,7 @@ trait ConverterService {
         tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
+        created = clock.now(),
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
         audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
         manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
