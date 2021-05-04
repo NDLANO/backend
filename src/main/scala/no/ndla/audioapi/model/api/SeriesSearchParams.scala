@@ -1,6 +1,6 @@
 /*
- * Part of NDLA audio_api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA audio-api.
+ * Copyright (C) 2021 NDLA
  *
  * See LICENSE
  *
