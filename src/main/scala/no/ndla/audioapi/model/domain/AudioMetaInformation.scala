@@ -8,16 +8,16 @@
 
 package no.ndla.audioapi.model.domain
 
-import java.util.Date
 import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
-import no.ndla.audioapi.model.Language.UnknownLanguage
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumSerializer
+import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
+
+import java.util.Date
 
 case class AudioMetaInformation(
     id: Option[Long],
@@ -68,7 +68,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   override val tableName = "audiodata"
   override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
 
-  val jsonEncoder: Formats = DefaultFormats + new EnumSerializer(AudioType)
+  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
 
   val repositorySerializer: Formats = jsonEncoder +
     FieldSerializer[AudioMetaInformation](

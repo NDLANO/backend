@@ -39,7 +39,8 @@ object Series extends SQLSyntaxSupport[Series] {
   val repositorySerializer: Formats = jsonEncoder +
     FieldSerializer[Series](
       ignore("id") orElse
-        ignore("revision")
+        ignore("revision") orElse
+        ignore("episodes")
     )
 
   override val tableName = "seriesdata"
