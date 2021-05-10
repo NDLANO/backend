@@ -15,8 +15,6 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
     val Podcast: this.Value = Value("podcast")
   }
 
-  case class MigrationPartialAudio(audioType: MigrationAudioType.Value)
-
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)

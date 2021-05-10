@@ -9,14 +9,6 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V11__AddCreatedField extends BaseJavaMigration {
-
-  object MigrationAudioType extends Enumeration {
-    val Standard: this.Value = Value("standard")
-    val Podcast: this.Value = Value("podcast")
-  }
-
-  case class MigrationPartialAudio(audioType: MigrationAudioType.Value)
-
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
