@@ -164,7 +164,6 @@ trait ConverterService {
 
     def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
       api.PodcastMeta(
-        header = meta.header,
         introduction = meta.introduction,
         coverPhoto = toApiCoverPhoto(meta.coverPhoto),
         language = meta.language
@@ -188,7 +187,6 @@ trait ConverterService {
 
     def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
       domain.PodcastMeta(
-        header = meta.header,
         introduction = meta.introduction,
         coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
         language = language

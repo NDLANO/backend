@@ -58,7 +58,6 @@ object TestData {
     created = new Date(),
     podcastMeta = Seq(
       domain.PodcastMeta(
-        header = "Header",
         introduction = "Intro",
         coverPhoto = domain.CoverPhoto(imageId = "1", altText = "alt"),
         language = "nb"
