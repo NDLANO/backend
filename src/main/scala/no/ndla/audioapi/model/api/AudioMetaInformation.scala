@@ -25,6 +25,7 @@ case class AudioMetaInformation(
     @(ApiModelProperty @field)(description = "The languages available for this audio") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "Type of audio. 'standard', or 'podcast'.") audioType: String,
     @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
-    @(ApiModelProperty @field)(description = "Manuscript for the podcast") manuscript: Option[Manuscript]
+    @(ApiModelProperty @field)(description = "Meta information about series if the audio is a podcast and a part of a series.") series: Option[Series],
+    @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[Manuscript]
 )
 // format: on

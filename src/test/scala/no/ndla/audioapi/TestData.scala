@@ -43,7 +43,16 @@ object TestData {
     podcastMeta = Seq.empty,
     audioType = AudioType.Standard,
     manuscript = Seq.empty,
-    seriesId = None
+    seriesId = None,
+    series = None
+  )
+
+  val EpisodelessSampleSeries: domain.Series = domain.Series(
+    id = 1,
+    revision = 1,
+    episodes = None,
+    title = Seq(domain.Title("SERIE", "nb")),
+    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt")
   )
 
   val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(
@@ -65,7 +74,8 @@ object TestData {
     ),
     audioType = AudioType.Podcast,
     manuscript = Seq.empty,
-    seriesId = Some(1)
+    seriesId = Some(1),
+    series = Some(EpisodelessSampleSeries)
   )
 
   val SampleSeries: domain.Series = domain.Series(

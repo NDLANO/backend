@@ -11,7 +11,7 @@ package no.ndla.audioapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.OptimisticLockException
-import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
 import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
@@ -155,8 +155,16 @@ trait AudioRepository {
     private def audioMetaInformationWhere(whereClause: SQLSyntax)(
         implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
-      sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
-        .map(AudioMetaInformation.fromResultSet(au))
+      val se = Series.syntax("se")
+      sql"""
+           select ${au.result.*}, ${se.result.*}
+           from ${AudioMetaInformation.as(au)}
+           left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
+           where $whereClause
+         """
+        .one(AudioMetaInformation.fromResultSet(au))
+        .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
+        .map((audio, series) => audio.copy(series = series))
         .single()
         .apply()
     }

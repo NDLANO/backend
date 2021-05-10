@@ -275,7 +275,7 @@ trait AudioController {
       val language = paramOrNone(this.language.paramName)
 
       readService.withId(id, language) match {
-        case Some(audio) => audio
+        case Some(audio) => Ok(audio)
         case None        => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
       }
     }

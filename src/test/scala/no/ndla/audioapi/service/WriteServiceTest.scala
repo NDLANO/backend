@@ -86,6 +86,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 

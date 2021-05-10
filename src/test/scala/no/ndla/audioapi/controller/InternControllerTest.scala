@@ -38,6 +38,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq("nb"),
     "standard",
     None,
+    None,
     None
   )
 
@@ -54,6 +55,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -70,6 +72,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 

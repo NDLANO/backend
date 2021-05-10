@@ -68,6 +68,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -84,6 +85,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -100,6 +102,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -118,6 +121,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -134,6 +138,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -150,6 +155,7 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Podcast,
     Seq.empty,
+    None,
     None
   )
 

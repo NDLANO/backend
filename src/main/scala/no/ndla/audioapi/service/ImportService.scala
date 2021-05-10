@@ -146,6 +146,7 @@ trait ImportService {
         podcastMeta = Seq.empty,
         audioType = AudioType.Standard,
         manuscript = Seq.empty,
+        series = None,
         seriesId = None
       )
     }

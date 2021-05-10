@@ -45,6 +45,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 

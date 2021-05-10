@@ -33,6 +33,7 @@ case class AudioMetaInformation(
     audioType: AudioType.Value = AudioType.Standard,
     manuscript: Seq[Manuscript],
     seriesId: Option[Long],
+    series: Option[Series],
 ) {
   lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(titles, filePaths, tags)
 }
@@ -75,7 +76,9 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     FieldSerializer[AudioMetaInformation](
       ignore("id") orElse
         ignore("revision") orElse
-        ignore("external_id")
+        ignore("external_id") orElse
+        ignore("seriesId") orElse
+        ignore("series")
     )
 
   def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =

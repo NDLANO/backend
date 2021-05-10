@@ -40,6 +40,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     AudioType.Standard,
     Seq.empty,
+    None,
     None
   )
 
@@ -54,6 +55,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
       None,
       None
     )
@@ -71,6 +73,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
       None,
       None
     )
