@@ -1,67 +1,69 @@
 package no.ndla.audioapi.service
 
-import java.io.InputStream
-import java.util.Date
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.domain
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
-import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success, Try}
+import java.io.InputStream
+import java.util.Date
+import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
   override val converterService = new ConverterService
   val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val newAudioFile1 = NewAudioFile("test.mp3", "nb")
-  val newAudioFile2 = NewAudioFile("test2.mp3", "nb")
+  val newAudioFile1: NewAudioFile = NewAudioFile("test.mp3", "nb")
+  val newAudioFile2: NewAudioFile = NewAudioFile("test2.mp3", "nb")
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
   val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
 
-  val newAudioMeta = NewAudioMetaInformation(
+  val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
     "title",
     "en",
     Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     Seq("tag"),
     None,
-    None)
+    None,
+    None
+  )
 
-  val updatedAudioMeta = UpdatedAudioMetaInformation(
+  val updatedAudioMeta: UpdatedAudioMetaInformation = UpdatedAudioMetaInformation(
     revision = 1,
     title = "title",
     language = "en",
     copyright = Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
     tags = Seq("tag"),
     audioType = None,
-    podcastMeta = None
+    podcastMeta = None,
+    manuscript = None
   )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val someAudio = Audio(newFileName1, "audio/mp3", 1024, "en")
+  val someAudio: Audio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
   val domainAudioMeta: domain.AudioMetaInformation =
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio)
-  val updated1 = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated1: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val publicDomain = domain.Copyright("publicdomain",
-                                      Some("Metropolis"),
-                                      List(domain.Author("Forfatter", "Bruce Wayne")),
-                                      Seq(),
-                                      Seq(),
-                                      None,
-                                      None,
-                                      None)
+  val publicDomain: domain.Copyright = domain.Copyright("publicdomain",
+                                                        Some("Metropolis"),
+                                                        List(domain.Author("Forfatter", "Bruce Wayne")),
+                                                        Seq(),
+                                                        Seq(),
+                                                        None,
+                                                        None,
+                                                        None)
 
-  val multiLangAudio = domain.AudioMetaInformation(
+  val multiLangAudio: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(4),
     Some(1),
     List(domain.Title("Donald Duck kjører bil", "nb"),
@@ -80,8 +82,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     ),
     "ndla124",
     updated1,
+    created,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty,
+    None,
+    None
   )
 
   override def beforeEach(): Unit = {
@@ -246,6 +252,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
                                                None,
+                                               None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
@@ -260,6 +267,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -276,6 +284,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
@@ -294,6 +303,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
@@ -314,6 +324,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
+                                               None,
                                                None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
@@ -506,6 +517,213 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioStorage, times(1)).deleteObject(audio.filePaths.head.filePath)
     verify(audioIndexService, times(1)).deleteDocument(audioId)
     verify(audioRepository, times(1)).deleteAudio(eqTo(audioId))(any[DBSession])
+  }
+
+  def setupSuccessfulSeriesValidation(): Unit = {
+    when(
+      validationService.validatePodcastEpisodes(any[Seq[(Long, Option[domain.AudioMetaInformation])]],
+                                                any[Option[Long]])).thenAnswer((i: InvocationOnMock) => {
+      val inputArgument = i.getArgument[Seq[(Long, Option[domain.AudioMetaInformation])]](0)
+      val passedEpisodes = inputArgument.map(_._2.get)
+      Success(passedEpisodes)
+    })
+
+    when(validationService.validate(any[domain.Series])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
+  }
+
+  test("That failed insertion does not updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(seriesRepository.insert(any[domain.Series])(any[DBSession]))
+      .thenReturn(Failure(new RuntimeException("weird failure there buddy")))
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    writeService.newSeries(updateSeries).isFailure should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+  }
+
+  test("That failed updating does not updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val series = TestData.SampleSeries
+
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenReturn(Failure(new OptimisticLockException))
+    setupSuccessfulSeriesValidation()
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    writeService.updateSeries(1, updateSeries).isFailure should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+  }
+
+  test("That successful insertion updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      series.episodes.get.find(_.id.contains(id))
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+
+    when(seriesRepository.insert(any[domain.SeriesWithoutId])(any[DBSession]))
+      .thenAnswer((i: InvocationOnMock) => {
+        Success(
+          domain.Series.fromId(
+            id = 1,
+            revision = 1,
+            i.getArgument[domain.SeriesWithoutId](0)
+          )
+        )
+      })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.newSeries(updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(1)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
+
+  }
+
+  test("That successful updating updates episodes series id") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val episodesMap = Map(
+      1L -> TestData.samplePodcast.copy(id = Some(1)),
+      2L -> TestData.samplePodcast.copy(id = Some(2))
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      episodesMap.get(id)
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(2),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.updateSeries(1, updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(1)).setSeriesId(eqTo(1), eqTo(None))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(2), eqTo(Some(1)))(any[DBSession])
+  }
+
+  test("That successful updating doesnt update existing episodes") {
+    reset(
+      validationService,
+      audioRepository,
+      seriesRepository
+    )
+
+    val episodesMap = Map(
+      1L -> TestData.samplePodcast.copy(id = Some(1)),
+    )
+
+    val series = TestData.SampleSeries
+
+    setupSuccessfulSeriesValidation()
+    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
+      val id = i.getArgument[Long](0)
+      episodesMap.get(id)
+    })
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenReturn(Success(1))
+    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.Series](0))
+    })
+
+    val updateSeries = api.NewSeries(
+      title = "nyTittel",
+      coverPhotoId = "555",
+      coverPhotoAltText = "nyalt",
+      episodes = Set(1),
+      language = "nb",
+      revision = Some(55)
+    )
+
+    val result = writeService.updateSeries(1, updateSeries)
+    result.isSuccess should be(true)
+
+    verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
   }
 
 }

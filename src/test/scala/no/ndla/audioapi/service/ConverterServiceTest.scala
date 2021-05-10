@@ -8,19 +8,21 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.api
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
-import no.ndla.mapping.License.{CC_BY_SA}
+import no.ndla.mapping.License.CC_BY_SA
 
+import java.util.Date
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new ConverterService
 
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
@@ -34,8 +36,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     Seq(Tag(Seq("fisk"), "nb")),
     "ndla124",
     updated,
+    created,
     Seq.empty,
-    AudioType.Standard
+    AudioType.Standard,
+    Seq.empty,
+    None,
+    None
   )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
@@ -49,6 +55,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
+      None,
       None
     )
 
@@ -65,6 +73,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
+      None,
+      None,
       None
     )
 
@@ -152,6 +162,34 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
     val result = service.withAgreementCopyright(copyright)
     result should equal(copyright)
+  }
+
+  test("That mergeLanguageField merges language fields as expected") {
+    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+
+    val res1 = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
+    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    res1 should be(expected1)
+
+    val res2 = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
+    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    res2 should be(expected2)
+  }
+
+  test("That mergeLanguageField deletes language fields as expected") {
+    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+
+    val res1 = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
+    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    res1 should be(expected1)
+
+    val res2 = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
+    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    res2 should be(expected2)
+
+    val res3 = service.mergeLanguageField(existingTitles, None, "en")
+    val expected3 = Seq(domain.Title("Tittel", "nb"))
+    res3 should be(expected3)
   }
 
 }

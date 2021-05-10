@@ -39,7 +39,50 @@ object TestData {
     tags = Seq(domain.Tag(Seq("Some", "Tags"), "nb")),
     updatedBy = "someuser",
     updated = new Date(),
+    created = new Date(),
     podcastMeta = Seq.empty,
-    audioType = AudioType.Standard
+    audioType = AudioType.Standard,
+    manuscript = Seq.empty,
+    seriesId = None,
+    series = None
+  )
+
+  val EpisodelessSampleSeries: domain.Series = domain.Series(
+    id = 1,
+    revision = 1,
+    episodes = None,
+    title = Seq(domain.Title("SERIE", "nb")),
+    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt")
+  )
+
+  val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(
+    id = Some(1),
+    revision = Some(1),
+    titles = Seq(domain.Title("Min kule podcast episode", "nb")),
+    filePaths = Seq(domain.Audio("somecast.mp3", "audio/mpeg", 1024, "nb")),
+    copyright = sampleCopyright,
+    tags = Seq(domain.Tag(Seq("PODCAST", "påddkæst"), "nb")),
+    updatedBy = "someuser",
+    updated = new Date(),
+    created = new Date(),
+    podcastMeta = Seq(
+      domain.PodcastMeta(
+        introduction = "Intro",
+        coverPhoto = domain.CoverPhoto(imageId = "1", altText = "alt"),
+        language = "nb"
+      )
+    ),
+    audioType = AudioType.Podcast,
+    manuscript = Seq.empty,
+    seriesId = Some(1),
+    series = Some(EpisodelessSampleSeries)
+  )
+
+  val SampleSeries: domain.Series = domain.Series(
+    id = 1,
+    revision = 1,
+    episodes = Some(Seq(samplePodcast)),
+    title = Seq(domain.Title("SERIE", "nb")),
+    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt")
   )
 }

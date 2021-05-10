@@ -13,5 +13,7 @@ case class AudioSummary(
     @(ApiModelProperty @field)(description = "The audioType. Possible values standard and podcast") audioType: String,
     @(ApiModelProperty @field)(description = "The full url to where the complete information about the audio can be found") url: String,
     @(ApiModelProperty @field)(description = "Describes the license of the audio") license: String,
-    @(ApiModelProperty @field)(description = "A list of available languages for this audio") supportedLanguages: Seq[String])
+    @(ApiModelProperty @field)(description = "A list of available languages for this audio") supportedLanguages: Seq[String],
+    @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
+)
 // format: on

@@ -80,6 +80,8 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         Tag(Seq(), "nb"),
         Seq("nb"),
         "standard",
+        None,
+        None,
         None
       )
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Success(sampleAudioMeta))

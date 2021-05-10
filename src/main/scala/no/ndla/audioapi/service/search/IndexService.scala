@@ -25,6 +25,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
+import cats.implicits._
+
 trait IndexService {
   this: Elastic4sClient with SearchConverterService with AudioRepository =>
 
@@ -36,7 +38,7 @@ trait IndexService {
     val repository: Repository[D]
 
     def getMapping: MappingDefinition
-    def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
+    def createIndexRequests(domainModel: D, indexName: String): Try[Seq[IndexRequest]]
 
     private def createIndexIfNotExists() = getAliasTarget.map {
       case Some(index) => Success(index)
@@ -46,7 +48,7 @@ trait IndexService {
     def indexDocument(imported: D): Try[D] = {
       for {
         _ <- createIndexIfNotExists()
-        requests = createIndexRequests(imported, searchIndex)
+        requests <- createIndexRequests(imported, searchIndex)
         _ <- executeRequests(requests)
       } yield imported
     }
@@ -77,7 +79,8 @@ trait IndexService {
       var numIndexed = 0
       getRanges.map(ranges => {
         ranges.foreach(range => {
-          val numberInBulk = indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
+          val documentsToIndex = repository.documentsWithIdBetween(range._1, range._2)
+          val numberInBulk = documentsToIndex.flatMap(indexDocuments(_, indexName))
           numberInBulk match {
             case Success(num) => numIndexed += num
             case Failure(f)   => return Failure(f)
@@ -88,30 +91,34 @@ trait IndexService {
     }
 
     def getRanges: Try[List[(Long, Long)]] = {
-      Try {
-        val (minId, maxId) = repository.minMaxId
-        Seq
-          .range(minId, maxId + 1)
-          .grouped(AudioApiProperties.IndexBulkSize)
-          .map(group => (group.head, group.last))
-          .toList
+      val minMaxT = repository.minMaxId
+      minMaxT.flatMap {
+        case (minId, maxId) =>
+          Try {
+            Seq
+              .range(minId, maxId + 1)
+              .grouped(AudioApiProperties.IndexBulkSize)
+              .map(group => (group.head, group.last))
+              .toList
+          }
       }
+
     }
 
     def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val requests = contents.flatMap(content => {
-          createIndexRequests(content, indexName)
+        val requests = contents.traverse(content => createIndexRequests(content, indexName))
+        requests.flatMap(rs => {
+          executeRequests(rs.flatten) match {
+            case Success((numSuccessful, numFailures)) =>
+              logger.info(s"Indexed $numSuccessful documents ($searchIndex). No of failed items: $numFailures")
+              Success(contents.size)
+            case Failure(ex) => Failure(ex)
+          }
         })
 
-        executeRequests(requests) match {
-          case Success((numSuccessful, numFailures)) =>
-            logger.info(s"Indexed $numSuccessful documents ($searchIndex). No of failed items: $numFailures")
-            Success(contents.size)
-          case Failure(ex) => Failure(ex)
-        }
       }
     }
 
@@ -166,7 +173,7 @@ trait IndexService {
 
       response match {
         case Success(results) =>
-          Success(results.result.mappings.headOption.map((t) => t._1.name))
+          Success(results.result.mappings.headOption.map(t => t._1.name))
         case Failure(ex) => Failure(ex)
       }
     }

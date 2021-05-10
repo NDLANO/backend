@@ -13,11 +13,13 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
+import no.ndla.audioapi.model.api.{NewSeries, Tag}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta, Series, Title, WithLanguage}
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.mapping.License.getLicense
+import cats.implicits._
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: User with Clock with DraftApiClient =>
@@ -25,7 +27,37 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
-    def withoutLanguage(audio: AudioMetaInformation, language: String) =
+    def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeries): domain.Series = {
+      val newTitle = Title(updatedSeries.title, updatedSeries.language)
+      val coverPhoto = domain.CoverPhoto(
+        imageId = updatedSeries.coverPhotoId,
+        altText = updatedSeries.coverPhotoAltText
+      )
+
+      domain.Series(
+        id = existingSeries.id,
+        revision = updatedSeries.revision.getOrElse(0),
+        episodes = None,
+        title = mergeLanguageField(existingSeries.title, newTitle),
+        coverPhoto = coverPhoto
+      )
+    }
+
+    def toDomainSeries(newSeries: api.NewSeries): domain.SeriesWithoutId = {
+      val titles = Seq(Title(newSeries.title, newSeries.language))
+      val coverPhoto = domain.CoverPhoto(
+        imageId = newSeries.coverPhotoId,
+        altText = newSeries.coverPhotoAltText
+      )
+
+      new domain.SeriesWithoutId(
+        title = titles,
+        coverPhoto = coverPhoto,
+        episodes = None
+      )
+    }
+
+    def withoutLanguage(audio: AudioMetaInformation, language: String): AudioMetaInformation =
       audio.copy(
         titles = audio.titles.filterNot(_.language == language),
         filePaths = audio.filePaths.filterNot(_.language == language),
@@ -61,17 +93,23 @@ trait ConverterService {
 
     def toApiAudioMetaInformation(audioMeta: domain.AudioMetaInformation,
                                   language: Option[String]): Try[api.AudioMetaInformation] = {
-      Success(
-        api.AudioMetaInformation(
-          id = audioMeta.id.get,
-          revision = audioMeta.revision.get,
-          title = toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
-          audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-          copyright = withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
-          tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
-          supportedLanguages = audioMeta.supportedLanguages,
-          audioType = audioMeta.audioType.toString,
-          podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta)
+
+      val apiSeries = audioMeta.series.traverse(series => toApiSeries(series, language))
+
+      apiSeries.map(
+        series =>
+          api.AudioMetaInformation(
+            id = audioMeta.id.get,
+            revision = audioMeta.revision.get,
+            title = toApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
+            audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
+            copyright = withAgreementCopyright(toApiCopyright(audioMeta.copyright)),
+            tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
+            supportedLanguages = audioMeta.supportedLanguages,
+            audioType = audioMeta.audioType.toString,
+            podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta),
+            series = series,
+            manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript)
         ))
     }
 
@@ -82,7 +120,7 @@ trait ConverterService {
       }
     }
 
-    def toApiTags(maybeTag: Option[domain.Tag]) = {
+    def toApiTags(maybeTag: Option[domain.Tag]): Tag = {
       maybeTag match {
         case Some(tag) => api.Tag(tag.tags, tag.language)
         case None      => api.Tag(Seq(), DefaultLanguage)
@@ -129,16 +167,22 @@ trait ConverterService {
       }
     }
 
-    private def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
+    def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
       api.PodcastMeta(
-        header = meta.header,
         introduction = meta.introduction,
         coverPhoto = toApiCoverPhoto(meta.coverPhoto),
+        language = meta.language
+      )
+    }
+
+    private def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
+      api.Manuscript(
         manuscript = meta.manuscript,
         language = meta.language
       )
     }
-    private def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
+
+    def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
       api.CoverPhoto(
         id = meta.imageId,
         url = s"$RawImageApiUrl/${meta.imageId}",
@@ -148,12 +192,14 @@ trait ConverterService {
 
     def toDomainPodcastMeta(meta: api.NewPodcastMeta, language: String): PodcastMeta = {
       domain.PodcastMeta(
-        header = meta.header,
         introduction = meta.introduction,
         coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
-        manuscript = meta.manuscript,
         language = language
       )
+    }
+
+    def toDomainManuscript(manuscript: String, language: String): domain.Manuscript = {
+      domain.Manuscript(manuscript = manuscript, language = language)
     }
 
     def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
@@ -167,8 +213,12 @@ trait ConverterService {
         tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
+        created = clock.now(),
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
-        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard)
+        audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
+        manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
+        series = None,
+        seriesId = None
       )
     }
 
@@ -191,6 +241,37 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): domain.Author = {
       domain.Author(author.`type`, author.name)
+    }
+
+    def toApiSeries(series: domain.Series, language: Option[String]): Try[api.Series] = {
+      val title = toApiTitle(findByLanguageOrBestEffort(series.title, language))
+      val coverPhoto = toApiCoverPhoto(series.coverPhoto)
+      val episodesT = series.episodes.traverse(eps => eps.traverse(toApiAudioMetaInformation(_, language)))
+
+      episodesT.map(episodes => {
+        api.Series(
+          id = series.id,
+          revision = series.revision,
+          title = title,
+          episodes = episodes,
+          coverPhoto = coverPhoto
+        )
+      })
+
+    }
+
+    def mergeLanguageField[T <: WithLanguage](field: Seq[T], toAdd: Option[T], language: String): Seq[T] = {
+      field.indexWhere(_.language == language) match {
+        case idx if idx >= 0 => field.patch(idx, toAdd.toSeq, 1)
+        case _               => field ++ toAdd.toSeq
+      }
+    }
+
+    def mergeLanguageField[Y <: WithLanguage](field: Seq[Y], toMerge: Y): Seq[Y] = {
+      field.indexWhere(_.language == toMerge.language) match {
+        case idx if idx >= 0 => field.patch(idx, Seq(toMerge), 1)
+        case _               => field ++ Seq(toMerge)
+      }
     }
   }
 

@@ -31,6 +31,7 @@ object AudioApiProperties extends LazyLogging {
   val CorrelationIdHeader = "X-Correlation-ID"
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
   val AudioControllerPath = "/audio-api/v1/audio/"
+  val SeriesControllerPath = "/audio-api/v1/series/"
 
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
@@ -51,6 +52,8 @@ object AudioApiProperties extends LazyLogging {
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val SearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "audios")
   val SearchDocument = "audio"
+  val SeriesSearchIndex: String = propOrElse("SERIES_SEARCH_INDEX_NAME", "series")
+  val SeriesSearchDocument = "series"
   val AudioTagSearchIndex: String = propOrElse("AUDIO_TAG_SEARCH_INDEX_NAME", "tags-audios")
   val AudioTagSearchDocument = "audio-tag"
   val DefaultPageSize = 10

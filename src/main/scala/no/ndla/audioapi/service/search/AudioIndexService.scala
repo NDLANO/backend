@@ -14,10 +14,13 @@ import com.sksamuel.elastic4s.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
+import no.ndla.audioapi.model.api.MissingIdException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import org.json4s.native.Serialization.write
+
+import scala.util.{Failure, Success, Try}
 
 trait AudioIndexService {
   this: Elastic4sClient with SearchConverterService with IndexService with AudioRepository =>
@@ -29,9 +32,14 @@ trait AudioIndexService {
     override val searchIndex: String = AudioApiProperties.SearchIndex
     override val repository: AudioRepository = audioRepository
 
-    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Seq[IndexRequest] = {
-      val source = write(searchConverterService.asSearchableAudioInformation(domainModel))
-      Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
+      domainModel.id match {
+        case None =>
+          Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
+        case Some(domainId) =>
+          val source = write(searchConverterService.asSearchableAudioInformation(domainModel))
+          Success(Seq(indexInto(indexName / documentType).doc(source).id(domainId.toString)))
+      }
     }
 
     def getMapping: MappingDefinition = {
@@ -44,7 +52,7 @@ trait AudioIndexService {
           keywordField("audioType")
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-          generateLanguageSupportedFieldList("tags", keepRaw = false)
+          generateLanguageSupportedFieldList("tags")
       )
     }
   }

@@ -24,6 +24,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val byNcSa: Copyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
   def updated(): Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  def created(): Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val domainTitles = List(
     Title("Bokmål tittel", "nb"),
@@ -63,16 +64,22 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val sampleAudio: AudioMetaInformation =
-    AudioMetaInformation(Some(1),
-                         Some(1),
-                         domainTitles,
-                         audioFiles,
-                         byNcSa,
-                         audioTags,
-                         "ndla124",
-                         updated(),
-                         Seq.empty,
-                         AudioType.Standard)
+    AudioMetaInformation(
+      Some(1),
+      Some(1),
+      domainTitles,
+      audioFiles,
+      byNcSa,
+      audioTags,
+      "ndla124",
+      updated(),
+      created(),
+      Seq.empty,
+      AudioType.Standard,
+      Seq.empty,
+      None,
+      None
+    )
 
   override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>

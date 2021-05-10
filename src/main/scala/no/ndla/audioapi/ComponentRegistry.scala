@@ -12,10 +12,9 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.HealthController
-import no.ndla.audioapi.controller.{AudioController, InternController}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
-import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
@@ -24,6 +23,7 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 object ComponentRegistry
     extends DataSource
     with AudioRepository
+    with SeriesRepository
     with NdlaClient
     with MigrationApiClient
     with ImportService
@@ -38,12 +38,15 @@ object ComponentRegistry
     with InternController
     with HealthController
     with AudioController
+    with SeriesController
     with SearchService
     with AudioSearchService
+    with SeriesSearchService
     with TagSearchService
     with Elastic4sClient
     with IndexService
     with AudioIndexService
+    with SeriesIndexService
     with TagIndexService
     with SearchConverterService
     with User
@@ -66,6 +69,7 @@ object ComponentRegistry
   lazy val storageName: String = AudioApiProperties.StorageName
 
   lazy val audioRepository = new AudioRepository
+  lazy val seriesRepository = new SeriesRepository
   lazy val audioStorage = new AudioStorage
 
   lazy val ndlaClient = new NdlaClient
@@ -82,12 +86,15 @@ object ComponentRegistry
   lazy val internController = new InternController
   lazy val resourcesApp = new ResourcesApp
   lazy val audioApiController = new AudioController
+  lazy val seriesController = new SeriesController
   lazy val healthController = new HealthController
 
   lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val searchConverterService = new SearchConverterService
   lazy val audioIndexService = new AudioIndexService
   lazy val audioSearchService = new AudioSearchService
+  lazy val seriesIndexService = new SeriesIndexService
+  lazy val seriesSearchService = new SeriesSearchService
   lazy val tagIndexService = new TagIndexService
   lazy val tagSearchService = new TagSearchService
 

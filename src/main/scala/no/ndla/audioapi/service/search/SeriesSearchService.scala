@@ -15,13 +15,14 @@ import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
-  SearchIndex
+  SearchIndex,
+  SeriesSearchIndex
 }
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, Title}
-import no.ndla.audioapi.model.domain.SearchSettings
-import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageFormats}
+import no.ndla.audioapi.model.domain.{SearchSettings, SeriesSearchSettings}
+import no.ndla.audioapi.model.search.{SearchableLanguageFormats, SearchableSeries}
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.network.ApplicationUrl
 import org.json4s._
@@ -31,22 +32,43 @@ import org.json4s.native.Serialization
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
+import no.ndla.audioapi.service.ConverterService
 
-trait AudioSearchService {
-  this: Elastic4sClient with AudioIndexService with SearchConverterService with SearchService =>
-  val audioSearchService: AudioSearchService
+trait SeriesSearchService {
+  this: Elastic4sClient with AudioIndexService with SearchConverterService with SearchService with ConverterService =>
+  val seriesSearchService: SeriesSearchService
 
-  class AudioSearchService extends LazyLogging with SearchService[api.AudioSummary] {
+  class SeriesSearchService extends LazyLogging with SearchService[api.SeriesSummary] {
 
-    override val searchIndex: String = SearchIndex
+    override val searchIndex: String = SeriesSearchIndex
 
-    override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummary] = {
+    override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchable = Serialization.read[SearchableAudioInformation](hitString)
-      searchConverterService.asAudioSummary(searchable, language)
+      val hit = Serialization.read[SearchableSeries](hitString)
+
+      val title = findByLanguageOrBestEffort(hit.titles.languageValues, Some(language))
+        .map(lv => api.Title(lv.value, lv.lang))
+        .getOrElse(api.Title("", Language.UnknownLanguage))
+
+      val supportedLanguages = getSupportedLanguages(hit.titles.languageValues)
+
+      hit.episodes.traverse(ep => searchConverterService.asAudioSummary(ep, language)) match {
+        case Failure(ex) => Failure(ex)
+        case Success(episodes) =>
+          Success(
+            api.SeriesSummary(
+              id = hit.id.toLong,
+              title = title,
+              supportedLanguages = supportedLanguages,
+              episodes = episodes,
+              coverPhoto = converterService.toApiCoverPhoto(hit.coverPhoto)
+            )
+          )
+      }
     }
 
-    def matchingQuery(settings: SearchSettings): Try[domain.SearchResult[api.AudioSummary]] = {
+    def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummary]] = {
 
       val fullSearch = settings.query match {
         case Some(query) =>
@@ -55,7 +77,6 @@ trait AudioSearchService {
               boolQuery()
                 .should(
                   languageSpecificSearch("titles", settings.language, query, 2),
-                  languageSpecificSearch("tags", settings.language, query, 1),
                   idsQuery(query)
                 )
             )
@@ -77,24 +98,15 @@ trait AudioSearchService {
       }
     }
 
-    def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[domain.SearchResult[api.AudioSummary]] = {
-
-      val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
-        case Some(lic) => Some(termQuery("license", lic))
-      }
+    def executeSearch(settings: SeriesSearchSettings,
+                      queryBuilder: BoolQuery): Try[domain.SearchResult[api.SeriesSummary]] = {
 
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(Language.AllLanguages) => (None, "*")
         case Some(lang)                         => (Some(existsQuery(s"titles.$lang")), lang)
       }
 
-      val audioTypeFilter = settings.audioType match {
-        case Some(audioType) => Some(termQuery("audioType", audioType.toString))
-        case None            => None
-      }
-
-      val filters = List(licenseFilter, languageFilter, audioTypeFilter)
+      val filters = List(languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
@@ -122,13 +134,13 @@ trait AudioSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             getHits(response.result, searchLanguage).map(
-              results =>
+              hits =>
                 domain.SearchResult(
                   response.result.totalHits,
                   Some(settings.page.getOrElse(1)),
                   numResults,
                   if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
-                  results,
+                  hits,
                   response.result.scrollId
               ))
           case Failure(ex) => errorHandler(ex)

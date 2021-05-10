@@ -9,16 +9,29 @@
 package no.ndla.audioapi.service
 
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.model.api.NotFoundException
+import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{SearchConverterService, TagSearchService}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: AudioRepository with ConverterService with TagSearchService with SearchConverterService =>
+  this: AudioRepository with SeriesRepository with ConverterService with TagSearchService with SearchConverterService =>
   val readService: ReadService
 
   class ReadService {
+
+    def seriesWithId(seriesId: Long, language: Option[String]): Try[api.Series] = {
+      seriesRepository.withId(seriesId) match {
+        case Failure(ex) => Failure(ex)
+        case Success(None) =>
+          Failure(
+            new NotFoundException(
+              s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found.")
+          )
+        case Success(Some(series)) => converterService.toApiSeries(series, language)
+      }
+    }
 
     def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResult] = {
       val result = tagSearchService.matchingQuery(

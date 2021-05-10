@@ -39,9 +39,8 @@ trait TagSearchService {
     override val searchIndex: String = AudioTagSearchIndex
     implicit val formats: Formats = DefaultFormats
 
-    override def hitToApiModel(hit: String, language: String): String = {
-      val searchableTag = read[SearchableTag](hit)
-      searchableTag.tag
+    override def hitToApiModel(hit: String, language: String): Try[String] = {
+      Try(read[SearchableTag](hit)).map(_.tag)
     }
 
     def all(
@@ -100,14 +99,15 @@ trait TagSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
-              SearchResult(
-                response.result.totalHits,
-                Some(page),
-                numResults,
-                if (language == "*") Language.AllLanguages else language,
-                getHits(response.result, language),
-                response.result.scrollId
+            getHits(response.result, language).map(
+              hits =>
+                SearchResult(
+                  response.result.totalHits,
+                  Some(page),
+                  numResults,
+                  if (language == "*") Language.AllLanguages else language,
+                  hits,
+                  response.result.scrollId
               ))
           case Failure(ex) =>
             errorHandler(ex)
