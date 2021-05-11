@@ -14,7 +14,6 @@ import java.util.concurrent.Executors
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.{Region, Regions}
 import com.sksamuel.elastic4s.http._
-import io.lemonlabs.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties.{RunWithSignedSearchRequests, SearchServer}
 import no.ndla.audioapi.model.domain.NdlaSearchException
 import org.apache.http.client.config.RequestConfig
@@ -25,6 +24,7 @@ import vc.inreach.aws.request.{AWSSigner, AWSSigningRequestInterceptor}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 import scala.util.{Failure, Success, Try}
+import io.lemonlabs.uri.typesafe.dsl._
 
 trait Elastic4sClient {
   val e4sClient: NdlaE4sClient

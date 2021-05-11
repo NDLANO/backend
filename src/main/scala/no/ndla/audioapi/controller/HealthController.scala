@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi.controller
 
-import io.lemonlabs.uri.dsl._
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.ApplicationUrl
