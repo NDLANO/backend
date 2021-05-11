@@ -19,9 +19,9 @@ import no.ndla.audioapi.model.{Language, domain}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.mapping.License._
+import io.lemonlabs.uri.typesafe.dsl._
 
 import scala.util.Try
-import io.lemonlabs.uri.dsl._
 import no.ndla.mapping.LicenseDefinition
 
 trait ImportService {
@@ -162,8 +162,12 @@ trait ImportService {
     private def uploadAudioFile(audioMeta: MigrationAudioMeta): Try[Audio] = {
       audioStorage
         .getObjectMetaData(audioMeta.fileName)
-        .orElse(audioStorage
-          .storeAudio(audioMeta.url.withScheme("https"), audioMeta.mimeType, audioMeta.fileSize, audioMeta.fileName))
+        .orElse(
+          audioStorage
+            .storeAudio(audioMeta.url.withScheme("https").toString(),
+                        audioMeta.mimeType,
+                        audioMeta.fileSize,
+                        audioMeta.fileName))
         .map(
           s3ObjectMeta =>
             Audio(audioMeta.fileName,

@@ -8,12 +8,12 @@
 
 package no.ndla.audioapi.integration
 
-import no.ndla.audioapi.AudioApiProperties.{MigrationHost, MigrationPassword, MigrationUser, Environment}
+import io.lemonlabs.uri.typesafe.dsl.pathPartToUrlDsl
+import no.ndla.audioapi.AudioApiProperties.{Environment, MigrationHost, MigrationPassword, MigrationUser}
 import no.ndla.network.NdlaClient
 
 import scala.util.Try
 import scalaj.http.Http
-import io.lemonlabs.uri.dsl._
 
 trait MigrationApiClient {
   this: NdlaClient =>
@@ -21,8 +21,8 @@ trait MigrationApiClient {
 
   class MigrationApiClient {
     val DBSource = "red"
-    val AudioMetadataEndpoint = s"$MigrationHost/audio/:audio_id" ? (s"db-source" -> s"$DBSource")
-    val NodeDataEndpoint = s"$MigrationHost/contents/:node_id" ? (s"db-source" -> s"$DBSource")
+    val AudioMetadataEndpoint = (s"$MigrationHost/audio/:audio_id" ? (s"db-source" -> s"$DBSource")).toString()
+    val NodeDataEndpoint = (s"$MigrationHost/contents/:node_id" ? (s"db-source" -> s"$DBSource")).toString()
 
     def getAudioMetaData(audioNid: String): Try[Seq[MigrationAudioMeta]] = {
       ndlaClient.fetchWithBasicAuth[Seq[MigrationAudioMeta]](Http(AudioMetadataEndpoint.replace(":audio_id", audioNid)),

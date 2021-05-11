@@ -79,7 +79,7 @@ lazy val audio_api = (project in file("."))
       "org.mockito" %% "mockito-scala" % MockitoVersion % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
+      "io.lemonlabs" %% "scala-uri" % "3.2.0",
       "org.jsoup" % "jsoup" % "1.11.3",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
