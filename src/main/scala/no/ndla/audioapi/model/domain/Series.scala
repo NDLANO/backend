@@ -9,6 +9,7 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.model.Language
 import org.json4s.FieldSerializer.ignore
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.native.Serialization
@@ -31,7 +32,9 @@ case class Series(
     override val episodes: Option[Seq[AudioMetaInformation]],
     override val title: Seq[Title],
     override val coverPhoto: CoverPhoto,
-) extends SeriesWithoutId(title, coverPhoto, episodes)
+) extends SeriesWithoutId(title, coverPhoto, episodes) {
+  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(title)
+}
 
 object Series extends SQLSyntaxSupport[Series] {
   val jsonEncoder: Formats = DefaultFormats

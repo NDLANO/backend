@@ -20,6 +20,7 @@ case class Series(
     @(ApiModelProperty @field)(description = "The revision number of this series") revision: Int,
     @(ApiModelProperty @field)(description = "The title of the series") title: Title,
     @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhoto: CoverPhoto,
-    @(ApiModelProperty @field)(description = "The metainfo of the episodes in the series") episodes: Option[Seq[AudioMetaInformation]]
+    @(ApiModelProperty @field)(description = "The metainfo of the episodes in the series") episodes: Option[Seq[AudioMetaInformation]],
+    @(ApiModelProperty @field)(description = "A list of available languages for this series") supportedLanguages: Seq[String]
 )
 // format: on

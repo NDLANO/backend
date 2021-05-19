@@ -254,7 +254,8 @@ trait ConverterService {
           revision = series.revision,
           title = title,
           episodes = episodes,
-          coverPhoto = coverPhoto
+          coverPhoto = coverPhoto,
+          supportedLanguages = series.supportedLanguages
         )
       })
 
