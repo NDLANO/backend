@@ -15,8 +15,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
-import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableSeries}
+import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageFormats, SearchableSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}

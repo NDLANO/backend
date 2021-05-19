@@ -3,10 +3,14 @@ package no.ndla.audioapi
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
+import org.joda.time.DateTime
 
 import java.util.Date
 
 object TestData {
+
+  val today: DateTime = new DateTime().minusDays(1)
+  val yesterday: DateTime = new DateTime()
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
@@ -52,7 +56,9 @@ object TestData {
     revision = 1,
     episodes = None,
     title = Seq(domain.Title("SERIE", "nb")),
-    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt")
+    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
+    updated = today,
+    created = yesterday
   )
 
   val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(
@@ -83,6 +89,8 @@ object TestData {
     revision = 1,
     episodes = Some(Seq(samplePodcast)),
     title = Seq(domain.Title("SERIE", "nb")),
-    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt")
+    coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
+    updated = today,
+    created = yesterday
   )
 }

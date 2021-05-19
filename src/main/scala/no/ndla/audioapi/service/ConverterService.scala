@@ -18,6 +18,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMe
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.mapping.License.getLicense
 import cats.implicits._
+import org.joda.time.DateTime
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,7 +40,9 @@ trait ConverterService {
         revision = updatedSeries.revision.getOrElse(0),
         episodes = None,
         title = mergeLanguageField(existingSeries.title, newTitle),
-        coverPhoto = coverPhoto
+        coverPhoto = coverPhoto,
+        updated = new DateTime(),
+        created = existingSeries.created
       )
     }
 
@@ -50,10 +53,14 @@ trait ConverterService {
         altText = newSeries.coverPhotoAltText
       )
 
+      val createdDate = new DateTime()
+
       new domain.SeriesWithoutId(
         title = titles,
         coverPhoto = coverPhoto,
-        episodes = None
+        episodes = None,
+        updated = createdDate,
+        created = createdDate
       )
     }
 

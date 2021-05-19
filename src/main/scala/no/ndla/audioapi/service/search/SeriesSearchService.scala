@@ -8,35 +8,31 @@
 
 package no.ndla.audioapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
-  SearchIndex,
   SeriesSearchIndex
 }
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, Title}
-import no.ndla.audioapi.model.domain.{SearchSettings, SeriesSearchSettings}
+import no.ndla.audioapi.model.api.ResultWindowTooLargeException
+import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.search.{SearchableLanguageFormats, SearchableSeries}
 import no.ndla.audioapi.model.{Language, api, domain}
-import no.ndla.network.ApplicationUrl
+import no.ndla.audioapi.service.ConverterService
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import no.ndla.audioapi.service.ConverterService
 
 trait SeriesSearchService {
-  this: Elastic4sClient with AudioIndexService with SearchConverterService with SearchService with ConverterService =>
+  this: Elastic4sClient with SeriesIndexService with SearchConverterService with SearchService with ConverterService =>
   val seriesSearchService: SeriesSearchService
 
   class SeriesSearchService extends LazyLogging with SearchService[api.SeriesSummary] {
@@ -150,10 +146,7 @@ trait SeriesSearchService {
     }
 
     protected override def scheduleIndexDocuments(): Unit = {
-      val f = Future {
-        audioIndexService.indexDocuments
-      }
-
+      val f = Future(seriesIndexService.indexDocuments)
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {
         case Success(reindexResult) =>

@@ -10,6 +10,7 @@ package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
+import org.joda.time.DateTime
 import org.json4s.FieldSerializer.ignore
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.native.Serialization
@@ -22,6 +23,8 @@ class SeriesWithoutId(
     val title: Seq[Title],
     val coverPhoto: CoverPhoto,
     val episodes: Option[Seq[AudioMetaInformation]],
+    val updated: DateTime,
+    val created: DateTime,
 )
 
 /** Series with database generated fields. Should match [[SeriesWithoutId]]
@@ -32,12 +35,14 @@ case class Series(
     override val episodes: Option[Seq[AudioMetaInformation]],
     override val title: Seq[Title],
     override val coverPhoto: CoverPhoto,
-) extends SeriesWithoutId(title, coverPhoto, episodes) {
+    override val updated: DateTime,
+    override val created: DateTime,
+) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created) {
   lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(title)
 }
 
 object Series extends SQLSyntaxSupport[Series] {
-  val jsonEncoder: Formats = DefaultFormats
+  val jsonEncoder: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
   val repositorySerializer: Formats = jsonEncoder +
     FieldSerializer[Series](
@@ -53,9 +58,11 @@ object Series extends SQLSyntaxSupport[Series] {
     Series(
       id = id,
       revision = revision,
+      episodes = None,
       title = series.title,
       coverPhoto = series.coverPhoto,
-      episodes = None,
+      updated = series.updated,
+      created = series.created
     )
   }
 

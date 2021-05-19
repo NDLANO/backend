@@ -49,7 +49,8 @@ trait SearchConverterService {
               id = s.id.toString,
               titles = SearchableLanguageValues(s.title.map(t => LanguageValue(t.language, t.title))),
               episodes = episodes.map(asSearchableAudioInformation),
-              coverPhoto = s.coverPhoto
+              coverPhoto = s.coverPhoto,
+              lastUpdated = s.updated
             )
           )
       }
