@@ -243,7 +243,8 @@ trait WriteService {
         podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
         manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
         series = existing.series,
-        seriesId = existing.seriesId
+        seriesId = existing.seriesId,
+        audioType = existing.audioType
       )
 
       (merged, savedAudio)
