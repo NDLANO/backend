@@ -79,7 +79,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
         Tag(Seq(), "nb"),
         Seq("nb"),
-        "standard",
+        "podcast",
         None,
         None,
         None
@@ -91,6 +91,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
          Map("file" -> sampleUploadFile),
          headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
+      body.contains("audioType\":\"podcast\"") should be(true)
     }
   }
 

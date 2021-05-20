@@ -27,6 +27,7 @@ import no.ndla.audioapi.model.{Language, Sort, api}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
+import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
@@ -52,7 +53,7 @@ trait AudioController {
       extends NdlaController
       with FileUploadSupport
       with SwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
     protected val applicationDescription = "Services for accessing audio."
 
     // Additional models used in error responses
