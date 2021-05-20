@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
@@ -19,7 +20,7 @@ import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.util.{Failure, Success}
 
-class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment with LazyLogging {
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW8tdGVzdDp3cml0ZSIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.YYRWLfDDfnyyw6mDoOsvYEJtHf3uoJlkCUMmLKV1lXI"
@@ -79,7 +80,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
         Tag(Seq(), "nb"),
         Seq("nb"),
-        "standard",
+        "podcast",
         None,
         None,
         None
@@ -91,6 +92,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
          Map("file" -> sampleUploadFile),
          headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
+      body.contains("audioType\":\"podcast\"") should be(true)
     }
   }
 
