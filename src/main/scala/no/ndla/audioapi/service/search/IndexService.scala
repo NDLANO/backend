@@ -31,7 +31,7 @@ trait IndexService {
   this: Elastic4sClient with SearchConverterService with AudioRepository =>
 
   trait IndexService[D, T] extends LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
     val documentType: String
     val searchIndex: String
