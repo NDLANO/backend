@@ -46,6 +46,7 @@ trait SeriesIndexService {
         List(
           intField("id"),
           keywordField("defaultTitle"),
+          dateField("lastUpdated"),
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true)
       )
