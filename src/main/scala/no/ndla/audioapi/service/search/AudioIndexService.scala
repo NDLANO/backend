@@ -52,7 +52,8 @@ trait AudioIndexService {
           keywordField("audioType")
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-          generateLanguageSupportedFieldList("tags")
+          generateLanguageSupportedFieldList("tags") ++
+          generateLanguageSupportedFieldList("manuscript")
       )
     }
   }

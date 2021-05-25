@@ -182,7 +182,7 @@ trait ConverterService {
       )
     }
 
-    private def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
+    def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
       api.Manuscript(
         manuscript = meta.manuscript,
         language = meta.language

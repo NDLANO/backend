@@ -10,16 +10,12 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
-import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, LanguageField, SearchResult, SearchableTag, WithLanguage}
-import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioSummary, ElasticIndexingException, MissingIdException, Title}
+import no.ndla.audioapi.model.api.{MissingIdException, Title}
+import no.ndla.audioapi.model.{Language, api, domain}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search.{
-  LanguageValue,
   SearchableAudioInformation,
   SearchableLanguageList,
   SearchableLanguageValues,
@@ -27,9 +23,6 @@ import no.ndla.audioapi.model.search.{
 }
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.mapping.ISO639
-import no.ndla.network.ApplicationUrl
-import org.json4s.DefaultFormats
-import org.json4s.native.JsonMethods
 
 import scala.util.{Failure, Success, Try}
 
@@ -47,7 +40,7 @@ trait SearchConverterService {
           Success(
             SearchableSeries(
               id = s.id.toString,
-              titles = SearchableLanguageValues(s.title.map(t => LanguageValue(t.language, t.title))),
+              titles = SearchableLanguageValues.fromFields(s.title),
               episodes = episodes.map(asSearchableAudioInformation),
               coverPhoto = s.coverPhoto,
               lastUpdated = s.updated
@@ -67,6 +60,9 @@ trait SearchConverterService {
       val podcastMeta = findByLanguageOrBestEffort(searchable.podcastMeta, Some(language))
         .map(converterService.toApiPodcastMeta)
 
+      val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
+      val manuscript = findByLanguageOrBestEffort(manuscripts, Some(language)).map(converterService.toApiManuscript)
+
       Success(
         api.AudioSummary(
           id = searchable.id.toLong,
@@ -75,7 +71,8 @@ trait SearchConverterService {
           url = s"$Domain$AudioControllerPath${searchable.id}",
           license = searchable.license,
           supportedLanguages = supportedLanguages,
-          podcastMeta = podcastMeta
+          podcastMeta = podcastMeta,
+          manuscript = manuscript
         )
       )
 
@@ -96,19 +93,17 @@ trait SearchConverterService {
           metaWithAgreement.copyright.processors.map(_.name) ++
           metaWithAgreement.copyright.rightsholders.map(_.name)
 
-      val titles =
-        SearchableLanguageValues(metaWithAgreement.titles.map(title => LanguageValue(title.language, title.title)))
-
       SearchableAudioInformation(
         id = metaWithAgreement.id.get.toString,
-        titles = titles,
-        tags = SearchableLanguageList(metaWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        titles = SearchableLanguageValues.fromFields(metaWithAgreement.titles),
+        tags = SearchableLanguageList.fromFields(metaWithAgreement.tags),
         license = metaWithAgreement.copyright.license,
         authors = authors,
         lastUpdated = metaWithAgreement.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         audioType = metaWithAgreement.audioType.toString,
-        podcastMeta = metaWithAgreement.podcastMeta
+        podcastMeta = metaWithAgreement.podcastMeta,
+        manuscript = SearchableLanguageValues.fromFields(metaWithAgreement.manuscript)
       )
     }
 

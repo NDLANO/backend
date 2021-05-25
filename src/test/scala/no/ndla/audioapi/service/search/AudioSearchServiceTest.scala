@@ -137,7 +137,7 @@ class AudioSearchServiceTest
     created,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty,
+    Seq(Manuscript("manuscript", "nb")),
     None,
     None
   )
@@ -455,6 +455,13 @@ class AudioSearchServiceTest
     val Success(search2) = audioSearchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
     search2.totalCount should be(1)
     search2.results.map(_.id) should be(Seq(6))
+  }
+
+  test("That searching matches manuscript") {
+    val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("manuscript")))
+
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(Seq(5))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

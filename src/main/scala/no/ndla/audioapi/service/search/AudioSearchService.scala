@@ -56,6 +56,7 @@ trait AudioSearchService {
                 .should(
                   languageSpecificSearch("titles", settings.language, query, 2),
                   languageSpecificSearch("tags", settings.language, query, 1),
+                  languageSpecificSearch("manuscript", settings.language, query, 1),
                   idsQuery(query)
                 )
             )
