@@ -10,9 +10,9 @@ package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.TestData.searchSettings
 import no.ndla.audioapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
-import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.model.domain._
-import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{AudioApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
@@ -55,6 +55,16 @@ class AudioSearchServiceTest
   val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val created: Date = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+
+  val podcastSeries1: Series = Series(
+    id = 1,
+    revision = 1,
+    episodes = None,
+    title = Seq(domain.Title("TestSeries", "nb")),
+    coverPhoto = domain.CoverPhoto("1", "alt"),
+    updated = TestData.today,
+    created = TestData.yesterday,
+  )
 
   val audio1: AudioMetaInformation = AudioMetaInformation(
     Some(1),
@@ -156,8 +166,8 @@ class AudioSearchServiceTest
     Seq.empty,
     AudioType.Podcast,
     Seq.empty,
-    None,
-    None
+    Some(1),
+    Some(podcastSeries1)
   )
 
   // Skip tests if no docker environment available
@@ -463,6 +473,23 @@ class AudioSearchServiceTest
 
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(5))
+  }
+
+  test("That filtering for episodes of series works as expected") {
+    val Success(search1) =
+      audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = Some(true), sort = Sort.ByIdAsc))
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(Seq(6))
+
+    val Success(search2) =
+      audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = Some(false), sort = Sort.ByIdAsc))
+    search2.totalCount should be(4)
+    search2.results.map(_.id) should be(Seq(2, 3, 4, 5))
+
+    val Success(search3) =
+      audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = None, sort = Sort.ByIdAsc))
+    search3.totalCount should be(5)
+    search3.results.map(_.id) should be(Seq(2, 3, 4, 5, 6))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

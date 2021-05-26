@@ -85,6 +85,12 @@ trait AudioSearchService {
         case Some(lic) => Some(termQuery("license", lic))
       }
 
+      val seriesEpisodeFilter = settings.seriesFilter match {
+        case Some(true)  => Some(nestedQuery("series", existsQuery("series")))
+        case Some(false) => Some(not(nestedQuery("series", existsQuery("series"))))
+        case None        => None
+      }
+
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(Language.AllLanguages) => (None, "*")
         case Some(lang)                         => (Some(existsQuery(s"titles.$lang")), lang)
@@ -95,7 +101,7 @@ trait AudioSearchService {
         case None            => None
       }
 
-      val filters = List(licenseFilter, languageFilter, audioTypeFilter)
+      val filters = List(licenseFilter, languageFilter, audioTypeFilter, seriesEpisodeFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

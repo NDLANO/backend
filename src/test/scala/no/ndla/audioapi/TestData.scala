@@ -20,7 +20,8 @@ object TestData {
     pageSize = None,
     sort = Sort.ByTitleAsc,
     shouldScroll = false,
-    audioType = None
+    audioType = None,
+    seriesFilter = None
   )
 
   val sampleCopyright: Copyright = domain.Copyright(

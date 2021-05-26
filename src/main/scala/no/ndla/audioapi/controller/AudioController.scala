@@ -111,6 +111,14 @@ trait AudioController {
          |Possible values are ${AudioType.all.mkString("'", ", ", "'")}""".stripMargin
     )
 
+    private val seriesFilter = Param[Option[Boolean]](
+      "filter-by-series",
+      """Filter result by whether they are a part of a series or not.
+        |'true' will return only audios that are a part of a series.
+        |'false' will return only audios that are NOT a part of a series.
+        |Not specifying will return both audios that are a part of a series and not.""".stripMargin
+    )
+
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
     private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
@@ -169,7 +177,8 @@ trait AudioController {
             asQueryParam(pageNo),
             asQueryParam(pageSize),
             asQueryParam(scrollId),
-            asQueryParam(audioType)
+            asQueryParam(audioType),
+            asQueryParam(seriesFilter)
           )
           .responseMessages(response404, response500))
     ) {
@@ -184,8 +193,19 @@ trait AudioController {
         val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
         val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
         val atype = paramOrNone(audioType.paramName)
+        val seriesFilter = booleanOrNone(this.seriesFilter.paramName)
 
-        search(query, language, license, sort, pageSize, page, shouldScroll, atype)
+        search(
+          query,
+          language,
+          license,
+          sort,
+          pageSize,
+          page,
+          shouldScroll,
+          atype,
+          seriesFilter
+        )
       }
     }
 
@@ -204,16 +224,19 @@ trait AudioController {
     ) {
       val searchParams = extract[SearchParams](request.body)
       scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
-        val query = searchParams.query
-        val language = searchParams.language
-        val license = searchParams.license
-        val sort = searchParams.sort
-        val pageSize = searchParams.pageSize
-        val page = searchParams.page
         val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-        val atype = searchParams.audioType
 
-        search(query, language, license, sort, pageSize, page, shouldScroll, atype)
+        search(
+          searchParams.query,
+          searchParams.language,
+          searchParams.license,
+          searchParams.sort,
+          searchParams.pageSize,
+          searchParams.page,
+          shouldScroll,
+          searchParams.audioType,
+          searchParams.filterBySeries
+        )
       }
     }
 
@@ -224,7 +247,8 @@ trait AudioController {
                        pageSize: Option[Int],
                        page: Option[Int],
                        shouldScroll: Boolean,
-                       audioType: Option[String]) = {
+                       audioType: Option[String],
+                       seriesFilter: Option[Boolean]) = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -235,7 +259,8 @@ trait AudioController {
             pageSize = pageSize,
             sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
             shouldScroll = shouldScroll,
-            audioType = audioType.flatMap(AudioType.valueOf)
+            audioType = audioType.flatMap(AudioType.valueOf),
+            seriesFilter = seriesFilter
           )
 
         case None =>
@@ -247,7 +272,8 @@ trait AudioController {
             pageSize = pageSize,
             sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
             shouldScroll = shouldScroll,
-            audioType = audioType.flatMap(AudioType.valueOf)
+            audioType = audioType.flatMap(AudioType.valueOf),
+            seriesFilter = seriesFilter
           )
       }
 
