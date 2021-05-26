@@ -88,7 +88,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asSearchableAudioInformation converts titles with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
-    verifyTitles(searchableAudio)
+    verifyTitles(searchableAudio.get)
   }
 
   test("That asSearchableAudioInformation converts articles with correct language") {
@@ -97,20 +97,20 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asSearchableAudioInformation converts tags with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
-    verifyTags(searchableAudio)
+    verifyTags(searchableAudio.get)
   }
 
   test("That asSearchableAudioInformation converts all fields with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
 
-    verifyTitles(searchableAudio)
-    verifyTags(searchableAudio)
+    verifyTitles(searchableAudio.get)
+    verifyTags(searchableAudio.get)
   }
 
   test("That asSearchableArticle converts audio with license from agreement") {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation]))
       .thenReturn(sampleAudio.copy(copyright = sampleAudio.copyright.copy(license = "gnu")))
-    val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)
+    val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio).get
     searchableAudio.license should equal("gnu")
   }
 

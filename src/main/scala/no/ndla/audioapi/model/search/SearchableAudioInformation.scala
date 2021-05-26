@@ -22,5 +22,6 @@ case class SearchableAudioInformation(
     defaultTitle: Option[String],
     audioType: String,
     podcastMeta: Seq[PodcastMeta],
-    manuscript: SearchableLanguageValues
+    manuscript: SearchableLanguageValues,
+    series: Option[SearchableSeries]
 )

@@ -10,7 +10,7 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
@@ -41,16 +41,15 @@ trait SeriesIndexService {
       }
     }
 
-    def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
-        List(
-          intField("id"),
-          keywordField("defaultTitle"),
-          dateField("lastUpdated"),
-        ) ++
-          generateLanguageSupportedFieldList("titles", keepRaw = true)
-      )
-    }
+    val seriesIndexFields: Seq[FieldDefinition] =
+      List(
+        intField("id"),
+        keywordField("defaultTitle"),
+        dateField("lastUpdated"),
+      ) ++
+        generateLanguageSupportedFieldList("titles", keepRaw = true)
+
+    def getMapping: MappingDefinition = mapping(documentType).fields(seriesIndexFields)
   }
 
 }

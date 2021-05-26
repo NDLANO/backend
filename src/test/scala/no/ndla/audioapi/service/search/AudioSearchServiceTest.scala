@@ -30,6 +30,7 @@ class AudioSearchServiceTest
 
   override val audioSearchService = new AudioSearchService
   override val audioIndexService = new AudioIndexService
+  override val seriesIndexService = new SeriesIndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =

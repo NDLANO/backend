@@ -23,7 +23,7 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait AudioIndexService {
-  this: Elastic4sClient with SearchConverterService with IndexService with AudioRepository =>
+  this: Elastic4sClient with SearchConverterService with IndexService with SeriesIndexService with AudioRepository =>
 
   val audioIndexService: AudioIndexService
 
@@ -37,8 +37,12 @@ trait AudioIndexService {
         case None =>
           Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
         case Some(domainId) =>
-          val source = write(searchConverterService.asSearchableAudioInformation(domainModel))
-          Success(Seq(indexInto(indexName / documentType).doc(source).id(domainId.toString)))
+          searchConverterService
+            .asSearchableAudioInformation(domainModel)
+            .map(sai => {
+              val source = write(sai)
+              Seq(indexInto(indexName / documentType).doc(source).id(domainId.toString))
+            })
       }
     }
 
@@ -49,7 +53,8 @@ trait AudioIndexService {
           keywordField("license"),
           keywordField("defaultTitle"),
           textField("authors").fielddata(true),
-          keywordField("audioType")
+          keywordField("audioType"),
+          nestedField("series").fields(seriesIndexService.seriesIndexFields)
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true) ++
           generateLanguageSupportedFieldList("tags") ++

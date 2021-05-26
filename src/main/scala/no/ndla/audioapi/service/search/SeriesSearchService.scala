@@ -41,27 +41,8 @@ trait SeriesSearchService {
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val hit = Serialization.read[SearchableSeries](hitString)
-
-      val title = findByLanguageOrBestEffort(hit.titles.languageValues, Some(language))
-        .map(lv => api.Title(lv.value, lv.lang))
-        .getOrElse(api.Title("", Language.UnknownLanguage))
-
-      val supportedLanguages = getSupportedLanguages(hit.titles.languageValues)
-
-      hit.episodes.traverse(ep => searchConverterService.asAudioSummary(ep, language)) match {
-        case Failure(ex) => Failure(ex)
-        case Success(episodes) =>
-          Success(
-            api.SeriesSummary(
-              id = hit.id.toLong,
-              title = title,
-              supportedLanguages = supportedLanguages,
-              episodes = episodes,
-              coverPhoto = converterService.toApiCoverPhoto(hit.coverPhoto)
-            )
-          )
-      }
+      val searchable = Serialization.read[SearchableSeries](hitString)
+      searchConverterService.asSeriesSummary(searchable, language)
     }
 
     def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummary]] = {

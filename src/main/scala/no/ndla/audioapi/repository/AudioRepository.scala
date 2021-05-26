@@ -172,9 +172,17 @@ trait AudioRepository {
     private def audioMetaInformationsWhere(whereClause: SQLSyntax)(
         implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
       val au = AudioMetaInformation.syntax("au")
+      val se = Series.syntax("se")
       Try(
-        sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where $whereClause"
-          .map(AudioMetaInformation.fromResultSet(au))
+        sql"""
+           select ${au.result.*}, ${se.result.*}
+           from ${AudioMetaInformation.as(au)}
+           left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
+           where $whereClause
+         """
+          .one(AudioMetaInformation.fromResultSet(au))
+          .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
+          .map((audio, series) => audio.copy(series = series))
           .list()
           .apply()
       )
