@@ -501,6 +501,11 @@ class AudioSearchServiceTest
     val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("podcastintroritehere")))
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(6))
+
+    val Success(search2) =
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("podcastintroritehere"), language = Some("en")))
+    search2.totalCount should be(0)
+    search2.results.map(_.id) should be(Seq())
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
