@@ -163,7 +163,12 @@ class AudioSearchServiceTest
     "ndla123",
     updated6,
     created,
-    Seq.empty,
+    Seq(
+      domain.PodcastMeta(
+        introduction = "podcastintroritehere",
+        coverPhoto = domain.CoverPhoto("2", "altyo"),
+        language = "nb"
+      )),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
@@ -490,6 +495,12 @@ class AudioSearchServiceTest
       audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = None, sort = Sort.ByIdAsc))
     search3.totalCount should be(5)
     search3.results.map(_.id) should be(Seq(2, 3, 4, 5, 6))
+  }
+
+  test("That searching for podcast meta introductions works") {
+    val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("podcastintroritehere")))
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(Seq(6))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

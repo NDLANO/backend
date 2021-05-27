@@ -16,16 +16,17 @@ import no.ndla.audioapi.model.api.{MissingIdException, Title}
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search.{
+  LanguageValue,
   SearchableAudioInformation,
   SearchableLanguageList,
   SearchableLanguageValues,
+  SearchablePodcastMeta,
   SearchableSeries
 }
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.mapping.ISO639
 
 import scala.util.{Failure, Success, Try}
-
 import cats.implicits._
 
 trait SearchConverterService {
@@ -50,13 +51,26 @@ trait SearchConverterService {
 
     def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummary] = {
       val titles = searchable.titles.languageValues.map(lv => domain.Title(lv.value, lv.language))
-      val supportedLanguages = getSupportedLanguages(titles, searchable.podcastMeta)
+
+      val domainPodcastMeta = searchable.podcastMetaIntroduction.languageValues.flatMap(lv => {
+        searchable.podcastMeta
+          .find(_.language == lv.language)
+          .map(meta => {
+            domain.PodcastMeta(
+              introduction = lv.value,
+              coverPhoto = meta.coverPhoto,
+              language = lv.language
+            )
+          })
+      })
+
+      val supportedLanguages = getSupportedLanguages(titles, domainPodcastMeta)
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None    => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }
 
-      val podcastMeta = findByLanguageOrBestEffort(searchable.podcastMeta, Some(language))
+      val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, Some(language))
         .map(converterService.toApiPodcastMeta)
 
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
@@ -112,6 +126,12 @@ trait SearchConverterService {
           metaWithAgreement.copyright.processors.map(_.name) ++
           metaWithAgreement.copyright.rightsholders.map(_.name)
 
+      val podcastMetaIntros = SearchableLanguageValues(
+        metaWithAgreement.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction)))
+
+      val searchablePodcastMeta = metaWithAgreement.podcastMeta.map(pm =>
+        SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
+
       metaWithAgreement.series
         .traverse(s => asSearchableSeries(s))
         .map(series =>
@@ -124,7 +144,8 @@ trait SearchConverterService {
             lastUpdated = metaWithAgreement.updated,
             defaultTitle = defaultTitle.map(t => t.title),
             audioType = metaWithAgreement.audioType.toString,
-            podcastMeta = metaWithAgreement.podcastMeta,
+            podcastMetaIntroduction = podcastMetaIntros,
+            podcastMeta = searchablePodcastMeta,
             manuscript = SearchableLanguageValues.fromFields(metaWithAgreement.manuscript),
             series = series
         ))

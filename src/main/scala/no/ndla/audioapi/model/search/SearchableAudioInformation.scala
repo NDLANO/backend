@@ -8,9 +8,14 @@
 
 package no.ndla.audioapi.model.search
 
-import no.ndla.audioapi.model.domain.PodcastMeta
+import no.ndla.audioapi.model.domain.CoverPhoto
 
 import java.util.Date
+
+case class SearchablePodcastMeta(
+    coverPhoto: CoverPhoto,
+    language: String
+)
 
 case class SearchableAudioInformation(
     id: String,
@@ -21,7 +26,8 @@ case class SearchableAudioInformation(
     lastUpdated: Date,
     defaultTitle: Option[String],
     audioType: String,
-    podcastMeta: Seq[PodcastMeta],
+    podcastMetaIntroduction: SearchableLanguageValues,
+    podcastMeta: Seq[SearchablePodcastMeta],
     manuscript: SearchableLanguageValues,
     series: Option[SearchableSeries]
 )
