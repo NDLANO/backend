@@ -55,11 +55,6 @@ trait AudioIndexService {
           textField("authors").fielddata(true),
           keywordField("audioType"),
           nestedField("series").fields(seriesIndexService.seriesIndexFields),
-          nestedField("podcastMeta").fields(
-            keywordField("coverPhoto.imageId"),
-            textField("coverPhoto.altText"),
-            keywordField("language")
-          )
         ) ++
           generateLanguageSupportedFieldList("titles", keepRaw = true) ++
           generateLanguageSupportedFieldList("tags") ++
