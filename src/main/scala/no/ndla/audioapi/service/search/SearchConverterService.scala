@@ -10,28 +10,24 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
-import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, LanguageField, SearchResult, SearchableTag, WithLanguage}
-import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioSummary, ElasticIndexingException, MissingIdException, Title}
+import no.ndla.audioapi.model.api.{MissingIdException, Title}
+import no.ndla.audioapi.model.{Language, api, domain}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search.{
   LanguageValue,
   SearchableAudioInformation,
   SearchableLanguageList,
   SearchableLanguageValues,
+  SearchablePodcastMeta,
   SearchableSeries
 }
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.mapping.ISO639
-import no.ndla.network.ApplicationUrl
-import org.json4s.DefaultFormats
-import org.json4s.native.JsonMethods
 
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 trait SearchConverterService {
   this: ConverterService =>
@@ -40,48 +36,82 @@ trait SearchConverterService {
   class SearchConverterService extends LazyLogging {
 
     def asSearchableSeries(s: domain.Series): Try[SearchableSeries] = {
-      s.episodes match {
-        case None =>
-          Failure(MissingIdException(s"Series without episodes was passed to `asSearchableSeries`, this is a bug."))
-        case Some(episodes) =>
-          Success(
-            SearchableSeries(
-              id = s.id.toString,
-              titles = SearchableLanguageValues(s.title.map(t => LanguageValue(t.language, t.title))),
-              episodes = episodes.map(asSearchableAudioInformation),
-              coverPhoto = s.coverPhoto,
-              lastUpdated = s.updated
-            )
+      s.episodes
+        .traverse(_.traverse(asSearchableAudioInformation))
+        .map(searchableEpisodes => {
+          SearchableSeries(
+            id = s.id.toString,
+            titles = SearchableLanguageValues.fromFields(s.title),
+            episodes = searchableEpisodes,
+            coverPhoto = s.coverPhoto,
+            lastUpdated = s.updated
           )
-      }
+        })
     }
 
     def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummary] = {
       val titles = searchable.titles.languageValues.map(lv => domain.Title(lv.value, lv.language))
-      val supportedLanguages = getSupportedLanguages(titles, searchable.podcastMeta)
+
+      val domainPodcastMeta = searchable.podcastMetaIntroduction.languageValues.flatMap(lv => {
+        searchable.podcastMeta
+          .find(_.language == lv.language)
+          .map(meta => {
+            domain.PodcastMeta(
+              introduction = lv.value,
+              coverPhoto = meta.coverPhoto,
+              language = lv.language
+            )
+          })
+      })
+
+      val supportedLanguages = getSupportedLanguages(titles, domainPodcastMeta)
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None    => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }
 
-      val podcastMeta = findByLanguageOrBestEffort(searchable.podcastMeta, Some(language))
+      val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, Some(language))
         .map(converterService.toApiPodcastMeta)
 
-      Success(
-        api.AudioSummary(
-          id = searchable.id.toLong,
-          title = title,
-          audioType = searchable.audioType,
-          url = s"$Domain$AudioControllerPath${searchable.id}",
-          license = searchable.license,
-          supportedLanguages = supportedLanguages,
-          podcastMeta = podcastMeta
-        )
-      )
+      val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
+      val manuscript = findByLanguageOrBestEffort(manuscripts, Some(language)).map(converterService.toApiManuscript)
 
+      searchable.series
+        .traverse(s => asSeriesSummary(s, language))
+        .map(series =>
+          api.AudioSummary(
+            id = searchable.id.toLong,
+            title = title,
+            audioType = searchable.audioType,
+            url = s"$Domain$AudioControllerPath${searchable.id}",
+            license = searchable.license,
+            supportedLanguages = supportedLanguages,
+            podcastMeta = podcastMeta,
+            manuscript = manuscript,
+            series = series
+        ))
     }
 
-    def asSearchableAudioInformation(ai: AudioMetaInformation): SearchableAudioInformation = {
+    def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummary] = {
+      val title = findByLanguageOrBestEffort(searchable.titles.languageValues, Some(language))
+        .map(lv => api.Title(lv.value, lv.lang))
+        .getOrElse(api.Title("", Language.UnknownLanguage))
+
+      val supportedLanguages = getSupportedLanguages(searchable.titles.languageValues)
+
+      searchable.episodes
+        .traverse(eps => eps.traverse(ep => searchConverterService.asAudioSummary(ep, language)))
+        .map(episodeSummaries =>
+          api.SeriesSummary(
+            id = searchable.id.toLong,
+            title = title,
+            supportedLanguages = supportedLanguages,
+            episodes = episodeSummaries,
+            coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
+        ))
+    }
+
+    def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
       val metaWithAgreement = converterService.withAgreementCopyright(ai)
 
       val defaultTitle = metaWithAgreement.titles
@@ -96,20 +126,29 @@ trait SearchConverterService {
           metaWithAgreement.copyright.processors.map(_.name) ++
           metaWithAgreement.copyright.rightsholders.map(_.name)
 
-      val titles =
-        SearchableLanguageValues(metaWithAgreement.titles.map(title => LanguageValue(title.language, title.title)))
+      val podcastMetaIntros = SearchableLanguageValues(
+        metaWithAgreement.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction)))
 
-      SearchableAudioInformation(
-        id = metaWithAgreement.id.get.toString,
-        titles = titles,
-        tags = SearchableLanguageList(metaWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        license = metaWithAgreement.copyright.license,
-        authors = authors,
-        lastUpdated = metaWithAgreement.updated,
-        defaultTitle = defaultTitle.map(t => t.title),
-        audioType = metaWithAgreement.audioType.toString,
-        podcastMeta = metaWithAgreement.podcastMeta
-      )
+      val searchablePodcastMeta = metaWithAgreement.podcastMeta.map(pm =>
+        SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
+
+      metaWithAgreement.series
+        .traverse(s => asSearchableSeries(s))
+        .map(series =>
+          SearchableAudioInformation(
+            id = metaWithAgreement.id.get.toString,
+            titles = SearchableLanguageValues.fromFields(metaWithAgreement.titles),
+            tags = SearchableLanguageList.fromFields(metaWithAgreement.tags),
+            license = metaWithAgreement.copyright.license,
+            authors = authors,
+            lastUpdated = metaWithAgreement.updated,
+            defaultTitle = defaultTitle.map(t => t.title),
+            audioType = metaWithAgreement.audioType.toString,
+            podcastMetaIntroduction = podcastMetaIntros,
+            podcastMeta = searchablePodcastMeta,
+            manuscript = SearchableLanguageValues.fromFields(metaWithAgreement.manuscript),
+            series = series
+        ))
     }
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {

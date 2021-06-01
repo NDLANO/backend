@@ -10,5 +10,6 @@ case class SearchSettings(
     pageSize: Option[Int],
     sort: Sort.Value,
     shouldScroll: Boolean,
-    audioType: Option[AudioType.Value]
+    audioType: Option[AudioType.Value],
+    seriesFilter: Option[Boolean]
 )

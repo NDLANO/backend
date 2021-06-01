@@ -71,6 +71,18 @@ trait ConverterService {
         tags = audio.tags.filterNot(_.language == language)
       )
 
+    def withoutLanguage(series: domain.Series, language: String): domain.Series = {
+      domain.Series(
+        id = series.id,
+        revision = series.revision,
+        episodes = series.episodes,
+        title = series.title.filterNot(_.language == language),
+        coverPhoto = series.coverPhoto,
+        updated = new DateTime(),
+        created = series.created
+      )
+    }
+
     def withAgreementCopyright(audio: AudioMetaInformation): AudioMetaInformation = {
       val agreementCopyright = audio.copyright.agreementId
         .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
@@ -182,7 +194,7 @@ trait ConverterService {
       )
     }
 
-    private def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
+    def toApiManuscript(meta: domain.Manuscript): api.Manuscript = {
       api.Manuscript(
         manuscript = meta.manuscript,
         language = meta.language

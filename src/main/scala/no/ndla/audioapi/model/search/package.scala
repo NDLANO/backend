@@ -14,7 +14,4 @@ package object search {
 
   }
 
-  case class SearchableLanguageValues(languageValues: Seq[LanguageValue.LanguageValue[String]])
-
-  case class SearchableLanguageList(languageValues: Seq[LanguageValue.LanguageValue[Seq[String]]])
 }

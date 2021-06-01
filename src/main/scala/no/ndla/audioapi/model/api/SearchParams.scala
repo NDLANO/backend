@@ -21,6 +21,7 @@ case class SearchParams(
     @(ApiModelProperty @field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
     @(ApiModelProperty @field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String],
     @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
-    @(ApiModelProperty @field)(description = "Type of audio to filter by.") audioType: Option[String]
+    @(ApiModelProperty @field)(description = "Type of audio to filter by.") audioType: Option[String],
+    @(ApiModelProperty @field)(description = "Filter result by whether they are a part of a series or not.\n'true' will return only audios that are a part of a series.\n'false' will return only audios that are NOT a part of a series.\nNot specifying will return both audios that are a part of a series and not.") filterBySeries: Option[Boolean]
 )
 // format: on

@@ -14,7 +14,7 @@ import org.joda.time.DateTime
 case class SearchableSeries(
     id: String,
     titles: SearchableLanguageValues,
-    episodes: Seq[SearchableAudioInformation],
+    episodes: Option[Seq[SearchableAudioInformation]],
     coverPhoto: CoverPhoto,
     lastUpdated: DateTime,
 )
