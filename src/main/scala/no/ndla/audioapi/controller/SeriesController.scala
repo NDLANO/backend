@@ -17,6 +17,7 @@ import no.ndla.audioapi.model.api.{
   NewAudioMetaInformation,
   SearchParams,
   SearchResult,
+  Series,
   SeriesSearchParams,
   TagsSearchResult,
   UpdatedAudioMetaInformation,
@@ -276,6 +277,33 @@ trait SeriesController {
       writeService.deleteSeries(seriesId) match {
         case Failure(ex) => errorHandler(ex)
         case Success(_)  => NoContent()
+      }
+    }
+
+    delete(
+      "/:series_id/language/:language",
+      operation(
+        apiOperation[Series]("deleteLanguage")
+          .summary("Delete language version of audio metadata.")
+          .description("Delete language version of audio metadata.")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(seriesId),
+            asPathParam(pathLanguage)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500))
+    ) {
+      authUser.assertHasId()
+      authRole.assertHasRole(RoleWithWriteAccess)
+
+      val seriesId = long(this.seriesId.paramName)
+      val language = params(this.pathLanguage.paramName)
+
+      writeService.deleteSeriesLanguageVersion(seriesId, language) match {
+        case Failure(ex)          => errorHandler(ex)
+        case Success(Some(image)) => Ok(image)
+        case Success(None)        => NoContent()
       }
     }
 
