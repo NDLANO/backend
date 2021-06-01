@@ -80,12 +80,27 @@ trait WriteService {
             seriesId = seriesId
         ))
 
-    def deleteSeries(seriesId: Long): Try[Long] =
-      seriesRepository.deleteWithId(seriesId) match {
-        case Success(numRows) if numRows > 0 => seriesIndexService.deleteDocument(seriesId)
-        case Success(_)                      => Failure(new NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
-        case Failure(ex)                     => Failure(ex)
+    def deleteSeries(seriesId: Long): Try[Long] = {
+      seriesRepository.withId(seriesId) match {
+        case Failure(ex) => Failure(ex)
+        case Success(None) =>
+          Failure(new NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
+        case Success(Some(existingSeries)) =>
+          val episodeIds = existingSeries.episodes.map(eps => eps.flatMap(_.id)).getOrElse(Seq.empty)
+          val freedEpisodes = episodeIds.traverse(id => audioRepository.setSeriesId(id, None))
+
+          freedEpisodes match {
+            case Failure(ex) => Failure(ex)
+            case Success(_) =>
+              seriesRepository.deleteWithId(seriesId) match {
+                case Success(numRows) if numRows > 0 => seriesIndexService.deleteDocument(seriesId)
+                case Success(_) =>
+                  Failure(new NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
+                case Failure(ex) => Failure(ex)
+              }
+          }
       }
+    }
 
     def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[AudioMetaInformation]] =
       audioRepository.withId(audioId) match {
