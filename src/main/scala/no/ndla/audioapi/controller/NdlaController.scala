@@ -68,7 +68,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
-      InternalServerError(Error(description = t.getMessage))
+      InternalServerError(Error())
     }
   }
 
