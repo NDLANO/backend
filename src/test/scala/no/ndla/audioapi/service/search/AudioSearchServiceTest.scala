@@ -189,6 +189,8 @@ class AudioSearchServiceTest
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
+    when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
+
     if (elasticSearchContainer.isSuccess) {
       audioIndexService.createIndexWithName(AudioApiProperties.SearchIndex)
       audioIndexService.indexDocument(audio1)

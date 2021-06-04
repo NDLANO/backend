@@ -268,7 +268,7 @@ trait ConverterService {
       domain.Author(author.`type`, author.name)
     }
 
-    private def findAndConvertDomainToApiField[DomainType <: WithLanguage, ApiType](
+    def findAndConvertDomainToApiField[DomainType <: WithLanguage, ApiType](
         fields: Seq[DomainType],
         language: Option[String],
         toApiFunc: DomainType => ApiType

@@ -96,7 +96,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    val runtimeMock = mock[RuntimeException]
+    val runtimeMock = mock[RuntimeException](withSettings.lenient())
     doNothing.when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 

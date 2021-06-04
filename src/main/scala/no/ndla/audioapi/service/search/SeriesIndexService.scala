@@ -47,7 +47,8 @@ trait SeriesIndexService {
         keywordField("defaultTitle"),
         dateField("lastUpdated"),
       ) ++
-        generateLanguageSupportedFieldList("titles", keepRaw = true)
+        generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("descriptions", keepRaw = true)
 
     def getMapping: MappingDefinition = mapping(documentType).fields(seriesIndexFields)
   }

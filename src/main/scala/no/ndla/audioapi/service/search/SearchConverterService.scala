@@ -42,6 +42,7 @@ trait SearchConverterService {
           SearchableSeries(
             id = s.id.toString,
             titles = SearchableLanguageValues.fromFields(s.title),
+            descriptions = SearchableLanguageValues.fromFields(s.description),
             episodes = searchableEpisodes,
             coverPhoto = s.coverPhoto,
             lastUpdated = s.updated
@@ -93,22 +94,31 @@ trait SearchConverterService {
     }
 
     def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummary] = {
-      val title = findByLanguageOrBestEffort(searchable.titles.languageValues, Some(language))
-        .map(lv => api.Title(lv.value, lv.lang))
-        .getOrElse(api.Title("", Language.UnknownLanguage))
+      for {
+        title <- converterService.findAndConvertDomainToApiField(
+          searchable.titles.languageValues,
+          Some(language),
+          (lv: LanguageValue[String]) => api.Title(lv.value, lv.language))
 
-      val supportedLanguages = getSupportedLanguages(searchable.titles.languageValues)
+        description <- converterService.findAndConvertDomainToApiField(
+          searchable.descriptions.languageValues,
+          Some(language),
+          (lv: LanguageValue[String]) => api.Description(lv.value, lv.language))
 
-      searchable.episodes
-        .traverse(eps => eps.traverse(ep => searchConverterService.asAudioSummary(ep, language)))
-        .map(episodeSummaries =>
-          api.SeriesSummary(
-            id = searchable.id.toLong,
-            title = title,
-            supportedLanguages = supportedLanguages,
-            episodes = episodeSummaries,
-            coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
-        ))
+        episodes <- searchable.episodes.traverse(eps =>
+          eps.traverse(ep => searchConverterService.asAudioSummary(ep, language)))
+
+        supportedLanguages = getSupportedLanguages(searchable.titles.languageValues,
+                                                   searchable.descriptions.languageValues)
+      } yield
+        api.SeriesSummary(
+          id = searchable.id.toLong,
+          title = title,
+          description = description,
+          supportedLanguages = supportedLanguages,
+          episodes = episodes,
+          coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
+        )
     }
 
     def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
