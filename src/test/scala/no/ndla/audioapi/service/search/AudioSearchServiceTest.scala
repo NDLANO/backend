@@ -61,6 +61,7 @@ class AudioSearchServiceTest
     revision = 1,
     episodes = None,
     title = Seq(domain.Title("TestSeries", "nb")),
+    description = Seq(domain.Description("TestSeriesDesc", "nb")),
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,
     created = TestData.yesterday,

@@ -25,6 +25,7 @@ class SeriesWithoutId(
     val episodes: Option[Seq[AudioMetaInformation]],
     val updated: DateTime,
     val created: DateTime,
+    val description: Seq[Description]
 )
 
 /** Series with database generated fields. Should match [[SeriesWithoutId]]
@@ -37,8 +38,9 @@ case class Series(
     override val coverPhoto: CoverPhoto,
     override val updated: DateTime,
     override val created: DateTime,
-) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created) {
-  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(title)
+    override val description: Seq[Description]
+) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created, description) {
+  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(title, description)
 }
 
 object Series extends SQLSyntaxSupport[Series] {
@@ -62,7 +64,8 @@ object Series extends SQLSyntaxSupport[Series] {
       title = series.title,
       coverPhoto = series.coverPhoto,
       updated = series.updated,
-      created = series.created
+      created = series.created,
+      description = series.description
     )
   }
 

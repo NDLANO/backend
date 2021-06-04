@@ -553,6 +553,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val updateSeries = api.NewSeries(
       title = "nyTittel",
+      description = "nyBeskrivelse",
       coverPhotoId = "555",
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
@@ -586,11 +587,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val updateSeries = api.NewSeries(
       title = "nyTittel",
+      description = "nyBeskrivelse",
       coverPhotoId = "555",
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
     )
 
     writeService.updateSeries(1, updateSeries).isFailure should be(true)
@@ -630,6 +632,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val updateSeries = api.NewSeries(
       title = "nyTittel",
+      description = "nyBeskrivelse",
       coverPhotoId = "555",
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
@@ -673,6 +676,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val updateSeries = api.NewSeries(
       title = "nyTittel",
+      description = "nyBeskrivelse",
       coverPhotoId = "555",
       coverPhotoAltText = "nyalt",
       episodes = Set(2),
@@ -713,6 +717,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val updateSeries = api.NewSeries(
       title = "nyTittel",
+      description = "nyBeskrivelse",
       coverPhotoId = "555",
       coverPhotoAltText = "nyalt",
       episodes = Set(1),

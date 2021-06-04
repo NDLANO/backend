@@ -57,9 +57,10 @@ object TestData {
     revision = 1,
     episodes = None,
     title = Seq(domain.Title("SERIE", "nb")),
+    description = Seq(domain.Description("SERIE DESCRIPTION", "nb")),
     coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
     updated = today,
-    created = yesterday
+    created = yesterday,
   )
 
   val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(
@@ -90,6 +91,7 @@ object TestData {
     revision = 1,
     episodes = Some(Seq(samplePodcast)),
     title = Seq(domain.Title("SERIE", "nb")),
+    description = Seq(domain.Description("SERIE DESCRIPTION", "nb")),
     coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
     updated = today,
     created = yesterday
