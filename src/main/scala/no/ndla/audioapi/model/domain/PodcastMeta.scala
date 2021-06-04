@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api.
+ * Copyright (C) 2021 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.model.domain
 
 /** Metadata fields for [[AudioType.Podcast]] type audios */
