@@ -61,6 +61,7 @@ class AudioSearchServiceTest
     revision = 1,
     episodes = None,
     title = Seq(domain.Title("TestSeries", "nb")),
+    description = Seq(domain.Description("TestSeriesDesc", "nb")),
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,
     created = TestData.yesterday,
@@ -187,6 +188,8 @@ class AudioSearchServiceTest
       i.getArgument[AudioMetaInformation](0))
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
+
+    when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
 
     if (elasticSearchContainer.isSuccess) {
       audioIndexService.createIndexWithName(AudioApiProperties.SearchIndex)

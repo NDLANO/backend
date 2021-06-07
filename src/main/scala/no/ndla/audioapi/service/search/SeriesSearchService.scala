@@ -54,6 +54,7 @@ trait SeriesSearchService {
               boolQuery()
                 .should(
                   languageSpecificSearch("titles", settings.language, query, 2),
+                  languageSpecificSearch("descriptions", settings.language, query, 1),
                   idsQuery(query)
                 )
             )

@@ -105,7 +105,6 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
     post("/import/123") {
       status should equal(500)
-      body indexOf "nullpointer" should be > 0
     }
   }
 

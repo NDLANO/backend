@@ -17,6 +17,7 @@ import scala.annotation.meta.field
 @ApiModel(description = "Meta information about podcast series")
 case class NewSeries(
   @(ApiModelProperty @field)(description = "Header for the series") title: String,
+  @(ApiModelProperty @field)(description = "Description for the series") description: String,
   @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhotoId: String,
   @(ApiModelProperty @field)(description = "Cover photo alttext for the series") coverPhotoAltText: String,
   @(ApiModelProperty @field)(description = "Ids for episodes of the series") episodes: Set[Long],

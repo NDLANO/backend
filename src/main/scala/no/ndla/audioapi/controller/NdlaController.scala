@@ -55,6 +55,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case rw: ResultWindowTooLargeException => UnprocessableEntity(body = Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
     case i: ImportException                => UnprocessableEntity(body = Error(Error.IMPORT_FAILED, i.getMessage))
     case nfe: NotFoundException            => NotFound(body = Error(Error.NOT_FOUND, nfe.getMessage))
+    case o: OptimisticLockException        => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
     case _: SizeConstraintExceededException =>
       contentType = formats("json")
       RequestEntityTooLarge(body = Error.FileTooBigError)
@@ -68,7 +69,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case t: Throwable => {
       t.printStackTrace()
       logger.error(t.getMessage)
-      InternalServerError(Error(description = t.getMessage))
+      InternalServerError(Error())
     }
   }
 

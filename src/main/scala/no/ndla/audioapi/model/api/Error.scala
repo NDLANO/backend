@@ -28,6 +28,7 @@ object Error {
   val INDEX_MISSING = "INDEX_MISSING"
   val REMOTE_ERROR = "REMOTE_ERROR"
   val VALIDATION = "VALIDATION_ERROR"
+  val RESOURCE_OUTDATED = "RESOURCE_OUTDATED"
   val FILE_TOO_BIG = "FILE TOO BIG"
   val ACCESS_DENIED = "ACCESS DENIED"
   val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
@@ -55,6 +56,7 @@ object Error {
 
 class NotFoundException(message: String = "The audio was not found") extends RuntimeException(message)
 case class MissingIdException(message: String) extends RuntimeException(message)
+case class CouldNotFindLanguageException(message: String) extends RuntimeException(message)
 
 class ValidationException(message: String = "Validation error", val errors: Seq[ValidationMessage])
     extends RuntimeException(message)

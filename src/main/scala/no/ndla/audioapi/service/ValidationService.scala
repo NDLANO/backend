@@ -105,9 +105,14 @@ trait ValidationService {
     def validate[T <: domain.SeriesWithoutId](series: T): Try[T] = {
       val validationMessages = validateNonEmpty("title", series.title).toSeq ++
         series.title.flatMap(title => validateNonEmpty("title", title.language)) ++
-        series.title.flatMap(title => validateTitle("title", title, Seq.empty))
+        series.title.flatMap(title => validateTitle("title", title, Seq.empty)) ++
+        validateDescription(series.description)
 
       validationTry(series, validationMessages)
+    }
+
+    private def validateDescription(descriptions: Seq[Description]): Seq[ValidationMessage] = {
+      descriptions.flatMap(validateDescription) ++ validateNonEmpty("description", descriptions)
     }
 
     private def validationTry[T](successCase: T, messages: Seq[ValidationMessage]): Try[T] = {
@@ -134,6 +139,20 @@ trait ValidationService {
       containsNoHtml(fieldPath, title.title).toList ++
         validateLanguage(fieldPath, title.language, oldLanguages)
     }
+
+    private def validateDescription(desc: Description): Seq[ValidationMessage] = {
+      containsNoHtml("description", desc.description).toList ++
+        validateLanguage("description", desc.language, Seq.empty) ++
+        validateMinimumLength("description", desc.description, 1)
+    }
+
+    private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
+      if (content.trim.length < minLength)
+        Some(
+          ValidationMessage(fieldPath,
+                            s"This field does not meet the minimum length requirement of $minLength characters"))
+      else
+        None
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++

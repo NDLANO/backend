@@ -12,9 +12,9 @@ import no.ndla.audioapi.model.domain.LanguageField
 import org.json4s.JsonAST.{JArray, JField, JNothing, JObject, JString}
 import org.json4s.{CustomSerializer, Formats, MappingException}
 
-case class SearchableLanguageValues(languageValues: Seq[LanguageValue.LanguageValue[String]])
+case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
 
-case class SearchableLanguageList(languageValues: Seq[LanguageValue.LanguageValue[Seq[String]]])
+case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
 
 object SearchableLanguageValues {
 
