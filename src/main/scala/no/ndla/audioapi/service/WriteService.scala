@@ -73,12 +73,19 @@ trait WriteService {
     }
 
     def updateSeriesForEpisodes(seriesId: Option[Long], episodeIds: Seq[Long]): Try[_] =
-      episodeIds.traverse(
-        id =>
-          audioRepository.setSeriesId(
+      episodeIds.traverse(id =>
+        for {
+          _ <- audioRepository.setSeriesId(
             audioMetaId = id,
             seriesId = seriesId
-        ))
+          )
+          episode <- audioRepository.withId(id) match {
+            case Some(ep) => Success(ep)
+            case None =>
+              Failure(new NotFoundException(s"Could not find episode with id '$id' when updating series connection."))
+          }
+          reindexed <- audioIndexService.indexDocument(episode)
+        } yield reindexed)
 
     def deleteSeries(seriesId: Long): Try[Long] = {
       seriesRepository.withId(seriesId) match {
@@ -86,10 +93,8 @@ trait WriteService {
         case Success(None) =>
           Failure(new NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
         case Success(Some(existingSeries)) =>
-          val episodeIds = existingSeries.episodes.map(eps => eps.flatMap(_.id)).getOrElse(Seq.empty)
-          val freedEpisodes = episodeIds.traverse(id => audioRepository.setSeriesId(id, None))
-
-          freedEpisodes match {
+          val episodes = existingSeries.episodes.getOrElse(Seq.empty)
+          freeEpisodes(episodes) match {
             case Failure(ex) => Failure(ex)
             case Success(_) =>
               seriesRepository.deleteWithId(seriesId) match {
@@ -101,6 +106,22 @@ trait WriteService {
           }
       }
     }
+
+    private def idToTry(id: Option[Long]): Try[Long] = {
+      id match {
+        case Some(foundId) => Success(foundId)
+        case None          => Failure(MissingIdException("Id not found, this is likely a bug."))
+      }
+    }
+
+    private def freeEpisodes(episodes: Seq[domain.AudioMetaInformation]): Try[Seq[domain.AudioMetaInformation]] =
+      episodes.traverse(ep => {
+        for {
+          id <- idToTry(ep.id)
+          _ <- audioRepository.setSeriesId(id, None)
+          reindexed <- audioIndexService.indexDocument(ep.copy(series = None, seriesId = None))
+        } yield reindexed
+      })
 
     def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[AudioMetaInformation]] =
       audioRepository.withId(audioId) match {
