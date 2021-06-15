@@ -57,7 +57,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "standard",
       None,
       None,
-      None
+      None,
+      created,
+      updated
     )
 
     service.toApiAudioMetaInformation(audioMeta, Some("nb")) should equal(Success(expected))
@@ -75,7 +77,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "standard",
       None,
       None,
-      None
+      None,
+      created,
+      updated
     )
 
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))

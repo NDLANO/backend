@@ -134,7 +134,9 @@ trait ConverterService {
             audioType = audioMeta.audioType.toString,
             podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta),
             series = series,
-            manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript)
+            manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript),
+            created = audioMeta.created,
+            updated = audioMeta.updated
         ))
     }
 
@@ -207,10 +209,12 @@ trait ConverterService {
       )
     }
 
+    def getPhotoUrl(meta: domain.CoverPhoto): String = s"$RawImageApiUrl/${meta.imageId}"
+
     def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
       api.CoverPhoto(
         id = meta.imageId,
-        url = s"$RawImageApiUrl/${meta.imageId}",
+        url = getPhotoUrl(meta),
         altText = meta.altText
       )
     }
