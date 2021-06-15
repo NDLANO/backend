@@ -12,10 +12,13 @@ import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 import org.scalatra.servlet.FileItem
 
+import java.awt.image.BufferedImage
+import java.net.URL
+import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient =>
+  this: DraftApiClient with ConverterService =>
   val validationService: ValidationService
 
   class ValidationService {
@@ -106,9 +109,40 @@ trait ValidationService {
       val validationMessages = validateNonEmpty("title", series.title).toSeq ++
         series.title.flatMap(title => validateNonEmpty("title", title.language)) ++
         series.title.flatMap(title => validateTitle("title", title, Seq.empty)) ++
-        validateDescription(series.description)
+        validateDescription(series.description) ++
+        validatePodcastCoverPhoto("coverPhoto", series.coverPhoto)
 
       validationTry(series, validationMessages)
+    }
+
+    private def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
+      val imageUrl = converterService.getPhotoUrl(coverPhoto)
+      val url = new URL(imageUrl)
+      val image = ImageIO.read(url)
+
+      val imageHeight = image.getHeight
+      val imageWidth = image.getWidth
+
+      val squareValidationMessage =
+        if (imageHeight == imageWidth) Seq.empty
+        else Seq(ValidationMessage(fieldName, "Podcast cover images must be exactly square to be valid."))
+
+      val minImageSize = 1400
+      val maxImageSize = 3000
+
+      val isBigEnough = imageHeight >= minImageSize || imageWidth >= minImageSize
+      val isSmallEnough = imageHeight <= maxImageSize || imageWidth <= maxImageSize
+
+      val sizeValidationMessage =
+        if (isBigEnough && isSmallEnough) Seq.empty
+        else
+          Seq(
+            ValidationMessage(
+              fieldName,
+              s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x${imageHeight}."
+            ))
+
+      squareValidationMessage ++ sizeValidationMessage
     }
 
     private def validateDescription(descriptions: Seq[Description]): Seq[ValidationMessage] = {
@@ -131,6 +165,7 @@ trait ValidationService {
         meta.flatMap(m => {
           Seq.empty ++
             validateNonEmpty("podcastMeta.introduction", m.introduction)
+          validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
         })
       }
     }

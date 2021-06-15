@@ -209,10 +209,12 @@ trait ConverterService {
       )
     }
 
+    def getPhotoUrl(meta: domain.CoverPhoto): String = s"$RawImageApiUrl/${meta.imageId}"
+
     def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhoto = {
       api.CoverPhoto(
         id = meta.imageId,
-        url = s"$RawImageApiUrl/${meta.imageId}",
+        url = getPhotoUrl(meta),
         altText = meta.altText
       )
     }
