@@ -134,7 +134,9 @@ trait ConverterService {
             audioType = audioMeta.audioType.toString,
             podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta),
             series = series,
-            manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript)
+            manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript),
+            created = audioMeta.created,
+            updated = audioMeta.updated
         ))
     }
 

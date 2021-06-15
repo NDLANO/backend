@@ -39,7 +39,9 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     "standard",
     None,
     None,
-    None
+    None,
+    created,
+    updated
   )
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(

@@ -11,6 +11,7 @@ package no.ndla.audioapi.model.api
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
+import java.util.Date
 import scala.annotation.meta.field
 
 // format: off
@@ -26,6 +27,8 @@ case class AudioMetaInformation(
     @(ApiModelProperty @field)(description = "Type of audio. 'standard', or 'podcast'.") audioType: String,
     @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
     @(ApiModelProperty @field)(description = "Meta information about series if the audio is a podcast and a part of a series.") series: Option[Series],
-    @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[Manuscript]
+    @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[Manuscript],
+    @(ApiModelProperty @field)(description = "The time of creation for the audio-file") created: Date,
+    @(ApiModelProperty @field)(description = "The time of last update for the audio-file") updated: Date
 )
 // format: on
