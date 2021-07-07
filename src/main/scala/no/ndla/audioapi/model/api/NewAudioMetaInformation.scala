@@ -22,7 +22,7 @@ case class NewAudioMetaInformation(
   @(ApiModelProperty @field)(description = "Tags for this audio file") tags: Seq[String],
   @(ApiModelProperty @field)(description = "Type of audio. 'standard', or 'podcast', defaults to 'standard'") audioType: Option[String],
   @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[NewPodcastMeta],
-  @(ApiModelProperty @field)(description = "Meta information about series if the audio is a podcast and a part of a series.") seriesId: Option[Long],
+  @(ApiModelProperty @field)(description = "Id of series if the audio is a podcast and a part of a series.") seriesId: Option[Long],
   @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[String]
 )
 // format: on
