@@ -252,7 +252,12 @@ trait WriteService {
           val metadataToSave = metadataAndFile.map(_._1)
 
           val finished =
-            metadataToSave.flatMap(validateAndUpdateMetaData(id, _, existingMetadata, Some(metadataToUpdate.language), metadataToUpdate.seriesId))
+            metadataToSave.flatMap(
+              validateAndUpdateMetaData(id,
+                                        _,
+                                        existingMetadata,
+                                        Some(metadataToUpdate.language),
+                                        metadataToUpdate.seriesId))
 
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)

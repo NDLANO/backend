@@ -255,7 +255,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                Seq(),
                                                None,
                                                None,
-                                               None, None)
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -271,7 +272,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                Seq(),
                                                None,
                                                None,
-                                               None,None)
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(2)
     merged.titles.filter(_.language.contains("nb")).head.title should equal("En ny norsk tittel")
@@ -288,7 +290,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                Seq(),
                                                None,
                                                None,
-                                               None, None)
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate)
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -307,7 +310,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                Seq(),
                                                None,
                                                None,
-                                               None, None)
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
     merged.titles.length should be(1)
     merged.titles.head.title should equal("A new english title")
@@ -328,7 +332,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                Seq(),
                                                None,
                                                None,
-                                               None,None)
+                                               None,
+                                               None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio))
     merged.titles.length should be(2)
     merged.filePaths.length should be(2)

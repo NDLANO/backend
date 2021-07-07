@@ -85,9 +85,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
     implicit val formats: Formats = jsonEncoder
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
-    meta.copy(
-      id = Some(rs.long(au.c("id"))),
-      revision = Some(rs.int(au.c("revision"))))
+    meta.copy(id = Some(rs.long(au.c("id"))), revision = Some(rs.int(au.c("revision"))))
   }
 
   def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
