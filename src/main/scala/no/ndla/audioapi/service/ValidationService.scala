@@ -116,8 +116,6 @@ trait ValidationService {
     }
 
     private def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
-      return Seq.empty
-
       val imageUrl = converterService.getPhotoUrl(coverPhoto)
       val url = new URL(imageUrl)
       val image = ImageIO.read(url)
