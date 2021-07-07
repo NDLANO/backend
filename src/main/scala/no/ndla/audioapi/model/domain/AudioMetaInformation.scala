@@ -76,9 +76,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     FieldSerializer[AudioMetaInformation](
       ignore("id") orElse
         ignore("revision") orElse
-        ignore("external_id") orElse
-        ignore("seriesId") orElse
-        ignore("series")
+        ignore("external_id")
     )
 
   def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
@@ -89,9 +87,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     val meta = read[AudioMetaInformation](rs.string(au.c("document")))
     meta.copy(
       id = Some(rs.long(au.c("id"))),
-      revision = Some(rs.int(au.c("revision"))),
-      seriesId = rs.longOpt(au.c("series_id"))
-    )
+      revision = Some(rs.int(au.c("revision"))))
   }
 
   def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {

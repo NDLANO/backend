@@ -134,6 +134,7 @@ trait ConverterService {
             audioType = audioMeta.audioType.toString,
             podcastMeta = findByLanguageOrBestEffort(audioMeta.podcastMeta, language).map(toApiPodcastMeta),
             series = series,
+            seriesId = audioMeta.seriesId,
             manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript),
             created = audioMeta.created,
             updated = audioMeta.updated
@@ -247,7 +248,7 @@ trait ConverterService {
         audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
         manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
         series = None,
-        seriesId = None
+        seriesId = audioMeta.seriesId,
       )
     }
 

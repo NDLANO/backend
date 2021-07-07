@@ -132,7 +132,7 @@ trait WriteService {
           if (newAudio.supportedLanguages.isEmpty)
             deleteAudioAndFiles(audioId).map(_ => None)
           else
-            validateAndUpdateMetaData(audioId, newAudio, existing, None).map(Some(_))
+            validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_))
 
         case Some(_) =>
           Failure(new NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
@@ -180,6 +180,8 @@ trait WriteService {
             audioMetaData <- Try(audioRepository.insert(domainAudio))
             _ <- audioIndexService.indexDocument(audioMetaData)
             _ <- tagIndexService.indexDocument(audioMetaData)
+            insertedId <- idToTry(audioMetaData.id)
+            _ <- audioRepository.setSeriesId(insertedId, newAudioMeta.seriesId)
           } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
           if (audioMetaInformation.isFailure) {
@@ -250,7 +252,7 @@ trait WriteService {
           val metadataToSave = metadataAndFile.map(_._1)
 
           val finished =
-            metadataToSave.flatMap(validateAndUpdateMetaData(id, _, existingMetadata, Some(metadataToUpdate.language)))
+            metadataToSave.flatMap(validateAndUpdateMetaData(id, _, existingMetadata, Some(metadataToUpdate.language), metadataToUpdate.seriesId))
 
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
@@ -264,12 +266,14 @@ trait WriteService {
     private def validateAndUpdateMetaData(audioId: Long,
                                           toSave: domain.AudioMetaInformation,
                                           oldAudio: domain.AudioMetaInformation,
-                                          language: Option[String]) = {
+                                          language: Option[String],
+                                          seriesId: Option[Long]) = {
       for {
         validated <- validationService.validate(toSave, Some(oldAudio))
         updated <- audioRepository.update(validated, audioId)
         indexed <- audioIndexService.indexDocument(updated)
         _ <- tagIndexService.indexDocument(updated)
+        _ <- audioRepository.setSeriesId(audioId, seriesId)
         converted <- converterService.toApiAudioMetaInformation(indexed, language)
       } yield converted
     }
@@ -304,7 +308,7 @@ trait WriteService {
         podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
         manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
         series = existing.series,
-        seriesId = existing.seriesId,
+        seriesId = toUpdate.seriesId,
         audioType = existing.audioType
       )
 
