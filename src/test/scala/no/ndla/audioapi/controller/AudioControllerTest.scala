@@ -83,7 +83,6 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         None,
         None,
         None,
-        None,
         TestData.yesterday.toDate,
         TestData.today.toDate,
       )

@@ -58,7 +58,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None,
       created,
       updated
     )
@@ -76,7 +75,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.Tag(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
-      None,
       None,
       None,
       None,
