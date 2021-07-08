@@ -247,6 +247,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(mock[ObjectMetadata](withSettings.lenient())))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(1))
 
     val result = writeService.storeNewAudio(newAudioMeta, fileMock1)
     result.isSuccess should be(true)
@@ -437,6 +438,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(1))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(fileMock1))
     result.isSuccess should be(true)
@@ -574,7 +576,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val series = TestData.SampleSeries
 
     setupSuccessfulSeriesValidation()
-    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesRepository.withId(any, any)).thenReturn(Success(Some(series)))
     when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
@@ -608,7 +610,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val series = TestData.SampleSeries
 
-    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesRepository.withId(any, any)).thenReturn(Success(Some(series)))
     when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument(0)))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
@@ -651,7 +653,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument(0)))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument(0)))
-    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesRepository.withId(any, any)).thenReturn(Success(Some(series)))
     when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
@@ -705,7 +707,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     setupSuccessfulSeriesValidation()
     when(seriesIndexService.indexDocument(any[domain.Series])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument(0)))
-    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesRepository.withId(any, any)).thenReturn(Success(Some(series)))
     when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
       val id = i.getArgument[Long](0)
       episodesMap.get(id)
@@ -748,7 +750,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val series = TestData.SampleSeries
 
     setupSuccessfulSeriesValidation()
-    when(seriesRepository.withId(any[Long])).thenReturn(Success(Some(series)))
+    when(seriesRepository.withId(any, any)).thenReturn(Success(Some(series)))
     when(audioRepository.withId(any[Long])).thenAnswer((i: InvocationOnMock) => {
       val id = i.getArgument[Long](0)
       episodesMap.get(id)
