@@ -40,7 +40,6 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     None,
     None,
     None,
-    None,
     created,
     updated
   )

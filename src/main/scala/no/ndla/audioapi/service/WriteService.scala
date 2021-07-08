@@ -3,7 +3,7 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
@@ -123,7 +123,7 @@ trait WriteService {
         } yield reindexed
       })
 
-    def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[AudioMetaInformation]] =
+    def deleteAudioLanguageVersion(audioId: Long, language: String): Try[Option[api.AudioMetaInformation]] =
       audioRepository.withId(audioId) match {
         case Some(existing) if existing.supportedLanguages.contains(language) =>
           val newAudio = converterService.withoutLanguage(existing, language)
@@ -140,7 +140,7 @@ trait WriteService {
           Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
       }
 
-    def deleteSeriesLanguageVersion(seriesId: Long, language: String): Try[Option[Series]] = {
+    def deleteSeriesLanguageVersion(seriesId: Long, language: String): Try[Option[api.Series]] = {
       seriesRepository.withId(seriesId) match {
         case Success(Some(existing)) if existing.supportedLanguages.contains(language) =>
           val newSeries = converterService.withoutLanguage(existing, language)
@@ -165,7 +165,12 @@ trait WriteService {
       }
     }
 
-    def storeNewAudio(newAudioMeta: NewAudioMetaInformation, file: FileItem): Try[AudioMetaInformation] = {
+    /** Helper function to easier get series from repository with an id with type `Option[Long]` */
+    private def getSeriesFromOpt(id: Option[Long], includeEpisodes: Boolean = true): Try[Option[domain.Series]] = {
+      id.traverse(sId => seriesRepository.withId(sId, includeEpisodes)).map(_.flatten)
+    }
+
+    def storeNewAudio(newAudioMeta: api.NewAudioMetaInformation, file: FileItem): Try[api.AudioMetaInformation] = {
       validationService.validateAudioFile(file) match {
         case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
         case None =>
@@ -175,13 +180,20 @@ trait WriteService {
           }
 
           val audioMetaInformation = for {
-            domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta))
-            _ <- validationService.validate(domainAudio, None)
+            maybeSeries <- getSeriesFromOpt(newAudioMeta.seriesId)
+            domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta, maybeSeries))
+
+            _ <- validationService.validate(domainAudio, None, maybeSeries)
+
             audioMetaData <- Try(audioRepository.insert(domainAudio))
-            _ <- audioIndexService.indexDocument(audioMetaData)
-            _ <- tagIndexService.indexDocument(audioMetaData)
             insertedId <- idToTry(audioMetaData.id)
             _ <- audioRepository.setSeriesId(insertedId, newAudioMeta.seriesId)
+
+            seriesToIndex <- getSeriesFromOpt(newAudioMeta.seriesId)
+            _ <- seriesToIndex.traverse(series => seriesIndexService.indexDocument(series))
+            _ <- audioIndexService.indexDocument(audioMetaData)
+            _ <- tagIndexService.indexDocument(audioMetaData)
+
           } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
 
           if (audioMetaInformation.isFailure) {
@@ -227,14 +239,14 @@ trait WriteService {
     }
 
     def updateAudio(id: Long,
-                    metadataToUpdate: UpdatedAudioMetaInformation,
-                    fileOpt: Option[FileItem]): Try[AudioMetaInformation] = {
+                    metadataToUpdate: api.UpdatedAudioMetaInformation,
+                    fileOpt: Option[FileItem]): Try[api.AudioMetaInformation] = {
       audioRepository.withId(id) match {
         case None => Failure(new NotFoundException)
-        case Some(existingMetadata) => {
+        case Some(existingMetadata) =>
           val metadataAndFile = fileOpt match {
-            case None => Success(mergeAudioMeta(existingMetadata, metadataToUpdate))
-            case Some(file) => {
+            case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None)
+            case Some(file) =>
               val validationMessages = validationService.validateAudioFile(file)
               if (validationMessages.nonEmpty) {
                 return Failure(new ValidationException(errors = Seq(validationMessages.get)))
@@ -243,9 +255,8 @@ trait WriteService {
               uploadFile(file, metadataToUpdate.language) match {
                 case Failure(err) => Failure(err)
                 case Success(uploadedFile) =>
-                  Success(mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile)))
+                  mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile))
               }
-            }
           }
 
           val savedAudio = metadataAndFile.map(_._2)
@@ -264,7 +275,6 @@ trait WriteService {
           }
 
           finished
-        }
       }
     }
 
@@ -272,21 +282,29 @@ trait WriteService {
                                           toSave: domain.AudioMetaInformation,
                                           oldAudio: domain.AudioMetaInformation,
                                           language: Option[String],
-                                          seriesId: Option[Long]) = {
+                                          seriesId: Option[Long]): Try[api.AudioMetaInformation] = {
+
       for {
-        validated <- validationService.validate(toSave, Some(oldAudio))
+        maybeSeries <- getSeriesFromOpt(seriesId)
+        validated <- validationService.validate(toSave, Some(oldAudio), maybeSeries)
         updated <- audioRepository.update(validated, audioId)
+
+        _ <- audioRepository.setSeriesId(audioId, seriesId)
+        newSeries <- getSeriesFromOpt(seriesId)
+        seriesToIndex = newSeries.orElse(oldAudio.series)
+        _ <- seriesToIndex.traverse(seriesIndexService.indexDocument)
+
         indexed <- audioIndexService.indexDocument(updated)
         _ <- tagIndexService.indexDocument(updated)
-        _ <- audioRepository.setSeriesId(audioId, seriesId)
+
         converted <- converterService.toApiAudioMetaInformation(indexed, language)
       } yield converted
     }
 
     private[service] def mergeAudioMeta(
         existing: domain.AudioMetaInformation,
-        toUpdate: UpdatedAudioMetaInformation,
-        savedAudio: Option[Audio] = None): (domain.AudioMetaInformation, Option[Audio]) = {
+        toUpdate: api.UpdatedAudioMetaInformation,
+        savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
       val mergedFilePaths = savedAudio match {
         case None => existing.filePaths
         case Some(audio) =>
@@ -300,24 +318,33 @@ trait WriteService {
 
       val newManuscript = toUpdate.manuscript.map(manu => converterService.toDomainManuscript(manu, toUpdate.language))
 
-      val merged = domain.AudioMetaInformation(
-        id = existing.id,
-        revision = Some(toUpdate.revision),
-        titles = converterService.mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
-        tags = converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
-        filePaths = mergedFilePaths,
-        copyright = converterService.toDomainCopyright(toUpdate.copyright),
-        updated = clock.now(),
-        created = existing.created,
-        updatedBy = authUser.userOrClientid(),
-        podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
-        manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
-        series = existing.series,
-        seriesId = toUpdate.seriesId,
-        audioType = existing.audioType
-      )
+      // Fetch series if its new so we can display it in body of response
+      val newSeries = if (existing.seriesId != toUpdate.seriesId) {
+        getSeriesFromOpt(toUpdate.seriesId, includeEpisodes = false)
+      } else { Success(existing.series) }
 
-      (merged, savedAudio)
+      newSeries.map(
+        series => {
+          val merged = domain.AudioMetaInformation(
+            id = existing.id,
+            revision = Some(toUpdate.revision),
+            titles =
+              converterService.mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+            tags = converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
+            filePaths = mergedFilePaths,
+            copyright = converterService.toDomainCopyright(toUpdate.copyright),
+            updated = clock.now(),
+            created = existing.created,
+            updatedBy = authUser.userOrClientid(),
+            podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
+            manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
+            series = series,
+            seriesId = toUpdate.seriesId,
+            audioType = existing.audioType
+          )
+
+          (merged, savedAudio)
+        })
     }
 
     private[service] def deleteFile(audioFile: Audio) = {

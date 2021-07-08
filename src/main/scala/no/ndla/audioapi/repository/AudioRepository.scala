@@ -16,11 +16,12 @@ import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
+import cats.implicits._
 
 import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
-  this: DataSource =>
+  this: DataSource with SeriesRepository =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends LazyLogging with Repository[AudioMetaInformation] {

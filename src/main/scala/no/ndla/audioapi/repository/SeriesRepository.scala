@@ -27,7 +27,22 @@ trait SeriesRepository {
 
   class SeriesRepository extends LazyLogging with Repository[Series] {
     val formats: Formats = domain.Series.repositorySerializer
-    def withId(id: Long): Try[Option[Series]] = serieWhere(sqls"se.id = $id")
+
+    /**
+      * Method to fetch single series from database
+      * @param id Id of series
+      * @param includeEpisodes Whether to fetch episodes connected to the series.
+      *                        This is slightly more expensive, but usually what we want.
+      * @return Try which decides whether the fetch was successful or not,
+      *         containing an Option with the series if it was found,
+      *         or `None` if it was not.
+      */
+    def withId(id: Long, includeEpisodes: Boolean = true): Try[Option[Series]] = {
+      if (includeEpisodes)
+        serieWhere(sqls"se.id = $id")
+      else
+        serieWhereNoEpisodes(sqls"se.id = $id")
+    }
 
     def deleteWithId(id: Long)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try {
@@ -100,6 +115,23 @@ trait SeriesRepository {
 
     override def documentsWithIdBetween(min: Long, max: Long): Try[List[Series]] = {
       seriesWhere(sqls"se.id between $min and $max")
+    }
+
+    private def serieWhereNoEpisodes(whereClause: SQLSyntax)(
+        implicit session: DBSession = ReadOnlyAutoSession
+    ): Try[Option[Series]] = {
+      val se = Series.syntax("se")
+
+      Try(
+        sql"""
+           select ${se.result.*}
+           from ${Series.as(se)}
+           where $whereClause
+           """
+          .map(Series.fromResultSet(se.resultName))
+          .single()
+          .apply()
+      ).flatMap(_.sequence)
     }
 
     private def serieWhere(whereClause: SQLSyntax)(

@@ -89,7 +89,10 @@ trait ValidationService {
           ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
     }
 
-    def validate(audio: AudioMetaInformation, oldAudio: Option[AudioMetaInformation]): Try[AudioMetaInformation] = {
+    def validate(audio: domain.AudioMetaInformation,
+                 oldAudio: Option[domain.AudioMetaInformation],
+                 partOfSeries: Option[domain.Series]): Try[domain.AudioMetaInformation] = {
+
       val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
       val oldTagsLanguages = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
       val oldLanguages = (oldTitleLanguages ++ oldTagsLanguages).distinct
@@ -99,10 +102,42 @@ trait ValidationService {
         audio.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
         validateCopyright(audio.copyright) ++
         validateTags(audio.tags, oldLanguages) ++
-        validatePodcastMeta(audio.audioType, audio.podcastMeta)
+        validatePodcastMeta(audio.audioType, audio.podcastMeta) ++
+        validateEpisodeIfSeries(audio, partOfSeries)
 
       validationTry(audio, validationMessages)
 
+    }
+
+    private def validateEpisodeIfSeries(audio: AudioMetaInformation,
+                                        series: Option[domain.Series]): Seq[ValidationMessage] = {
+      if (audio.seriesId.isDefined) {
+        val correctTypeError =
+          if (audio.audioType != AudioType.Podcast)
+            Some(
+              ValidationMessage(
+                s"seriesId",
+                s"Audio must be of '${AudioType.Podcast}' type to add to series."
+              ))
+          else None
+
+        val seriesExistsError =
+          if (audio.seriesId.isDefined && series.isEmpty)
+            Some(
+              ValidationMessage(
+                s"seriesId",
+                s"Series specified did not exist."
+              ))
+          else None
+
+        val hasPodcastMetaError = validateNonEmpty(s"podcastMeta", audio.podcastMeta)
+
+        Seq(
+          correctTypeError,
+          seriesExistsError,
+          hasPodcastMetaError
+        ).flatten
+      } else Seq.empty
     }
 
     def validate[T <: domain.SeriesWithoutId](series: T): Try[T] = {
