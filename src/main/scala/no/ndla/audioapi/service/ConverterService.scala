@@ -232,7 +232,8 @@ trait ConverterService {
     }
 
     def toDomainAudioMetaInformation(audioMeta: api.NewAudioMetaInformation,
-                                     audio: domain.Audio): domain.AudioMetaInformation = {
+                                     audio: domain.Audio,
+                                     maybeSeries: Option[domain.Series]): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(
         id = None,
         revision = None,
@@ -246,8 +247,8 @@ trait ConverterService {
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
         audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
         manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
-        series = None,
-        seriesId = None
+        series = maybeSeries.map(_.copy(episodes = None)),
+        seriesId = audioMeta.seriesId,
       )
     }
 

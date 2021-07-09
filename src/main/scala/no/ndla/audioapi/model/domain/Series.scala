@@ -74,7 +74,8 @@ object Series extends SQLSyntaxSupport[Series] {
 
   def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
     implicit val formats: Formats = jsonEncoder
-    val meta = Try(Serialization.read[SeriesWithoutId](rs.string(s.c("document"))))
+    val jsonStr = rs.string(s.c("document"))
+    val meta = Try(Serialization.read[SeriesWithoutId](jsonStr))
 
     meta.map(
       m =>

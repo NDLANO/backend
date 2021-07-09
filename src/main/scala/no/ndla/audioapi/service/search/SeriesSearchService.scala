@@ -40,7 +40,7 @@ trait SeriesSearchService {
     override val searchIndex: String = SeriesSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ org.json4s.ext.JodaTimeSerializers.all
       val searchable = Serialization.read[SearchableSeries](hitString)
       searchConverterService.asSeriesSummary(searchable, language)
     }
