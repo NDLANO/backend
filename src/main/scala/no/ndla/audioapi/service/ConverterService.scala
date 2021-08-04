@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
-import no.ndla.audioapi.model.Language.{DefaultLanguage, findByLanguageOrBestEffort, findLanguagePrioritized}
+import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, findLanguagePrioritized}
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, LanguageField, PodcastMeta, WithLanguage}
 import no.ndla.audioapi.model.{api, domain}
