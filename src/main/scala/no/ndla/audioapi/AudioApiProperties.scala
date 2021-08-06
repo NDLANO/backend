@@ -26,10 +26,14 @@ object AudioApiProperties extends LazyLogging {
   val RoleWithWriteAccess = "audio:write"
 
   val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
-  val ContactEmail = "support+api@ndla.no"
+  val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
+  val ContactName: String = propOrElse("CONTACT_NAME", "NDLA")
+  val ContactUrl: String = propOrElse("CONTACT_URL", "ndla.no")
+  val ContactEmail: String = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
+  val TermsUrl: String = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
+
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
-  val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
   val AudioControllerPath = "/audio-api/v1/audio/"
   val SeriesControllerPath = "/audio-api/v1/series/"
 
@@ -48,7 +52,6 @@ object AudioApiProperties extends LazyLogging {
 
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
   val DraftApiHost: String = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
-  val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val SearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "audios")
   val SearchDocument = "audio"
@@ -59,13 +62,6 @@ object AudioApiProperties extends LazyLogging {
   val DefaultPageSize = 10
   val MaxPageSize = 10000
   val IndexBulkSize = 200
-
-  val MigrationHost: String = prop("MIGRATION_HOST")
-  val MigrationUser: String = prop("MIGRATION_USER")
-  val MigrationPassword: String = prop("MIGRATION_PASSWORD")
-
-  val NdlaRedUsername: String = prop("NDLA_RED_USERNAME")
-  val NdlaRedPassword: String = prop("NDLA_RED_PASSWORD")
 
   val IsoMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
@@ -106,7 +102,7 @@ object AudioApiProperties extends LazyLogging {
     "leverandør" -> "supplier"
   )
 
-  lazy val Domain: String = Domains.get(Environment)
+  lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   lazy val RawImageApiUrl = s"$Domain/image-api/raw/id"
 

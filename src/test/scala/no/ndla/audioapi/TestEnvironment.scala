@@ -24,8 +24,6 @@ trait TestEnvironment
     with AudioRepository
     with SeriesRepository
     with NdlaClient
-    with MigrationApiClient
-    with ImportService
     with AmazonClient
     with ReadService
     with WriteService
@@ -47,7 +45,6 @@ trait TestEnvironment
     with SeriesSearchService
     with TagIndexService
     with TagSearchService
-    with TagsService
     with MockitoSugar
     with User
     with Role
@@ -60,15 +57,12 @@ trait TestEnvironment
 
   val amazonClient: AmazonS3Client = mock[AmazonS3Client]
   val ndlaClient: NdlaClient = mock[NdlaClient]
-  val migrationApiClient: MigrationApiClient = mock[MigrationApiClient]
   val draftApiClient: DraftApiClient = mock[DraftApiClient]
 
-  val importService: ImportService = mock[ImportService]
   val readService: ReadService = mock[ReadService]
   val writeService: WriteService = mock[WriteService]
   val validationService: ValidationService = mock[ValidationService]
   val converterService: ConverterService = mock[ConverterService]
-  val tagsService: TagsService = mock[TagsService]
 
   val internController: InternController = mock[InternController]
   val resourcesApp: ResourcesApp = mock[ResourcesApp]

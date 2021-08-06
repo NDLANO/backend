@@ -9,20 +9,19 @@
 package no.ndla.audioapi.model
 
 import com.sksamuel.elastic4s.analyzers._
+import no.ndla.audioapi.AudioApiProperties.DefaultLanguage
 import no.ndla.audioapi.model.domain.{LanguageField, WithLanguage}
 import no.ndla.mapping.ISO639
 
 import scala.annotation.tailrec
 
 object Language {
-
-  val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
   val AllLanguages = "all"
   val NoLanguage = ""
 
   val languageAnalyzers = Seq(
-    LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
+    LanguageAnalyzer("nb", NorwegianLanguageAnalyzer),
     LanguageAnalyzer("nn", NorwegianLanguageAnalyzer),
     LanguageAnalyzer("en", EnglishLanguageAnalyzer),
     LanguageAnalyzer("fr", FrenchLanguageAnalyzer),

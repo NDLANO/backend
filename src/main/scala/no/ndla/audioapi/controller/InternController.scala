@@ -9,20 +9,18 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.ComponentRegistry.{audioIndexService, seriesController}
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
-import no.ndla.audioapi.service.{ConverterService, ImportService, ReadService}
+import no.ndla.audioapi.service.{ConverterService, ReadService}
 import org.scalatra.{InternalServerError, Ok}
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImportService
-    with AudioIndexService
+  this: AudioIndexService
     with ConverterService
     with AudioRepository
     with AudioIndexService
@@ -79,16 +77,6 @@ trait InternController {
       } else {
         Ok(body = s"Deleted ${pluralIndex(successes.length)}")
       }
-    }
-
-    post("/import/:external_id") {
-      authUser.assertHasId()
-      for {
-        imported <- importService.importAudio(params("external_id"))
-        indexed <- audioIndexService.indexDocument(imported)
-        _ <- tagIndexService.indexDocument(imported)
-        audio <- converterService.toApiAudioMetaInformation(indexed, None)
-      } yield audio
     }
 
     get("/dump/audio/") {

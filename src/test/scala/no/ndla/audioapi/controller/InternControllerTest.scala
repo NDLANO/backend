@@ -78,38 +78,6 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     None
   )
 
-  test("That POST /import/123 returns 200 OK when import is a success") {
-    when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainImageMetaInformation))
-    when(audioIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
-      .thenReturn(Success(DefaultDomainImageMetaInformation))
-    when(tagIndexService.indexDocument(eqTo(DefaultDomainImageMetaInformation)))
-      .thenReturn(Success(DefaultDomainImageMetaInformation))
-    post("/import/123") {
-      status should equal(200)
-    }
-  }
-
-  test("That POST /import/123 returns 200 OK when imported resource does not have a language") {
-    when(importService.importAudio(eqTo("123"))).thenReturn(Success(DefaultDomainAudioNoLanguage))
-    when(audioIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
-      .thenReturn(Success(DefaultDomainAudioNoLanguage))
-    when(tagIndexService.indexDocument(eqTo(DefaultDomainAudioNoLanguage)))
-      .thenReturn(Success(DefaultDomainAudioNoLanguage))
-
-    post("/import/123") {
-      status should equal(200)
-    }
-  }
-
-  test("That POST /import/123 returns 500 with error message when import failed") {
-    when(importService.importAudio(eqTo("123")))
-      .thenReturn(Failure(new NullPointerException("There was a nullpointer exception")))
-
-    post("/import/123") {
-      status should equal(500)
-    }
-  }
-
   test("That DELETE /index removes all indexes") {
     reset(audioIndexService)
     when(audioIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
