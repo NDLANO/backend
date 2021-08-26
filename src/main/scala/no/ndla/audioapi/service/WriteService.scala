@@ -241,6 +241,7 @@ trait WriteService {
     def updateAudio(id: Long,
                     metadataToUpdate: api.UpdatedAudioMetaInformation,
                     fileOpt: Option[FileItem]): Try[api.AudioMetaInformation] = {
+
       audioRepository.withId(id) match {
         case None => Failure(new NotFoundException)
         case Some(existingMetadata) =>
@@ -270,8 +271,23 @@ trait WriteService {
                                         Some(metadataToUpdate.language),
                                         metadataToUpdate.seriesId))
 
+
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
+          }
+
+          if (metadataToUpdate.audioFile.isDefined) {
+            val oldAudio = existingMetadata.filePaths.find(audio => audio.language.equals(metadataToUpdate.language))
+            println(oldAudio)
+
+            oldAudio match {
+              case Some(old) =>
+                val fileExistsInOtherlanguages = existingMetadata.filePaths.exists(audio =>
+                  !audio.language.equals(old.language) && audio.filePath.equals(oldAudio.get.filePath))
+                if (!fileExistsInOtherlanguages) {
+                  deleteFile(old)
+                }
+            }
           }
 
           finished
@@ -305,9 +321,12 @@ trait WriteService {
         existing: domain.AudioMetaInformation,
         toUpdate: api.UpdatedAudioMetaInformation,
         savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
-      val mergedFilePaths = savedAudio match {
-        case None => existing.filePaths
-        case Some(audio) =>
+      val mergedFilePaths = (savedAudio, toUpdate.audioFile) match {
+        case (None, Some(audio)) =>
+          converterService.mergeLanguageField(existing.filePaths,
+                                              domain.Audio(audio.url, audio.mimeType, audio.fileSize, audio.language))
+        case (None, _) => existing.filePaths
+        case (Some(audio), _) =>
           converterService.mergeLanguageField(
             existing.filePaths,
             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
