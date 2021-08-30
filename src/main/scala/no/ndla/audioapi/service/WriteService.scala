@@ -260,10 +260,8 @@ trait WriteService {
               }
           }
 
-
           val savedAudio = metadataAndFile.map(_._2)
           val metadataToSave = metadataAndFile.map(_._1)
-
 
           val finished =
             metadataToSave.flatMap(
@@ -273,11 +271,9 @@ trait WriteService {
                                         Some(metadataToUpdate.language),
                                         metadataToUpdate.seriesId))
 
-
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
           }
-
 
           finished
       }
@@ -314,8 +310,12 @@ trait WriteService {
           toUpdate.audioFile match {
             case Some(audio) =>
               // Only copy the metadata to new language if filepath already exist in Audio.
-              if (!audio.language.equals(toUpdate.language) && existing.filePaths.exists(p => p.filePath.equals(audio.url))) {
-                existing.filePaths :+ Audio(language = toUpdate.language, filePath = audio.url, mimeType = audio.mimeType, fileSize = audio.fileSize)
+              if (!audio.language.equals(toUpdate.language) && existing.filePaths.exists(p =>
+                    p.filePath.equals(audio.url))) {
+                existing.filePaths :+ Audio(language = toUpdate.language,
+                                            filePath = audio.url,
+                                            mimeType = audio.mimeType,
+                                            fileSize = audio.fileSize)
               } else {
                 existing.filePaths
 
