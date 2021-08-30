@@ -834,4 +834,37 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.get.audioFile.url should not include("file0.mp3")
   }
 
+  test("Delete language version will not delete file if it exist in another language") {
+    reset(audioRepository)
+    reset(audioStorage)
+    reset(audioIndexService)
+
+    val audioId = 5555.toLong
+    val audio = multiLangAudio.copy(
+      id = Some(audioId),
+      titles = List(
+        domain.Title("Donald Duck drives a car", "en"),
+        domain.Title("Donald Duck kjører bil", "nb"),
+      ),
+      filePaths = List(
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "nb"),
+      ),
+      tags = List(
+        domain.Tag(List("duck"), "en"),
+        domain.Tag(List("and"), "nb")
+      )
+    )
+
+    when(audioRepository.withId(audioId)).thenReturn(Some(audio))
+    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(audioIndexService.deleteDocument(any[Long])).thenReturn(Success(audioId))
+
+    writeService.deleteAudioLanguageVersion(audioId, "en")
+
+    verify(audioStorage, times(0)).deleteObject(audio.filePaths.head.filePath)
+    verify(audioIndexService, times(0)).deleteDocument(audioId)
+    verify(audioRepository, times(0)).deleteAudio(eqTo(audioId))(any[DBSession])
+  }
 }
