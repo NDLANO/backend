@@ -260,8 +260,10 @@ trait WriteService {
               }
           }
 
+
           val savedAudio = metadataAndFile.map(_._2)
           val metadataToSave = metadataAndFile.map(_._1)
+
 
           val finished =
             metadataToSave.flatMap(
@@ -276,19 +278,6 @@ trait WriteService {
             savedAudio.get.foreach(deleteFile)
           }
 
-          if (metadataToUpdate.audioFile.isDefined) {
-            val oldAudio = existingMetadata.filePaths.find(audio => audio.language.equals(metadataToUpdate.language))
-            println(oldAudio)
-
-            oldAudio match {
-              case Some(old) =>
-                val fileExistsInOtherlanguages = existingMetadata.filePaths.exists(audio =>
-                  !audio.language.equals(old.language) && audio.filePath.equals(oldAudio.get.filePath))
-                if (!fileExistsInOtherlanguages) {
-                  deleteFile(old)
-                }
-            }
-          }
 
           finished
       }
@@ -299,7 +288,6 @@ trait WriteService {
                                           oldAudio: domain.AudioMetaInformation,
                                           language: Option[String],
                                           seriesId: Option[Long]): Try[api.AudioMetaInformation] = {
-
       for {
         maybeSeries <- getSeriesFromOpt(seriesId)
         validated <- validationService.validate(toSave, Some(oldAudio), maybeSeries)
@@ -321,12 +309,21 @@ trait WriteService {
         existing: domain.AudioMetaInformation,
         toUpdate: api.UpdatedAudioMetaInformation,
         savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
-      val mergedFilePaths = (savedAudio, toUpdate.audioFile) match {
-        case (None, Some(audio)) =>
-          converterService.mergeLanguageField(existing.filePaths,
-                                              domain.Audio(audio.url, audio.mimeType, audio.fileSize, audio.language))
-        case (None, _) => existing.filePaths
-        case (Some(audio), _) =>
+      val mergedFilePaths = savedAudio match {
+        case None =>
+          toUpdate.audioFile match {
+            case Some(audio) =>
+              // Only copy the metadata to new language if filepath already exist in Audio.
+              if (!audio.language.equals(toUpdate.language) && existing.filePaths.exists(p => p.filePath.equals(audio.url))) {
+                existing.filePaths :+ Audio(language = toUpdate.language, filePath = audio.url, mimeType = audio.mimeType, fileSize = audio.fileSize)
+              } else {
+                existing.filePaths
+
+              }
+
+            case None => existing.filePaths
+          }
+        case Some(audio) =>
           converterService.mergeLanguageField(
             existing.filePaths,
             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
