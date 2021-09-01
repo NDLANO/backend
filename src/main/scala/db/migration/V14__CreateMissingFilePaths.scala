@@ -45,10 +45,11 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
                 .extract[List[languageObject]]
                 .map(f => f.language)
                 .distinct
+
               supportedLanguages.map(supportedLang => {
-                val filePath = filePaths.children.find((fp) => {
-                  val lang = fp
-                    .findField((field) => {
+                val existingFilePath = filePaths.children.find(filePath => {
+                  val lang = filePath
+                    .findField(field => {
                       field._1.equals("language")
                     })
                     .get
@@ -58,9 +59,10 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
                   lang.s.equals(supportedLang)
 
                 })
-                filePath match {
-                  case Some(file) => {
-                    file
+
+                existingFilePath match {
+                  case Some(filePath) => {
+                    filePath
                   }
                   case None =>
                     val fileObjects = filePaths.extract[List[filePathObject]]
@@ -68,7 +70,6 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
                     parse(Serialization.write(newFilePath.copy(language = supportedLang)))
 
                 }
-
               })
             })
           }
