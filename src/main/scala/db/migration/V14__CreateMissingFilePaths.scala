@@ -36,37 +36,43 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
     val oldArticle = parse(document)
     val newArticle = oldArticle.mapField {
       case ("filePaths", filePaths: JArray) =>
-        "filePaths" -> JArray({
-          val supportedLanguages = ((oldArticle \ "tags") ++ (oldArticle \ "titles") ++ (oldArticle \ "filePaths"))
-            .extract[List[languageObject]]
-            .map(f => f.language)
-            .distinct
-          supportedLanguages.map(supportedLang => {
-            val filePath = filePaths.children.find((fp) => {
-              val lang = fp
-                .findField((field) => {
-                  field._1.equals("language")
+        "filePaths" -> {
+          if (filePaths.children.length.equals(0)) {
+            JArray(List.empty[JValue])
+          } else {
+            JArray({
+              val supportedLanguages = ((oldArticle \ "tags") ++ (oldArticle \ "titles") ++ (oldArticle \ "filePaths"))
+                .extract[List[languageObject]]
+                .map(f => f.language)
+                .distinct
+              supportedLanguages.map(supportedLang => {
+                val filePath = filePaths.children.find((fp) => {
+                  val lang = fp
+                    .findField((field) => {
+                      field._1.equals("language")
+                    })
+                    .get
+                    ._2
+                    .asInstanceOf[JString]
+
+                  lang.s.equals(supportedLang)
+
                 })
-                .get
-                ._2
-                .asInstanceOf[JString]
+                filePath match {
+                  case Some(file) => {
+                    file
+                  }
+                  case None =>
+                    val fileObjects = filePaths.extract[List[filePathObject]]
+                    val newFilePath = fileObjects.find(fp => fp.language.equals("nb")).getOrElse(fileObjects.head)
+                    parse(Serialization.write(newFilePath.copy(language = supportedLang)))
 
-              lang.s.equals(supportedLang)
+                }
 
+              })
             })
-            filePath match {
-              case Some(file) => {
-                file
-              }
-              case None =>
-                val fileObjects = filePaths.extract[List[filePathObject]]
-                val newFilePath = fileObjects.find(fp => fp.language.equals("nb")).getOrElse(fileObjects.head)
-                parse(Serialization.write(newFilePath.copy(language = supportedLang)))
-
-            }
-
-          })
-        })
+          }
+        }
 
       case x => x
 
