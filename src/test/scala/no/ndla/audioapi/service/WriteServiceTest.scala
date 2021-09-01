@@ -776,4 +776,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
   }
 
+  test("that mergeAudioMeta removes duplicate tags from toUpdate for given language") {
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
+
+    val toUpdate = UpdatedAudioMetaInformation(1,
+                                               "A new english title",
+                                               "en",
+                                               converterService.toApiCopyright(domainAudioMeta.copyright),
+                                               Seq("abc", "123", "abc", "def"),
+                                               None,
+                                               None,
+                                               None,
+                                               None)
+    val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None).get
+    merged.tags.length should be(1)
+    merged.tags.head.tags should equal(Seq("abc", "123", "def"))
+  }
+
 }
