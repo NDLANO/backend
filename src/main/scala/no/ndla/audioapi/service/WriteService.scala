@@ -311,7 +311,7 @@ trait WriteService {
           existingFilePath match {
             case Some(audio) =>
               // Only copy the metadata to new language if filepath already exist in Audio.
-              if (!audio.language.equals(toUpdate.language) && existing.filePaths.exists(p =>
+              if (audio.language != toUpdate.language && existing.filePaths.exists(p =>
                     p.filePath.equals(audio.filePath))) {
                 existing.filePaths :+ audio.copy(language = toUpdate.language)
               } else {
