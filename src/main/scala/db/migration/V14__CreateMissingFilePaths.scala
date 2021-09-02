@@ -43,6 +43,7 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
       .find(_.language == language)
       .orElse(sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).lastOption)
   }
+
   val languagePriority = List(
     "nb",
     "nn",
@@ -74,7 +75,6 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
     }
     compact(render(newArticle))
   }
-
 
   def update(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
