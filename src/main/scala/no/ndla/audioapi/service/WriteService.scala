@@ -4,7 +4,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
-import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
@@ -306,21 +306,13 @@ trait WriteService {
         toUpdate: api.UpdatedAudioMetaInformation,
         savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
       val mergedFilePaths = savedAudio match {
-        case None =>
-          val existingFilePath = existing.filePaths.find(audio => audio.language == toUpdate.language)
-          existingFilePath match {
-            case Some(audio) =>
-              // Only copy the metadata to new language if filepath already exist in Audio.
-              if (audio.language != toUpdate.language && existing.filePaths.exists(p =>
-                    p.filePath.equals(audio.filePath))) {
-                existing.filePaths :+ audio.copy(language = toUpdate.language)
-              } else {
-                existing.filePaths
-
-              }
-
-            case None => existing.filePaths
-          }
+        // If no audio is uploaded, and the language doesn't have a filePath. Clone a prioritized one.
+        case None if existing.filePaths.forall(_.language != toUpdate.language) =>
+          val maybeNewFilePath = Language
+            .findLanguagePrioritized(existing.filePaths, toUpdate.language)
+            .map(_.copy(language = toUpdate.language))
+          converterService.mergeLanguageField(existing.filePaths, maybeNewFilePath, toUpdate.language)
+        case None => existing.filePaths
         case Some(audio) =>
           converterService.mergeLanguageField(
             existing.filePaths,
