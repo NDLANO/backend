@@ -9,7 +9,7 @@ package db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.{JArray, JValue}
-import org.json4s.{JNothing, JObject, JString, JValue}
+import org.json4s.{Extraction, JNothing, JObject, JString, JValue}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization
 import org.postgresql.util.PGobject
@@ -17,8 +17,8 @@ import scalikejdbc._
 
 class V14__CreateMissingFilePaths extends BaseJavaMigration {
   implicit val formats = org.json4s.DefaultFormats
-  case class languageObject(language: String)
-  case class filePathObject(filePath: String, fileSize: Long, language: String, mimeType: String)
+  case class LanguageObject(language: String)
+  case class FilePathObject(filePath: String, fileSize: Long, language: String, mimeType: String)
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -38,56 +38,43 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
       .apply()
   }
 
-  def convertDocument(document: String): String = {
+  def findLanguagePrioritized(sequence: Seq[FilePathObject], language: String): Option[FilePathObject] = {
+    sequence
+      .find(_.language == language)
+      .orElse(sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).lastOption)
+  }
+  val languagePriority = List(
+    "nb",
+    "nn",
+    "unknown",
+    "en",
+    "fr",
+    "de",
+    "se",
+    "sma",
+    "es",
+    "zh"
+  )
 
+  def convertDocument(document: String): String = {
     val oldArticle = parse(document)
     val newArticle = oldArticle.mapField {
       case ("filePaths", filePaths: JArray) =>
-        "filePaths" -> {
-          if (filePaths.children.length.equals(0)) {
-            JArray(List.empty[JValue])
-          } else {
-            JArray({
-              val supportedLanguages = ((oldArticle \ "tags") ++ (oldArticle \ "titles") ++ (oldArticle \ "filePaths"))
-                .extract[List[languageObject]]
-                .map(f => f.language)
-                .distinct
-
-              supportedLanguages.map(supportedLang => {
-                val existingFilePath = filePaths.children.find(filePath => {
-                  val lang = filePath
-                    .findField(field => {
-                      field._1.equals("language")
-                    })
-                    .get
-                    ._2
-                    .asInstanceOf[JString]
-
-                  lang.s.equals(supportedLang)
-
-                })
-
-                existingFilePath match {
-                  case Some(filePath) => {
-                    filePath
-                  }
-                  case None =>
-                    val fileObjects = filePaths.extract[List[filePathObject]]
-                    val newFilePath = fileObjects.find(fp => fp.language.equals("nb")).getOrElse(fileObjects.head)
-                    parse(Serialization.write(newFilePath.copy(language = supportedLang)))
-
-                }
-              })
-            })
-          }
-        }
-
+        val oldFilePaths = filePaths.extract[List[FilePathObject]]
+        val supportedLanguages = ((oldArticle \ "tags") ++ (oldArticle \ "titles") ++ (oldArticle \ "filePaths"))
+          .extract[List[LanguageObject]]
+          .map(_.language)
+          .distinct
+        val newFilePaths = supportedLanguages.flatMap(lang => {
+          findLanguagePrioritized(oldFilePaths, lang)
+            .map(_.copy(language = lang))
+        })
+        "filePaths" -> Extraction.decompose(newFilePaths)
       case x => x
-
     }
-
     compact(render(newArticle))
   }
+
 
   def update(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
