@@ -336,7 +336,8 @@ trait WriteService {
             revision = Some(toUpdate.revision),
             titles =
               converterService.mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
-            tags = converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags, toUpdate.language)),
+            tags =
+              converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags.distinct, toUpdate.language)),
             filePaths = mergedFilePaths,
             copyright = converterService.toDomainCopyright(toUpdate.copyright),
             updated = clock.now(),

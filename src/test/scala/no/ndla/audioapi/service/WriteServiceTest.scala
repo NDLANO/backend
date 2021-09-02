@@ -44,7 +44,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     audioType = None,
     podcastMeta = None,
     manuscript = None,
-    seriesId = None,
+    seriesId = None
   )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
@@ -521,7 +521,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(1)).update(expectedAudio, audioId)
   }
 
-  test("That deleting last language version deletes entire audio") {
+  test("That deleting last language version deletes entire image") {
     reset(audioRepository)
     reset(audioStorage)
     reset(audioIndexService)
@@ -776,89 +776,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(audioRepository, times(0)).setSeriesId(any[Long], any[Option[Long]])(any[DBSession])
   }
 
-  test("Updating with file from another language will create a copy of the filePath") {
-    val updatedAudio = api.Audio("file1.mp3", "audio/mpeg", 1024, "nb")
-    val updatedMeta = updatedAudioMeta.copy(language = "sma")
-    val afterInsert = multiLangAudio.copy(
-      titles = multiLangAudio.titles :+ domain.Title("title", "sma"),
-      filePaths = multiLangAudio.filePaths :+ domain.Audio("file1.mp3", "audio/mpeg", 1024, "sma"),
-      tags = multiLangAudio.tags ++ List(domain.Tag(List("seq"), "sma"))
-    )
+  test("that mergeAudioMeta removes duplicate tags from toUpdate for given language") {
+    when(authUser.userOrClientid()).thenReturn("ndla54321")
 
-    when(audioRepository.withId(4)).thenReturn(Some(multiLangAudio))
-    when(
-      validationService.validate(any[domain.AudioMetaInformation],
-                                 any[Option[domain.AudioMetaInformation]],
-                                 any[Option[domain.Series]]))
-      .thenReturn(Success(afterInsert))
-    when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(4))
-    when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
-    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
-    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
-
-    val result = writeService.updateAudio(4, updatedMeta, None)
-    result.isSuccess should be(true)
-    result.get.audioFile.language should equal("sma")
-    result.get.audioFile.url should include("file1.mp3")
+    val toUpdate = UpdatedAudioMetaInformation(1,
+                                               "A new english title",
+                                               "en",
+                                               converterService.toApiCopyright(domainAudioMeta.copyright),
+                                               Seq("abc", "123", "abc", "def"),
+                                               None,
+                                               None,
+                                               None,
+                                               None)
+    val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None).get
+    merged.tags.length should be(1)
+    merged.tags.head.tags should equal(Seq("abc", "123", "def"))
   }
 
-  test("Updating with file that does not exist in other language will not make a copy") {
-    val updatedAudio = api.Audio("file0.mp3", "audio/mpeg", 1024, "nb")
-    val updatedMeta = updatedAudioMeta.copy(language = "sma")
-    val afterInsert = multiLangAudio.copy(
-      titles = multiLangAudio.titles :+ domain.Title("title", "sma"),
-      filePaths = multiLangAudio.filePaths,
-      tags = multiLangAudio.tags ++ List(domain.Tag(List("seq"), "sma"))
-    )
-
-    when(audioRepository.withId(4)).thenReturn(Some(multiLangAudio))
-    when(
-      validationService.validate(any[domain.AudioMetaInformation],
-                                 any[Option[domain.AudioMetaInformation]],
-                                 any[Option[domain.Series]]))
-      .thenReturn(Success(afterInsert))
-    when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(4))
-    when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
-    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
-    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
-
-    val result = writeService.updateAudio(4, updatedMeta, None)
-    result.isSuccess should be(true)
-    result.get.audioFile.language should not equal ("sma")
-    result.get.audioFile.url should not include ("file0.mp3")
-  }
-
-  test("Delete language version will not delete file if it exist in another language") {
-    reset(audioRepository)
-    reset(audioStorage)
-    reset(audioIndexService)
-
-    val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
-      id = Some(audioId),
-      titles = List(
-        domain.Title("Donald Duck drives a car", "en"),
-        domain.Title("Donald Duck kjører bil", "nb"),
-      ),
-      filePaths = List(
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "nb"),
-      ),
-      tags = List(
-        domain.Tag(List("duck"), "en"),
-        domain.Tag(List("and"), "nb")
-      )
-    )
-
-    when(audioRepository.withId(audioId)).thenReturn(Some(audio))
-    when(audioRepository.deleteAudio(eqTo(audioId))(any[DBSession])).thenReturn(1)
-    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
-    when(audioIndexService.deleteDocument(any[Long])).thenReturn(Success(audioId))
-
-    writeService.deleteAudioLanguageVersion(audioId, "en")
-
-    verify(audioStorage, times(0)).deleteObject(audio.filePaths.head.filePath)
-    verify(audioIndexService, times(0)).deleteDocument(audioId)
-    verify(audioRepository, times(0)).deleteAudio(eqTo(audioId))(any[DBSession])
-  }
 }
