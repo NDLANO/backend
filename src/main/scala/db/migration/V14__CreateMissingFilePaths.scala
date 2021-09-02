@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA audio_api.
+ * Copyright (C) 2021 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
