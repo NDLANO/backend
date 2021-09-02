@@ -307,15 +307,13 @@ trait WriteService {
         savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
       val mergedFilePaths = savedAudio match {
         case None =>
-          toUpdate.audioFile match {
+          val existingFilePath = existing.filePaths.find(audio => audio.language == toUpdate.language)
+          existingFilePath match {
             case Some(audio) =>
               // Only copy the metadata to new language if filepath already exist in Audio.
               if (!audio.language.equals(toUpdate.language) && existing.filePaths.exists(p =>
-                    p.filePath.equals(audio.url))) {
-                existing.filePaths :+ Audio(language = toUpdate.language,
-                                            filePath = audio.url,
-                                            mimeType = audio.mimeType,
-                                            fileSize = audio.fileSize)
+                    p.filePath.equals(audio.filePath))) {
+                existing.filePaths :+ audio.copy(language = toUpdate.language)
               } else {
                 existing.filePaths
 

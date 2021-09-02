@@ -24,6 +24,5 @@ case class UpdatedAudioMetaInformation(
   @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[NewPodcastMeta],
   @(ApiModelProperty @field)(description = "Id of series if the audio is a podcast and a part of a series.") seriesId: Option[Long],
   @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[String],
-  @(ApiModelProperty @field)(description = "The audio file for this language") audioFile: Option[Audio],
 )
 // format: on

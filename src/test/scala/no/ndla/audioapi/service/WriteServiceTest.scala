@@ -45,7 +45,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     podcastMeta = None,
     manuscript = None,
     seriesId = None,
-    audioFile = None,
   )
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
@@ -270,7 +269,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                None,
                                                None,
                                                None,
-                                               None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None).get
     merged.titles.length should be(1)
@@ -285,7 +283,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
-                                               None,
                                                None,
                                                None,
                                                None,
@@ -304,7 +301,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "en",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
-                                               None,
                                                None,
                                                None,
                                                None,
@@ -328,7 +324,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                None,
                                                None,
                                                None,
-                                               None,
                                                None)
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio)).get
     merged.titles.length should be(1)
@@ -348,7 +343,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                "nb",
                                                converterService.toApiCopyright(domainAudioMeta.copyright),
                                                Seq(),
-                                               None,
                                                None,
                                                None,
                                                None,
@@ -784,7 +778,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Updating with file from another language will create a copy of the filePath") {
     val updatedAudio = api.Audio("file1.mp3", "audio/mpeg", 1024, "nb")
-    val updatedMeta = updatedAudioMeta.copy(language = "sma", audioFile = Some(updatedAudio))
+    val updatedMeta = updatedAudioMeta.copy(language = "sma")
     val afterInsert = multiLangAudio.copy(
       titles = multiLangAudio.titles :+ domain.Title("title", "sma"),
       filePaths = multiLangAudio.filePaths :+ domain.Audio("file1.mp3", "audio/mpeg", 1024, "sma"),
@@ -810,7 +804,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Updating with file that does not exist in other language will not make a copy") {
     val updatedAudio = api.Audio("file0.mp3", "audio/mpeg", 1024, "nb")
-    val updatedMeta = updatedAudioMeta.copy(language = "sma", audioFile = Some(updatedAudio))
+    val updatedMeta = updatedAudioMeta.copy(language = "sma")
     val afterInsert = multiLangAudio.copy(
       titles = multiLangAudio.titles :+ domain.Title("title", "sma"),
       filePaths = multiLangAudio.filePaths,
