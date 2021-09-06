@@ -4,7 +4,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
-import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
@@ -241,6 +241,7 @@ trait WriteService {
     def updateAudio(id: Long,
                     metadataToUpdate: api.UpdatedAudioMetaInformation,
                     fileOpt: Option[FileItem]): Try[api.AudioMetaInformation] = {
+
       audioRepository.withId(id) match {
         case None => Failure(new NotFoundException)
         case Some(existingMetadata) =>
@@ -283,7 +284,6 @@ trait WriteService {
                                           oldAudio: domain.AudioMetaInformation,
                                           language: Option[String],
                                           seriesId: Option[Long]): Try[api.AudioMetaInformation] = {
-
       for {
         maybeSeries <- getSeriesFromOpt(seriesId)
         validated <- validationService.validate(toSave, Some(oldAudio), maybeSeries)
@@ -306,6 +306,12 @@ trait WriteService {
         toUpdate: api.UpdatedAudioMetaInformation,
         savedAudio: Option[Audio]): Try[(domain.AudioMetaInformation, Option[Audio])] = {
       val mergedFilePaths = savedAudio match {
+        // If no audio is uploaded, and the language doesn't have a filePath. Clone a prioritized one.
+        case None if existing.filePaths.forall(_.language != toUpdate.language) =>
+          val maybeNewFilePath = Language
+            .findLanguagePrioritized(existing.filePaths, toUpdate.language)
+            .map(_.copy(language = toUpdate.language))
+          converterService.mergeLanguageField(existing.filePaths, maybeNewFilePath, toUpdate.language)
         case None => existing.filePaths
         case Some(audio) =>
           converterService.mergeLanguageField(
