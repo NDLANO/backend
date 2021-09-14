@@ -443,7 +443,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(fileMock1))
     result.isSuccess should be(true)
 
-    verify(audioStorage, times(0)).deleteObject(any[String])
+    verify(audioStorage, times(1)).deleteObject(any[String])
+    verify(audioStorage, times(1)).deleteObject(newFileName1)
   }
 
   test("that deleting audio both deletes database entry, s3 object, and indexed document") {
@@ -817,20 +818,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val expectedAudio = audio.copy(
-      titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck drives a car", "en")
-      ),
-      filePaths = List(
-        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
-      ),
-      tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("duck"), "en")
-      )
-    )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
@@ -875,20 +862,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val expectedAudio = audio.copy(
-      titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck drives a car", "en")
-      ),
-      filePaths = List(
-        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
-      ),
-      tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("duck"), "en")
-      )
-    )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
@@ -904,6 +877,56 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.deleteAudioLanguageVersion(audioId, "nn")
 
     verify(audioStorage, times(0)).deleteObject(any[String])
+
+  }
+
+  test("That when uploading a new file, remove the old file if not used in other language version") {
+    reset(audioRepository)
+    reset(audioStorage)
+    reset(audioIndexService)
+
+    val audioId = 5555.toLong
+    val audio = multiLangAudio.copy(
+      id = Some(audioId),
+      titles = List(
+        domain.Title("Donald Duck kjører bil", "nb"),
+        domain.Title("Donald Duck kjører bil", "nn"),
+        domain.Title("Donald Duck drives a car", "en")
+      ),
+      filePaths = List(
+        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
+        domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
+      ),
+      tags = List(
+        domain.Tag(List("and"), "nb"),
+        domain.Tag(List("and"), "nn"),
+        domain.Tag(List("duck"), "en")
+      )
+    )
+
+
+    val afterInsert = audio.copy(id = Some(5555), revision = Some(1))
+
+    when(audioRepository.withId(5555)).thenReturn(Some(audio))
+    when(validationService.validateAudioFile(any[FileItem])).thenReturn(None)
+    when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
+      .thenReturn(Success(s3ObjectMock))
+    when(
+      validationService.validate(any[domain.AudioMetaInformation],
+        any[Option[domain.AudioMetaInformation]],
+        any[Option[domain.Series]]))
+      .thenReturn(Success(audio))
+    when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
+    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
+    when(audioRepository.setSeriesId(any, any)(any)).thenReturn(Success(5555))
+
+    val result = writeService.updateAudio(5555, updatedAudioMeta, Some(fileMock1))
+    result.isSuccess should be(true)
+
+
+    verify(audioStorage, times(1)).deleteObject("file3.mp3")
 
   }
 

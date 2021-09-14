@@ -279,6 +279,17 @@ trait WriteService {
 
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
+          } else {
+            // If old file in update language version is no longer in use, delete it
+            val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
+            oldAudio match {
+              case None =>
+              case Some(old) =>
+                if (!existingMetadata.filePaths.exists(audio => audio.language != old.language && audio.filePath == old.filePath)) {
+                  deleteFile(old)
+                }
+            }
+
           }
 
           finished
@@ -323,6 +334,7 @@ trait WriteService {
           converterService.mergeLanguageField(
             existing.filePaths,
             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
+
       }
 
       val newPodcastMeta =
