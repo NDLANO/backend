@@ -285,7 +285,8 @@ trait WriteService {
             oldAudio match {
               case None =>
               case Some(old) =>
-                if (!existingMetadata.filePaths.exists(audio => audio.language != old.language && audio.filePath == old.filePath)) {
+                if (!existingMetadata.filePaths.exists(
+                      audio => audio.language != old.language && audio.filePath == old.filePath)) {
                   deleteFile(old)
                 }
             }

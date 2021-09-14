@@ -818,14 +818,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(
       validationService.validate(any[domain.AudioMetaInformation],
-        any[Option[domain.AudioMetaInformation]],
-        any[Option[domain.Series]]))
+                                 any[Option[domain.AudioMetaInformation]],
+                                 any[Option[domain.Series]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
@@ -862,14 +861,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(
       validationService.validate(any[domain.AudioMetaInformation],
-        any[Option[domain.AudioMetaInformation]],
-        any[Option[domain.Series]]))
+                                 any[Option[domain.AudioMetaInformation]],
+                                 any[Option[domain.Series]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
@@ -905,7 +903,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-
     val afterInsert = audio.copy(id = Some(5555), revision = Some(1))
 
     when(audioRepository.withId(5555)).thenReturn(Some(audio))
@@ -914,8 +911,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(any[domain.AudioMetaInformation],
-        any[Option[domain.AudioMetaInformation]],
-        any[Option[domain.Series]]))
+                                 any[Option[domain.AudioMetaInformation]],
+                                 any[Option[domain.Series]]))
       .thenReturn(Success(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
@@ -925,10 +922,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateAudio(5555, updatedAudioMeta, Some(fileMock1))
     result.isSuccess should be(true)
 
-
     verify(audioStorage, times(1)).deleteObject("file3.mp3")
 
   }
-
 
 }
