@@ -247,17 +247,15 @@ trait IndexService {
       */
     protected def generateLanguageSupportedFieldList(fieldName: String,
                                                      keepRaw: Boolean = false): Seq[FieldDefinition] = {
-      keepRaw match {
-        case true =>
-          languageAnalyzers.map(
-            langAnalyzer =>
-              textField(s"$fieldName.${langAnalyzer.lang}")
-                .fielddata(false)
-                .analyzer(langAnalyzer.analyzer)
-                .fields(keywordField("raw")))
-        case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
+      if (keepRaw) {
+        languageAnalyzers.map(
+          langAnalyzer =>
+            textField(s"$fieldName.${langAnalyzer.lang}")
+              .analyzer(langAnalyzer.analyzer)
+              .fields(keywordField("raw")))
+      } else {
+        languageAnalyzers.map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.lang}").analyzer(langAnalyzer.analyzer))
       }
     }
 

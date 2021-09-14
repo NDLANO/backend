@@ -17,8 +17,10 @@ import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchResult}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
+
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import com.sksamuel.elastic4s.searches.queries.Query
 
 trait SearchService {
   this: Elastic4sClient with SearchConverterService =>
@@ -44,6 +46,18 @@ trait SearchService {
           })
         })
 
+    protected def languageSpecificSearch(searchField: String,
+                                         language: Option[String],
+                                         query: String,
+                                         boost: Float): Query = {
+      language match {
+        case Some(lang) if Language.supportedLanguages.contains(lang) =>
+          simpleStringQuery(query).field(s"$searchField.$lang", boost)
+        case _ =>
+          simpleStringQuery(query).field(s"$searchField.*", boost)
+      }
+    }
+
     def hitToApiModel(hit: String, language: String): Try[T]
 
     def getHits(response: SearchResponse, language: String): Try[Seq[T]] = {
@@ -66,18 +80,18 @@ trait SearchService {
 
     protected def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case Language.NoLanguage | Language.AllLanguages => "*"
-        case _                                           => language
+        case supportedLanguage if Language.supportedLanguages.contains(supportedLanguage) => supportedLanguage
+        case _                                                                            => "*"
       }
 
       sort match {
         case Sort.ByTitleAsc =>
-          language match {
+          sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
             case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last")
           }
         case Sort.ByTitleDesc =>
-          language match {
+          sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
             case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last")
           }
