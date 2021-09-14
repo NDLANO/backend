@@ -131,8 +131,14 @@ trait WriteService {
           // If last language version delete entire audio
           if (newAudio.supportedLanguages.isEmpty)
             deleteAudioAndFiles(audioId).map(_ => None)
-          else
+          else {
+            val removedFilePath = existing.filePaths.find(audio => audio.language == language).get
+            // If last audio with this filePath, delete the file.
+            if (!newAudio.filePaths.exists(audio => audio.filePath == removedFilePath.filePath)) {
+              deleteFile(removedFilePath)
+            }
             validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_))
+          }
 
         case Some(_) =>
           Failure(new NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
