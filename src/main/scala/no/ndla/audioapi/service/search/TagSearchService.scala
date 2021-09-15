@@ -43,15 +43,11 @@ trait TagSearchService {
       Try(read[SearchableTag](hit)).map(_.tag)
     }
 
-    def all(
-        language: String,
-        page: Int,
-        pageSize: Int
-    ): Try[SearchResult[String]] = executeSearch(language, page, pageSize, boolQuery())
-
     def matchingQuery(query: String, searchLanguage: String, page: Int, pageSize: Int): Try[SearchResult[String]] = {
-
-      val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
+      val language = searchLanguage match {
+        case lang if Language.supportedLanguages.contains(lang) => lang
+        case _                                                  => "*"
+      }
 
       val fullQuery = boolQuery()
         .must(

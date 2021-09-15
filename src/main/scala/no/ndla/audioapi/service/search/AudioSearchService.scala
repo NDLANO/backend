@@ -67,18 +67,6 @@ trait AudioSearchService {
       executeSearch(settings, fullSearch)
     }
 
-    private def languageSpecificSearch(searchField: String,
-                                       language: Option[String],
-                                       query: String,
-                                       boost: Float): Query = {
-      language match {
-        case None | Some(Language.AllLanguages) | Some("*") =>
-          simpleStringQuery(query).field(s"$searchField.*", boost)
-        case Some(lang) =>
-          simpleStringQuery(query).field(s"$searchField.$lang", boost)
-      }
-    }
-
     def executeSearch(settings: SearchSettings, queryBuilder: BoolQuery): Try[domain.SearchResult[api.AudioSummary]] = {
 
       val licenseFilter = settings.license match {
@@ -93,8 +81,8 @@ trait AudioSearchService {
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
-        case None | Some(Language.AllLanguages) => (None, "*")
-        case Some(lang)                         => (Some(existsQuery(s"titles.$lang")), lang)
+        case Some(lang) if Language.supportedLanguages.contains(lang) => (Some(existsQuery(s"titles.$lang")), lang)
+        case _                                                        => (None, "*")
       }
 
       val audioTypeFilter = settings.audioType match {

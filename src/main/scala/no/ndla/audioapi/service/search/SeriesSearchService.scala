@@ -64,18 +64,6 @@ trait SeriesSearchService {
       executeSearch(settings, fullSearch)
     }
 
-    private def languageSpecificSearch(searchField: String,
-                                       language: Option[String],
-                                       query: String,
-                                       boost: Float): Query = {
-      language match {
-        case None | Some(Language.AllLanguages) | Some("*") =>
-          simpleStringQuery(query).field(s"$searchField.*", boost)
-        case Some(lang) =>
-          simpleStringQuery(query).field(s"$searchField.$lang", boost)
-      }
-    }
-
     def executeSearch(settings: SeriesSearchSettings,
                       queryBuilder: BoolQuery): Try[domain.SearchResult[api.SeriesSummary]] = {
 
