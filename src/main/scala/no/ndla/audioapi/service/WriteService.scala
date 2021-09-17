@@ -134,10 +134,12 @@ trait WriteService {
           else {
             val removedFilePath = existing.filePaths.find(audio => audio.language == language).get
             // If last audio with this filePath, delete the file.
-            if (!newAudio.filePaths.exists(audio => audio.filePath == removedFilePath.filePath)) {
+            val deleteResult = if (!newAudio.filePaths.exists(audio => audio.filePath == removedFilePath.filePath)) {
               deleteFile(removedFilePath)
-            }
-            validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_))
+            } else Success(())
+
+            deleteResult.flatMap(_ => validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_)))
+
           }
 
         case Some(_) =>
