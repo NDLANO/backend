@@ -131,8 +131,16 @@ trait WriteService {
           // If last language version delete entire audio
           if (newAudio.supportedLanguages.isEmpty)
             deleteAudioAndFiles(audioId).map(_ => None)
-          else
-            validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_))
+          else {
+            val removedFilePath = existing.filePaths.find(audio => audio.language == language).get
+            // If last audio with this filePath, delete the file.
+            val deleteResult = if (!newAudio.filePaths.exists(audio => audio.filePath == removedFilePath.filePath)) {
+              deleteFile(removedFilePath)
+            } else Success(())
+
+            deleteResult.flatMap(_ => validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_)))
+
+          }
 
         case Some(_) =>
           Failure(new NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
@@ -273,6 +281,18 @@ trait WriteService {
 
           if (finished.isFailure && !savedAudio.isFailure) {
             savedAudio.get.foreach(deleteFile)
+          } else {
+            // If old file in update language version is no longer in use, delete it
+            val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
+            oldAudio match {
+              case None =>
+              case Some(old) =>
+                if (!existingMetadata.filePaths.exists(
+                      audio => audio.language != old.language && audio.filePath == old.filePath)) {
+                  deleteFile(old)
+                }
+            }
+
           }
 
           finished
@@ -317,6 +337,7 @@ trait WriteService {
           converterService.mergeLanguageField(
             existing.filePaths,
             domain.Audio(audio.filePath, audio.mimeType, audio.fileSize, audio.language))
+
       }
 
       val newPodcastMeta =
