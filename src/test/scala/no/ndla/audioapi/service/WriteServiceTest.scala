@@ -507,6 +507,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(
@@ -819,6 +820,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
+    when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(
