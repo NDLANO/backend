@@ -91,7 +91,8 @@ trait ValidationService {
 
     def validate(audio: domain.AudioMetaInformation,
                  oldAudio: Option[domain.AudioMetaInformation],
-                 partOfSeries: Option[domain.Series]): Try[domain.AudioMetaInformation] = {
+                 partOfSeries: Option[domain.Series],
+                 language: Option[String]): Try[domain.AudioMetaInformation] = {
 
       val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
       val oldTagsLanguages = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
@@ -102,7 +103,7 @@ trait ValidationService {
         audio.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
         validateCopyright(audio.copyright) ++
         validateTags(audio.tags, oldLanguages) ++
-        validatePodcastMeta(audio.audioType, audio.podcastMeta) ++
+        validatePodcastMeta(audio.audioType, audio.podcastMeta, language) ++
         validateEpisodeIfSeries(audio, partOfSeries)
 
       validationTry(audio, validationMessages)
@@ -191,7 +192,9 @@ trait ValidationService {
       }
     }
 
-    private def validatePodcastMeta(audioType: AudioType.Value, meta: Seq[PodcastMeta]): Seq[ValidationMessage] = {
+    private def validatePodcastMeta(audioType: AudioType.Value,
+                                    meta: Seq[PodcastMeta],
+                                    language: Option[String]): Seq[ValidationMessage] = {
       if (meta.nonEmpty && audioType != AudioType.Podcast) {
         Seq(
           ValidationMessage("podcastMeta",
@@ -200,7 +203,11 @@ trait ValidationService {
         meta.flatMap(m => {
           Seq.empty ++
             validateNonEmpty("podcastMeta.introduction", m.introduction)
-          validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
+          if (language.get === m.language) {
+            validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
+          } else {
+            None
+          }
         })
       }
     }
