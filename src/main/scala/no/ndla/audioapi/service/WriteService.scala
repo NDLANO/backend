@@ -191,7 +191,7 @@ trait WriteService {
             maybeSeries <- getSeriesFromOpt(newAudioMeta.seriesId)
             domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta, maybeSeries))
 
-            _ <- validationService.validate(domainAudio, None, maybeSeries)
+            _ <- validationService.validate(domainAudio, None, maybeSeries, Some(newAudioMeta.language))
 
             audioMetaData <- Try(audioRepository.insert(domainAudio))
             insertedId <- idToTry(audioMetaData.id)
@@ -306,7 +306,7 @@ trait WriteService {
                                           seriesId: Option[Long]): Try[api.AudioMetaInformation] = {
       for {
         maybeSeries <- getSeriesFromOpt(seriesId)
-        validated <- validationService.validate(toSave, Some(oldAudio), maybeSeries)
+        validated <- validationService.validate(toSave, Some(oldAudio), maybeSeries, language)
         updated <- audioRepository.update(validated, audioId)
 
         _ <- audioRepository.setSeriesId(audioId, seriesId)
