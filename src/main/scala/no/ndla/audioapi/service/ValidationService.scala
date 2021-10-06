@@ -151,7 +151,7 @@ trait ValidationService {
       validationTry(series, validationMessages)
     }
 
-    private def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
+    def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
       val imageUrl = converterService.getPhotoUrl(coverPhoto)
       val url = new URL(imageUrl)
       val image = ImageIO.read(url)
@@ -192,9 +192,9 @@ trait ValidationService {
       }
     }
 
-    private def validatePodcastMeta(audioType: AudioType.Value,
-                                    meta: Seq[PodcastMeta],
-                                    language: Option[String]): Seq[ValidationMessage] = {
+    def validatePodcastMeta(audioType: AudioType.Value,
+                            meta: Seq[PodcastMeta],
+                            language: Option[String]): Seq[ValidationMessage] = {
       if (meta.nonEmpty && audioType != AudioType.Podcast) {
         Seq(
           ValidationMessage("podcastMeta",
@@ -305,7 +305,7 @@ trait ValidationService {
       }
     }
 
-    private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
+    def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
       if (sequence.nonEmpty) {
         None
       } else {
