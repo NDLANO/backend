@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api.
+ * Copyright (C) 2021 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.service
 
 import cats.implicits._
@@ -151,11 +159,14 @@ trait ValidationService {
       validationTry(series, validationMessages)
     }
 
+    private[service] def readImage(imageUrl: String): BufferedImage = {
+      val url = new URL(imageUrl)
+      ImageIO.read(url)
+    }
+
     def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
       val imageUrl = converterService.getPhotoUrl(coverPhoto)
-      val url = new URL(imageUrl)
-      val image = ImageIO.read(url)
-
+      val image = readImage(imageUrl)
       val imageHeight = image.getHeight
       val imageWidth = image.getWidth
 
@@ -201,13 +212,12 @@ trait ValidationService {
                             s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
       } else {
         meta.flatMap(m => {
-          Seq.empty ++
-            validateNonEmpty("podcastMeta.introduction", m.introduction)
-          if (language.get === m.language) {
+          val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
+          val coverPhotoErrors = if (language.exists(_ == m.language)) {
             validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
-          } else {
-            None
-          }
+          } else Seq.empty
+
+          introductionErrors ++ coverPhotoErrors
         })
       }
     }
