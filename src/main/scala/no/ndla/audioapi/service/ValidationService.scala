@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api.
+ * Copyright (C) 2021 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.service
 
 import cats.implicits._
@@ -91,7 +99,8 @@ trait ValidationService {
 
     def validate(audio: domain.AudioMetaInformation,
                  oldAudio: Option[domain.AudioMetaInformation],
-                 partOfSeries: Option[domain.Series]): Try[domain.AudioMetaInformation] = {
+                 partOfSeries: Option[domain.Series],
+                 language: Option[String]): Try[domain.AudioMetaInformation] = {
 
       val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
       val oldTagsLanguages = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
@@ -102,7 +111,7 @@ trait ValidationService {
         audio.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
         validateCopyright(audio.copyright) ++
         validateTags(audio.tags, oldLanguages) ++
-        validatePodcastMeta(audio.audioType, audio.podcastMeta) ++
+        validatePodcastMeta(audio.audioType, audio.podcastMeta, language) ++
         validateEpisodeIfSeries(audio, partOfSeries)
 
       validationTry(audio, validationMessages)
@@ -150,11 +159,14 @@ trait ValidationService {
       validationTry(series, validationMessages)
     }
 
-    private def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
-      val imageUrl = converterService.getPhotoUrl(coverPhoto)
+    private[service] def readImage(imageUrl: String): BufferedImage = {
       val url = new URL(imageUrl)
-      val image = ImageIO.read(url)
+      ImageIO.read(url)
+    }
 
+    def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
+      val imageUrl = converterService.getPhotoUrl(coverPhoto)
+      val image = readImage(imageUrl)
       val imageHeight = image.getHeight
       val imageWidth = image.getWidth
 
@@ -191,16 +203,21 @@ trait ValidationService {
       }
     }
 
-    private def validatePodcastMeta(audioType: AudioType.Value, meta: Seq[PodcastMeta]): Seq[ValidationMessage] = {
+    def validatePodcastMeta(audioType: AudioType.Value,
+                            meta: Seq[PodcastMeta],
+                            language: Option[String]): Seq[ValidationMessage] = {
       if (meta.nonEmpty && audioType != AudioType.Podcast) {
         Seq(
           ValidationMessage("podcastMeta",
                             s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
       } else {
         meta.flatMap(m => {
-          Seq.empty ++
-            validateNonEmpty("podcastMeta.introduction", m.introduction)
-          validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
+          val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
+          val coverPhotoErrors = if (language.exists(_ == m.language)) {
+            validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
+          } else Seq.empty
+
+          introductionErrors ++ coverPhotoErrors
         })
       }
     }
@@ -298,7 +315,7 @@ trait ValidationService {
       }
     }
 
-    private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
+    def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
       if (sequence.nonEmpty) {
         None
       } else {
