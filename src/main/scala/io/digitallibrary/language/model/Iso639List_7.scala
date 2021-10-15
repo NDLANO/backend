@@ -1,4 +1,3 @@
-
 /*
  * Part of GDL language.
  * Copyright (C) 2018 Global Digital Library
@@ -11,6 +10,7 @@ package io.digitallibrary.language.model
 import io.digitallibrary.language.model.CodeLists.Iso639Val
 
 object Iso639List_7 {
+
   val items = Seq(
     Iso639Val("nrx", None, None, None, Some("I"), Some("E"), "Ngurmbur", None, None),
     Iso639Val("nrz", None, None, None, Some("I"), Some("L"), "Lala", None, None),
@@ -385,7 +385,15 @@ object Iso639List_7 {
     Iso639Val("pek", None, None, None, Some("I"), Some("L"), "Penchal", None, None),
     Iso639Val("pel", None, None, None, Some("I"), Some("L"), "Pekal", None, None),
     Iso639Val("pem", None, None, None, Some("I"), Some("L"), "Phende", None, None),
-    Iso639Val("peo", Some("peo"), Some("peo"), None, Some("I"), Some("H"), "Old Persian (ca. 600-400 B.C.)", None, None),
+    Iso639Val("peo",
+              Some("peo"),
+              Some("peo"),
+              None,
+              Some("I"),
+              Some("H"),
+              "Old Persian (ca. 600-400 B.C.)",
+              None,
+              None),
     Iso639Val("pep", None, None, None, Some("I"), Some("L"), "Kunja", None, None),
     Iso639Val("peq", None, None, None, Some("I"), Some("L"), "Southern Pomo", None, None),
     Iso639Val("pes", None, None, None, Some("I"), Some("L"), "Iranian Persian", None, None),

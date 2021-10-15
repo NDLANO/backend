@@ -8,6 +8,14 @@
 package io.digitallibrary.language
 
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.funsuite.AsyncFunSuite
+import org.scalatest.matchers.should.Matchers
 
-abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach
+abstract class UnitSuite
+    extends AsyncFunSuite
+    with Matchers
+    with OptionValues
+    with Inside
+    with Inspectors
+    with BeforeAndAfterAll
+    with BeforeAndAfterEach

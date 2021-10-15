@@ -1,4 +1,3 @@
-
 /*
  * Part of GDL language.
  * Copyright (C) 2018 Global Digital Library
@@ -11,6 +10,7 @@ package io.digitallibrary.language.model
 import io.digitallibrary.language.model.CodeLists.Iso639Val
 
 object Iso639List_2 {
+
   val items = Seq(
     Iso639Val("blr", None, None, None, Some("I"), Some("L"), "Blang", None, None),
     Iso639Val("bls", None, None, None, Some("I"), Some("L"), "Balaesang", None, None),

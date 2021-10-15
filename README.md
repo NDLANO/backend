@@ -1,8 +1,9 @@
 # LANGUAGE
-Library for handling language in APIs from Global Digital Library.
+Library for handling language in APIs from NDLA.
+Forked from [Global Digital Library](https://github.com/GlobalDigitalLibraryio/language)
 
 # Usage
-Add dependency to this library: `"gdl" %% "language" % "<version>",`
+Add dependency to this library: `"ndla" %% "language" % "<version>",`
 
 The main way of using this library is with the case class `LanguageTag`.
 It accepts a string as input on the format `<LanguageCode>[-<Script>[-<Region>]]`
@@ -57,6 +58,9 @@ This will regenerate the content of CodeLists and adjacent files.
 
 ## Run tests
     sbt test
+
+## Publish component locally for testing with other components
+    sbt publishLocal
 
 ## Build
     ./build.sh

@@ -1,4 +1,3 @@
-
 /*
  * Part of GDL language.
  * Copyright (C) 2018 Global Digital Library
@@ -11,6 +10,7 @@ package io.digitallibrary.language.model
 import io.digitallibrary.language.model.CodeLists.Iso639Val
 
 object Iso639List_8 {
+
   val items = Seq(
     Iso639Val("roc", None, None, None, Some("I"), Some("L"), "Cacgia Roglai", None, None),
     Iso639Val("rod", None, None, None, Some("I"), Some("L"), "Rogo", None, None),
@@ -381,7 +381,15 @@ object Iso639List_8 {
     Iso639Val("soq", None, None, None, Some("I"), Some("L"), "Kanasi", None, None),
     Iso639Val("sor", None, None, None, Some("I"), Some("L"), "Somrai", None, None),
     Iso639Val("sos", None, None, None, Some("I"), Some("L"), "Seeku", None, None),
-    Iso639Val("sot", Some("sot"), Some("sot"), Some("st"), Some("I"), Some("L"), "Southern Sotho", Some("Sesotho"), None),
+    Iso639Val("sot",
+              Some("sot"),
+              Some("sot"),
+              Some("st"),
+              Some("I"),
+              Some("L"),
+              "Southern Sotho",
+              Some("Sesotho"),
+              None),
     Iso639Val("sou", None, None, None, Some("I"), Some("L"), "Southern Thai", None, None),
     Iso639Val("sov", None, None, None, Some("I"), Some("L"), "Sonsorol", None, None),
     Iso639Val("sow", None, None, None, Some("I"), Some("L"), "Sowanda", None, None),

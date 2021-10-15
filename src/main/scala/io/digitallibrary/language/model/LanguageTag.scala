@@ -11,10 +11,12 @@ import io.digitallibrary.language.model.CodeLists.{Iso15924, Iso3166, Iso639}
 
 import scala.util.{Failure, Try}
 
-case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Option[Iso3166]) {
+case class LanguageTag(language: Iso639, script: Option[Iso15924], region: Option[Iso3166]) {
 
   override def toString: String = {
-    Seq(Some(language.part1.getOrElse(language.id)), script.map(_.code), region.map(_.code)).flatten.mkString("-").toLowerCase
+    Seq(Some(language.part1.getOrElse(language.id)), script.map(_.code), region.map(_.code)).flatten
+      .mkString("-")
+      .toLowerCase
 
   }
 
@@ -41,19 +43,20 @@ case class LanguageTag (language: Iso639, script: Option[Iso15924], region: Opti
   def isRightToLeft: Boolean = {
     script match {
       case Some(s) => s.no > 99 && s.no < 200
-      case None => CodeLists.rtlLanguageCodes.contains(language.part1.getOrElse(language.id))
+      case None    => CodeLists.rtlLanguageCodes.contains(language.part1.getOrElse(language.id))
     }
   }
 }
 
 object LanguageTag {
+
   def apply(languageTagAsString: String): LanguageTag = {
     val tag = languageTagAsString.split("-").toList match {
-      case lang :: Nil => withLanguage(lang)
+      case lang :: Nil                                 => withLanguage(lang)
       case lang :: region :: Nil if region.length == 2 => withLanguageAndRegion(lang, region)
       case lang :: script :: Nil if script.length == 4 => withLanguageAndScript(lang, script)
-      case lang :: script :: region :: Nil => withLanguageScriptAndRegion(lang, script, region)
-      case _ => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
+      case lang :: script :: region :: Nil             => withLanguageScriptAndRegion(lang, script, region)
+      case _                                           => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
     }
 
     tag.get //throws the exception if it is a failure.

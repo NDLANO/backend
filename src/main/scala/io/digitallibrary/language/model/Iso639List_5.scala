@@ -1,4 +1,3 @@
-
 /*
  * Part of GDL language.
  * Copyright (C) 2018 Global Digital Library
@@ -11,6 +10,7 @@ package io.digitallibrary.language.model
 import io.digitallibrary.language.model.CodeLists.Iso639Val
 
 object Iso639List_5 {
+
   val items = Seq(
     Iso639Val("kpu", None, None, None, Some("I"), Some("L"), "Kafoa", None, None),
     Iso639Val("kpv", None, None, None, Some("I"), Some("L"), "Komi-Zyrian", None, None),
