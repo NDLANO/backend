@@ -51,7 +51,6 @@ trait SeriesRepository {
            where id=$id
            """
           .update()
-          .apply()
       }
     }
 
@@ -69,7 +68,6 @@ trait SeriesRepository {
             where id=${series.id} and revision=${series.revision}
            """
           .update()
-          .apply()
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(count) if count != 1 =>
@@ -95,7 +93,6 @@ trait SeriesRepository {
            values ($dataObject, $startRevision)
            """
           .updateAndReturnGeneratedKey()
-          .apply()
       ).map(id => Series.fromId(id, startRevision, newSeries))
     }
 
@@ -105,8 +102,7 @@ trait SeriesRepository {
           .map(rs => {
             (rs.long("mi"), rs.long("ma"))
           })
-          .single()
-          .apply() match {
+          .single() match {
           case Some(minmax) => minmax
           case None         => (0L, 0L)
         }
@@ -130,7 +126,6 @@ trait SeriesRepository {
            """
           .map(Series.fromResultSet(se.resultName))
           .single()
-          .apply()
       ).flatMap(_.sequence)
     }
 
@@ -153,7 +148,6 @@ trait SeriesRepository {
             series.map(_.copy(episodes = Some(audios.sortBy(_.updated).toSeq)))
           }
           .single()
-          .apply()
       ).flatMap(_.sequence)
     }
 
@@ -176,7 +170,6 @@ trait SeriesRepository {
             series.map(_.copy(episodes = Some(audios.toSeq)))
           }
           .list()
-          .apply()
       ).flatMap(_.sequence)
     }
 
