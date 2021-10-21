@@ -5,9 +5,10 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
-import io.digitallibrary.language.model.CodeLists.{Iso639, iso639Definitions}
+import CodeLists.{Iso639, iso639Definitions}
+import no.ndla.language.model.CodeLists.Iso639
 
 import scala.util.{Failure, Success, Try}
 

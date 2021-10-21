@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
 class LanguageNotSupportedException(message: String) extends RuntimeException(message)
 

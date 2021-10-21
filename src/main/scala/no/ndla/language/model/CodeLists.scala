@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
 object CodeLists {
 

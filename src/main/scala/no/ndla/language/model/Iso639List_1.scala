@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
-import io.digitallibrary.language.model.CodeLists.Iso639Val
+import CodeLists.Iso639Val
 
 object Iso639List_1 {
 

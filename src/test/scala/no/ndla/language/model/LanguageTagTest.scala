@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
-import io.digitallibrary.language.UnitSuite
+import no.ndla.language.UnitSuite
 
 class LanguageTagTest extends UnitSuite {
 

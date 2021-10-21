@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package io.digitallibrary.language.model
+package no.ndla.language.model
 
-import io.digitallibrary.language.UnitSuite
+import no.ndla.language.UnitSuite
 
 class Iso639Test extends UnitSuite {
   test("that a valid iso 639-3 code is found for 2 letter input") {
