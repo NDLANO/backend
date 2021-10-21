@@ -7,20 +7,20 @@
 
 package no.ndla.audioapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.queries.Query
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchResult}
+import no.ndla.audioapi.model.{Language, Sort}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import com.sksamuel.elastic4s.searches.queries.Query
 
 trait SearchService {
   this: Elastic4sClient with SearchConverterService =>
@@ -51,7 +51,7 @@ trait SearchService {
                                          query: String,
                                          boost: Float): Query = {
       language match {
-        case Some(lang) if Language.supportedLanguages.contains(lang) =>
+        case Some(lang) if Language.supportedLanguages.map(l => l.toString()).contains(lang) =>
           simpleStringQuery(query).field(s"$searchField.$lang", boost)
         case _ =>
           simpleStringQuery(query).field(s"$searchField.*", boost)
@@ -80,8 +80,9 @@ trait SearchService {
 
     protected def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case supportedLanguage if Language.supportedLanguages.contains(supportedLanguage) => supportedLanguage
-        case _                                                                            => "*"
+        case supportedLanguage if Language.supportedLanguages.map(l => l.toString()).contains(supportedLanguage) =>
+          supportedLanguage
+        case _ => "*"
       }
 
       sort match {

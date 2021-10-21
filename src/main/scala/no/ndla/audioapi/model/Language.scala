@@ -11,29 +11,60 @@ package no.ndla.audioapi.model
 import com.sksamuel.elastic4s.analyzers._
 import no.ndla.audioapi.AudioApiProperties.DefaultLanguage
 import no.ndla.audioapi.model.domain.{LanguageField, WithLanguage}
+import no.ndla.language.model.LanguageTag
 import no.ndla.mapping.ISO639
 
 import scala.annotation.tailrec
 
 object Language {
-  val UnknownLanguage = "unknown"
+  val UnknownLanguage: LanguageTag = LanguageTag("und") // Undefined
+  val DefaultLang: LanguageTag = LanguageTag(DefaultLanguage)
   val AllLanguages = "all"
   val NoLanguage = ""
 
   val languageAnalyzers = Seq(
-    LanguageAnalyzer("nb", NorwegianLanguageAnalyzer),
-    LanguageAnalyzer("nn", NorwegianLanguageAnalyzer),
-    LanguageAnalyzer("en", EnglishLanguageAnalyzer),
-    LanguageAnalyzer("fr", FrenchLanguageAnalyzer),
-    LanguageAnalyzer("de", GermanLanguageAnalyzer),
-    LanguageAnalyzer("es", SpanishLanguageAnalyzer),
-    LanguageAnalyzer("se", StandardAnalyzer), // SAMI
-    LanguageAnalyzer("sma", StandardAnalyzer), // SAMI
-    LanguageAnalyzer("zh", ChineseLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ar"), ArabicLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("hy"), ArmenianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("eu"), BasqueLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("pt-br"), BrazilianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("bg"), BulgarianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ca"), CatalanLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ja"), CjkLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ko"), CjkLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("zh"), CjkLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("cs"), CzechLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("da"), DanishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("nl"), DutchLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("en"), EnglishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("fi"), FinnishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("fr"), FrenchLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("gl"), GalicianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("de"), GermanLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("el"), GreekLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("hi"), HindiLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("hu"), HungarianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("id"), IndonesianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ga"), IrishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("it"), ItalianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("lt"), LithuanianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("lv"), LatvianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("nb"), NorwegianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("nn"), NorwegianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("fa"), PersianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("pt"), PortugueseLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ro"), RomanianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("ru"), RussianLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("se"), StandardAnalyzer), // Northern Sami
+    LanguageAnalyzer(LanguageTag("sma"), StandardAnalyzer), // Southern sami
+    LanguageAnalyzer(LanguageTag("srb"), SoraniLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("es"), SpanishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("sv"), SwedishLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("th"), ThaiLanguageAnalyzer),
+    LanguageAnalyzer(LanguageTag("tr"), TurkishLanguageAnalyzer),
     LanguageAnalyzer(UnknownLanguage, StandardAnalyzer)
   )
 
-  val supportedLanguages: Seq[String] = languageAnalyzers.map(_.lang)
+  val supportedLanguages: Seq[LanguageTag] = languageAnalyzers.map(_.languageTag)
 
   def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], lang: Option[String]): Option[P] = {
     @tailrec
@@ -60,10 +91,11 @@ object Language {
   def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] =
     sequence.find(_.language == lang).map(_.value)
 
-  def languageOrUnknown(language: Option[String]): String = {
+  def languageOrUnknown(language: Option[String]): LanguageTag = {
     language.filter(_.nonEmpty) match {
-      case Some(x) => x
-      case None    => UnknownLanguage
+      case Some(x) if x == "unknown" => UnknownLanguage
+      case Some(x)                   => LanguageTag(x)
+      case None                      => UnknownLanguage
     }
   }
 
@@ -74,4 +106,4 @@ object Language {
   }
 }
 
-case class LanguageAnalyzer(lang: String, analyzer: Analyzer)
+case class LanguageAnalyzer(languageTag: LanguageTag, analyzer: Analyzer)

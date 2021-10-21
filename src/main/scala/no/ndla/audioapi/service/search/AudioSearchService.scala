@@ -9,23 +9,19 @@
 package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
+import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
   SearchIndex
 }
 import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.api.{AudioSummary, ResultWindowTooLargeException, Title}
+import no.ndla.audioapi.model.api.ResultWindowTooLargeException
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageFormats}
 import no.ndla.audioapi.model.{Language, api, domain}
-import no.ndla.network.ApplicationUrl
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -81,8 +77,9 @@ trait AudioSearchService {
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
-        case Some(lang) if Language.supportedLanguages.contains(lang) => (Some(existsQuery(s"titles.$lang")), lang)
-        case _                                                        => (None, "*")
+        case Some(lang) if Language.supportedLanguages.map(l => l.toString()).contains(lang) =>
+          (Some(existsQuery(s"titles.$lang")), lang)
+        case _ => (None, "*")
       }
 
       val audioTypeFilter = settings.audioType match {

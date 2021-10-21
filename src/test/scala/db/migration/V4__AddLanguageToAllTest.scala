@@ -24,11 +24,11 @@ class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
       V4_AudioMetaInformation(Some(1), Some(1), titles, filePaths, V4_Copyright("", None, Seq()), tags, "", new Date())
     val after = migration.convertAudioUpdate(before)
 
-    after.titles.head.language should equal(Some("unknown"))
+    after.titles.head.language should equal(Some("und"))
     after.titles.last.language should equal(Some("nb"))
-    after.filePaths.head.language should equal(Some("unknown"))
+    after.filePaths.head.language should equal(Some("und"))
     after.filePaths.last.language should equal(Some("nb"))
     after.tags.head.language should equal(Some("en"))
-    after.tags.last.language should equal(Some("unknown"))
+    after.tags.last.language should equal(Some("und"))
   }
 }

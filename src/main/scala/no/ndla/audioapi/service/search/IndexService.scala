@@ -8,24 +8,22 @@
 
 package no.ndla.audioapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition, NestedField}
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, ReindexResult}
+import no.ndla.audioapi.model.domain.ReindexResult
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import org.json4s.Formats
-import org.json4s.native.Serialization.write
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import scala.util.{Failure, Success, Try}
-
-import cats.implicits._
 
 trait IndexService {
   this: Elastic4sClient with SearchConverterService with AudioRepository =>
@@ -250,12 +248,12 @@ trait IndexService {
       if (keepRaw) {
         languageAnalyzers.map(
           langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.lang}")
+            textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
               .analyzer(langAnalyzer.analyzer)
               .fields(keywordField("raw")))
       } else {
         languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.lang}").analyzer(langAnalyzer.analyzer))
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString()}").analyzer(langAnalyzer.analyzer))
       }
     }
 

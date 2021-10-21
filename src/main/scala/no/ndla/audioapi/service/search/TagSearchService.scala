@@ -45,8 +45,8 @@ trait TagSearchService {
 
     def matchingQuery(query: String, searchLanguage: String, page: Int, pageSize: Int): Try[SearchResult[String]] = {
       val language = searchLanguage match {
-        case lang if Language.supportedLanguages.contains(lang) => lang
-        case _                                                  => "*"
+        case lang if Language.supportedLanguages.map(l => l.toString()).contains(lang) => lang
+        case _                                                                         => "*"
       }
 
       val fullQuery = boolQuery()
