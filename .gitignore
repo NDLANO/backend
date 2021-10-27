@@ -28,3 +28,5 @@ project/plugins/project/
 .metals/
 project/metals.sbt
 
+node_modules
+typescript/build
