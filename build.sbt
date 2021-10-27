@@ -92,8 +92,10 @@ lazy val audio_api = (project in file("."))
     typescriptGenerationImports := Seq("no.ndla.audioapi.model.api._", "no.ndla.audioapi.model.api.TSTypes._"),
     typescriptExports := Seq(
       "Audio",
-//      "AudioMetaInformation",
-//      "AudioSummary",
+      "AudioMetaInformation",
+      "AudioSummary",
+      "Series",
+      "SeriesSummary",
       "NewAudioMetaInformation",
       "UpdatedAudioMetaInformation"
     ),

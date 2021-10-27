@@ -14,8 +14,5 @@ object TSTypes {
   //implicit val nullTsType: TSType[Null] = TSType(TSNull)
 
   implicit val author: TSIType[Author] = TSType.fromCaseClass[Author]
-  // implicit val audioMetaInformation: TSIType[AudioMetaInformation] = TSType.fromCaseClass[AudioMetaInformation]
-  // implicit val audioSummary: TSIType[AudioSummary] = TSType.fromCaseClass[AudioSummary]
-  // implicit val episodes: TSIType[SeriesSummary] = TSType.fromCaseClass[SeriesSummary]
   // implicit val validationMessage: TSIType[ValidationMessage] = TSType.fromCaseClass[ValidationMessage]
 }
