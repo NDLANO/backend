@@ -54,6 +54,7 @@ class AudioSearchServiceTest
   val updated4: Date = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated7: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val created: Date = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val podcastSeries1: Series = Series(
@@ -176,6 +177,28 @@ class AudioSearchServiceTest
     Some(podcastSeries1)
   )
 
+  val audio7: AudioMetaInformation = AudioMetaInformation(
+    Some(7),
+    Some(1),
+    List(Title("Não relacionado", "pt-br")),
+    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "pt-br")),
+    byNcSa,
+    List(Tag(List("wubbi"), "pt-br")),
+    "ndla123",
+    updated7,
+    created,
+    Seq(
+      domain.PodcastMeta(
+        introduction = "portugeseintro",
+        coverPhoto = domain.CoverPhoto("2", "meta"),
+        language = "pt-br"
+      )),
+    AudioType.Podcast,
+    Seq.empty,
+    Some(1),
+    None
+  )
+
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
     assume(elasticSearchContainer.isSuccess)
@@ -190,6 +213,9 @@ class AudioSearchServiceTest
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
     when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
+    when(converterService.toApiManuscript(any)).thenCallRealMethod()
+    when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
+    when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
 
     if (elasticSearchContainer.isSuccess) {
       audioIndexService.createIndexWithName(AudioApiProperties.SearchIndex)
@@ -199,8 +225,9 @@ class AudioSearchServiceTest
       audioIndexService.indexDocument(audio4)
       audioIndexService.indexDocument(audio5)
       audioIndexService.indexDocument(audio6)
+      audioIndexService.indexDocument(audio7)
 
-      blockUntil(() => audioSearchService.countDocuments == 6)
+      blockUntil(() => audioSearchService.countDocuments == 7)
     }
   }
 
@@ -229,7 +256,7 @@ class AudioSearchServiceTest
 
   test("That no language returns all documents ordered by title ascending") {
     val Success(results) = audioSearchService.matchingQuery(searchSettings.copy())
-    results.totalCount should be(5)
+    results.totalCount should be(6)
     results.results.head.id should be(4)
     results.results.last.id should be(6)
   }
@@ -244,15 +271,15 @@ class AudioSearchServiceTest
   test("That paging returns only hits on current page and not more than page-size") {
     val Success(page1) = audioSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)))
     val Success(page2) = audioSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)))
-    page1.totalCount should be(5)
+    page1.totalCount should be(6)
     page1.page.get should be(1)
     page1.results.size should be(2)
     page1.results.head.id should be(4)
-    page1.results.last.id should be(2)
-    page2.totalCount should be(5)
+    page1.results.last.id should be(7)
+    page2.totalCount should be(6)
     page2.page.get should be(2)
     page2.results.size should be(2)
-    page2.results.head.id should be(3)
+    page2.results.head.id should be(2)
   }
 
   test("That search matches title") {
@@ -401,7 +428,7 @@ class AudioSearchServiceTest
   test("That sorting by lastUpdated asc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
 
-    search.totalCount should be(5)
+    search.totalCount should be(6)
     search.results.head.id should be(5)
     search.results(1).id should be(3)
     search.results(2).id should be(2)
@@ -412,18 +439,19 @@ class AudioSearchServiceTest
   test("That sorting by lastUpdated desc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
 
-    search.totalCount should be(5)
+    search.totalCount should be(6)
     search.results.head.id should be(6)
-    search.results(1).id should be(4)
-    search.results(2).id should be(2)
-    search.results(3).id should be(3)
-    search.results(4).id should be(5)
+    search.results(1).id should be(7)
+    search.results(2).id should be(4)
+    search.results(3).id should be(2)
+    search.results(4).id should be(3)
+    search.results(5).id should be(5)
   }
 
   test("That sorting by id asc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc))
 
-    search.totalCount should be(5)
+    search.totalCount should be(6)
     search.results.head.id should be(2)
     search.results(1).id should be(3)
     search.results(2).id should be(4)
@@ -434,12 +462,13 @@ class AudioSearchServiceTest
   test("That sorting by id desc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc))
 
-    search.totalCount should be(5)
-    search.results.head.id should be(6)
-    search.results(1).id should be(5)
-    search.results(2).id should be(4)
-    search.results(3).id should be(3)
-    search.results(4).id should be(2)
+    search.totalCount should be(6)
+    search.results.head.id should be(7)
+    search.results(1).id should be(6)
+    search.results(2).id should be(5)
+    search.results(3).id should be(4)
+    search.results(4).id should be(3)
+    search.results(5).id should be(2)
   }
 
   test("That supportedLanguages are sorted correctly") {
@@ -449,7 +478,7 @@ class AudioSearchServiceTest
 
   test("That scrolling works as expected") {
     val pageSize = 2
-    val expectedIds = List(2, 3, 4, 5, 6).sliding(pageSize, pageSize).toList
+    val expectedIds = List(2, 3, 4, 5, 6, 7).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
       audioSearchService.matchingQuery(
@@ -467,13 +496,13 @@ class AudioSearchServiceTest
 
   test("That filtering for audio-type works as expected") {
     val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(audioType = None))
-    search1.totalCount should be(5)
+    search1.totalCount should be(6)
     search1.results.head.id should be(4)
     search1.results.last.id should be(6)
 
     val Success(search2) = audioSearchService.matchingQuery(searchSettings.copy(audioType = Some(AudioType.Podcast)))
-    search2.totalCount should be(1)
-    search2.results.map(_.id) should be(Seq(6))
+    search2.totalCount should be(2)
+    search2.results.map(_.id) should be(Seq(7, 6))
   }
 
   test("That searching matches manuscript") {
@@ -491,13 +520,13 @@ class AudioSearchServiceTest
 
     val Success(search2) =
       audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = Some(false), sort = Sort.ByIdAsc))
-    search2.totalCount should be(4)
-    search2.results.map(_.id) should be(Seq(2, 3, 4, 5))
+    search2.totalCount should be(5)
+    search2.results.map(_.id) should be(Seq(2, 3, 4, 5, 7))
 
     val Success(search3) =
       audioSearchService.matchingQuery(searchSettings.copy(seriesFilter = None, sort = Sort.ByIdAsc))
-    search3.totalCount should be(5)
-    search3.results.map(_.id) should be(Seq(2, 3, 4, 5, 6))
+    search3.totalCount should be(6)
+    search3.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
   }
 
   test("That searching for podcast meta introductions works") {

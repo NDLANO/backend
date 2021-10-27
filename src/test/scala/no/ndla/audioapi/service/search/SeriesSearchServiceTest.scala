@@ -42,12 +42,16 @@ class SeriesSearchServiceTest
   val seriesToIndex = Seq(
     TestData.SampleSeries.copy(
       id = 1,
-      title = Seq(domain.Title("Lyd med epler", "nb")),
-      description = Seq(domain.Description("megabeskrivelse", "nb"))
+      title = Seq(domain.Title("Lyd med epler", "nb"), domain.Title("Sound with apples", "en")),
+      description = Seq(domain.Description("megabeskrivelse", "nb"), domain.Description("giant description", "en"))
     ),
     TestData.SampleSeries.copy(
       id = 2,
       title = Seq(domain.Title("Lyd med tiger", "nb"))
+    ),
+    TestData.SampleSeries.copy(
+      id = 3,
+      title = Seq(domain.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix"))
     )
   )
 
@@ -76,15 +80,24 @@ class SeriesSearchServiceTest
     result1.results.map(_.id) should be(Seq(2))
 
     val Success(result2) = seriesSearchService.matchingQuery(settings.copy(query = Some("Lyd med")))
-    result2.results.map(_.id) should be(Seq(1, 2))
+    result2.results.map(_.id) should be(Seq(1, 2, 3))
 
     val Success(result3) = seriesSearchService.matchingQuery(settings.copy(query = Some("epler")))
     result3.results.map(_.id) should be(Seq(1))
+
+    val Success(result4) =
+      seriesSearchService.matchingQuery(settings.copy(query = Some("mixtepec"), language = Some("mix")))
+    result4.results.map(_.id) should be(Seq(3))
   }
 
   test("That descriptions are searchable") {
     val Success(result1) = seriesSearchService.matchingQuery(settings.copy(query = Some("megabeskrivelse")))
     result1.results.map(_.id) should be(Seq(1))
+
+    val Success(result2) =
+      seriesSearchService.matchingQuery(settings.copy(query = Some("description"), language = Some("en")))
+    result2.results.map(_.id) should be(Seq(1))
+
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

@@ -10,14 +10,14 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
+import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
-import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageFormats, SearchableSeries}
-import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import org.json4s.Formats
+import no.ndla.audioapi.model.domain.Series
+import no.ndla.audioapi.model.search.SearchableSeries
+import no.ndla.audioapi.repository.SeriesRepository
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
@@ -46,11 +46,13 @@ trait SeriesIndexService {
         intField("id"),
         keywordField("defaultTitle"),
         dateField("lastUpdated"),
-      ) ++
-        generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-        generateLanguageSupportedFieldList("descriptions", keepRaw = true)
+      )
 
-    def getMapping: MappingDefinition = mapping(documentType).fields(seriesIndexFields)
+    val seriesDynamics: Seq[DynamicTemplateRequest] =
+      generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("descriptions", keepRaw = true)
+
+    def getMapping: MappingDefinition = mapping(documentType).fields(seriesIndexFields).dynamicTemplates(seriesDynamics)
   }
 
 }

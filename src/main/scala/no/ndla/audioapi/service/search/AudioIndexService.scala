@@ -10,7 +10,8 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.integration.Elastic4sClient
@@ -20,7 +21,7 @@ import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import org.json4s.native.Serialization.write
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait AudioIndexService {
   this: Elastic4sClient with SearchConverterService with IndexService with SeriesIndexService with AudioRepository =>
@@ -47,27 +48,29 @@ trait AudioIndexService {
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
-        List(
-          intField("id"),
-          keywordField("license"),
-          keywordField("defaultTitle"),
-          textField("authors").fielddata(true),
-          keywordField("audioType"),
-          nestedField("series").fields(seriesIndexService.seriesIndexFields),
-          nestedField("podcastMeta").fields(
-            keywordField("language"),
-            objectField("coverPhoto").fields(
-              keywordField("imageId"),
-              keywordField("altText")
-            )
+      val fields: Seq[FieldDefinition] = List(
+        intField("id"),
+        keywordField("license"),
+        keywordField("defaultTitle"),
+        textField("authors").fielddata(true),
+        keywordField("audioType"),
+        nestedField("series").fields(seriesIndexService.seriesIndexFields),
+        nestedField("podcastMeta").fields(
+          keywordField("language"),
+          objectField("coverPhoto").fields(
+            keywordField("imageId"),
+            keywordField("altText")
           )
-        ) ++
-          generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-          generateLanguageSupportedFieldList("tags") ++
-          generateLanguageSupportedFieldList("manuscript") ++
-          generateLanguageSupportedFieldList("podcastMetaIntroduction")
+        )
       )
+
+      val dynamics: Seq[DynamicTemplateRequest] =
+        generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
+          generateLanguageSupportedDynamicTemplates("tags") ++
+          generateLanguageSupportedDynamicTemplates("manuscript") ++
+          generateLanguageSupportedDynamicTemplates("podcastMetaIntroduction")
+
+      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
     }
   }
 
