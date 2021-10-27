@@ -18,7 +18,6 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, Search
 import no.ndla.audioapi.model.search._
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.service.ConverterService
-import no.ndla.mapping.ISO639
 
 import scala.util.Try
 
@@ -164,7 +163,7 @@ trait SearchConverterService {
 
         keyLanguages
           .sortBy(lang => {
-            ISO639.languagePriority.reverse.indexOf(lang)
+            Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
           })
           .lastOption
       }

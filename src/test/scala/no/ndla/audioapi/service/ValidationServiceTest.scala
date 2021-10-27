@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.domain.{AudioType, CoverPhoto, PodcastMeta}
+import no.ndla.audioapi.model.domain.{AudioType, CoverPhoto, PodcastMeta, Tag}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 import java.awt.image.BufferedImage
@@ -55,6 +55,29 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
     result.length should be(1)
 
+  }
+
+  test("validateLanguage approves all kinds of languages") {
+    val nbTag = Tag(Seq("Tag1", "Tag2"), "nb")
+    val nnTag = Tag(Seq("Tag1", "Tag2"), "nn")
+    val undTag = Tag(Seq("Tag1", "Tag2"), "und")
+    val result = validationService.validateTags(Seq(nbTag, nnTag, undTag), Seq.empty)
+
+    result.length should be(0)
+  }
+
+  test("validateLanguage denies unknown") {
+    val undTag = Tag(Seq("Tag1", "Tag2"), "unknown")
+    val result = validationService.validateTags(Seq(undTag), Seq.empty)
+
+    result.length should be(1)
+  }
+
+  test("validateLanguage approves language without languageAnalzer") {
+    val undTag = Tag(Seq("Tag1", "Tag2"), "mix") // Mixtepec Mixtec
+    val result = validationService.validateTags(Seq(undTag), Seq.empty)
+
+    result.length should be(0)
   }
 
 }

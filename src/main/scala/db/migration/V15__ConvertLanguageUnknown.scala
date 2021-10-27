@@ -28,8 +28,8 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
   }
 
   def convertDocument(document: String): String = {
-    val oldArticle = parse(document)
-    val extractedAudio = oldArticle.extract[V15_Audio]
+    val oldAudio = parse(document)
+    val extractedAudio = oldAudio.extract[V15_Audio]
     val tags = extractedAudio.tags.map(t => {
       if (t.language == "unknown")
         t.copy(language = "und")
@@ -54,7 +54,7 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
       else
         m
     })
-    val updated = oldArticle
+    val updated = oldAudio
       .replace(List("tags"), Extraction.decompose(tags))
       .replace(List("titles"), Extraction.decompose(titles))
       .replace(List("filePaths"), Extraction.decompose(filePaths))
