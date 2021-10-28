@@ -180,10 +180,10 @@ class AudioSearchServiceTest
   val audio7: AudioMetaInformation = AudioMetaInformation(
     Some(7),
     Some(1),
-    List(Title("Não relacionado", "pt-br")),
-    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "pt-br")),
+    List(Title("Não relacionado", "pt-br"), Title("Dogosé", "dos")),
+    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "pt-br"), Audio("pt-br.mp3", "audio/mpeg", 1024, "dos")),
     byNcSa,
-    List(Tag(List("wubbi"), "pt-br")),
+    List(Tag(List("wubbi"), "pt-br"), Tag(List("asdf"), "dos")),
     "ndla123",
     updated7,
     created,
@@ -192,7 +192,13 @@ class AudioSearchServiceTest
         introduction = "portugeseintro",
         coverPhoto = domain.CoverPhoto("2", "meta"),
         language = "pt-br"
-      )),
+      ),
+      domain.PodcastMeta(
+        introduction = "dogose intro",
+        coverPhoto = domain.CoverPhoto("1", "alt "),
+        language = "dos"
+      )
+    ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
@@ -373,6 +379,15 @@ class AudioSearchServiceTest
 
     result.results.last.title.title should be("Unrelated")
     result.results.last.title.language should be("en")
+  }
+
+  test("That searching for language not in predefind list should work") {
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("dos")))
+    result.totalCount should be(1)
+    result.language should be("dos")
+
+    result.results.head.title.title should be("Dogosé")
+    result.results.head.title.language should be("dos")
   }
 
   test("That 'supported languages' should match all possible title languages") {
