@@ -298,14 +298,14 @@ trait ValidationService {
     private def validateLanguage(fieldPath: String,
                                  languageCode: String,
                                  oldLanguages: Seq[String]): Option[ValidationMessage] = {
-      if (languageCodeSupported6391(languageCode) || oldLanguages.contains(languageCode)) {
+      if (languageCodeSupported639(languageCode) || oldLanguages.contains(languageCode)) {
         None
       } else {
         Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
-    private def languageCodeSupported6391(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
+    private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
     private def validateNonEmpty(fieldPath: String, option: Option[_]): Option[ValidationMessage] = {
       option match {
