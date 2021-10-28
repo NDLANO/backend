@@ -77,9 +77,8 @@ trait AudioSearchService {
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
-        case Some(lang) if Language.supportedLanguages.map(l => l.toString()).contains(lang) =>
-          (Some(existsQuery(s"titles.$lang")), lang)
-        case _ => (None, "*")
+        case Some(lang) => (Some(existsQuery(s"titles.$lang")), lang)
+        case _          => (None, "*")
       }
 
       val audioTypeFilter = settings.audioType match {
@@ -120,7 +119,7 @@ trait AudioSearchService {
                   response.result.totalHits,
                   Some(settings.page.getOrElse(1)),
                   numResults,
-                  if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+                  searchLanguage,
                   results,
                   response.result.scrollId
               ))

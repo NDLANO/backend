@@ -355,7 +355,7 @@ class AudioSearchServiceTest
   }
 
   test("That searching for all languages and specifying no language should return the same") {
-    val Success(results1) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("all")))
+    val Success(results1) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("*")))
     val Success(results2) = audioSearchService.matchingQuery(searchSettings.copy(language = None))
 
     results1.totalCount should be(results2.totalCount)
@@ -381,13 +381,19 @@ class AudioSearchServiceTest
     result.results.last.title.language should be("en")
   }
 
-  test("That searching for language not in predefind list should work") {
+  test("That searching for language not in predefined list should work") {
     val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("dos")))
     result.totalCount should be(1)
     result.language should be("dos")
 
     result.results.head.title.title should be("Dogosé")
     result.results.head.title.language should be("dos")
+  }
+
+  test("That searching for language not in indexed data should not fail") {
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("ait"))) //Arikem
+    result.totalCount should be(0)
+    result.language should be("ait")
   }
 
   test("That 'supported languages' should match all possible title languages") {
@@ -499,9 +505,9 @@ class AudioSearchServiceTest
       audioSearchService.matchingQuery(
         searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true))
 
-    val Success(scroll1) = audioSearchService.scroll(initialSearch.scrollId.get, "all")
-    val Success(scroll2) = audioSearchService.scroll(scroll1.scrollId.get, "all")
-    val Success(scroll3) = audioSearchService.scroll(scroll2.scrollId.get, "all")
+    val Success(scroll1) = audioSearchService.scroll(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = audioSearchService.scroll(scroll1.scrollId.get, "*")
+    val Success(scroll3) = audioSearchService.scroll(scroll2.scrollId.get, "*")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))

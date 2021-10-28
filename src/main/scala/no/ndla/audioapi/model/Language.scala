@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 object Language {
   val UnknownLanguage: LanguageTag = LanguageTag("und") // Undefined
   val DefaultLang: LanguageTag = LanguageTag(DefaultLanguage)
-  val AllLanguages = "all"
+  val AllLanguages = "*"
   val NoLanguage = ""
 
   val languageAnalyzers = Seq(
@@ -62,8 +62,6 @@ object Language {
     LanguageAnalyzer(LanguageTag("tr"), TurkishLanguageAnalyzer),
     LanguageAnalyzer(UnknownLanguage, StandardAnalyzer)
   )
-
-  val supportedLanguages: Seq[LanguageTag] = languageAnalyzers.map(_.languageTag)
 
   def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], lang: Option[String]): Option[P] = {
     @tailrec
