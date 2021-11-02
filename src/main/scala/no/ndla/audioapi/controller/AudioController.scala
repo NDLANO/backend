@@ -12,10 +12,10 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
+  AudioSummarySearchResult,
   Error,
   NewAudioMetaInformation,
   SearchParams,
-  SearchResult,
   TagsSearchResult,
   UpdatedAudioMetaInformation,
   ValidationError,
@@ -165,7 +165,7 @@ trait AudioController {
     get(
       "/",
       operation(
-        apiOperation[SearchResult[api.AudioSummary]]("getAudioFiles")
+        apiOperation[AudioSummarySearchResult]("getAudioFiles")
           .summary("Find audio files")
           .description("Shows all the audio files in the ndla.no database. You can search it too.")
           .parameters(
@@ -212,7 +212,7 @@ trait AudioController {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResult[api.AudioSummary]]]("getAudioFilesPost")
+        apiOperation[List[AudioSummarySearchResult]]("getAudioFilesPost")
           .summary("Find audio files")
           .description("Shows all the audio files in the ndla.no database. You can search it too.")
           .parameters(

@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
 import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.audioapi.model.api.{MissingIdException, Title}
+import no.ndla.audioapi.model.api.Title
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search.{
@@ -26,7 +26,7 @@ import no.ndla.audioapi.model.search.{
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.mapping.ISO639
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 import cats.implicits._
 
 trait SearchConverterService {
@@ -187,8 +187,17 @@ trait SearchConverterService {
       }
     }
 
-    def asApiSearchResult[T](searchResult: domain.SearchResult[T]): api.SearchResult[T] =
-      api.SearchResult(
+    def asApiSearchResult(searchResult: domain.SearchResult[api.AudioSummary]): api.AudioSummarySearchResult =
+      api.AudioSummarySearchResult(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
+
+    def asApiSearchResult(searchResult: domain.SearchResult[api.SeriesSummary]): api.SeriesSummarySearchResult =
+      api.SeriesSummarySearchResult(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,

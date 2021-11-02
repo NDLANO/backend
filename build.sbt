@@ -1,6 +1,6 @@
 import java.util.Properties
 
-val Scalaversion = "2.13.3"
+val Scalaversion = "2.13.6"
 val Scalatraversion = "2.7.1"
 val ScalaLoggingVersion = "3.9.2"
 val ScalaTestVersion = "3.2.1"
@@ -47,7 +47,7 @@ lazy val audio_api = (project in file("."))
   .settings(
     name := "audio-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
+    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature", "-Xlint", "-encoding", "UTF8"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
@@ -94,12 +94,18 @@ lazy val audio_api = (project in file("."))
       "Audio",
       "AudioMetaInformation",
       "AudioSummary",
+      "AudioSummarySearchResult",
+      "NewAudioMetaInformation",
+      "NewSeries",
+      "SearchParams",
       "Series",
       "SeriesSummary",
-      "NewAudioMetaInformation",
+      "SeriesSummarySearchResult",
+      "TagsSearchResult",
       "UpdatedAudioMetaInformation"
     ),
     typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
+    typescriptTaggedUnionDiscriminator := Some("kind"),
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)

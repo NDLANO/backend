@@ -98,12 +98,12 @@ trait TagSearchService {
             getHits(response.result, language).map(
               hits =>
                 SearchResult(
-                  response.result.totalHits,
-                  Some(page),
-                  numResults,
-                  if (language == "*") Language.AllLanguages else language,
-                  hits,
-                  response.result.scrollId
+                  totalCount = response.result.totalHits,
+                  page = Some(page),
+                  pageSize = numResults,
+                  language = if (language == "*") Language.AllLanguages else language,
+                  results = hits,
+                  scrollId = response.result.scrollId
               ))
           case Failure(ex) =>
             errorHandler(ex)

@@ -90,10 +90,32 @@ export interface INewPodcastMeta {
   coverPhotoAltText: string
 }
 
+export interface INewSeries {
+  title: string
+  description: string
+  coverPhotoId: string
+  coverPhotoAltText: string
+  episodes: number[]
+  language: string
+  revision?: number
+}
+
 export interface IPodcastMeta {
   introduction: string
   coverPhoto: ICoverPhoto
   language: string
+}
+
+export interface ISearchParams {
+  query?: string
+  license?: string
+  language?: string
+  page?: number
+  pageSize?: number
+  sort?: string
+  scrollId?: string
+  audioType?: string
+  filterBySeries?: boolean
 }
 
 export interface ISeries {

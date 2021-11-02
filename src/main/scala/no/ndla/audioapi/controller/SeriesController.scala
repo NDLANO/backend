@@ -15,17 +15,13 @@ import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
   Error,
   NewAudioMetaInformation,
-  SearchParams,
-  SearchResult,
   Series,
   SeriesSearchParams,
-  TagsSearchResult,
+  SeriesSummarySearchResult,
   UpdatedAudioMetaInformation,
-  ValidationError,
-  ValidationException,
-  ValidationMessage
+  ValidationError
 }
-import no.ndla.audioapi.model.domain.{AudioType, SearchSettings, SeriesSearchSettings}
+import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
@@ -145,7 +141,7 @@ trait SeriesController {
     get(
       "/",
       operation(
-        apiOperation[SearchResult[api.SeriesSummary]]("getSeries")
+        apiOperation[SeriesSummarySearchResult]("getSeries")
           .summary("Find series")
           .description("Shows all the series. Also searchable.")
           .parameters(
@@ -176,7 +172,7 @@ trait SeriesController {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResult[api.SeriesSummary]]]("getSeriesPost")
+        apiOperation[List[SeriesSummarySearchResult]]("getSeriesPost")
           .summary("Find series")
           .description("Shows all the series. Also searchable.")
           .parameters(
