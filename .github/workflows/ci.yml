@@ -21,11 +21,6 @@ jobs:
       - uses: olafurpg/setup-scala@v10
         with:
           java-version: adopt@1.11
-      - name: "Install awscli"
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
       - name: "Login to ECR repo"
         run: RES=$(aws sts assume-role --role-arn arn:aws:iam::950645517739:role/releaseAccess --role-session-name travis-test-release-pull-whatever)
           AWS_ACCESS_KEY_ID=$(echo $RES | jq -r .Credentials.AccessKeyId)
