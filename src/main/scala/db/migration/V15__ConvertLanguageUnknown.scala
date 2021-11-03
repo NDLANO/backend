@@ -66,7 +66,6 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
     sql"select id, document from audiodata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def update(document: String, id: Long)(implicit session: DBSession) = {
@@ -74,7 +73,7 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = $id".update()
   }
 
   case class V15_Tags(tags: Seq[String], language: String)

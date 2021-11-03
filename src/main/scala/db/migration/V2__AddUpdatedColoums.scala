@@ -32,7 +32,6 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
     sql"select id, document from audiodata"
       .map(rs => V2_DBAudioMetaInformation(rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def convertAudioUpdate(audioMeta: V2_DBAudioMetaInformation) = {
@@ -49,7 +48,7 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(audioMeta.document)
 
-    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply()
+    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update()
   }
 
 }
