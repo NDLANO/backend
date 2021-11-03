@@ -10,26 +10,4 @@ import com.scalatsi.dsl._
   */
 object TSTypes {
   implicit val author: TSIType[Author] = TSType.fromCaseClass[Author]
-  // implicit val validationMessage: TSIType[ValidationMessage] = TSType.fromCaseClass[ValidationMessage]
-
-  implicit val SeriesSummaryTSI: TSIType[SeriesSummary] = {
-    implicit val audioSummaryReference: TSType[AudioSummary] = TSType.external[AudioSummary]("IAudioSummary")
-    TSType.fromCaseClass[SeriesSummary]
-  }
-
-  implicit val audioMetaInformationTSI: TSIType[AudioMetaInformation] = {
-    implicit val audioMetaInformationReference: TSType[Series] = TSType.external[Series]("ISeries")
-    TSType.fromCaseClass[AudioMetaInformation]
-  }
-
-  implicit val seriesTSI: TSIType[Series] = {
-    implicit val audioMetaInformationReference: TSType[AudioMetaInformation] =
-      TSType.external[AudioMetaInformation]("IAudioMetaInformation")
-    TSType.fromCaseClass[Series]
-  }
-
-  implicit val AudioSummaryTSI: TSIType[AudioSummary] = {
-    implicit val seriesSummaryReference: TSType[SeriesSummary] = TSType.external[SeriesSummary]("ISeriesSummary")
-    TSType.fromCaseClass[AudioSummary]
-  }
 }

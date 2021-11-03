@@ -26,7 +26,8 @@ object SearchableLanguageValues {
         ({
           case JObject(items) =>
             SearchableLanguageValues(items.map {
-              case JField(name, JString(value)) => LanguageValue(name, value)
+              case name -> JString(value) => LanguageValue(name, value)
+              case x => throw new MappingException(s"Cannot convert $x to SearchableLanguageValues")
             })
           case JNothing => SearchableLanguageValues(Seq.empty)
         }, {
@@ -50,8 +51,9 @@ object SearchableLanguageList {
               case JField(name, JArray(fieldItems)) =>
                 LanguageValue(name, fieldItems.map {
                   case JString(value) => value
-                  case x              => throw new MappingException(s"Cannot convert $x to SearchableLanguageList")
-                }.toSeq)
+                  case x => throw new MappingException(s"Cannot convert $x to SearchableLanguageList")
+                })
+              case (name, _) => throw new MappingException(s"Cannot convert $name to SearchableLanguageList")
             })
           case JNothing => SearchableLanguageList(Seq.empty)
         }, {

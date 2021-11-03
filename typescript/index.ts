@@ -35,6 +35,14 @@ export interface IAudioSummary {
   series?: ISeriesSummary
 }
 
+export interface IAudioSummarySearchResult {
+  totalCount: number
+  page?: number
+  pageSize: number
+  language: string
+  results: IAudioSummary[]
+}
+
 export interface IAuthor {
   type: string
   name: string
@@ -137,9 +145,25 @@ export interface ISeriesSummary {
   coverPhoto: ICoverPhoto
 }
 
+export interface ISeriesSummarySearchResult {
+  totalCount: number
+  page?: number
+  pageSize: number
+  language: string
+  results: ISeriesSummary[]
+}
+
 export interface ITag {
   tags: string[]
   language: string
+}
+
+export interface ITagsSearchResult {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: string[]
 }
 
 export interface ITitle {

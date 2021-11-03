@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.model.api
 
+import com.scalatsi._
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -32,3 +33,11 @@ case class AudioMetaInformation(
     @(ApiModelProperty @field)(description = "The time of last update for the audio-file") updated: Date
 )
 // format: on
+
+object AudioMetaInformation {
+  import TSTypes._
+  implicit val audioMetaInformationTSI: TSIType[AudioMetaInformation] = {
+    implicit val audioMetaInformationReference: TSType[Series] = TSType.external[Series]("ISeries")
+    TSType.fromCaseClass[AudioMetaInformation]
+  }
+}

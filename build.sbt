@@ -47,7 +47,7 @@ lazy val audio_api = (project in file("."))
   .settings(
     name := "audio-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature", "-Xlint", "-encoding", "UTF8"),
+    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
@@ -89,7 +89,10 @@ lazy val audio_api = (project in file("."))
   .enablePlugins(ScalaTsiPlugin)
   .settings(
     // The classes that you want to generate typescript interfaces for
-    typescriptGenerationImports := Seq("no.ndla.audioapi.model.api._", "no.ndla.audioapi.model.api.TSTypes._"),
+    typescriptGenerationImports := Seq(
+      "no.ndla.audioapi.model.api.TSTypes._",
+      "no.ndla.audioapi.model.api._"
+    ),
     typescriptExports := Seq(
       "Audio",
       "AudioMetaInformation",
@@ -105,7 +108,6 @@ lazy val audio_api = (project in file("."))
       "UpdatedAudioMetaInformation"
     ),
     typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
-    typescriptTaggedUnionDiscriminator := Some("kind"),
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
