@@ -33,7 +33,6 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
     sql"select id, revision, document from audiodata"
       .map(rs => (rs.long("id"), rs.int("revision"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def toNewAuthorType(author: V4_Author): V4_Author = {
@@ -97,7 +96,7 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
 
-    sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update()
   }
 
 }

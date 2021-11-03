@@ -32,7 +32,6 @@ class V7__UpdateLicenses extends BaseJavaMigration {
     sql"select id, document from audiodata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def updateLicense(license: String): String = {
@@ -77,7 +76,7 @@ class V7__UpdateLicenses extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = $id".update()
   }
 
 }

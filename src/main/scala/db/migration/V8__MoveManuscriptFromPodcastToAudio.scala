@@ -41,7 +41,6 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
     sql"select id, document from audiodata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def convertDocument(document: String): String = {
@@ -75,7 +74,7 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = $id".update()
   }
 
 }

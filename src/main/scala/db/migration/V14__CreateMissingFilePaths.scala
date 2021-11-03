@@ -35,7 +35,6 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
     sql"select id, document from audiodata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def findLanguagePrioritized(sequence: Seq[FilePathObject], language: String): Option[FilePathObject] = {
@@ -81,7 +80,7 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = $id".update()
   }
 
 }

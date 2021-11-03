@@ -28,7 +28,6 @@ class V12__AddSeriesDateField extends BaseJavaMigration {
     sql"select id, document from seriesdata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def convertDocument(document: String): String = {
@@ -48,7 +47,7 @@ class V12__AddSeriesDateField extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update seriesdata set document = ${dataObject} where id = $id".update().apply()
+    sql"update seriesdata set document = ${dataObject} where id = $id".update()
   }
 
 }
