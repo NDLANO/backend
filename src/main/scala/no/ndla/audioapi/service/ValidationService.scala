@@ -211,7 +211,7 @@ trait ValidationService {
           ValidationMessage("podcastMeta",
                             s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
       } else {
-        meta.flatMap(f = m => {
+        meta.flatMap(m => {
           val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
           val coverPhotoErrors = if (language.contains(m.language)) {
             validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA audio_api.
+ * Part of NDLA audio-api
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE

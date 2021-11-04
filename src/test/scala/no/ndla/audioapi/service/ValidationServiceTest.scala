@@ -14,15 +14,15 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import java.awt.image.BufferedImage
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
-  override val validationService = spy(new ValidationService)
+  override val validationService: ValidationService = spy(new ValidationService)
 
   override def beforeEach(): Unit = {
     reset(validationService)
   }
 
-  val audioType = AudioType.Podcast
-  val enCoverPhoto = CoverPhoto("1", "alt")
-  val nbCoverPhoto = CoverPhoto("2", "alt")
+  val audioType: AudioType.Value = AudioType.Podcast
+  val enCoverPhoto: CoverPhoto = CoverPhoto("1", "alt")
+  val nbCoverPhoto: CoverPhoto = CoverPhoto("2", "alt")
   val meta = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
 
   test("validatePodcastMeta is empty when cover photo is squared") {
