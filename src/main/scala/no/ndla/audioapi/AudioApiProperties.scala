@@ -11,7 +11,6 @@ package no.ndla.audioapi
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.network.secrets.PropertyKeys
-import no.ndla.network.secrets.Secrets._
 
 import scala.util.Properties._
 import scala.util.{Failure, Success}
@@ -106,24 +105,14 @@ object AudioApiProperties extends LazyLogging {
 
   lazy val RawImageApiUrl = s"$Domain/image-api/raw/id"
 
-  lazy val secrets: Map[String, Option[String]] = {
-    val SecretsFile = "audio-api.secrets"
-    readSecrets(SecretsFile) match {
-      case Success(values) => values
-      case Failure(exception) =>
-        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
-    }
-  }
-
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
   }
 
   def propOrElse(key: String, default: => String): String = {
     propOrNone(key) match {
-      case Some(prop)            => prop
-      case None if !IsKubernetes => secrets.get(key).flatten.getOrElse(default)
-      case _                     => default
+      case Some(prop) => prop
+      case _          => default
     }
   }
 

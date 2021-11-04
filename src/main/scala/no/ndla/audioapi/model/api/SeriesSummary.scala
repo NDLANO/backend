@@ -26,7 +26,7 @@ case class SeriesSummary(
 )
 // format: on
 
-object SeriesSummary{
+object SeriesSummary {
   implicit val SeriesSummaryTSI: TSIType[SeriesSummary] = {
     implicit val audioSummaryReference: TSType[AudioSummary] = TSType.external[AudioSummary]("IAudioSummary")
     TSType.fromCaseClass[SeriesSummary]

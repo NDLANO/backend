@@ -32,7 +32,6 @@ trait AudioRepository {
       sql"select count(*) from ${AudioMetaInformation.table}"
         .map(rs => rs.long("count"))
         .single()
-        .apply()
         .getOrElse(0)
 
     def withId(id: Long): Option[AudioMetaInformation] = {
@@ -57,7 +56,6 @@ trait AudioRepository {
       val audioId =
         sql"insert into audiodata (document, revision) values ($dataObject, $startRevision)"
           .updateAndReturnGeneratedKey()
-          .apply()
       audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
     }
 
@@ -71,7 +69,6 @@ trait AudioRepository {
         val audioId =
           sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
             .updateAndReturnGeneratedKey()
-            .apply()
         Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))
       }
     }
@@ -91,7 +88,6 @@ trait AudioRepository {
              where id = $id and revision = ${audioMetaInformation.revision}
              """
             .update()
-            .apply()
         if (count != 1) {
           val message = s"Found revision mismatch when attempting to update audio with id $id"
           logger.info(message)
@@ -111,7 +107,6 @@ trait AudioRepository {
            where id = $audioMetaId
            """
           .update()
-          .apply()
       ).map(_ => audioMetaId)
     }
 
@@ -121,9 +116,7 @@ trait AudioRepository {
           .map(rs => {
             rs.int("count")
           })
-          .list()
-          .first()
-          .apply() match {
+          .single() match {
           case Some(count) => count
           case None        => 0
         }
@@ -136,8 +129,7 @@ trait AudioRepository {
           .map(rs => {
             (rs.long("mi"), rs.long("ma"))
           })
-          .single()
-          .apply() match {
+          .single() match {
           case Some(minmax) => minmax
           case None         => (0L, 0L)
         })
@@ -146,7 +138,6 @@ trait AudioRepository {
     def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
       sql"delete from ${AudioMetaInformation.table} where id=$audioId"
         .update()
-        .apply()
     }
 
     override def documentsWithIdBetween(min: Long, max: Long): Try[List[AudioMetaInformation]] = {
@@ -167,7 +158,6 @@ trait AudioRepository {
         .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
         .map((audio, series) => audio.copy(series = series))
         .single()
-        .apply()
     }
 
     private def audioMetaInformationsWhere(whereClause: SQLSyntax)(
@@ -185,7 +175,6 @@ trait AudioRepository {
           .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
           .map((audio, series) => audio.copy(series = series))
           .list()
-          .apply()
       )
     }
 
@@ -194,7 +183,6 @@ trait AudioRepository {
       sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} where document is not null order by random() limit 1"
         .map(AudioMetaInformation.fromResultSet(au))
         .single()
-        .apply()
     }
 
     def getByPage(pageSize: Int, offset: Int)(
@@ -209,7 +197,6 @@ trait AudioRepository {
       """
         .map(AudioMetaInformation.fromResultSet(au))
         .list()
-        .apply()
     }
 
   }

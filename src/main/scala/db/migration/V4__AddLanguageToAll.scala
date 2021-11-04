@@ -49,7 +49,6 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
                                 meta.updated)
       })
       .list()
-      .apply()
   }
 
   def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession) = {
@@ -57,7 +56,7 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
 
-    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update().apply()
+    sql"update audiodata set document = $dataObject where id = ${audioMeta.id}".update()
   }
 
 }

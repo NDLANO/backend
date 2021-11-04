@@ -31,7 +31,6 @@ class V6__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
     sql"select id, revision, document from audiodata"
       .map(rs => (rs.long("id"), rs.int("revision"), rs.string("document")))
       .list()
-      .apply()
   }
 
   private def toNewAuthorType(author: V4_Author): V4_Author = {
@@ -63,7 +62,7 @@ class V6__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))
 
-    sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update().apply()
+    sql"update audiodata set document = ${dataObject} where id = ${audioMeta.id}".update()
   }
 
 }
