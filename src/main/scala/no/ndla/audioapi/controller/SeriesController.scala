@@ -132,7 +132,7 @@ trait SeriesController {
           seriesSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
+              Ok(searchConverterService.asApiSeriesSummarySearchResult(scrollResult), headers = responseHeader)
             case Failure(ex) => errorHandler(ex)
           }
         case _ => orFunction
@@ -226,7 +226,7 @@ trait SeriesController {
       seriesSearchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
+          Ok(searchConverterService.asApiSeriesSummarySearchResult(searchResult), headers = responseHeader)
         case Failure(ex) => errorHandler(ex)
       }
     }

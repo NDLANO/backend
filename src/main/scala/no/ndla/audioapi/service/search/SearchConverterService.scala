@@ -187,7 +187,8 @@ trait SearchConverterService {
       }
     }
 
-    def asApiSearchResult(searchResult: domain.SearchResult[api.AudioSummary]): api.AudioSummarySearchResult =
+    def asApiAudioSummarySearchResult(
+        searchResult: domain.SearchResult[api.AudioSummary]): api.AudioSummarySearchResult =
       api.AudioSummarySearchResult(
         searchResult.totalCount,
         searchResult.page,
@@ -196,7 +197,8 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def asApiSearchResult(searchResult: domain.SearchResult[api.SeriesSummary]): api.SeriesSummarySearchResult =
+    def asApiSeriesSummarySearchResult(
+        searchResult: domain.SearchResult[api.SeriesSummary]): api.SeriesSummarySearchResult =
       api.SeriesSummarySearchResult(
         searchResult.totalCount,
         searchResult.page,
