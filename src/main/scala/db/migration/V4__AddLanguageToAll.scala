@@ -1,5 +1,5 @@
 /*
- * Part of NDLA audio_api.
+ * Part of NDLA audio-api
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -28,10 +28,10 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
 
   def convertAudioUpdate(audioMeta: V4_AudioMetaInformation): V4_AudioMetaInformation = {
     audioMeta.copy(
-      titles = audioMeta.titles.map(t => V4_Title(t.title, Some(Language.languageOrUnknown(t.language)))),
+      titles = audioMeta.titles.map(t => V4_Title(t.title, Some(Language.languageOrUnknown(t.language).toString()))),
       filePaths = audioMeta.filePaths.map(f =>
-        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(Language.languageOrUnknown(f.language)))),
-      tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(Language.languageOrUnknown(t.language))))
+        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(Language.languageOrUnknown(f.language).toString()))),
+      tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(Language.languageOrUnknown(t.language).toString())))
     )
   }
 

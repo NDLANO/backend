@@ -1,5 +1,5 @@
 /*
- * Part of NDLA audio_api.
+ * Part of NDLA audio-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -105,7 +105,7 @@ trait SeriesSearchService {
                   response.result.totalHits,
                   Some(settings.page.getOrElse(1)),
                   numResults,
-                  if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+                  searchLanguage,
                   hits,
                   response.result.scrollId
               ))

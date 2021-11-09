@@ -20,6 +20,7 @@ import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.api.ResultWindowTooLargeException
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
+import no.ndla.language.model.{Iso639, LanguageTag}
 import org.json4s._
 import org.json4s.native.Serialization.read
 
@@ -45,8 +46,8 @@ trait TagSearchService {
 
     def matchingQuery(query: String, searchLanguage: String, page: Int, pageSize: Int): Try[SearchResult[String]] = {
       val language = searchLanguage match {
-        case lang if Language.supportedLanguages.contains(lang) => lang
-        case _                                                  => "*"
+        case lang if Iso639.get(lang).isSuccess => lang
+        case _                                  => "*"
       }
 
       val fullQuery = boolQuery()
@@ -68,7 +69,7 @@ trait TagSearchService {
     ): Try[SearchResult[String]] = {
 
       val languageFilter =
-        if (language == "all" || language == "*") None
+        if (language == "*") None
         else
           Some(
             termQuery("language", language)
@@ -101,7 +102,7 @@ trait TagSearchService {
                   response.result.totalHits,
                   Some(page),
                   numResults,
-                  if (language == "*") Language.AllLanguages else language,
+                  language,
                   hits,
                   response.result.scrollId
               ))

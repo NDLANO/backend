@@ -14,7 +14,7 @@ import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
-import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
+import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
@@ -186,7 +186,7 @@ trait ValidationService {
           Seq(
             ValidationMessage(
               fieldName,
-              s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x${imageHeight}."
+              s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x$imageHeight."
             ))
 
       squareValidationMessage ++ sizeValidationMessage
@@ -213,7 +213,7 @@ trait ValidationService {
       } else {
         meta.flatMap(m => {
           val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
-          val coverPhotoErrors = if (language.exists(_ == m.language)) {
+          val coverPhotoErrors = if (language.contains(m.language)) {
             validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
           } else Seq.empty
 
@@ -298,15 +298,14 @@ trait ValidationService {
     private def validateLanguage(fieldPath: String,
                                  languageCode: String,
                                  oldLanguages: Seq[String]): Option[ValidationMessage] = {
-      if (languageCodeSupported6391(languageCode) || oldLanguages.contains(languageCode)) {
+      if (languageCodeSupported639(languageCode) || oldLanguages.contains(languageCode)) {
         None
       } else {
         Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
-    private def languageCodeSupported6391(languageCode: String): Boolean =
-      get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
+    private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
     private def validateNonEmpty(fieldPath: String, option: Option[_]): Option[ValidationMessage] = {
       option match {

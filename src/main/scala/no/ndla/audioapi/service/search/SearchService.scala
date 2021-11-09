@@ -7,20 +7,21 @@
 
 package no.ndla.audioapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.queries.Query
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchResult}
+import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.language.model.Iso639
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import com.sksamuel.elastic4s.searches.queries.Query
 
 trait SearchService {
   this: Elastic4sClient with SearchConverterService =>
@@ -39,7 +40,7 @@ trait SearchService {
               totalCount = response.result.totalHits,
               page = None,
               pageSize = response.result.hits.hits.length,
-              language = if (language == "*") Language.AllLanguages else language,
+              language,
               results = hits,
               scrollId = response.result.scrollId
             )
@@ -51,7 +52,7 @@ trait SearchService {
                                          query: String,
                                          boost: Float): Query = {
       language match {
-        case Some(lang) if Language.supportedLanguages.contains(lang) =>
+        case Some(lang) if Iso639.get(lang).isSuccess =>
           simpleStringQuery(query).field(s"$searchField.$lang", boost)
         case _ =>
           simpleStringQuery(query).field(s"$searchField.*", boost)
@@ -67,7 +68,7 @@ trait SearchService {
 
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case Language.AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -80,20 +81,21 @@ trait SearchService {
 
     protected def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case supportedLanguage if Language.supportedLanguages.contains(supportedLanguage) => supportedLanguage
-        case _                                                                            => "*"
+        case supportedLanguage if Iso639.get(supportedLanguage).isSuccess =>
+          supportedLanguage
+        case _ => "*"
       }
 
       sort match {
         case Sort.ByTitleAsc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last")
+            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
@@ -106,8 +108,8 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value): FieldSort = {
       sort match {
-        case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.Asc).missing("_last")
-        case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.Desc).missing("_last")
+        case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+        case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
         case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
