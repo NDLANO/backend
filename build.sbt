@@ -91,22 +91,19 @@ lazy val audio_api = (project in file("."))
   .settings(
     // The classes that you want to generate typescript interfaces for
     typescriptGenerationImports := Seq(
-      "no.ndla.audioapi.model.api.TSTypes._",
       "no.ndla.audioapi.model.api._"
     ),
     typescriptExports := Seq(
       "Audio",
-      "AudioMetaInformation",
-      "AudioSummary",
       "AudioSummarySearchResult",
       "NewAudioMetaInformation",
       "NewSeries",
       "SearchParams",
       "Series",
       "SeriesSummary",
-      "SeriesSummarySearchResult",
+      "AudioSummary",
       "TagsSearchResult",
-      "UpdatedAudioMetaInformation"
+      "AudioMetaInformation"
     ),
     typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
   )

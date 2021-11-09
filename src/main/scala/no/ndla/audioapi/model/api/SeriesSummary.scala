@@ -28,7 +28,8 @@ case class SeriesSummary(
 
 object SeriesSummary {
   implicit val SeriesSummaryTSI: TSIType[SeriesSummary] = {
-    implicit val audioSummaryReference: TSType[AudioSummary] = TSType.external[AudioSummary]("IAudioSummary")
+    implicit val audioSummaryReference: TSType[Option[Seq[AudioSummary]]] =
+      TSType.external[Option[Seq[AudioSummary]]]("IAudioSummary")
     TSType.fromCaseClass[SeriesSummary]
   }
 }

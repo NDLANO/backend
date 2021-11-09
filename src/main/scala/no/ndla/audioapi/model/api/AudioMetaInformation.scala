@@ -35,9 +35,8 @@ case class AudioMetaInformation(
 // format: on
 
 object AudioMetaInformation {
-  import TSTypes._
   implicit val audioMetaInformationTSI: TSIType[AudioMetaInformation] = {
-    implicit val audioMetaInformationReference: TSType[Series] = TSType.external[Series]("ISeries")
+    implicit val seriesReference: TSNamedType[Series] = TSType.external[Series]("ISeries")
     TSType.fromCaseClass[AudioMetaInformation]
   }
 }
