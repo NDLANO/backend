@@ -136,6 +136,15 @@ export interface ISeries {
   supportedLanguages: string[]
 }
 
+export interface ISeriesSearchParams {
+  query?: string
+  language?: string
+  page?: number
+  pageSize?: number
+  sort?: string
+  scrollId?: string
+}
+
 export interface ISeriesSummary {
   id: number
   title: ITitle
@@ -181,4 +190,16 @@ export interface IUpdatedAudioMetaInformation {
   podcastMeta?: INewPodcastMeta
   seriesId?: number
   manuscript?: string
+}
+
+export interface IValidationError {
+  code: string
+  description: string
+  messages: IValidationMessage[]
+  occuredAt: string
+}
+
+export interface IValidationMessage {
+  field: string
+  message: string
 }

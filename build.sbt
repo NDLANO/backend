@@ -105,7 +105,9 @@ lazy val audio_api = (project in file("."))
       "TagsSearchResult",
       "AudioMetaInformation",
       "UpdatedAudioMetaInformation",
-      "SeriesSummarySearchResult"
+      "SeriesSummarySearchResult",
+      "SeriesSearchParams",
+      "ValidationError"
     ),
     typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
   )

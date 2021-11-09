@@ -25,8 +25,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val writeService = new WriteService
   override val converterService = new ConverterService
   val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val newAudioFile1: NewAudioFile = NewAudioFile("test.mp3", "nb")
-  val newAudioFile2: NewAudioFile = NewAudioFile("test2.mp3", "nb")
   val fileMock1: FileItem = mock[FileItem]
   val fileMock2: FileItem = mock[FileItem]
   val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
@@ -103,12 +101,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
     when(fileMock1.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
     when(fileMock1.size).thenReturn(1024)
-    when(fileMock1.name).thenReturn(newAudioFile1.fileName)
+    when(fileMock1.name).thenReturn("test.mp3")
 
     when(fileMock2.getContentType).thenReturn(Some("audio/mp3"))
     when(fileMock2.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
     when(fileMock2.size).thenReturn(2048)
-    when(fileMock2.name).thenReturn(newAudioFile2.fileName)
+    when(fileMock2.name).thenReturn("test2.mp3")
 
     when(s3ObjectMock.getContentLength).thenReturn(1024)
     when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
@@ -165,14 +163,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("uploadFiles should return an Audio objects if everything went ok") {
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
       .thenReturn(Success(s3ObjectMock))
-    val result = writeService.uploadFile(fileMock1, newAudioFile1.language)
+    val result = writeService.uploadFile(fileMock1, "nb")
 
     result.isSuccess should be(true)
     inside(result.get) {
       case Audio(filepath, mimetype, filesize, language) =>
         mimetype should equal("audio/mp3")
         filesize should equal(1024)
-        language should equal(newAudioFile1.language)
+        language should equal("nb")
     }
   }
 
