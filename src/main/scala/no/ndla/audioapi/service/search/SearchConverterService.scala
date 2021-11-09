@@ -1,5 +1,5 @@
 /*
- * Part of NDLA audio_api.
+ * Part of NDLA audio-api
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -8,26 +8,18 @@
 
 package no.ndla.audioapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
 import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.audioapi.model.api.Title
-import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
-import no.ndla.audioapi.model.search.{
-  LanguageValue,
-  SearchableAudioInformation,
-  SearchableLanguageList,
-  SearchableLanguageValues,
-  SearchablePodcastMeta,
-  SearchableSeries
-}
+import no.ndla.audioapi.model.search._
+import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.service.ConverterService
-import no.ndla.mapping.ISO639
 
 import scala.util.Try
-import cats.implicits._
 
 trait SearchConverterService {
   this: ConverterService =>
@@ -126,7 +118,7 @@ trait SearchConverterService {
 
       val defaultTitle = metaWithAgreement.titles
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
@@ -171,7 +163,7 @@ trait SearchConverterService {
 
         keyLanguages
           .sortBy(lang => {
-            ISO639.languagePriority.reverse.indexOf(lang)
+            Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
           })
           .lastOption
       }
