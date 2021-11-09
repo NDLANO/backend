@@ -145,6 +145,14 @@ export interface ISeriesSummary {
   coverPhoto: ICoverPhoto
 }
 
+export interface ISeriesSummarySearchResult {
+  totalCount: number
+  page?: number
+  pageSize: number
+  language: string
+  results: ISeriesSummary[]
+}
+
 export interface ITag {
   tags: string[]
   language: string
@@ -161,4 +169,16 @@ export interface ITagsSearchResult {
 export interface ITitle {
   title: string
   language: string
+}
+
+export interface IUpdatedAudioMetaInformation {
+  revision: number
+  title: string
+  language: string
+  copyright: ICopyright
+  tags: string[]
+  audioType?: string
+  podcastMeta?: INewPodcastMeta
+  seriesId?: number
+  manuscript?: string
 }
