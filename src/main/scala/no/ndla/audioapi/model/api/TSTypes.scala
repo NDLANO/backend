@@ -9,5 +9,5 @@ import com.scalatsi.dsl._
   * This is only necessary if the `sbt generateTypescript` script fails.
   */
 object TSTypes {
-  implicit val author: TSIType[Author] = TSType.fromCaseClass[Author]
+//  implicit val author: TSIType[Author] = TSType.fromCaseClass[Author]
 }
