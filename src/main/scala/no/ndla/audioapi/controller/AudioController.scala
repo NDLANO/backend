@@ -12,10 +12,10 @@ import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
+  AudioSummarySearchResult,
   Error,
   NewAudioMetaInformation,
   SearchParams,
-  SearchResult,
   TagsSearchResult,
   UpdatedAudioMetaInformation,
   ValidationError,
@@ -156,7 +156,7 @@ trait AudioController {
           audioSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
+              Ok(searchConverterService.asApiAudioSummarySearchResult(scrollResult), headers = responseHeader)
             case Failure(ex) => errorHandler(ex)
           }
         case _ => orFunction
@@ -165,7 +165,7 @@ trait AudioController {
     get(
       "/",
       operation(
-        apiOperation[SearchResult[api.AudioSummary]]("getAudioFiles")
+        apiOperation[AudioSummarySearchResult]("getAudioFiles")
           .summary("Find audio files")
           .description("Shows all the audio files in the ndla.no database. You can search it too.")
           .parameters(
@@ -212,7 +212,7 @@ trait AudioController {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResult[api.AudioSummary]]]("getAudioFilesPost")
+        apiOperation[List[AudioSummarySearchResult]]("getAudioFilesPost")
           .summary("Find audio files")
           .description("Shows all the audio files in the ndla.no database. You can search it too.")
           .parameters(
@@ -280,7 +280,7 @@ trait AudioController {
       audioSearchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
+          Ok(searchConverterService.asApiAudioSummarySearchResult(searchResult), headers = responseHeader)
         case Failure(ex) => errorHandler(ex)
       }
     }

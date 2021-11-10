@@ -7,6 +7,7 @@
 
 package no.ndla.audioapi.model.api
 
+import com.scalatsi._
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -26,3 +27,9 @@ case class AudioSummary(
     @(ApiModelProperty @field)(description = "Series that the audio is part of") series: Option[SeriesSummary],
 )
 // format: on
+object AudioSummary {
+  implicit val AudioSummaryTSI: TSIType[AudioSummary] = {
+    implicit val seriesSummaryReference: TSType[SeriesSummary] = TSType.external[SeriesSummary]("ISeriesSummary")
+    TSType.fromCaseClass[AudioSummary]
+  }
+}

@@ -87,6 +87,30 @@ lazy val audio_api = (project in file("."))
       "org.typelevel" %% "cats-effect" % CatsEffectVersion,
     ) ++ vulnerabilityOverrides
   )
+  .enablePlugins(ScalaTsiPlugin)
+  .settings(
+    // The classes that you want to generate typescript interfaces for
+    typescriptGenerationImports := Seq(
+      "no.ndla.audioapi.model.api._"
+    ),
+    typescriptExports := Seq(
+      "Audio",
+      "AudioSummarySearchResult",
+      "NewAudioMetaInformation",
+      "NewSeries",
+      "SearchParams",
+      "Series",
+      "SeriesSummary",
+      "AudioSummary",
+      "TagsSearchResult",
+      "AudioMetaInformation",
+      "UpdatedAudioMetaInformation",
+      "SeriesSummarySearchResult",
+      "SeriesSearchParams",
+      "ValidationError"
+    ),
+    typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
+  )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
 

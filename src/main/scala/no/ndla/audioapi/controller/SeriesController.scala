@@ -15,17 +15,13 @@ import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
   Error,
   NewAudioMetaInformation,
-  SearchParams,
-  SearchResult,
   Series,
   SeriesSearchParams,
-  TagsSearchResult,
+  SeriesSummarySearchResult,
   UpdatedAudioMetaInformation,
-  ValidationError,
-  ValidationException,
-  ValidationMessage
+  ValidationError
 }
-import no.ndla.audioapi.model.domain.{AudioType, SearchSettings, SeriesSearchSettings}
+import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
@@ -136,7 +132,7 @@ trait SeriesController {
           seriesSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
+              Ok(searchConverterService.asApiSeriesSummarySearchResult(scrollResult), headers = responseHeader)
             case Failure(ex) => errorHandler(ex)
           }
         case _ => orFunction
@@ -145,7 +141,7 @@ trait SeriesController {
     get(
       "/",
       operation(
-        apiOperation[SearchResult[api.SeriesSummary]]("getSeries")
+        apiOperation[SeriesSummarySearchResult]("getSeries")
           .summary("Find series")
           .description("Shows all the series. Also searchable.")
           .parameters(
@@ -176,7 +172,7 @@ trait SeriesController {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResult[api.SeriesSummary]]]("getSeriesPost")
+        apiOperation[List[SeriesSummarySearchResult]]("getSeriesPost")
           .summary("Find series")
           .description("Shows all the series. Also searchable.")
           .parameters(
@@ -230,7 +226,7 @@ trait SeriesController {
       seriesSearchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
+          Ok(searchConverterService.asApiSeriesSummarySearchResult(searchResult), headers = responseHeader)
         case Failure(ex) => errorHandler(ex)
       }
     }

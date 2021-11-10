@@ -27,5 +27,8 @@ project/plugins/project/
 .bloop/
 .metals/
 project/metals.sbt
+.bsp/
 .bsp
 
+node_modules
+typescript/build
