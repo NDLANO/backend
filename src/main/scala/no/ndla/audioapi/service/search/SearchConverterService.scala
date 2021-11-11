@@ -81,7 +81,8 @@ trait SearchConverterService {
             supportedLanguages = supportedLanguages,
             podcastMeta = podcastMeta,
             manuscript = manuscript,
-            series = series
+            series = series,
+            lastUpdated = searchable.lastUpdated
         ))
     }
 
