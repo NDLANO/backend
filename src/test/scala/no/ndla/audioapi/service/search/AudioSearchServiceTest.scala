@@ -563,10 +563,10 @@ class AudioSearchServiceTest
 
   test("That search result includes updatedBy field") {
     val Success(searchResult) =
-      audioSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = Some("nb")))
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("Pingvinen")))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
-    searchResult.results.head.lastUpdated should be(updated1)
+    searchResult.results.head.lastUpdated should be(updated4)
 
   }
 
