@@ -279,22 +279,23 @@ trait WriteService {
                                         Some(metadataToUpdate.language),
                                         metadataToUpdate.seriesId))
 
-          if (finished.isFailure && !savedAudio.isFailure) {
-            savedAudio.get.foreach(deleteFile)
-          } else {
-            // If old file in update language version is no longer in use, delete it
-            val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
-            oldAudio match {
-              case None =>
-              case Some(old) =>
-                if (!existingMetadata.filePaths.exists(
-                      audio => audio.language != old.language && audio.filePath == old.filePath)) {
-                  deleteFile(old)
-                }
+          savedAudio match {
+            case Success(None)                                => // No file, do nothing
+            case Success(Some(audio)) if (finished.isFailure) => deleteFile(audio)
+            case Success(Some(_)) => {
+              // If old file in update language version is no longer in use, delete it
+              val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
+              oldAudio match {
+                case None =>
+                case Some(old) =>
+                  if (!existingMetadata.filePaths.exists(
+                        audio => audio.language != old.language && audio.filePath == old.filePath)) {
+                    deleteFile(old)
+                  }
+              }
             }
-
+            case Failure(exception) => Failure(exception)
           }
-
           finished
       }
     }
@@ -375,7 +376,7 @@ trait WriteService {
         })
     }
 
-    private[service] def deleteFile(audioFile: Audio) = {
+    private[service] def deleteFile(audioFile: Audio): Try[Unit] = {
       audioStorage.deleteObject(audioFile.filePath)
     }
 
