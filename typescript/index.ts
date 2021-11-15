@@ -33,6 +33,7 @@ export interface IAudioSummary {
   manuscript?: IManuscript
   podcastMeta?: IPodcastMeta
   series?: ISeriesSummary
+  lastUpdated: string
 }
 
 export interface IAudioSummarySearchResult {
