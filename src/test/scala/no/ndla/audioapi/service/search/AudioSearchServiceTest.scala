@@ -561,6 +561,15 @@ class AudioSearchServiceTest
     search2.results.map(_.id) should be(Seq())
   }
 
+  test("That search result includes updatedBy field") {
+    val Success(searchResult) =
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("Pingvinen")))
+    searchResult.totalCount should be(1)
+    searchResult.results.size should be(1)
+    searchResult.results.head.lastUpdated should be(updated4)
+
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false
