@@ -41,6 +41,11 @@ lazy val mapping = (project in file("./mapping/"))
   .settings(mappinglib.settings:_*)
   .disablePlugins(mappinglib.disablePlugins:_*)
 
+lazy val network = (project in file("./network/"))
+  .settings(networklib.settings:_*)
+  .disablePlugins(networklib.disablePlugins:_*)
+
+
 
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
