@@ -47,6 +47,7 @@ object Dependencies {
     val RhoV = "0.21.0"
     val CirceV = "0.13.0"
     val ScalikeJDBCV = "4.0.0-RC2"
+    val TestContainersV = "1.15.1"
 
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
@@ -314,8 +315,8 @@ object Dependencies {
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "org.postgresql" % "postgresql" % PostgresV,
       "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.typelevel" %% "cats-core" % CatsEffectV,
-      "org.typelevel" %% "cats-effect" % CatsEffectV,
+      "org.typelevel" %% "cats-core" % "2.1.1",
+      "org.typelevel" %% "cats-effect" % "2.1.1",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
     ) ++ scalatra ++ logging ++ vulnerabilityOverrides
 
@@ -704,6 +705,121 @@ object Dependencies {
     lazy val disablePlugins = Seq(
       ScalaTsiPlugin
     )
+  }
+
+  object scalatestsuitelib {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaNetwork,
+      "org.scalatest" %% "scalatest" % ScalaTestV,
+      "org.mockito" %% "mockito-scala" % MockitoV,
+      "org.mockito" %% "mockito-scala-scalatest" % MockitoV,
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+      "org.postgresql" % "postgresql" % PostgresV,
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+      "org.postgresql" % "postgresql" % PostgresV,
+      "org.testcontainers" % "elasticsearch" % TestContainersV,
+      "org.testcontainers" % "testcontainers" % TestContainersV,
+      "org.testcontainers" % "postgresql" % TestContainersV,
+      "joda-time" % "joda-time" % "2.10"
+    ) ++ vulnerabilityOverrides
+
+    private val scala213 = ScalaV
+    private val scala212 = "2.12.10"
+    private val supportedScalaVersions = List(scala213, scala212)
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "scalatestsuite",
+      libraryDependencies := dependencies,
+      crossScalaVersions := supportedScalaVersions
+    ) ++ commonSettings
+
+    lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  }
+
+  object searchapi {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaLanguage,
+      ndlaMapping,
+      ndlaNetwork,
+      ndlaScalatestsuite,
+      scalaTsi,
+      "joda-time" % "joda-time" % "2.10",
+      "org.jsoup" % "jsoup" % "1.11.3",
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+      "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV,
+      "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV,
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+      "org.json4s" %% "json4s-native" % Json4SV,
+      "org.json4s" %% "json4s-ext" % Json4SV,
+      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+      "org.jrobin" % "jrobin" % "1.5.9",
+      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "io.lemonlabs" %% "scala-uri" % "1.5.1",
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "org.mockito" %% "mockito-scala" % MockitoV % "test",
+      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
+    ) ++ scalatra ++ logging ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides
+
+    lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+      name = "search-api",
+      imports = Seq("no.ndla.searchapi.model.api._"),
+      exports = Seq(
+        "ApiTaxonomyContext",
+        "ArticleResult",
+        "AudioResult",
+        "GroupSearchResult",
+        "ImageResult",
+        "LearningpathResult",
+        "MultiSearchResult",
+        "ArticleResults",
+        "AudioResults",
+        "ImageResults",
+        "LearningpathResults",
+        "SearchError",
+        "ValidationError"
+      )
+    )
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "search-api",
+      libraryDependencies := dependencies
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings("-Xmx2G") ++ tsSettings
+
+    lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
+      PactTestConfig
+    )
+
+    lazy val plugins: Seq[sbt.Plugins] = Seq(
+      DockerPlugin,
+      JettyPlugin,
+      ScalaPactPlugin,
+      ScalaTsiPlugin
+    )
+
+  }
+
+  object validationlib {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "org.jsoup" % "jsoup" % "1.11.3",
+      "org.json4s" %% "json4s-native" % Json4SV,
+      "org.json4s" %% "json4s-ext" % Json4SV,
+      "io.lemonlabs" %% "scala-uri" % "1.5.1"
+    )
+
+    private val scala213 = ScalaV
+    private val scala212 = "2.12.10"
+    private val supportedScalaVersions = List(scala213, scala212)
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "validation",
+      libraryDependencies := dependencies,
+      crossScalaVersions := supportedScalaVersions
+    ) ++ commonSettings
+
+    lazy val disablePlugins = Seq(ScalaTsiPlugin)
   }
 
   private def typescriptSettings(name: String, imports: Seq[String], exports: Seq[String]) = {

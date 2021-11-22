@@ -50,6 +50,19 @@ lazy val oembed_proxy = (project in file("./oembed-proxy/"))
   .enablePlugins(oembedproxy.plugins:_*)
   .disablePlugins(oembedproxy.disablePlugins:_*)
 
+lazy val scalatestsuite = (project in file("./scalatestsuite/"))
+  .settings(scalatestsuitelib.settings:_*)
+  .disablePlugins(scalatestsuitelib.disablePlugins:_*)
+
+lazy val search_api = (project in file("./search-api/"))
+  .settings(searchapi.settings: _*)
+  .configs(searchapi.configs: _*)
+  .enablePlugins(searchapi.plugins: _*)
+
+lazy val validation = (project in file("./validation/"))
+  .settings(validationlib.settings:_*)
+  .disablePlugins(validationlib.disablePlugins:_*)
+
 
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
