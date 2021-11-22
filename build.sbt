@@ -20,6 +20,10 @@ lazy val concept_api = (project in file("./concept-api/"))
   .settings(conceptapi.settings:_*)
   .enablePlugins(conceptapi.plugins:_*)
 
+lazy val frontpage_api = (project in file("./frontpage-api/"))
+  .settings(frontpageapi.settings:_*)
+  .enablePlugins(frontpageapi.plugins:_*)
+
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
 //checkfmt := {

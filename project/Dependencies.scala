@@ -43,6 +43,10 @@ object Dependencies {
     val PostgresV = "42.2.18"
     val PactV = "2.3.16"
     val ScalaTsiV = "0.5.1"
+    val Http4sV = "0.21.21"
+    val RhoV = "0.21.0"
+    val CirceV = "0.13.0"
+    val ScalikeJDBCV = "4.0.0-RC2"
 
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
@@ -155,9 +159,9 @@ object Dependencies {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
       "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % "3.4.5",
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
@@ -223,7 +227,7 @@ object Dependencies {
     "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
     "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
     "org.json4s" %% "json4s-native" % Json4SV,
-    "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+    "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
     "org.postgresql" % "postgresql" % PostgresV,
     "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
     "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
@@ -296,7 +300,7 @@ object Dependencies {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "org.postgresql" % "postgresql" % PostgresV,
       "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
@@ -356,7 +360,7 @@ object Dependencies {
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "org.postgresql" % "postgresql" % PostgresV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
@@ -404,6 +408,57 @@ object Dependencies {
       DockerPlugin,
       JettyPlugin,
       ScalaPactPlugin,
+      ScalaTsiPlugin
+    )
+
+  }
+
+  object frontpageapi {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaNetwork,
+      ndlaMapping,
+      ndlaScalatestsuite,
+      scalaTsi,
+      "org.http4s" %% "http4s-circe" % Http4sV,
+      "io.circe" %% "circe-generic" % CirceV,
+      "io.circe" %% "circe-generic-extras" % CirceV,
+      "io.circe" %% "circe-literal" % CirceV,
+      "io.circe" %% "circe-parser" % CirceV,
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+      "org.postgresql" % "postgresql" % PostgresV,
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+      "org.http4s" %% "rho-swagger" % RhoV,
+      "org.http4s" %% "http4s-server" % Http4sV,
+      "org.http4s" %% "http4s-dsl" % Http4sV,
+      "org.http4s" %% "http4s-blaze-server" % Http4sV,
+      "org.flywaydb" % "flyway-core" % FlywayV,
+      "org.mockito" %% "mockito-scala" % MockitoV % "test",
+      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "javax.servlet" % "javax.servlet-api" % "4.0.1"
+    ) ++ logging ++ vulnerabilityOverrides
+
+    lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+      name = "frontpage-api",
+      imports = Seq("no.ndla.frontpageapi.model.api._"),
+      exports = Seq(
+        "FrontPageData",
+        "FilmFrontPageData",
+        "NewOrUpdatedFilmFrontPageData",
+        "SubjectPageData",
+        "NewSubjectFrontPageData",
+        "UpdatedSubjectFrontPageData",
+        "Error"
+      )
+    )
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "frontpage-api",
+      libraryDependencies := dependencies
+    ) ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
+
+    lazy val plugins: Seq[sbt.Plugins] = Seq(
+      DockerPlugin,
       ScalaTsiPlugin
     )
 
