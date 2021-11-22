@@ -24,6 +24,10 @@ lazy val frontpage_api = (project in file("./frontpage-api/"))
   .settings(frontpageapi.settings:_*)
   .enablePlugins(frontpageapi.plugins:_*)
 
+lazy val image_api = (project in file("./image-api/"))
+  .settings(imageapi.settings:_*)
+  .enablePlugins(imageapi.plugins:_*)
+
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
 //checkfmt := {
