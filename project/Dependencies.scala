@@ -70,6 +70,12 @@ object Dependencies {
     lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
     lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
 
+    lazy val log4j = Seq(
+      "org.apache.logging.log4j" % "log4j-api" % Log4JV,
+      "org.apache.logging.log4j" % "log4j-core" % Log4JV,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
+    )
+
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
       "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
@@ -146,9 +152,6 @@ object Dependencies {
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
       "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
-      "org.apache.logging.log4j" % "log4j-api" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-core" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
       "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
       "org.postgresql" % "postgresql" % PostgresV,
       "com.zaxxer" % "HikariCP" % "3.4.5",
@@ -165,65 +168,9 @@ object Dependencies {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
       "io.lemonlabs" %% "scala-uri" % "1.5.1"
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    ) ++ log4j ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
 
-    val Scalaversion = "2.13.3"
-    val Scalatraversion = "2.8.2"
-    val ScalaLoggingVersion = "3.9.2"
-    val ScalaTestVersion = "3.2.1"
-    val Log4JVersion = "2.13.3"
-    val Jettyversion = "9.4.35.v20201120"
-    val AwsSdkversion = "1.11.658"
-    val MockitoVersion = "1.14.8"
-    val Elastic4sVersion = "6.7.8"
-    val JacksonVersion = "2.12.1"
-    val ElasticsearchVersion = "6.8.13"
-    val Json4SVersion = "4.0.3"
-    val FlywayVersion = "7.1.1"
-    val PostgresVersion = "42.2.14"
-    val HikariConnectionPoolVersion = "3.4.5"
-
-    lazy val oldDeps = Seq(
-      "ndla" %% "language" % "1.0.0",
-      "ndla" %% "mapping" % "0.15",
-      "ndla" %% "network" % "0.47",
-      "ndla" %% "validation" % "0.52",
-      "ndla" %% "scalatestsuite" % "0.3" % "test",
-      "joda-time" % "joda-time" % "2.10",
-      "org.scalatra" %% "scalatra" % Scalatraversion,
-      "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.scalatra" %% "scalatra-json" % Scalatraversion,
-      "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
-      "org.json4s" %% "json4s-native" % Json4SVersion,
-      "org.scalatra" %% "scalatra-swagger" % Scalatraversion,
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
-      "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
-      "org.apache.logging.log4j" % "log4j-core" % Log4JVersion,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JVersion,
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
-      "org.postgresql" % "postgresql" % PostgresVersion,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolVersion,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkversion,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
-      "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
-      "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
-      "org.mockito" %% "mockito-scala" % MockitoVersion % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoVersion % "test",
-      "org.flywaydb" % "flyway-core" % FlywayVersion,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      scalaTsi
-    ) ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides
-
-    val tsSettings = typescriptSettings(
+    val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "article-api",
       imports = Seq("no.ndla.articleapi.model.api._",
                     "no.ndla.articleapi.model.api.TSTypes._",
@@ -243,7 +190,7 @@ object Dependencies {
 
     val settings: Seq[Def.Setting[_]] = Seq(
       name := "article-api",
-      libraryDependencies := oldDeps
+      libraryDependencies := dependencies
     ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
 
     val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
@@ -259,8 +206,76 @@ object Dependencies {
 
   }
 
+  object audioapi {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaLanguage,
+      ndlaMapping,
+      ndlaNetwork,
+      ndlaScalatestsuite,
+      elastic4sCore,
+      elastic4sHttp,
+      scalaTsi,
+    "joda-time" % "joda-time" % "2.10",
+    "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
+    "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+    "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+    "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+    "org.json4s" %% "json4s-native" % Json4SV,
+    "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+    "org.postgresql" % "postgresql" % PostgresV,
+    "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+    "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+    "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+    "org.scalaj" %% "scalaj-http" % "2.4.2",
+    "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+    "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+    "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+    "org.mockito" %% "mockito-scala" % MockitoV % "test",
+    "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+    "org.flywaydb" % "flyway-core" % FlywayV,
+    "io.lemonlabs" %% "scala-uri" % "3.2.0",
+    "org.jsoup" % "jsoup" % "1.11.3",
+    "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+    "org.jrobin" % "jrobin" % "1.5.9",
+    "org.typelevel" %% "cats-effect" % CatsEffectV,
+      ) ++ scalatra ++ log4j ++ vulnerabilityOverrides
+
+    lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+      name = "audio-api",
+      imports = Seq("no.ndla.audioapi.model.api._" ),
+      exports = Seq(
+        "Audio",
+        "AudioSummarySearchResult",
+        "NewAudioMetaInformation",
+        "NewSeries",
+        "SearchParams",
+        "Series",
+        "SeriesSummary",
+        "AudioSummary",
+        "TagsSearchResult",
+        "AudioMetaInformation",
+        "UpdatedAudioMetaInformation",
+        "SeriesSummarySearchResult",
+        "SeriesSearchParams",
+        "ValidationError"
+      )
+    )
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "audio-api",
+      libraryDependencies := dependencies
+    ) ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
+
+    lazy val plugins: Seq[sbt.Plugins] = Seq(
+      DockerPlugin,
+      JettyPlugin,
+      ScalaTsiPlugin
+    )
+  }
+
   object draftapi {
     lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaLanguage,
       ndlaNetwork,
       ndlaMapping,
       ndlaValidation,
@@ -297,7 +312,7 @@ object Dependencies {
       "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
       "org.slf4j" % "slf4j-api" % "1.7.30"
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    ) ++ log4j ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
     // Excluding slf4j-api (and specifically adding 1.7.30) because of conflict between 1.7.30 and 2.0.0-alpha1
       .map(_.exclude("org.slf4j", "slf4j-api"))
 

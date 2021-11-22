@@ -12,10 +12,9 @@ lazy val draft_api = (project in file("./draft-api/"))
   .configs(draftapi.configs: _*)
   .enablePlugins(draftapi.plugins: _*)
 
-//lazy val audio_api = (project in file("./audio-api/"))
-//  .settings(audioapi.settings:_*)
-//  .configs(audioapi.configs:_*)
-//  .enablePlugins(audioapi.plugins: _*)
+lazy val audio_api = (project in file("./audio-api/"))
+  .settings(audioapi.settings:_*)
+  .enablePlugins(audioapi.plugins: _*)
 
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
