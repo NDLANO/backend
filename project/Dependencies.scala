@@ -76,6 +76,10 @@ object Dependencies {
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
     )
 
+    lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
+
+    lazy val logging: Seq[ModuleID] = log4j :+ scalaLogging
+
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
       "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
@@ -151,7 +155,6 @@ object Dependencies {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
       "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
       "org.postgresql" % "postgresql" % PostgresV,
       "com.zaxxer" % "HikariCP" % "3.4.5",
@@ -168,7 +171,7 @@ object Dependencies {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
       "io.lemonlabs" %% "scala-uri" % "1.5.1"
-    ) ++ log4j ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    ) ++ logging ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
 
     val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "article-api",
@@ -216,7 +219,6 @@ object Dependencies {
       elastic4sHttp,
       scalaTsi,
     "joda-time" % "joda-time" % "2.10",
-    "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
     "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
     "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
     "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -238,7 +240,7 @@ object Dependencies {
     "net.bull.javamelody" % "javamelody-core" % "1.74.0",
     "org.jrobin" % "jrobin" % "1.5.9",
     "org.typelevel" %% "cats-effect" % CatsEffectV,
-      ) ++ scalatra ++ log4j ++ vulnerabilityOverrides
+      ) ++ scalatra ++ logging ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "audio-api",
@@ -273,6 +275,66 @@ object Dependencies {
     )
   }
 
+  object conceptapi {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      ndlaLanguage,
+      ndlaNetwork,
+      ndlaMapping,
+      ndlaValidation,
+      ndlaScalatestsuite,
+      elastic4sCore,
+      elastic4sHttp,
+      scalaTsi,
+      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+      "org.json4s" %% "json4s-native" % Json4SV,
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+      "org.jrobin" % "jrobin" % "1.5.9",
+      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.mockito" %% "mockito-scala" % MockitoV % "test",
+      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+      "org.flywaydb" % "flyway-core" % FlywayV,
+      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+      "org.postgresql" % "postgresql" % PostgresV,
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+      "org.typelevel" %% "cats-core" % CatsEffectV,
+      "org.typelevel" %% "cats-effect" % CatsEffectV,
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
+    ) ++ scalatra ++ logging ++ vulnerabilityOverrides
+
+    lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+      name = "concept-api",
+      imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),
+      exports = Seq(
+        "Concept",
+        "ConceptSearchParams",
+        "ConceptSearchResult",
+        "ConceptSummary",
+        "DraftConceptSearchParams",
+        "NewConcept",
+        "SubjectTags",
+        "TagsSearchResult",
+        "UpdatedConcept",
+        "ValidationError",
+      )
+    )
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "concept-api",
+      libraryDependencies := dependencies
+    ) ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
+
+    lazy val plugins: Seq[sbt.Plugins] = Seq(
+      DockerPlugin,
+      JettyPlugin,
+      ScalaTsiPlugin
+    )
+
+  }
+
   object draftapi {
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
@@ -290,7 +352,6 @@ object Dependencies {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
@@ -312,7 +373,7 @@ object Dependencies {
       "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
       "org.slf4j" % "slf4j-api" % "1.7.30"
-    ) ++ log4j ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    ) ++ logging ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
     // Excluding slf4j-api (and specifically adding 1.7.30) because of conflict between 1.7.30 and 2.0.0-alpha1
       .map(_.exclude("org.slf4j", "slf4j-api"))
 

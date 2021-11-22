@@ -16,6 +16,10 @@ lazy val audio_api = (project in file("./audio-api/"))
   .settings(audioapi.settings:_*)
   .enablePlugins(audioapi.plugins: _*)
 
+lazy val concept_api = (project in file("./concept-api/"))
+  .settings(conceptapi.settings:_*)
+  .enablePlugins(conceptapi.plugins:_*)
+
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
 //checkfmt := {
