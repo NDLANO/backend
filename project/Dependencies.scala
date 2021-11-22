@@ -540,6 +540,30 @@ object Dependencies {
     )
   }
 
+  object languagelib {
+    lazy val dependencies: Seq[ModuleID] = Seq(
+      "org.json4s" %% "json4s-native" % Json4SV,
+      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "org.mockito" % "mockito-all" % MockitoV % "test"
+    )
+
+    private val scala213 = ScalaV
+    private val scala212 = "2.12.10"
+
+    private val supportedScalaVersions = List(
+      scala213,
+      scala212
+    )
+
+    lazy val settings: Seq[Def.Setting[_]] = Seq(
+      name := "language",
+      libraryDependencies := dependencies,
+      crossScalaVersions := supportedScalaVersions
+    ) ++ commonSettings
+
+  }
+
   private def typescriptSettings(name: String, imports: Seq[String], exports: Seq[String]) = {
     Seq(
       typescriptGenerationImports := imports,

@@ -28,6 +28,9 @@ lazy val image_api = (project in file("./image-api/"))
   .settings(imageapi.settings:_*)
   .enablePlugins(imageapi.plugins:_*)
 
+lazy val language = (project in file("./language/"))
+  .settings(languagelib.settings:_*)
+
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
 //checkfmt := {
