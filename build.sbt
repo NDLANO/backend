@@ -30,6 +30,17 @@ lazy val image_api = (project in file("./image-api/"))
 
 lazy val language = (project in file("./language/"))
   .settings(languagelib.settings:_*)
+  .disablePlugins(languagelib.disablePlugins:_*)
+
+lazy val learningpath_api = (project in file("./learningpath-api/"))
+  .settings(learningpathapi.settings:_*)
+  .configs(learningpathapi.configs:_*)
+  .enablePlugins(learningpathapi.plugins:_*)
+
+lazy val mapping = (project in file("./mapping/"))
+  .settings(mappinglib.settings:_*)
+  .disablePlugins(mappinglib.disablePlugins:_*)
+
 
 // TODO: fmt for all projects in repo
 //val checkfmt = taskKey[Boolean]("Check for code style errors")
