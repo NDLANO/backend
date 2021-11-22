@@ -2,7 +2,7 @@ import com.earldouglas.xwp.JettyPlugin
 import com.itv.scalapact.plugin.ScalaPactPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
-import sbt._
+import sbt.{Def, _}
 import sbtassembly.AssemblyKeys._
 import sbtassembly._
 import sbtdocker.DockerKeys._
@@ -81,14 +81,16 @@ object Dependencies {
       "org.yaml" % "snakeyaml" % "1.26"
     )
 
-    lazy val PactTest = config("pact") extend Test
-    lazy val PactSettings = {
-      inConfig(PactTest)(Defaults.testTasks)
+    lazy val PactTestConfig = config("PactTest") extend(Test)
+    lazy val PactSettings: Seq[Def.Setting[_]] = inConfig(PactTestConfig)(Defaults.testTasks) ++ Seq(
       // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
-      // To run all tests use pact config ('sbt pact:test')
-      Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest"))
-      (PactTest / testOptions).withRank(KeyRanks.Invisible) := Seq.empty
-    }
+      // To run all tests use pact config 'sbt PactTest/test' (or 'sbt article_api/PactTest/test' for a single subproject)
+      Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
+      Test / testOnly / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
+
+      PactTestConfig / testOptions := Seq.empty,
+      PactTestConfig / testOnly / testOptions := Seq.empty
+    )
 
     lazy val assemblySettings = Seq(
       assembly / assemblyJarName := name.value + ".jar",
@@ -221,7 +223,7 @@ object Dependencies {
       scalaTsi
     ) ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides
 
-    lazy val tsSettings = typescriptSettings(
+    val tsSettings = typescriptSettings(
       name = "article-api",
       imports = Seq("no.ndla.articleapi.model.api._",
                     "no.ndla.articleapi.model.api.TSTypes._",
@@ -239,16 +241,16 @@ object Dependencies {
       )
     )
 
-    lazy val settings: Seq[Def.Setting[_]] = Seq(
+    val settings: Seq[Def.Setting[_]] = Seq(
       name := "article-api",
       libraryDependencies := oldDeps
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
 
-    lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
-      PactTest
+    val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
+      PactTestConfig
     )
 
-    lazy val plugins: Seq[sbt.Plugins] = Seq(
+    val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
       JettyPlugin,
       ScalaPactPlugin,
@@ -299,7 +301,7 @@ object Dependencies {
     // Excluding slf4j-api (and specifically adding 1.7.30) because of conflict between 1.7.30 and 2.0.0-alpha1
       .map(_.exclude("org.slf4j", "slf4j-api"))
 
-    lazy val tsSettings = typescriptSettings(
+    lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "draft-api",
       imports = Seq("no.ndla.draftapi.model.api._", "no.ndla.draftapi.model.api.TSTypes._"),
       exports = Seq(
@@ -319,7 +321,7 @@ object Dependencies {
     ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings ++ tsSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
-      PactTest
+      PactTestConfig
     )
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
