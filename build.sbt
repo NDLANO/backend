@@ -45,6 +45,10 @@ lazy val network = (project in file("./network/"))
   .settings(networklib.settings:_*)
   .disablePlugins(networklib.disablePlugins:_*)
 
+lazy val oembed_proxy = (project in file("./oembed-proxy/"))
+  .settings(oembedproxy.settings:_*)
+  .enablePlugins(oembedproxy.plugins:_*)
+  .disablePlugins(oembedproxy.disablePlugins:_*)
 
 
 // TODO: fmt for all projects in repo
