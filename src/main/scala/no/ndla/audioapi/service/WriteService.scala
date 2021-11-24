@@ -145,7 +145,8 @@ trait WriteService {
               deleteFile(removedFilePath)
             } else Success(())
 
-            deleteResult.flatMap(_ => validateAndUpdateMetaData(audioId, newAudio, existing, None, None).map(Some(_)))
+            deleteResult.flatMap(_ =>
+              validateAndUpdateMetaData(audioId, newAudio, existing, None, existing.seriesId).map(Some(_)))
 
           }
 
