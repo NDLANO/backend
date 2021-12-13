@@ -97,7 +97,7 @@ class AudioSearchServiceTest
     created,
     Seq.empty,
     AudioType.Standard,
-    Seq.empty,
+    List(Manuscript("Manuskript", "nb"), Manuscript("Manuscript", "nn")),
     None,
     None
   )
@@ -396,14 +396,14 @@ class AudioSearchServiceTest
     result.language should be("ait")
   }
 
-  test("That 'supported languages' should match all possible title languages") {
+  test("That 'supported languages' should match all possible languages") {
     val Success(result1) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("en")))
     val Success(result2) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("nb")))
 
     // 'Donald' with 'en', 'nb' and 'nn'
     result1.results.head.supportedLanguages should be(audio4.titles.map(_.language))
-    // 'Pingvinen' with 'nb'
-    result2.results(2).supportedLanguages should be(audio1.titles.map(_.language))
+    // 'Pingvinen' with 'nb', 'nn'
+    result2.results(1).supportedLanguages should be(audio2.manuscript.map(_.language))
   }
 
   test("Agreement information should be used in search") {
@@ -529,8 +529,8 @@ class AudioSearchServiceTest
   test("That searching matches manuscript") {
     val Success(search1) = audioSearchService.matchingQuery(searchSettings.copy(query = Some("manuscript")))
 
-    search1.totalCount should be(1)
-    search1.results.map(_.id) should be(Seq(5))
+    search1.totalCount should be(2)
+    search1.results.map(_.id) should be(Seq(2, 5))
   }
 
   test("That filtering for episodes of series works as expected") {
