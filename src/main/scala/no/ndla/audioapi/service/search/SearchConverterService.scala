@@ -57,7 +57,6 @@ trait SearchConverterService {
           })
       })
 
-      val supportedLanguages = getSupportedLanguages(titles, domainPodcastMeta)
       val title = findByLanguageOrBestEffort(titles, Some(language)) match {
         case None    => Title("", language)
         case Some(x) => Title(x.title, x.language)
@@ -68,6 +67,8 @@ trait SearchConverterService {
 
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
       val manuscript = findByLanguageOrBestEffort(manuscripts, Some(language)).map(converterService.toApiManuscript)
+
+      val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta)
 
       searchable.series
         .traverse(s => asSeriesSummary(s, language))
