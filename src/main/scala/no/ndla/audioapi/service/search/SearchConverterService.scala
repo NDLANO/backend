@@ -68,7 +68,10 @@ trait SearchConverterService {
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
       val manuscript = findByLanguageOrBestEffort(manuscripts, Some(language)).map(converterService.toApiManuscript)
 
-      val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta)
+      val tags = searchable.tags.languageValues.map(lv => domain.Tag(lv.value, lv.language))
+      val filePaths = searchable.filePaths.map(lv => domain.Title(lv.filePath, lv.language)) // Hacky but functional
+
+      val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta, filePaths, tags)
 
       searchable.series
         .traverse(s => asSeriesSummary(s, language))
@@ -136,6 +139,8 @@ trait SearchConverterService {
       val searchablePodcastMeta = metaWithAgreement.podcastMeta.map(pm =>
         SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
 
+      val searchableAudios = metaWithAgreement.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
+
       metaWithAgreement.series
         .traverse(s => asSearchableSeries(s))
         .map(series =>
@@ -143,6 +148,7 @@ trait SearchConverterService {
             id = metaWithAgreement.id.get.toString,
             titles = SearchableLanguageValues.fromFields(metaWithAgreement.titles),
             tags = SearchableLanguageList.fromFields(metaWithAgreement.tags),
+            filePaths = searchableAudios,
             license = metaWithAgreement.copyright.license,
             authors = authors,
             lastUpdated = metaWithAgreement.updated,
