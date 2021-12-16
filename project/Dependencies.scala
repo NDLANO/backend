@@ -30,7 +30,7 @@ object Dependencies {
     val HikariConnectionPoolV = "4.0.1"
     val ScalaLoggingV = "3.9.2"
     val ScalaTestV = "3.2.1"
-    val Log4JV = "2.13.3"
+    val Log4JV = "2.16.0"
     val JettyV = "9.4.35.v20201120"
     val AwsSdkV = "1.11.658"
     val MockitoV = "1.14.8"
