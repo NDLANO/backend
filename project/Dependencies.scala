@@ -96,19 +96,19 @@ object Dependencies {
       "org.yaml" % "snakeyaml" % "1.26"
     )
 
-    lazy val PactTestConfig = config("PactTest") extend(Test)
+    lazy val PactTestConfig = config("PactTest") extend (Test)
     lazy val PactSettings: Seq[Def.Setting[_]] = inConfig(PactTestConfig)(Defaults.testTasks) ++ Seq(
       // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
       // To run all tests use pact config 'sbt PactTest/test' (or 'sbt article_api/PactTest/test' for a single subproject)
       Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
       Test / testOnly / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
-
       PactTestConfig / testOptions := Seq.empty,
       PactTestConfig / testOnly / testOptions := Seq.empty
     )
 
-    lazy val assemblySettings = Seq(
+    def assemblySettings(assemblyMainClass: String) = Seq(
       assembly / assemblyJarName := name.value + ".jar",
+      assembly / mainClass := Some(assemblyMainClass),
       assembly / assemblyMergeStrategy := {
         case "module-info.class"                                           => MergeStrategy.discard
         case x if x.endsWith("/module-info.class")                         => MergeStrategy.discard
@@ -140,13 +140,13 @@ object Dependencies {
             from("adoptopenjdk/openjdk11:alpine-slim")
             run("apk", "--no-cache", "add", "ttf-dejavu")
             add(artifact, artifactTargetPath)
-            entryPoint(entry:_*)
+            entryPoint(entry: _*)
           }
         },
         docker / imageNames := Seq(
           ImageName(namespace = Some(organization.value),
-            repository = name.value,
-            tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
+                    repository = name.value,
+                    tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
         )
       )
     }
@@ -156,6 +156,7 @@ object Dependencies {
   import common._
 
   object articleapi {
+    lazy val mainClass = "no.ndla.articleapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaNetwork,
@@ -209,7 +210,7 @@ object Dependencies {
     val settings: Seq[Def.Setting[_]] = Seq(
       name := "article-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -225,6 +226,7 @@ object Dependencies {
   }
 
   object audioapi {
+    lazy val mainClass = "no.ndla.audioapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaMapping,
@@ -233,33 +235,33 @@ object Dependencies {
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
-    "joda-time" % "joda-time" % "2.10",
-    "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-    "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-    "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-    "org.json4s" %% "json4s-native" % Json4SV,
-    "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-    "org.postgresql" % "postgresql" % PostgresV,
-    "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-    "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-    "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-    "org.scalaj" %% "scalaj-http" % "2.4.2",
-    "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-    "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-    "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-    "org.mockito" %% "mockito-scala" % MockitoV % "test",
-    "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-    "org.flywaydb" % "flyway-core" % FlywayV,
-    "io.lemonlabs" %% "scala-uri" % "3.2.0",
-    "org.jsoup" % "jsoup" % "1.11.3",
-    "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-    "org.jrobin" % "jrobin" % "1.5.9",
-    "org.typelevel" %% "cats-effect" % CatsEffectV,
-      ) ++ scalatra ++ logging ++ vulnerabilityOverrides
+      "joda-time" % "joda-time" % "2.10",
+      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+      "org.json4s" %% "json4s-native" % Json4SV,
+      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+      "org.postgresql" % "postgresql" % PostgresV,
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+      "org.scalaj" %% "scalaj-http" % "2.4.2",
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+      "org.mockito" %% "mockito-scala" % MockitoV % "test",
+      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+      "org.flywaydb" % "flyway-core" % FlywayV,
+      "io.lemonlabs" %% "scala-uri" % "3.2.0",
+      "org.jsoup" % "jsoup" % "1.11.3",
+      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+      "org.jrobin" % "jrobin" % "1.5.9",
+      "org.typelevel" %% "cats-effect" % CatsEffectV,
+    ) ++ scalatra ++ logging ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "audio-api",
-      imports = Seq("no.ndla.audioapi.model.api._" ),
+      imports = Seq("no.ndla.audioapi.model.api._"),
       exports = Seq(
         "Audio",
         "AudioSummarySearchResult",
@@ -281,7 +283,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "audio-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -291,6 +293,7 @@ object Dependencies {
   }
 
   object conceptapi {
+    val mainClass = "no.ndla.conceptapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaNetwork,
@@ -340,17 +343,19 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "concept-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
       JettyPlugin,
-      ScalaTsiPlugin
+      ScalaTsiPlugin,
+      AssemblyPlugin
     )
 
   }
 
   object draftapi {
+    lazy val mainClass = "no.ndla.draftapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaNetwork,
@@ -409,7 +414,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "draft-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -425,6 +430,7 @@ object Dependencies {
   }
 
   object frontpageapi {
+    lazy val mainClass = "no.ndla.frontpageapi.Main"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaNetwork,
       ndlaMapping,
@@ -466,7 +472,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "frontpage-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -476,6 +482,7 @@ object Dependencies {
   }
 
   object imageapi {
+    lazy val mainClass = "no.ndla.imageapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaMapping,
@@ -564,6 +571,7 @@ object Dependencies {
   }
 
   object learningpathapi {
+    lazy val mainClass = "no.ndla.imageapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaMapping,
@@ -622,7 +630,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "learningpath-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings() ++ tsSettings
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -678,6 +686,7 @@ object Dependencies {
   }
 
   object oembedproxy {
+    lazy val mainClass = "no.ndla.oembedproxy.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaNetwork,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
@@ -695,7 +704,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "oembed-proxy",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings ++ dockerSettings()
+    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings()
 
     lazy val plugins = Seq(
       JettyPlugin,
@@ -737,6 +746,7 @@ object Dependencies {
   }
 
   object searchapi {
+    lazy val mainClass = "no.ndla.searchapi.JettyLauncher"
     lazy val dependencies: Seq[ModuleID] = Seq(
       ndlaLanguage,
       ndlaMapping,
@@ -785,7 +795,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "search-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings ++ dockerSettings("-Xmx2G") ++ tsSettings
+    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings("-Xmx2G") ++ tsSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
