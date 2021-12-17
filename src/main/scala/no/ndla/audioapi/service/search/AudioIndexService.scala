@@ -68,6 +68,7 @@ trait AudioIndexService {
         generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++
           generateLanguageSupportedDynamicTemplates("tags") ++
           generateLanguageSupportedDynamicTemplates("manuscript") ++
+          generateLanguageSupportedDynamicTemplates("filePaths") ++
           generateLanguageSupportedDynamicTemplates("podcastMetaIntroduction")
 
       mapping(documentType).fields(fields).dynamicTemplates(dynamics)

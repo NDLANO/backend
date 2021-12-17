@@ -17,10 +17,17 @@ case class SearchablePodcastMeta(
     language: String
 )
 
+// Only used to calculate supportedLanguages
+case class SearchableAudio(
+    filePath: String,
+    language: String
+)
+
 case class SearchableAudioInformation(
     id: String,
     titles: SearchableLanguageValues,
     tags: SearchableLanguageList,
+    filePaths: Seq[SearchableAudio],
     license: String,
     authors: Seq[String],
     lastUpdated: Date,

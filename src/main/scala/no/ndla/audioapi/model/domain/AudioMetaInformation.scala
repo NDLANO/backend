@@ -35,7 +35,8 @@ case class AudioMetaInformation(
     seriesId: Option[Long],
     series: Option[Series],
 ) {
-  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(titles, filePaths, tags)
+  lazy val supportedLanguages: Seq[String] =
+    Language.getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
 }
 
 object AudioType extends Enumeration {
