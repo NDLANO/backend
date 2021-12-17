@@ -28,7 +28,7 @@ object Dependencies {
     val ScalaV = "2.13.2"
     val ScalatraV = "2.8.2"
     val HikariConnectionPoolV = "4.0.1"
-    val ScalaLoggingV = "3.9.2"
+    val ScalaLoggingV = "3.9.4"
     val ScalaTestV = "3.2.1"
     val Log4JV = "2.16.0"
     val JettyV = "9.4.35.v20201120"
@@ -79,6 +79,7 @@ object Dependencies {
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
+      "org.slf4j" % "slf4j-api" % "1.7.32",
     )
 
     lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
@@ -372,9 +373,6 @@ object Dependencies {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "org.apache.logging.log4j" % "log4j-api" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-core" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
@@ -392,10 +390,7 @@ object Dependencies {
       "org.flywaydb" % "flyway-core" % FlywayV,
       "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-      "org.slf4j" % "slf4j-api" % "1.7.30"
     ) ++ logging ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
-    // Excluding slf4j-api (and specifically adding 1.7.30) because of conflict between 1.7.30 and 2.0.0-alpha1
-      .map(_.exclude("org.slf4j", "slf4j-api"))
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "draft-api",
@@ -551,10 +546,9 @@ object Dependencies {
   object languagelib {
     lazy val dependencies: Seq[ModuleID] = Seq(
       "org.json4s" %% "json4s-native" % Json4SV,
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
-    )
+    ) ++ logging
 
     private val scala213 = ScalaV
     private val scala212 = "2.12.10"
