@@ -534,7 +534,7 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "image-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ dockerSettings("-Xmx4G")
+    ) ++ commonSettings ++ dockerSettings("-Xmx4G") ++ assemblySettings(mainClass)
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
