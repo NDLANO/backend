@@ -8,6 +8,7 @@ import sbtassembly._
 import sbtdocker.DockerKeys._
 import sbtdocker._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport._
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 
 object Dependencies {
 
@@ -152,6 +153,33 @@ object Dependencies {
       )
     }
 
+    val checkfmt = taskKey[Boolean]("Check for code style errors")
+    val fmt = taskKey[Unit]("Automatically apply code style fixes")
+
+    val checkfmtSetting = {
+      checkfmt := {
+        val noErrorsInMainFiles = (Compile / scalafmtCheck).value
+        val noErrorsInTestFiles = (Test / scalafmtCheck).value
+        val noErrorsInSbtConfigFiles = (Compile / scalafmtSbtCheck).value
+
+        noErrorsInMainFiles && noErrorsInTestFiles && noErrorsInSbtConfigFiles
+      }
+    }
+
+    val fmtSetting = {
+      fmt := {
+        (Compile / scalafmt).value
+        (Test / scalafmt).value
+        (Compile / scalafmtSbt).value
+      }
+    }
+
+    val fmtSettings = Seq(
+      checkfmtSetting,
+      fmtSetting,
+      Test / test := (Test / test).dependsOn(Test / checkfmt).value
+    )
+
   }
 
   import common._
@@ -211,7 +239,13 @@ object Dependencies {
     val settings: Seq[Def.Setting[_]] = Seq(
       name := "article-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+    ) ++
+      PactSettings ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      tsSettings ++
+      fmtSettings
 
     val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -284,7 +318,12 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "audio-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+    ) ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      tsSettings ++
+      fmtSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -344,7 +383,12 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "concept-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+    ) ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      tsSettings ++
+      fmtSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -467,7 +511,12 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "frontpage-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+    ) ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      tsSettings ++
+      fmtSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -534,7 +583,11 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "image-api",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ dockerSettings("-Xmx4G") ++ assemblySettings(mainClass)
+    ) ++
+      commonSettings ++
+      dockerSettings("-Xmx4G") ++
+      assemblySettings(mainClass) ++
+      fmtSettings
 
     lazy val plugins: Seq[sbt.Plugins] = Seq(
       DockerPlugin,
@@ -558,7 +611,9 @@ object Dependencies {
       name := "language",
       libraryDependencies := dependencies,
       crossScalaVersions := supportedScalaVersions
-    ) ++ commonSettings
+    ) ++
+      commonSettings ++
+      fmtSettings
 
     lazy val disablePlugins = Seq(ScalaTsiPlugin)
 
@@ -624,7 +679,13 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "learningpath-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+    ) ++
+      PactSettings ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      tsSettings ++
+      fmtSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -649,7 +710,9 @@ object Dependencies {
       name := "mapping",
       libraryDependencies := dependencies,
       crossScalaVersions := supportedScalaVersions
-    ) ++ commonSettings
+    ) ++
+      commonSettings ++
+      fmtSettings
 
     lazy val disablePlugins = Seq(ScalaTsiPlugin)
   }
@@ -674,7 +737,9 @@ object Dependencies {
       name := "network",
       libraryDependencies := dependencies,
       crossScalaVersions := supportedScalaVersions
-    ) ++ commonSettings
+    ) ++
+      commonSettings ++
+      fmtSettings
 
     lazy val disablePlugins = Seq(ScalaTsiPlugin)
   }
@@ -698,7 +763,11 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "oembed-proxy",
       libraryDependencies := dependencies
-    ) ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings()
+    ) ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings() ++
+      fmtSettings
 
     lazy val plugins = Seq(
       JettyPlugin,
@@ -734,7 +803,9 @@ object Dependencies {
       name := "scalatestsuite",
       libraryDependencies := dependencies,
       crossScalaVersions := supportedScalaVersions
-    ) ++ commonSettings
+    ) ++
+      commonSettings ++
+      fmtSettings
 
     lazy val disablePlugins = Seq(ScalaTsiPlugin)
   }
@@ -789,7 +860,13 @@ object Dependencies {
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "search-api",
       libraryDependencies := dependencies
-    ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings("-Xmx2G") ++ tsSettings
+    ) ++
+      PactSettings ++
+      commonSettings ++
+      assemblySettings(mainClass) ++
+      dockerSettings("-Xmx2G") ++
+      tsSettings ++
+      fmtSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
       PactTestConfig
@@ -821,7 +898,9 @@ object Dependencies {
       name := "validation",
       libraryDependencies := dependencies,
       crossScalaVersions := supportedScalaVersions
-    ) ++ commonSettings
+    ) ++
+      commonSettings ++
+      fmtSettings
 
     lazy val disablePlugins = Seq(ScalaTsiPlugin)
   }
