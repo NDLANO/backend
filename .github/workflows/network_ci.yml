@@ -1,0 +1,40 @@
+name: 'CI: network'
+on:
+  push:
+    paths:
+      - network/**
+  pull_request:
+    paths:
+      - network/**
+jobs:
+  unit_tests:
+    name: Unit tests
+    env:
+      NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_CLIENT_SECRET }}
+      AWS_DEFAULT_REGION: eu-west-1
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      CI: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: coursier/cache-action@v6
+      - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
+      - name: Login to ECR repo
+        run: RES=$(aws sts assume-role --role-arn arn:aws:iam::950645517739:role/releaseAccess
+          --role-session-name travis-test-release-pull-whatever) AWS_ACCESS_KEY_ID=$(echo
+          $RES | jq -r .Credentials.AccessKeyId) AWS_SECRET_ACCESS_KEY=$(echo $RES |
+          jq -r .Credentials.SecretAccessKey) AWS_SESSION_TOKEN=$(echo $RES | jq -r
+          .Credentials.SessionToken) aws ecr get-login-password --region eu-central-1
+          | docker login --username AWS --password-stdin 950645517739.dkr.ecr.eu-central-1.amazonaws.com
+      - name: Login to dockerhub
+        run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
+          --password-stdin
+      - name: Unit tests
+        run: sbt network/test
+env:
+  COMPONENT: network
