@@ -1,0 +1,14 @@
+/.idea
+/.history
+/target
+**/target
+**/.DS_Store
+/log
+**/*.iml
+.env
+
+.bloop/
+.metals/
+project/metals.sbt
+.bsp/
+.vscode/

@@ -1,0 +1,189 @@
+{
+  "attributes": {
+    "span": {
+      "mustContainAtLeastOneOptionalAttribute": true,
+      "optional": [
+        [
+          "lang"
+        ],
+        [
+          "data-size"
+        ]
+      ]
+    },
+    "colgroup": {
+      "optional": [
+        [
+          "span"
+        ],
+        [
+          "style"
+        ]
+      ]
+    },
+    "col": {
+      "optional": [
+        [
+          "span"
+        ],
+        [
+          "style"
+        ]
+      ]
+    },
+    "div": {
+      "optional": [
+        [
+          "class"
+        ],
+        [
+          "data-type"
+        ]
+      ]
+    },
+    "td": {
+      "optional": [
+        [
+          "valign"
+        ],
+        [
+          "align"
+        ],
+        [
+          "colspan"
+        ],
+        [
+          "rowspan"
+        ],
+        [
+          "id"
+        ],
+        [
+          "class"
+        ],
+        [
+          "headers"
+        ]
+      ]
+    },
+    "th": {
+      "optional": [
+        [
+          "valign"
+        ],
+        [
+          "align"
+        ],
+        [
+          "colspan"
+        ],
+        [
+          "rowspan"
+        ],
+        [
+          "id"
+        ],
+        [
+          "scope"
+        ],
+        [
+          "class"
+        ]
+      ]
+    },
+    "a": {
+      "optional": [
+        [
+          "href"
+        ],
+        [
+          "title"
+        ],
+        [
+          "name"
+        ],
+        [
+          "target"
+        ],
+        [
+          "rel"
+        ]
+      ]
+    },
+    "ol": {
+      "optional": [
+        [
+          "data-type"
+        ],
+        [
+          "start"
+        ]
+      ]
+    },
+    "aside": {
+      "optional": [
+        [
+          "data-type"
+        ]
+      ]
+    },
+    "p": {
+      "optional": [
+        [
+          "data-align"
+        ]
+      ]
+    },
+    "ul": {
+      "optional": [
+        [
+          "data-type"
+        ]
+      ]
+    },
+    "details": {
+      "optional": [
+        [
+          "class"
+        ]
+      ]
+    }
+  },
+  "tags": [
+    "pre",
+    "em",
+    "code",
+    "h2",
+    "h3",
+    "h1",
+    "h4",
+    "table",
+    "tbody",
+    "section",
+    "li",
+    "details",
+    "tr",
+    "sub",
+    "sup",
+    "thead",
+    "blockquote",
+    "figcaption",
+    "b",
+    "br",
+    "article",
+    "strong",
+    "embed",
+    "i",
+    "u",
+    "button",
+    "summary",
+    "caption",
+    "audio",
+    "tfoot",
+    "td",
+    "th",
+    "caption",
+    "colgroup",
+    "col"
+  ]
+}
