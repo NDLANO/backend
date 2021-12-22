@@ -1,0 +1,1 @@
+ALTER TABLE userdata ADD UNIQUE (user_id);

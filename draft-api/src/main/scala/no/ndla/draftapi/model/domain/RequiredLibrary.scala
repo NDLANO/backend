@@ -1,0 +1,10 @@
+/*
+ * Part of NDLA draft-api.
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ */
+
+package no.ndla.draftapi.model.domain
+
+case class RequiredLibrary(mediaType: String, name: String, url: String)
