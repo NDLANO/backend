@@ -1,0 +1,17 @@
+/.idea
+/.history
+/target
+**/target
+**/.DS_Store
+*.iml
+.env
+
+.bloop/
+.metals/
+project/metals.sbt
+.vscode/
+.bsp
+
+node_modules
+*.log
+typescript/build
