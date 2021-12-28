@@ -238,7 +238,7 @@ object Dependencies {
 
     val settings: Seq[Def.Setting[_]] = Seq(
       name := "article-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       PactSettings ++
       commonSettings ++
@@ -317,7 +317,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "audio-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       commonSettings ++
       assemblySettings(mainClass) ++
@@ -382,7 +382,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "concept-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       commonSettings ++
       assemblySettings(mainClass) ++
@@ -452,7 +452,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "draft-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
 
     lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
@@ -510,7 +510,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "frontpage-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       commonSettings ++
       assemblySettings(mainClass) ++
@@ -582,7 +582,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "image-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       commonSettings ++
       dockerSettings("-Xmx4G") ++
@@ -609,7 +609,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "language",
-      libraryDependencies := dependencies,
+      libraryDependencies ++= dependencies,
       crossScalaVersions := supportedScalaVersions
     ) ++
       commonSettings ++
@@ -678,7 +678,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "learningpath-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       PactSettings ++
       commonSettings ++
@@ -708,7 +708,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "mapping",
-      libraryDependencies := dependencies,
+      libraryDependencies ++= dependencies,
       crossScalaVersions := supportedScalaVersions
     ) ++
       commonSettings ++
@@ -735,7 +735,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "network",
-      libraryDependencies := dependencies,
+      libraryDependencies ++= dependencies,
       crossScalaVersions := supportedScalaVersions
     ) ++
       commonSettings ++
@@ -762,7 +762,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "oembed-proxy",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       commonSettings ++
       assemblySettings(mainClass) ++
@@ -801,7 +801,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "scalatestsuite",
-      libraryDependencies := dependencies,
+      libraryDependencies ++= dependencies,
       crossScalaVersions := supportedScalaVersions
     ) ++
       commonSettings ++
@@ -859,7 +859,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "search-api",
-      libraryDependencies := dependencies
+      libraryDependencies ++= dependencies
     ) ++
       PactSettings ++
       commonSettings ++
@@ -896,7 +896,7 @@ object Dependencies {
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "validation",
-      libraryDependencies := dependencies,
+      libraryDependencies ++= dependencies,
       crossScalaVersions := supportedScalaVersions
     ) ++
       commonSettings ++
