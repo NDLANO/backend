@@ -2,64 +2,46 @@
 
 This is a [sbt-multiproject](https://www.scala-sbt.org/1.x/docs/Multi-Project.html) repository for NDLA scala backend projects.
 
-## Possible merge strategies
+This means this contains all scala backend components for the NDLA project.
+There will be more detailed README's in the respective subdirectories.
+
+
+## Developer documentation
+**Compile subproject**: `sbt test-api/compile`
+
+**Run tests:** `sbt test-api/test`
+
+**Create Docker Image:** `sbt test-api/docker`
+
+**Check code formatting:** `sbt test-api/checkfmt`
+
+**Automatically format code files:** `sbt test-api/fmt`
+
+You could run the sbt-tasks directly to execute the tasks for _all_ subprojects (IE: `sbt test`), this however can take a long time and in some cases even fail because of dependencies or jvm memory problems. We should improve upon this in the future, but for now it imposes no real problems.
+
+### Merging in sub-projects
+
+When the sub-projects was merged in from the separate repositories we used the `git subtree` command.
+This allows us to more easily maintain the separate repositories should we ever want to go back, or if we ever need to pull in changes from one of the separate repositories.
 
 <details>
-    <summary>With subtree</summary>
+    <summary>Subtree merge strategy</summary>
+
 
 ### How to merge
 
 - Run the subtree command to add:
   - `git subtree add --prefix=test-api git@github.com:ndlano/test-api.git master`
 
+### How to pull changes in standalone repo:
+- Run the subtree pull command:
+  - `git subtree --prefix=test-api git@github.com:ndlano/test-api.git master`
+
 ### How to move back into standalone repo:
 
 - Run the subtree command to push back:
   - `git subtree push --prefix=test-api git@github.com:ndlano/test-api.git master`
 
-### Pros
-- Easy to merge into the monorepo
-- Easy to pull changes that happened after the initial merge
-- Easy to push back changes and keeping the history separate
+There can be some gotchas with viewing history from the standalone repositories in there, so we might consider merging the subprojects in directly (with `git merge --allow-unrelated-histories`) when can confirm this way of managing the backend projects is better.
 
-### Cons
-- Viewing history before the merge is "difficult". You need to know the old path.
-  - Ex: You want to view the history of `image-api/src/main/scala/no/ndla/imageapi/JettyLauncher.scala`
-  - Normally you would do `git log --follow -- image-api/src/main/scala/no/ndla/imageapi/JettyLauncher.scala`, but since we used subtree (and the `git log --follow` implementation is not perfect) this doesn't work. We would have to know the historic path and use this instead `git log -- src/main/scala/no/ndla/imageapi/JettyLauncher.scala`.
-  - This can be cumbersome, but more importantly it makes gui-tools to view history think the file was introduced at the `subtree add` command.
-
-</details>
-
-<details>
-    <summary>Without subtree</summary>
-
-### How to merge a repository into the backend repo:
-
-- Add the remote: `git remote add test-api-remote git@github.com:ndlano/test-api-remote.git`
-- Fetch remote `git fetch test-api-remote`
-- Pull the remote into a separate branch: `git checkout -b test-api-branch test-api-remote/master`
-- Move all files into the subdirectory that the repo will live in: `mkdir test-api && mv * test-api/`
-- Commit this: `git add . && git commit -m "Move test-api into subdirectory"`
-- Merge this into the master branch: `git checkout master && git merge test-api-branch`
-- Great success!
-
-### How to move a repository back into a standalone repo:
-
-Hopefully this wont necessary, but _if_ we ever wanted to move back, we would just do the same process in reverse:
-
-- Add the remote if it isn't already there: `git remote add test-api-remote git@github.com:ndlano/test-api-remote.git`
-- Make a branch to work in so we don't break master of the monorepo: `git checkout -b test-api-remerge`
-- Delete everything we don't want back in the single repo (ndlano/test-api) from the root path.
-- Move the subdirectory back into root: `mv test-api/* .`
-    - Delete subdir `rm -d test-api`
-- Commit this: `git add . && git commit -m "Move test-api back to root"`
-- Merge this back into the original repo: `git checkout -b test-api-branch test-api-remote/master && git merge test-api-remerge`
-- IF everything seems okay this can now be pushed to the master of the standalone repository by simply doing `git push`
-
-### Pros
-- History is "perfect" as in the history of the files are complete and tools work as expected
-### Cons
-- Merging is a bit trickier, but doable
-- Pushing back into the standalone repository is difficult without screwing up the history of the original repository with changes from all sub-projects.
-- Pulling changes from the subprojects after the initial merge is a hassle
 </details>
