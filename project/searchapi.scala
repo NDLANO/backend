@@ -7,8 +7,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object searchapi {
-  lazy val mainClass = "no.ndla.searchapi.JettyLauncher"
+object searchapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.searchapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -36,7 +36,6 @@ object searchapi {
     ) ++ scalatra ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "search-api",
     imports = Seq("no.ndla.searchapi.model.api._"),
     exports = Seq(
       "ApiTaxonomyContext",
@@ -61,7 +60,7 @@ object searchapi {
   ) ++
     PactSettings ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings("-Xmx2G") ++
     tsSettings ++
     fmtSettings

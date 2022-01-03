@@ -1,5 +1,4 @@
 import com.earldouglas.xwp.JettyPlugin
-import com.itv.scalapact.plugin.ScalaPactPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.{libraryDependencies, name}
@@ -7,8 +6,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object audioapi {
-  lazy val mainClass = "no.ndla.audioapi.JettyLauncher"
+object audioapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.audioapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -43,7 +42,6 @@ object audioapi {
     ) ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "audio-api",
     imports = Seq("no.ndla.audioapi.model.api._"),
     exports = Seq(
       "Audio",
@@ -68,7 +66,7 @@ object audioapi {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
     fmtSettings

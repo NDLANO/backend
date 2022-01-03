@@ -7,8 +7,8 @@ import sbt._
 import sbtassembly.AssemblyPlugin
 import sbtdocker.DockerPlugin
 
-object conceptapi {
-  val mainClass = "no.ndla.conceptapi.JettyLauncher"
+object conceptapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.conceptapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -40,7 +40,6 @@ object conceptapi {
     ) ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "concept-api",
     imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),
     exports = Seq(
       "Concept",
@@ -61,7 +60,7 @@ object conceptapi {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
     fmtSettings

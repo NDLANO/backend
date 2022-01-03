@@ -7,8 +7,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object articleapi {
-  lazy val mainClass = "no.ndla.articleapi.JettyLauncher"
+object articleapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.articleapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -43,7 +43,6 @@ object articleapi {
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "article-api",
     imports = Seq("no.ndla.articleapi.model.api._",
                   "no.ndla.articleapi.model.api.TSTypes._",
                   "no.ndla.articleapi.model.domain.Availability"),
@@ -66,7 +65,7 @@ object articleapi {
   ) ++
     PactSettings ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
     fmtSettings

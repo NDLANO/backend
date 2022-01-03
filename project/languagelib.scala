@@ -3,7 +3,7 @@ import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._
 
-object languagelib {
+object languagelib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.json4s" %% "json4s-native" % Json4SV,

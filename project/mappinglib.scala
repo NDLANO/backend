@@ -4,7 +4,7 @@ import sbt.Keys._
 import Dependencies.common._
 import Dependencies._
 
-object mappinglib {
+object mappinglib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq("org.scalatest" %% "scalatest" % ScalaTestV % "test")
 
   private val scala213 = ScalaV

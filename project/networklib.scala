@@ -4,7 +4,7 @@ import sbt.Keys._
 import Dependencies.common._
 import Dependencies._
 
-object networklib {
+object networklib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
     "org.json4s" %% "json4s-jackson" % Json4SV,
     "org.json4s" %% "json4s-native" % Json4SV,

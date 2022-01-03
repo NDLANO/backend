@@ -7,8 +7,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object draftapi {
-  lazy val mainClass = "no.ndla.draftapi.JettyLauncher"
+object draftapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.draftapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -46,7 +46,6 @@ object draftapi {
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "draft-api",
     imports = Seq("no.ndla.draftapi.model.api._", "no.ndla.draftapi.model.api.TSTypes._"),
     exports = Seq(
       "Agreement",
@@ -62,7 +61,7 @@ object draftapi {
   lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "draft-api",
     libraryDependencies ++= dependencies
-  ) ++ PactSettings ++ commonSettings ++ assemblySettings(mainClass) ++ dockerSettings() ++ tsSettings
+  ) ++ PactSettings ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings
 
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig

@@ -1,13 +1,9 @@
-import com.earldouglas.xwp.JettyPlugin
-import com.itv.scalapact.plugin.ScalaPactPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
-import sbtdocker.DockerPlugin
 import Dependencies.common._
-import Dependencies._
+import com.scalatsi.plugin.ScalaTsiPlugin
+import sbt.Keys._
+import sbt._
 
-object validationlib {
+object validationlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
     "org.scalatest" %% "scalatest" % ScalaTestV % "test",
     "org.jsoup" % "jsoup" % "1.11.3",

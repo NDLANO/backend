@@ -1,14 +1,12 @@
-import com.earldouglas.xwp.JettyPlugin
-import com.itv.scalapact.plugin.ScalaPactPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt._
-import sbt.Keys._
-import sbtdocker.DockerPlugin
 import Dependencies.common._
-import Dependencies._
+import com.earldouglas.xwp.JettyPlugin
+import com.scalatsi.plugin.ScalaTsiPlugin
+import sbt.Keys._
+import sbt._
+import sbtdocker.DockerPlugin
 
-object oembedproxy {
-  lazy val mainClass = "no.ndla.oembedproxy.JettyLauncher"
+object oembedproxy extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.oembedproxy.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaNetwork,
@@ -29,7 +27,7 @@ object oembedproxy {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     fmtSettings
 

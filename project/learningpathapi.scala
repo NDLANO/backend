@@ -7,8 +7,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object learningpathapi {
-  lazy val mainClass = "no.ndla.learningpathapi.JettyLauncher"
+object learningpathapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.learningpathapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaLanguage,
@@ -45,7 +45,6 @@ object learningpathapi {
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "learningpath-api",
     imports = Seq("no.ndla.learningpathapi.model.api._"),
     exports = Seq(
       "Author",
@@ -71,7 +70,7 @@ object learningpathapi {
   ) ++
     PactSettings ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
     fmtSettings

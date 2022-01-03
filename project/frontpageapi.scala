@@ -5,8 +5,8 @@ import sbtdocker.DockerPlugin
 import Dependencies.common._
 import Dependencies._
 
-object frontpageapi {
-  lazy val mainClass = "no.ndla.frontpageapi.Main"
+object frontpageapi extends Module {
+  override val MainClass: Option[String] = Some("no.ndla.frontpageapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       ndlaNetwork,
@@ -33,7 +33,6 @@ object frontpageapi {
     ) ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    name = "frontpage-api",
     imports = Seq("no.ndla.frontpageapi.model.api._"),
     exports = Seq(
       "FrontPageData",
@@ -51,7 +50,7 @@ object frontpageapi {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    assemblySettings(mainClass) ++
+    assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
     fmtSettings
