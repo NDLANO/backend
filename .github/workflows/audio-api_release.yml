@@ -1,5 +1,7 @@
 name: 'Release: audio-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     branches:
       - master

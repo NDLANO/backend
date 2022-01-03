@@ -1,5 +1,7 @@
 name: 'CI: learningpath-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - learningpath-api/**

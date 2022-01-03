@@ -1,5 +1,7 @@
 name: 'CI: validation'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - validation/**

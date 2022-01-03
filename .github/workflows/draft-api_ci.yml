@@ -1,5 +1,7 @@
 name: 'CI: draft-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - draft-api/**

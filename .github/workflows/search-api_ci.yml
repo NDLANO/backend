@@ -1,5 +1,7 @@
 name: 'CI: search-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - search-api/**

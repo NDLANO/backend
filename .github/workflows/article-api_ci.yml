@@ -1,5 +1,7 @@
 name: 'CI: article-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - article-api/**

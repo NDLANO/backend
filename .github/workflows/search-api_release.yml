@@ -1,5 +1,7 @@
 name: 'Release: search-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     branches:
       - master

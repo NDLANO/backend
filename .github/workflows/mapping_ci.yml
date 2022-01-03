@@ -1,5 +1,7 @@
 name: 'CI: mapping'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - mapping/**

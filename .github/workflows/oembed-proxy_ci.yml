@@ -1,5 +1,7 @@
 name: 'CI: oembed-proxy'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - oembed-proxy/**

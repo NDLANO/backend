@@ -1,5 +1,7 @@
 name: 'CI: network'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - network/**

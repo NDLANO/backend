@@ -1,5 +1,7 @@
 name: 'CI: frontpage-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - frontpage-api/**

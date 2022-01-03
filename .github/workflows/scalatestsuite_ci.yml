@@ -1,5 +1,7 @@
 name: 'CI: scalatestsuite'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - scalatestsuite/**

@@ -1,5 +1,7 @@
 name: 'CI: audio-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - audio-api/**

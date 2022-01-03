@@ -1,5 +1,7 @@
 name: 'CI: image-api'
 on:
+  workflow_dispatch:
+    inputs: {}
   push:
     paths:
       - image-api/**
