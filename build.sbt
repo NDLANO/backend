@@ -1,5 +1,5 @@
-import Dependencies._
-import java.util.Properties
+import Dependencies.common
+
 ThisBuild / scalaVersion := common.ScalaV
 
 lazy val `article-api` = (project in file("./article-api/"))
