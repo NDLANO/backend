@@ -42,7 +42,7 @@ object articleapi extends Module {
       "io.lemonlabs" %% "scala-uri" % "1.5.1"
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
-  val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
+  lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.articleapi.model.api._",
                   "no.ndla.articleapi.model.api.TSTypes._",
                   "no.ndla.articleapi.model.domain.Availability"),

@@ -137,8 +137,7 @@ trait Module {
     Test / test := (Test / test).dependsOn(Test / checkfmt).value
   )
 
-  def typescriptSettings(imports: Seq[String],
-                         exports: Seq[String]): Seq[Def.Setting[_ >: Seq[String] with sbt.File <: Object]] = {
+  protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
     Seq(
       typescriptGenerationImports := imports,
       typescriptExports := exports,
