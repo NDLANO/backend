@@ -22,7 +22,7 @@ object oembedproxy extends Module {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
     ) ++ scalatra ++ vulnerabilityOverrides)
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "oembed-proxy",
     libraryDependencies ++= dependencies
   ) ++
@@ -31,12 +31,12 @@ object oembedproxy extends Module {
     dockerSettings() ++
     fmtSettings
 
-  lazy val plugins = Seq(
+  override lazy val plugins = Seq(
     JettyPlugin,
     DockerPlugin
   )
 
-  lazy val disablePlugins = Seq(
+  override lazy val disablePlugins = Seq(
     ScalaTsiPlugin
   )
 }

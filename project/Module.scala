@@ -15,7 +15,23 @@ import sbtassembly.AssemblyKeys._
 import sbtdocker.DockerKeys._
 import sbtdocker._
 
+object Module {
+
+  def setup(project: sbt.Project, module: Module): sbt.Project = {
+    project
+      .settings(module.settings: _*)
+      .configs(module.configs: _*)
+      .enablePlugins(module.plugins: _*)
+      .disablePlugins(module.disablePlugins: _*)
+  }
+}
+
 trait Module {
+  lazy val settings: Seq[Def.Setting[_]] = Seq.empty
+  lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
+  lazy val plugins: Seq[sbt.Plugins] = Seq.empty
+  lazy val disablePlugins: Seq[sbt.AutoPlugin] = Seq.empty
+
   protected val MainClass: Option[String] = None
   lazy val commonSettings = Seq(
     run / mainClass := this.MainClass,

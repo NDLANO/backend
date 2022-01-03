@@ -61,7 +61,7 @@ object imageapi extends Module {
     )
   )
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "image-api",
     libraryDependencies ++= dependencies
   ) ++
@@ -70,7 +70,7 @@ object imageapi extends Module {
     assemblySettings() ++
     fmtSettings
 
-  lazy val plugins: Seq[sbt.Plugins] = Seq(
+  override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
     ScalaTsiPlugin

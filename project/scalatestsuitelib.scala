@@ -23,7 +23,7 @@ object scalatestsuitelib extends Module {
   private val scala212 = "2.12.10"
   private val supportedScalaVersions = List(scala213, scala212)
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "scalatestsuite",
     libraryDependencies ++= dependencies,
     crossScalaVersions := supportedScalaVersions
@@ -31,5 +31,5 @@ object scalatestsuitelib extends Module {
     commonSettings ++
     fmtSettings
 
-  lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

@@ -55,7 +55,7 @@ object conceptapi extends Module {
     )
   )
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "concept-api",
     libraryDependencies ++= dependencies
   ) ++
@@ -65,7 +65,7 @@ object conceptapi extends Module {
     tsSettings ++
     fmtSettings
 
-  lazy val plugins: Seq[sbt.Plugins] = Seq(
+  override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
     ScalaTsiPlugin,

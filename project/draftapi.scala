@@ -58,16 +58,16 @@ object draftapi extends Module {
     )
   )
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "draft-api",
     libraryDependencies ++= dependencies
   ) ++ PactSettings ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings
 
-  lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
+  override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig
   )
 
-  lazy val plugins: Seq[sbt.Plugins] = Seq(
+  override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
     ScalaPactPlugin,

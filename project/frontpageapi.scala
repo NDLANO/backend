@@ -45,7 +45,7 @@ object frontpageapi extends Module {
     )
   )
 
-  lazy val settings: Seq[Def.Setting[_]] = Seq(
+  override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "frontpage-api",
     libraryDependencies ++= dependencies
   ) ++
@@ -55,7 +55,7 @@ object frontpageapi extends Module {
     tsSettings ++
     fmtSettings
 
-  lazy val plugins: Seq[sbt.Plugins] = Seq(
+  override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     ScalaTsiPlugin
   )
