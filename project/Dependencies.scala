@@ -79,10 +79,14 @@ object Dependencies {
     lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-slf4j18-impl" % Log4JV,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
       "org.slf4j" % "slf4j-api" % "1.7.32",
       "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
     )
+
+    def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {
+      libs.map(_.exclude("org.slf4j", "slf4j-api")) ++ logging
+    }
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
@@ -183,37 +187,38 @@ object Dependencies {
 
   object articleapi {
     lazy val mainClass = "no.ndla.articleapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaLanguage,
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaValidation,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1"
-    ) ++ logging ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaNetwork,
+        ndlaMapping,
+        ndlaValidation,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "io.lemonlabs" %% "scala-uri" % "1.5.1"
+      ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
     val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "article-api",
@@ -259,37 +264,38 @@ object Dependencies {
 
   object audioapi {
     lazy val mainClass = "no.ndla.audioapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "3.2.0",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ logging ++ scalatra ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaMapping,
+        ndlaNetwork,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "io.lemonlabs" %% "scala-uri" % "3.2.0",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9",
+        "org.typelevel" %% "cats-effect" % CatsEffectV,
+      ) ++ scalatra ++ vulnerabilityOverrides)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "audio-api",
@@ -331,34 +337,35 @@ object Dependencies {
 
   object conceptapi {
     val mainClass = "no.ndla.conceptapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
-      ndlaLanguage,
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaValidation,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      scalaTsi,
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.typelevel" %% "cats-core" % "2.1.1",
-      "org.typelevel" %% "cats-effect" % "2.1.1",
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
-    ) ++ scalatra ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaNetwork,
+        ndlaMapping,
+        ndlaValidation,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        scalaTsi,
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9",
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "org.typelevel" %% "cats-core" % "2.1.1",
+        "org.typelevel" %% "cats-effect" % "2.1.1",
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
+      ) ++ scalatra ++ vulnerabilityOverrides)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "concept-api",
@@ -398,40 +405,41 @@ object Dependencies {
 
   object draftapi {
     lazy val mainClass = "no.ndla.draftapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaLanguage,
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaValidation,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      elastic4sAWS,
-      elastic4sEmbedded % "test",
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ logging ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaNetwork,
+        ndlaMapping,
+        ndlaValidation,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        elastic4sAWS,
+        elastic4sEmbedded % "test",
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9",
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "io.lemonlabs" %% "scala-uri" % "1.5.1",
+        "org.typelevel" %% "cats-effect" % CatsEffectV,
+      ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "draft-api",
@@ -467,29 +475,30 @@ object Dependencies {
 
   object frontpageapi {
     lazy val mainClass = "no.ndla.frontpageapi.Main"
-    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaScalatestsuite,
-      scalaTsi,
-      "org.http4s" %% "http4s-circe" % Http4sV,
-      "io.circe" %% "circe-generic" % CirceV,
-      "io.circe" %% "circe-generic-extras" % CirceV,
-      "io.circe" %% "circe-literal" % CirceV,
-      "io.circe" %% "circe-parser" % CirceV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.http4s" %% "rho-swagger" % RhoV,
-      "org.http4s" %% "http4s-server" % Http4sV,
-      "org.http4s" %% "http4s-dsl" % Http4sV,
-      "org.http4s" %% "http4s-blaze-server" % Http4sV,
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1"
-    ) ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaNetwork,
+        ndlaMapping,
+        ndlaScalatestsuite,
+        scalaTsi,
+        "org.http4s" %% "http4s-circe" % Http4sV,
+        "io.circe" %% "circe-generic" % CirceV,
+        "io.circe" %% "circe-generic-extras" % CirceV,
+        "io.circe" %% "circe-literal" % CirceV,
+        "io.circe" %% "circe-parser" % CirceV,
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "org.http4s" %% "rho-swagger" % RhoV,
+        "org.http4s" %% "http4s-server" % Http4sV,
+        "org.http4s" %% "http4s-dsl" % Http4sV,
+        "org.http4s" %% "http4s-blaze-server" % Http4sV,
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1"
+      ) ++ vulnerabilityOverrides)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "frontpage-api",
@@ -524,42 +533,43 @@ object Dependencies {
 
   object imageapi {
     lazy val mainClass = "no.ndla.imageapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.elasticsearch.client" % "elasticsearch-rest-high-level-client" % ElasticsearchV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
-      "org.imgscalr" % "imgscalr-lib" % "4.2",
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
-      "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
-      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
-      "commons-io" % "commons-io" % "2.6"
-    ) ++ scalatra ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaMapping,
+        ndlaNetwork,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV,
+        "org.elasticsearch.client" % "elasticsearch-rest-high-level-client" % ElasticsearchV,
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
+        "org.imgscalr" % "imgscalr-lib" % "4.2",
+        "io.lemonlabs" %% "scala-uri" % "1.5.1",
+        // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
+        "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
+        "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
+        "commons-io" % "commons-io" % "2.6"
+      ) ++ scalatra ++ vulnerabilityOverrides)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "image-api",
@@ -594,11 +604,12 @@ object Dependencies {
   }
 
   object languagelib {
-    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" % "mockito-all" % "1.10.19" % "test"
-    )
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" % "mockito-all" % "1.10.19" % "test"
+      ))
 
     private val scala213 = ScalaV
     private val scala212 = "2.12.10"
@@ -618,39 +629,40 @@ object Dependencies {
 
   object learningpathapi {
     lazy val mainClass = "no.ndla.imageapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
-      elastic4sCore,
-      elastic4sHttp,
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.json4s" %% "json4s-ast" % Json4SV,
-      "org.json4s" %% "json4s-core" % Json4SV,
-      "org.json4s" %% "json4s-ext" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "org.typelevel" %% "cats-effect" % CatsEffectV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV
-    ) ++ scalatra ++ logging ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaMapping,
+        ndlaNetwork,
+        ndlaScalatestsuite,
+        elastic4sCore,
+        elastic4sHttp,
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.json4s" %% "json4s-ast" % Json4SV,
+        "org.json4s" %% "json4s-core" % Json4SV,
+        "org.json4s" %% "json4s-ext" % Json4SV,
+        "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
+        "org.postgresql" % "postgresql" % PostgresV,
+        "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "org.typelevel" %% "cats-effect" % CatsEffectV,
+        "io.lemonlabs" %% "scala-uri" % "1.5.1",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9",
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
+        "org.flywaydb" % "flyway-core" % FlywayV
+      ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "learningpath-api",
@@ -743,19 +755,20 @@ object Dependencies {
 
   object oembedproxy {
     lazy val mainClass = "no.ndla.oembedproxy.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaNetwork,
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
-    ) ++ logging ++ scalatra ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaNetwork,
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.scalaj" %% "scalaj-http" % "2.4.2",
+        "io.lemonlabs" %% "scala-uri" % "1.5.1",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
+      ) ++ scalatra ++ vulnerabilityOverrides)
 
     lazy val settings: Seq[Def.Setting[_]] = Seq(
       name := "oembed-proxy",
@@ -809,30 +822,31 @@ object Dependencies {
 
   object searchapi {
     lazy val mainClass = "no.ndla.searchapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
-      scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
-      "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV,
-      "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.json4s" %% "json4s-ext" % Json4SV,
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
-    ) ++ scalatra ++ logging ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides
+    lazy val dependencies: Seq[ModuleID] = withLogging(
+      Seq(
+        ndlaLanguage,
+        ndlaMapping,
+        ndlaNetwork,
+        ndlaScalatestsuite,
+        scalaTsi,
+        "joda-time" % "joda-time" % "2.10",
+        "org.jsoup" % "jsoup" % "1.11.3",
+        "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+        "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV,
+        "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV,
+        "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+        "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
+        "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
+        "org.json4s" %% "json4s-native" % Json4SV,
+        "org.json4s" %% "json4s-ext" % Json4SV,
+        "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+        "org.jrobin" % "jrobin" % "1.5.9",
+        "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
+        "io.lemonlabs" %% "scala-uri" % "1.5.1",
+        "org.scalatest" %% "scalatest" % ScalaTestV % "test",
+        "org.mockito" %% "mockito-scala" % MockitoV % "test",
+        "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
+      ) ++ scalatra ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides)
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "search-api",
