@@ -31,7 +31,7 @@ object Dependencies {
     val HikariConnectionPoolV = "4.0.1"
     val ScalaLoggingV = "3.9.4"
     val ScalaTestV = "3.2.1"
-    val Log4JV = "2.16.0"
+    val Log4JV = "2.17.1"
     val JettyV = "9.4.35.v20201120"
     val AwsSdkV = "1.11.658"
     val MockitoV = "1.14.8"
@@ -76,16 +76,13 @@ object Dependencies {
     lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
     lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
 
-    lazy val log4j = Seq(
+    lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
+      "org.apache.logging.log4j" % "log4j-slf4j18-impl" % Log4JV,
       "org.slf4j" % "slf4j-api" % "1.7.32",
+      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
     )
-
-    lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
-
-    lazy val logging: Seq[ModuleID] = log4j :+ scalaLogging
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
@@ -292,7 +289,7 @@ object Dependencies {
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ scalatra ++ logging ++ vulnerabilityOverrides
+    ) ++ logging ++ scalatra ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "audio-api",
@@ -334,7 +331,7 @@ object Dependencies {
 
   object conceptapi {
     val mainClass = "no.ndla.conceptapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
+    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
       ndlaLanguage,
       ndlaNetwork,
       ndlaMapping,
@@ -361,7 +358,7 @@ object Dependencies {
       "org.typelevel" %% "cats-core" % "2.1.1",
       "org.typelevel" %% "cats-effect" % "2.1.1",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
-    ) ++ scalatra ++ logging ++ vulnerabilityOverrides
+    ) ++ scalatra ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "concept-api",
@@ -470,7 +467,7 @@ object Dependencies {
 
   object frontpageapi {
     lazy val mainClass = "no.ndla.frontpageapi.Main"
-    lazy val dependencies: Seq[ModuleID] = Seq(
+    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
       ndlaNetwork,
       ndlaMapping,
       ndlaScalatestsuite,
@@ -492,7 +489,7 @@ object Dependencies {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "javax.servlet" % "javax.servlet-api" % "4.0.1"
-    ) ++ logging ++ vulnerabilityOverrides
+    ) ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "frontpage-api",
@@ -527,7 +524,7 @@ object Dependencies {
 
   object imageapi {
     lazy val mainClass = "no.ndla.imageapi.JettyLauncher"
-    lazy val dependencies: Seq[ModuleID] = Seq(
+    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
       ndlaLanguage,
       ndlaMapping,
       ndlaNetwork,
@@ -562,7 +559,7 @@ object Dependencies {
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
       "commons-io" % "commons-io" % "2.6"
-    ) ++ scalatra ++ logging ++ vulnerabilityOverrides
+    ) ++ scalatra ++ vulnerabilityOverrides
 
     lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
       name = "image-api",
@@ -597,11 +594,11 @@ object Dependencies {
   }
 
   object languagelib {
-    lazy val dependencies: Seq[ModuleID] = Seq(
+    lazy val dependencies: Seq[ModuleID] = logging ++ Seq(
       "org.json4s" %% "json4s-native" % Json4SV,
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
-    ) ++ logging
+    )
 
     private val scala213 = ScalaV
     private val scala212 = "2.12.10"
