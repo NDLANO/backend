@@ -68,27 +68,36 @@ jobs:
           repository: StackExchange/blackbox
           path: blackbox
       - name: Install Blackbox and key
-        run: "# Move binaries to path\nsudo mv blackbox/bin/* /home/runner/bin/\necho\
-        \ -n \"$GPG_KEY\" | base64 --decode | gpg --import\n"
+        run: |
+          # Move binaries to path
+          sudo mv blackbox/bin/* /home/runner/bin/
+          echo -n "$GPG_KEY" | base64 --decode | gpg --import
       - name: Install kubectl
-        run: "curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl\
-        \ -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\
-        \ > kubectl\nsudo mv kubectl /home/runner/bin/kubectl\nsudo chmod +x /home/runner/bin/kubectl\n\
-        mkdir -p ~/.kube\n"
+        run: |
+          curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl > kubectl
+          sudo mv kubectl /home/runner/bin/kubectl
+          sudo chmod +x /home/runner/bin/kubectl
+          mkdir -p ~/.kube
       - name: Install aws-iam-authenticator
-        run: "sudo curl -L https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator\
-        \ > aws-iam-authenticator\nsudo mv aws-iam-authenticator /home/runner/bin/aws-iam-authenticator\n\
-        sudo chmod +x /home/runner/bin/aws-iam-authenticator\n"
+        run: |
+          sudo curl -L https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator > aws-iam-authenticator
+          sudo mv aws-iam-authenticator /home/runner/bin/aws-iam-authenticator
+          sudo chmod +x /home/runner/bin/aws-iam-authenticator
       - name: Install helm /w push-plugin
-        run: "curl -L https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz > /tmp/helm.tar.gz\n\
-        tar xvzf /tmp/helm.tar.gz -C /tmp/\nsudo mv /tmp/linux-amd64/helm /home/runner/bin/\n\
-        sudo chmod +x /home/runner/bin/helm\nhelm plugin install https://github.com/chartmuseum/helm-push.git\
-        \ --version 0.9.0\n"
+        run: |
+          curl -L https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz > /tmp/helm.tar.gz
+          tar xvzf /tmp/helm.tar.gz -C /tmp/
+          sudo mv /tmp/linux-amd64/helm /home/runner/bin/
+          sudo chmod +x /home/runner/bin/helm
+          helm plugin install https://github.com/chartmuseum/helm-push.git --version 0.9.0
       - name: Build kubernetes config
-        run: "for config in `find ndla/deploy -name \"kubeconfig*eks-cluster\"`; do\n\
-        \  echo $config >> kubeconfigs;\ndone\nKUBECONFIG=$(cat kubeconfigs | paste\
-        \ -sd \":\" -) kubectl config view --raw > ~/.kube/config\n"
+        run: |
+          for config in `find ndla/deploy -name "kubeconfig*eks-cluster"`; do
+            echo $config >> kubeconfigs;
+          done
+          KUBECONFIG=$(cat kubeconfigs | paste -sd ":" -) kubectl config view --raw > ~/.kube/config
       - name: Do release
         shell: bash
-        run: "eval \"$($NDLA_DEPLOY/scripts/bin/ndla init -)\"\n_ndla_wrapper release\
-        \ $COMPONENT --update-chart\n"
+        run: |
+          eval "$($NDLA_DEPLOY/scripts/bin/ndla init -)"
+          _ndla_wrapper release $COMPONENT --update-chart

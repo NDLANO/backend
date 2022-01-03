@@ -909,7 +909,7 @@ object Dependencies {
     Seq(
       typescriptGenerationImports := imports,
       typescriptExports := exports,
-      typescriptOutputFile := baseDirectory.value / name / "typescript" / "index.ts"
+      typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts"
     )
   }
 }

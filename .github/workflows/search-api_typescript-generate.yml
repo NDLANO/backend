@@ -45,9 +45,13 @@ jobs:
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
       - name: Generate typescript types
-        run: sbt generateTypescript
+        run: sbt search-api/generateTypescript
       - name: Commit typescript changes
         continue-on-error: true
-        run: "git config user.email \"$KNOWIT_EMAIL\"\ngit config user.name \"github-actions\"\
-        \n\ngit add typescript/index.ts\ngit commit -m \"AUTOMATION: Generated new\
-        \ typescript files\"\ngit push\n"
+        run: |
+          git config user.email "$KNOWIT_EMAIL"
+          git config user.name "github-actions"
+
+          git add search-api/typescript/index.ts
+          git commit -m "AUTOMATION: Generated new typescript files"
+          git push

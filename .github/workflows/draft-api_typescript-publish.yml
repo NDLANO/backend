@@ -26,7 +26,7 @@ jobs:
           git config user.name "github-actions"
       - name: Publish typescript types
         run: |
-          cd typescript/
+          cd draft-api/typescript/
           yarn
           yarn build
           yarn publish --non-interactive --access public --patch
