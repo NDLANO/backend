@@ -34,12 +34,6 @@ object Dependencies {
       "com.itv" %% "scalapact-scalatest" % PactV % "test"
     )
 
-    lazy val ndlaNetwork = "ndla" %% "network" % "0.47"
-    lazy val ndlaMapping = "ndla" %% "mapping" % "0.15"
-    lazy val ndlaValidation = "ndla" %% "validation" % "0.53"
-    lazy val ndlaLanguage = "ndla" %% "language" % "1.0.0"
-    lazy val ndlaScalatestsuite = "ndla" %% "scalatestsuite" % "0.3" % "test"
-
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val scalatra = Seq(

@@ -11,11 +11,6 @@ object draftapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.draftapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      ndlaLanguage,
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaValidation,
-      ndlaScalatestsuite,
       elastic4sCore,
       elastic4sHttp,
       elastic4sAWS,

@@ -9,7 +9,6 @@ object oembedproxy extends Module {
   override val MainClass: Option[String] = Some("no.ndla.oembedproxy.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      ndlaNetwork,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",

@@ -5,7 +5,6 @@ import sbt._
 
 object scalatestsuitelib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
-    ndlaNetwork,
     "org.scalatest" %% "scalatest" % ScalaTestV,
     "org.mockito" %% "mockito-scala" % MockitoV,
     "org.mockito" %% "mockito-scala-scalatest" % MockitoV,

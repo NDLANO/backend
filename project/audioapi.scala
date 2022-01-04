@@ -10,10 +10,6 @@ object audioapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.audioapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,

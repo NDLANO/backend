@@ -11,11 +11,6 @@ object articleapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.articleapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      ndlaLanguage,
-      ndlaNetwork,
-      ndlaMapping,
-      ndlaValidation,
-      ndlaScalatestsuite,
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
