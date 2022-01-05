@@ -5,9 +5,15 @@ on:
   push:
     paths:
       - image-api/**
+      - project/imageapi.scala
+      - project/Dependencies.scala
+      - project/Module.scala
   pull_request:
     paths:
       - image-api/**
+      - project/imageapi.scala
+      - project/Dependencies.scala
+      - project/Module.scala
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
