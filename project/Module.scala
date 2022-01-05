@@ -1,4 +1,4 @@
-import Dependencies.common._
+import Dependencies.versions._
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyKeys._

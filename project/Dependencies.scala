@@ -3,7 +3,7 @@ import sbt._
 
 object Dependencies {
 
-  object common {
+  object versions {
     val ScalaV = "2.13.2"
     val ScalatraV = "2.8.2"
     val HikariConnectionPoolV = "4.0.1"

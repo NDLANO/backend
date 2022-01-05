@@ -1,6 +1,6 @@
-import Dependencies.common
+import Dependencies.versions
 
-ThisBuild / scalaVersion := common.ScalaV
+ThisBuild / scalaVersion := versions.ScalaV
 
 // format: off
 lazy val `article-api`      = Module.setup(project in file("./article-api/"),      articleapi,        deps = Seq(network, mapping, language, validation, scalatestsuite % "test"))
@@ -13,6 +13,7 @@ lazy val `learningpath-api` = Module.setup(project in file("./learningpath-api/"
 lazy val `oembed-proxy`     = Module.setup(project in file("./oembed-proxy/"),     oembedproxy,       deps = Seq(network))
 lazy val `search-api`       = Module.setup(project in file("./search-api/"),       searchapi,         deps = Seq(network, mapping, language,             scalatestsuite % "test"))
 
+lazy val common             = Module.setup(project in file("./common/"),           commonlib)
 lazy val scalatestsuite     = Module.setup(project in file("./scalatestsuite/"),   scalatestsuitelib, deps = Seq(network))
 lazy val network            = Module.setup(project in file("./network/"),          networklib)
 lazy val language           = Module.setup(project in file("./language/"),         languagelib)
