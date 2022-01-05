@@ -9,6 +9,7 @@
 package no.ndla.oembedproxy
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.setPropsFromEnv
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
@@ -22,6 +23,8 @@ object JettyLauncher extends LazyLogging {
   }
 
   def main(args: Array[String]): Unit = {
+    setPropsFromEnv()
+
     logger.info(
       Source
         .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))

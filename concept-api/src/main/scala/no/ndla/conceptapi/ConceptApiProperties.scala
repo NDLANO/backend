@@ -8,15 +8,15 @@
 package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
 import scala.util.Properties._
-import scala.util.{Failure, Success}
 
 object ConceptApiProperties extends LazyLogging {
-  val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
+  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "concept-api"
@@ -79,20 +79,4 @@ object ConceptApiProperties extends LazyLogging {
     "raw-image" -> s"$Domain/image-api/raw/id",
     ResourceType.H5P.toString -> H5PAddress
   )
-
-  def booleanProp(key: String): Boolean = prop(key).toBoolean
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOpt(key: String): Option[String] = {
-    propOrNone(key) match {
-      case Some(prop) => Some(prop)
-      case _          => None
-    }
-  }
-
-  def propOrElse(key: String, default: => String): String =
-    propOpt(key).getOrElse(default)
 }

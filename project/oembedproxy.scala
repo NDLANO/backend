@@ -1,4 +1,4 @@
-import Dependencies.common._
+import Dependencies.versions._
 import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._

@@ -3,15 +3,15 @@ import Dependencies.versions
 ThisBuild / scalaVersion := versions.ScalaV
 
 // format: off
-lazy val `article-api`      = Module.setup(project in file("./article-api/"),      articleapi,        deps = Seq(network, mapping, language, validation, scalatestsuite % "test"))
-lazy val `draft-api`        = Module.setup(project in file("./draft-api/"),        draftapi,          deps = Seq(network, mapping, language, validation, scalatestsuite % "test"))
-lazy val `audio-api`        = Module.setup(project in file("./audio-api/"),        audioapi,          deps = Seq(network, mapping, language,             scalatestsuite % "test"))
-lazy val `concept-api`      = Module.setup(project in file("./concept-api/"),      conceptapi,        deps = Seq(network, mapping, language, validation, scalatestsuite % "test"))
-lazy val `frontpage-api`    = Module.setup(project in file("./frontpage-api/"),    frontpageapi,      deps = Seq(network, mapping,                       scalatestsuite % "test"))
-lazy val `image-api`        = Module.setup(project in file("./image-api/"),        imageapi,          deps = Seq(network, mapping, language,             scalatestsuite % "test"))
-lazy val `learningpath-api` = Module.setup(project in file("./learningpath-api/"), learningpathapi,   deps = Seq(network, mapping, language,             scalatestsuite % "test"))
-lazy val `oembed-proxy`     = Module.setup(project in file("./oembed-proxy/"),     oembedproxy,       deps = Seq(network))
-lazy val `search-api`       = Module.setup(project in file("./search-api/"),       searchapi,         deps = Seq(network, mapping, language,             scalatestsuite % "test"))
+lazy val `article-api`      = Module.setup(project in file("./article-api/"),      articleapi,        deps = Seq(network, mapping, language, validation, scalatestsuite % "test", common))
+lazy val `draft-api`        = Module.setup(project in file("./draft-api/"),        draftapi,          deps = Seq(network, mapping, language, validation, scalatestsuite % "test", common))
+lazy val `audio-api`        = Module.setup(project in file("./audio-api/"),        audioapi,          deps = Seq(network, mapping, language,             scalatestsuite % "test", common))
+lazy val `concept-api`      = Module.setup(project in file("./concept-api/"),      conceptapi,        deps = Seq(network, mapping, language, validation, scalatestsuite % "test", common))
+lazy val `frontpage-api`    = Module.setup(project in file("./frontpage-api/"),    frontpageapi,      deps = Seq(network, mapping,                       scalatestsuite % "test", common))
+lazy val `image-api`        = Module.setup(project in file("./image-api/"),        imageapi,          deps = Seq(network, mapping, language,             scalatestsuite % "test", common))
+lazy val `learningpath-api` = Module.setup(project in file("./learningpath-api/"), learningpathapi,   deps = Seq(network, mapping, language,             scalatestsuite % "test", common))
+lazy val `oembed-proxy`     = Module.setup(project in file("./oembed-proxy/"),     oembedproxy,       deps = Seq(network,                                                         common))
+lazy val `search-api`       = Module.setup(project in file("./search-api/"),       searchapi,         deps = Seq(network, mapping, language,             scalatestsuite % "test", common))
 
 lazy val common             = Module.setup(project in file("./common/"),           commonlib)
 lazy val scalatestsuite     = Module.setup(project in file("./scalatestsuite/"),   scalatestsuitelib, deps = Seq(network))

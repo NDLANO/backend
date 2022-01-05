@@ -4,7 +4,7 @@ import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.{libraryDependencies, name}
 import sbtdocker.DockerPlugin
-import Dependencies.common._
+import Dependencies.versions._
 import Dependencies._
 
 object articleapi extends Module {

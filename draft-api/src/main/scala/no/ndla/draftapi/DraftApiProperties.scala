@@ -8,6 +8,7 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -137,18 +138,4 @@ object DraftApiProperties extends LazyLogging {
     ".f3d",
     ".mp4"
   )
-
-  def booleanProp(key: String): Boolean = prop(key).toBoolean
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOpt(key: String): Option[String] =
-    propOrNone(key) match {
-      case Some(prop) => Some(prop)
-      case _          => None
-    }
-
-  def propOrElse(key: String, default: => String): String = propOpt(key).getOrElse(default)
 }

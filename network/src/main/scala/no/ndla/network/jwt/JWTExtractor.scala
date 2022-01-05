@@ -7,7 +7,6 @@
 
 package no.ndla.network.jwt
 
-import javax.servlet.http.HttpServletRequest
 import no.ndla.network.model.{JWTClaims, NdlaHttpRequest}
 import pdi.jwt.{JwtJson4s, JwtOptions}
 
@@ -30,7 +29,7 @@ class JWTExtractor(request: NdlaHttpRequest) {
 
   def extractUserRoles(): List[String] = {
     val rawRoles = jwtClaims.map(_.scope).getOrElse(List.empty)
-    val env = Properties.envOrElse("NDLA_ENVIRONMENT", "local") match {
+    val env = Properties.propOrElse("NDLA_ENVIRONMENT", "local") match {
       case "local" => "test"
       case x       => x
     }

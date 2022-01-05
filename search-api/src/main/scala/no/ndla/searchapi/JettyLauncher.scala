@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
+import no.ndla.common.Environment.{booleanPropOrFalse, setPropsFromEnv}
 import no.ndla.searchapi.service.StandaloneIndexing
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
@@ -25,10 +26,9 @@ object JettyLauncher extends LazyLogging {
   def main(args: Array[String]): Unit = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
 
-    val envMap = System.getenv()
-    envMap.asScala.foreach { case (k, v) => System.setProperty(k, v) }
+    setPropsFromEnv()
 
-    if (SearchApiProperties.booleanOrFalse("STANDALONE_INDEXING_ENABLED")) {
+    if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
       StandaloneIndexing.doStandaloneIndexing()
     } else {
       val server = startServer(SearchApiProperties.ApplicationPort)

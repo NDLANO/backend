@@ -8,6 +8,7 @@
 package db.migration
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.LearningPathVerificationStatus
 import no.ndla.network.AuthUser
@@ -54,8 +55,8 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
 
   def getAuth0Token: Try[String] = {
     val requestBody = for {
-      client_id <- Try(LearningpathApiProperties.prop("LEARNINGPATH_CLIENT_ID"))
-      client_secret <- Try(LearningpathApiProperties.prop("LEARNINGPATH_CLIENT_SECRET"))
+      client_id <- Try(prop("LEARNINGPATH_CLIENT_ID"))
+      client_secret <- Try(prop("LEARNINGPATH_CLIENT_SECRET"))
     } yield
       Auth0TokenRequestBody(
         "client_credentials",

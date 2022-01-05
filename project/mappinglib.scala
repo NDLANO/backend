@@ -1,7 +1,7 @@
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys._
-import Dependencies.common._
+import Dependencies.versions._
 import Dependencies._
 
 object mappinglib extends Module {

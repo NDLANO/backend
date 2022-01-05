@@ -13,7 +13,7 @@ import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.util.Properties
+import scala.util.Properties.{setProp, propOrNone, clearProp}
 
 abstract class UnitSuite
     extends AnyFunSuite
@@ -25,33 +25,19 @@ abstract class UnitSuite
     with BeforeAndAfterAll
     with BeforeAndAfterEach {
 
-  def withEnv(key: String, value: Option[String])(toDoWithEnv: => Any) = {
-    val originalEnv = Properties.envOrNone(key)
+  def withEnv(key: String, value: Option[String])(toDoWithEnv: => Any): String = {
+    val originalEnv = propOrNone(key)
 
     value match {
-      case Some(envValue) => setEnv(key, envValue)
-      case None           => rmEnv(key)
+      case Some(envValue) => setProp(key, envValue)
+      case None           => clearProp(key)
     }
 
     toDoWithEnv
 
     originalEnv match {
-      case Some(original) => setEnv(key, original)
-      case None           => rmEnv(key)
+      case Some(original) => setProp(key, original)
+      case None           => clearProp(key)
     }
-  }
-
-  private def setEnv(key: String, value: String) = {
-    val field = System.getenv().getClass.getDeclaredField("m")
-    field.setAccessible(true)
-    val map = field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-    map.put(key, value)
-  }
-
-  private def rmEnv(key: String) = {
-    val field = System.getenv().getClass.getDeclaredField("m")
-    field.setAccessible(true)
-    val map = field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-    map.remove(key)
   }
 }

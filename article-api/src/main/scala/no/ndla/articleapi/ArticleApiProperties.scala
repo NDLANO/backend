@@ -9,6 +9,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -16,7 +17,7 @@ import no.ndla.validation.ResourceType
 import scala.util.Properties._
 
 object ArticleApiProperties extends LazyLogging {
-  val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
+  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "article-api"
@@ -122,15 +123,4 @@ object ArticleApiProperties extends LazyLogging {
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
   val H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = {
-    propOrNone(key) match {
-      case Some(prop) => prop
-      case _          => default
-    }
-  }
 }
