@@ -14,6 +14,7 @@ object articleapi extends Module {
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
+      scalaUri,
       "joda-time" % "joda-time" % "2.10",
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
@@ -34,7 +35,6 @@ object articleapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1"
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
