@@ -8,7 +8,7 @@
 
 package db.migration
 
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s._
 import org.json4s.native.JsonMethods._

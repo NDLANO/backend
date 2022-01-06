@@ -14,7 +14,7 @@ import java.util.concurrent.Executors
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.{Region, Regions}
 import com.sksamuel.elastic4s.http._
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.learningpathapi.model.domain.NdlaSearchException
 import no.ndla.learningpathapi.LearningpathApiProperties.{RunWithSignedSearchRequests, SearchServer}
 import org.apache.http.client.config.RequestConfig
