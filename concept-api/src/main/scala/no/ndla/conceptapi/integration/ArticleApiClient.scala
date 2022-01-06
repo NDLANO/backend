@@ -13,7 +13,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import scalaj.http.Http
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 
 import scala.math.ceil
 import scala.util.{Failure, Success, Try}
@@ -50,15 +50,16 @@ trait ArticleApiClient {
       }
     }
 
-    def get[T](path: String, params: Map[String, Any], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
+    def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).addParams(params.toList)).timeout(timeout, timeout))
+      ndlaClient.fetchWithForwardedAuth[T](
+        Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout))
     }
 
     private def getChunk(page: Int, pageSize: Int): Try[ConceptDomainDumpResults] = {
       val params = Map(
-        "page" -> page,
-        "page-size" -> pageSize
+        "page" -> page.toString,
+        "page-size" -> pageSize.toString
       )
 
       get[ConceptDomainDumpResults](dumpDomainPath, params, timeout = 20000) match {
