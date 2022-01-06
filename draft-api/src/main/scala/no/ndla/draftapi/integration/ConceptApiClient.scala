@@ -8,7 +8,7 @@
 package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.ConceptApiHost
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -62,7 +62,7 @@ trait ConceptApiClient {
         implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
-        Http(conceptBaseUrl / path)
+        Http((conceptBaseUrl / path).toString)
           .timeout(timeout, timeout)
           .params(params)
       )
@@ -71,7 +71,7 @@ trait ConceptApiClient {
     private[integration] def put[A](path: String, timeout: Int, params: (String, String)*)(
         implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(conceptBaseUrl / path)
+        Http((conceptBaseUrl / path).toString)
           .timeout(timeout, timeout)
           .params(params)
           .method("PUT")

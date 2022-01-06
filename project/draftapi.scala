@@ -16,6 +16,7 @@ object draftapi extends Module {
       elastic4sAWS,
       elastic4sEmbedded % "test",
       scalaTsi,
+      scalaUri,
       "joda-time" % "joda-time" % "2.10",
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
@@ -36,7 +37,6 @@ object draftapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
     ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
