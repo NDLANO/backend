@@ -206,7 +206,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(1),
       titles,
       alttexts,
-      "http://some.url/img.jpg",
+      "/img.jpg",
       1024,
       "image/jpeg",
       copyright,

@@ -15,7 +15,7 @@ import no.ndla.imageapi.model.Language._
 import no.ndla.imageapi.model.{api, domain}
 import no.ndla.network.ApplicationUrl
 import io.lemonlabs.uri.{Uri, Url, UrlPath}
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain.ModelReleasedStatus

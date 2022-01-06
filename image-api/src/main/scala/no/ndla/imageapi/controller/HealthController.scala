@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.controller
 
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.Uri.parse
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.repository.ImageRepository

@@ -13,6 +13,7 @@ object imageapi extends Module {
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
+      scalaUri,
       "joda-time" % "joda-time" % "2.10",
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
@@ -35,7 +36,6 @@ object imageapi extends Module {
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
       "org.imgscalr" % "imgscalr-lib" % "4.2",
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
