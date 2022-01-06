@@ -11,10 +11,6 @@ object searchapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.searchapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      ndlaLanguage,
-      ndlaMapping,
-      ndlaNetwork,
-      ndlaScalatestsuite,
       scalaTsi,
       "joda-time" % "joda-time" % "2.10",
       "org.jsoup" % "jsoup" % "1.11.3",

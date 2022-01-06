@@ -17,12 +17,15 @@ import sbtdocker._
 
 object Module {
 
-  def setup(project: sbt.Project, module: Module): sbt.Project = {
+  def setup(project: sbt.Project,
+            module: Module,
+            deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty): sbt.Project = {
     project
       .settings(module.settings: _*)
       .configs(module.configs: _*)
       .enablePlugins(module.plugins: _*)
       .disablePlugins(module.disablePlugins: _*)
+      .dependsOn(deps: _*)
   }
 }
 
