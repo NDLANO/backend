@@ -9,7 +9,7 @@ object validationlib extends Module {
     "org.jsoup" % "jsoup" % "1.11.3",
     "org.json4s" %% "json4s-native" % Json4SV,
     "org.json4s" %% "json4s-ext" % Json4SV,
-    "io.lemonlabs" %% "scala-uri" % "1.5.1"
+    scalaUri
   )
 
   private val scala213 = ScalaV
