@@ -22,9 +22,10 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.servlet.SizeConstraintExceededException
 import org.scalatra.{BadRequest, InternalServerError, RequestEntityTooLarge, ScalatraServlet, _}
-import java.lang.Math.{max, min}
 
+import java.lang.Math.{max, min}
 import no.ndla.imageapi.ComponentRegistry
+import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
 
 import scala.util.{Failure, Success, Try}

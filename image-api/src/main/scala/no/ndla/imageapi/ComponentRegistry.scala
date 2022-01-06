@@ -11,6 +11,7 @@ package no.ndla.imageapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.imageapi.ImageApiProperties.SearchServer
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
@@ -26,6 +27,7 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -89,7 +91,7 @@ object ComponentRegistry
   lazy val resourcesApp = new ResourcesApp
   lazy val converterService = new ConverterService
   lazy val tagsService = new TagsService
-  lazy val e4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
   lazy val searchConverterService = new SearchConverterService
 
   lazy val imageConverter = new ImageConverter

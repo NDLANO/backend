@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
 import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
 import no.ndla.searchapi.integration._

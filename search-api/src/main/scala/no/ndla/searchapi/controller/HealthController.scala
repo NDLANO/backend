@@ -11,7 +11,7 @@ package no.ndla.searchapi.controller
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.RequestSuccess
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.searchapi.integration.Elastic4sClient
+import no.ndla.search.Elastic4sClient
 import org.scalatra.{InternalServerError, Ok, ScalatraServlet}
 
 import scala.util.{Failure, Success, Try}

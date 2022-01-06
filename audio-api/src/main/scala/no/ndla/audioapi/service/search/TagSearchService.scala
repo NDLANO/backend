@@ -16,11 +16,10 @@ import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive
 }
-import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.Language
 import no.ndla.audioapi.model.api.ResultWindowTooLargeException
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
-import no.ndla.language.model.{Iso639, LanguageTag}
+import no.ndla.language.model.Iso639
+import no.ndla.search.Elastic4sClient
 import org.json4s._
 import org.json4s.native.Serialization.read
 

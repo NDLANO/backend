@@ -16,6 +16,7 @@ import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition, NestedField}
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ElasticIndexingException

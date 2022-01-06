@@ -9,8 +9,8 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.integration.Elastic4sClientFactory
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization.read

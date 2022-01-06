@@ -9,9 +9,9 @@ package no.ndla.searchapi.service.search
 
 import java.nio.file.{Files, Path}
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.SearchApiProperties.DefaultPageSize
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus

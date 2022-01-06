@@ -8,12 +8,12 @@
 package no.ndla.conceptapi.service.search
 
 import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, DefaultPageSize}
-import no.ndla.conceptapi.integration.Elastic4sClientFactory
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 

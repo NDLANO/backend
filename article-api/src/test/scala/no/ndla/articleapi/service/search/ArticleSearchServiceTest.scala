@@ -11,11 +11,11 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.Elastic4sClientFactory
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 

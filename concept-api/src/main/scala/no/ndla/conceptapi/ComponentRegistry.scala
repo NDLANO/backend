@@ -9,6 +9,7 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.conceptapi.ConceptApiProperties.SearchServer
 import no.ndla.conceptapi.controller.{
   DraftConceptController,
   DraftNdlaController,
@@ -18,14 +19,7 @@ import no.ndla.conceptapi.controller.{
   PublishedConceptController
 }
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.{
-  ArticleApiClient,
-  DataSource,
-  Elastic4sClient,
-  Elastic4sClientFactory,
-  ImageApiClient,
-  NdlaE4sClient
-}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   DraftConceptIndexService,
@@ -46,6 +40,7 @@ import no.ndla.conceptapi.service.{
 }
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -92,7 +87,7 @@ object ComponentRegistry
   lazy val publishedConceptIndexService = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
 
   lazy val ndlaClient = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient

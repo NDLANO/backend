@@ -11,11 +11,11 @@ package no.ndla.learningpathapi.service.search
 import com.sksamuel.elastic4s.indexes.CreateIndexRequest
 import no.ndla.learningpathapi.LearningpathApiProperties.{DefaultPageSize, MaxPageSize}
 import no.ndla.learningpathapi.TestData.searchSettings
-import no.ndla.learningpathapi.integration.Elastic4sClientFactory
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{Description, _}
 import no.ndla.learningpathapi.{LearningpathApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 

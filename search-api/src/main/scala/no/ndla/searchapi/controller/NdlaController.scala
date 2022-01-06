@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import javax.servlet.http.HttpServletRequest
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.search.NdlaSearchException
 import no.ndla.searchapi.SearchApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.searchapi.integration.FeideApiClient
 import no.ndla.searchapi.model.api.{
@@ -24,7 +25,6 @@ import no.ndla.searchapi.model.api.{
   ValidationException,
   ValidationMessage
 }
-import no.ndla.searchapi.model.domain.NdlaSearchException
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._

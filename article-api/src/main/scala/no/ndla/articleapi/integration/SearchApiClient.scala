@@ -12,7 +12,6 @@ import java.util.concurrent.Executors
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.SearchHost
 import no.ndla.articleapi.model.domain.{Article, ArticleType}
-import no.ndla.articleapi.model.api.SearchException
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats

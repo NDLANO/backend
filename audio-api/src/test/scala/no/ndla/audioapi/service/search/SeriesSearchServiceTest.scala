@@ -9,11 +9,11 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.TestData.searchSettings
-import no.ndla.audioapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{AudioApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
@@ -25,8 +25,7 @@ class SeriesSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val e4sClient: NdlaE4sClient =
-    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val seriesSearchService = new SeriesSearchService
   override val seriesIndexService = new SeriesIndexService

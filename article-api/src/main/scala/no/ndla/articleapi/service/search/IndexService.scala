@@ -18,10 +18,10 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
+import no.ndla.search.Elastic4sClient
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}

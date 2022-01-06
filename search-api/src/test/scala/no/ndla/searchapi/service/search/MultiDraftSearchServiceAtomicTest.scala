@@ -8,8 +8,8 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.integration.Elastic4sClientFactory
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{SearchApiProperties, TestData, TestEnvironment}

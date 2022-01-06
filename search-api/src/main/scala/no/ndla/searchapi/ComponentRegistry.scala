@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.SearchApiProperties._
@@ -53,7 +54,7 @@ object ComponentRegistry
   lazy val resourcesApp = new ResourcesApp
 
   lazy val ndlaClient = new NdlaClient
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
 
   lazy val taxonomyApiClient = new TaxonomyApiClient
   lazy val grepApiClient = new GrepApiClient

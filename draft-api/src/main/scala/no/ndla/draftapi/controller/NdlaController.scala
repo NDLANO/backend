@@ -8,6 +8,7 @@
 package no.ndla.draftapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+
 import javax.servlet.http.HttpServletRequest
 import no.ndla.draftapi.ComponentRegistry
 import no.ndla.draftapi.DraftApiProperties.{
@@ -28,9 +29,10 @@ import no.ndla.draftapi.model.api.{
   ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.draftapi.model.domain.{NdlaSearchException, emptySomeToNone}
+import no.ndla.draftapi.model.domain.emptySomeToNone
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.search.NdlaSearchException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException

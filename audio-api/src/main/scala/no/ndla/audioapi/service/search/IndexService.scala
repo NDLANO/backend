@@ -16,11 +16,11 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.domain.ReindexResult
 import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
+import no.ndla.search.Elastic4sClient
 import org.json4s.Formats
 
 import java.text.SimpleDateFormat

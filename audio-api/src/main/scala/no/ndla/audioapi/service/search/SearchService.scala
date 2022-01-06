@@ -14,10 +14,10 @@ import com.sksamuel.elastic4s.searches.queries.Query
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
-import no.ndla.audioapi.integration.Elastic4sClient
-import no.ndla.audioapi.model.domain.{NdlaSearchException, SearchResult}
+import no.ndla.audioapi.model.domain.SearchResult
 import no.ndla.audioapi.model.{Language, Sort}
 import no.ndla.language.model.Iso639
+import no.ndla.search.{Elastic4sClient, NdlaSearchException}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 

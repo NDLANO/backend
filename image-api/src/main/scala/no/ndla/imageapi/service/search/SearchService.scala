@@ -13,9 +13,9 @@ import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.ElasticSearchScrollKeepAlive
-import no.ndla.imageapi.integration.Elastic4sClient
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
-import no.ndla.imageapi.model.{Language, NdlaSearchException}
+import no.ndla.imageapi.model.Language
+import no.ndla.search.{Elastic4sClient, NdlaSearchException}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 

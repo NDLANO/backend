@@ -8,10 +8,10 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuite}
-import no.ndla.imageapi.integration.Elastic4sClientFactory
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import scala.util.Success
@@ -21,7 +21,7 @@ class TagSearchServiceTest
     with UnitSuite
     with TestEnvironment {
 
-  override val e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {

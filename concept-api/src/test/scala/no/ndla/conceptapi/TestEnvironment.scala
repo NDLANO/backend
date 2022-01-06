@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller.{DraftConceptController, DraftNdlaController, PublishedConceptController}
-import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, Elastic4sClient, ImageApiClient, NdlaE4sClient}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   DraftConceptIndexService,
@@ -32,6 +32,7 @@ import no.ndla.conceptapi.service.{
 }
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment

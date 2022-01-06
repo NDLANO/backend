@@ -10,6 +10,7 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi
+import no.ndla.learningpathapi.LearningpathApiProperties.SearchServer
 import no.ndla.learningpathapi.controller.{
   ConfigController,
   HealthController,
@@ -27,6 +28,7 @@ import no.ndla.learningpathapi.validation.{
   TitleValidator
 }
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -82,7 +84,7 @@ object ComponentRegistry
   lazy val titleValidator = new TitleValidator
   lazy val learningPathValidator = new LearningPathValidator
   lazy val learningStepValidator = new LearningStepValidator
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
   lazy val searchApiClient = new SearchApiClient
   lazy val oembedProxyClient = new OembedProxyClient
 }

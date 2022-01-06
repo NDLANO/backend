@@ -9,12 +9,14 @@
 package no.ndla.learningpathapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+
 import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.ComponentRegistry
 import no.ndla.learningpathapi.model.api.{Error, ImportReport, ValidationError, ValidationMessage}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.search.NdlaSearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}

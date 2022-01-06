@@ -17,13 +17,13 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 import no.ndla.imageapi.auth.Role
-import no.ndla.imageapi.integration.Elastic4sClient
 import no.ndla.imageapi.model.{Language, ResultWindowTooLargeException}
 import no.ndla.imageapi.model.api.{Error, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.{SearchableImage, SearchableLanguageFormats}
 import no.ndla.language.model.{Iso639, LanguageTag}
 import no.ndla.mapping.ISO639
+import no.ndla.search.Elastic4sClient
 import org.json4s.native.Serialization.read
 import org.json4s.Formats
 

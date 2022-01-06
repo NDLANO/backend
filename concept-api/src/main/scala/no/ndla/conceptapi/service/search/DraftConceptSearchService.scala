@@ -12,12 +12,12 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
+import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
 import scala.annotation.tailrec

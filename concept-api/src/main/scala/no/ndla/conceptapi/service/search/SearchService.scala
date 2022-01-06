@@ -16,10 +16,10 @@ import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import no.ndla.conceptapi.model.domain.{Language, NdlaSearchException, SearchResult, Sort}
+import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
-import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.mapping.ISO639
+import no.ndla.search.{Elastic4sClient, NdlaSearchException}
 
 import scala.util.{Failure, Success, Try}
 

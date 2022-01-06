@@ -14,10 +14,10 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
+import no.ndla.search.Elastic4sClient
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}

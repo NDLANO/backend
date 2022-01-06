@@ -8,9 +8,9 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.SearchApiProperties.DefaultPageSize
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.integration.Elastic4sClientFactory
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
