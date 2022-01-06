@@ -9,12 +9,11 @@
 package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.model.domain.Language
-import no.ndla.network.{AuthUser, Domains}
+import no.ndla.common.Environment.prop
 import no.ndla.network.secrets.PropertyKeys
+import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties._
-import scala.util.{Failure, Success}
 
 object LearningpathApiProperties extends LazyLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
@@ -118,16 +117,4 @@ object LearningpathApiProperties extends LazyLogging {
 
   val RunWithSignedSearchRequests: Boolean =
     propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = {
-    propOrNone(key) match {
-      case Some(prop) => prop
-      case _          => default
-    }
-  }
-
 }

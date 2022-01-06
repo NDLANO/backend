@@ -9,7 +9,7 @@
 package no.ndla.oembedproxy
 
 import no.ndla.network.{AuthUser, Domains}
-import scala.util.Properties.envOrNone
+import scala.util.Properties.propOrElse
 
 object OEmbedProxyProperties {
 
@@ -64,11 +64,4 @@ object OEmbedProxyProperties {
   val HealthControllerMountPoint = "/health"
 
   lazy val Domain: String = Domains.get(Environment)
-
-  def propOrElse(key: String, default: => String): String = {
-    envOrNone(key) match {
-      case Some(env) => env
-      case None      => default
-    }
-  }
 }

@@ -10,8 +10,7 @@ package no.ndla.network
 
 import javax.servlet.http.HttpServletRequest
 import no.ndla.network.model.NdlaHttpRequest
-
-import scala.util.Properties
+import scala.util.Properties.propOrNone
 
 object ApplicationUrl {
   val X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto"
@@ -29,7 +28,7 @@ object ApplicationUrl {
     set(NdlaHttpRequest(request))
 
   def set(request: NdlaHttpRequest): Unit = {
-    Properties.envOrNone("NDLA_ENVIRONMENT") match {
+    propOrNone("NDLA_ENVIRONMENT") match {
       case Some(environment) if environment.nonEmpty =>
         applicationUrl.set(s"${Domains.get(environment)}${request.servletPath}/")
       case _ =>

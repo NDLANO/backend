@@ -9,14 +9,14 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.network.secrets.PropertyKeys
 
 import scala.util.Properties._
-import scala.util.{Failure, Success}
 
 object AudioApiProperties extends LazyLogging {
-  val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
+  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "audio-api"
@@ -104,16 +104,5 @@ object AudioApiProperties extends LazyLogging {
   lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   lazy val RawImageApiUrl = s"$Domain/image-api/raw/id"
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = {
-    propOrNone(key) match {
-      case Some(prop) => prop
-      case _          => default
-    }
-  }
 
 }

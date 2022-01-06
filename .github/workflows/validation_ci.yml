@@ -5,9 +5,15 @@ on:
   push:
     paths:
       - validation/**
+      - project/validationlib.scala
+      - project/Dependencies.scala
+      - project/Module.scala
   pull_request:
     paths:
       - validation/**
+      - project/validationlib.scala
+      - project/Dependencies.scala
+      - project/Module.scala
 jobs:
   unit_tests:
     name: Unit tests

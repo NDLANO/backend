@@ -7,7 +7,7 @@
 package no.ndla.searchapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.searchapi.SearchApiProperties.{booleanOrFalse, prop, propOrElse}
+import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.searchapi.model.domain.{Content, ReindexResult}
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import org.json4s.{DefaultFormats, Formats}
@@ -18,6 +18,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
+import scala.util.Properties.propOrElse
 import java.time.Instant
 
 /**
@@ -40,7 +41,7 @@ object StandaloneIndexing extends LazyLogging {
 
   def sendSlackError(errors: Seq[String]): Unit = {
     val enableSlackMessageFlag = "SLACK_ERROR_ENABLED"
-    if (!booleanOrFalse(enableSlackMessageFlag)) {
+    if (!booleanPropOrFalse(enableSlackMessageFlag)) {
       logger.info(s"Skipping sending message to slack because $enableSlackMessageFlag...")
       return
     } else {

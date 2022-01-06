@@ -5,9 +5,15 @@ on:
   push:
     paths:
       - network/**
+      - project/networklib.scala
+      - project/Dependencies.scala
+      - project/Module.scala
   pull_request:
     paths:
       - network/**
+      - project/networklib.scala
+      - project/Dependencies.scala
+      - project/Module.scala
 jobs:
   unit_tests:
     name: Unit tests

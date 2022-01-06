@@ -67,14 +67,4 @@ object SearchApiProperties extends LazyLogging {
     "learningpath-api" -> s"$Domain/learningpath-api/v2/learningpaths",
     "raw-image" -> s"$Domain/image-api/raw/id"
   )
-
-  def booleanProp(key: String): Boolean = prop(key).toBoolean
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = envOrElse(key, default)
-
-  def booleanOrFalse(key: String): Boolean = propOrElse(key, "false").toBoolean
 }

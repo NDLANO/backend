@@ -9,7 +9,8 @@ package no.ndla.frontpageapi
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import no.ndla.frontpageapi.FrontpageApiProperties.{NumThreads, ApplicationPort}
+import no.ndla.common.Environment.setPropsFromEnv
+import no.ndla.frontpageapi.FrontpageApiProperties.{ApplicationPort, NumThreads}
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -18,14 +19,12 @@ import org.log4s.getLogger
 import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
 import scala.io.Source
-import scala.jdk.CollectionConverters.MapHasAsScala
 
 object Main extends IOApp {
   val logger = getLogger
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val envMap = System.getenv()
-    envMap.asScala.foreach { case (k, v) => System.setProperty(k, v) }
+    setPropsFromEnv()
 
     logger.info(
       Source

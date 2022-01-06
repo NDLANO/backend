@@ -1,4 +1,4 @@
-import Dependencies.common._
+import Dependencies.versions._
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._

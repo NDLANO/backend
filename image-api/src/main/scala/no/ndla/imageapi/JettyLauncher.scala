@@ -9,10 +9,11 @@
 package no.ndla.imageapi
 
 import java.util
-
 import com.typesafe.scalalogging.LazyLogging
+
 import javax.servlet.DispatcherType
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
+import no.ndla.common.Environment.setPropsFromEnv
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
@@ -65,8 +66,7 @@ object JettyLauncher extends LazyLogging {
   }
 
   def main(args: Array[String]): Unit = {
-    val envMap = System.getenv()
-    envMap.asScala.foreach { case (k, v) => System.setProperty(k, v) }
+    setPropsFromEnv()
 
     val server = startServer(ImageApiProperties.ApplicationPort)
     server.join()

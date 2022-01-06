@@ -8,7 +8,7 @@
 package db.migration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.prop
+import no.ndla.common.Environment.prop
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

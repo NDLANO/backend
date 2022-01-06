@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.articleapi.ArticleApiProperties.prop
+import no.ndla.common.Environment.prop
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

@@ -9,10 +9,10 @@
 package no.ndla.imageapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.prop
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.network.secrets.PropertyKeys
 
-import scala.util.{Failure, Success}
 import scala.util.Properties._
 
 object ImageApiProperties extends LazyLogging {
@@ -124,16 +124,4 @@ object ImageApiProperties extends LazyLogging {
   lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiUrlBase: String = Domain + ImageControllerPath + "/"
   val RawImageUrlBase: String = Domain + RawControllerPath
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = {
-    propOrNone(key) match {
-      case Some(prop) => prop
-      case _          => default
-    }
-  }
-
 }

@@ -7,18 +7,18 @@
 
 package no.ndla.frontpageapi
 
+import no.ndla.common.Environment.prop
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.network.secrets.PropertyKeys
 
 import scala.util.Properties._
-import scala.util.{Failure, Success}
 
 object FrontpageApiProperties {
-  val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
+  val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val ApplicationName = "frontpage-api"
-  val ApplicationPort: Int = envOrElse("APPLICATION_PORT", "80").toInt
+  val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
   val NumThreads: Int = propOrElse("NUM_THREADS", "200").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
   val ContactName: String = propOrElse("CONTACT_NAME", "NDLA")
@@ -42,16 +42,4 @@ object FrontpageApiProperties {
 
   val BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT")
   val BrightcovePlayer: String = prop("BRIGHTCOVE_PLAYER")
-
-  def prop(key: String): String = {
-    propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
-  }
-
-  def propOrElse(key: String, default: => String): String = {
-    propOrNone(key) match {
-      case Some(prop) => prop
-      case _          => default
-    }
-  }
-
 }
