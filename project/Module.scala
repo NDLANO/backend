@@ -1,7 +1,7 @@
 import Dependencies.versions._
 import sbt.Keys._
 import sbt._
-import sbtassembly.AssemblyKeys._
+import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
 import sbtassembly._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
@@ -9,8 +9,6 @@ import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptOutputFile
 }
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
-import sbt.Keys._
-import sbt._
 import sbtassembly.AssemblyKeys._
 import sbtdocker.DockerKeys._
 import sbtdocker._
@@ -36,7 +34,7 @@ trait Module {
   lazy val disablePlugins: Seq[sbt.AutoPlugin] = Seq.empty
 
   protected val MainClass: Option[String] = None
-  lazy val commonSettings = Seq(
+  lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
     run / mainClass := this.MainClass,
     Compile / mainClass := this.MainClass,
     organization := "ndla",
@@ -49,7 +47,16 @@ trait Module {
       .envOrNone("NDLA_RELEASES")
       .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
       .toSeq
-  )
+  ) ++ loadEnvFile()
+
+  private def loadEnvFile(): Seq[Def.Setting[_]] = {
+    Seq(
+      fork := true,
+      run / envVars ++= {
+        parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
+      }
+    )
+  }
 
   def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {
     // Many sub-dependencies might pull in slf4j-api, and since there might
