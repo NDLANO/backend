@@ -12,6 +12,7 @@ object searchapi extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,
+      scalaUri,
       "joda-time" % "joda-time" % "2.10",
       "org.jsoup" % "jsoup" % "1.11.3",
       "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
@@ -25,7 +26,6 @@ object searchapi extends Module {
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"

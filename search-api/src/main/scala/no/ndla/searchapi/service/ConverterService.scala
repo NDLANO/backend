@@ -11,7 +11,7 @@ import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.{api, domain}
 import no.ndla.searchapi.SearchApiProperties.Domain
 import no.ndla.network.ApplicationUrl
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model
 import no.ndla.searchapi.model.api.{LearningPathIntroduction, MetaDescription}
@@ -92,8 +92,8 @@ trait ConverterService {
         image.id.toLong,
         api.Title(image.title.title, image.title.language),
         api.ImageAltText(image.altText.alttext, image.altText.language),
-        previewUrl,
-        metaUrl,
+        previewUrl.toString,
+        metaUrl.toString,
         image.supportedLanguages
       )
     }
@@ -111,7 +111,7 @@ trait ConverterService {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
       val host = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
-      val url = audio.url.withHost(host).withScheme(scheme)
+      val url = audio.url.withHost(host).withScheme(scheme).toString
       api.AudioResult(audio.id, api.Title(audio.title.title, audio.title.language), url, audio.supportedLanguages)
     }
 

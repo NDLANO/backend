@@ -28,6 +28,8 @@ object Dependencies {
     val ScalikeJDBCV = "4.0.0-RC2"
     val TestContainersV = "1.15.1"
 
+    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
+
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
       "com.itv" %% "scalapact-http4s-0-21" % PactV % "test",
