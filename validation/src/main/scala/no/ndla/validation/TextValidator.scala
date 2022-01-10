@@ -23,7 +23,6 @@ class TextValidator(allowHtml: Boolean) {
     *
     * @param fieldPath Path to return in the [[ValidationMessage]]'s if there are any
     * @param text Text to validate
-    * @param validateEmbedTagParent Whether to validate parents of embed tags where those are required.
     * @param requiredToOptional Map from resource-type to Seq of embed tag attributes to treat as optional rather than required for this validation.
     *                           Example Map("image" -> Seq("data-caption")) to make data-caption optional for "image" on this validation.
     * @return Seq of [[ValidationMessage]]'s describing issues with validation
@@ -31,11 +30,10 @@ class TextValidator(allowHtml: Boolean) {
   def validate(
       fieldPath: String,
       text: String,
-      validateEmbedTagParent: Boolean = true,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
     allowHtml match {
-      case true  => validateOnlyBasicHtmlTags(fieldPath, text, validateEmbedTagParent, requiredToOptional)
+      case true  => validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
       case false => validateNoHtmlTags(fieldPath, text).toList
     }
   }
@@ -43,7 +41,6 @@ class TextValidator(allowHtml: Boolean) {
   private def validateOnlyBasicHtmlTags(
       fieldPath: String,
       text: String,
-      validateParent: Boolean,
       requiredToOptional: Map[String, Seq[String]]
   ): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
@@ -59,7 +56,7 @@ class TextValidator(allowHtml: Boolean) {
           case true  => None
           case false => Some(ValidationMessage(fieldPath, IllegalContentInBasicText))
         }
-        TagValidator.validate(fieldPath, text, validateParent, requiredToOptional) ++ jsoupValidatorMessages.toSeq
+        TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
       }
 
     }

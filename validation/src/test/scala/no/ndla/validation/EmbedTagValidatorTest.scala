@@ -398,15 +398,6 @@ class EmbedTagValidatorTest extends UnitSuite {
       """Embed tag with 'related-content' requires a parent 'div', with attributes: 'data-type="related-content"'""")
   }
 
-  test("validate should not return error if parent does not exists and validateParent is false") {
-    val validRelatedExternalEmbed =
-      """<embed data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo">"""
-
-    val res =
-      embedTagValidator.validate("content", s"""<div>$validRelatedExternalEmbed</div>""", validateParent = false)
-    res.size should be(0)
-  }
-
   test("checkParentConditions should work for < operator") {
     val result1 = embedTagValidator.checkParentConditions("test", Condition("apekatt<2"), 3)
     result1 should be(Left(childCountValidationMessage("test")))
