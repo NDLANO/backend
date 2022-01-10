@@ -1,4 +1,4 @@
-import Dependencies.versions.{ElasticsearchV, elastic4sAWS, elastic4sCore, elastic4sEmbedded, elastic4sHttp, scalaUri}
+import Dependencies.versions._
 import sbt.Keys._
 import sbt._
 import com.scalatsi.plugin.ScalaTsiPlugin

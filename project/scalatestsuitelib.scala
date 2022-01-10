@@ -15,7 +15,7 @@ object scalatestsuitelib extends Module {
     "org.testcontainers" % "elasticsearch" % TestContainersV,
     "org.testcontainers" % "testcontainers" % TestContainersV,
     "org.testcontainers" % "postgresql" % TestContainersV,
-    "joda-time" % "joda-time" % "2.10"
+    jodaTime,
   ) ++ vulnerabilityOverrides
 
   private val scala213 = ScalaV

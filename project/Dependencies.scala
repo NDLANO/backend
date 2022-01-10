@@ -29,6 +29,7 @@ object Dependencies {
     val TestContainersV = "1.15.1"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
+    lazy val jodaTime = "joda-time" % "joda-time" % "2.10"
 
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
@@ -38,7 +39,7 @@ object Dependencies {
 
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
-    lazy val scalatra = Seq(
+    lazy val scalatra: Seq[ModuleID] = Seq(
       "org.scalatra" %% "scalatra" % ScalatraV,
       "org.scalatra" %% "scalatra-json" % ScalatraV,
       "org.scalatra" %% "scalatra-swagger" % ScalatraV,

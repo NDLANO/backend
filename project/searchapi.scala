@@ -13,7 +13,7 @@ object searchapi extends Module {
     Seq(
       scalaTsi,
       scalaUri,
-      "joda-time" % "joda-time" % "2.10",
+      jodaTime,
       "org.jsoup" % "jsoup" % "1.11.3",
       "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV,

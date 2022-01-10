@@ -14,7 +14,7 @@ object imageapi extends Module {
       elastic4sHttp,
       scalaTsi,
       scalaUri,
-      "joda-time" % "joda-time" % "2.10",
+      jodaTime,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
