@@ -12,7 +12,7 @@ import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.TagRules.TagAttributeRules
 import org.jsoup.nodes.{Element, Node}
 
-import scala.collection.JavaConverters._ // TODO: Replace with `import scala.jdk.CollectionConverters._` when removing 2.12 support
+import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try}
 
 class TagValidator {
