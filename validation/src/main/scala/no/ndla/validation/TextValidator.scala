@@ -7,8 +7,11 @@
 
 package no.ndla.validation
 
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
+
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =
@@ -38,11 +41,32 @@ class TextValidator(allowHtml: Boolean) {
     }
   }
 
-  private def validateOnlyBasicHtmlTags(
+  def validateVisualElement(
       fieldPath: String,
       text: String,
-      requiredToOptional: Map[String, Seq[String]]
+      requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
+
+    val errorWith = (msg: String) => Seq(ValidationMessage(fieldPath, msg))
+
+    val body = HtmlTagRules.stringToJsoupDocument(text)
+    val elemList = body.children().iterator().asScala.toList
+
+    elemList match {
+      case onlyElement :: Nil =>
+        if (onlyElement.tagName() != ResourceHtmlEmbedTag) {
+          errorWith("The root html element for visual elements needs to be `embed`.")
+        } else {
+          validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
+        }
+      case Nil => errorWith("The root html element for visual elements needs to be `embed`.")
+      case _   => errorWith("Visual element must be a string containing only a single embed element.")
+    }
+  }
+
+  private def validateOnlyBasicHtmlTags(fieldPath: String,
+                                        text: String,
+                                        requiredToOptional: Map[String, Seq[String]]): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
     HtmlTagRules.allLegalTags
