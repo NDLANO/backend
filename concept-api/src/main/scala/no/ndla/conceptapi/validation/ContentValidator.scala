@@ -50,7 +50,9 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       HtmlValidator
-        .validate("visualElement", content.visualElement, requiredToOptional = Map("image" -> Seq("data-caption")))
+        .validateVisualElement("visualElement",
+                               content.visualElement,
+                               requiredToOptional = Map("image" -> Seq("data-caption")))
         .toList ++
         validateLanguage("language", content.language)
     }
