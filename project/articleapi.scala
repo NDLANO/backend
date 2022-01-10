@@ -21,9 +21,6 @@ object articleapi extends Module {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
@@ -35,7 +32,7 @@ object articleapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.articleapi.model.api._",

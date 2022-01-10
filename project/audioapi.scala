@@ -20,9 +20,6 @@ object audioapi extends Module {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
@@ -35,7 +32,7 @@ object audioapi extends Module {
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.audioapi.model.api._"),

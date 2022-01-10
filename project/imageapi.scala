@@ -20,9 +20,6 @@ object imageapi extends Module {
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
@@ -39,7 +36,7 @@ object imageapi extends Module {
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
       "commons-io" % "commons-io" % "2.6"
-    ) ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.imageapi.model.api._"),

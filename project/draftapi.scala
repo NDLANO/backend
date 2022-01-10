@@ -25,8 +25,6 @@ object draftapi extends Module {
       "org.json4s" %% "json4s-native" % Json4SV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.postgresql" % "postgresql" % PostgresV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
@@ -38,7 +36,7 @@ object draftapi extends Module {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.draftapi.model.api._", "no.ndla.draftapi.model.api.TSTypes._"),

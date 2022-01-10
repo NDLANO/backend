@@ -31,6 +31,16 @@ object Dependencies {
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
     lazy val jodaTime = "joda-time" % "joda-time" % "2.10"
 
+    lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
+    lazy val postgres = "org.postgresql" % "postgresql" % PostgresV
+    lazy val hikari = "com.zaxxer" % "HikariCP" % HikariConnectionPoolV
+
+    lazy val database = Seq(
+      scalikejdbc,
+      postgres,
+      hikari
+    )
+
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
       "com.itv" %% "scalapact-http4s-0-21" % PactV % "test",
