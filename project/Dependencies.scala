@@ -39,7 +39,7 @@ object Dependencies {
 
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
-    lazy val scalatra: Seq[ModuleID] = Seq(
+    lazy val scalatra = Seq(
       "org.scalatra" %% "scalatra" % ScalatraV,
       "org.scalatra" %% "scalatra-json" % ScalatraV,
       "org.scalatra" %% "scalatra-swagger" % ScalatraV,
@@ -50,6 +50,7 @@ object Dependencies {
     lazy val elastic4sHttp = "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV
     lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
     lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
+    lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
 
     lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,

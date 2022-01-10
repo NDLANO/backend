@@ -15,6 +15,7 @@ object imageapi extends Module {
       scalaTsi,
       scalaUri,
       jodaTime,
+      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -29,9 +30,7 @@ object imageapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.elasticsearch.client" % "elasticsearch-rest-high-level-client" % ElasticsearchV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
       "org.jsoup" % "jsoup" % "1.11.3",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing

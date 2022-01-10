@@ -5,7 +5,7 @@ import com.scalatsi.plugin.ScalaTsiPlugin
 
 object searchlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
-    "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
+    elasticsearch,
     elastic4sCore,
     elastic4sHttp,
     elastic4sAWS,
