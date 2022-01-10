@@ -12,14 +12,9 @@ object validationlib extends Module {
     scalaUri
   )
 
-  private val scala213 = ScalaV
-  private val scala212 = "2.12.10"
-  private val supportedScalaVersions = List(scala213, scala212)
-
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "validation",
     libraryDependencies ++= dependencies,
-    crossScalaVersions := supportedScalaVersions
   ) ++
     commonSettings ++
     fmtSettings

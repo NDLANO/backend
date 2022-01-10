@@ -11,14 +11,9 @@ object languagelib extends Module {
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
     ))
 
-  private val scala213 = ScalaV
-  private val scala212 = "2.12.10"
-  private val supportedScalaVersions = List(scala213, scala212)
-
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "language",
     libraryDependencies ++= dependencies,
-    crossScalaVersions := supportedScalaVersions
   ) ++
     commonSettings ++
     fmtSettings
