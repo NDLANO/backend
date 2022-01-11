@@ -71,6 +71,7 @@ trait Module {
     assembly / assemblyMergeStrategy := {
       case "module-info.class"                                           => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")                         => MergeStrategy.discard
+      case x if x.endsWith("io.netty.versions.properties")               => MergeStrategy.discard
       case "mime.types"                                                  => MergeStrategy.filterDistinctLines
       case PathList("org", "joda", "convert", "ToString.class")          => MergeStrategy.first
       case PathList("org", "joda", "convert", "FromString.class")        => MergeStrategy.first
