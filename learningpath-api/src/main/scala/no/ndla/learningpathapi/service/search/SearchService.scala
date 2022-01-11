@@ -22,10 +22,10 @@ import no.ndla.learningpathapi.LearningpathApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive
 }
-import no.ndla.learningpathapi.integration.Elastic4sClient
 import no.ndla.learningpathapi.model.api.{Copyright, Error, LearningPathSummaryV2, License}
 import no.ndla.learningpathapi.model.domain.{Sort, _}
 import no.ndla.learningpathapi.model.search.{SearchableLanguageFormats, SearchableLearningPath}
+import no.ndla.search.{Elastic4sClient, NdlaSearchException}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}

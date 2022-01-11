@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -30,9 +30,10 @@ trait ImageApiClient {
       get[DomainImageMeta]("intern/domain_image_from_url/", params = Map("url" -> urlToImage), 5000)
     }
 
-    def get[T](path: String, params: Map[String, Any], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
+    def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).addParams(params.toList)).timeout(timeout, timeout))
+      ndlaClient.fetchWithForwardedAuth[T](
+        Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout))
     }
   }
 

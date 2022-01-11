@@ -14,10 +14,10 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.integration.Elastic4sClient
 import no.ndla.imageapi.model.Language.languageAnalyzers
 import no.ndla.imageapi.model.domain.ReindexResult
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.Elastic4sClient
 
 import java.text.SimpleDateFormat
 import java.util.Calendar

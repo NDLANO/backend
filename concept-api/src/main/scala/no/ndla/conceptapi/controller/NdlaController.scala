@@ -31,10 +31,10 @@ import no.ndla.conceptapi.model.api.{
   ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.conceptapi.model.domain.NdlaSearchException
 import no.ndla.conceptapi.service.WriteService
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
+import no.ndla.search.NdlaSearchException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException

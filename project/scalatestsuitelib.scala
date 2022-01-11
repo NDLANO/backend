@@ -8,15 +8,11 @@ object scalatestsuitelib extends Module {
     "org.scalatest" %% "scalatest" % ScalaTestV,
     "org.mockito" %% "mockito-scala" % MockitoV,
     "org.mockito" %% "mockito-scala-scalatest" % MockitoV,
-    "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-    "org.postgresql" % "postgresql" % PostgresV,
-    "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-    "org.postgresql" % "postgresql" % PostgresV,
     "org.testcontainers" % "elasticsearch" % TestContainersV,
     "org.testcontainers" % "testcontainers" % TestContainersV,
     "org.testcontainers" % "postgresql" % TestContainersV,
-    "joda-time" % "joda-time" % "2.10"
-  ) ++ vulnerabilityOverrides
+    jodaTime,
+  ) ++ database ++ vulnerabilityOverrides
 
   private val scala213 = ScalaV
   private val scala212 = "2.12.10"

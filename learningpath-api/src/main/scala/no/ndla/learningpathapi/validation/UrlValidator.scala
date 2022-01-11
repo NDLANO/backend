@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.learningpathapi.model.api.ValidationMessage
 
 class UrlValidator() {

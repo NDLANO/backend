@@ -17,13 +17,13 @@ import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchScrollKeepAlive,
   SeriesSearchIndex
 }
-import no.ndla.audioapi.integration.Elastic4sClient
 import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.ResultWindowTooLargeException
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.search.{SearchableLanguageFormats, SearchableSeries}
 import no.ndla.audioapi.model.{Language, api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.search.Elastic4sClient
 import org.json4s._
 import org.json4s.native.Serialization
 

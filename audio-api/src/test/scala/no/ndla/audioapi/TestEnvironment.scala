@@ -17,6 +17,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -70,7 +71,7 @@ trait TestEnvironment
   val healthController: HealthController = mock[HealthController]
   val seriesController: SeriesController = mock[SeriesController]
 
-  val e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
+  var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
   val audioSearchService: AudioSearchService = mock[AudioSearchService]
   val audioIndexService: AudioIndexService = mock[AudioIndexService]
   val seriesSearchService: SeriesSearchService = mock[SeriesSearchService]

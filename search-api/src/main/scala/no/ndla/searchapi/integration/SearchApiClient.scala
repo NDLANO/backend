@@ -8,7 +8,7 @@
 package no.ndla.searchapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.model.api.ApiSearchException
@@ -60,8 +60,8 @@ trait SearchApiClient {
     private def getChunk[T](page: Int, pageSize: Int)(implicit mf: Manifest[T],
                                                       ec: ExecutionContext): Future[Try[DomainDumpResults[T]]] = {
       val params = Map(
-        "page" -> page,
-        "page-size" -> pageSize
+        "page" -> page.toString,
+        "page-size" -> pageSize.toString
       )
       val reqs = RequestInfo()
       Future {
@@ -80,7 +80,7 @@ trait SearchApiClient {
 
     def search(searchParams: SearchParams)(implicit executionContext: ExecutionContext): Future[Try[ApiSearchResults]]
 
-    def get[T](path: String, params: Map[String, Any], timeout: Int = 5000)(implicit mf: Manifest[T]): Try[T] = {
+    def get[T](path: String, params: Map[String, String], timeout: Int = 5000)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
           new EnumNameSerializer(ArticleStatus) +
@@ -92,16 +92,17 @@ trait SearchApiClient {
           new EnumNameSerializer(LearningResourceType) +
           new EnumNameSerializer(Availability) ++
           org.json4s.ext.JodaTimeSerializers.all
-
-      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).addParams(params.toList)).timeout(timeout, timeout))
+      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
     }
 
     protected def search[T <: ApiSearchResults](
         searchParams: SearchParams)(implicit mf: Manifest[T], executionContext: ExecutionContext): Future[Try[T]] = {
-      val queryParams = searchParams.remaindingParams ++ Map("language" -> searchParams.language.getOrElse("*"),
-                                                             "sort" -> searchParams.sort,
-                                                             "page" -> searchParams.page,
-                                                             "page-size" -> searchParams.pageSize)
+      val queryParams = searchParams.remaindingParams ++ Map(
+        "language" -> searchParams.language.getOrElse("*"),
+        "sort" -> searchParams.sort.toString,
+        "page" -> searchParams.page.toString,
+        "page-size" -> searchParams.pageSize.toString
+      )
 
       Future { get(searchPath, queryParams) }.map {
         case Success(a)  => Success(a)

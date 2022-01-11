@@ -18,8 +18,9 @@ import no.ndla.articleapi.model.api.{
   ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.articleapi.model.domain.{NdlaSearchException, emptySomeToNone}
+import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.search.NdlaSearchException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException

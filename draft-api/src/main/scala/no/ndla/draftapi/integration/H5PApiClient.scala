@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import java.util.concurrent.{Executor, Executors}
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.H5PAddress
 import no.ndla.draftapi.model.api.H5PException
 import no.ndla.network.NdlaClient

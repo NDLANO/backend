@@ -9,13 +9,12 @@ package no.ndla.articleapi.consumerdrivencontracts
 
 import java.io.IOException
 import java.net.ServerSocket
-
 import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.Elastic4sClientFactory
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
 import org.scalatest.Tag

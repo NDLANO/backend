@@ -11,6 +11,7 @@ package no.ndla.audioapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.audioapi.AudioApiProperties.SearchServer
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
@@ -18,6 +19,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -83,7 +85,7 @@ object ComponentRegistry
   lazy val seriesController = new SeriesController
   lazy val healthController = new HealthController
 
-  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
   lazy val searchConverterService = new SearchConverterService
   lazy val audioIndexService = new AudioIndexService
   lazy val audioSearchService = new AudioSearchService

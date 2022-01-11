@@ -14,6 +14,8 @@ object conceptapi extends Module {
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
+      scalaUri,
+      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -25,14 +27,10 @@ object conceptapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
       "org.typelevel" %% "cats-core" % "2.1.1",
       "org.typelevel" %% "cats-effect" % "2.1.1",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
-    ) ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),

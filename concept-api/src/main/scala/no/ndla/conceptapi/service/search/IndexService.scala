@@ -16,11 +16,11 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.conceptapi.model.api.ElasticIndexingException
 import no.ndla.conceptapi.model.domain.Language.languageAnalyzers
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
+import no.ndla.search.Elastic4sClient
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}

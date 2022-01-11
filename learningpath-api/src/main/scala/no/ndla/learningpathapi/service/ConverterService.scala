@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.learningpathapi.LearningpathApiProperties.{
   DefaultLanguage,
   Domain,
@@ -586,7 +586,9 @@ trait ConverterService {
           oembedProxyClient
             .getIframeUrl(embedUrl.url)
             .map(newUrl => {
-              val pathAndQueryParams: String = newUrl.url.path.toString.withQueryString(newUrl.url.query)
+              val pathAndQueryParams: String = newUrl.url.path.toString
+                .withQueryString(newUrl.url.query)
+                .toString
               domain.EmbedUrl(
                 url = pathAndQueryParams,
                 language = language,

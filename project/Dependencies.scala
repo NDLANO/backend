@@ -28,6 +28,19 @@ object Dependencies {
     val ScalikeJDBCV = "4.0.0-RC2"
     val TestContainersV = "1.15.1"
 
+    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
+    lazy val jodaTime = "joda-time" % "joda-time" % "2.10"
+
+    lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
+    lazy val postgres = "org.postgresql" % "postgresql" % PostgresV
+    lazy val hikari = "com.zaxxer" % "HikariCP" % HikariConnectionPoolV
+
+    lazy val database = Seq(
+      scalikejdbc,
+      postgres,
+      hikari
+    )
+
     lazy val pactTestFrameworkDependencies = Seq(
       "com.itv" %% "scalapact-circe-0-13" % PactV % "test",
       "com.itv" %% "scalapact-http4s-0-21" % PactV % "test",
@@ -47,6 +60,7 @@ object Dependencies {
     lazy val elastic4sHttp = "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV
     lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
     lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
+    lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
 
     lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,

@@ -25,6 +25,7 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -78,7 +79,7 @@ trait TestEnvironment
   val converterService = mock[ConverterService]
   val validationService = mock[ValidationService]
   val tagsService = mock[TagsService]
-  val e4sClient = mock[NdlaE4sClient]
+  var e4sClient = mock[NdlaE4sClient]
   val searchConverterService = mock[SearchConverterService]
   val imageConverter = mock[ImageConverter]
   val healthController = mock[HealthController]

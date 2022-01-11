@@ -9,7 +9,7 @@ package no.ndla.oembedproxy.service
 
 import io.lemonlabs.uri.Url
 import no.ndla.oembedproxy.model.OEmbed
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import org.jsoup.Jsoup
 
 object OEmbedConverterService {
@@ -51,11 +51,11 @@ object OEmbedConverterService {
   def idToYoutubeUrl(videoId: String): String = s"https://youtu.be/$videoId"
 
   def removeQueryString(url: String): String =
-    Url.parse(url).removeQueryString()
+    Url.parse(url).removeQueryString().toString
 
   def removeQueryStringAndFragment(url: String): String =
-    Url.parse(removeQueryString(url)).withFragment(None)
+    Url.parse(removeQueryString(url)).withFragment(None).toString
 
   private def filterQueryNames(url: String, allowedQueryParamNames: Set[String]): String =
-    Url.parse(url).filterQueryNames(allowedQueryParamNames.contains)
+    Url.parse(url).filterQueryNames(allowedQueryParamNames.contains).toString
 }

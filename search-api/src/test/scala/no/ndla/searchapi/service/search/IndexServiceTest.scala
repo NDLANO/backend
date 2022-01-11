@@ -9,7 +9,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.searchapi.integration.Elastic4sClientFactory
+import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestEnvironment
 import org.scalatest.Outcome
 

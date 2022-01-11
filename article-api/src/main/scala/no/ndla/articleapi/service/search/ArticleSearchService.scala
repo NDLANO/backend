@@ -9,7 +9,6 @@
 package no.ndla.articleapi.service.search
 
 import java.util.concurrent.Executors
-
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
@@ -18,13 +17,13 @@ import no.ndla.articleapi.ArticleApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive
 }
-import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.mapping.License
+import no.ndla.search.Elastic4sClient
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

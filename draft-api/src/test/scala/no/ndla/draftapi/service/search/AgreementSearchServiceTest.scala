@@ -10,9 +10,9 @@ package no.ndla.draftapi.service.search
 import no.ndla.draftapi.DraftApiProperties.DefaultPageSize
 import no.ndla.draftapi.TestData.{agreementSearchSettings, searchSettings}
 import no.ndla.draftapi._
-import no.ndla.draftapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 

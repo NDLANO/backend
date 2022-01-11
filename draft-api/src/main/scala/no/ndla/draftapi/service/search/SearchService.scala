@@ -13,9 +13,9 @@ import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
-import no.ndla.draftapi.integration.Elastic4sClient
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain._
+import no.ndla.search.{Elastic4sClient, NdlaSearchException}
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 

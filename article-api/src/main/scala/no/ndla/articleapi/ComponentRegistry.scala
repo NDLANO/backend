@@ -10,6 +10,7 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.articleapi.ArticleApiProperties.SearchServer
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
@@ -19,6 +20,7 @@ import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.network.NdlaClient
+import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -69,7 +71,7 @@ object ComponentRegistry
   lazy val readService = new ReadService
   lazy val writeService = new WriteService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
   lazy val draftApiClient = new DraftApiClient
   lazy val searchApiClient = new SearchApiClient
   lazy val feideApiClient = new FeideApiClient

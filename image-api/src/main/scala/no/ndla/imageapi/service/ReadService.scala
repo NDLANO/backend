@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.UrlPath
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.ImageMetaInformationV2

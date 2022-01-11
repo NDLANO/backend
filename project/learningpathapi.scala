@@ -14,7 +14,9 @@ object learningpathapi extends Module {
       elastic4sCore,
       elastic4sHttp,
       scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
+      scalaUri,
+      jodaTime,
+      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -22,14 +24,9 @@ object learningpathapi extends Module {
       "org.json4s" %% "json4s-ast" % Json4SV,
       "org.json4s" %% "json4s-core" % Json4SV,
       "org.json4s" %% "json4s-ext" % Json4SV,
-      "org.scalikejdbc" %% "scalikejdbc" % "4.0.0-RC2",
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.jsoup" % "jsoup" % "1.11.3",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
@@ -38,7 +35,7 @@ object learningpathapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.learningpathapi.model.api._"),

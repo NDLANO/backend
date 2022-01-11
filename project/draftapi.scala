@@ -16,18 +16,17 @@ object draftapi extends Module {
       elastic4sAWS,
       elastic4sEmbedded % "test",
       scalaTsi,
-      "joda-time" % "joda-time" % "2.10",
+      scalaUri,
+      jodaTime,
+      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "org.json4s" %% "json4s-native" % Json4SV,
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
-      "org.postgresql" % "postgresql" % PostgresV,
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkV,
       "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchV,
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.jsoup" % "jsoup" % "1.11.3",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
@@ -36,9 +35,8 @@ object draftapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+    ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.draftapi.model.api._", "no.ndla.draftapi.model.api.TSTypes._"),

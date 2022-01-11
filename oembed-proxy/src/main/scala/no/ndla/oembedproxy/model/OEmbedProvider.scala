@@ -9,7 +9,7 @@
 package no.ndla.oembedproxy.model
 
 import io.lemonlabs.uri.Url
-import io.lemonlabs.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 
 case class OEmbedProvider(providerName: String,
                           providerUrl: String,
@@ -36,7 +36,7 @@ case class OEmbedProvider(providerName: String,
         val width = maxWidth.map(("maxwidth", _)).toList
         val height = maxHeight.map(("maxheight", _)).toList
         val params = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams ++ width ++ height
-        Url.parse(embedUrl).addParams(params)
+        Url.parse(embedUrl).addParams(params).toString
     }
   }
 

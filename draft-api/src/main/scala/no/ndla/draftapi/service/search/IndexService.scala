@@ -14,10 +14,10 @@ import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi._
-import no.ndla.draftapi.integration.Elastic4sClient
 import no.ndla.draftapi.model.domain.Language.languageAnalyzers
 import no.ndla.draftapi.model.domain.{Content, ReindexResult}
 import no.ndla.draftapi.repository.Repository
+import no.ndla.search.Elastic4sClient
 
 import java.text.SimpleDateFormat
 import java.util.Calendar

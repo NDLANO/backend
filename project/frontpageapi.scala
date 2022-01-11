@@ -15,9 +15,6 @@ object frontpageapi extends Module {
       "io.circe" %% "circe-generic-extras" % CirceV,
       "io.circe" %% "circe-literal" % CirceV,
       "io.circe" %% "circe-parser" % CirceV,
-      "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV,
-      "org.postgresql" % "postgresql" % PostgresV,
-      "com.zaxxer" % "HikariCP" % HikariConnectionPoolV,
       "org.http4s" %% "rho-swagger" % RhoV,
       "org.http4s" %% "http4s-server" % Http4sV,
       "org.http4s" %% "http4s-dsl" % Http4sV,
@@ -27,7 +24,7 @@ object frontpageapi extends Module {
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "javax.servlet" % "javax.servlet-api" % "4.0.1"
-    ) ++ vulnerabilityOverrides)
+    ) ++ database ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.frontpageapi.model.api._"),
