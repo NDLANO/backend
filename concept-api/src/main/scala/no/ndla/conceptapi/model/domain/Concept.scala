@@ -38,7 +38,7 @@ case class Concept(
 ) {
 
   lazy val supportedLanguages: Set[String] =
-    (content concat title).map(_.language).toSet
+    Language.getSupportedLanguages(Seq(title, content, tags, visualElement, metaImage)).toSet
 }
 
 object Concept extends SQLSyntaxSupport[Concept] {
