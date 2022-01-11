@@ -292,33 +292,49 @@ class TagValidator {
 
     val partialErrorMessage = s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType"
 
-    verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributeKeys, resourceType) ++
+    verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributes, resourceType) ++
       verifyOptionals(fieldName, attributeRulesForTag, attributeKeys, partialErrorMessage) ++
       verifySourceUrl(fieldName, attributeRulesForTag, attributes, resourceType)
   }
 
   private def verifyEmbedTagBasedOnResourceType(fieldName: String,
                                                 attrRules: TagAttributeRules,
-                                                actualAttributes: Set[TagAttributes.Value],
+                                                actualAttributes: Map[TagAttributes.Value, String],
                                                 resourceType: ResourceType.Value): Seq[ValidationMessage] = {
-    val missingAttributes = getMissingAttributes(attrRules.required, actualAttributes)
-    val illegalAttributes = getMissingAttributes(actualAttributes, attrRules.all)
+    val requiredAttrs = attrRules.required ++ attrRules.requiredNonEmpty
+    val missingAttributes = getMissingAttributes(requiredAttrs, actualAttributes.keySet)
+    val illegalAttributes = getMissingAttributes(actualAttributes.keySet, attrRules.all)
 
     val partialErrorMessage = s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType"
-    missingAttributes
+
+    val missingErrors = missingAttributes
       .map(
         missingAttributes =>
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage must contain the following attributes: ${attrRules.required.mkString(",")}. " +
+            s"$partialErrorMessage must contain the following attributes: ${requiredAttrs.mkString(",")}. " +
               s"Optional attributes are: ${attrRules.optional.mkString(",")}. " +
               s"Missing: ${missingAttributes.mkString(",")}"
         ))
-      .toList ++
-      illegalAttributes.map(illegalAttributes =>
+      .toList
+
+    val illegalErrors = illegalAttributes
+      .map(illegalAttributes =>
         ValidationMessage(
           fieldName,
           s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"))
+
+    val requiredNonEmptyErrors = actualAttributes.flatMap {
+      case (a, b) =>
+        if (attrRules.requiredNonEmpty.contains(a) && b.isEmpty) {
+          Some(
+            ValidationMessage(
+              fieldName,
+              s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.mkString(",")}."))
+        } else { None }
+    }.toList
+
+    missingErrors ++ illegalErrors ++ requiredNonEmptyErrors
   }
 
   private def verifyOptionals(fieldName: String,

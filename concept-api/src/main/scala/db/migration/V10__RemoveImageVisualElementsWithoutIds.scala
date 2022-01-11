@@ -119,7 +119,8 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
           val resourceType = oldEmbed.attr("data-resource")
           val imageId = oldEmbed.attr("data-resource_id")
           if (resourceType == "image" && imageId.isEmpty) {
-            println(s"Hello team we did a good with $id -> ${oldVisualElement.visualElement}")
+            println(
+              s"Concept '$id' had empty-id visualelement image in language '${oldVisualElement.language}', removing...")
             None
           } else {
             Some(oldVisualElement)
