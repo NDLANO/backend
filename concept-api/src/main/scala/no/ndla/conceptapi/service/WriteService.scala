@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.service
 
 import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -16,7 +15,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
-import no.ndla.conceptapi.model.domain.{ConceptStatus, Language}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Language}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation._
 
@@ -100,7 +99,7 @@ trait WriteService {
         changed: domain.Concept,
         updateStatus: Option[String],
         user: UserInfo
-    ) = {
+    ): Try[Concept] = {
       if (!shouldUpdateStatus(existing, changed) && updateStatus.isEmpty) {
         Success(changed)
       } else {
@@ -155,9 +154,15 @@ trait WriteService {
             case _ =>
               val title = existingConcept.title.filter(_.language != language)
               val content = existingConcept.content.filter(_.language != language)
+              val tags = existingConcept.tags.filter(_.language != language)
+              val metaImage = existingConcept.metaImage.filter(_.language != language)
+              val visualElement = existingConcept.visualElement.filter(_.language != language)
               val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
+                tags = tags,
+                metaImage = metaImage,
+                visualElement = visualElement,
               )
 
               for {

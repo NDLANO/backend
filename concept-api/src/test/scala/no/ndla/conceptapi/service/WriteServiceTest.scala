@@ -7,21 +7,18 @@
 
 package no.ndla.conceptapi.service
 
-import java.util.Date
-
 import no.ndla.conceptapi.auth.UserInfo
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers._
-
-import scala.util.{Failure, Success, Try}
-import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.ScalaOngoingStubbing
+import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
+
+import java.util.Date
+import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -30,7 +27,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: Date = DateTime.now().minusDays(1).toDate
   val service = new WriteService()
   val conceptId = 13
-  val userInfo = UserInfo.SystemUser
+  val userInfo: UserInfo = UserInfo.SystemUser
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
@@ -154,8 +151,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That delete concept removes language from all languagefields") {
     val concept =
-      TestData.sampleNbDomainConcept.copy(id = Some(3.toLong),
-                                          title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
+      TestData.sampleNbDomainConcept.copy(
+        id = Some(3.toLong),
+        title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")),
+        content = Seq(ConceptContent("Innhold", "nb"), ConceptContent("Innhald", "nn")),
+        tags = Seq(ConceptTags(Seq("tag"), "nb"), ConceptTags(Seq("tag"), "nn")),
+        visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
+        metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), ConceptMetaImage("1", "Hei", "nn"))
+      )
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
     when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
@@ -164,6 +167,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(draftConceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
+    conceptCaptor.getValue.content.length should be(1)
+    conceptCaptor.getValue.tags.length should be(1)
+    conceptCaptor.getValue.visualElement.length should be(1)
+    conceptCaptor.getValue.metaImage.length should be(1)
   }
 
   test("That updating concepts updates revision") {
