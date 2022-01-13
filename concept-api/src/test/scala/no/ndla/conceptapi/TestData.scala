@@ -32,6 +32,9 @@ object TestData {
   val today = DateTime.now().minusDays(0).toDate
   val yesterday = DateTime.now().minusDays(1).toDate
 
+  val visualElementString =
+    """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
+
   val sampleNbApiConcept = api.Concept(
     1.toLong,
     1,
@@ -51,7 +54,7 @@ object TestData {
       current = "DRAFT",
       other = Seq.empty
     ),
-    Some(api.VisualElement("VisueltElement", "nb"))
+    Some(api.VisualElement(visualElementString, "nb"))
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -69,7 +72,7 @@ object TestData {
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement("VisueltElement", "nb"))
+    visualElement = Seq(domain.VisualElement(visualElementString, "nb"))
   )
 
   val sampleConcept = domain.Concept(
@@ -105,7 +108,7 @@ object TestData {
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement("VisueltElement", "nb"))
+    visualElement = Seq(domain.VisualElement(visualElementString, "nb"))
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
@@ -145,7 +148,7 @@ object TestData {
       current = "DRAFT",
       other = Seq.empty
     ),
-    Some(api.VisualElement("VisueltElement", "nb"))
+    Some(api.VisualElement(visualElementString, "nb"))
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(

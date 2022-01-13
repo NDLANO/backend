@@ -26,6 +26,9 @@
       ]
     },
     "audio": {
+      "requiredNonEmpty": [
+        "data-resource_id"
+      ],
       "required": [
         "data-resource",
         "data-resource_id",
@@ -66,6 +69,9 @@
       ]
     },
     "image": {
+      "requiredNonEmpty": [
+        "data-resource_id"
+      ],
       "required": [
         "data-resource",
         "data-resource_id",
@@ -87,6 +93,9 @@
       ]
     },
     "concept": {
+      "requiredNonEmpty": [
+        "data-content-id",
+      ],
       "required": [
         "data-resource",
         "data-content-id",

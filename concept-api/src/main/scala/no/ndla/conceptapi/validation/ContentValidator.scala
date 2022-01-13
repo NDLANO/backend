@@ -39,6 +39,7 @@ trait ContentValidator {
       val validationErrors =
         concept.content.flatMap(c => validateConceptContent(c)) ++
           concept.visualElement.flatMap(ve => validateVisualElement(ve)) ++
+          concept.metaImage.flatMap(mi => validateMetaImage(mi)) ++
           validateTitles(concept.title)
 
       if (validationErrors.isEmpty) {
@@ -48,9 +49,15 @@ trait ContentValidator {
       }
     }
 
+    private def validateMetaImage(metaImage: ConceptMetaImage): Seq[ValidationMessage] = {
+      validateMinimumLength(s"metaImage.id", metaImage.imageId, 1).toSeq
+    }
+
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       HtmlValidator
-        .validate("visualElement", content.visualElement, requiredToOptional = Map("image" -> Seq("data-caption")))
+        .validateVisualElement("visualElement",
+                               content.visualElement,
+                               requiredToOptional = Map("image" -> Seq("data-caption")))
         .toList ++
         validateLanguage("language", content.language)
     }

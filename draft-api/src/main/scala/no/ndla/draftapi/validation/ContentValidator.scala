@@ -133,9 +133,10 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement): List[ValidationMessage] = {
       HtmlValidator
-        .validate("visualElement", content.resource, requiredToOptional = Map("image" -> Seq("data-caption")))
-        .toList ++
-        validateLanguage("language", content.language)
+        .validateVisualElement("visualElement",
+                               content.resource,
+                               requiredToOptional = Map("image" -> Seq("data-caption")))
+        .toList ++ validateLanguage("language", content.language)
     }
 
     private def validateIntroduction(content: ArticleIntroduction): List[ValidationMessage] = {
