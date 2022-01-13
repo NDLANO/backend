@@ -104,11 +104,11 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
   }
 
   private def mergeFields(
-      existing: Seq[NewVisualElement],
-      updated: Seq[NewVisualElement]
+      lessImportant: Seq[NewVisualElement],
+      moreImportant: Seq[NewVisualElement]
   ): Seq[NewVisualElement] = {
-    val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-    (toKeep ++ updated).filterNot(_.visualElement.isEmpty)
+    val toKeep = lessImportant.filterNot(item => moreImportant.map(_.language).contains(item.language))
+    (toKeep ++ moreImportant).filterNot(_.visualElement.isEmpty)
   }
 
   def convertMetaImageToVisualElement(image: OldMetaImage): Option[NewVisualElement] = {
@@ -125,7 +125,10 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
     val metaImages = (concept \ "metaImage").extract[Seq[OldMetaImage]]
     val visualElements = (concept \ "visualElement").extract[Seq[NewVisualElement]]
     val convertedVisualElements = metaImages.flatMap(convertMetaImageToVisualElement)
+
+    // Existing visualElements are deemed more important than the ones gotten from metaImages so they will always "win"
     val newVisualElements = mergeFields(convertedVisualElements, visualElements)
+
     val newConcept = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
 
     compact(render(newConcept))
