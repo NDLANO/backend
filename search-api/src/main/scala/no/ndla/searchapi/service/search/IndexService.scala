@@ -262,8 +262,7 @@ trait IndexService {
         val response = e4sClient.execute {
           createIndex(indexName)
             .shards(indexShards)
-            .includeTypeName(true) // Explicitly set to suppress warnings about upgrade, should probably be removed after upgrade.
-            .mappings(getMapping)
+            .mapping(getMapping)
             .analysis(
               trigram,
               Language.nynorskLanguageAnalyzer,
@@ -305,9 +304,9 @@ trait IndexService {
       } else {
         val actions = oldIndexName match {
           case None =>
-            List[AliasAction](addAlias(searchIndex).on(newIndexName))
+            List[AliasAction](addAlias(searchIndex, newIndexName))
           case Some(oldIndex) =>
-            List[AliasAction](removeAlias(searchIndex).on(oldIndex), addAlias(searchIndex).on(newIndexName))
+            List[AliasAction](removeAlias(searchIndex, oldIndex), addAlias(searchIndex, newIndexName))
         }
 
         e4sClient.execute(aliases(actions)) match {
