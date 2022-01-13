@@ -44,11 +44,18 @@ trait SearchService {
       * @return api-model summary of hit
       */
     def hitToApiModel(hit: SearchHit, language: String): MultiSearchSummary = {
-      val articleType = SearchApiProperties.SearchDocuments(SearchType.Articles)
-      val draftType = SearchApiProperties.SearchDocuments(SearchType.Drafts)
-      val learningPathType = SearchApiProperties.SearchDocuments(SearchType.LearningPaths)
+      val articleType = SearchApiProperties.SearchIndexes(SearchType.Articles)
+      val draftType = SearchApiProperties.SearchIndexes(SearchType.Drafts)
+      val learningPathType = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
 
-      val convertFunc = hit.`type` match {
+      val indexType = hit.index.split("_").headOption match {
+        case Some(indexType) => indexType
+        case _               =>
+          // TODO: Handle this by returning `Try[MultiSearchSummary]` instead.
+          throw NdlaSearchException("Index type was bad when determining search result type.")
+      }
+
+      val convertFunc = indexType match {
         case `articleType`      => searchConverterService.articleHitAsMultiSummary _
         case `draftType`        => searchConverterService.draftHitAsMultiSummary _
         case `learningPathType` => searchConverterService.learningpathHitAsMultiSummary _
