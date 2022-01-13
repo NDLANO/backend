@@ -94,7 +94,7 @@ trait IndexService {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
+          case None        => createIndexAndAlias()
         }
         request <- createIndexRequest(imported, searchIndex, taxonomyBundle, grepBundle)
         _ <- e4sClient.execute {
@@ -223,14 +223,21 @@ trait IndexService {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
+          case None        => createIndexAndAlias()
         }
         deleted <- {
           e4sClient.execute {
-            delete(s"$contentId").from(searchIndex)
+            deleteById(searchIndex, s"$contentId")
           }
         }
       } yield deleted
+    }
+
+    def createIndexAndAlias(): Try[String] = {
+      createIndexWithGeneratedName.map(newIndex => {
+        updateAliasTarget(None, newIndex)
+        newIndex
+      })
     }
 
     def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
@@ -366,6 +373,25 @@ trait IndexService {
           Failure(ex)
       }
 
+    }
+
+    def deleteAlias(): Try[Option[String]] = {
+      getAliasTarget match {
+        case Failure(ex)   => Failure(ex)
+        case Success(None) => Success(None)
+        case Success(Some(toDelete)) =>
+          e4sClient.execute(removeAlias(searchIndex, toDelete)) match {
+            case Failure(ex) => Failure(ex)
+            case Success(_)  => Success(Some(toDelete))
+          }
+      }
+    }
+
+    def deleteIndexAndAlias(): Try[_] = {
+      for {
+        indexToDelete <- deleteAlias()
+        _ <- deleteIndexWithName(indexToDelete)
+      } yield ()
     }
 
     def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
