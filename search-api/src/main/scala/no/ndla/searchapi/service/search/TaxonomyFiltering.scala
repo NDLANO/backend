@@ -6,8 +6,9 @@
  */
 
 package no.ndla.searchapi.service.search
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, NestedQuery, Query}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 
 trait TaxonomyFiltering {

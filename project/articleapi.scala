@@ -11,12 +11,9 @@ object articleapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.articleapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      elastic4sCore,
-      elastic4sHttp,
       scalaTsi,
       scalaUri,
       jodaTime,
-      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -32,7 +29,7 @@ object articleapi extends Module {
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
       "org.flywaydb" % "flyway-core" % FlywayV,
-    ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.articleapi.model.api._",

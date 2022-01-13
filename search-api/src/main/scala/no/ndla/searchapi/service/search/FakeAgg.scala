@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.searches.aggs.Aggregation
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
+import com.sksamuel.elastic4s.ElasticDsl._
 
 /**
   * [[FakeAgg]] and inheriting classes are an abstraction to easier work with Elastic4s' Aggregations
@@ -84,7 +84,7 @@ case class FakeTermAgg(name: String, subAggregations: Seq[FakeAgg] = Seq.empty, 
   override def withSubs(subs: Seq[FakeAgg]): FakeAgg = this.copy(subAggregations = subs)
   override def convertToReal(): Aggregation = {
     val subs = this.subAggregations.map(_.convertToReal())
-    termsAggregation(this.name).field(this.field).subAggregations(subs).size(50)
+    termsAgg(this.name, this.field).subAggregations(subs).size(50)
   }
 }
 

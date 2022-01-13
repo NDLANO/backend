@@ -7,17 +7,15 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
+import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.ElasticSearchScrollKeepAlive
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.imageapi.model.Language
-import no.ndla.search.{Elastic4sClient, NdlaSearchException}
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -113,17 +111,15 @@ trait SearchService {
     protected def errorHandler[T](exception: Throwable): Failure[T] = {
       exception match {
         case e: NdlaSearchException =>
-          e.rf.status match {
+          e.rf.map(_.status).getOrElse(0) match {
             case notFound: Int if notFound == 404 =>
               logger.error(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
               Failure(
-                new IndexNotFoundException(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex"))
+                IndexNotFoundException(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex"))
             case _ =>
               logger.error(e.getMessage)
-              Failure(
-                new ElasticsearchException(s"Unable to execute search in ${ImageApiProperties.SearchIndex}",
-                                           e.getMessage))
+              Failure(NdlaSearchException(s"Unable to execute search in ${ImageApiProperties.SearchIndex}", e))
           }
         case t => Failure(t)
       }

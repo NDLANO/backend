@@ -8,17 +8,17 @@
 
 package no.ndla.learningpathapi.service.search
 
-import com.sksamuel.elastic4s.analyzers.{Analyzer, StandardAnalyzer}
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.RequestSuccess
-import com.sksamuel.elastic4s.indexes.CreateIndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
+import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.integration.SearchApiClient
 import no.ndla.learningpathapi.model.domain.Language._
-import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
+import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, Language, LearningPath, ReindexResult}
 import no.ndla.learningpathapi.model.search.SearchableLanguageFormats
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.search.Elastic4sClient
@@ -76,7 +76,7 @@ trait SearchIndexService {
 
           e4sClient
             .execute {
-              indexInto(LearningpathApiProperties.SearchIndex / LearningpathApiProperties.SearchDocument)
+              indexInto(LearningpathApiProperties.SearchIndex)
                 .doc(source)
                 .id(learningPath.id.get.toString)
             }
@@ -97,7 +97,7 @@ trait SearchIndexService {
             _ <- {
               e4sClient.execute {
                 delete(id.toString)
-                  .from(LearningpathApiProperties.SearchIndex / LearningpathApiProperties.SearchDocument)
+                  .from(LearningpathApiProperties.SearchIndex)
               }
             }
             _ <- searchApiClient.deleteLearningPathDocument(id)
@@ -112,7 +112,7 @@ trait SearchIndexService {
 
     protected def buildCreateIndexRequest(indexName: String): CreateIndexRequest = {
       createIndex(indexName)
-        .mappings(buildMapping)
+        .mapping(buildMapping)
         .indexSetting("max_result_window", LearningpathApiProperties.ElasticSearchIndexMaxResultWindow)
     }
 
@@ -180,7 +180,7 @@ trait SearchIndexService {
           bulk(learningPaths.map(lp => {
             val source =
               write(searchConverterService.asSearchableLearningpath(lp))
-            indexInto(indexName / LearningpathApiProperties.SearchDocument)
+            indexInto(indexName)
               .doc(source)
               .id(lp.id.get.toString)
           }))
@@ -236,11 +236,11 @@ trait SearchIndexService {
       } else {
         oldIndexName match {
           case None =>
-            e4sClient.execute(addAlias(LearningpathApiProperties.SearchIndex).on(newIndexName))
+            e4sClient.execute(addAlias(LearningpathApiProperties.SearchIndex, newIndexName))
           case Some(oldIndex) =>
             e4sClient.execute {
-              removeAlias(LearningpathApiProperties.SearchIndex).on(oldIndex)
-              addAlias(LearningpathApiProperties.SearchIndex).on(newIndexName)
+              removeAlias(LearningpathApiProperties.SearchIndex, oldIndex)
+              addAlias(LearningpathApiProperties.SearchIndex, newIndexName)
             }
         }
       }
@@ -261,15 +261,19 @@ trait SearchIndexService {
           keywordField("embedUrl"),
           keywordField("status"),
         ),
-        objectField("copyright").fields(
-          objectField("license").fields(
-            textField("license"),
-            textField("description"),
-            textField("url")
-          ),
-          nestedField("contributors").fields(
-            textField("type"),
-            textField("name")
+        ObjectField(
+          "copyright",
+          properties = Seq(
+            ObjectField("license",
+                        properties = Seq(
+                          textField("license"),
+                          textField("description"),
+                          textField("url")
+                        )),
+            nestedField("contributors").fields(
+              textField("type"),
+              textField("name")
+            )
           )
         ),
         intField("isBasedOn")
@@ -278,7 +282,7 @@ trait SearchIndexService {
         generateLanguageSupportedDynamicTemplates("descriptions") ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true)
 
-      mapping(LearningpathApiProperties.SearchDocument).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
 
     /**
@@ -292,7 +296,7 @@ trait SearchIndexService {
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
 
-      val dynamicFunc = (name: String, analyzer: Analyzer, subFields: List[FieldDefinition]) => {
+      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
         DynamicTemplateRequest(
           name = name,
           mapping = textField(name).analyzer(analyzer).fields(subFields),
@@ -300,7 +304,7 @@ trait SearchIndexService {
           pathMatch = Some(name)
         )
       }
-      val fields = new ListBuffer[FieldDefinition]()
+      val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw")
       }
@@ -316,7 +320,7 @@ trait SearchIndexService {
           dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
         }
       )
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", StandardAnalyzer, fields.toList)
+      val catchAllTemplate = dynamicFunc(s"$fieldName.*", Language.standardAnalyzer, fields.toList)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate)
     }
 

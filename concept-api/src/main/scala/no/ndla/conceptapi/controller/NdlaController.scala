@@ -34,10 +34,9 @@ import no.ndla.conceptapi.model.api.{
 import no.ndla.conceptapi.service.WriteService
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
-import no.ndla.search.NdlaSearchException
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
 import org.postgresql.util.PSQLException
@@ -79,8 +78,8 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     case o: OptimisticLockException       => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
     case st: IllegalStatusStateTransition => BadRequest(body = Error(Error.VALIDATION, st.getMessage))
     case e: IndexNotFoundException        => InternalServerError(body = Error.IndexMissingError)
-    case nse: NdlaSearchException
-        if nse.rf.error.rootCause.exists(x =>
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause.exists(x =>
           x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case ona: OperationNotAllowedException => BadRequest(body = Error(Error.OPERATION_NOT_ALLOWED, ona.getMessage))

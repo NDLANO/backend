@@ -8,8 +8,9 @@
 package no.ndla.searchapi.service.search
 
 import java.util.concurrent.Executors
-import com.sksamuel.elastic4s.http.ElasticDsl.{simpleStringQuery, _}
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
+import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
+import com.sksamuel.elastic4s.requests.searches.queries.Query
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient

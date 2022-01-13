@@ -1,5 +1,5 @@
 /*
- * Part of NDLA search-api.
+ * Part of NDLA search.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
@@ -7,13 +7,17 @@
 
 package no.ndla.search
 
+import com.sksamuel.elastic4s.ElasticClient
+
 import java.util.concurrent.Executors
-import com.sksamuel.elastic4s.http._
+import com.sksamuel.elastic4s._
+import com.sksamuel.elastic4s.http.JavaClient
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.search.Elastic4sClientFactory.RequestConfigCallbackWithTimeout
 import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -48,7 +52,7 @@ object Elastic4sClientFactory {
   def getClient(searchServer: String): NdlaE4sClient =
     NdlaE4sClient(getNonSigningClient(searchServer))
 
-  private def getProperties(searchServer: String, defaultPort: Int) = {
+  private def getProperties(searchServer: String, defaultPort: Int): ElasticProperties = {
     val scheme = searchServer.schemeOption.getOrElse("http")
     val host = searchServer.hostOption.map(_.toString()).getOrElse("localhost")
     val port = searchServer.port.getOrElse(defaultPort)
@@ -56,18 +60,21 @@ object Elastic4sClientFactory {
     ElasticProperties(s"$scheme://$host:$port?ssl=false")
   }
 
-  /** Get client useful for testing and running in local environments which require no AWS signing. */
-  private def getNonSigningClient(searchServer: String): ElasticClient = ElasticClient(
-    getProperties(searchServer, 9200),
-    requestConfigCallback = RequestConfigCallbackWithTimeout,
-    httpClientConfigCallback = NoOpHttpClientConfigCallback
-  )
+  private class RequestConfigCallbackWithTimeout extends RequestConfigCallback {
 
-  /** Callback added to all requests that will increase timeout */
-  private object RequestConfigCallbackWithTimeout extends RequestConfigCallback {
     override def customizeRequestConfig(requestConfigBuilder: RequestConfig.Builder): RequestConfig.Builder = {
       val elasticSearchRequestTimeoutMs = 10000
       requestConfigBuilder.setConnectionRequestTimeout(elasticSearchRequestTimeoutMs)
     }
+  }
+
+  private def getNonSigningClient(searchServer: String): ElasticClient = {
+    val props = getProperties(searchServer, 9200)
+    val requestConfigCallback = new RequestConfigCallbackWithTimeout
+    ElasticClient(
+      JavaClient(
+        props,
+        requestConfigCallback
+      ))
   }
 }

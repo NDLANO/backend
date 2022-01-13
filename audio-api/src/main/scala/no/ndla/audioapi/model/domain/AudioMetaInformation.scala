@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi.model.domain
 
-import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.Language
 import org.json4s.FieldSerializer._

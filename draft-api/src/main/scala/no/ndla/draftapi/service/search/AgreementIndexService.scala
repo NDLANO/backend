@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.domain.Agreement
@@ -29,11 +29,11 @@ trait AgreementIndexService {
 
     override def createIndexRequests(domainModel: Agreement, indexName: String): Seq[IndexRequest] = {
       val source = write(searchConverterService.asSearchableAgreement(domainModel))
-      Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+      Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
+      properties(
         intField("id"),
         textField("title").fielddata(false).fields(keywordField("raw")),
         textField("content").fielddata(false),

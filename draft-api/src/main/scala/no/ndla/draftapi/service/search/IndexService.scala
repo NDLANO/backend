@@ -7,15 +7,15 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.analyzers.StandardAnalyzer
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain.Language.languageAnalyzers
-import no.ndla.draftapi.model.domain.{Content, ReindexResult}
+import no.ndla.draftapi.model.domain.{Content, Language, ReindexResult}
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.Elastic4sClient
 
@@ -119,7 +119,7 @@ trait IndexService {
         _ <- createIndexIfNotExists()
         _ <- {
           e4sClient.execute(
-            delete(s"$contentId").from(searchIndex / documentType)
+            deleteById(searchIndex, s"$contentId")
           )
         }
       } yield contentId
@@ -169,7 +169,7 @@ trait IndexService {
 
       response match {
         case Success(results) =>
-          Success(results.result.mappings.headOption.map((t) => t._1.name))
+          Success(results.result.mappings.headOption.map(t => t._1.name))
         case Failure(ex) => Failure(ex)
       }
     }
@@ -179,11 +179,11 @@ trait IndexService {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
         oldIndexName match {
-          case None => e4sClient.execute(addAlias(searchIndex).on(newIndexName))
+          case None => e4sClient.execute(addAlias(newIndexName, searchIndex))
           case Some(oldIndex) =>
             e4sClient.execute {
-              removeAlias(searchIndex).on(oldIndex)
-              addAlias(searchIndex).on(newIndexName)
+              removeAlias(searchIndex, oldIndex)
+              addAlias(searchIndex, newIndexName)
             }
         }
       }
@@ -192,7 +192,7 @@ trait IndexService {
     def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
         case None => Success(optIndexName)
-        case Some(indexName) => {
+        case Some(indexName) =>
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
@@ -200,7 +200,6 @@ trait IndexService {
               deleteIndex(indexName)
             }
           }
-        }
       }
 
     }
@@ -242,8 +241,7 @@ trait IndexService {
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String,
-                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       keepRaw match {
         case true =>
           languageAnalyzers.map(
@@ -271,7 +269,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val fields = new ListBuffer[FieldDefinition]()
+      val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw")
       }
@@ -288,7 +286,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(StandardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

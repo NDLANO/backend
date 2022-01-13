@@ -8,10 +8,11 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.api.MissingIdException
@@ -42,13 +43,13 @@ trait AudioIndexService {
             .asSearchableAudioInformation(domainModel)
             .map(sai => {
               val source = write(sai)
-              Seq(indexInto(indexName / documentType).doc(source).id(domainId.toString))
+              Seq(indexInto(indexName).doc(source).id(domainId.toString))
             })
       }
     }
 
     def getMapping: MappingDefinition = {
-      val fields: Seq[FieldDefinition] = List(
+      val fields: Seq[ElasticField] = List(
         intField("id"),
         keywordField("license"),
         keywordField("defaultTitle"),
@@ -57,10 +58,11 @@ trait AudioIndexService {
         nestedField("series").fields(seriesIndexService.seriesIndexFields),
         nestedField("podcastMeta").fields(
           keywordField("language"),
-          objectField("coverPhoto").fields(
-            keywordField("imageId"),
-            keywordField("altText")
-          )
+          ObjectField("coverPhoto",
+                      properties = Seq(
+                        keywordField("imageId"),
+                        keywordField("altText")
+                      ))
         )
       )
 
@@ -71,7 +73,7 @@ trait AudioIndexService {
           generateLanguageSupportedDynamicTemplates("filePaths") ++
           generateLanguageSupportedDynamicTemplates("podcastMetaIntroduction")
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

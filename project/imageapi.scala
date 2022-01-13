@@ -10,12 +10,9 @@ object imageapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.imageapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      elastic4sCore,
-      elastic4sHttp,
       scalaTsi,
       scalaUri,
       jodaTime,
-      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -36,7 +33,7 @@ object imageapi extends Module {
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
       "commons-io" % "commons-io" % "2.6"
-    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.imageapi.model.api._"),

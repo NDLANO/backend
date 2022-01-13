@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
 import no.ndla.draftapi.model.domain.Language._

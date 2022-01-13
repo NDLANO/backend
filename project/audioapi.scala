@@ -10,12 +10,9 @@ object audioapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.audioapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      elastic4sCore,
-      elastic4sHttp,
       scalaTsi,
       scalaUri,
       jodaTime,
-      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -32,7 +29,7 @@ object audioapi extends Module {
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
       "org.typelevel" %% "cats-effect" % CatsEffectV,
-    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.audioapi.model.api._"),
