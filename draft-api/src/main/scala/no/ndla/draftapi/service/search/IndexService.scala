@@ -133,12 +133,11 @@ trait IndexService {
       } else {
         val response = e4sClient.execute {
           createIndex(indexName)
-            .mappings(getMapping)
+            .mapping(getMapping)
             .indexSetting("max_result_window", DraftApiProperties.ElasticSearchIndexMaxResultWindow)
             // Setting these to the default values in the current version to suppress warnings in console
             // It might be a good idea to research why these have changed, and maybe change them when upgrading elasticsearch.
             .shards(5)
-            .includeTypeName(true)
         }
 
         response match {
