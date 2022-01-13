@@ -8,7 +8,7 @@
 package no.ndla.imageapi.service.search
 
 import io.lemonlabs.uri.Uri.parse
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
 import no.ndla.imageapi.auth.Role

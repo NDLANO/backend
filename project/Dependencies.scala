@@ -13,10 +13,10 @@ object Dependencies {
     val JettyV = "9.4.35.v20201120"
     val AwsSdkV = "1.11.658"
     val MockitoV = "1.14.8"
-    val Elastic4sV = "6.7.8"
+    val Elastic4sV = "7.16.3"
     val JacksonV = "2.12.1"
     val CatsEffectV = "2.1.2"
-    val ElasticsearchV = "6.8.13"
+    val ElasticsearchV = "7.16.2"
     val Json4SV = "4.0.3"
     val FlywayV = "7.5.3"
     val PostgresV = "42.2.18"
@@ -56,11 +56,11 @@ object Dependencies {
       "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
     )
 
-    lazy val elastic4sCore = "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV
-    lazy val elastic4sHttp = "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV
-    lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
-    lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
-    lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
+    // lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
+    lazy val elastic4s = Seq(
+      "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % Elastic4sV,
+      "com.sksamuel.elastic4s" %% "elastic4s-testkit" % Elastic4sV % "test"
+    )
 
     lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,

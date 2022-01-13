@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.service.search
 
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 import no.ndla.learningpathapi.integration.ImageApiClientComponent
 import no.ndla.learningpathapi.model._

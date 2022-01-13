@@ -7,9 +7,9 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration.DraftApiClient
@@ -39,7 +39,7 @@ trait DraftIndexService {
       searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle) match {
         case Success(searchableDraft) =>
           val source = write(searchableDraft)
-          Success(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+          Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
         case Failure(ex) =>
           Failure(ex)
       }
@@ -86,7 +86,7 @@ trait DraftIndexService {
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
 
     }
   }

@@ -8,7 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.searchapi.SearchApiProperties.SearchIndexes
 import no.ndla.searchapi.model.search.SearchType
 

@@ -7,9 +7,10 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings._
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration.LearningPathApiClient
@@ -39,7 +40,7 @@ trait LearningPathIndexService {
       searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle) match {
         case Success(searchableLearningPath) =>
           val source = write(searchableLearningPath)
-          Success(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+          Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
         case Failure(ex) =>
           Failure(ex)
       }
@@ -61,15 +62,19 @@ trait LearningPathIndexService {
             textField("stepType")
           )
         ),
-        objectField("copyright").fields(
-          objectField("license").fields(
-            textField("license"),
-            textField("description"),
-            textField("url")
-          ),
-          nestedField("contributors").fields(
-            textField("type"),
-            textField("name")
+        ObjectField(
+          "copyright",
+          properties = Seq(
+            ObjectField("license",
+                        properties = Seq(
+                          textField("license"),
+                          textField("description"),
+                          textField("url")
+                        )),
+            nestedField("contributors").fields(
+              textField("type"),
+              textField("name")
+            )
           )
         ),
         intField("isBasedOn"),
@@ -90,7 +95,7 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

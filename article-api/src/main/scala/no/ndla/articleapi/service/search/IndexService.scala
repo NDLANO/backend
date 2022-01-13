@@ -8,18 +8,18 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.analyzers.StandardAnalyzer
+import com.sksamuel.elastic4s.fields.ElasticField
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
-import no.ndla.articleapi.model.domain.{Content, ReindexResult}
+import no.ndla.articleapi.model.domain.{Content, Language, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 import no.ndla.search.Elastic4sClient
 
@@ -122,7 +122,7 @@ trait IndexService {
         }
         _ <- {
           e4sClient.execute {
-            delete(s"$contentId").from(searchIndex / documentType)
+            deleteById(searchIndex, s"$contentId")
           }
         }
       } yield contentId
@@ -136,7 +136,7 @@ trait IndexService {
       } else {
         val response = e4sClient.execute {
           createIndex(indexName)
-            .mappings(getMapping)
+            .mapping(getMapping)
             .indexSetting("max_result_window", ArticleApiProperties.ElasticSearchIndexMaxResultWindow)
         }
 
@@ -178,11 +178,11 @@ trait IndexService {
       } else {
         oldIndexName match {
           case None =>
-            e4sClient.execute(addAlias(searchIndex).on(newIndexName))
+            e4sClient.execute(addAlias(searchIndex, newIndexName))
           case Some(oldIndex) =>
             e4sClient.execute {
-              removeAlias(searchIndex).on(oldIndex)
-              addAlias(searchIndex).on(newIndexName)
+              removeAlias(searchIndex, oldIndex)
+              addAlias(searchIndex, newIndexName)
             }
         }
       }
@@ -225,8 +225,7 @@ trait IndexService {
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String,
-                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       keepRaw match {
         case true =>
           languageAnalyzers.map(
@@ -254,7 +253,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val fields = new ListBuffer[FieldDefinition]()
+      val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw")
       }
@@ -271,7 +270,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(StandardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

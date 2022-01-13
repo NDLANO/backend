@@ -7,13 +7,14 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.analyzers.StandardAnalyzer
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.model.Language
 import no.ndla.imageapi.model.Language.languageAnalyzers
 import no.ndla.imageapi.model.domain.ReindexResult
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
@@ -117,7 +118,7 @@ trait IndexService {
         _ <- createIndexIfNotExists()
         _ <- {
           e4sClient.execute(
-            delete(s"$contentId").from(searchIndex / documentType)
+            deleteById(searchIndex, s"$contentId")
           )
         }
       } yield contentId
@@ -235,8 +236,7 @@ trait IndexService {
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String,
-                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       if (keepRaw) {
         languageAnalyzers.map(
           langAnalyzer =>
@@ -263,7 +263,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val fields = new ListBuffer[FieldDefinition]()
+      val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw")
       }
@@ -280,7 +280,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(StandardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

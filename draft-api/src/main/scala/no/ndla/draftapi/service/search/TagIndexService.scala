@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.domain.Article
@@ -32,12 +32,12 @@ trait TagIndexService {
 
       tags.map(t => {
         val source = write(t)
-        indexInto(indexName / documentType).doc(source).id(s"${t.language}.${t.tag}")
+        indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
       })
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
+      properties(
         List(
           textField("tag"),
           keywordField("language")

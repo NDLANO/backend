@@ -7,23 +7,22 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.{SearchHit, SearchResponse, SuggestionResult}
-import com.sksamuel.elastic4s.mappings.FieldDefinition
-import com.sksamuel.elastic4s.searches.aggs.Aggregation
-import com.sksamuel.elastic4s.searches.queries.{NestedQuery, Query, SimpleStringQuery}
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
-import com.sksamuel.elastic4s.searches.suggestion.{DirectGenerator, PhraseSuggestion}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField, TextField}
+import com.sksamuel.elastic4s.handlers.searches.suggestion.{DirectGenerator, PhraseSuggestion}
+import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
+import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, SimpleStringQuery}
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, NdlaSearchException}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.SearchApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.search.SearchType
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
 
 import java.lang.Math.max
 import scala.annotation.tailrec
@@ -165,7 +164,7 @@ trait SearchService {
     }
 
     protected[search] def buildTermsAggregation(paths: Seq[String]): Seq[Aggregation] = {
-      val rootFields = indexServices.flatMap(_.getMapping.fields)
+      val rootFields = indexServices.flatMap(_.getMapping.properties)
 
       val aggregationTrees = paths.flatMap(p => buildAggregationTreeFromPath(p, rootFields).toSeq)
       val initialFakeAggregations = aggregationTrees.flatMap(FakeAgg.seqAggsToSubAggs(_).toSeq)
@@ -185,12 +184,11 @@ trait SearchService {
       mergedFakeAggregations.map(_.convertToReal())
     }
 
-    private def buildAggregationTreeFromPath(path: String,
-                                             fieldsInIndex: Seq[FieldDefinition]): Option[Seq[FakeAgg]] = {
+    private def buildAggregationTreeFromPath(path: String, fieldsInIndex: Seq[ElasticField]): Option[Seq[FakeAgg]] = {
       @tailrec
       def _buildAggregationRecursive(parts: Seq[String],
                                      fullPath: String,
-                                     fieldsInIndex: Seq[FieldDefinition],
+                                     fieldsInIndex: Seq[ElasticField],
                                      remainder: Seq[String],
                                      parentAgg: Seq[FakeAgg]): Option[(Seq[FakeAgg], Seq[String])] = {
         if (parts.isEmpty) {
@@ -218,10 +216,17 @@ trait SearchService {
               if (remainder.isEmpty) {
                 Some(newParent -> Seq.empty)
               } else {
+                val subFields = fieldsFound.head match {
+                  case nestedField: NestedField => nestedField.properties
+                  case objectField: ObjectField => objectField.properties
+                  case textField: TextField     => textField.fields
+                  case _                        => Seq.empty
+                }
+
                 _buildAggregationRecursive(
                   remainder,
                   fullPath,
-                  fieldsFound.head.fields,
+                  subFields,
                   Seq.empty,
                   newParent
                 )
@@ -387,17 +392,16 @@ trait SearchService {
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
         case e: NdlaSearchException =>
-          e.rf.status match {
+          e.rf.map(_.status).getOrElse(0) match {
             case notFound: Int if notFound == 404 =>
-              val msg = s"Index ${e.rf.error.index.getOrElse("")} not found. Scheduling a reindex."
+              val msg = s"Index ${e.rf.flatMap(_.error.index).getOrElse("")} not found. Scheduling a reindex."
               logger.error(msg)
               scheduleIndexDocuments()
-              Failure(new IndexNotFoundException(msg))
+              Failure(IndexNotFoundException(msg))
             case _ =>
               logger.error(e.getMessage)
               Failure(
-                new ElasticsearchException(s"Unable to execute search in ${e.rf.error.index.getOrElse("")}",
-                                           e.getMessage))
+                NdlaSearchException(s"Unable to execute search in ${e.rf.flatMap(_.error.index).getOrElse("")}", e))
           }
         case t: Throwable => Failure(t)
       }

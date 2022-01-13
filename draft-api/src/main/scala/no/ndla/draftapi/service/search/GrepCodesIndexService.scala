@@ -7,9 +7,9 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.domain.Article
@@ -33,16 +33,12 @@ trait GrepCodesIndexService {
 
       grepCodes.map(code => {
         val source = write(code)
-        indexInto(indexName / documentType).doc(source).id(code.grepCode)
+        indexInto(indexName).doc(source).id(code.grepCode)
       })
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
-        List(
-          textField("grepCode")
-        )
-      )
+      properties(List(textField("grepCode")))
     }
   }
 

@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
-import com.sksamuel.elastic4s.analyzers._
+import com.sksamuel.elastic4s.analysis.LanguageAnalyzers
 import no.ndla.conceptapi.ConceptApiProperties.DefaultLanguage
 import no.ndla.language.model.LanguageTag
 
@@ -17,47 +17,48 @@ object Language {
   val UnknownLanguage: LanguageTag = LanguageTag("und")
   val NoLanguage = ""
   val AllLanguages = "*"
+  val standardAnalyzer = "standard"
 
   val languageAnalyzers = Seq(
-    LanguageAnalyzer(LanguageTag("nb"), NorwegianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("nn"), NorwegianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("sma"), StandardAnalyzer), // Southern sami
-    LanguageAnalyzer(LanguageTag("se"), StandardAnalyzer), // Northern Sami
-    LanguageAnalyzer(LanguageTag("en"), EnglishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ar"), ArabicLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("hy"), ArmenianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("eu"), BasqueLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("pt-br"), BrazilianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("bg"), BulgarianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ca"), CatalanLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ja"), CjkLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ko"), CjkLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("zh"), CjkLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("cs"), CzechLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("da"), DanishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("nl"), DutchLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("fi"), FinnishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("fr"), FrenchLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("gl"), GalicianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("de"), GermanLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("el"), GreekLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("hi"), HindiLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("hu"), HungarianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("id"), IndonesianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ga"), IrishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("it"), ItalianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("lt"), LithuanianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("lv"), LatvianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("fa"), PersianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("pt"), PortugueseLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ro"), RomanianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("ru"), RussianLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("srb"), SoraniLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("es"), SpanishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("sv"), SwedishLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("th"), ThaiLanguageAnalyzer),
-    LanguageAnalyzer(LanguageTag("tr"), TurkishLanguageAnalyzer),
-    LanguageAnalyzer(UnknownLanguage, StandardAnalyzer)
+    LanguageAnalyzer(LanguageTag("nb"), LanguageAnalyzers.norwegian),
+    LanguageAnalyzer(LanguageTag("nn"), LanguageAnalyzers.norwegian),
+    LanguageAnalyzer(LanguageTag("sma"), standardAnalyzer), // Southern sami
+    LanguageAnalyzer(LanguageTag("se"), standardAnalyzer), // Northern Sami
+    LanguageAnalyzer(LanguageTag("en"), LanguageAnalyzers.english),
+    LanguageAnalyzer(LanguageTag("ar"), LanguageAnalyzers.arabic),
+    LanguageAnalyzer(LanguageTag("hy"), LanguageAnalyzers.armenian),
+    LanguageAnalyzer(LanguageTag("eu"), LanguageAnalyzers.basque),
+    LanguageAnalyzer(LanguageTag("pt-br"), LanguageAnalyzers.brazilian),
+    LanguageAnalyzer(LanguageTag("bg"), LanguageAnalyzers.bulgarian),
+    LanguageAnalyzer(LanguageTag("ca"), LanguageAnalyzers.catalan),
+    LanguageAnalyzer(LanguageTag("ja"), LanguageAnalyzers.cjk),
+    LanguageAnalyzer(LanguageTag("ko"), LanguageAnalyzers.cjk),
+    LanguageAnalyzer(LanguageTag("zh"), LanguageAnalyzers.cjk),
+    LanguageAnalyzer(LanguageTag("cs"), LanguageAnalyzers.czech),
+    LanguageAnalyzer(LanguageTag("da"), LanguageAnalyzers.danish),
+    LanguageAnalyzer(LanguageTag("nl"), LanguageAnalyzers.dutch),
+    LanguageAnalyzer(LanguageTag("fi"), LanguageAnalyzers.finnish),
+    LanguageAnalyzer(LanguageTag("fr"), LanguageAnalyzers.french),
+    LanguageAnalyzer(LanguageTag("gl"), LanguageAnalyzers.galician),
+    LanguageAnalyzer(LanguageTag("de"), LanguageAnalyzers.german),
+    LanguageAnalyzer(LanguageTag("el"), LanguageAnalyzers.greek),
+    LanguageAnalyzer(LanguageTag("hi"), LanguageAnalyzers.hindi),
+    LanguageAnalyzer(LanguageTag("hu"), LanguageAnalyzers.hungarian),
+    LanguageAnalyzer(LanguageTag("id"), LanguageAnalyzers.indonesian),
+    LanguageAnalyzer(LanguageTag("ga"), LanguageAnalyzers.irish),
+    LanguageAnalyzer(LanguageTag("it"), LanguageAnalyzers.italian),
+    LanguageAnalyzer(LanguageTag("lt"), LanguageAnalyzers.lithuanian),
+    LanguageAnalyzer(LanguageTag("lv"), LanguageAnalyzers.latvian),
+    LanguageAnalyzer(LanguageTag("fa"), LanguageAnalyzers.persian),
+    LanguageAnalyzer(LanguageTag("pt"), LanguageAnalyzers.portuguese),
+    LanguageAnalyzer(LanguageTag("ro"), LanguageAnalyzers.romanian),
+    LanguageAnalyzer(LanguageTag("ru"), LanguageAnalyzers.russian),
+    LanguageAnalyzer(LanguageTag("srb"), LanguageAnalyzers.sorani),
+    LanguageAnalyzer(LanguageTag("es"), LanguageAnalyzers.spanish),
+    LanguageAnalyzer(LanguageTag("sv"), LanguageAnalyzers.swedish),
+    LanguageAnalyzer(LanguageTag("th"), LanguageAnalyzers.thai),
+    LanguageAnalyzer(LanguageTag("tr"), LanguageAnalyzers.turkish),
+    LanguageAnalyzer(UnknownLanguage, standardAnalyzer)
   )
 
   def findByLanguageOrBestEffort[P <: LanguageField](sequence: Seq[P], language: String): Option[P] = {
@@ -94,4 +95,4 @@ object Language {
 
 }
 
-case class LanguageAnalyzer(languageTag: LanguageTag, analyzer: Analyzer)
+case class LanguageAnalyzer(languageTag: LanguageTag, analyzer: String)

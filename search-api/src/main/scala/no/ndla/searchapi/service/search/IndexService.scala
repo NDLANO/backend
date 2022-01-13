@@ -9,12 +9,22 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.Indexes
-import com.sksamuel.elastic4s.alias.AliasAction
-import com.sksamuel.elastic4s.analyzers._
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition, NestedField}
+import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.alias.AliasAction
+import com.sksamuel.elastic4s.requests.analyzers.{
+  CompoundWordTokenFilter,
+  CustomAnalyzerDefinition,
+  HyphenationDecompounder,
+  LowercaseTokenFilter,
+  ShingleTokenFilter,
+  StandardAnalyzer,
+  StandardTokenizer,
+  WhitespaceTokenizer
+}
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.SearchApiProperties
@@ -217,7 +227,7 @@ trait IndexService {
         }
         deleted <- {
           e4sClient.execute {
-            delete(s"$contentId").from(searchIndex / documentType)
+            delete(s"$contentId").from(searchIndex)
           }
         }
       } yield deleted
@@ -410,7 +420,7 @@ trait IndexService {
     protected def generateLanguageSupportedFieldList(
         fieldName: String,
         keepRaw: Boolean = false
-    ): Seq[FieldDefinition] = {
+    ): Seq[ElasticField] = {
       languageAnalyzers.map(langAnalyzer => {
         val sf = List(
           textField("trigram").analyzer("trigram"),
@@ -439,7 +449,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val dynamicFunc = (name: String, analyzer: Analyzer, subFields: List[FieldDefinition]) => {
+      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
         DynamicTemplateRequest(
           name = name,
           mapping = textField(name).analyzer(analyzer).fields(subFields),
@@ -470,8 +480,8 @@ trait IndexService {
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)
         }
       )
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", StandardAnalyzer, subFields)
-      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", StandardAnalyzer, subFields)
+      val catchAllTemplate = dynamicFunc(s"$fieldName.*", "standard", subFields)
+      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", "standard", subFields)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate, catchAllSubTemplate)
     }
 

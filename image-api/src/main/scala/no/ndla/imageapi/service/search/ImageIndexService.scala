@@ -7,10 +7,11 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.model.domain.ImageMetaInformation
@@ -30,11 +31,11 @@ trait ImageIndexService {
 
     override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
       val source = write(searchConverterService.asSearchableImage(domainModel))
-      Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+      Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }
 
     def getMapping: MappingDefinition = {
-      val fields: Seq[FieldDefinition] = List(
+      val fields: Seq[ElasticField] = List(
         intField("id"),
         keywordField("license"),
         intField("imageSize"),
@@ -50,7 +51,7 @@ trait ImageIndexService {
         generateLanguageSupportedDynamicTemplates("captions", keepRaw = false) ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = false)
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

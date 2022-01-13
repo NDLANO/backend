@@ -9,7 +9,7 @@
 package no.ndla.audioapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
 import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
