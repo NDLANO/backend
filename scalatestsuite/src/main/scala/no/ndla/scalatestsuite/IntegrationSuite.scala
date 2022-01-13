@@ -19,7 +19,7 @@ abstract class IntegrationSuite(
     EnableElasticsearchContainer: Boolean = false,
     EnablePostgresContainer: Boolean = false,
     PostgresqlVersion: String = "12.4",
-    ElasticsearchImage: String = "d63726c", // elasticsearch 6.8.4
+    ElasticsearchImage: String = "9062bdb", // elasticsearch 7.16.2
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
 
@@ -31,6 +31,8 @@ abstract class IntegrationSuite(
 
     Try {
       val container = new ElasticsearchContainer(searchEngineImage)
+      container.addEnv("xpack.security.enabled", "false")
+      container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
       container.start()
       container
     }
