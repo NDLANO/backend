@@ -73,7 +73,9 @@ trait ConverterService {
       audio.copy(
         titles = audio.titles.filterNot(_.language == language),
         filePaths = audio.filePaths.filterNot(_.language == language),
-        tags = audio.tags.filterNot(_.language == language)
+        tags = audio.tags.filterNot(_.language == language),
+        manuscript = audio.manuscript.filterNot(_.language == language),
+        podcastMeta = audio.podcastMeta.filterNot(_.language == language)
       )
 
     def withoutLanguage(series: domain.Series, language: String): domain.Series = {
