@@ -105,7 +105,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100)
 
     result.totalCount should be(3)
-    result.results should be(Seq("test", "testemer", "testing"))
+    result.results should be(Seq("test", "testing", "testemer"))
   }
 
   test("That only prefixes are matched") {
