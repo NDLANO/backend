@@ -16,12 +16,11 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Language
-import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.domain.ReindexResult
-import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{Elastic4sClient, SearchLanguage}
+import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 
 import java.text.SimpleDateFormat
@@ -33,7 +32,7 @@ trait IndexService {
   this: Elastic4sClient with SearchConverterService with AudioRepository =>
 
   trait IndexService[D, T] extends LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ org.json4s.ext.JodaTimeSerializers.all
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     val documentType: String
     val searchIndex: String
@@ -287,7 +286,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

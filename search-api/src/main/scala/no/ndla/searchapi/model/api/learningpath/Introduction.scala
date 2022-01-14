@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.api.learningpath
 
-import no.ndla.searchapi.model.domain.LanguageField
+import no.ndla.language.model.WithLanguage
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -18,4 +18,4 @@ case class Introduction(@(ApiModelProperty @field)(description =
                           "The introduction to the learningpath. Basic HTML allowed") introduction: String,
                         @(ApiModelProperty @field)(description =
                           "ISO 639-1 code that represents the language used in introduction") language: String)
-    extends LanguageField
+    extends WithLanguage

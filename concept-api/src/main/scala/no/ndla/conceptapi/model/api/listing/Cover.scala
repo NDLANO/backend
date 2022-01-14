@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.model.api.listing
 
+import no.ndla.language.model.LanguageField
+
 import java.util.Date
 
 case class Cover(id: Option[Long],
@@ -24,19 +26,17 @@ case class Cover(id: Option[Long],
     (title concat description concat labels).map(_.language).toSet
 }
 
-trait LanguageField[T] {
-  val language: String
-  def data: T
-}
-
 case class CoverDescription(description: String, language: String) extends LanguageField[String] {
-  def data = description
+  def value: String = description
+  def isEmpty: Boolean = description.isEmpty
 }
 case class CoverTitle(title: String, language: String) extends LanguageField[String] {
-  def data = title
+  def value: String = title
+  def isEmpty: Boolean = title.isEmpty
 }
 case class CoverLanguageLabels(labels: Seq[CoverLabel], language: String) extends LanguageField[Seq[CoverLabel]] {
-  def data = labels
+  def value: Seq[CoverLabel] = labels
+  def isEmpty: Boolean = labels.isEmpty
 }
 
 case class CoverLabel(`type`: Option[String], labels: Seq[String])

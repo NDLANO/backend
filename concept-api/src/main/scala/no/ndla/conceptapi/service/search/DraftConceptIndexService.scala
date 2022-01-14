@@ -17,8 +17,8 @@ import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
-import no.ndla.conceptapi.model.search.SearchableLanguageFormats
 
 import scala.util.{Failure, Success, Try}
 

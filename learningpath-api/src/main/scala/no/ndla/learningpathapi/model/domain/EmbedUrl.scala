@@ -8,10 +8,12 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.language.model.LanguageField
 import no.ndla.learningpathapi.model.api.ValidationMessage
 
 case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
   override def value: String = url
+  override def isEmpty: Boolean = url.isEmpty
 }
 
 object EmbedType extends Enumeration {

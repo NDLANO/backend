@@ -210,61 +210,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     domain.updated should equal(updated())
   }
 
-  test("That mergeLanguageFields returns original list when updated is empty") {
-    val existing = Seq(domain.ImageTitle("Tittel 1", "nb"),
-                       domain.ImageTitle("Tittel 2", "nn"),
-                       domain.ImageTitle("Tittel 3", "und"))
-    writeService.mergeLanguageFields(existing, Seq()) should equal(existing)
-  }
-
-  test("That mergeLanguageFields updated the english title only when specified") {
-    val tittel1 = domain.ImageTitle("Tittel 1", "nb")
-    val tittel2 = domain.ImageTitle("Tittel 2", "nn")
-    val tittel3 = domain.ImageTitle("Tittel 3", "en")
-    val oppdatertTittel3 = domain.ImageTitle("Title 3 in english", "en")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(oppdatertTittel3)
-
-    writeService.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel2, oppdatertTittel3))
-  }
-
-  test("That mergeLanguageFields removes a title that is empty") {
-    val tittel1 = domain.ImageTitle("Tittel 1", "nb")
-    val tittel2 = domain.ImageTitle("Tittel 2", "nn")
-    val tittel3 = domain.ImageTitle("Tittel 3", "en")
-    val tittelToRemove = domain.ImageTitle("", "nn")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(tittelToRemove)
-
-    writeService.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel3))
-  }
-
-  test("That mergeLanguageFields updates the title with unknown language specified") {
-    val tittel1 = domain.ImageTitle("Tittel 1", "nb")
-    val tittel2 = domain.ImageTitle("Tittel 2", "und")
-    val tittel3 = domain.ImageTitle("Tittel 3", "en")
-    val oppdatertTittel2 = domain.ImageTitle("Tittel 2 er oppdatert", "und")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(oppdatertTittel2)
-
-    writeService.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel3, oppdatertTittel2))
-  }
-
-  test("That mergeLanguageFields also updates the correct content") {
-    val desc1 = domain.ImageAltText("Beskrivelse 1", "nb")
-    val desc2 = domain.ImageAltText("Beskrivelse 2", "und")
-    val desc3 = domain.ImageAltText("Beskrivelse 3", "en")
-    val oppdatertDesc2 = domain.ImageAltText("Beskrivelse 2 er oppdatert", "und")
-
-    val existing = Seq(desc1, desc2, desc3)
-    val updated = Seq(oppdatertDesc2)
-
-    writeService.mergeLanguageFields(existing, updated) should equal(Seq(desc1, desc3, oppdatertDesc2))
-  }
-
   test("mergeImages should append a new language if language not already exists") {
     val date = new Date()
     val user = "ndla124"

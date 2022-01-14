@@ -6,7 +6,7 @@
  */
 
 package no.ndla.searchapi.model.api
-import no.ndla.searchapi.model.domain.LanguageField
+import no.ndla.language.model.WithLanguage
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -15,4 +15,4 @@ import scala.annotation.meta.field
 case class ImageAltText(@(ApiModelProperty @field)(description = "The freetext alttext of the image") altText: String,
                         @(ApiModelProperty @field)(
                           description = "ISO 639-1 code that represents the language used in alttext") language: String)
-    extends LanguageField
+    extends WithLanguage

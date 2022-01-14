@@ -22,6 +22,7 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeExcep
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 

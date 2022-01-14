@@ -9,7 +9,8 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Language
+import no.ndla.language.Language.getSupportedLanguages
+import no.ndla.search.SearchLanguage
 import org.joda.time.DateTime
 import org.json4s.FieldSerializer.ignore
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
@@ -40,7 +41,7 @@ case class Series(
     override val created: DateTime,
     override val description: Seq[Description]
 ) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created, description) {
-  lazy val supportedLanguages: Seq[String] = Language.getSupportedLanguages(title, description)
+  lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
 }
 
 object Series extends SQLSyntaxSupport[Series] {

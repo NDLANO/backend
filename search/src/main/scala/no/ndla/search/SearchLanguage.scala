@@ -1,21 +1,39 @@
 /*
- * Part of NDLA article-api.
- * Copyright (C) 2016 NDLA
+ * Part of NDLA search.
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
- *
  */
 
-package no.ndla.articleapi.model.domain
+package no.ndla.search
 
-import com.sksamuel.elastic4s.analysis.LanguageAnalyzers
-import no.ndla.articleapi.ArticleApiProperties.DefaultLanguage
+import com.sksamuel.elastic4s.analysis.{
+  CustomAnalyzer,
+  LanguageAnalyzers,
+  StandardTokenizer,
+  StemmerTokenFilter,
+  StopTokenFilter
+}
+import no.ndla.language.Language._
 import no.ndla.language.model.LanguageTag
 
-object Language {
-  val UnknownLanguage: LanguageTag = LanguageTag("und")
-  val NoLanguage = ""
-  val AllLanguages = "*"
+object SearchLanguage {
+
+  val tokenFilters = List(
+    StopTokenFilter("norwegian_stop", language = Some("norwegian")),
+    StemmerTokenFilter("nynorsk_stemmer", lang = "light_nynorsk")
+  )
+
+  // Must be included in search index settings
+  val NynorskLanguageAnalyzer: CustomAnalyzer = CustomAnalyzer(
+    name = Nynorsk,
+    tokenizer = "standard",
+    tokenFilters = List(
+      "lowercase",
+      "norwegian_stop",
+      "nynorsk_stemmer"
+    )
+  )
 
   val standardAnalyzer = "standard"
 
@@ -60,37 +78,6 @@ object Language {
     LanguageAnalyzer(LanguageTag("tr"), LanguageAnalyzers.turkish),
     LanguageAnalyzer(UnknownLanguage, standardAnalyzer)
   )
-
-  def findByLanguageOrBestEffort[P <: LanguageField[_]](sequence: Seq[P], language: String): Option[P] = {
-    sequence
-      .find(_.language == language)
-      .orElse(
-        sequence
-          .sortBy(lf => languageAnalyzers.map(la => la.languageTag.toString).reverse.indexOf(lf.language))
-          .lastOption)
-  }
-
-  def languageOrUnknown(language: Option[String]): LanguageTag = {
-    language.filter(_.nonEmpty) match {
-      case Some(x) if x == "unknown" => UnknownLanguage
-      case Some(x)                   => LanguageTag(x)
-      case None                      => UnknownLanguage
-    }
-  }
-
-  def getSupportedLanguages(sequences: Seq[LanguageField[_]]*): Seq[String] = {
-    sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>
-      languageAnalyzers.map(la => la.languageTag).indexOf(LanguageTag(lang))
-    }
-  }
-
-  def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
-    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
-    if (supportedLanguages.contains(l))
-      l
-    else
-      supportedLanguages.head
-  }
 
 }
 

@@ -12,12 +12,14 @@ import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.language.Language.AllLanguages
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Language, SearchResult}
+import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.ConverterService
+import no.ndla.language.Language
 import no.ndla.mapping.ISO639
 import no.ndla.search.Elastic4sClient
 
@@ -128,7 +130,7 @@ trait PublishedConceptSearchService {
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
-        case "" | Language.AllLanguages =>
+        case "" | AllLanguages =>
           (None, "*")
         case lang =>
           if (settings.fallback)

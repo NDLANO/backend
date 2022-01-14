@@ -14,10 +14,10 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain.Language.languageAnalyzers
-import no.ndla.draftapi.model.domain.{Content, Language, ReindexResult}
+import no.ndla.draftapi.model.domain.{Content, ReindexResult}
 import no.ndla.draftapi.repository.Repository
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.{Elastic4sClient, SearchLanguage}
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -285,7 +285,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

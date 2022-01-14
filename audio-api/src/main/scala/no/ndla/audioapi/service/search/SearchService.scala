@@ -16,7 +16,8 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.audioapi.model.domain.SearchResult
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
+import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
@@ -67,7 +68,7 @@ trait SearchService {
 
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
+              case AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }

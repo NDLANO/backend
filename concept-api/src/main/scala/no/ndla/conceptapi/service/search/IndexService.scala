@@ -10,19 +10,18 @@ package no.ndla.conceptapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.analysis.StandardAnalyzer
+import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer, StandardAnalyzer}
 import com.sksamuel.elastic4s.fields.ElasticField
-import com.sksamuel.elastic4s.requests.analyzers.{CustomNormalizerDefinition, LowercaseTokenFilter}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api.ElasticIndexingException
-import no.ndla.conceptapi.model.domain.Language.languageAnalyzers
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.Elastic4sClient
+import no.ndla.search.SearchLanguage.languageAnalyzers
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -34,8 +33,6 @@ trait IndexService {
     val documentType: String
     val searchIndex: String
     val repository: Repository[D]
-
-    val lowerNormalizer: CustomNormalizerDefinition = customNormalizer("lower").filters(Seq(LowercaseTokenFilter))
 
     def getMapping: MappingDefinition
     def createIndexRequest(domainModel: D, indexName: String): Try[IndexRequest]
@@ -145,10 +142,14 @@ trait IndexService {
       if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
+        val lowerNormalizer: CustomNormalizer =
+          CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
+        val analyis = new Analysis(analyzers = List(), normalizers = List(lowerNormalizer))
+
         val response = e4sClient.execute {
           createIndex(indexName)
             .mapping(getMapping)
-            .normalizers(lowerNormalizer)
+            .analysis(analyis)
             .indexSetting("max_result_window", ConceptApiProperties.ElasticSearchIndexMaxResultWindow)
         }
 

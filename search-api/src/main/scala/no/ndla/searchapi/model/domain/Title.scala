@@ -7,4 +7,9 @@
 
 package no.ndla.searchapi.model.domain
 
-case class Title(title: String, language: String) extends LanguageField
+import no.ndla.language.model.LanguageField
+
+case class Title(title: String, language: String) extends LanguageField[String] {
+  override def value: String = title
+  override def isEmpty: Boolean = title.isEmpty
+}

@@ -19,6 +19,7 @@ import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import scala.util.{Failure, Success, Try}
@@ -62,7 +63,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
+              case AllLanguages =>
                 converterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -75,20 +76,20 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case domain.Language.NoLanguage => DefaultLanguage
-        case _                          => language
+        case NoLanguage => DefaultLanguage
+        case _          => language
       }
 
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+            case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)

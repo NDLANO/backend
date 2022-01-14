@@ -18,10 +18,10 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.Language.languageAnalyzers
-import no.ndla.articleapi.model.domain.{Content, Language, ReindexResult}
+import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{Elastic4sClient, SearchLanguage}
+import no.ndla.search.SearchLanguage.languageAnalyzers
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -270,7 +270,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

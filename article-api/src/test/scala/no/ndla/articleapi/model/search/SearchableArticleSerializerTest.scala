@@ -9,6 +9,7 @@ package no.ndla.articleapi.model.search
 
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.domain.{ArticleMetaImage, Availability}
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, writePretty}

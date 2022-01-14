@@ -17,11 +17,11 @@ import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateR
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.integration.SearchApiClient
-import no.ndla.learningpathapi.model.domain.Language._
-import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, Language, LearningPath, ReindexResult}
-import no.ndla.learningpathapi.model.search.SearchableLanguageFormats
+import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{Elastic4sClient, SearchLanguage}
+import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization._
 
@@ -319,7 +319,7 @@ trait SearchIndexService {
           dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
         }
       )
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", Language.standardAnalyzer, fields.toList)
+      val catchAllTemplate = dynamicFunc(s"$fieldName.*", SearchLanguage.standardAnalyzer, fields.toList)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate)
     }
 

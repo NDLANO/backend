@@ -22,9 +22,10 @@ import no.ndla.audioapi.model.api.{
   ValidationError
 }
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}

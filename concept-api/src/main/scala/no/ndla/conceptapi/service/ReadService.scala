@@ -11,8 +11,9 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.conceptapi.ConceptApiProperties.externalApiUrls
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, Language}
+import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
+import no.ndla.language.Language
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}

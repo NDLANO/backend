@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi
 
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.SearchApiProperties.DefaultLanguage
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain._
@@ -22,7 +23,7 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy._
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
 
@@ -48,7 +49,7 @@ object TestData {
     Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None, None)
   private val copyrighted =
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
-  val today: DateTime = new DateTime().withMillisOfSecond(0)
+  val today: DateTime = new DateTime().withMillisOfSecond(0).withZone(DateTimeZone.UTC)
 
   val sampleArticleTitle = ArticleApiTitle("tittell", "nb")
   val sampleArticleVisualElement = ArticleApiVisualElement("""<embed data-resource="image">""", "nb")

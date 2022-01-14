@@ -9,16 +9,18 @@
 package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
+import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 import no.ndla.learningpathapi.integration.ImageApiClientComponent
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.{Author, LearningPathSummaryV2, SearchResultV2}
-import no.ndla.learningpathapi.model.domain.Language.findByLanguageOrBestEffort
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.search._
 import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
+import no.ndla.search.SearchLanguage
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterServiceComponent {
   this: ConverterService with ImageApiClientComponent =>
@@ -37,7 +39,7 @@ trait SearchConverterServiceComponent {
           case _          => Seq.empty
         }
       val tags = searchableLearningPath.tags.languageValues.map(lv => api.LearningPathTags(lv.value, lv.language))
-      val supportedLanguages = Language.findSupportedLanguages(titles, descriptions, introductions, tags)
+      val supportedLanguages = getSupportedLanguages(titles, descriptions, introductions, tags)
 
       LearningPathSummaryV2(
         searchableLearningPath.id,
@@ -66,7 +68,7 @@ trait SearchConverterServiceComponent {
       val defaultTitle = learningPath.title
         .sortBy(title => {
           val languagePriority =
-            Language.languageAnalyzers.map(la => la.languageTag.toString).reverse
+            SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption

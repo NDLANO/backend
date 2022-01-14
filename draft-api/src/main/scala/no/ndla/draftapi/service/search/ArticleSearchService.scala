@@ -16,6 +16,7 @@ import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, E
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ResultWindowTooLargeException
 import no.ndla.draftapi.model.domain.{Sort, _}
+import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}

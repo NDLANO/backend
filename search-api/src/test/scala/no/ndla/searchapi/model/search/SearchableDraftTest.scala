@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.article.{ArticleMetaImage, LearningResourceType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._
@@ -17,7 +18,7 @@ import org.json4s.native.Serialization.{read, write}
 class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableDraft to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))

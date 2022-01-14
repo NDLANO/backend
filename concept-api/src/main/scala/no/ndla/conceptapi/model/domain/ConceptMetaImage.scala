@@ -7,7 +7,10 @@
 
 package no.ndla.conceptapi.model.domain
 
-case class ConceptMetaImage(imageId: String, altText: String, language: String) extends LanguageField {
-  override def isEmpty: Boolean = imageId.isEmpty && altText.isEmpty
+import no.ndla.language.model.LanguageField
 
+case class ConceptMetaImage(imageId: String, altText: String, language: String)
+    extends LanguageField[(String, String)] {
+  override def isEmpty: Boolean = imageId.isEmpty && altText.isEmpty
+  override def value: (String, String) = imageId -> altText
 }
