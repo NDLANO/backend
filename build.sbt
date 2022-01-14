@@ -19,4 +19,4 @@ lazy val network            = Module.setup(project in file("./network/"),       
 lazy val language           = Module.setup(project in file("./language/"),         languagelib)
 lazy val mapping            = Module.setup(project in file("./mapping/"),          mappinglib)
 lazy val validation         = Module.setup(project in file("./validation/"),       validationlib)
-lazy val search             = Module.setup(project in file("./search/"),           searchlib)
+lazy val search             = Module.setup(project in file("./search/"),           searchlib,         deps = Seq(                  language))

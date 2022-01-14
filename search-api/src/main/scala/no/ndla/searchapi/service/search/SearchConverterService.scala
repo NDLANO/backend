@@ -19,8 +19,8 @@ import no.ndla.searchapi.model.api._
 import no.ndla.searchapi.model.api.article.ArticleSummary
 import no.ndla.searchapi.model.api.draft.DraftSummary
 import no.ndla.searchapi.model.api.learningpath.LearningPathSummary
-import no.ndla.searchapi.model.domain.Language
 import no.ndla.searchapi.model.domain.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
+import no.ndla.search.Language
 import no.ndla.searchapi.model.domain.article.{LearningResourceType, _}
 import no.ndla.searchapi.model.domain.draft.Draft
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep, StepType}
@@ -186,9 +186,12 @@ trait SearchConverterService {
         })
         .lastOption
 
-      val supportedLanguages = Language
-        .getSupportedLanguages(ai.title, ai.visualElement, ai.introduction, ai.metaDescription, ai.content, ai.tags)
-        .toList
+      val supportedLanguages = getSupportedLanguages(ai.title,
+                                                     ai.visualElement,
+                                                     ai.introduction,
+                                                     ai.metaDescription,
+                                                     ai.content,
+                                                     ai.tags).toList
 
       Success(
         SearchableArticle(
@@ -226,7 +229,7 @@ trait SearchConverterService {
       val taxonomyForLearningPath =
         getTaxonomyContexts(lp.id.get, "learningpath", taxonomyBundle, filterVisibles = true)
 
-      val supportedLanguages = Language.getSupportedLanguages(lp.title, lp.description).toList
+      val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
       val license = api.learningpath.Copyright(
         asLearningPathApiLicense(lp.copyright.license),
@@ -270,16 +273,14 @@ trait SearchConverterService {
         })
         .lastOption
 
-      val supportedLanguages = Language
-        .getSupportedLanguages(
-          draft.title,
-          draft.visualElement,
-          draft.introduction,
-          draft.metaDescription,
-          draft.content,
-          draft.tags
-        )
-        .toList
+      val supportedLanguages = getSupportedLanguages(
+        draft.title,
+        draft.visualElement,
+        draft.introduction,
+        draft.metaDescription,
+        draft.content,
+        draft.tags
+      ).toList
 
       val authors = (
         draft.copyright.map(_.creators).toList ++

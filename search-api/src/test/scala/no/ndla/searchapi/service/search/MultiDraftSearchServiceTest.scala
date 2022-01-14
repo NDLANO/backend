@@ -15,7 +15,8 @@ import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.model.domain.{Language, Sort}
+import no.ndla.searchapi.model.domain.Sort
+import no.ndla.search.Language
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{SearchApiProperties, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
@@ -50,8 +51,8 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      draftIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Drafts))
-      learningPathIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.LearningPaths))
+      draftIndexService.createIndexAndAlias()
+      learningPathIndexService.createIndexAndAlias()
 
       val indexedDrafts =
         draftsToIndex.map(draft => draftIndexService.indexDocument(draft, taxonomyTestBundle, Some(emptyGrepBundle)))
