@@ -275,7 +275,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
       agreementSearchService.matchingQuery(
         agreementSearchSettings.copy(query = Some("lov"), sort = Sort.ByRelevanceDesc))
     val hits = search.results
-    hits.map(_.id) should equal(Seq(8, 2))
+    hits.map(_.id) should equal(Seq(2, 8))
   }
 
   test("That scrolling works as expected") {

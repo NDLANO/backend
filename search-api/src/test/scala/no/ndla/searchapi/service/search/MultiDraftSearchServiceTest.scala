@@ -182,7 +182,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     results.totalCount should be(3)
-    results.results.map(_.id) should be(Seq(5, 1, 3))
+    results.results.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {

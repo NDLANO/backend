@@ -190,9 +190,7 @@ class MultiSearchServiceTest
       multiSearchService.matchingQuery(searchSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(3)
-    hits.head.id should be(5)
-    hits(1).id should be(1)
-    hits.last.id should be(3)
+    hits.map(_.id) should be(Seq(5, 3, 1))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
