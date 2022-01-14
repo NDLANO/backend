@@ -13,10 +13,12 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, Language, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.language.Language.AllLanguages
+import no.ndla.search.SearchLanguage
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
@@ -145,7 +147,7 @@ trait ArticleControllerV2 {
           .responseMessages(response500))
     ) {
       val defaultSize = 20
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val size = intOrDefault(this.size.paramName, defaultSize) match {
         case tooSmall if tooSmall < 1 => defaultSize
         case x                        => x
@@ -182,7 +184,7 @@ trait ArticleControllerV2 {
         case tooSmall if tooSmall < 1 => 1
         case x                        => x
       }
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       readService.getAllTags(query, pageSize, pageNo, language)
     }
@@ -246,7 +248,7 @@ trait ArticleControllerV2 {
           .responseMessages(response500))
     ) {
       val scrollId = paramOrNone(this.scrollId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       scrollSearchOr(scrollId, language, fallback) {
@@ -291,7 +293,7 @@ trait ArticleControllerV2 {
           .responseMessages(response400, response500))
     ) {
       val searchParams = extract[ArticleSearchParams](request.body)
-      val language = searchParams.language.getOrElse(Language.AllLanguages)
+      val language = searchParams.language.getOrElse(AllLanguages)
       val fallback = searchParams.fallback.getOrElse(false)
 
       scrollSearchOr(searchParams.scrollId, language, fallback) {
@@ -352,7 +354,7 @@ trait ArticleControllerV2 {
       parseArticleIdAndRevision(params(this.articleId.paramName)) match {
         case (Failure(ex), _) => errorHandler(ex)
         case (Success(articleId), inlineRevision) =>
-          val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+          val language = paramOrDefault(this.language.paramName, AllLanguages)
           val fallback = booleanOrDefault(this.fallback.paramName, default = false)
           val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
 

@@ -11,6 +11,7 @@ package no.ndla.imageapi.model.domain
 import java.util.Date
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
+import no.ndla.language.model.LanguageField
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer
@@ -21,15 +22,19 @@ import scala.util.{Failure, Success, Try}
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {
   override def value: String = title
+  override def isEmpty: Boolean = title.isEmpty
 }
 case class ImageAltText(alttext: String, language: String) extends LanguageField[String] {
   override def value: String = alttext
+  override def isEmpty: Boolean = alttext.isEmpty
 }
 case class ImageCaption(caption: String, language: String) extends LanguageField[String] {
   override def value: String = caption
+  override def isEmpty: Boolean = caption.isEmpty
 }
 case class ImageTag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
   override def value: Seq[String] = tags
+  override def isEmpty: Boolean = tags.isEmpty
 }
 case class Image(fileName: String, size: Long, contentType: String)
 case class Copyright(license: String,

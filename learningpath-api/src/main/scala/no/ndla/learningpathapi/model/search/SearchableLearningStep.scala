@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.model.search
 
+import no.ndla.search.model.SearchableLanguageValues
+
 case class SearchableLearningStep(stepType: String,
                                   embedUrl: List[String],
                                   status: String,

@@ -12,13 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.search
-import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
+import no.ndla.conceptapi.model.domain.{ConceptStatus, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
 import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
+import no.ndla.language.model.LanguageField
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 
 import scala.jdk.CollectionConverters._
@@ -266,11 +267,6 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): domain.Author =
       domain.Author(author.`type`, author.name)
-
-    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.isEmpty)
-    }
 
     def toApiConceptTags(tags: Seq[String],
                          tagsCount: Int,

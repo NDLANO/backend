@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.model.domain
 
 import java.util.Date
-
 import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
@@ -38,7 +38,7 @@ case class Concept(
 ) {
 
   lazy val supportedLanguages: Set[String] =
-    Language.getSupportedLanguages(Seq(title, content, tags, visualElement, metaImage)).toSet
+    getSupportedLanguages(title, content, tags, visualElement, metaImage).toSet
 }
 
 object Concept extends SQLSyntaxSupport[Concept] {

@@ -12,10 +12,11 @@ import no.ndla.draftapi.DraftApiProperties.InitialScrollContextKeywords
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, Language, SearchSettings, Sort}
+import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
+import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import org.joda.time.DateTime

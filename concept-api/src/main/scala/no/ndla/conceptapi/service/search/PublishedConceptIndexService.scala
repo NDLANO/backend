@@ -14,8 +14,8 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
-import no.ndla.conceptapi.model.search.SearchableLanguageFormats
 import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 

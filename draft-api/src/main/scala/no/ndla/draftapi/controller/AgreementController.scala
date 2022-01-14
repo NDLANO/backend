@@ -12,9 +12,10 @@ import no.ndla.draftapi.DraftApiProperties.InitialScrollContextKeywords
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ReindexClient
 import no.ndla.draftapi.model.api._
-import no.ndla.draftapi.model.domain.{AgreementSearchSettings, Language, Sort}
+import no.ndla.draftapi.model.domain.{AgreementSearchSettings, Sort}
 import no.ndla.draftapi.service.search.{AgreementSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.language.Language.AllLanguages
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, NotFound, Ok}
@@ -53,7 +54,7 @@ trait AgreementController {
     private val agreementId = Param[Long]("agreement_id", "Id of the agreement that is to be returned")
 
     private def scrollSearchOr(orFunction: => Any): Any = {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       paramOrNone(this.scrollId.paramName) match {
         case Some(scroll) =>

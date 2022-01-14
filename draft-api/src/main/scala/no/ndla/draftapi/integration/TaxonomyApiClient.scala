@@ -11,13 +11,14 @@ import cats.Traverse
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.draftapi.DraftApiProperties.{ApiGatewayHost, DefaultLanguage}
-import no.ndla.draftapi.model.domain.{Article, ArticleTitle, Language}
+import no.ndla.draftapi.model.domain.{Article, ArticleTitle}
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
 import org.json4s.jackson.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.language.Language
 
 trait TaxonomyApiClient {
   this: NdlaClient =>

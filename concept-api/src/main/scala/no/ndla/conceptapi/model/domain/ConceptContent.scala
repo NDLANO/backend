@@ -7,6 +7,9 @@
 
 package no.ndla.conceptapi.model.domain
 
-case class ConceptContent(content: String, language: String) extends LanguageField {
+import no.ndla.language.model.LanguageField
+
+case class ConceptContent(content: String, language: String) extends LanguageField[String] {
+  override def value: String = content
   override def isEmpty: Boolean = content.isEmpty
 }

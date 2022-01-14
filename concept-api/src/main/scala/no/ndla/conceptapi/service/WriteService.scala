@@ -15,9 +15,10 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Language}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation._
+import no.ndla.language.Language
 
 import scala.util.{Failure, Success, Try}
 
@@ -168,7 +169,7 @@ trait WriteService {
               for {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
                 updated <- updateConcept(withStatus)
-                converted <- converterService.toApiConcept(updated, domain.Language.AllLanguages, fallback = false)
+                converted <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
               } yield converted
           }
         case None => Failure(NotFoundException("Concept does not exist"))

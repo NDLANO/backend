@@ -7,6 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+
 case class SearchableTaxonomyContext(
     id: String,
     subjectId: String,

@@ -8,6 +8,6 @@
 
 package no.ndla.learningpathapi.model.domain
 
-case class LearningPathTags(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
-  override def value: Seq[String] = tags
-}
+import no.ndla.language.model.WithLanguage
+
+case class LearningPathTags(tags: Seq[String], language: String) extends WithLanguage

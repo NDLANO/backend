@@ -17,6 +17,7 @@ import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, E
 import no.ndla.draftapi.model.api.ResultWindowTooLargeException
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.search.SearchableTag
+import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
 import org.json4s._
 import org.json4s.native.Serialization.read

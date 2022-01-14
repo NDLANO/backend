@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.Copyright
 import org.joda.time.DateTime
 

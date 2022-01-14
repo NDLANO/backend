@@ -18,10 +18,12 @@ import no.ndla.conceptapi.model.api.{
   NotFoundException,
   SubjectTags
 }
-import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.language.Language
+import no.ndla.language.Language.AllLanguages
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
@@ -170,7 +172,7 @@ trait DraftConceptController {
           .authorizations("oauth2")
           .responseMessages(response500))
     ) {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
 
       scrollSearchOr(scrollId, language) {
@@ -242,7 +244,7 @@ trait DraftConceptController {
           .responseMessages(response400, response403, response404, response500))
     ) {
       val subjects = paramAsListOfString(this.subjects.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       if (subjects.nonEmpty) {
@@ -278,7 +280,7 @@ trait DraftConceptController {
           case Success(searchParams) =>
             val query = searchParams.query
             val sort = searchParams.sort.flatMap(Sort.valueOf)
-            val language = searchParams.language.getOrElse(Language.AllLanguages)
+            val language = searchParams.language.getOrElse(AllLanguages)
             val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
             val page = searchParams.page.getOrElse(1)
             val idList = searchParams.idList

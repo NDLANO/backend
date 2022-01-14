@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.ElasticSearchScrollKeepAlive
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
-import no.ndla.imageapi.model.Language
+import no.ndla.language.Language
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import scala.concurrent.ExecutionContext.Implicits.global

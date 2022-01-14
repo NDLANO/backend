@@ -15,13 +15,15 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
-import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
+import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
+import no.ndla.language.model.LanguageField
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import org.json4s._
@@ -143,11 +145,6 @@ trait ConverterService {
         case (_, _, t: String) => Author(t.capitalize, author.name)
         case (_, _, _)         => Author(author.`type`, author.name)
       }
-    }
-
-    private[service] def mergeLanguageFields[A <: LanguageField[_]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.isEmpty)
     }
 
     private[service] def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {

@@ -14,7 +14,7 @@ import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
-import no.ndla.draftapi.model.domain.{ArticleType, Language, SearchSettings, Sort}
+import no.ndla.draftapi.model.domain.{ArticleType, SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
@@ -249,7 +249,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     get(s"/test/") {
       status should be(200)
       body.contains(scrollId) should be(false)
-      header("search-context") should be(scrollId)
+      response.headers.get("search-context") should be(Some(List(scrollId)))
     }
   }
 

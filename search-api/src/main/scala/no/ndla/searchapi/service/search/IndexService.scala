@@ -24,11 +24,11 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.Elastic4sClient
-import no.ndla.search.Language.NynorskLanguageAnalyzer
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.search.Language
+import no.ndla.search.SearchLanguage
+import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.searchapi.model.domain.{Content, ReindexResult}
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
@@ -259,7 +259,7 @@ trait IndexService {
 
     val analysis: Analysis = Analysis(
       analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
-      tokenFilters = List(hyphDecompounderTokenFilter) ++ Language.tokenFilters
+      tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.tokenFilters
     )
 
     def createIndexWithName(indexName: String): Try[String] = {
@@ -441,7 +441,7 @@ trait IndexService {
         fieldName: String,
         keepRaw: Boolean = false
     ): Seq[ElasticField] = {
-      Language.languageAnalyzers.map(langAnalyzer => {
+      SearchLanguage.languageAnalyzers.map(langAnalyzer => {
         val sf = List(
           textField("trigram").analyzer("trigram"),
           textField("decompounded")
@@ -488,13 +488,13 @@ trait IndexService {
       )
       val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
 
-      val languageTemplates = Language.languageAnalyzers.map(
+      val languageTemplates = SearchLanguage.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)
         }
       )
-      val languageSubTemplates = Language.languageAnalyzers.map(
+      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)

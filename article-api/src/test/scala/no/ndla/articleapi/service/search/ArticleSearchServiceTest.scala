@@ -13,6 +13,7 @@ import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
+import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory

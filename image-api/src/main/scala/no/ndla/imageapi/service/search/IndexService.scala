@@ -14,11 +14,11 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.model.Language
-import no.ndla.imageapi.model.Language.languageAnalyzers
 import no.ndla.imageapi.model.domain.ReindexResult
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
-import no.ndla.search.Elastic4sClient
+import no.ndla.language.Language
+import no.ndla.search.{Elastic4sClient, SearchLanguage}
+import no.ndla.search.SearchLanguage.languageAnalyzers
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -280,7 +280,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(Language.standardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

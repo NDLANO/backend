@@ -9,12 +9,12 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.FrontpageApiProperties.{BrightcoveAccountId, BrightcovePlayer, RawImageApiUrl}
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, MissingIdException}
-import no.ndla.frontpageapi.model.domain.Language._
 import no.ndla.frontpageapi.model.domain._
 import no.ndla.frontpageapi.model.{api, domain}
 
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
 
 object ConverterService {
 
@@ -190,11 +190,6 @@ object ConverterService {
     VisualElementType
       .fromString(visual.`type`)
       .map(domain.VisualElement(_, visual.id, visual.alt))
-
-  private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-    val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-    (toKeep ++ updated).filterNot(_.isEmpty)
-  }
 
   def toDomainFrontPage(page: api.FrontPageData): domain.FrontPageData =
     domain.FrontPageData(page.topical, page.categories.map(toDomainSubjectCollection))

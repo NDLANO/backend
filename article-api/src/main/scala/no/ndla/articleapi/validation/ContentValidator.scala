@@ -17,7 +17,7 @@ import no.ndla.articleapi.ArticleApiProperties.{
 }
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
-import no.ndla.language.model.Iso639
+import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}

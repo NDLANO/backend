@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._
@@ -17,7 +18,7 @@ import org.json4s.Formats
 class SearchableArticleTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableArticle to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))
@@ -88,7 +89,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
 
   test(
     "That serializing a SearchableArticle with null values to json and deserializing back does not throw an exception") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))

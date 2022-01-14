@@ -6,7 +6,7 @@
  */
 
 package no.ndla.searchapi.model.api
-import no.ndla.searchapi.model.domain.LanguageField
+import no.ndla.language.model.LanguageField
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -18,4 +18,7 @@ case class MetaImage(
     @(ApiModelProperty @field)(
       description = "The ISO 639-1 language code describing which translation this meta image belongs to"
     ) language: String
-) extends LanguageField
+) extends LanguageField[(String, String)] {
+  override def value: (String, String) = url -> alt
+  override def isEmpty: Boolean = url.isEmpty || alt.isEmpty
+}

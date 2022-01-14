@@ -13,8 +13,9 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.model.domain.ImageMetaInformation
-import no.ndla.imageapi.model.search.{SearchableImage, SearchableLanguageFormats, SearchableTag}
+import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
 
 trait TagIndexService {

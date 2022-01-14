@@ -8,6 +8,8 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.language.Language.AllLanguages
+
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 import no.ndla.searchapi.SearchApiProperties
@@ -50,7 +52,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.language.reflectiveCalls
 import scala.util.{Failure, Success, Try}
-import no.ndla.search.Language
+import no.ndla.search.SearchLanguage
 
 trait SearchController {
   this: ApiSearchService
@@ -238,7 +240,7 @@ trait SearchController {
       val pageSize = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
       val resourceTypes = paramAsListOfString(this.groupTypes.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val query = paramOrNone(this.query.paramName)
       val subjects = paramAsListOfString(this.subjects.paramName)
       val sort = Sort
@@ -378,7 +380,7 @@ trait SearchController {
 
     private def getSearchSettingsFromRequest: Try[SearchSettings] = {
       val query = paramOrNone(this.query.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
       val page = intOrDefault(this.pageNo.paramName, 1)
       val pageSize = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
@@ -428,7 +430,7 @@ trait SearchController {
       val page = intOrDefault(this.pageNo.paramName, 1)
       val pageSize = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
       val contextTypes = paramAsListOfString(this.contextTypes.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val idList = paramAsListOfLong(this.learningResourceIds.paramName)
       val resourceTypes = paramAsListOfString(this.resourceTypes.paramName)
       val taxonomyFilters = paramAsListOfString(this.levels.paramName)
@@ -489,7 +491,7 @@ trait SearchController {
       */
     private def scrollWithOr[T <: SearchService](scroller: T)(orFunction: => Any): Any = {
 
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       paramOrNone(this.scrollId.paramName) match {

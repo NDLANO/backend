@@ -16,10 +16,11 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.term.TermQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.language.Language.{AllLanguages, NoLanguage}
+import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.mapping.ISO639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
@@ -41,7 +42,7 @@ trait SearchService {
             totalCount = response.result.totalHits,
             page = None,
             pageSize = response.result.hits.hits.length,
-            language = if (language == "*") Language.AllLanguages else language,
+            language = if (language == "*") AllLanguages else language,
             results = hits,
             scrollId = response.result.scrollId
           )
@@ -63,7 +64,8 @@ trait SearchService {
         case (Some(q1), Some(q2))               => List(termQuery(s"$path.resource", q1), termQuery(s"$path.id", q2))
       }
       if (queries.isEmpty) return queries
-      if (language == Language.AllLanguages || fallback) queries else queries :+ termQuery(s"$path.language", language)
+      if (language == AllLanguages || fallback) queries
+      else queries :+ termQuery(s"$path.language", language)
     }
 
     def buildNestedEmbedField(
@@ -75,7 +77,7 @@ trait SearchService {
       if ((resource == Some("") || resource.isEmpty) && (id == Some("") || id.isEmpty)) {
         return None
       }
-      if (language == Language.AllLanguages || fallback) {
+      if (language == AllLanguages || fallback) {
         Some(
           nestedQuery(
             "embedResourcesAndIds",
@@ -103,7 +105,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case AllLanguages | "*" =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -127,7 +129,7 @@ trait SearchService {
                                    fieldName: String,
                                    language: String,
                                    fallback: Boolean): Option[BoolQuery] = {
-      if (language == Language.AllLanguages || language == "*" || fallback) {
+      if (language == AllLanguages || language == "*" || fallback) {
         val fields = ISO639.languagePriority.map(l => s"$fieldName.$l.raw")
         orFilter(seq, fields: _*)
       } else { orFilter(seq, s"$fieldName.$language.raw") }
@@ -135,19 +137,19 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case Language.NoLanguage => DefaultLanguage
-        case _                   => language
+        case NoLanguage => DefaultLanguage
+        case _          => language
       }
 
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _                           => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case "*" | AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+            case _                  => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+            case "*" | AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
             case _ =>
               fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }

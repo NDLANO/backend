@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi.model.search
 
 import java.util.Date
-
 import no.ndla.learningpathapi.model.api.Copyright
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableLearningPath(id: Long,
                                   titles: SearchableLanguageValues,

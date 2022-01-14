@@ -19,7 +19,6 @@ import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.{ArticleApiClient, PartialPublishArticle, SearchApiClient, TaxonomyApiClient}
 import no.ndla.draftapi.model.api.{Article, PartialArticleFields, _}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
-import no.ndla.draftapi.model.domain.Language.UnknownLanguage
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
@@ -30,6 +29,8 @@ import no.ndla.draftapi.service.search.{
   TagIndexService
 }
 import no.ndla.draftapi.validation.ContentValidator
+import no.ndla.language.Language
+import no.ndla.language.Language.UnknownLanguage
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem

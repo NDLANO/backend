@@ -12,21 +12,17 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
 import no.ndla.imageapi.auth.Role
-import no.ndla.imageapi.model.Language
 import no.ndla.imageapi.model.api.{ImageAltText, ImageMetaSummary, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain
-import no.ndla.imageapi.model.search.{
-  LanguageValue,
-  SearchableImage,
-  SearchableLanguageList,
-  SearchableLanguageValues,
-  SearchableTag
-}
+import no.ndla.imageapi.model.search.{SearchableImage, SearchableTag}
 import no.ndla.imageapi.service.ConverterService
+import no.ndla.language.Language
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
+import no.ndla.search.SearchLanguage
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterService {
   this: ConverterService with Role =>
@@ -49,7 +45,7 @@ trait SearchConverterService {
 
       val defaultTitle = imageWithAgreement.titles
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse
+          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
@@ -86,7 +82,7 @@ trait SearchConverterService {
         .map(res => ImageAltText(res.value, res.language))
         .getOrElse(ImageAltText("", DefaultLanguage))
 
-      val supportedLanguages = Language.findSupportedLanguages(
+      val supportedLanguages = Language.getSupportedLanguages(
         searchableImage.titles.languageValues,
         searchableImage.alttexts.languageValues,
         searchableImage.captions.languageValues,

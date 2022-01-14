@@ -12,8 +12,8 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
 import no.ndla.frontpageapi.FrontpageApiProperties
+import no.ndla.language.Language.getSupportedLanguages
 import scalikejdbc.{WrappedResultSet, _}
-import no.ndla.frontpageapi.model.domain.Language.getSupportedLanguages
 
 import scala.util.Try
 
@@ -32,7 +32,7 @@ case class SubjectFrontPageData(id: Option[Long],
                                 latestContent: Option[List[String]],
                                 goTo: List[String]) {
 
-  def supportedLanguages: Seq[String] = getSupportedLanguages(Seq(about, metaDescription))
+  def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)
 }
 
 object SubjectFrontPageData extends SQLSyntaxSupport[SubjectFrontPageData] {

@@ -12,7 +12,7 @@ import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 import java.util.Date
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{Language, LearningPath, LearningStep, SearchSettings, Sort}
+import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchSettings, Sort}
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.joda.time.DateTime
 

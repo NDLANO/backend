@@ -9,6 +9,7 @@
 package no.ndla.audioapi.model.search
 
 import no.ndla.audioapi.model.domain.CoverPhoto
+import no.ndla.search.model.SearchableLanguageValues
 import org.joda.time.DateTime
 
 case class SearchableSeries(

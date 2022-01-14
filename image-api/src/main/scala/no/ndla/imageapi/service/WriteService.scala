@@ -12,10 +12,11 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformationV2, UpdateImageMetaInformation}
-import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, LanguageField, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
+import no.ndla.language.Language.mergeLanguageFields
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -217,11 +218,6 @@ trait WriteService {
             )
           })
       }
-    }
-
-    private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.value.isEmpty)
     }
 
     private[service] def getFileExtension(fileName: String): Option[String] = {

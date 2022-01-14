@@ -7,7 +7,8 @@
 
 package db.migration
 
-import no.ndla.articleapi.model.domain.Language
+import no.ndla.language.Language.languageOrUnknown
+import no.ndla.search.SearchLanguage
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore
@@ -64,17 +65,16 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
   def convertArticleUpdate(articleMeta: V6_Article): V6_Article = {
     articleMeta.copy(
-      title =
-        articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(Language.languageOrUnknown(t.language).toString))),
+      title = articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(languageOrUnknown(t.language).toString))),
       content = articleMeta.content.map(c =>
-        V6_ArticleContent(c.content, c.footNotes, Some(Language.languageOrUnknown(c.language).toString))),
-      tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(Language.languageOrUnknown(t.language).toString))),
-      visualElement = articleMeta.visualElement.map(v =>
-        V6_VisualElement(v.resource, Some(Language.languageOrUnknown(v.language).toString))),
+        V6_ArticleContent(c.content, c.footNotes, Some(languageOrUnknown(c.language).toString))),
+      tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(languageOrUnknown(t.language).toString))),
+      visualElement =
+        articleMeta.visualElement.map(v => V6_VisualElement(v.resource, Some(languageOrUnknown(v.language).toString))),
       introduction = articleMeta.introduction.map(i =>
-        V6_ArticleIntroduction(i.introduction, Some(Language.languageOrUnknown(i.language).toString))),
+        V6_ArticleIntroduction(i.introduction, Some(languageOrUnknown(i.language).toString))),
       metaDescription = articleMeta.metaDescription.map(m =>
-        V6_ArticleMetaDescription(m.content, Some(Language.languageOrUnknown(m.language).toString)))
+        V6_ArticleMetaDescription(m.content, Some(languageOrUnknown(m.language).toString)))
     )
   }
 
@@ -118,9 +118,8 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
   def convertConceptUpdate(concept: V6_Concept): V6_Concept = {
     concept.copy(
-      title = concept.title.map(t => V6_ConceptTitle(t.title, Some(Language.languageOrUnknown(t.language).toString))),
-      content =
-        concept.content.map(c => V6_ConceptContent(c.content, Some(Language.languageOrUnknown(c.language).toString)))
+      title = concept.title.map(t => V6_ConceptTitle(t.title, Some(languageOrUnknown(t.language).toString))),
+      content = concept.content.map(c => V6_ConceptContent(c.content, Some(languageOrUnknown(c.language).toString)))
     )
   }
 

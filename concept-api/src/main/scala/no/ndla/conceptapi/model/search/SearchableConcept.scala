@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.model.search
 
 import no.ndla.conceptapi.model.domain
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime
 
 case class SearchableConcept(

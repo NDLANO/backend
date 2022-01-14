@@ -16,13 +16,14 @@ import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, Sim
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.SearchApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
 import no.ndla.searchapi.model.domain._
-import no.ndla.search.Language
+import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.search.SearchType
 
 import java.lang.Math.max
@@ -80,7 +81,7 @@ trait SearchService {
       }
 
       if (searchLanguage == Language.AllLanguages || fallback) {
-        Language.languageAnalyzers.foldLeft(SimpleStringQuery(query, quote_field_suffix = Some(".exact")))(
+        SearchLanguage.languageAnalyzers.foldLeft(SimpleStringQuery(query, quote_field_suffix = Some(".exact")))(
           (acc, cur) => {
             val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
             if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base

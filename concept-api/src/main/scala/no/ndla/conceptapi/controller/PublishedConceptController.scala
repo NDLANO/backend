@@ -21,7 +21,7 @@ import no.ndla.conceptapi.model.api.{
   TagsSearchResult,
   UpdatedConcept
 }
-import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{
   DraftConceptSearchService,
@@ -29,6 +29,7 @@ import no.ndla.conceptapi.service.search.{
   SearchConverterService
 }
 import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, Ok}
 import org.scalatra.swagger.{Swagger, SwaggerSupport}

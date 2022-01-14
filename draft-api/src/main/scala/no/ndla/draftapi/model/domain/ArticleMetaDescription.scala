@@ -7,6 +7,9 @@
 
 package no.ndla.draftapi.model.domain
 
-case class ArticleMetaDescription(content: String, language: String) extends LanguageField {
+import no.ndla.language.model.{LanguageField, WithLanguage}
+
+case class ArticleMetaDescription(content: String, language: String) extends LanguageField[String] {
+  override def value: String = content
   override def isEmpty: Boolean = content.isEmpty
 }

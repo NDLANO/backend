@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.learningpath.StepType
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats

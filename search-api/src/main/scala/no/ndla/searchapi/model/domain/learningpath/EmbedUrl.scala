@@ -7,10 +7,10 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
+import no.ndla.language.model.WithLanguage
 import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
-import no.ndla.searchapi.model.domain.LanguageField
 
-case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField
+case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends WithLanguage
 
 object EmbedType extends Enumeration {
 

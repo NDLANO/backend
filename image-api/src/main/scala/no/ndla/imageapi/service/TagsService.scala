@@ -8,8 +8,8 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.Language
 import no.ndla.imageapi.model.domain.ImageTag
+import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read

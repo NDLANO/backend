@@ -17,6 +17,7 @@ import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ResultWindowTooLargeException
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
+import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}

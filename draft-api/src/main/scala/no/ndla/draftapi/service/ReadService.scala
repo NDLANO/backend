@@ -12,7 +12,6 @@ import no.ndla.draftapi.DraftApiProperties.{externalApiUrls, resourceHtmlEmbedTa
 import no.ndla.draftapi.caching.MemoizeAutoRenew
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
-import no.ndla.draftapi.model.domain.Language._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -21,6 +20,7 @@ import no.ndla.draftapi.service.search.{
   SearchConverterService,
   TagSearchService
 }
+import no.ndla.language.Language.languageOrUnknown
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 

@@ -8,8 +8,10 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.search.SearchLanguage
 import org.json4s.FieldSerializer._
 import org.json4s._
 import org.json4s.ext.EnumNameSerializer
@@ -29,7 +31,16 @@ case class LearningStep(id: Option[Long],
                         `type`: StepType.Value,
                         license: Option[String],
                         showTitle: Boolean = false,
-                        status: StepStatus.Value = StepStatus.ACTIVE) {}
+                        status: StepStatus.Value = StepStatus.ACTIVE) {
+
+  def supportedLanguages: Seq[String] = {
+    getSupportedLanguages(
+      title,
+      description,
+      embedUrl
+    )
+  }
+}
 
 object StepStatus extends Enumeration {
 

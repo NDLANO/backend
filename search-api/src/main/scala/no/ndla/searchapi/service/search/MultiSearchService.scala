@@ -12,8 +12,9 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, Language}
+import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.SearchApiProperties.{
   ElasticSearchIndexMaxResultWindow,
@@ -80,7 +81,7 @@ trait MultiSearchService {
     def executeSearch(settings: SearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
-        case _                                                        => Language.AllLanguages
+        case _                                                        => AllLanguages
       }
 
       val filteredSearch = baseQuery.filter(getSearchFilters(settings))

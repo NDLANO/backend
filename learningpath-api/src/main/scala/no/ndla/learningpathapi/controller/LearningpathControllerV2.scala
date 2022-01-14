@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.LearningpathApiProperties.{
   DefaultLanguage,
   ElasticSearchIndexMaxResultWindow,
@@ -231,7 +232,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val scrollId = paramOrNone(this.scrollId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       scrollSearchOr(scrollId, language) {
         val query = paramOrNone(this.query.paramName)
@@ -264,7 +265,7 @@ trait LearningpathControllerV2 {
           .responseMessages(response400, response500))
     ) {
       val searchParams = extract[SearchParams](request.body)
-      val language = searchParams.language.getOrElse(Language.AllLanguages)
+      val language = searchParams.language.getOrElse(AllLanguages)
 
       scrollSearchOr(searchParams.scrollId, language) {
         val query = searchParams.query
@@ -298,7 +299,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
+        paramOrDefault(this.language.paramName, AllLanguages)
       val id = long(this.learningpathId.paramName)
       val userInfo = UserInfo.getUserOrPublic
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
@@ -347,7 +348,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
+        paramOrDefault(this.language.paramName, AllLanguages)
       val id = long(this.learningpathId.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
@@ -375,7 +376,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
+        paramOrDefault(this.language.paramName, AllLanguages)
       val pathId = long(this.learningpathId.paramName)
       val stepId = long(this.learningstepId.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
@@ -403,7 +404,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
+        paramOrDefault(this.language.paramName, AllLanguages)
       val id = long(this.learningpathId.paramName)
       val userInfo = UserInfo(requireUserId)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
@@ -794,7 +795,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val language =
-        paramOrDefault(this.language.paramName, Language.AllLanguages)
+        paramOrDefault(this.language.paramName, AllLanguages)
       val allTags = readService.tags
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
@@ -838,7 +839,7 @@ trait LearningpathControllerV2 {
     ) {
       val userInfo = UserInfo(requireUserId)
       val pathId = long(this.learningpathId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
       val createResourceIfMissing = booleanOrDefault(this.createResourceIfMissing.paramName, default = false)
 

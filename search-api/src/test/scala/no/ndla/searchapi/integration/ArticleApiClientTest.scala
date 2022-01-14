@@ -8,6 +8,7 @@
 package no.ndla.searchapi.integration
 
 import no.ndla.network.AuthUser
+import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article.{
@@ -21,7 +22,6 @@ import no.ndla.searchapi.model.domain.article.{
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.model.domain.{DomainDumpResults, Tag, Title}
-import no.ndla.searchapi.model.search.LanguageValue
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.json4s.Formats

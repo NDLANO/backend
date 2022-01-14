@@ -9,6 +9,7 @@ package db.migration
 
 import no.ndla.draftapi.DraftApiProperties.Domain
 import no.ndla.draftapi.model.domain._
+import no.ndla.language.Language.languageOrUnknown
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.EnumNameSerializer
@@ -95,7 +96,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))
-          .map(t => ArticleTag(t._2, Language.languageOrUnknown(t._1).toString))
+          .map(t => ArticleTag(t._2, languageOrUnknown(t._1).toString))
           .toList
     }
 

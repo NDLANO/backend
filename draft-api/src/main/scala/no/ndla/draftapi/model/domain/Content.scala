@@ -9,7 +9,7 @@ package no.ndla.draftapi.model.domain
 
 import java.util.Date
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.model.domain.Language.getSupportedLanguages
+import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
@@ -51,7 +51,7 @@ case class Article(
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
-    getSupportedLanguages(Seq(title, visualElement, introduction, metaDescription, tags, content, metaImage))
+    getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
 }
 
 object Article extends SQLSyntaxSupport[Article] {

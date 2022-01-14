@@ -8,7 +8,8 @@
 package no.ndla.conceptapi.model.search
 
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.model.domain.{Language, Sort}
+import no.ndla.conceptapi.model.domain.Sort
+import no.ndla.language.Language.AllLanguages
 
 case class DraftSearchSettings(
     withIdIn: List[Long],
@@ -31,7 +32,7 @@ object DraftSearchSettings {
   def empty: DraftSearchSettings = {
     new DraftSearchSettings(
       withIdIn = List.empty,
-      searchLanguage = Language.AllLanguages,
+      searchLanguage = AllLanguages,
       page = 1,
       pageSize = ConceptApiProperties.MaxPageSize,
       sort = Sort.ByRelevanceDesc,
