@@ -79,5 +79,4 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
     result.length should be(0)
   }
-
 }

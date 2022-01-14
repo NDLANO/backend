@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.ValidationException
+import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -30,7 +30,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     "image.jpg",
     1024,
     "image/jpeg",
-    Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+    Copyright(CC_BY.toString, "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None),
     Seq.empty,
     Seq.empty,
     "ndla124",
@@ -93,7 +93,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validate returns a validation error if copyright contains an invalid license") {
     val imageMeta =
-      sampleImageMeta.copy(copyright = Copyright("invalid", "", Seq.empty, Seq.empty, Seq.empty, None, None, None))
+      sampleImageMeta.copy(copyright = Copyright("invalid", "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None))
     val result = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]
     exception.errors.length should be(1)
@@ -103,7 +103,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validate returns a validation error if copyright origin contains html") {
     val imageMeta = sampleImageMeta.copy(
-      copyright = Copyright(CC_BY.toString, "<h1>origin</h1>", Seq.empty, Seq.empty, Seq.empty, None, None, None))
+      copyright = Copyright(CC_BY.toString, "<h1>origin</h1>", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None))
     val result = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]
     exception.errors.length should be(1)
@@ -255,6 +255,20 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     val oldImageMeta = sampleImageMeta.copy(alttexts = Seq(ImageAltText("new image alttext", "und")))
     val result = validationService.validate(imageMeta, Some(oldImageMeta))
     result.isSuccess should be(true)
+  }
+
+  test("validateCopyright fails when no copyright holders are provided") {
+    val copyright = sampleImageMeta.copyright.copy(processors = Seq(), creators = Seq(), rightsholders = Seq())
+    val exceptions = validationService.validateCopyright(copyright)
+    exceptions.length should be(1)
+    exceptions should be (Seq(ValidationMessage("license.license", s"At least one copyright holder is required when license is ${CC_BY.toString}")))
+  }
+
+  test("validateCopyright succeeds when at least one copyright holder is provided") {
+   val copyright = sampleImageMeta.copyright
+   val result = validationService.validateCopyright(copyright)
+    print(result)
+   result.length should be(0)
   }
 
 }
