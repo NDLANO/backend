@@ -8,8 +8,10 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.domain.{AudioType, CoverPhoto, PodcastMeta, Tag}
+import no.ndla.audioapi.model.api.ValidationMessage
+import no.ndla.audioapi.model.domain.{AudioType, Author, Copyright, CoverPhoto, PodcastMeta, Tag}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.mapping.License.CC_BY
 
 import java.awt.image.BufferedImage
 
@@ -78,5 +80,21 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     val result = validationService.validateTags(Seq(undTag), Seq.empty)
 
     result.length should be(0)
+  }
+
+  test("validateCopyright should succeed if a copyright holder is provided") {
+    val copyright =
+      Copyright(CC_BY.toString, None, Seq(Author("artist", "test")), Seq.empty, Seq.empty, None, None, None)
+    val result = validationService.validateCopyright(copyright)
+    result.length should be(0)
+  }
+
+  test("validateCopyright should fail if no copyright holders are provided") {
+    val copyright = Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, None)
+    val result = validationService.validateCopyright(copyright)
+    result.length should be(1)
+    result should be(
+      Seq(ValidationMessage("license.license",
+                            s"At least one copyright holder is required when license is ${CC_BY.toString}")))
   }
 }

@@ -243,7 +243,8 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-        validateAuthorAmount(Some(copyright.license), copyright.rightsholders ++ copyright.processors ++ copyright.creators) ++
+        validateAuthorAmount(Some(copyright.license),
+                             copyright.rightsholders ++ copyright.processors ++ copyright.creators) ++
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, creatorTypeMap.values.toList)) ++
         copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, processorTypeMap.values.toList)) ++
         copyright.rightsholders.flatMap(a =>
@@ -259,13 +260,13 @@ trait ValidationService {
       }
     }
     private def validateAuthorAmount(license: Option[String], authors: Seq[Author]) = {
-      val errorMessage =ValidationMessage("license.license", s"At least one copyright holder is required when license is $license ")
+      val errorMessage = (lic: String) =>
+        ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
       license match {
-        case None => Seq()
-        case Some(lic) => if(lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage)
+        case None      => Seq()
+        case Some(lic) => if (lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(lic))
       }
     }
-
 
     def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
       copyright.agreementId match {

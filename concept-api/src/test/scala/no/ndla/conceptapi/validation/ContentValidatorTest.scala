@@ -39,20 +39,25 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     result should be(Success(conceptToValidate))
   }
   test("Copyright validation succeeds if license is omitted and copyright holders are empty") {
-    val concept = TestData.domainConcept.copy(copyright = Some(Copyright(None, None, Seq(), Seq(), Seq(), None, None, None)))
+    val concept =
+      TestData.domainConcept.copy(copyright = Some(Copyright(None, None, Seq(), Seq(), Seq(), None, None, None)))
     val result = contentValidator.validateConcept(concept)
     result should be(Success(concept))
   }
 
   test("Copyright validation fails if license is included and copyright holders are empty") {
-    val concept = TestData.domainConcept.copy(copyright = Some(Copyright(Some("CC-BY-4.0"), None, Seq(), Seq(), Seq(), None, None, None)))
+    val concept = TestData.domainConcept.copy(
+      copyright = Some(Copyright(Some("CC-BY-4.0"), None, Seq(), Seq(), Seq(), None, None, None)))
     val Failure(exception: ValidationException) = contentValidator.validateConcept(concept)
-    exception.errors should be(Seq(ValidationMessage("license.license", "At least one copyright holder is required when license is CC-BY-4.0")))
+    exception.errors should be(
+      Seq(ValidationMessage("license.license", "At least one copyright holder is required when license is CC-BY-4.0")))
   }
 
   test("Copyright validation succeeds if license is included and copyright holders are not empty") {
 
-    val concept = TestData.domainConcept.copy(copyright = Some(Copyright(Some("CC-BY-4.0"), None, Seq(Author("creator", "test")), Seq(), Seq(), None, None, None)))
+    val concept = TestData.domainConcept.copy(
+      copyright =
+        Some(Copyright(Some("CC-BY-4.0"), None, Seq(Author("creator", "test")), Seq(), Seq(), None, None, None)))
     val result = contentValidator.validateConcept(concept)
     result should be(Success(concept))
   }
