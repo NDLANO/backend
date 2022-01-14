@@ -52,6 +52,7 @@ trait SearchService {
         case Some(indexType) => indexType
         case _               =>
           // TODO: Handle this by returning `Try[MultiSearchSummary]` instead.
+          // Some stuff so i remember to fix this
           throw NdlaSearchException("Index type was bad when determining search result type.")
       }
 
@@ -115,11 +116,9 @@ trait SearchService {
         None
       } else {
         Some(
-          nestedQuery("embedResourcesAndIds").query(
-            boolQuery().must(
-              buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
-            )
-          )
+          nestedQuery(
+            "embedResourcesAndIds",
+            boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)))
         )
       }
     }
@@ -155,8 +154,7 @@ trait SearchService {
     }
 
     private def suggestion(query: String, field: String, language: String): PhraseSuggestion = {
-      phraseSuggestion(name = field)
-        .on(s"$field.$language.trigram")
+      phraseSuggestion(name = field, field = s"$field.$language.trigram")
         .addDirectGenerator(DirectGenerator(field = s"$field.$language.trigram", suggestMode = Some("always")))
         .size(1)
         .gramSize(3)

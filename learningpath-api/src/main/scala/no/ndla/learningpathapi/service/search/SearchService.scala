@@ -130,8 +130,8 @@ trait SearchService extends LazyLogging {
                 .should(
                   titleSearch,
                   descSearch,
-                  nestedQuery("learningsteps").query(stepTitleSearch),
-                  nestedQuery("learningsteps").query(stepDescSearch),
+                  nestedQuery("learningsteps", stepTitleSearch),
+                  nestedQuery("learningsteps", stepDescSearch),
                   tagSearch,
                   authorSearch
                 )
