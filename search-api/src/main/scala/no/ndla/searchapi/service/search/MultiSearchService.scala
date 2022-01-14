@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.model.Iso639
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{Elastic4sClient, Language}
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.SearchApiProperties.{
   ElasticSearchIndexMaxResultWindow,
@@ -22,7 +22,7 @@ import no.ndla.searchapi.SearchApiProperties.{
 }
 import no.ndla.searchapi.model.api.ResultWindowTooLargeException
 import no.ndla.searchapi.model.domain.article.Availability
-import no.ndla.searchapi.model.domain.{Language, RequestInfo, SearchResult}
+import no.ndla.searchapi.model.domain.{RequestInfo, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 

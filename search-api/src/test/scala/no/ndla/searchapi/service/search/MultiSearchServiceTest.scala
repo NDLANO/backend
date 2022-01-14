@@ -14,7 +14,8 @@ import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
-import no.ndla.searchapi.model.domain.{Language, Sort}
+import no.ndla.searchapi.model.domain.Sort
+import no.ndla.search.Language
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{SearchApiProperties, TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
@@ -52,9 +53,9 @@ class MultiSearchServiceTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Articles))
-      draftIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Drafts))
-      learningPathIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.LearningPaths))
+      articleIndexService.createIndexAndAlias()
+      draftIndexService.createIndexAndAlias()
+      learningPathIndexService.createIndexAndAlias()
 
       val indexedArticles =
         articlesToIndex.map(article => articleIndexService.indexDocument(article, taxonomyTestBundle, Some(grepBundle)))

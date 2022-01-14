@@ -31,7 +31,7 @@ import no.ndla.searchapi.model.api.{
 }
 import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.model.domain.{Language, SearchParams, Sort}
+import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   MultiDraftSearchService,
@@ -50,6 +50,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.language.reflectiveCalls
 import scala.util.{Failure, Success, Try}
+import no.ndla.search.Language
 
 trait SearchController {
   this: ApiSearchService

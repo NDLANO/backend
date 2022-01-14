@@ -22,6 +22,7 @@ import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.SearchApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
 import no.ndla.searchapi.model.domain._
+import no.ndla.search.Language
 import no.ndla.searchapi.model.search.SearchType
 
 import java.lang.Math.max

@@ -11,27 +11,25 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.Indexes
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.requests.alias.AliasAction
-import com.sksamuel.elastic4s.requests.analyzers.{
+import com.sksamuel.elastic4s.analysis.{
+  Analysis,
   CompoundWordTokenFilter,
-  CustomAnalyzerDefinition,
+  CustomAnalyzer,
   HyphenationDecompounder,
-  LowercaseTokenFilter,
-  ShingleTokenFilter,
-  StandardAnalyzer,
-  StandardTokenizer,
-  WhitespaceTokenizer
+  ShingleTokenFilter
 }
+import com.sksamuel.elastic4s.requests.alias.AliasAction
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.Elastic4sClient
+import no.ndla.search.Language.NynorskLanguageAnalyzer
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.searchapi.model.domain.Language.languageAnalyzers
-import no.ndla.searchapi.model.domain.{Content, Language, ReindexResult}
+import no.ndla.search.Language
+import no.ndla.searchapi.model.domain.{Content, ReindexResult}
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
@@ -54,13 +52,6 @@ trait IndexService {
     // The value '5' was chosen since that is what was the default earlier (which worked fine).
     // However there are probably more optimal values.
     val indexShards: Int = 5
-
-    val shingle: ShingleTokenFilter =
-      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
-
-    val trigram: CustomAnalyzerDefinition = CustomAnalyzerDefinition(name = "trigram",
-                                                                     tokenizer = StandardTokenizer,
-                                                                     filters = Seq(LowercaseTokenFilter, shingle))
 
     def getMapping: MappingDefinition
 
@@ -242,25 +233,34 @@ trait IndexService {
 
     def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
 
+    val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
+      name = "hyphenation_decompounder",
+      `type` = HyphenationDecompounder,
+      wordListPath = Some("compound-words-norwegian-wordlist.txt"),
+      hyphenationPatternsPath = Some("hyph/no.xml"),
+      minSubwordSize = Some(4),
+      onlyLongestMatch = Some(false)
+    )
+
     private val customCompoundAnalyzer =
-      CustomAnalyzerDefinition(
+      CustomAnalyzer(
         "compound_analyzer",
-        WhitespaceTokenizer,
-        CompoundWordTokenFilter(
-          name = "hyphenation_decompounder",
-          `type` = HyphenationDecompounder,
-          wordListPath = Some("compound-words-norwegian-wordlist.txt"),
-          hyphenationPatternsPath = Some("hyph/no.xml"),
-          minSubwordSize = Some(4),
-          onlyLongestMatch = Some(false)
-        )
+        "whitespace",
+        tokenFilters = List(hyphDecompounderTokenFilter.name)
       )
 
-    private val customExactAnalyzer =
-      CustomAnalyzerDefinition(
-        "exact",
-        WhitespaceTokenizer
-      )
+    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
+
+    val shingle: ShingleTokenFilter =
+      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
+
+    val trigram: CustomAnalyzer =
+      CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
+
+    val analysis: Analysis = Analysis(
+      analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
+      tokenFilters = List(hyphDecompounderTokenFilter) ++ Language.tokenFilters
+    )
 
     def createIndexWithName(indexName: String): Try[String] = {
       if (indexWithNameExists(indexName).getOrElse(false)) {
@@ -270,12 +270,7 @@ trait IndexService {
           createIndex(indexName)
             .shards(indexShards)
             .mapping(getMapping)
-            .analysis(
-              trigram,
-              Language.nynorskLanguageAnalyzer,
-              customCompoundAnalyzer,
-              customExactAnalyzer
-            )
+            .analysis(analysis)
             .indexSetting("max_result_window", SearchApiProperties.ElasticSearchIndexMaxResultWindow)
             .replicas(0)
         }
@@ -446,7 +441,7 @@ trait IndexService {
         fieldName: String,
         keepRaw: Boolean = false
     ): Seq[ElasticField] = {
-      languageAnalyzers.map(langAnalyzer => {
+      Language.languageAnalyzers.map(langAnalyzer => {
         val sf = List(
           textField("trigram").analyzer("trigram"),
           textField("decompounded")
@@ -493,13 +488,13 @@ trait IndexService {
       )
       val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
 
-      val languageTemplates = languageAnalyzers.map(
+      val languageTemplates = Language.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)
         }
       )
-      val languageSubTemplates = languageAnalyzers.map(
+      val languageSubTemplates = Language.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)

@@ -22,9 +22,10 @@ import no.ndla.searchapi.SearchApiProperties.{
 }
 import no.ndla.searchapi.model.api.ResultWindowTooLargeException
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.model.domain.{Language, RequestInfo, SearchResult, draft}
+import no.ndla.searchapi.model.domain.{RequestInfo, SearchResult, draft}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
+import no.ndla.search.Language
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}

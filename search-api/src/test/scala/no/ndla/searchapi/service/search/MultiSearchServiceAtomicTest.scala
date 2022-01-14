@@ -43,17 +43,17 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Articles))
-      draftIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Drafts))
-      learningPathIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.LearningPaths))
+      articleIndexService.createIndexAndAlias()
+      draftIndexService.createIndexAndAlias()
+      learningPathIndexService.createIndexAndAlias()
     }
   }
 
   override def afterEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.Articles)))
-      draftIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.Drafts)))
-      learningPathIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.LearningPaths)))
+      articleIndexService.deleteIndexAndAlias()
+      draftIndexService.deleteIndexAndAlias()
+      learningPathIndexService.deleteIndexAndAlias()
     }
   }
 
