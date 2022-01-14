@@ -77,7 +77,8 @@ trait SearchService {
       }
       if (language == Language.AllLanguages || fallback) {
         Some(
-          nestedQuery("embedResourcesAndIds").query(
+          nestedQuery(
+            "embedResourcesAndIds",
             boolQuery().must(
               buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
             )
@@ -85,7 +86,8 @@ trait SearchService {
         )
       } else {
         Some(
-          nestedQuery("embedResourcesAndIds").query(
+          nestedQuery(
+            "embedResourcesAndIds",
             boolQuery().must(
               buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
             )

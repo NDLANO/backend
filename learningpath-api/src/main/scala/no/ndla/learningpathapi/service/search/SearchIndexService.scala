@@ -96,8 +96,7 @@ trait SearchIndexService {
             }
             _ <- {
               e4sClient.execute {
-                delete(id.toString)
-                  .from(LearningpathApiProperties.SearchIndex)
+                deleteById(LearningpathApiProperties.SearchIndex, id.toString)
               }
             }
             _ <- searchApiClient.deleteLearningPathDocument(id)

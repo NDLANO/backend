@@ -132,7 +132,7 @@ trait IndexService {
       } else {
         val response = e4sClient.execute {
           createIndex(indexName)
-            .mappings(getMapping)
+            .mapping(getMapping)
             .indexSetting("max_result_window", ImageApiProperties.ElasticSearchIndexMaxResultWindow)
         }
 
@@ -174,11 +174,11 @@ trait IndexService {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
         oldIndexName match {
-          case None => e4sClient.execute(addAlias(searchIndex).on(newIndexName))
+          case None => e4sClient.execute(addAlias(searchIndex, newIndexName))
           case Some(oldIndex) =>
             e4sClient.execute {
-              removeAlias(searchIndex).on(oldIndex)
-              addAlias(searchIndex).on(newIndexName)
+              removeAlias(searchIndex, oldIndex)
+              addAlias(searchIndex, newIndexName)
             }
         }
       }
