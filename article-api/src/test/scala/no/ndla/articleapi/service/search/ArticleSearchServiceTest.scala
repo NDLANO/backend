@@ -36,7 +36,9 @@ class ArticleSearchServiceTest
   }
 
   override val articleSearchService = new ArticleSearchService
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 

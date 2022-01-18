@@ -8,42 +8,33 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.fields.ElasticField
-
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
-import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.ElasticSearchIndexMaxResultWindow
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
-import no.ndla.search.{Elastic4sClient, SearchLanguage}
 import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient =>
+  this: Elastic4sClient with BaseIndexService =>
 
-  trait IndexService[D <: Content, T <: AnyRef] extends LazyLogging {
-    val documentType: String
-    val searchIndex: String
+  trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with LazyLogging {
     val repository: Repository[D]
-
-    def getMapping: MappingDefinition
+    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     def createIndexRequest(domainModel: D, indexName: String): IndexRequest
 
     def indexDocument(imported: D): Try[D] = {
       for {
-        _ <- getAliasTarget.map {
-          case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
-        }
+        _ <- createIndexIfNotExists()
         _ <- e4sClient.execute {
           createIndexRequest(imported, searchIndex)
         }
@@ -114,39 +105,6 @@ trait IndexService {
       }
     }
 
-    def deleteDocument(contentId: Long): Try[Long] = {
-      for {
-        _ <- getAliasTarget.map {
-          case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
-        }
-        _ <- {
-          e4sClient.execute {
-            deleteById(searchIndex, s"$contentId")
-          }
-        }
-      } yield contentId
-    }
-
-    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
-
-    def createIndexWithName(indexName: String): Try[String] = {
-      if (indexWithNameExists(indexName).getOrElse(false)) {
-        Success(indexName)
-      } else {
-        val response = e4sClient.execute {
-          createIndex(indexName)
-            .mapping(getMapping)
-            .indexSetting("max_result_window", ArticleApiProperties.ElasticSearchIndexMaxResultWindow)
-        }
-
-        response match {
-          case Success(_)  => Success(indexName)
-          case Failure(ex) => Failure(ex)
-        }
-      }
-    }
-
     def findAllIndexes(indexName: String): Try[Seq[String]] = {
       val response = e4sClient.execute {
         getAliases()
@@ -159,63 +117,6 @@ trait IndexService {
           Failure(ex)
       }
     }
-
-    def getAliasTarget: Try[Option[String]] = {
-      val response = e4sClient.execute {
-        getAliases(Nil, List(searchIndex))
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.headOption.map((t) => t._1.name))
-        case Failure(ex) => Failure(ex)
-      }
-    }
-
-    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
-      if (!indexWithNameExists(newIndexName).getOrElse(false)) {
-        Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
-      } else {
-        oldIndexName match {
-          case None =>
-            e4sClient.execute(addAlias(searchIndex, newIndexName))
-          case Some(oldIndex) =>
-            e4sClient.execute {
-              removeAlias(searchIndex, oldIndex)
-              addAlias(searchIndex, newIndexName)
-            }
-        }
-      }
-    }
-
-    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
-      optIndexName match {
-        case None => Success(optIndexName)
-        case Some(indexName) =>
-          if (!indexWithNameExists(indexName).getOrElse(false)) {
-            Failure(new IllegalArgumentException(s"No such index: $indexName"))
-          } else {
-            e4sClient.execute {
-              deleteIndex(indexName)
-            }
-          }
-      }
-
-    }
-
-    def indexWithNameExists(indexName: String): Try[Boolean] = {
-      val response = e4sClient.execute {
-        indexExists(indexName)
-      }
-
-      response match {
-        case Success(resp) if resp.status != 404 => Success(true)
-        case Success(_)                          => Success(false)
-        case Failure(ex)                         => Failure(ex)
-      }
-    }
-
-    def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 
     /**
       * Returns Sequence of FieldDefinitions for a given field.

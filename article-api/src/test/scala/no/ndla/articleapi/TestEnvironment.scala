@@ -19,7 +19,7 @@ import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -27,6 +27,7 @@ trait TestEnvironment
     with ArticleSearchService
     with ArticleIndexService
     with IndexService
+    with BaseIndexService
     with SearchService
     with LazyLogging
     with ArticleControllerV2
