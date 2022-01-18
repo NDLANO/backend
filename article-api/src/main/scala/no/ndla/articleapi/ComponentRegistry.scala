@@ -20,7 +20,7 @@ import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -35,6 +35,7 @@ object ComponentRegistry
     with FeideApiClient
     with ArticleSearchService
     with IndexService
+    with BaseIndexService
     with ArticleIndexService
     with SearchService
     with LazyLogging
