@@ -32,7 +32,9 @@ class PublishedConceptSearchServiceTest
   }
 
   override val publishedConceptSearchService = new PublishedConceptSearchService
-  override val publishedConceptIndexService = new PublishedConceptIndexService
+  override val publishedConceptIndexService: PublishedConceptIndexService = new PublishedConceptIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
