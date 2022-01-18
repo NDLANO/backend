@@ -30,7 +30,9 @@ class TagSearchServiceTest
   }
 
   override val tagSearchService = new TagSearchService
-  override val tagIndexService = new TagIndexService
+  override val tagIndexService: TagIndexService = new TagIndexService {
+    override val indexShards: Int = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
