@@ -28,7 +28,7 @@ import no.ndla.learningpathapi.validation.{
   TitleValidator
 }
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -43,6 +43,7 @@ object ComponentRegistry
     with SearchConverterServiceComponent
     with SearchService
     with SearchIndexService
+    with BaseIndexService
     with TaxonomyApiClient
     with NdlaClient
     with ImageApiClientComponent
