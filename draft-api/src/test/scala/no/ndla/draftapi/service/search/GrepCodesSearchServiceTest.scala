@@ -26,7 +26,9 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   }
 
   override val grepCodesSearchService = new GrepCodesSearchService
-  override val grepCodesIndexService = new GrepCodesIndexService
+  override val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
+    override val indexShards: Int = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
