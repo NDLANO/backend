@@ -19,7 +19,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -44,6 +44,7 @@ object ComponentRegistry
     with TagSearchService
     with Elastic4sClient
     with IndexService
+    with BaseIndexService
     with AudioIndexService
     with SeriesIndexService
     with TagIndexService

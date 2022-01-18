@@ -29,7 +29,9 @@ class AudioSearchServiceTest
 
   override val audioSearchService = new AudioSearchService
   override val audioIndexService = new AudioIndexService
-  override val seriesIndexService = new SeriesIndexService
+  override val seriesIndexService: SeriesIndexService = new SeriesIndexService {
+    override val indexShards = 1
+  }
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
@@ -449,46 +451,28 @@ class AudioSearchServiceTest
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
 
     search.totalCount should be(6)
-    search.results.head.id should be(5)
-    search.results(1).id should be(3)
-    search.results(2).id should be(2)
-    search.results(3).id should be(4)
-    search.results(4).id should be(6)
+    search.results.map(_.id) should be(Seq(5, 3, 2, 4, 7, 6))
   }
 
   test("That sorting by lastUpdated desc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
 
     search.totalCount should be(6)
-    search.results.head.id should be(6)
-    search.results(1).id should be(7)
-    search.results(2).id should be(4)
-    search.results(3).id should be(2)
-    search.results(4).id should be(3)
-    search.results(5).id should be(5)
+    search.results.map(_.id) should be(Seq(7, 6, 4, 2, 3, 5))
   }
 
   test("That sorting by id asc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc))
 
     search.totalCount should be(6)
-    search.results.head.id should be(2)
-    search.results(1).id should be(3)
-    search.results(2).id should be(4)
-    search.results(3).id should be(5)
-    search.results(4).id should be(6)
+    search.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
   }
 
   test("That sorting by id desc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc))
 
     search.totalCount should be(6)
-    search.results.head.id should be(7)
-    search.results(1).id should be(6)
-    search.results(2).id should be(5)
-    search.results(3).id should be(4)
-    search.results(4).id should be(3)
-    search.results(5).id should be(2)
+    search.results.map(_.id) should be(Seq(7, 6, 5, 4, 3, 2))
   }
 
   test("That supportedLanguages are sorted correctly") {
