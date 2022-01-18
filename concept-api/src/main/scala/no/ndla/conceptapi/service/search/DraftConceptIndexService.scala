@@ -18,6 +18,7 @@ import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
@@ -27,7 +28,7 @@ trait DraftConceptIndexService {
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends LazyLogging with IndexService[Concept] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
     override val documentType: String = ConceptApiProperties.ConceptSearchDocument
     override val searchIndex: String = ConceptApiProperties.DraftConceptSearchIndex
     override val repository: Repository[Concept] = draftConceptRepository

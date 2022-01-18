@@ -40,7 +40,7 @@ import no.ndla.conceptapi.service.{
 }
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -68,6 +68,7 @@ object ComponentRegistry
     with DraftConceptIndexService
     with PublishedConceptIndexService
     with IndexService
+    with BaseIndexService
     with InternController
     with ArticleApiClient
     with ImageApiClient
