@@ -176,7 +176,7 @@ trait ContentValidator {
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors = copyright.creators ++ copyright.processors ++ copyright.rightsholders
-      val licenseAMountMessage = validateAuthorAmount(copyright.license, allAuthors)
+      val licenseAMountMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors.flatMap(
         validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
@@ -192,7 +192,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthorAmount(license: Option[String], authors: Seq[Author]) = {
+    private def validateAuthorLicenseCorrelation(license: Option[String], authors: Seq[Author]) = {
       val errorMessage = (lic: String) => ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
       license match {
         case None => Seq()
