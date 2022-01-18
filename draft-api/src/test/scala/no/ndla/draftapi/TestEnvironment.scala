@@ -18,7 +18,7 @@ import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -32,6 +32,7 @@ trait TestEnvironment
     with AgreementSearchService
     with AgreementIndexService
     with IndexService
+    with BaseIndexService
     with SearchService
     with LazyLogging
     with DraftController

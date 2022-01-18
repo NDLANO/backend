@@ -20,7 +20,7 @@ import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -43,6 +43,7 @@ object ComponentRegistry
     with GrepCodesSearchService
     with AgreementSearchService
     with IndexService
+    with BaseIndexService
     with ArticleIndexService
     with TagIndexService
     with GrepCodesIndexService
