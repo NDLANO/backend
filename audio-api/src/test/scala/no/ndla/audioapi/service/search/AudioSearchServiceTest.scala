@@ -28,7 +28,9 @@ class AudioSearchServiceTest
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val audioSearchService = new AudioSearchService
-  override val audioIndexService = new AudioIndexService
+  override val audioIndexService: AudioIndexService = new AudioIndexService {
+    override val indexShards = 1
+  }
   override val seriesIndexService: SeriesIndexService = new SeriesIndexService {
     override val indexShards = 1
   }
@@ -451,14 +453,14 @@ class AudioSearchServiceTest
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc))
 
     search.totalCount should be(6)
-    search.results.map(_.id) should be(Seq(5, 3, 2, 4, 7, 6))
+    search.results.map(_.id) should be(Seq(5, 3, 2, 4, 6, 7))
   }
 
   test("That sorting by lastUpdated desc functions correctly") {
     val Success(search) = audioSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
 
     search.totalCount should be(6)
-    search.results.map(_.id) should be(Seq(7, 6, 4, 2, 3, 5))
+    search.results.map(_.id) should be(Seq(6, 7, 4, 2, 3, 5))
   }
 
   test("That sorting by id asc functions correctly") {

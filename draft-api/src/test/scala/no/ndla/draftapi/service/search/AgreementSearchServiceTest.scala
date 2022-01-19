@@ -29,7 +29,9 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   }
 
   override val agreementSearchService = new AgreementSearchService
-  override val agreementIndexService = new AgreementIndexService
+  override val agreementIndexService: AgreementIndexService = new AgreementIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 

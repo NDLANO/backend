@@ -13,8 +13,12 @@ import no.ndla.searchapi.SearchApiProperties.SearchIndexes
 import no.ndla.searchapi.model.search.SearchType
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
-  override val draftIndexService = new DraftIndexService
-  override val learningPathIndexService = new LearningPathIndexService
+  override val draftIndexService: DraftIndexService = new DraftIndexService {
+    override val indexShards = 1
+  }
+  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
 
   val service: SearchService = new SearchService {
     override val searchIndex = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
