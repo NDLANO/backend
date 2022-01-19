@@ -14,7 +14,7 @@ object Dependencies {
     val AwsSdkV = "1.11.658"
     val MockitoV = "1.16.49"
     val Elastic4sV = "7.16.3"
-    val JacksonV = "2.12.1"
+    val JacksonV = "2.13.1"
     val CatsEffectV = "2.1.2"
     val ElasticsearchV = "7.16.2"
     val Json4SV = "4.0.3"
@@ -66,15 +66,16 @@ object Dependencies {
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
+      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
       "org.slf4j" % "slf4j-api" % "1.7.32",
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
+      // We need jackson stuff to load `log4j2.yaml`
+      "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
+      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonV,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % JacksonV
     )
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
-      "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
-      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonV,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonV,
       "com.google.guava" % "guava" % "30.0-jre",
       "commons-codec" % "commons-codec" % "1.14",
       "org.apache.httpcomponents" % "httpclient" % "4.5.13",
