@@ -43,9 +43,15 @@ class MultiSearchServiceTest
     super.withFixture(test)
   }
 
-  override val articleIndexService = new ArticleIndexService
-  override val draftIndexService = new DraftIndexService
-  override val learningPathIndexService = new LearningPathIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
+  override val draftIndexService: DraftIndexService = new DraftIndexService {
+    override val indexShards = 1
+  }
+  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
   override val multiSearchService = new MultiSearchService
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
@@ -191,7 +197,7 @@ class MultiSearchServiceTest
       multiSearchService.matchingQuery(searchSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(3)
-    hits.map(_.id) should be(Seq(5, 3, 1))
+    hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {

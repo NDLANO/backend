@@ -26,7 +26,9 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   }
 
   override val tagSearchService = new TagSearchService
-  override val tagIndexService = new TagIndexService
+  override val tagIndexService: TagIndexService = new TagIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -105,7 +107,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100)
 
     result.totalCount should be(3)
-    result.results should be(Seq("test", "testing", "testemer"))
+    result.results should be(Seq("test", "testemer", "testing"))
   }
 
   test("That only prefixes are matched") {

@@ -31,7 +31,9 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   }
 
   override val articleSearchService = new ArticleSearchService
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -325,7 +327,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       ))
     val hits = results.results
     results.totalCount should be(9)
-    hits.map(_.id) should be(Seq(5, 6, 7, 9, 11, 8, 1, 2, 3))
+    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
@@ -407,7 +409,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
 
     val hits = results.results
     results.totalCount should be(3)
-    hits.map(_.id) should be(Seq(5, 3, 1))
+    hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {

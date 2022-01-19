@@ -19,7 +19,7 @@ object oembedproxy extends Module {
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
-    ) ++ elastic4s ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ scalatra ++ vulnerabilityOverrides)
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "oembed-proxy",

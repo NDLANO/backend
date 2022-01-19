@@ -39,7 +39,10 @@ class ArticleIndexServiceTest
     super.withFixture(test)
   }
 
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
+
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
   implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis

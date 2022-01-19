@@ -56,7 +56,6 @@ object Dependencies {
       "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
     )
 
-    // lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
     lazy val elastic4s = Seq(
       "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % Elastic4sV,
       "com.sksamuel.elastic4s" %% "elastic4s-testkit" % Elastic4sV % "test"

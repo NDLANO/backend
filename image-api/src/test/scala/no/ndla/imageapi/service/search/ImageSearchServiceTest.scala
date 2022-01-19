@@ -39,7 +39,9 @@ class ImageSearchServiceTest
 
   override val searchConverterService = new SearchConverterService
   override val converterService = new ConverterService
-  override val imageIndexService = new ImageIndexService
+  override val imageIndexService: ImageIndexService = new ImageIndexService {
+    override val indexShards = 1
+  }
   override val imageSearchService = new ImageSearchService
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
