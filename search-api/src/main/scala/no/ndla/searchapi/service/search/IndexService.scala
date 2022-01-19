@@ -211,11 +211,11 @@ trait IndexService {
     val trigram: CustomAnalyzer =
       CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
 
-    override val analysis: Option[Analysis] = Some(
+    override val analysis: Analysis =
       Analysis(
         analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
-        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.tokenFilters
-      ))
+        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
+      )
 
     /**
       * Returns Sequence of FieldDefinitions for a given field.

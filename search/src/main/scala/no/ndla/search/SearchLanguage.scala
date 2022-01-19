@@ -7,19 +7,13 @@
 
 package no.ndla.search
 
-import com.sksamuel.elastic4s.analysis.{
-  CustomAnalyzer,
-  LanguageAnalyzers,
-  StandardTokenizer,
-  StemmerTokenFilter,
-  StopTokenFilter
-}
+import com.sksamuel.elastic4s.analysis.{CustomAnalyzer, LanguageAnalyzers, StemmerTokenFilter, StopTokenFilter}
 import no.ndla.language.Language._
 import no.ndla.language.model.LanguageTag
 
 object SearchLanguage {
 
-  val tokenFilters = List(
+  val NynorskTokenFilters = List(
     StopTokenFilter("norwegian_stop", language = Some("norwegian")),
     StemmerTokenFilter("nynorsk_stemmer", lang = "light_nynorsk")
   )
@@ -39,7 +33,7 @@ object SearchLanguage {
 
   val languageAnalyzers = Seq(
     LanguageAnalyzer(LanguageTag("nb"), LanguageAnalyzers.norwegian),
-    LanguageAnalyzer(LanguageTag("nn"), LanguageAnalyzers.norwegian),
+    LanguageAnalyzer(LanguageTag("nn"), NynorskLanguageAnalyzer.name),
     LanguageAnalyzer(LanguageTag("sma"), standardAnalyzer), // Southern sami
     LanguageAnalyzer(LanguageTag("se"), standardAnalyzer), // Northern Sami
     LanguageAnalyzer(LanguageTag("en"), LanguageAnalyzers.english),

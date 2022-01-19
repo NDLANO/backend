@@ -18,8 +18,8 @@ import no.ndla.conceptapi.ConceptApiProperties.ElasticSearchIndexMaxResultWindow
 import no.ndla.conceptapi.model.api.ElasticIndexingException
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
-import no.ndla.search.SearchLanguage.languageAnalyzers
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -33,7 +33,13 @@ trait IndexService {
 
     val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
-    override val analysis = Some(new Analysis(analyzers = List(), normalizers = List(lowerNormalizer)))
+
+    override val analysis: Analysis =
+      Analysis(
+        analyzers = List(NynorskLanguageAnalyzer),
+        tokenFilters = SearchLanguage.NynorskTokenFilters,
+        normalizers = List(lowerNormalizer)
+      )
 
     def createIndexRequest(domainModel: D, indexName: String): Try[IndexRequest]
 

@@ -15,6 +15,7 @@ import com.sksamuel.elastic4s.requests.alias.AliasAction
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -27,7 +28,12 @@ trait BaseIndexService {
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int
-    val analysis: Option[Analysis] = None
+
+    val analysis: Analysis =
+      Analysis(
+        analyzers = List(NynorskLanguageAnalyzer),
+        tokenFilters = SearchLanguage.NynorskTokenFilters
+      )
 
     def getMapping: MappingDefinition
 
@@ -54,7 +60,7 @@ trait BaseIndexService {
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
         .replicas(0)
-        .applyAnalysis()
+        .analysis(analysis)
     }
 
     def createIndexWithName(indexName: String): Try[String] = {
@@ -230,20 +236,5 @@ trait BaseIndexService {
     }
 
     def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
-
-    /** Used so we can apply optional stuff from this class to the index request with nicer syntax
-      * Ex: We have the [[applyAnalysis]] method which we now can use to conditionally apply analysis
-      *     object if it exists: {{{createIndex("index-name").applyAnalysis()}}}
-      */
-    implicit class NdlaCreateIndexRequest(request: CreateIndexRequest) {
-
-      def applyAnalysis(): CreateIndexRequest = {
-        analysis match {
-          case Some(value) => request.analysis(value)
-          case None        => request
-        }
-      }
-    }
-
   }
 }
