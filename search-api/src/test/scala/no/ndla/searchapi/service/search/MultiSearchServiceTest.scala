@@ -840,15 +840,9 @@ class MultiSearchServiceTest
 
     val Success(search3) = multiSearchService.matchingQuery(
       searchSettings.copy(query = Some("utilgjengelig"),
-                          availability = List(Availability.everyone, Availability.student)))
-    search3.totalCount should be(0)
-    search3.results.map(_.id) should be(Seq.empty)
-
-    val Success(search4) = multiSearchService.matchingQuery(
-      searchSettings.copy(query = Some("utilgjengelig"),
-                          availability = List(Availability.everyone, Availability.student, Availability.teacher)))
-    search4.totalCount should be(1)
-    search4.results.map(_.id) should be(Seq(13))
+                          availability = List(Availability.everyone, Availability.teacher)))
+    search3.totalCount should be(1)
+    search3.results.map(_.id) should be(Seq(13))
   }
 
   test("That search result has license and lastUpdated data") {

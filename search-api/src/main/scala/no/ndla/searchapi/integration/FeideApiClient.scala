@@ -22,7 +22,6 @@ case class FeideExtendedUserInfo(
     eduPersonAffiliation: Seq[String],
     eduPersonPrimaryAffiliation: String
 ) {
-  def isStudent: Boolean = this.eduPersonAffiliation.contains("student")
 
   def isTeacher: Boolean = {
     this.eduPersonAffiliation.contains("staff") ||
@@ -35,12 +34,6 @@ case class FeideExtendedUserInfo(
       List(
         Availability.everyone,
         Availability.teacher,
-        Availability.student
-      )
-    } else if (this.isStudent) {
-      List(
-        Availability.everyone,
-        Availability.student
       )
     } else {
       List.empty

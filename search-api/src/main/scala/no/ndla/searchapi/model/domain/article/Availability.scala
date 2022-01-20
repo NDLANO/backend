@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.domain.article
 
 object Availability extends Enumeration {
-  val everyone, student, teacher = Value
+  val everyone, teacher = Value
 
   def valueOf(s: String): Option[Availability.Value] = {
     Availability.values.find(_.toString == s)

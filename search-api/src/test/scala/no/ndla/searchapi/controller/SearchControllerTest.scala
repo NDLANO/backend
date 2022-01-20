@@ -209,8 +209,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       val expectedSettings = baseSettings.copy(
         availability = List(
           Availability.everyone,
-          Availability.teacher,
-          Availability.student
+          Availability.teacher
         ))
       status should be(200)
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
