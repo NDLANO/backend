@@ -182,7 +182,7 @@ trait ContentValidator {
       val originMessage =
         copyright.origin.map(origin => NoHtmlValidator.validate("copyright.origin", origin)).toSeq.flatten
 
-      licenseMessage ++ licenseAMountMessage ++ contributorsMessages ++ originMessage
+      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
