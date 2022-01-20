@@ -161,7 +161,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Some(Copyright(Some(CC_BY_SA.toString), None, Seq(), List(), List(), None, None, None)))
+      copyright = Some(Copyright(Some(CC_BY_SA.toString), None, Seq(Author("processor", "navn")), List(), List(), None, None, None)))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
@@ -173,7 +173,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Some(Copyright(Some(CC_BY_SA.toString), None, Seq(), List(), List(), None, None, None)))
+      copyright = Some(Copyright(Some(CC_BY_SA.toString), None, Seq(), List(Author("rightsholder", "test")), List(), None, None, None)))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
@@ -254,4 +254,24 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.message should be("Meta image ID must be a number")
   }
 
+  test("validation should fail if license is chosen and no copyright holders are provided") {
+    val copyright = Copyright(Some(CC_BY_SA.toString), None, Seq(), Seq(), Seq(), None, None, None)
+    val Failure(res: ValidationException) = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(copyright = Option(copyright)
+      ))
+    res.errors.length should be(1)
+    res.errors.head.field should be("license.license")
+    res.errors.head.message should be("At least one copyright holder is required when license is CC-BY-SA-4.0")
+  }
+
+  test("an article with no copyright holders can pass validation if license is N/A") {
+    val article = TestData.sampleArticleWithByNcSa
+    contentValidator.validateArticle(article).isSuccess should be(true)
+  }
+
+  test("an article with one or more copyright holder can pass validation, regardless of license") {
+    val copyright = Copyright(Some("N/A"), None, Seq(), Seq(), Seq(), None, None, None)
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright = Option(copyright))
+    contentValidator.validateArticle(article).isSuccess should be(true)
+  }
 }

@@ -8,23 +8,35 @@
 package no.ndla.draftapi.model.domain
 
 import no.ndla.draftapi.auth.{Role, UserInfo}
-import no.ndla.draftapi.service.SideEffect
 import no.ndla.draftapi.service.SideEffect.SideEffect
 
 import scala.language.implicitConversions
 
-case class StateTransition(from: ArticleStatus.Value,
-                           to: ArticleStatus.Value,
-                           otherStatesToKeepOnTransition: Set[ArticleStatus.Value],
-                           sideEffects: Seq[SideEffect],
-                           addCurrentStateToOthersOnTransition: Boolean,
-                           requiredRoles: Set[Role.Value],
-                           illegalStatuses: Set[ArticleStatus.Value]) {
+case class StateTransition(
+    from: ArticleStatus.Value,
+    to: ArticleStatus.Value,
+    otherStatesToKeepOnTransition: Set[ArticleStatus.Value],
+    sideEffects: Seq[SideEffect],
+    addCurrentStateToOthersOnTransition: Boolean,
+    requiredRoles: Set[Role.Value],
+    illegalStatuses: Set[ArticleStatus.Value],
+    private val ignoreRolesIf: Option[(Set[Role.Value], IgnoreFunction)]
+) {
 
   def keepCurrentOnTransition: StateTransition = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[ArticleStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
-  def require(roles: Set[Role.Value]): StateTransition = copy(requiredRoles = roles)
+
+  def require(roles: Set[Role.Value], ignoreIf: Option[IgnoreFunction] = None): StateTransition =
+    copy(requiredRoles = roles, ignoreRolesIf = ignoreIf.map(requiredRoles -> _))
+
+  def hasRequiredRoles(user: UserInfo, article: Option[Article]): Boolean = {
+    val ignore = ignoreRolesIf match {
+      case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasRoles(oldRoles)
+      case None                         => false
+    }
+    ignore || user.hasRoles(this.requiredRoles)
+  }
 
   def illegalStatuses(illegalStatuses: Set[ArticleStatus.Value]): StateTransition =
     copy(illegalStatuses = illegalStatuses)
@@ -33,12 +45,15 @@ case class StateTransition(from: ArticleStatus.Value,
 object StateTransition {
   implicit def tupleToStateTransition(fromTo: (ArticleStatus.Value, ArticleStatus.Value)): StateTransition = {
     val (from, to) = fromTo
-    StateTransition(from,
-                    to,
-                    Set(ArticleStatus.IMPORTED, ArticleStatus.PUBLISHED),
-                    Seq.empty[SideEffect],
-                    addCurrentStateToOthersOnTransition = false,
-                    UserInfo.WriteRoles,
-                    Set())
+    StateTransition(
+      from,
+      to,
+      Set(ArticleStatus.IMPORTED, ArticleStatus.PUBLISHED),
+      Seq.empty[SideEffect],
+      addCurrentStateToOthersOnTransition = false,
+      UserInfo.WriteRoles,
+      Set(),
+      None
+    )
   }
 }

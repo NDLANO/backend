@@ -16,14 +16,9 @@ object networklib extends Module {
     "com.github.jwt-scala" %% "jwt-json4s-native" % "9.0.2"
   ) ++ vulnerabilityOverrides
 
-  private val scala213 = ScalaV
-  private val scala212 = "2.12.10"
-  private val supportedScalaVersions = List(scala213, scala212)
-
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "network",
     libraryDependencies ++= dependencies,
-    crossScalaVersions := supportedScalaVersions
   ) ++
     commonSettings ++
     fmtSettings

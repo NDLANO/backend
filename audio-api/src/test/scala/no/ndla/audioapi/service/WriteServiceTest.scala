@@ -500,6 +500,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Tag(List("and"), "nb"),
         domain.Tag(List("and"), "nn"),
         domain.Tag(List("duck"), "en")
+      ),
+      manuscript = List(
+        domain.Manuscript("Manuskript", "nb"),
+        domain.Manuscript("Manuskript", "nn"),
+        domain.Manuscript("Manuscript", "en")
+      ),
+      podcastMeta = List(
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en")
       )
     )
 
@@ -515,6 +525,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = List(
         domain.Tag(List("and"), "nb"),
         domain.Tag(List("duck"), "en")
+      ),
+      manuscript = List(
+        domain.Manuscript("Manuskript", "nb"),
+        domain.Manuscript("Manuscript", "en")
+      ),
+      podcastMeta = List(
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en")
       )
     )
 
@@ -522,6 +540,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(audioStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument(0)))
     when(
       validationService.validate(any[domain.AudioMetaInformation],
                                  any[Option[domain.AudioMetaInformation]],
@@ -530,9 +550,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[domain.AudioMetaInformation](0)))
 
-    writeService.deleteAudioLanguageVersion(audioId, "nn")
+    var updated = writeService.deleteAudioLanguageVersion(audioId, "nn")
     verify(audioRepository, times(1)).update(expectedAudio, audioId)
+    updated.get.head.supportedLanguages should not contain ("nn")
   }
 
   test("That deleting last language version deletes entire image") {

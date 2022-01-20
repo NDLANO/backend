@@ -7,8 +7,11 @@
 
 package no.ndla.validation
 
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
+
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =
@@ -23,7 +26,6 @@ class TextValidator(allowHtml: Boolean) {
     *
     * @param fieldPath Path to return in the [[ValidationMessage]]'s if there are any
     * @param text Text to validate
-    * @param validateEmbedTagParent Whether to validate parents of embed tags where those are required.
     * @param requiredToOptional Map from resource-type to Seq of embed tag attributes to treat as optional rather than required for this validation.
     *                           Example Map("image" -> Seq("data-caption")) to make data-caption optional for "image" on this validation.
     * @return Seq of [[ValidationMessage]]'s describing issues with validation
@@ -31,21 +33,40 @@ class TextValidator(allowHtml: Boolean) {
   def validate(
       fieldPath: String,
       text: String,
-      validateEmbedTagParent: Boolean = true,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
     allowHtml match {
-      case true  => validateOnlyBasicHtmlTags(fieldPath, text, validateEmbedTagParent, requiredToOptional)
+      case true  => validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
       case false => validateNoHtmlTags(fieldPath, text).toList
     }
   }
 
-  private def validateOnlyBasicHtmlTags(
+  def validateVisualElement(
       fieldPath: String,
       text: String,
-      validateParent: Boolean,
-      requiredToOptional: Map[String, Seq[String]]
+      requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
+
+    val errorWith = (msg: String) => Seq(ValidationMessage(fieldPath, msg))
+
+    val body = HtmlTagRules.stringToJsoupDocument(text)
+    val elemList = body.children().iterator().asScala.toList
+
+    elemList match {
+      case onlyElement :: Nil =>
+        if (onlyElement.tagName() != ResourceHtmlEmbedTag) {
+          errorWith("The root html element for visual elements needs to be `embed`.")
+        } else {
+          validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
+        }
+      case Nil => errorWith("The root html element for visual elements needs to be `embed`.")
+      case _   => errorWith("Visual element must be a string containing only a single embed element.")
+    }
+  }
+
+  private def validateOnlyBasicHtmlTags(fieldPath: String,
+                                        text: String,
+                                        requiredToOptional: Map[String, Seq[String]]): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
     HtmlTagRules.allLegalTags
@@ -59,7 +80,7 @@ class TextValidator(allowHtml: Boolean) {
           case true  => None
           case false => Some(ValidationMessage(fieldPath, IllegalContentInBasicText))
         }
-        TagValidator.validate(fieldPath, text, validateParent, requiredToOptional) ++ jsoupValidatorMessages.toSeq
+        TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
       }
 
     }

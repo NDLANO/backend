@@ -91,6 +91,8 @@ trait ValidationService {
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
+        validateAuthorLicenseCorrelation(Some(copyright.license),
+                                         copyright.rightsholders ++ copyright.creators ++ copyright.processors) ++
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ImageApiProperties.creatorTypes)) ++
         copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ImageApiProperties.processorTypes)) ++
         copyright.rightsholders.flatMap(a =>
@@ -114,6 +116,15 @@ trait ValidationService {
       getLicense(license) match {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _    => Seq()
+      }
+    }
+
+    private def validateAuthorLicenseCorrelation(license: Option[String], authors: Seq[Author]) = {
+      val errorMessage = (lic: String) =>
+        ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
+      license match {
+        case None      => Seq()
+        case Some(lic) => if (lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(lic))
       }
     }
 

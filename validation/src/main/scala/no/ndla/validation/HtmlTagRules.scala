@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 import scala.io.Source
 import scala.language.postfixOps
-import scala.collection.JavaConverters._ // TODO: Replace with `import scala.jdk.CollectionConverters._` when removing 2.12 support
+import scala.jdk.CollectionConverters._
 
 object HtmlTagRules {
 

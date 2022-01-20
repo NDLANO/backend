@@ -5,12 +5,15 @@ import org.json4s.native.JsonMethods._
 import org.json4s.ext._
 
 object TagRules {
-  case class TagAttributeRules(required: Set[TagAttributes.Value],
-                               optional: Seq[Set[TagAttributes.Value]],
-                               validSrcDomains: Option[Seq[String]],
-                               mustBeDirectChildOf: Option[ParentTag],
-                               mustContainAtLeastOneOptionalAttribute: Boolean = false) {
-    lazy val all: Set[TagAttributes.Value] = required ++ optional.flatten
+  case class TagAttributeRules(
+      required: Set[TagAttributes.Value],
+      requiredNonEmpty: Set[TagAttributes.Value],
+      optional: Seq[Set[TagAttributes.Value]],
+      validSrcDomains: Option[Seq[String]],
+      mustBeDirectChildOf: Option[ParentTag],
+      mustContainAtLeastOneOptionalAttribute: Boolean = false
+  ) {
+    lazy val all: Set[TagAttributes.Value] = required ++ requiredNonEmpty ++ optional.flatten
 
     def withOptionalRequired(toBeOptional: Seq[String]) = {
       val toBeOptionalEnums = toBeOptional.flatMap(TagAttributes.valueOf)
@@ -28,7 +31,7 @@ object TagRules {
   case class Condition(childCount: String)
 
   object TagAttributeRules {
-    def empty = TagAttributeRules(Set.empty, Seq.empty, None, None)
+    def empty = TagAttributeRules(Set.empty, Set.empty, Seq.empty, None, None)
   }
 
   def convertJsonStrToAttributeRules(jsonStr: String): Map[String, TagAttributeRules] = {

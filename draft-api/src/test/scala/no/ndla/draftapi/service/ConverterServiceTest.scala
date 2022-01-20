@@ -146,7 +146,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Article =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.DRAFT, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithNoRoles, Some(articleId))
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
     noTrans(DRAFT.toString) should contain(ArticleStatus.ARCHIVED.toString)
     noTrans(PROPOSAL.toString) should contain(ArticleStatus.ARCHIVED.toString)
     noTrans(USER_TEST.toString) should contain(ArticleStatus.ARCHIVED.toString)
@@ -167,7 +167,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Article =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.PUBLISHED, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithNoRoles, Some(articleId))
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
 
     noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
     noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED.toString)
@@ -191,7 +191,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId),
                                                   status = Status(ArticleStatus.DRAFT, Set(ArticleStatus.PUBLISHED)))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithNoRoles, None)
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
     noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED)
     noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED)
