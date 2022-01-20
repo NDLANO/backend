@@ -92,7 +92,7 @@ trait ContentValidator {
           .toSeq
           .flatten
 
-      licenseMessage ++ licenseAuthorsMessage ++ contributorsMessages ++ originMessage
+      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
