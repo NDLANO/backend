@@ -53,6 +53,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     "ndla124",
     ModelReleasedStatus.YES.toString,
+    None,
     None
   )
 
@@ -71,7 +72,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   override def beforeEach() = {

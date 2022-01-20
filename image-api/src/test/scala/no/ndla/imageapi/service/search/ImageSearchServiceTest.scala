@@ -46,8 +46,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = Image("large-full-url", 10000, "jpg")
-  val smallImage = Image("small-full-url", 100, "jpg")
+  val largeImage = Image("large-full-url", 10000, "jpg", None)
+  val smallImage = Image("small-full-url", 100, "jpg", None)
 
   val byNcSa = Copyright(CC_BY_NC_SA.toString,
                          "Gotham City",
@@ -92,7 +92,8 @@ class ImageSearchServiceTest
     updated,
     "ndla124",
     ModelReleasedStatus.NO,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val image2 = ImageMetaInformation(
@@ -110,7 +111,8 @@ class ImageSearchServiceTest
     updated,
     "ndla124",
     ModelReleasedStatus.NOT_APPLICABLE,
-    Seq(EditorNote(new Date(), "someone", "Lillehjelper"))
+    Seq(EditorNote(new Date(), "someone", "Lillehjelper")),
+    None
   )
 
   val image3 = ImageMetaInformation(
@@ -128,7 +130,8 @@ class ImageSearchServiceTest
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val image4 = ImageMetaInformation(
@@ -146,7 +149,8 @@ class ImageSearchServiceTest
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val image5 = ImageMetaInformation(
@@ -166,7 +170,8 @@ class ImageSearchServiceTest
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   override def beforeAll(): Unit = {

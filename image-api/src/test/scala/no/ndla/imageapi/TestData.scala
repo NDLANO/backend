@@ -42,7 +42,7 @@ object TestData {
       List(Author("Leverandør", "Leverans Leveransensen")),
       None,
       None,
-      None
+      None,
     ),
     List(ImageTag(List("rovdyr", "elg"), "nb")),
     List(ImageCaption("Elg i busk", "nb")),
@@ -51,7 +51,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val apiElg = api.ImageMetaInformationV2(
@@ -80,6 +81,7 @@ object TestData {
     updated(),
     "ndla123",
     ModelReleasedStatus.YES.toString,
+    None,
     None
   )
 
@@ -105,7 +107,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val jerv = ImageMetaInformation(
@@ -130,7 +133,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val mink = ImageMetaInformation(
@@ -155,7 +159,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val rein = ImageMetaInformation(
@@ -180,7 +185,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val nonexisting = ImageMetaInformation(
@@ -205,7 +211,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val nonexistingWithoutThumb = ImageMetaInformation(
@@ -230,7 +237,8 @@ object TestData {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val testdata = List(elg, bjorn, jerv, mink, rein)
