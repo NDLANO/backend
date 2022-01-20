@@ -83,7 +83,7 @@ trait ContentValidator {
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors = copyright.creators ++ copyright.processors ++ copyright.rightsholders
-      val licenseAuthorsMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
+      val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors
         .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
