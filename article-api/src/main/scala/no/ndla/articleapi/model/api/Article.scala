@@ -36,7 +36,7 @@ case class ArticleV2(
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/student/teacher") availability: String,
+    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent]
 )
 // format: on
