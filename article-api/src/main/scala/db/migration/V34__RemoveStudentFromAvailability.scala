@@ -40,13 +40,13 @@ class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
   }
 
   def countAllArticles(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from articledata where document is not NULL"
+    sql"select count(*) from contentdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document, article_id from articledata where document is not null order by id limit 1000 offset $offset"
+    sql"select id, document, article_id from contentdata where document is not null order by id limit 1000 offset $offset"
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
@@ -58,7 +58,7 @@ class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update articledata set document = $dataObject where id = $id"
+    sql"update contentdata set document = $dataObject where id = $id"
       .update()
   }
 
