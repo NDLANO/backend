@@ -39,13 +39,16 @@ object draftapi extends Module {
     ) ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    imports = Seq("no.ndla.draftapi.model.api._", "no.ndla.draftapi.model.api.TSTypes._"),
+    imports = Seq("no.ndla.draftapi.model.api._",
+                  "no.ndla.draftapi.model.api.TSTypes._",
+                  "no.ndla.draftapi.model.domain.Availability"),
     exports = Seq(
       "Agreement",
       "Article",
       "NewArticle",
       "UpdatedAgreement",
       "UpdatedArticle",
+      "Availability.type",
       "UpdatedUserData",
       "UserData"
     )

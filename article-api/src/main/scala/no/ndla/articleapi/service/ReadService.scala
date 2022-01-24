@@ -76,8 +76,6 @@ trait ReadService {
                 case Failure(ex) => Failure(ex)
                 case Success(feideUser) =>
                   article.availability match {
-                    case Availability.student if !(feideUser.isStudent || feideUser.isTeacher) =>
-                      Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
                     case Availability.teacher if !feideUser.isTeacher =>
                       Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
                     case _ =>

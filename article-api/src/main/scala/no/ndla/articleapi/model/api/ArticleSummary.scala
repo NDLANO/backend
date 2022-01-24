@@ -30,6 +30,6 @@ case class ArticleSummaryV2(
     @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date,
     @(ApiModelProperty @field)(description = "A list of available languages for this article") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API attached to this article") grepCodes: Seq[String],
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/student/teacher") availability: String,
+    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
 )
 // format: on

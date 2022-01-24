@@ -799,7 +799,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle(UpdateArticle) should convert availability correctly") {
     val Success(res1) = service.toDomainArticle(
-      TestData.sampleDomainArticle.copy(availability = Availability.student),
+      TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
       isImported = false,
       TestData.userWithWriteAccess,
@@ -808,7 +808,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val Success(res2) = service.toDomainArticle(
-      TestData.sampleDomainArticle.copy(availability = Availability.student),
+      TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some("Krutte go")),
       isImported = false,
       TestData.userWithWriteAccess,
@@ -817,7 +817,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val Success(res3) = service.toDomainArticle(
-      TestData.sampleDomainArticle.copy(availability = Availability.student),
+      TestData.sampleDomainArticle.copy(availability = Availability.teacher),
       TestData.sampleApiUpdateArticle.copy(availability = None),
       isImported = false,
       TestData.userWithWriteAccess,
@@ -826,15 +826,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     res1.availability should be(Availability.teacher)
-    res2.availability should be(Availability.student)
-    res3.availability should be(Availability.student)
+    res2.availability should be(Availability.everyone)
+    res3.availability should be(Availability.teacher)
   }
 
   test("toDomainArticle(updateNullDocumentArticle) should convert availability correctly") {
 
     val Success(res1) =
       service.toDomainArticle(1,
-                              TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.student.toString)),
+                              TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
                               isImported = false,
                               TestData.userWithWriteAccess,
                               None,
@@ -854,7 +854,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
                                                 None,
                                                 None)
 
-    res1.availability should be(Availability.student)
+    res1.availability should be(Availability.teacher)
     res2.availability should be(Availability.everyone)
     res3.availability should be(Availability.everyone)
   }

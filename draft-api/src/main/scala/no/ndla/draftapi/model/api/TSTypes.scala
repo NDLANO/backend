@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 import com.scalatsi._
 import com.scalatsi.dsl._
 import com.scalatsi.TypescriptType.TSNull
+import no.ndla.draftapi.model.domain
 
 /**
   * The `scala-tsi` plugin is not always able to derive the types that are used in `Seq` or other generic types.
@@ -20,6 +21,10 @@ object TSTypes {
   // This alias is required since scala-tsi doesn't understand that Null is `null`
   // See: https://github.com/scala-tsi/scala-tsi/issues/172
   implicit val nullTsType: TSType[Null] = TSType(TSNull)
+
+  // Scala2 enumerations doesn't work as expected in scala-tsi. See: https://github.com/scala-tsi/scala-tsi/issues/182
+  implicit val availability: TSType[domain.Availability.Value] =
+    TSType.sameAs[domain.Availability.Value, domain.Availability.type]
 
   implicit val author = TSType.fromCaseClass[Author]
   implicit val requiredLibrary = TSType.fromCaseClass[RequiredLibrary]

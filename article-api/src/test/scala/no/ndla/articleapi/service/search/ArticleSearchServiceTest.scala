@@ -219,7 +219,7 @@ class ArticleSearchServiceTest
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.Standard.toString,
-    availability = Availability.student
+    availability = Availability.everyone
   )
 
   override def beforeAll() = if (elasticSearchContainer.isSuccess) {
@@ -265,97 +265,58 @@ class ArticleSearchServiceTest
     results.totalCount should be(3)
 
     val Success(results2) = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty))
-    results2.totalCount should be(9)
+    results2.totalCount should be(10)
   }
 
   test("That searching without query returns all documents ordered by id ascending") {
     val Success(results) =
       articleSearchService.matchingQuery(testSettings.copy(query = None))
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be(1)
-    hits(1).id should be(2)
-    hits(2).id should be(3)
-    hits(3).id should be(5)
-    hits(4).id should be(6)
-    hits(5).id should be(7)
-    hits.last.id should be(11)
+    results.totalCount should be(10)
+    hits.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 11, 13))
   }
 
   test("That searching returns all documents ordered by id descending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByIdDesc))
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be(11)
-    hits.last.id should be(1)
+    results.totalCount should be(10)
+    hits.map(_.id) should be(Seq(13, 11, 9, 8, 7, 6, 5, 3, 2, 1))
   }
 
   test("That searching returns all documents ordered by title ascending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc))
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be(8)
-    hits(1).id should be(1)
-    hits(2).id should be(3)
-    hits(3).id should be(9)
-    hits(4).id should be(5)
-    hits(5).id should be(11)
-    hits(6).id should be(6)
-    hits(7).id should be(2)
-    hits.last.id should be(7)
+    results.totalCount should be(10)
+    hits.map(_.id) should be(Seq(8, 1, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
   test("That searching returns all documents ordered by title descending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleDesc))
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be(7)
-    hits(1).id should be(2)
-    hits(2).id should be(6)
-    hits(3).id should be(11)
-    hits(4).id should be(5)
-    hits(5).id should be(9)
-    hits(6).id should be(3)
-    hits(7).id should be(1)
-    hits.last.id should be(8)
+    results.totalCount should be(10)
+    hits.map(_.id) should be(Seq(13, 7, 2, 6, 11, 5, 9, 3, 1, 8))
   }
 
   test("That searching returns all documents ordered by lastUpdated descending") {
     val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits = results.get.results
-    results.get.totalCount should be(9)
-    hits.head.id should be(3)
-    hits.last.id should be(5)
+    results.get.totalCount should be(10)
+    hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 13, 11, 7, 6, 5))
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be(5)
-    hits(1).id should be(6)
-    hits(2).id should be(7)
-    hits(3).id should be(8)
-    hits(4).id should be(9)
-    hits(5).id should be(11)
-    hits(6).id should be(1)
-    hits(7).id should be(2)
-    hits.last.id should be(3)
+    results.totalCount should be(10)
+    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 13, 11, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
     val Success(results) = articleSearchService.matchingQuery(
       testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString)))
     val hits = results.results
-    results.totalCount should be(8)
-    hits.head.id should be(8)
-    hits(1).id should be(3)
-    hits(2).id should be(9)
-    hits(3).id should be(5)
-    hits(4).id should be(11)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
-    hits.last.id should be(7)
+    results.totalCount should be(9)
+    hits.map(_.id) should be(Seq(8, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -374,12 +335,12 @@ class ArticleSearchServiceTest
 
     val hits1 = page1.results
     val hits2 = page2.results
-    page1.totalCount should be(9)
+    page1.totalCount should be(10)
     page1.page.get should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(1)
-    page2.totalCount should be(9)
+    page2.totalCount should be(10)
     page2.page.get should be(2)
     hits2.size should be(2)
     hits2.head.id should be(3)
@@ -479,7 +440,7 @@ class ArticleSearchServiceTest
   test("Search for all languages should return all articles in different languages") {
     val Success(search) = articleSearchService.matchingQuery(
       testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc))
-    search.totalCount should equal(10)
+    search.totalCount should equal(11)
   }
 
   test("Search for all languages should return all articles in correct language") {
@@ -487,7 +448,7 @@ class ArticleSearchServiceTest
       articleSearchService.matchingQuery(testSettings.copy(language = Language.AllLanguages, pageSize = 100))
     val hits = search.results
 
-    search.totalCount should equal(10)
+    search.totalCount should equal(11)
     hits(0).id should equal(1)
     hits(1).id should equal(2)
     hits(2).id should equal(3)
@@ -589,7 +550,7 @@ class ArticleSearchServiceTest
 
   test("That scrolling works as expected") {
     val pageSize = 2
-    val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
+    val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
       articleSearchService.matchingQuery(
@@ -611,7 +572,7 @@ class ArticleSearchServiceTest
     scroll2.results.map(_.id) should be(expectedIds(2))
     scroll3.results.map(_.id) should be(expectedIds(3))
     scroll4.results.map(_.id) should be(expectedIds(4))
-    scroll5.results.map(_.id) should be(List.empty)
+    scroll5.results.map(_.id) should be(expectedIds(5))
   }
 
   test("That highlighting works when scrolling") {
@@ -656,21 +617,20 @@ class ArticleSearchServiceTest
     val Success(search2) =
       articleSearchService.matchingQuery(testSettings.copy(query = Some("availability"), availability = Seq.empty))
 
-    search1.results should be(Seq.empty)
-    search2.results should be(Seq.empty)
+    search1.results.map(_.id) should be(Seq(13))
+    search2.results.map(_.id) should be(Seq(13))
   }
 
-  test("That 'students' doesn't see teacher articles in search") {
+  test("That 'everyone' doesn't see teacher articles in search") {
     val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.student, Availability.everyone)))
+      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone)))
 
     search1.results.map(_.id) should be(Seq(13))
   }
 
   test("That 'teachers' sees teacher articles in search") {
     val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"),
-                        availability = Seq(Availability.teacher, Availability.student, Availability.everyone)))
+      testSettings.copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone)))
 
     search1.results.map(_.id) should be(Seq(12, 13))
   }

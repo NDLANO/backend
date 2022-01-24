@@ -267,7 +267,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateArticleFields updates all fields") {
     val existingArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.student,
+      availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
@@ -312,7 +312,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val partialArticle =
       api.PartialPublishArticle(
-        availability = Some(Availability.student),
+        availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(
@@ -326,7 +326,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
               ArticleTag(Seq("Guten", "Tag"), "de")))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.student,
+      availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),

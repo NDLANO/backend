@@ -16,7 +16,7 @@ import scala.annotation.meta.field
 // format: off
 @ApiModel(description = "Partial data about article to publish independently")
 case class PartialPublishArticle(
-    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/student/teacher") availability: Option[domain.Availability.Value],
+    @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[domain.Availability.Value],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "The name of the license") license: Option[String],
     @(ApiModelProperty @field)(description = "A list of meta description objects") metaDescription: Option[Seq[domain.ArticleMetaDescription]],
