@@ -54,7 +54,6 @@ trait SearchIndexService {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
             _ <- updateAliasTarget(aliasTarget, indexName)
-            _ <- deleteIndexWithName(aliasTarget)
           } yield numIndexed
 
           operations match {

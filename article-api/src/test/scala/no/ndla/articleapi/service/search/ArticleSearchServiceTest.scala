@@ -304,14 +304,14 @@ class ArticleSearchServiceTest
     val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits = results.get.results
     results.get.totalCount should be(10)
-    hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 13, 11, 7, 6, 5))
+    hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 11, 13, 7, 6, 5))
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
     val hits = results.results
     results.totalCount should be(10)
-    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 13, 11, 1, 2, 3))
+    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 13, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
