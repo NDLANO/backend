@@ -7,11 +7,11 @@
 
 package db.migration
 
-import no.ndla.learningpathapi.model.domain.{EmbedType, LearningStep}
+import no.ndla.learningpathapi.model.domain.LearningStep
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.JsonAST._
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -67,7 +67,7 @@ class V15__MergeDuplicateLanguageFields extends BaseJavaMigration {
     } else {
       val grouped = array.arr.groupBy(v => (v \ "language").extract[String])
       val newLanguages = grouped.map {
-        case (language, value: List[JObject]) =>
+        case (language, value) =>
           val dist = value.distinct
           if (dist.length > 1) {
             println(
@@ -75,7 +75,11 @@ class V15__MergeDuplicateLanguageFields extends BaseJavaMigration {
             )
 
             // Reverse so the first one wins
-            value.reverse.foldLeft(JObject()) { case (acc, cur) => acc.merge(cur) }
+            value.reverse.foldLeft(JObject()) {
+              case (acc, cur) =>
+                val obj = cur.extract[JObject]
+                acc.merge(obj)
+            }
           } else { value.head }
       }.toList
 
