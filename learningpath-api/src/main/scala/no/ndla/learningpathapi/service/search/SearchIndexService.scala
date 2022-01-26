@@ -143,16 +143,16 @@ trait SearchIndexService {
       if (learningPaths.isEmpty) {
         Success(0)
       } else {
-        val response = e4sClient.execute {
-          bulk(learningPaths.map(lp => {
-            val source =
-              write(searchConverterService.asSearchableLearningpath(lp))
-            indexInto(indexName)
-              .doc(source)
-              .id(lp.id.get.toString)
-          }))
-        }
+        val searchables = learningPaths.map(searchConverterService.asSearchableLearningpath)
+        val requests = searchables.map(lp => {
+          val source = write(lp)
 
+          indexInto(indexName)
+            .doc(source)
+            .id(lp.id.toString)
+        })
+
+        val response = e4sClient.execute(bulk(requests))
         response match {
           case Success(RequestSuccess(_, _, _, result)) if !result.errors =>
             logger.info(s"Indexed ${learningPaths.size} documents")
