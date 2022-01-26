@@ -20,7 +20,7 @@ object ISO639 {
   private val SOUTHERN_SAMI = "sma"
   private val SPANISH = "es"
   private val CHINESE = "zh"
-  private val UNKNOWN = "unknown"
+  private val UNKNOWN = "und"
 
   private val iso639Map = ListMap(
     "nob" -> NORWEGIAN_BOKMAL,
