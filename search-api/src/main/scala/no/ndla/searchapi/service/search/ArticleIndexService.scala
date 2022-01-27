@@ -39,8 +39,8 @@ trait ArticleIndexService {
                                     grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
       searchConverterService.asSearchableArticle(domainModel, taxonomyBundle, grepBundle) match {
         case Success(searchableArticle) =>
-          val source = write(searchableArticle)
-          Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+          val source = Try(write(searchableArticle))
+          source.map(s => indexInto(indexName).doc(s).id(domainModel.id.get.toString))
         case Failure(ex) =>
           Failure(ex)
       }

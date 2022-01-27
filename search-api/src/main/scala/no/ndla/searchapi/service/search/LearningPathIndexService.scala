@@ -40,8 +40,8 @@ trait LearningPathIndexService {
                                     grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
       searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle) match {
         case Success(searchableLearningPath) =>
-          val source = write(searchableLearningPath)
-          Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+          val source = Try(write(searchableLearningPath))
+          source.map(s => indexInto(indexName).doc(s).id(domainModel.id.get.toString))
         case Failure(ex) =>
           Failure(ex)
       }
