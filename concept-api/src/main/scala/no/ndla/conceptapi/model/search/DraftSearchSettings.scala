@@ -24,7 +24,6 @@ case class DraftSearchSettings(
     shouldScroll: Boolean,
     embedResource: Option[String],
     embedId: Option[String],
-    includeOtherStatuses: Boolean
 )
 
 object DraftSearchSettings {
@@ -44,7 +43,6 @@ object DraftSearchSettings {
       shouldScroll = false,
       embedResource = None,
       embedId = None,
-      includeOtherStatuses = false
     )
   }
 }

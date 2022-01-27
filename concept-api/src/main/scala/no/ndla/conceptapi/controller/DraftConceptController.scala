@@ -57,11 +57,6 @@ trait DraftConceptController {
          |A draft only needs to have one of the available statuses to appear in result (OR).
        """.stripMargin
     )
-    private val includeOtherStatuses =
-      Param[Option[Boolean]](
-        "include-other-statuses",
-        s"Whether or not to include the 'other' status field when filtering with '${statusFilter.paramName}' param.")
-
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -92,7 +87,6 @@ trait DraftConceptController {
         shouldScroll: Boolean,
         embedResource: Option[String],
         embedId: Option[String],
-        includeOtherStatuses: Boolean
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -107,8 +101,7 @@ trait DraftConceptController {
         userFilter = userFilter,
         shouldScroll = shouldScroll,
         embedResource = embedResource,
-        embedId = embedId,
-        includeOtherStatuses = includeOtherStatuses
+        embedId = embedId
       )
 
       val result = query match {
@@ -173,7 +166,6 @@ trait DraftConceptController {
             asQueryParam(userFilter),
             asQueryParam(embedResource),
             asQueryParam(embedId),
-            asQueryParam(includeOtherStatuses)
           )
           .authorizations("oauth2")
           .responseMessages(response500))
@@ -195,7 +187,6 @@ trait DraftConceptController {
         val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
         val embedResource = paramOrNone(this.embedResource.paramName)
         val embedId = paramOrNone(this.embedId.paramName)
-        val includeOtherStatuses = booleanOrDefault(this.includeOtherStatuses.paramName, default = false)
 
         search(
           query,
@@ -211,8 +202,7 @@ trait DraftConceptController {
           usersToFilterBy,
           shouldScroll,
           embedResource,
-          embedId,
-          includeOtherStatuses
+          embedId
         )
 
       }
@@ -300,7 +290,6 @@ trait DraftConceptController {
             val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
             val embedResource = searchParams.embedResource
             val embedId = searchParams.embedId
-            val includeOtherStatuses = booleanOrDefault(this.includeOtherStatuses.paramName, default = false)
 
             search(
               query,
@@ -317,7 +306,6 @@ trait DraftConceptController {
               shouldScroll,
               embedResource,
               embedId,
-              includeOtherStatuses
             )
           case Failure(ex) => errorHandler(ex)
         }

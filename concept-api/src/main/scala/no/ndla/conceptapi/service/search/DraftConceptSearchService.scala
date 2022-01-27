@@ -121,7 +121,7 @@ trait DraftConceptSearchService {
 
     def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val statusFilter = boolStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
+      val statusFilter = boolStatusFilter(settings.statusFilter)
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
       val userFilter = orFilter(settings.userFilter, "updatedBy")
@@ -184,17 +184,15 @@ trait DraftConceptSearchService {
       }
     }
 
-    private def boolStatusFilter(statuses: Set[String], includeOthers: Boolean): Some[BoolQuery] = {
+    private def boolStatusFilter(statuses: Set[String]): Some[BoolQuery] = {
       if (statuses.isEmpty) {
         Some(
           boolQuery().not(termQuery("status.current", ConceptStatus.ARCHIVED.toString))
         )
       } else {
-        val draftStatuses =
-          if (includeOthers) Seq("status.current", "status.other")
-          else Seq("status.current")
+        val draftStatuses = Seq("status.current", "status.other")
         Some(
-          boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s.toString))))
+          boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s))))
         )
       }
     }
