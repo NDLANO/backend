@@ -151,6 +151,13 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     content = List(ConceptContent("englandocontent", "en"), ConceptContent("zenba content", "dhm"))
   )
 
+  val concept12: Concept = TestData.sampleConcept.copy(
+    id = Option(12),
+    title = List(ConceptTitle("deleted", "en"), ConceptTitle("slettet", "nb")),
+    content = List(ConceptContent("deleted", "en"), ConceptContent("slettet", "nb")),
+    status = Status(current = ConceptStatus.ARCHIVED, other = Set.empty)
+  )
+
   val searchSettings = DraftSearchSettings(
     withIdIn = List.empty,
     searchLanguage = DefaultLanguage,
@@ -184,9 +191,10 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptIndexService.indexDocument(concept9)
       draftConceptIndexService.indexDocument(concept10)
       draftConceptIndexService.indexDocument(concept11)
+      draftConceptIndexService.indexDocument(concept12)
 
       blockUntil(() => {
-        draftConceptSearchService.countDocuments == 11
+        draftConceptSearchService.countDocuments == 12
       })
     }
   }
@@ -594,6 +602,19 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUALITY_ASSURED")))
     statusSearch4.totalCount should be(2)
     statusSearch4.results.map(_.id) should be(Seq(8, 10))
+  }
+
+  test("ARCHIVED concepts should only be returned if filtered by ARCHIVED") {
+    val query = "slettet"
+    val Success(search1) =
+      draftConceptSearchService.matchingQuery(query = query,
+        searchSettings.copy( withIdIn = List(12), statusFilter = Set(ConceptStatus.ARCHIVED.toString)))
+    val Success(search2) =
+      draftConceptSearchService.matchingQuery(query = query,
+        searchSettings.copy( withIdIn = List(12), statusFilter = Set.empty))
+
+    search1.results.map(_.id) should be(Seq(12))
+    search2.results.map(_.id) should be(Seq.empty)
   }
 
   test("Filtering by users works as expected with OR filtering") {
