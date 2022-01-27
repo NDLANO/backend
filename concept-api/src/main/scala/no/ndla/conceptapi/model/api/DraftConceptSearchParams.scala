@@ -27,5 +27,6 @@ case class DraftConceptSearchParams(
   @(ApiModelProperty @field)(description = "A comma-separated list of statuses that should appear in the search.") status: Set[String],
   @(ApiModelProperty @field)(description = "A comma-separated list of users to filter the search by.") users: Seq[String],
   @(ApiModelProperty @field)(description = "Embed resource type that should exist in the concepts.") embedResource: Option[String],
-  @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String]
+  @(ApiModelProperty @field)(description = "Embed id attribute that should exist in the concepts.") embedId: Option[String],
+  @(ApiModelProperty @field)(description = "Whether or not to include the other status field when filtering with status param.") includeOtherStatuses: Option[Boolean]
 )

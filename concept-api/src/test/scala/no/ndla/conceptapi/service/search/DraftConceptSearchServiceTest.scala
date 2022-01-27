@@ -164,7 +164,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     userFilter = Seq.empty,
     shouldScroll = false,
     embedResource = None,
-    embedId = None
+    embedId = None,
+    includeOtherStatuses = false
   )
 
   override def beforeAll(): Unit = {
@@ -578,17 +579,21 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   test("Filtering by statuses works as expected with OR filtering") {
     val Success(statusSearch1) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("PUBLISHED")))
-    statusSearch1.totalCount should be(2)
-    statusSearch1.results.map(_.id) should be(Seq(9, 10))
+    statusSearch1.totalCount should be(1)
+    statusSearch1.results.map(_.id) should be(Seq(9))
 
-    val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED")))
-    statusSearch2.totalCount should be(1)
-    statusSearch2.results.map(_.id) should be(Seq(10))
+    val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("PUBLISHED"), includeOtherStatuses = true))
+    statusSearch2.totalCount should be(2)
+    statusSearch2.results.map(_.id) should be(Seq(9, 10))
 
-    val Success(statusSearch3) =
+    val Success(statusSearch3) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED")))
+    statusSearch3.totalCount should be(1)
+    statusSearch3.results.map(_.id) should be(Seq(10))
+
+    val Success(statusSearch4) =
       draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUALITY_ASSURED")))
-    statusSearch3.totalCount should be(2)
-    statusSearch3.results.map(_.id) should be(Seq(8, 10))
+    statusSearch4.totalCount should be(2)
+    statusSearch4.results.map(_.id) should be(Seq(8, 10))
   }
 
   test("Filtering by users works as expected with OR filtering") {
