@@ -86,7 +86,7 @@ trait DraftConceptController {
         userFilter: Seq[String],
         shouldScroll: Boolean,
         embedResource: Option[String],
-        embedId: Option[String],
+        embedId: Option[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
