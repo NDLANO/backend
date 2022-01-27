@@ -158,7 +158,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright =
+        Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
