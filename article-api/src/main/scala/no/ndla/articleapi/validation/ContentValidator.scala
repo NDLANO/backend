@@ -146,6 +146,8 @@ trait ContentValidator {
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
+      val allAuthors = copyright.creators ++ copyright.processors ++ copyright.rightsholders
+      val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages =
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
           copyright.processors.flatMap(a =>
@@ -155,7 +157,7 @@ trait ContentValidator {
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
       val agreementMessage = validateAgreement(copyright)
 
-      licenseMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
     }
 
     def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
@@ -175,6 +177,12 @@ trait ContentValidator {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _    => Seq()
       }
+    }
+
+    private def validateAuthorLicenseCorrelation(license: String, authors: Seq[Author]) = {
+      val errorMessage = (lic: String) =>
+        ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
+      if (license == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(license))
     }
 
     private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
