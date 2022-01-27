@@ -8,9 +8,7 @@
 package no.ndla.search.model
 
 import org.json4s.JsonAST.{JField, JObject, JString}
-import org.json4s.{CustomSerializer, DefaultFormats, Extraction, Formats, JArray, JNothing, MappingException}
-
-import java.text.SimpleDateFormat
+import org.json4s.{CustomSerializer, DefaultFormats, Formats, JArray, JNothing, MappingException}
 import java.util.TimeZone
 
 class SearchableLanguageValuesSerializer
@@ -53,10 +51,11 @@ class SearchableLanguageListSerializer
 object SearchableLanguageFormats {
 
   def defaultFormats(withMillis: Boolean): DefaultFormats = new DefaultFormats {
-    val pattern: String = if (withMillis) "yyyy-MM-dd'T'HH:mm:ss.SSSX" else "yyyy-MM-dd'T'HH:mm:ssX"
-    val simpleDateFormat = new SimpleDateFormat(pattern)
-    simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
-    override def dateFormatter: SimpleDateFormat = simpleDateFormat
+    dateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"))
+
+    if (withMillis) {
+      dateFormatter.applyPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    }
   }
 
   val JSonFormats: Formats =
