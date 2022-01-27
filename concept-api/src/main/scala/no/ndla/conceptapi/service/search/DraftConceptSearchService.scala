@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Language, SearchResult}
+import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.search.Elastic4sClient
@@ -121,7 +121,7 @@ trait DraftConceptSearchService {
 
     def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val statusFilter = orFilter(settings.statusFilter, "status.current", "status.other")
+      val statusFilter = boolStatusFilter(settings.statusFilter)
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
       val userFilter = orFilter(settings.userFilter, "updatedBy")
@@ -181,6 +181,19 @@ trait DraftConceptSearchService {
               ))
           case Failure(ex) => errorHandler(ex)
         }
+      }
+    }
+
+    private def boolStatusFilter(statuses: Set[String]): Some[BoolQuery] = {
+      if (statuses.isEmpty) {
+        Some(
+          boolQuery().not(termQuery("status.current", ConceptStatus.ARCHIVED.toString))
+        )
+      } else {
+        val draftStatuses = Seq("status.current", "status.other")
+        Some(
+          boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s))))
+        )
       }
     }
 

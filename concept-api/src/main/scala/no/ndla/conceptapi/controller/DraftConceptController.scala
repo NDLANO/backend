@@ -165,7 +165,7 @@ trait DraftConceptController {
             asQueryParam(statusFilter),
             asQueryParam(userFilter),
             asQueryParam(embedResource),
-            asQueryParam(embedId)
+            asQueryParam(embedId),
           )
           .authorizations("oauth2")
           .responseMessages(response500))
@@ -305,7 +305,7 @@ trait DraftConceptController {
               userFilter,
               shouldScroll,
               embedResource,
-              embedId
+              embedId,
             )
           case Failure(ex) => errorHandler(ex)
         }
