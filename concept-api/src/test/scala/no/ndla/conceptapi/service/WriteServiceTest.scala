@@ -8,12 +8,11 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.conceptapi.auth.UserInfo
-import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain._
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.ScalaOngoingStubbing
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
 
@@ -163,7 +162,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
-    service.deleteLanguage(concept.id.get, "nn", userInfo)
+    val updated = service.deleteLanguage(concept.id.get, "nn", userInfo)
     verify(draftConceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
@@ -171,6 +170,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     conceptCaptor.getValue.tags.length should be(1)
     conceptCaptor.getValue.visualElement.length should be(1)
     conceptCaptor.getValue.metaImage.length should be(1)
+    updated.get.supportedLanguages should not contain "nn"
   }
 
   test("That updating concepts updates revision") {

@@ -25,5 +25,6 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date,
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,
     @(ApiModelProperty @field)(description = "List of people that edited the concept") updatedBy: Seq[String],
-    @(ApiModelProperty @field)(description = "Describes the license of the concept") license: Option[String])
+    @(ApiModelProperty @field)(description = "Describes the license of the concept") license: Option[String],
+    @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement])
 // format: on
