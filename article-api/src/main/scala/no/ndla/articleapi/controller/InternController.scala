@@ -9,7 +9,7 @@
 package no.ndla.articleapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
 import no.ndla.articleapi.model.domain.{Article, Availability}
@@ -35,10 +35,11 @@ trait InternController {
     with ArticleIndexService
     with User
     with Role
-    with ContentValidator =>
+    with ContentValidator
+    with ArticleApiPropertiesT =>
   val internController: InternController
 
-  class InternController extends NdlaController {
+  class InternController extends NdlaController(ArticleApiProperties) {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + new EnumNameSerializer(
       Availability)

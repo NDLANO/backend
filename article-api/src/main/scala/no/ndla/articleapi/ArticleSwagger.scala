@@ -17,20 +17,21 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
   }
 }
 
-object ArticleApiInfo {
+trait ArticleApiInfo {
+  this: ArticleApiPropertiesT =>
 
-  val contactInfo = ContactInfo(
+  lazy val contactInfo = ContactInfo(
     ArticleApiProperties.ContactName,
     ArticleApiProperties.ContactUrl,
     ArticleApiProperties.ContactEmail
   )
 
-  val licenseInfo = LicenseInfo(
+  lazy val licenseInfo = LicenseInfo(
     "GPL v3.0",
     "http://www.gnu.org/licenses/gpl-3.0.en.html"
   )
 
-  val apiInfo = ApiInfo(
+  lazy val apiInfo = ApiInfo(
     "Article API",
     "Searching and fetching all articles published on the NDLA platform.\n\n" +
       "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
@@ -40,17 +41,20 @@ object ArticleApiInfo {
     contactInfo,
     licenseInfo
   )
-}
 
-class ArticleSwagger extends Swagger("2.0", "1.0", ArticleApiInfo.apiInfo) {
+  class ArticleSwagger extends Swagger("2.0", "1.0", apiInfo) {
 
-  private def writeRolesInTest: List[String] = {
-    val writeRoles = List(ArticleApiProperties.DraftRoleWithWriteAccess, ArticleApiProperties.RoleWithWriteAccess)
-    writeRoles.map(_.replace(":", "-test:"))
+    private def writeRolesInTest: List[String] = {
+      val writeRoles = List(ArticleApiProperties.DraftRoleWithWriteAccess, ArticleApiProperties.RoleWithWriteAccess)
+      writeRoles.map(_.replace(":", "-test:"))
+    }
+
+    addAuthorization(
+      OAuth(
+        writeRolesInTest,
+        List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))
+      )
+    )
+
   }
-
-  addAuthorization(
-    OAuth(writeRolesInTest,
-          List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
-
 }

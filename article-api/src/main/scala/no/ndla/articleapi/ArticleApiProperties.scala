@@ -16,10 +16,79 @@ import no.ndla.validation.ResourceType
 
 import scala.util.Properties._
 
-object ArticleApiProperties extends LazyLogging {
+trait ArticleApiPropertiesT {
+  val ArticleApiProperties: PropBase
+}
+
+trait PropBase {
+  val IsKubernetes: Boolean
+  val Environment: String
+  val Domain: String
+  val ApplicationName: String
+  val Auth0LoginEndpoint: String
+  val RoleWithWriteAccess: String
+  val DraftRoleWithWriteAccess: String
+
+  val ApplicationPort: Int
+  val DefaultLanguage: String
+  val ContactName: String
+  val ContactUrl: String
+  val ContactEmail: String
+  val TermsUrl: String
+
+  val MetaUserName: String
+  val MetaPassword: String
+  val MetaResource: String
+  val MetaServer: String
+  val MetaPort: Int
+  val MetaSchema: String
+  val MetaMaxConnections: Int
+
+  val oldCreatorTypes: List[String]
+
+  val creatorTypes: List[String]
+
+  val oldProcessorTypes: List[String]
+  val processorTypes: List[String]
+
+  val oldRightsholderTypes: List[String]
+  val rightsholderTypes: List[String]
+  val allowedAuthors: List[String]
+
+  val maxConvertionRounds: Int
+
+  val SearchServer: String
+  val RunWithSignedSearchRequests: Boolean
+  val ArticleSearchIndex: String
+  val ArticleSearchDocument: String
+  val DefaultPageSize: Int
+  val MaxPageSize: Int
+  val IndexBulkSize: Int
+  val ElasticSearchIndexMaxResultWindow: Int
+  val ElasticSearchScrollKeepAlive: String
+  val InitialScrollContextKeywords: List[String]
+  val CorrelationIdKey: String
+  val CorrelationIdHeader: String
+  val AudioHost: String
+  val ImageHost: String
+  val DraftHost: String
+  val SearchHost: String
+  val ApiClientsCacheAgeInMs: Long
+  val MinimumAllowedTags: Int
+  val externalApiUrls: Map[String, String]
+  val H5PAddress: String
+  val BrightcoveAccountId: String
+  val BrightcovePlayerId: String
+  val BrightcoveVideoScriptUrl: String
+  val H5PResizerScriptUrl: String
+  val NRKVideoScriptUrl: Seq[String]
+}
+
+class ArticleApiPropertiesC extends PropBase with LazyLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
+  lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ApplicationName = "article-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   val RoleWithWriteAccess = "articles:write"
@@ -32,12 +101,12 @@ object ArticleApiProperties extends LazyLogging {
   val ContactEmail: String = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
   val TermsUrl: String = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
-  lazy val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  lazy val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  lazy val MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  lazy val MetaServer: String = prop(PropertyKeys.MetaServerKey)
-  lazy val MetaPort: Int = prop(PropertyKeys.MetaPortKey).toInt
-  lazy val MetaSchema: String = prop(PropertyKeys.MetaSchemaKey)
+  val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  val MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  val MetaServer: String = prop(PropertyKeys.MetaServerKey)
+  val MetaPort: Int = prop(PropertyKeys.MetaPortKey).toInt
+  val MetaSchema: String = prop(PropertyKeys.MetaSchemaKey)
   val MetaMaxConnections = 10
 
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
@@ -97,8 +166,6 @@ object ArticleApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
-  lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
-
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image" -> s"$Domain/image-api/raw/id",
@@ -122,5 +189,11 @@ object ArticleApiProperties extends LazyLogging {
   val BrightcoveVideoScriptUrl =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
   val H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
-  val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
+
+  val NRKVideoScriptUrl =
+    Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
+}
+
+trait DirectProps extends ArticleApiPropertiesT {
+  override val ArticleApiProperties = new ArticleApiPropertiesC
 }

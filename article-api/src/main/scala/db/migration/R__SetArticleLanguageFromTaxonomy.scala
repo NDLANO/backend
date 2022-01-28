@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.articleapi.ArticleApiProperties.Domain
+import no.ndla.articleapi.{ArticleApiPropertiesC, ArticleApiPropertiesT}
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
@@ -21,8 +21,11 @@ import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.{Failure, Random, Success, Try}
 import scala.util.matching.Regex
+import no.ndla.articleapi.JettyLauncher
 
-class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
+class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration with DBArticleSupport with ArticleApiPropertiesT {
+  override val ArticleApiProperties: ArticleApiPropertiesC = JettyLauncher.ArticleApiProperties
+  import ArticleApiProperties.Domain
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"

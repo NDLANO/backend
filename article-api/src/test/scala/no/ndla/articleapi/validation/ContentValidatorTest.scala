@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ValidationException, ValidationMessage}
@@ -17,6 +16,7 @@ import org.mockito.Mockito._
 import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
+  import ArticleApiProperties.H5PResizerScriptUrl
   override val contentValidator = new ContentValidator()
   val validDocument = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val invalidDocument = """<section><invalid></invalid></section>"""

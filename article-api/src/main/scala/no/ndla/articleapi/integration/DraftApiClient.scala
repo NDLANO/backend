@@ -8,13 +8,13 @@
 
 package no.ndla.articleapi.integration
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.model.api
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest}
 
 trait DraftApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with ArticleApiPropertiesT =>
   val draftApiClient: DraftApiClient
 
   class DraftApiClient(DraftBaseUrl: String = s"http://${ArticleApiProperties.DraftHost}") {

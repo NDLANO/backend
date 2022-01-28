@@ -8,10 +8,11 @@
 
 package no.ndla.articleapi.caching
 
-import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.{ArticleApiPropertiesC, ArticleApiPropertiesT, UnitSuite}
 import org.mockito.Mockito._
 
-class MemoizeTest extends UnitSuite {
+class MemoizeTest extends UnitSuite with Memoize with ArticleApiPropertiesT {
+  override val ArticleApiProperties = new ArticleApiPropertiesC
 
   class Target {
     def targetMethod(): String = "Hei"

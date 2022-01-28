@@ -13,8 +13,7 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.ElasticSearchIndexMaxResultWindow
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 import no.ndla.search.SearchLanguage.languageAnalyzers
@@ -24,10 +23,11 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService =>
+  this: Elastic4sClient with ArticleApiPropertiesT with BaseIndexService =>
 
   trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with LazyLogging {
     val repository: Repository[D]
+    import ArticleApiProperties.ElasticSearchIndexMaxResultWindow
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     def createIndexRequest(domainModel: D, indexName: String): IndexRequest

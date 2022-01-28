@@ -8,13 +8,7 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{
-  BrightcoveVideoScriptUrl,
-  H5PResizerScriptUrl,
-  MinimumAllowedTags,
-  NRKVideoScriptUrl
-}
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}
@@ -26,8 +20,10 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftApiClient =>
+  this: DraftApiClient with ArticleApiPropertiesT =>
   val contentValidator: ContentValidator
+
+  import ArticleApiProperties.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, MinimumAllowedTags, NRKVideoScriptUrl}
 
   class ContentValidator() {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)

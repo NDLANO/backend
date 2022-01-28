@@ -7,11 +7,12 @@
 
 package no.ndla.articleapi.auth
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.model.api.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait Role {
+  this: ArticleApiPropertiesT =>
 
   val authRole: AuthRole
 

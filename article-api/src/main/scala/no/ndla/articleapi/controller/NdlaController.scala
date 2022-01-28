@@ -9,8 +9,8 @@
 package no.ndla.articleapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.articleapi.ComponentRegistry
+import no.ndla.articleapi.{ArticleApiPropertiesC, ArticleApiPropertiesT, PropBase}
+import no.ndla.articleapi.JettyLauncher.ComponentRegistry
 import no.ndla.articleapi.model.api.{
   AccessDeniedException,
   Error,
@@ -32,8 +32,15 @@ import org.scalatra._
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
-abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+abstract class NdlaController(props: PropBase)
+    extends ScalatraServlet
+    with NativeJsonSupport
+    with LazyLogging
+    with ArticleApiPropertiesT {
   protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
+
+  override val ArticleApiProperties = props
+  import ArticleApiProperties._
 
   before() {
     contentType = formats("json")

@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
@@ -25,10 +25,12 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with ConverterService with LazyLogging =>
+  this: Elastic4sClient with ArticleApiPropertiesT with ConverterService with LazyLogging =>
 
   trait SearchService[T] {
     val searchIndex: String
+
+    import ArticleApiProperties._
 
     def scroll(scrollId: String, language: String, fallback: Boolean): Try[SearchResult[T]] =
       e4sClient

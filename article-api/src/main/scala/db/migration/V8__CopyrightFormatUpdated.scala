@@ -8,14 +8,13 @@
 package db.migration
 
 import java.util.Date
-
-import no.ndla.articleapi.ArticleApiProperties._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
+import no.ndla.articleapi.JettyLauncher.ArticleApiProperties._
 
 class V8__CopyrightFormatUpdated extends BaseJavaMigration {
 

@@ -75,11 +75,34 @@ class ArticleApiProviderCDCTest
     DBMigrator.migrate(dataSource)
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
+  val cont = postgresContainer.get
+  val ss = this.MetaSchema
+
+  val newProps: ArticleApiPropertiesC = new ArticleApiPropertiesC {
+    override val ApplicationPort: Int = serverPort
+
+    override val MetaUserName: String = cont.getUsername
+    override val MetaPassword: String = cont.getPassword
+    override val MetaResource: String = cont.getDatabaseName
+    override val MetaServer: String = cont.getContainerIpAddress
+    override val MetaPort: Int = cont.getMappedPort(5432)
+    override val MetaSchema: String = "testschema"
+
+  }
+
+  val mainClass: MainClass = new MainClass {
+    override val ComponentRegistry: ComponentRegistry = new ComponentRegistry {
+      override val ArticleApiProperties: ArticleApiPropertiesC = newProps
+    }
+    override val ArticleApiProperties: ArticleApiPropertiesC = newProps
+
+  }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+
+    server = Some(mainClass.startServer())
   }
 
   override def afterAll(): Unit = {
@@ -90,7 +113,7 @@ class ArticleApiProviderCDCTest
   private def setupArticles() =
     (1 to 10)
       .map(id => {
-        ComponentRegistry.articleRepository
+        mainClass.ComponentRegistry.articleRepository
           .updateArticleFromDraftApi(
             TestData.sampleDomainArticle.copy(
               id = Some(id),
@@ -120,7 +143,7 @@ class ArticleApiProviderCDCTest
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
 
-    ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+    mainClass.ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
     val consumersToVerify = List(
       TaggedConsumer("draft-api", List("master")),

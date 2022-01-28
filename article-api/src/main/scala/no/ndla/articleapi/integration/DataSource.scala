@@ -9,14 +9,13 @@
 package no.ndla.articleapi.integration
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.ArticleApiPropertiesT
 
 trait DataSource {
+  this: ArticleApiPropertiesT =>
   val dataSource: HikariDataSource
 
-}
-
-object DataSource {
+  import ArticleApiProperties._
 
   def getHikariDataSource: HikariDataSource = {
     val dataSourceConfig = new HikariConfig()
@@ -27,4 +26,5 @@ object DataSource {
     dataSourceConfig.setMaximumPoolSize(MetaMaxConnections)
     new HikariDataSource(dataSourceConfig)
   }
+
 }

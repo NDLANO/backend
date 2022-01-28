@@ -10,8 +10,7 @@ package no.ndla.articleapi.model.api
 
 import java.util.Date
 import scala.annotation.meta.field
-
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiPropertiesC, ArticleApiPropertiesT, JettyLauncher}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Information about an error")
@@ -22,7 +21,8 @@ case class Error(
     @(ApiModelProperty @field)(description = "The supported languages for an article") supportedLanguages: Option[
       Seq[String]] = None)
 
-object Error {
+object Error extends ArticleApiPropertiesT {
+  override val ArticleApiProperties: ArticleApiPropertiesC = JettyLauncher.ArticleApiProperties
   val GENERIC = "GENERIC"
   val NOT_FOUND = "NOT_FOUND"
   val INDEX_MISSING = "INDEX_MISSING"

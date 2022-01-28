@@ -11,7 +11,7 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
-import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.mockito.ArgumentMatchers._

@@ -12,11 +12,7 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.{
-  ArticleSearchIndex,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
-}
+import no.ndla.articleapi.ArticleApiPropertiesT
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain._
@@ -30,10 +26,16 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleSearchService {
-  this: Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
+  this: Elastic4sClient
+    with ArticleApiPropertiesT
+    with SearchConverterService
+    with SearchService
+    with ArticleIndexService
+    with ConverterService =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
+    import ArticleApiProperties._
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleSearchIndex

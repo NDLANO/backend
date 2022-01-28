@@ -51,7 +51,7 @@ trait Module {
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
     Seq(
-      fork := true,
+      fork := false,
       envVars ++= {
         parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
       }

@@ -22,6 +22,7 @@ abstract class IntegrationSuite(
     ElasticsearchImage: String = "9062bdb", // elasticsearch 7.16.2
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
+  val MetaSchema = schemaName
 
   val elasticSearchContainer: Try[ElasticsearchContainer] = if (EnableElasticsearchContainer) {
     val imgName = s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage"

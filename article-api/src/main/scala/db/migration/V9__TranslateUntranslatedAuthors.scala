@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.JettyLauncher.ArticleApiProperties._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore

@@ -20,3 +20,6 @@ lazy val language           = Module.setup(project in file("./language/"),      
 lazy val mapping            = Module.setup(project in file("./mapping/"),          mappinglib)
 lazy val validation         = Module.setup(project in file("./validation/"),       validationlib)
 lazy val search             = Module.setup(project in file("./search/"),           searchlib,         deps = Seq(                  language,                                      common))
+
+
+lazy val integration = Module.setup(project in file("./integration-tests/"), integrationtests, deps = Seq(scalatestsuite, `draft-api`, `article-api`))

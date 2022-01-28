@@ -10,8 +10,8 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.articleapi.ArticleApiProperties.SearchServer
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.caching.Memoize
 import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -19,16 +19,19 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
+import no.ndla.articleapi.model.domain.DBArticleSupport
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
-    extends DataSource
+class ComponentRegistry
+    extends ArticleApiPropertiesT
+    with DataSource
     with InternController
     with ArticleControllerV2
     with HealthController
     with ArticleRepository
+    with DBArticleSupport
     with Elastic4sClient
     with DraftApiClient
     with SearchApiClient
@@ -45,14 +48,19 @@ object ComponentRegistry
     with ReadService
     with WriteService
     with ContentValidator
+    with ArticleApiInfo
     with Clock
     with Role
-    with User {
+    with User
+    with Memoize {
+
+  val ArticleApiProperties = new ArticleApiPropertiesC
+
   def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val dataSource: HikariDataSource = getHikariDataSource
   connectToDatabase()
 
   lazy val internController = new InternController
@@ -72,7 +80,7 @@ object ComponentRegistry
   lazy val readService = new ReadService
   lazy val writeService = new WriteService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(ArticleApiProperties.SearchServer)
   lazy val draftApiClient = new DraftApiClient
   lazy val searchApiClient = new SearchApiClient
   lazy val feideApiClient = new FeideApiClient

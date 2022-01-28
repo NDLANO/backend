@@ -8,8 +8,9 @@
 
 package no.ndla.articleapi.repository
 
-import java.net.Socket
+import com.zaxxer.hikari.HikariDataSource
 
+import java.net.Socket
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
@@ -22,7 +23,7 @@ class ArticleRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val dataSource = testDataSource.get
+  override val dataSource: HikariDataSource = testDataSource.get
   var repository: ArticleRepository = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa

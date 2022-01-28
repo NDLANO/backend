@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
@@ -31,6 +30,8 @@ import scalikejdbc.DBSession
 import scala.util.{Success, Try}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
+
+  import ArticleApiProperties._
 
   val externalImageApiUrl: String = externalApiUrls("image")
   val resourceIdAttr = s"${TagAttributes.DataResource_Id}"

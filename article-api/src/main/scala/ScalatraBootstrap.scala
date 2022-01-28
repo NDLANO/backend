@@ -7,14 +7,15 @@
  */
 
 import javax.servlet.ServletContext
-
-import no.ndla.articleapi.ComponentRegistry.{internController, articleControllerV2, resourcesApp, healthController}
-import no.ndla.articleapi.ArticleSwagger
+import no.ndla.articleapi.JettyLauncher.ComponentRegistry.{
+  articleControllerV2,
+  healthController,
+  internController,
+  resourcesApp
+}
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
-
-  implicit val swagger: ArticleSwagger = new ArticleSwagger
 
   override def init(context: ServletContext): Unit = {
     context.mount(articleControllerV2, "/article-api/v2/articles", "articlesV2")

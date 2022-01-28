@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
@@ -26,6 +25,7 @@ class ArticleSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
+  import ArticleApiProperties.DefaultPageSize
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

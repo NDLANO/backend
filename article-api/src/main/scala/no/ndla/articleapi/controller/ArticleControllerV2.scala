@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.{ArticleApiPropertiesC, ArticleApiPropertiesT}
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
@@ -36,10 +35,14 @@ trait ArticleControllerV2 {
     with Role
     with User
     with ContentValidator
-    with FeideApiClient =>
+    with FeideApiClient
+    with ArticleApiPropertiesT =>
   val articleControllerV2: ArticleControllerV2
 
-  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class ArticleControllerV2(implicit val swagger: Swagger)
+      extends NdlaController(ArticleApiProperties)
+      with SwaggerSupport {
+    import ArticleApiProperties._
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
