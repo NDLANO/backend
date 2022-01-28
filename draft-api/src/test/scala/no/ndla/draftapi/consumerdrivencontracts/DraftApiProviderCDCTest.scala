@@ -122,7 +122,7 @@ class DraftApiProviderCDCTest
     } else { None }
 
     val consumersToVerify = List(
-      TaggedConsumer("article-api", List("master")),
+      TaggedConsumer("article-api", List("do-not-validate-license-author-correlation-on-drafts")),
       TaggedConsumer("search-api", List("master"))
     )
 
