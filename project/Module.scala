@@ -2,16 +2,25 @@ import Dependencies.versions._
 import sbt.Keys._
 import sbt._
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
+import com.itv.scalapact.plugin.ScalaPactPlugin.autoImport.{
+  pactBrokerAddress,
+  pactBrokerCredentials,
+  pactContractTags,
+  pactContractVersion
+}
 import sbtassembly._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
   typescriptGenerationImports,
   typescriptOutputFile
 }
+import com.typesafe.sbt.SbtGit.git
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbtassembly.AssemblyKeys._
 import sbtdocker.DockerKeys._
 import sbtdocker._
+
+import scala.language.postfixOps
 
 object Module {
 
@@ -154,6 +163,24 @@ trait Module {
       typescriptExports := exports,
       typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts"
     )
+  }
 
+  def pactPublishingSettings() = {
+    import scala.sys.process._
+
+    Seq(
+      pactBrokerAddress := sys.env.getOrElse("PACT_BROKER_URL", ""),
+      pactBrokerCredentials := (
+        sys.env.getOrElse("PACT_BROKER_USERNAME", ""),
+        sys.env.getOrElse("PACT_BROKER_PASSWORD", "")
+      ),
+      pactContractTags := Seq(
+        (for {
+          head <- sys.env.get("GITHUB_HEAD_REF").filter(_.nonEmpty)
+          base <- sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty)
+        } yield s"$base-from-$head").getOrElse(git.gitCurrentBranch.value)
+      ),
+      pactContractVersion := ("git rev-parse --short=7 HEAD" !!).trim
+    )
   }
 }

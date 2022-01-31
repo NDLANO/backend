@@ -52,7 +52,7 @@ object draftapi extends Module {
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "draft-api",
     libraryDependencies ++= dependencies
-  ) ++ PactSettings ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings
+  ) ++ PactSettings ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings ++ pactPublishingSettings()
 
   override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig

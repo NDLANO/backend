@@ -56,7 +56,8 @@ object searchapi extends Module {
     assemblySettings() ++
     dockerSettings("-Xmx2G") ++
     tsSettings ++
-    fmtSettings
+    fmtSettings ++
+    pactPublishingSettings()
 
   override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig
