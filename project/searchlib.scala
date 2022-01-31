@@ -5,13 +5,10 @@ import com.scalatsi.plugin.ScalaTsiPlugin
 
 object searchlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
-    elasticsearch,
-    elastic4sCore,
-    elastic4sHttp,
-    elastic4sAWS,
-    elastic4sEmbedded,
-    scalaUri
-  )
+    scalaUri,
+    "org.json4s" %% "json4s-native" % Json4SV,
+    "org.json4s" %% "json4s-ext" % Json4SV,
+  ) ++ elastic4s
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "search",
     libraryDependencies ++= dependencies

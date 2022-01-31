@@ -9,8 +9,8 @@
 package no.ndla.articleapi.service.search
 
 import java.util.concurrent.Executors
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.BoolQuery
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{
   ArticleSearchIndex,
@@ -22,6 +22,7 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeExcep
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 

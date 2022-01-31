@@ -8,14 +8,15 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings._
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Article
-import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
+import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
@@ -31,7 +32,7 @@ trait ArticleIndexService {
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
       val source = write(searchConverterService.asSearchableArticle(domainModel))
-      indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString)
+      indexInto(indexName).doc(source).id(domainModel.id.get.toString)
     }
 
     def getMapping: MappingDefinition = {
@@ -57,7 +58,7 @@ trait ArticleIndexService {
         generateLanguageSupportedDynamicTemplates("metaDescription") ++
         generateLanguageSupportedDynamicTemplates("tags")
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

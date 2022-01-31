@@ -13,10 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
-import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, findLanguagePrioritized}
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, LanguageField, PodcastMeta, WithLanguage}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
+import no.ndla.language.Language.findByLanguageOrBestEffort
+import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
 import org.joda.time.DateTime
 
@@ -280,7 +281,7 @@ trait ConverterService {
         language: Option[String],
         toApiFunc: DomainType => ApiType
     )(implicit mf: Manifest[DomainType]): Try[ApiType] = {
-      findLanguagePrioritized(fields, language.getOrElse(DefaultLanguage)) match {
+      findByLanguageOrBestEffort(fields, language.getOrElse(DefaultLanguage)) match {
         case Some(field) => Success(toApiFunc(field))
         case None =>
           Failure(

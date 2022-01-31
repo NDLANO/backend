@@ -7,8 +7,9 @@
 
 package db.migration
 
+import no.ndla.language.Language.languageOrUnknown
+
 import java.util.Date
-import no.ndla.audioapi.model.Language
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -28,10 +29,10 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
 
   def convertAudioUpdate(audioMeta: V4_AudioMetaInformation): V4_AudioMetaInformation = {
     audioMeta.copy(
-      titles = audioMeta.titles.map(t => V4_Title(t.title, Some(Language.languageOrUnknown(t.language).toString()))),
+      titles = audioMeta.titles.map(t => V4_Title(t.title, Some(languageOrUnknown(t.language).toString()))),
       filePaths = audioMeta.filePaths.map(f =>
-        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(Language.languageOrUnknown(f.language).toString()))),
-      tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(Language.languageOrUnknown(t.language).toString())))
+        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(languageOrUnknown(f.language).toString()))),
+      tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(languageOrUnknown(t.language).toString())))
     )
   }
 

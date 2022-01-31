@@ -7,6 +7,6 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
-import no.ndla.searchapi.model.domain.LanguageField
+import no.ndla.language.model.WithLanguage
 
-case class Description(description: String, language: String) extends LanguageField
+case class Description(description: String, language: String) extends WithLanguage

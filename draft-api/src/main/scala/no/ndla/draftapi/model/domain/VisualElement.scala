@@ -7,6 +7,9 @@
 
 package no.ndla.draftapi.model.domain
 
-case class VisualElement(resource: String, language: String) extends LanguageField {
+import no.ndla.language.model.LanguageField
+
+case class VisualElement(resource: String, language: String) extends LanguageField[String] {
+  override def value: String = resource
   override def isEmpty: Boolean = resource.isEmpty
 }

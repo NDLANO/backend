@@ -8,12 +8,12 @@
 package no.ndla.searchapi.integration
 
 import java.util.Date
-
 import no.ndla.network.AuthUser
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.draft.{ArticleStatus, Copyright}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.DomainDumpResults
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath.{
@@ -23,7 +23,6 @@ import no.ndla.searchapi.model.domain.learningpath.{
   StepStatus,
   StepType
 }
-import no.ndla.searchapi.model.search.LanguageValue
 import org.joda.time.DateTime
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write

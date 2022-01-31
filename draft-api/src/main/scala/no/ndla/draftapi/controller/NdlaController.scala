@@ -32,10 +32,9 @@ import no.ndla.draftapi.model.api.{
 import no.ndla.draftapi.model.domain.emptySomeToNone
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.search.NdlaSearchException
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -90,8 +89,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
           logger.error(s"Problem with remote service: ${h.getMessage}")
           BadGateway(body = Error.GenericError)
       }
-    case nse: NdlaSearchException
-        if nse.rf.error.rootCause.exists(x =>
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause.exists(x =>
           x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>

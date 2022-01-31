@@ -35,26 +35,32 @@ class MultiDraftSearchServiceAtomicTest
     super.withFixture(test)
   }
 
-  override val articleIndexService = new ArticleIndexService
-  override val draftIndexService = new DraftIndexService
-  override val learningPathIndexService = new LearningPathIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
+  override val draftIndexService: DraftIndexService = new DraftIndexService {
+    override val indexShards = 1
+  }
+  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
   override val multiDraftSearchService = new MultiDraftSearchService
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Articles))
-      draftIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.Drafts))
-      learningPathIndexService.createIndexWithName(SearchApiProperties.SearchIndexes(SearchType.LearningPaths))
+      articleIndexService.createIndexAndAlias()
+      draftIndexService.createIndexAndAlias()
+      learningPathIndexService.createIndexAndAlias()
     }
   }
 
   override def afterEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
-      articleIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.Articles)))
-      draftIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.Drafts)))
-      learningPathIndexService.deleteIndexWithName(Some(SearchApiProperties.SearchIndexes(SearchType.LearningPaths)))
+      articleIndexService.deleteIndexAndAlias()
+      draftIndexService.deleteIndexAndAlias()
+      learningPathIndexService.deleteIndexAndAlias()
     }
   }
 

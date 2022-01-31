@@ -11,11 +11,8 @@ object conceptapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.JettyLauncher")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      elastic4sCore,
-      elastic4sHttp,
       scalaTsi,
       scalaUri,
-      elasticsearch,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
@@ -30,7 +27,7 @@ object conceptapi extends Module {
       "org.typelevel" %% "cats-core" % "2.1.1",
       "org.typelevel" %% "cats-effect" % "2.1.1",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
-    ) ++ database ++ scalatra ++ vulnerabilityOverrides)
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),

@@ -7,15 +7,17 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings._
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.grep.GrepBundle
-import no.ndla.searchapi.model.search.{SearchType, SearchableLanguageFormats}
+import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -27,7 +29,7 @@ trait LearningPathIndexService {
   val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends LazyLogging with IndexService[LearningPath] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
     override val documentType: String = SearchApiProperties.SearchDocuments(SearchType.LearningPaths)
     override val searchIndex: String = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
     override val apiClient: LearningPathApiClient = learningPathApiClient
@@ -38,8 +40,8 @@ trait LearningPathIndexService {
                                     grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
       searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle) match {
         case Success(searchableLearningPath) =>
-          val source = write(searchableLearningPath)
-          Success(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+          val source = Try(write(searchableLearningPath))
+          source.map(s => indexInto(indexName).doc(s).id(domainModel.id.get.toString))
         case Failure(ex) =>
           Failure(ex)
       }
@@ -61,15 +63,19 @@ trait LearningPathIndexService {
             textField("stepType")
           )
         ),
-        objectField("copyright").fields(
-          objectField("license").fields(
-            textField("license"),
-            textField("description"),
-            textField("url")
-          ),
-          nestedField("contributors").fields(
-            textField("type"),
-            textField("name")
+        ObjectField(
+          "copyright",
+          properties = Seq(
+            ObjectField("license",
+                        properties = Seq(
+                          textField("license"),
+                          textField("description"),
+                          textField("url")
+                        )),
+            nestedField("contributors").fields(
+              textField("type"),
+              textField("name")
+            )
           )
         ),
         intField("isBasedOn"),
@@ -90,7 +96,7 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

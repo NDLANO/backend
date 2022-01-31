@@ -7,15 +7,17 @@
 
 package no.ndla.conceptapi.service.search
 
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.{api, domain}
-import no.ndla.conceptapi.model.domain.Language.getSupportedLanguages
-import no.ndla.conceptapi.model.domain.{Concept, Language, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.service.ConverterService
+import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
+import no.ndla.search.SearchLanguage
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.Serialization.read
@@ -117,7 +119,7 @@ trait SearchConverterService {
     def asSearchableConcept(c: Concept): SearchableConcept = {
       val defaultTitle = c.title
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse
+          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
@@ -146,21 +148,18 @@ trait SearchConverterService {
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags = searchableConcept.tags.languageValues.map(lv => domain.ConceptTags(lv.value, lv.language))
 
-      val supportedLanguages = getSupportedLanguages(Seq(titles, contents))
+      val supportedLanguages = getSupportedLanguages(titles, contents)
 
-      val title = Language
-        .findByLanguageOrBestEffort(titles, language)
+      val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiConceptTitle)
-        .getOrElse(api.ConceptTitle("", Language.UnknownLanguage.toString()))
-      val concept = Language
-        .findByLanguageOrBestEffort(contents, language)
+        .getOrElse(api.ConceptTitle("", UnknownLanguage.toString()))
+      val concept = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
-        .getOrElse(api.ConceptContent("", Language.UnknownLanguage.toString()))
-      val metaImage = Language
-        .findByLanguageOrBestEffort(searchableConcept.metaImage, language)
+        .getOrElse(api.ConceptContent("", UnknownLanguage.toString()))
+      val metaImage = findByLanguageOrBestEffort(searchableConcept.metaImage, language)
         .map(converterService.toApiMetaImage)
-        .getOrElse(api.ConceptMetaImage("", "", Language.UnknownLanguage.toString()))
-      val tag = Language.findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
+        .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString()))
+      val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
 
       api.ConceptSummary(

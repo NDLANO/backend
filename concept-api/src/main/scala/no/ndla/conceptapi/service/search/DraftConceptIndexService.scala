@@ -7,17 +7,19 @@
 
 package no.ndla.conceptapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl.{nestedField, _}
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
+import com.sksamuel.elastic4s.ElasticDsl.{nestedField, _}
+import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
-import no.ndla.conceptapi.model.search.SearchableLanguageFormats
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,7 +28,7 @@ trait DraftConceptIndexService {
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends LazyLogging with IndexService[Concept] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
     override val documentType: String = ConceptApiProperties.ConceptSearchDocument
     override val searchIndex: String = ConceptApiProperties.DraftConceptSearchIndex
     override val repository: Repository[Concept] = draftConceptRepository
@@ -36,7 +38,7 @@ trait DraftConceptIndexService {
         case Some(id) =>
           val source = write(searchConverterService.asSearchableConcept(concept))
           Success(
-            indexInto(indexName / documentType).doc(source).id(id.toString)
+            indexInto(indexName).doc(source).id(id.toString)
           )
 
         case _ => Failure(ConceptMissingIdException("Attempted to create index request for concept without an id."))
@@ -44,7 +46,7 @@ trait DraftConceptIndexService {
     }
 
     def getMapping: MappingDefinition = {
-      val fields: Seq[FieldDefinition] = List(
+      val fields: Seq[ElasticField] = List(
         intField("id"),
         keywordField("defaultTitle").normalizer("lower"),
         keywordField("subjectIds"),
@@ -68,7 +70,7 @@ trait DraftConceptIndexService {
         generateLanguageSupportedDynamicTemplates("content") ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true)
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
 
   }

@@ -7,4 +7,6 @@
 
 package no.ndla.searchapi.model.domain
 
-case class Tag(tags: Seq[String], language: String) extends LanguageField
+import no.ndla.language.model.WithLanguage
+
+case class Tag(tags: Seq[String], language: String) extends WithLanguage

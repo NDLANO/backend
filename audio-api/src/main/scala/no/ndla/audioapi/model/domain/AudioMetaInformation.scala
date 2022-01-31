@@ -8,9 +8,9 @@
 
 package no.ndla.audioapi.model.domain
 
-import com.sksamuel.elastic4s.http.RequestFailure
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Language
+import no.ndla.language.Language.getSupportedLanguages
+import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
@@ -36,7 +36,7 @@ case class AudioMetaInformation(
     series: Option[Series],
 ) {
   lazy val supportedLanguages: Seq[String] =
-    Language.getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
+    getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
 }
 
 object AudioType extends Enumeration {
@@ -47,12 +47,17 @@ object AudioType extends Enumeration {
   def valueOf(s: String): Option[this.Value] = this.values.find(_.toString == s)
 }
 
-case class Title(title: String, language: String) extends LanguageField[String] { override def value: String = title }
+case class Title(title: String, language: String) extends LanguageField[String] {
+  override def value: String = title
+  override def isEmpty: Boolean = title.isEmpty
+}
 case class Manuscript(manuscript: String, language: String) extends LanguageField[String] {
   override def value: String = manuscript
+  override def isEmpty: Boolean = manuscript.isEmpty
 }
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] {
   override def value: Audio = this
+  override def isEmpty: Boolean = false
 }
 case class Copyright(license: String,
                      origin: Option[String],
@@ -65,6 +70,7 @@ case class Copyright(license: String,
 case class Author(`type`: String, name: String)
 case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
   override def value: Seq[String] = tags
+  override def isEmpty: Boolean = tags.isEmpty
 }
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {

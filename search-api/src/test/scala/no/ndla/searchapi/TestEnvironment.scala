@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
 import no.ndla.searchapi.integration._
@@ -34,6 +34,7 @@ trait TestEnvironment
     with ImageApiClient
     with TaxonomyApiClient
     with IndexService
+    with BaseIndexService
     with LazyLogging
     with LearningPathApiClient
     with NdlaClient

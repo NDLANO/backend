@@ -8,13 +8,17 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.searchapi.SearchApiProperties.SearchIndexes
 import no.ndla.searchapi.model.search.SearchType
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
-  override val draftIndexService = new DraftIndexService
-  override val learningPathIndexService = new LearningPathIndexService
+  override val draftIndexService: DraftIndexService = new DraftIndexService {
+    override val indexShards = 1
+  }
+  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+    override val indexShards = 1
+  }
 
   val service: SearchService = new SearchService {
     override val searchIndex = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
@@ -26,8 +30,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val res1 = service.buildTermsAggregation(Seq("draftStatus.current"))
     res1 should be(
       Seq(
-        termsAggregation("draftStatus.current")
-          .field("draftStatus.current")
+        termsAgg("draftStatus.current", "draftStatus.current")
           .size(50)
       ))
   }
@@ -37,7 +40,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     res1 should be(
       Seq(
         nestedAggregation("contexts", "contexts").subAggregations(
-          termsAggregation("contextType").field("contexts.contextType").size(50)
+          termsAgg("contextType", "contexts.contextType").size(50)
         )))
   }
 
@@ -49,7 +52,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
           .subAggregations(
             nestedAggregation("resourceTypes", "contexts.resourceTypes")
               .subAggregations(
-                termsAggregation("id").field("contexts.resourceTypes.id").size(50)
+                termsAgg("id", "contexts.resourceTypes.id").size(50)
               )
           )
       )
@@ -65,9 +68,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
           .subAggregations(
             nestedAggregation("resourceTypes", "contexts.resourceTypes")
               .subAggregations(
-                termsAggregation("id").field("contexts.resourceTypes.id").size(50)
+                termsAgg("id", "contexts.resourceTypes.id").size(50)
               ),
-            termsAggregation("contextType").field("contexts.contextType").size(50),
+            termsAgg("contextType", "contexts.contextType").size(50),
           )
       ))
   }
@@ -78,15 +81,15 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     )
     res1 should be(
       Seq(
-        termsAggregation("draftStatus.current").field("draftStatus.current").size(50),
-        termsAggregation("draftStatus.other").field("draftStatus.other").size(50),
+        termsAgg("draftStatus.current", "draftStatus.current").size(50),
+        termsAgg("draftStatus.other", "draftStatus.other").size(50),
         nestedAggregation("contexts", "contexts")
           .subAggregations(
             nestedAggregation("resourceTypes", "contexts.resourceTypes")
               .subAggregations(
-                termsAggregation("id").field("contexts.resourceTypes.id").size(50)
+                termsAgg("id", "contexts.resourceTypes.id").size(50)
               ),
-            termsAggregation("contextType").field("contexts.contextType").size(50),
+            termsAgg("contextType", "contexts.contextType").size(50),
           )
       ))
   }

@@ -9,30 +9,29 @@
 package no.ndla.audioapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.analyzers.StandardAnalyzer
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.model.Language._
+import no.ndla.audioapi.AudioApiProperties.ElasticSearchIndexMaxResultWindow
 import no.ndla.audioapi.model.domain.ReindexResult
-import no.ndla.audioapi.model.search.SearchableLanguageFormats
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.model.SearchableLanguageFormats
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.json4s.Formats
-
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with SearchConverterService with AudioRepository =>
+  this: Elastic4sClient with BaseIndexService with SearchConverterService with AudioRepository =>
 
-  trait IndexService[D, T] extends LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ org.json4s.ext.JodaTimeSerializers.all
+  trait IndexService[D, T] extends BaseIndexService with LazyLogging {
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     val documentType: String
     val searchIndex: String
@@ -40,11 +39,6 @@ trait IndexService {
 
     def getMapping: MappingDefinition
     def createIndexRequests(domainModel: D, indexName: String): Try[Seq[IndexRequest]]
-
-    private def createIndexIfNotExists() = getAliasTarget.map {
-      case Some(index) => Success(index)
-      case None        => createIndexWithGeneratedName.flatMap(newIndex => updateAliasTarget(None, newIndex))
-    }
 
     def indexDocument(imported: D): Try[D] = {
       for {
@@ -62,7 +56,6 @@ trait IndexService {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
             _ <- updateAliasTarget(aliasTarget, indexName)
-            _ <- deleteIndexWithName(aliasTarget)
           } yield numIndexed
 
           operations match {
@@ -123,37 +116,6 @@ trait IndexService {
       }
     }
 
-    def deleteDocument(contentId: Long): Try[Long] = {
-      for {
-        _ <- createIndexIfNotExists()
-        _ <- {
-          e4sClient.execute(
-            delete(s"$contentId").from(searchIndex / documentType)
-          )
-        }
-      } yield contentId
-    }
-
-    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
-
-    def createIndexWithName(indexName: String): Try[String] = {
-      if (indexWithNameExists(indexName).getOrElse(false)) {
-        Success(indexName)
-      } else {
-        val response = e4sClient.execute {
-          createIndex(indexName)
-            .mappings(getMapping)
-            .indexSetting("max_result_window", AudioApiProperties.ElasticSearchIndexMaxResultWindow)
-        }
-
-        response match {
-          case Success(_)  => Success(indexName)
-          case Failure(ex) => Failure(ex)
-        }
-
-      }
-    }
-
     def findAllIndexes(indexName: String): Try[Seq[String]] = {
       val response = e4sClient.execute {
         getAliases()
@@ -164,60 +126,6 @@ trait IndexService {
           Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
         case Failure(ex) =>
           Failure(ex)
-      }
-    }
-
-    def getAliasTarget: Try[Option[String]] = {
-      val response = e4sClient.execute {
-        getAliases(Nil, List(searchIndex))
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.headOption.map(t => t._1.name))
-        case Failure(ex) => Failure(ex)
-      }
-    }
-
-    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
-      if (!indexWithNameExists(newIndexName).getOrElse(false)) {
-        Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
-      } else {
-        oldIndexName match {
-          case None => e4sClient.execute(addAlias(searchIndex).on(newIndexName))
-          case Some(oldIndex) =>
-            e4sClient.execute {
-              removeAlias(searchIndex).on(oldIndex)
-              addAlias(searchIndex).on(newIndexName)
-            }
-        }
-      }
-    }
-
-    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
-      optIndexName match {
-        case None => Success(optIndexName)
-        case Some(indexName) =>
-          if (!indexWithNameExists(indexName).getOrElse(false)) {
-            Failure(new IllegalArgumentException(s"No such index: $indexName"))
-          } else {
-            e4sClient.execute {
-              deleteIndex(indexName)
-            }
-          }
-      }
-
-    }
-
-    def indexWithNameExists(indexName: String): Try[Boolean] = {
-      val response = e4sClient.execute {
-        indexExists(indexName)
-      }
-
-      response match {
-        case Success(resp) if resp.status != 404 => Success(true)
-        case Success(_)                          => Success(false)
-        case Failure(ex)                         => Failure(ex)
       }
     }
 
@@ -236,8 +144,6 @@ trait IndexService {
       }
     }
 
-    def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
-
     /**
       * @deprecated Returns Sequence of FieldDefinitions for a given field.
       *
@@ -246,8 +152,7 @@ trait IndexService {
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String,
-                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       if (keepRaw) {
         languageAnalyzers.map(
           langAnalyzer =>
@@ -270,7 +175,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val fields = new ListBuffer[FieldDefinition]()
+      val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw")
       }
@@ -287,7 +192,7 @@ trait IndexService {
       )
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer(StandardAnalyzer).fields(fields.toList),
+        mapping = textField(fieldName).analyzer(SearchLanguage.standardAnalyzer).fields(fields.toList),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

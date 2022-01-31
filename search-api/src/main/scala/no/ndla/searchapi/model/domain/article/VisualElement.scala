@@ -7,6 +7,6 @@
 
 package no.ndla.searchapi.model.domain.article
 
-import no.ndla.searchapi.model.domain.LanguageField
+import no.ndla.language.model.WithLanguage
 
-case class VisualElement(resource: String, language: String) extends LanguageField
+case class VisualElement(resource: String, language: String) extends WithLanguage

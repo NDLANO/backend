@@ -7,14 +7,15 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.domain.Article
-import no.ndla.draftapi.model.search.{SearchableArticle, SearchableLanguageFormats}
+import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
@@ -30,7 +31,7 @@ trait ArticleIndexService {
 
     override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {
       val source = write(searchConverterService.asSearchableArticle(domainModel))
-      Seq(indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString))
+      Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }
 
     def getMapping: MappingDefinition = {
@@ -52,7 +53,7 @@ trait ArticleIndexService {
         generateLanguageSupportedDynamicTemplates("introduction") ++
         generateLanguageSupportedDynamicTemplates("tags")
 
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
   }
 

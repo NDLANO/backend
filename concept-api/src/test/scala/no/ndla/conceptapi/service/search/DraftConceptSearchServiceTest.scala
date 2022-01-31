@@ -12,6 +12,7 @@ import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.DraftSearchSettings
+import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
@@ -29,7 +30,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   }
 
   override val draftConceptSearchService = new DraftConceptSearchService
-  override val draftConceptIndexService = new DraftConceptIndexService
+  override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -287,17 +290,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits = results.results
     results.totalCount should be(10)
-    hits.head.id should be(10)
-    hits(1).id should be(5)
-    hits(2).id should be(8)
-    hits(3).id should be(9)
-    hits(4).id should be(2)
-    hits(5).id should be(4)
-    hits(6).id should be(6)
-    hits(7).id should be(1)
-    hits(8).id should be(7)
-    hits.last.id should be(3)
-
+    hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -336,9 +329,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val hits = results.results
 
     results.totalCount should be(3)
-    hits.head.id should be(5)
-    hits(1).id should be(1)
-    hits.last.id should be(3)
+    hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search matches title") {

@@ -17,7 +17,7 @@ trait LanguageValidator {
   class LanguageValidator {
     private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
       val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage)
-                                                                            Seq("unknown")
+                                                                            Seq("unknown", "und")
                                                                           else
                                                                             Seq.empty)
       languageCodes.contains(languageCode)

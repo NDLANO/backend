@@ -14,9 +14,6 @@ object searchapi extends Module {
       scalaTsi,
       scalaUri,
       jodaTime,
-      elasticsearch,
-      elastic4sCore,
-      elastic4sHttp,
       "org.jsoup" % "jsoup" % "1.11.3",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
@@ -29,7 +26,7 @@ object searchapi extends Module {
       "org.scalatest" %% "scalatest" % ScalaTestV % "test",
       "org.mockito" %% "mockito-scala" % MockitoV % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
-    ) ++ scalatra ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides)
+    ) ++ elastic4s ++ scalatra ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides)
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.searchapi.model.api._"),

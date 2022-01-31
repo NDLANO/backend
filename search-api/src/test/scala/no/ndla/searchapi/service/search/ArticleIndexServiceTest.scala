@@ -7,11 +7,12 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.model.search.{SearchableArticle, SearchableLanguageFormats}
+import no.ndla.searchapi.model.search.SearchableArticle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization.read
 import org.scalatest.Outcome
@@ -38,10 +39,13 @@ class ArticleIndexServiceTest
     super.withFixture(test)
   }
 
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
+
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats = SearchableLanguageFormats.JSonFormats
+  implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
     articleIndexService.cleanupIndexes()

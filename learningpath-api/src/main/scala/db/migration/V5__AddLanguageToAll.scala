@@ -7,6 +7,7 @@
 
 package db.migration
 
+import no.ndla.language.Language
 import no.ndla.learningpathapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer.ignore

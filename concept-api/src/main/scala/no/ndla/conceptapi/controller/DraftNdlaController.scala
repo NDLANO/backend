@@ -17,9 +17,9 @@ import no.ndla.conceptapi.model.api.{
   TagsSearchResult,
   UpdatedConcept
 }
-import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.conceptapi.service.search.DraftConceptSearchService
+import no.ndla.language.Language.AllLanguages
 import org.scalatra.{Created, Ok}
 
 import scala.util.{Failure, Success}
@@ -57,7 +57,7 @@ trait DraftNdlaController {
         case tooSmall if tooSmall < 1 => 1
         case x                        => x
       }
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       readService.getAllTags(query, pageSize, pageNo, language)
     }

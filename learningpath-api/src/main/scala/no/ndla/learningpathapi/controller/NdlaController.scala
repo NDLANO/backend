@@ -16,8 +16,7 @@ import no.ndla.learningpathapi.model.api.{Error, ImportReport, ValidationError, 
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
-import no.ndla.search.NdlaSearchException
-import org.elasticsearch.index.IndexNotFoundException
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -73,8 +72,8 @@ abstract class NdlaController
       InternalServerError(Error.DatabaseUnavailableError)
     case mse: InvalidStatusException =>
       BadRequest(Error(Error.MISSING_STATUS, mse.getMessage))
-    case nse: NdlaSearchException
-        if nse.rf.error.rootCause.exists(x =>
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause.exists(x =>
           x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>

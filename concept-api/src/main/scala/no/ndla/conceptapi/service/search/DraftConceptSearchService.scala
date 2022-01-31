@@ -8,15 +8,16 @@
 package no.ndla.conceptapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.BoolQuery
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
-import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult}
+import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
+import no.ndla.language.Language.AllLanguages
 import no.ndla.search.Elastic4sClient
 
 import java.util.concurrent.Executors
@@ -72,7 +73,7 @@ trait DraftConceptSearchService {
 
           searchConverterService
             .groupSubjectTagsByLanguage(subjectId, tagsInSubject)
-            .filter(tags => tags.language == language || language == Language.AllLanguages || fallback)
+            .filter(tags => tags.language == language || language == AllLanguages || fallback)
         })
       }
 
@@ -99,7 +100,7 @@ trait DraftConceptSearchService {
 
     def matchingQuery(query: String, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val language =
-        if (settings.searchLanguage == Language.AllLanguages || settings.fallback) "*" else settings.searchLanguage
+        if (settings.searchLanguage == AllLanguages || settings.fallback) "*" else settings.searchLanguage
 
       val fullQuery = boolQuery()
         .must(
@@ -127,9 +128,9 @@ trait DraftConceptSearchService {
       val userFilter = orFilter(settings.userFilter, "updatedBy")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
-        case "" | Language.AllLanguages => (None, "*")
-        case _ if settings.fallback     => (None, "*")
-        case lang                       => (Some(existsQuery(s"title.$lang")), lang)
+        case "" | AllLanguages      => (None, "*")
+        case _ if settings.fallback => (None, "*")
+        case lang                   => (Some(existsQuery(s"title.$lang")), lang)
       }
 
       val embedResourceAndIdFilter =

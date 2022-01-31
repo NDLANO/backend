@@ -7,15 +7,15 @@
 
 package no.ndla.conceptapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
-import no.ndla.conceptapi.model.search.SearchableLanguageFormats
 import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
@@ -36,7 +36,7 @@ trait PublishedConceptIndexService {
         case Some(id) =>
           val source = write(searchConverterService.asSearchableConcept(concept))
           Success(
-            indexInto(indexName / documentType).doc(source).id(id.toString)
+            indexInto(indexName).doc(source).id(id.toString)
           )
 
         case _ => Failure(ConceptMissingIdException("Attempted to create index request for concept without an id."))
@@ -64,7 +64,7 @@ trait PublishedConceptIndexService {
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("content") ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true)
-      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
+      properties(fields).dynamicTemplates(dynamics)
     }
 
   }

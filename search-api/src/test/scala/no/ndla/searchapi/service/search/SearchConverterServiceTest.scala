@@ -7,16 +7,12 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.domain.article.{Article, ArticleContent}
 import no.ndla.searchapi.model.domain.{Tag, Title}
 import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
-import no.ndla.searchapi.model.search.{
-  SearchableArticle,
-  SearchableGrepContext,
-  SearchableLanguageList,
-  SearchableLanguageValues
-}
+import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.invocation.InvocationOnMock

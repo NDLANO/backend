@@ -27,12 +27,13 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
     extends Elastic4sClient
     with IndexService
+    with BaseIndexService
     with TagIndexService
     with ImageIndexService
     with SearchService

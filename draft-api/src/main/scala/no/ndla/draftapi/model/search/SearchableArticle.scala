@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.model.search
 
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime
 
 case class SearchableArticle(

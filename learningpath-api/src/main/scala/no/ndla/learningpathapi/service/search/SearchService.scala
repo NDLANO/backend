@@ -9,12 +9,14 @@
 package no.ndla.learningpathapi.service.search
 
 import java.util.concurrent.Executors
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, NestedQuery, Query}
-import com.sksamuel.elastic4s.searches.sort.SortOrder
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.RequestFailure
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
+import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.LearningpathApiProperties.{
@@ -24,10 +26,9 @@ import no.ndla.learningpathapi.LearningpathApiProperties.{
 }
 import no.ndla.learningpathapi.model.api.{Copyright, Error, LearningPathSummaryV2, License}
 import no.ndla.learningpathapi.model.domain.{Sort, _}
-import no.ndla.learningpathapi.model.search.{SearchableLanguageFormats, SearchableLearningPath}
-import no.ndla.search.{Elastic4sClient, NdlaSearchException}
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
+import no.ndla.learningpathapi.model.search.SearchableLearningPath
+import no.ndla.search.model.SearchableLanguageFormats
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization._
 
@@ -65,7 +66,7 @@ trait SearchService extends LazyLogging {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
+              case AllLanguages =>
                 searchConverterService
                   .getLanguageFromHit(result)
                   .getOrElse(language)
@@ -89,7 +90,7 @@ trait SearchService extends LazyLogging {
         withIdIn = List.empty,
         withPaths = paths,
         taggedWith = None,
-        language = Some(Language.AllLanguages),
+        language = Some(AllLanguages),
         sort = Sort.ByTitleAsc,
         page = None,
         pageSize = None,
@@ -112,7 +113,7 @@ trait SearchService extends LazyLogging {
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case Some(lang) if Iso639.get(lang).isSuccess => lang
-        case _                                        => Language.AllLanguages
+        case _                                        => AllLanguages
       }
 
       val fullQuery = settings.query match {
@@ -131,8 +132,8 @@ trait SearchService extends LazyLogging {
                 .should(
                   titleSearch,
                   descSearch,
-                  nestedQuery("learningsteps").query(stepTitleSearch),
-                  nestedQuery("learningsteps").query(stepDescSearch),
+                  nestedQuery("learningsteps", stepTitleSearch),
+                  nestedQuery("learningsteps", stepDescSearch),
                   tagSearch,
                   authorSearch
                 )
@@ -250,14 +251,14 @@ trait SearchService extends LazyLogging {
 
     private def getSortDefinition(sort: Sort.Value, language: String) = {
       val sortLanguage = language match {
-        case Language.NoLanguage => DefaultLanguage
-        case _                   => language
+        case NoLanguage => DefaultLanguage
+        case _          => language
       }
 
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case Language.AllLanguages =>
+            case AllLanguages =>
               fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
             case _ =>
               fieldSort(s"titles.$sortLanguage.raw")
@@ -267,7 +268,7 @@ trait SearchService extends LazyLogging {
           }
         case Sort.ByTitleDesc =>
           language match {
-            case Language.AllLanguages =>
+            case AllLanguages =>
               fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
             case _ =>
               fieldSort(s"titles.$sortLanguage.raw")
@@ -310,20 +311,17 @@ trait SearchService extends LazyLogging {
 
     private def errorHandler[T](exception: Throwable): Failure[T] = {
       exception match {
+        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
+          logger.error(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex.")
+          scheduleIndexDocuments()
+          Failure(
+            IndexNotFoundException(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex"))
         case e: NdlaSearchException =>
-          e.rf.status match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              Failure(
-                new IndexNotFoundException(
-                  s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex"))
-            case _ =>
-              logger.error(e.getMessage)
-              Failure(
-                new ElasticsearchException(s"Unable to execute search in ${LearningpathApiProperties.SearchIndex}",
-                                           e.getMessage))
-          }
+          logger.error(e.getMessage)
+          Failure(
+            NdlaSearchException(
+              s"Unable to execute search in ${LearningpathApiProperties.SearchIndex}: ${e.getMessage}",
+              e))
         case t => Failure(t)
       }
     }
