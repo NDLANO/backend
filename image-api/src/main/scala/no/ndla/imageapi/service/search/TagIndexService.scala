@@ -7,14 +7,15 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.model.domain.ImageMetaInformation
-import no.ndla.imageapi.model.search.{SearchableImage, SearchableLanguageFormats, SearchableTag}
+import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
 
 trait TagIndexService {
@@ -32,12 +33,12 @@ trait TagIndexService {
 
       tags.map(t => {
         val source = write(t)
-        indexInto(indexName / documentType).doc(source).id(s"${t.language}.${t.tag}")
+        indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
       })
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
+      properties(
         List(
           textField("tag").fields(keywordField("raw")),
           keywordField("language")

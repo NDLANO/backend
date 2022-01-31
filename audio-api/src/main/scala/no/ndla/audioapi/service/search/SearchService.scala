@@ -8,18 +8,18 @@
 package no.ndla.audioapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.queries.Query
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.RequestFailure
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
+import com.sksamuel.elastic4s.requests.searches.queries.Query
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.audioapi.model.domain.SearchResult
-import no.ndla.audioapi.model.{Language, Sort}
+import no.ndla.audioapi.model.Sort
+import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, NdlaSearchException}
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -68,7 +68,7 @@ trait SearchService {
 
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
+              case AllLanguages =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -148,16 +148,13 @@ trait SearchService {
 
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
+        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
+          logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
+          scheduleIndexDocuments()
+          Failure(IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
         case e: NdlaSearchException =>
-          e.rf.status match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
-            case _ =>
-              logger.error(e.getMessage)
-              Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
-          }
+          logger.error(e.getMessage)
+          Failure(NdlaSearchException(s"Unable to execute search in $searchIndex", e))
         case t: Throwable => Failure(t)
       }
     }

@@ -12,14 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.articleapi.caching.MemoizeAutoRenew
-import no.ndla.articleapi.integration.{FeideApiClient, FeideExtendedUserInfo}
+import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{AccessDeniedException, ArticleSummaryV2, NotFoundException}
-import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
+import no.ndla.language.Language.languageOrUnknown
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}

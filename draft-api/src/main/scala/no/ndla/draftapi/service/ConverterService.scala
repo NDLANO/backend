@@ -16,10 +16,10 @@ import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewAgreement, NotFoundException, RelatedContentLink}
 import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain.Language._
 import no.ndla.draftapi.model.domain.{ArticleStatus, _}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
+import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 import org.joda.time.DateTime
@@ -267,7 +267,7 @@ trait ConverterService {
       StateTransitionRules.doTransition(article, status, user, isImported)
 
     def toApiArticle(article: domain.Article, language: String, fallback: Boolean = false): Try[api.Article] = {
-      val isLanguageNeutral = article.supportedLanguages.contains(UnknownLanguage) && article.supportedLanguages.length == 1
+      val isLanguageNeutral = article.supportedLanguages.contains(UnknownLanguage.toString) && article.supportedLanguages.length == 1
 
       if (article.supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val metaDescription =
@@ -687,11 +687,6 @@ trait ConverterService {
                 relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty)
             ))
       }
-    }
-
-    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.isEmpty)
     }
 
     private[service] def _stateTransitionsToApi(user: UserInfo, article: Option[Article]): Map[String, Seq[String]] = {

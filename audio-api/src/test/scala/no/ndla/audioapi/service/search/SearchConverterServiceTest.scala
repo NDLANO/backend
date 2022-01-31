@@ -11,7 +11,8 @@ package no.ndla.audioapi.service.search
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
-import no.ndla.audioapi.model.search.{SearchableAudioInformation, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.audioapi.model.search.SearchableAudioInformation
+import no.ndla.search.model.{SearchableLanguageValues, SearchableLanguageList}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 
@@ -134,11 +135,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String): String = {
-    languageValues.languageValues.find(_.lang == lang).get.value
+    languageValues.languageValues.find(_.language == lang).get.value
   }
 
   private def languageListWithLang(languageList: SearchableLanguageList, lang: String): Seq[String] = {
-    languageList.languageValues.find(_.lang == lang).get.value
+    languageList.languageValues.find(_.language == lang).get.value
   }
 
   private def titleForLang(titles: Seq[Title], lang: String): String = {

@@ -8,10 +8,13 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.language.Language.getSupportedLanguages
+
 import java.util.Date
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.validation.DurationValidator
+import no.ndla.search.SearchLanguage
 import org.json4s.{DefaultFormats, FieldSerializer}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer
@@ -36,6 +39,16 @@ case class LearningPath(id: Option[Long],
                         copyright: Copyright,
                         learningsteps: Option[Seq[LearningStep]] = None,
                         message: Option[Message] = None) {
+
+  def supportedLanguages: Seq[String] = {
+    val stepLanguages = learningsteps.getOrElse(Seq.empty).flatMap(_.supportedLanguages)
+
+    (getSupportedLanguages(
+      title,
+      description,
+      tags
+    ) ++ stepLanguages).distinct
+  }
 
   def isPrivate: Boolean = {
     status == LearningPathStatus.PRIVATE

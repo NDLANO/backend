@@ -7,9 +7,9 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.BoolQuery
-import com.sksamuel.elastic4s.searches.sort.SortOrder
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
+import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{
   AudioTagSearchIndex,

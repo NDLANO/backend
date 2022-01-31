@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.SearchApiProperties._
@@ -33,6 +33,7 @@ object ComponentRegistry
     with TaxonomyApiClient
     with ImageApiClient
     with IndexService
+    with BaseIndexService
     with LazyLogging
     with LearningPathApiClient
     with NdlaClient

@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.imageapi.model.Language
+import no.ndla.language.Language
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore

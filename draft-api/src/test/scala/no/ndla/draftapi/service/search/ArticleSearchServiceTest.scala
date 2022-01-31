@@ -11,6 +11,7 @@ import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, DefaultPageSize}
 import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
+import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime
@@ -30,7 +31,9 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   }
 
   override val articleSearchService = new ArticleSearchService
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -324,15 +327,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       ))
     val hits = results.results
     results.totalCount should be(9)
-    hits.head.id should be(5)
-    hits(1).id should be(6)
-    hits(2).id should be(7)
-    hits(3).id should be(8)
-    hits(4).id should be(9)
-    hits(5).id should be(11)
-    hits(6).id should be(1)
-    hits(7).id should be(2)
-    hits.last.id should be(3)
+    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
@@ -343,14 +338,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       ))
     val hits = results.results
     results.totalCount should be(8)
-    hits.head.id should be(8)
-    hits(1).id should be(9)
-    hits(2).id should be(3)
-    hits(3).id should be(5)
-    hits(4).id should be(11)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
-    hits.last.id should be(7)
+    hits.map(_.id) should be(Seq(8, 9, 3, 5, 11, 6, 2, 7))
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -421,9 +409,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
 
     val hits = results.results
     results.totalCount should be(3)
-    hits.head.id should be(5)
-    hits(1).id should be(1)
-    hits.last.id should be(3)
+    hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {

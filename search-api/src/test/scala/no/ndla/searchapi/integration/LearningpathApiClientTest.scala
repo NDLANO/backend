@@ -12,10 +12,10 @@ import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{DomainDumpResults, Language, Tag, Title}
-import no.ndla.searchapi.model.search.LanguageValue
+import no.ndla.searchapi.model.domain.DomainDumpResults
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.SearchApiProperties.DefaultLanguage
 import org.joda.time.DateTime
 import org.json4s.Formats

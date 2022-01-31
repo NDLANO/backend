@@ -23,10 +23,11 @@ import no.ndla.imageapi.model.api.{
   ValidationError
 }
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
-import no.ndla.imageapi.model.{Language, ValidationException}
+import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService, SearchService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType

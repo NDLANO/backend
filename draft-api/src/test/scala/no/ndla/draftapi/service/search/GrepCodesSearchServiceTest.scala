@@ -26,7 +26,9 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   }
 
   override val grepCodesSearchService = new GrepCodesSearchService
-  override val grepCodesIndexService = new GrepCodesIndexService
+  override val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
+    override val indexShards: Int = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -79,7 +81,7 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     val Success(result) = grepCodesSearchService.matchingQuery("KE", 1, 100)
 
     result.totalCount should be(3)
-    result.results should be(Seq("KE101", "KE105", "KE115"))
+    result.results should be(Seq("KE101", "KE115", "KE105"))
 
     val Success(result2) = grepCodesSearchService.matchingQuery("KE115", 1, 100)
 
@@ -91,7 +93,7 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     val Success(result) = grepCodesSearchService.matchingQuery("ke", 1, 100)
 
     result.totalCount should be(3)
-    result.results should be(Seq("KE101", "KE105", "KE115"))
+    result.results should be(Seq("KE101", "KE115", "KE105"))
 
     val Success(result2) = grepCodesSearchService.matchingQuery("ke115", 1, 100)
 

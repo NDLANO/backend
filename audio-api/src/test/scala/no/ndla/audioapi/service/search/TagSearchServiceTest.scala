@@ -27,7 +27,9 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   }
 
   override val tagSearchService = new TagSearchService
-  override val tagIndexService = new TagIndexService
+  override val tagIndexService: TagIndexService = new TagIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 

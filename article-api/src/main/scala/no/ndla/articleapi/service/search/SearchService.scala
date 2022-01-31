@@ -9,18 +9,18 @@
 package no.ndla.articleapi.service.search
 
 import java.lang.Math.max
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.RequestFailure
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.search.{Elastic4sClient, NdlaSearchException}
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
+import no.ndla.language.Language.{AllLanguages, NoLanguage}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -63,7 +63,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
+              case AllLanguages =>
                 converterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -76,20 +76,20 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case domain.Language.NoLanguage => DefaultLanguage
-        case _                          => language
+        case NoLanguage => DefaultLanguage
+        case _          => language
       }
 
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+            case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
@@ -122,16 +122,13 @@ trait SearchService {
 
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
+        case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
+          logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
+          scheduleIndexDocuments()
+          Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
         case e: NdlaSearchException =>
-          e.rf.status match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
-            case _ =>
-              logger.error(e.getMessage)
-              Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
-          }
+          logger.error(e.getMessage)
+          Failure(NdlaSearchException(s"Unable to execute search in $searchIndex", e))
         case t: Throwable => Failure(t)
       }
     }

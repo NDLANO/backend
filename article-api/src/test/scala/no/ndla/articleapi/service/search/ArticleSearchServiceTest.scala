@@ -13,6 +13,7 @@ import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
+import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
@@ -35,7 +36,9 @@ class ArticleSearchServiceTest
   }
 
   override val articleSearchService = new ArticleSearchService
-  override val articleIndexService = new ArticleIndexService
+  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    override val indexShards = 1
+  }
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -301,14 +304,14 @@ class ArticleSearchServiceTest
     val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits = results.get.results
     results.get.totalCount should be(10)
-    hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 13, 11, 7, 6, 5))
+    hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 11, 13, 7, 6, 5))
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
     val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
     val hits = results.results
     results.totalCount should be(10)
-    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 13, 11, 1, 2, 3))
+    hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 13, 1, 2, 3))
   }
 
   test("That all filtering on license only returns documents with given license") {
@@ -364,9 +367,7 @@ class ArticleSearchServiceTest
       articleSearchService.matchingQuery(testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(3)
-    hits.head.id should be(5)
-    hits(1).id should be(1)
-    hits.last.id should be(3)
+    hits.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {

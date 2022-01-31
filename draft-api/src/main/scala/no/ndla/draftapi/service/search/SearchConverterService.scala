@@ -7,16 +7,18 @@
 
 package no.ndla.draftapi.service.search
 
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
-import no.ndla.draftapi.model.domain.Language._
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.search._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.service.ConverterService
+import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
+import no.ndla.search.SearchLanguage
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.JsonMethods._
@@ -34,7 +36,7 @@ trait SearchConverterService {
 
       val defaultTitle = ai.title
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString).reverse
+          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
@@ -77,7 +79,7 @@ trait SearchConverterService {
       val notes = searchableArticle.notes
       val users = searchableArticle.users
 
-      val supportedLanguages = getSupportedLanguages(Seq(titles, visualElements, introductions))
+      val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiArticleTitle)

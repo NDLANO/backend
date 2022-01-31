@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import javax.servlet.http.HttpServletRequest
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.search.NdlaSearchException
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.SearchApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.searchapi.integration.FeideApiClient
 import no.ndla.searchapi.model.api.{
@@ -29,7 +29,6 @@ import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.read
@@ -94,8 +93,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case _: InvalidIndexBodyException      => BadRequest(body = Error.InvalidBody)
     case te: TaxonomyException             => InternalServerError(body = Error(Error.TAXONOMY_FAILURE, te.getMessage))
     case ade: AccessDeniedException        => Forbidden(Error(Error.ACCESS_DENIED, ade.getMessage))
-    case nse: NdlaSearchException
-        if nse.rf.error.rootCause.exists(x =>
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause.exists(x =>
           x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>

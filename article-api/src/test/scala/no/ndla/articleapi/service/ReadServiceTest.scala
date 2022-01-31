@@ -17,7 +17,6 @@ import no.ndla.articleapi.model.domain.{
   ArticleTag,
   ArticleType,
   Cachable,
-  Language,
   SearchSettings,
   Sort,
   VisualElement

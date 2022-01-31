@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.{Author, Copyright, License}
 import no.ndla.searchapi.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -17,7 +18,7 @@ import org.json4s.native.Serialization.{read, write}
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableLearningPath to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))

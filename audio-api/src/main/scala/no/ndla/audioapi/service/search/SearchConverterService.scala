@@ -9,15 +9,17 @@
 package no.ndla.audioapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.http.search.SearchHit
+import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
-import no.ndla.audioapi.model.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.audioapi.model.api.Title
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search._
-import no.ndla.audioapi.model.{Language, api, domain}
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
+import no.ndla.search.SearchLanguage
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 import scala.util.Try
 
@@ -57,16 +59,16 @@ trait SearchConverterService {
           })
       })
 
-      val title = findByLanguageOrBestEffort(titles, Some(language)) match {
+      val title = findByLanguageOrBestEffort(titles, language) match {
         case None    => Title("", language)
         case Some(x) => Title(x.title, x.language)
       }
 
-      val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, Some(language))
+      val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, language)
         .map(converterService.toApiPodcastMeta)
 
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
-      val manuscript = findByLanguageOrBestEffort(manuscripts, Some(language)).map(converterService.toApiManuscript)
+      val manuscript = findByLanguageOrBestEffort(manuscripts, language).map(converterService.toApiManuscript)
 
       val tags = searchable.tags.languageValues.map(lv => domain.Tag(lv.value, lv.language))
       val filePaths = searchable.filePaths.map(lv => domain.Title(lv.filePath, lv.language)) // Hacky but functional
@@ -123,7 +125,7 @@ trait SearchConverterService {
 
       val defaultTitle = metaWithAgreement.titles
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse
+          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
@@ -171,7 +173,7 @@ trait SearchConverterService {
 
         keyLanguages
           .sortBy(lang => {
-            Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
+            SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
           })
           .lastOption
       }

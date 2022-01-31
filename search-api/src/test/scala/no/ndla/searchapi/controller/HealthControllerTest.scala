@@ -8,8 +8,8 @@
 
 package no.ndla.searchapi.controller
 
-import com.sksamuel.elastic4s.cluster.ClusterHealthRequest
-import com.sksamuel.elastic4s.http.{Handler, RequestSuccess}
+import com.sksamuel.elastic4s.{Handler, RequestSuccess}
+import com.sksamuel.elastic4s.requests.cluster.ClusterHealthRequest
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.ArgumentMatchers._

@@ -8,15 +8,15 @@ object Dependencies {
     val ScalatraV = "2.8.2"
     val HikariConnectionPoolV = "4.0.1"
     val ScalaLoggingV = "3.9.4"
-    val ScalaTestV = "3.2.1"
+    val ScalaTestV = "3.2.10"
     val Log4JV = "2.17.1"
     val JettyV = "9.4.35.v20201120"
     val AwsSdkV = "1.11.658"
-    val MockitoV = "1.14.8"
-    val Elastic4sV = "6.7.8"
-    val JacksonV = "2.12.1"
+    val MockitoV = "1.16.49"
+    val Elastic4sV = "7.16.3"
+    val JacksonV = "2.13.1"
     val CatsEffectV = "2.1.2"
-    val ElasticsearchV = "6.8.13"
+    val ElasticsearchV = "7.16.2"
     val Json4SV = "4.0.3"
     val FlywayV = "7.5.3"
     val PostgresV = "42.2.18"
@@ -56,25 +56,25 @@ object Dependencies {
       "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
     )
 
-    lazy val elastic4sCore = "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sV
-    lazy val elastic4sHttp = "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sV
-    lazy val elastic4sAWS = "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sV
-    lazy val elastic4sEmbedded = "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sV
-    lazy val elasticsearch = "org.elasticsearch" % "elasticsearch" % ElasticsearchV
+    lazy val elastic4s = Seq(
+      "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % Elastic4sV,
+      "com.sksamuel.elastic4s" %% "elastic4s-testkit" % Elastic4sV % "test"
+    )
 
     lazy val logging = Seq(
       "org.apache.logging.log4j" % "log4j-api" % Log4JV,
       "org.apache.logging.log4j" % "log4j-core" % Log4JV,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JV,
+      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV,
       "org.slf4j" % "slf4j-api" % "1.7.32",
-      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingV
+      // We need jackson stuff to load `log4j2.yaml`
+      "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
+      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonV,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % JacksonV
     )
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
-      "com.fasterxml.jackson.core" % "jackson-core" % JacksonV,
-      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonV,
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonV,
       "com.google.guava" % "guava" % "30.0-jre",
       "commons-codec" % "commons-codec" % "1.14",
       "org.apache.httpcomponents" % "httpclient" % "4.5.13",

@@ -17,7 +17,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -38,6 +38,7 @@ trait TestEnvironment
     with SeriesController
     with Elastic4sClient
     with IndexService
+    with BaseIndexService
     with AudioIndexService
     with SeriesIndexService
     with SearchConverterService

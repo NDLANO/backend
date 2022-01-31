@@ -8,51 +8,32 @@
 
 package no.ndla.searchapi.service.search
 
-import com.sksamuel.elastic4s.Indexes
-import com.sksamuel.elastic4s.alias.AliasAction
-import com.sksamuel.elastic4s.analyzers._
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
-import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition, NestedField}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.analysis._
+import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.search.Elastic4sClient
-import no.ndla.searchapi.SearchApiProperties
+import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchApiProperties.ElasticSearchIndexMaxResultWindow
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.searchapi.model.domain.Language.languageAnalyzers
-import no.ndla.searchapi.model.domain.{Content, Language, ReindexResult}
+import no.ndla.searchapi.model.domain.{Content, ReindexResult}
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with SearchApiClient with TaxonomyApiClient with GrepApiClient =>
+  this: Elastic4sClient with SearchApiClient with BaseIndexService with TaxonomyApiClient with GrepApiClient =>
 
-  trait IndexService[D <: Content] extends LazyLogging {
+  trait IndexService[D <: Content] extends BaseIndexService with LazyLogging {
     val apiClient: SearchApiClient
-    val documentType: String
-    val searchIndex: String
-
-    // Setting this to suppress the warning, since it will default to '1' in the new version.
-    // The value '5' was chosen since that is what was the default earlier (which worked fine).
-    // However there are probably more optimal values.
-    val indexShards: Int = 5
-
-    val shingle: ShingleTokenFilter =
-      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
-
-    val trigram: CustomAnalyzerDefinition = CustomAnalyzerDefinition(name = "trigram",
-                                                                     tokenizer = StandardTokenizer,
-                                                                     filters = Seq(LowercaseTokenFilter, shingle))
-
-    def getMapping: MappingDefinition
+    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     def createIndexRequest(domainModel: D,
                            indexName: String,
@@ -82,10 +63,7 @@ trait IndexService {
 
     def indexDocument(imported: D, taxonomyBundle: TaxonomyBundle, grepBundle: Option[GrepBundle]): Try[D] = {
       for {
-        _ <- getAliasTarget.map {
-          case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
-        }
+        _ <- createIndexIfNotExists()
         request <- createIndexRequest(imported, searchIndex, taxonomyBundle, grepBundle)
         _ <- e4sClient.execute {
           request
@@ -120,7 +98,7 @@ trait IndexService {
             if (numErrors > 0) {
               logger.error(s"Indexing completed, but with $numErrors errors.")
               deleteIndexWithName(Some(indexName))
-              Failure(ElasticIndexingException(s"Indexing completed with $numErrors, will not replace index."))
+              Failure(ElasticIndexingException(s"Indexing completed with $numErrors errors, will not replace index."))
             } else {
               val operations = getAliasTarget.flatMap(updateAliasTarget(_, indexName))
               operations.map(
@@ -209,195 +187,35 @@ trait IndexService {
       }
     }
 
-    def deleteDocument(contentId: Long): Try[_] = {
-      for {
-        _ <- getAliasTarget.map {
-          case Some(index) => Success(index)
-          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
-        }
-        deleted <- {
-          e4sClient.execute {
-            delete(s"$contentId").from(searchIndex / documentType)
-          }
-        }
-      } yield deleted
-    }
-
-    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
+    val hyphDecompounderTokenFilter: CompoundWordTokenFilter = CompoundWordTokenFilter(
+      name = "hyphenation_decompounder",
+      `type` = HyphenationDecompounder,
+      wordListPath = Some("compound-words-norwegian-wordlist.txt"),
+      hyphenationPatternsPath = Some("hyph/no.xml"),
+      minSubwordSize = Some(4),
+      onlyLongestMatch = Some(false)
+    )
 
     private val customCompoundAnalyzer =
-      CustomAnalyzerDefinition(
+      CustomAnalyzer(
         "compound_analyzer",
-        WhitespaceTokenizer,
-        CompoundWordTokenFilter(
-          name = "hyphenation_decompounder",
-          `type` = HyphenationDecompounder,
-          wordListPath = Some("compound-words-norwegian-wordlist.txt"),
-          hyphenationPatternsPath = Some("hyph/no.xml"),
-          minSubwordSize = Some(4),
-          onlyLongestMatch = Some(false)
-        )
+        "whitespace",
+        tokenFilters = List(hyphDecompounderTokenFilter.name)
       )
 
-    private val customExactAnalyzer =
-      CustomAnalyzerDefinition(
-        "exact",
-        WhitespaceTokenizer
+    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
+
+    val shingle: ShingleTokenFilter =
+      ShingleTokenFilter(name = "shingle", minShingleSize = Some(2), maxShingleSize = Some(3))
+
+    val trigram: CustomAnalyzer =
+      CustomAnalyzer(name = "trigram", tokenizer = "standard", tokenFilters = List("lowercase", "shingle"))
+
+    override val analysis: Analysis =
+      Analysis(
+        analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, NynorskLanguageAnalyzer),
+        tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
       )
-
-    def createIndexWithName(indexName: String): Try[String] = {
-      if (indexWithNameExists(indexName).getOrElse(false)) {
-        Success(indexName)
-      } else {
-        val response = e4sClient.execute {
-          createIndex(indexName)
-            .shards(indexShards)
-            .includeTypeName(true) // Explicitly set to suppress warnings about upgrade, should probably be removed after upgrade.
-            .mappings(getMapping)
-            .analysis(
-              trigram,
-              Language.nynorskLanguageAnalyzer,
-              customCompoundAnalyzer,
-              customExactAnalyzer
-            )
-            .indexSetting("max_result_window", SearchApiProperties.ElasticSearchIndexMaxResultWindow)
-            .replicas(0)
-        }
-
-        response match {
-          case Success(_)  => Success(indexName)
-          case Failure(ex) => Failure(ex)
-        }
-      }
-    }
-
-    def getAliasTarget: Try[Option[String]] = {
-      val response = e4sClient.execute {
-        getAliases(Nil, List(searchIndex))
-      }
-
-      response match {
-        case Success(results) =>
-          Success(results.result.mappings.headOption.map(t => t._1.name))
-        case Failure(ex) => Failure(ex)
-      }
-    }
-
-    def updateReplicaNumber(indexName: String): Try[_] = {
-      e4sClient.execute {
-        updateSettings(Indexes(indexName), Map("number_of_replicas" -> "1"))
-      }
-    }
-
-    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = synchronized {
-      if (!indexWithNameExists(newIndexName).getOrElse(false)) {
-        Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
-      } else {
-        val actions = oldIndexName match {
-          case None =>
-            List[AliasAction](addAlias(searchIndex).on(newIndexName))
-          case Some(oldIndex) =>
-            List[AliasAction](removeAlias(searchIndex).on(oldIndex), addAlias(searchIndex).on(newIndexName))
-        }
-
-        e4sClient.execute(aliases(actions)) match {
-          case Success(_) =>
-            logger.info("Alias target updated successfully, deleting other indexes.")
-            for {
-              _ <- cleanupIndexes()
-              _ <- updateReplicaNumber(newIndexName)
-            } yield ()
-          case Failure(ex) =>
-            logger.error("Could not update alias target.")
-            Failure(ex)
-        }
-
-      }
-    }
-
-    /**
-      * Deletes every index that is not in use by this indexService.
-      * Only indexes starting with indexName are deleted.
-      *
-      * @param indexName Start of index names that is deleted if not aliased.
-      * @return Name of aliasTarget.
-      */
-    def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
-      e4sClient.execute(getAliases()) match {
-        case Success(s) =>
-          val indexes = s.result.mappings.filter(_._1.name.startsWith(indexName))
-          val unreferencedIndexes = indexes.filter(_._2.isEmpty).map(_._1.name).toList
-          val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
-            case head :: tail =>
-              (head, tail)
-            case _ =>
-              logger.warn("No alias found, when attempting to clean up indexes.")
-              ("", List.empty)
-          }
-
-          val toDelete = unreferencedIndexes ++ aliasIndexesToDelete
-
-          if (toDelete.isEmpty) {
-            logger.info("No indexes to be deleted.")
-            Success(aliasTarget)
-          } else {
-            e4sClient.execute {
-              deleteIndex(toDelete)
-            } match {
-              case Success(_) =>
-                logger.info(s"Successfully deleted unreferenced and redundant indexes.")
-                Success(aliasTarget)
-              case Failure(ex) =>
-                logger.error("Could not delete unreferenced and redundant indexes.")
-                Failure(ex)
-            }
-          }
-        case Failure(ex) =>
-          logger.warn("Could not fetch aliases after updating alias.")
-          Failure(ex)
-      }
-
-    }
-
-    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
-      optIndexName match {
-        case None => Success(optIndexName)
-        case Some(indexName) =>
-          if (!indexWithNameExists(indexName).getOrElse(false)) {
-            Failure(new IllegalArgumentException(s"No such index: $indexName"))
-          } else {
-            e4sClient.execute {
-              deleteIndex(indexName)
-            }
-          }
-      }
-
-    }
-
-    def countDocuments: Long = {
-      val response = e4sClient.execute {
-        catCount(searchIndex)
-      }
-
-      response match {
-        case Success(resp) => resp.result.count
-        case Failure(_)    => 0
-      }
-    }
-
-    def indexWithNameExists(indexName: String): Try[Boolean] = {
-      val response = e4sClient.execute {
-        indexExists(indexName)
-      }
-
-      response match {
-        case Success(resp) if resp.status != 404 => Success(true)
-        case Success(_)                          => Success(false)
-        case Failure(ex)                         => Failure(ex)
-      }
-    }
-
-    def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 
     /**
       * Returns Sequence of FieldDefinitions for a given field.
@@ -410,8 +228,8 @@ trait IndexService {
     protected def generateLanguageSupportedFieldList(
         fieldName: String,
         keepRaw: Boolean = false
-    ): Seq[FieldDefinition] = {
-      languageAnalyzers.map(langAnalyzer => {
+    ): Seq[ElasticField] = {
+      SearchLanguage.languageAnalyzers.map(langAnalyzer => {
         val sf = List(
           textField("trigram").analyzer("trigram"),
           textField("decompounded")
@@ -439,7 +257,7 @@ trait IndexService {
       */
     protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
-      val dynamicFunc = (name: String, analyzer: Analyzer, subFields: List[FieldDefinition]) => {
+      val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
         DynamicTemplateRequest(
           name = name,
           mapping = textField(name).analyzer(analyzer).fields(subFields),
@@ -458,20 +276,20 @@ trait IndexService {
       )
       val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
 
-      val languageTemplates = languageAnalyzers.map(
+      val languageTemplates = SearchLanguage.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)
         }
       )
-      val languageSubTemplates = languageAnalyzers.map(
+      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(
         languageAnalyzer => {
           val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
           dynamicFunc(name, languageAnalyzer.analyzer, subFields)
         }
       )
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", StandardAnalyzer, subFields)
-      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", StandardAnalyzer, subFields)
+      val catchAllTemplate = dynamicFunc(s"$fieldName.*", "standard", subFields)
+      val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", "standard", subFields)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate, catchAllSubTemplate)
     }
 

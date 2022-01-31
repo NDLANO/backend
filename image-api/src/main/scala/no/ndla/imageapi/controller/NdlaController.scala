@@ -16,7 +16,6 @@ import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.model._
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
@@ -25,7 +24,7 @@ import org.scalatra.{BadRequest, InternalServerError, RequestEntityTooLarge, Sca
 
 import java.lang.Math.{max, min}
 import no.ndla.imageapi.ComponentRegistry
-import no.ndla.search.NdlaSearchException
+import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 import scala.util.{Failure, Success, Try}
@@ -69,8 +68,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error.DatabaseUnavailableError)
-    case nse: NdlaSearchException
-        if nse.rf.error.rootCause.exists(x =>
+    case NdlaSearchException(_, Some(rf), _)
+        if rf.error.rootCause.exists(x =>
           x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>

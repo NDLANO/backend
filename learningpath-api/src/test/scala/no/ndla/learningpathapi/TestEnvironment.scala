@@ -21,7 +21,7 @@ import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.Mockito
 import org.mockito.scalatest.MockitoSugar
 
@@ -35,6 +35,7 @@ trait TestEnvironment
     with SearchConverterServiceComponent
     with SearchService
     with SearchIndexService
+    with BaseIndexService
     with SearchApiClient
     with TaxonomyApiClient
     with NdlaClient

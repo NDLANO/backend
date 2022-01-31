@@ -9,20 +9,21 @@
 package no.ndla.audioapi.service.search
 
 import cats.implicits._
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
   SeriesSearchIndex
 }
-import no.ndla.audioapi.model.Language._
 import no.ndla.audioapi.model.api.ResultWindowTooLargeException
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
-import no.ndla.audioapi.model.search.{SearchableLanguageFormats, SearchableSeries}
-import no.ndla.audioapi.model.{Language, api, domain}
+import no.ndla.audioapi.model.search.SearchableSeries
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.language.Language.AllLanguages
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.Elastic4sClient
 import org.json4s._
 import org.json4s.native.Serialization
@@ -40,7 +41,7 @@ trait SeriesSearchService {
     override val searchIndex: String = SeriesSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats ++ org.json4s.ext.JodaTimeSerializers.all
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
       val searchable = Serialization.read[SearchableSeries](hitString)
       searchConverterService.asSeriesSummary(searchable, language)
     }
@@ -68,8 +69,8 @@ trait SeriesSearchService {
                       queryBuilder: BoolQuery): Try[domain.SearchResult[api.SeriesSummary]] = {
 
       val (languageFilter, searchLanguage) = settings.language match {
-        case None | Some(Language.AllLanguages) => (None, "*")
-        case Some(lang)                         => (Some(existsQuery(s"titles.$lang")), lang)
+        case None | Some(AllLanguages) => (None, "*")
+        case Some(lang)                => (Some(existsQuery(s"titles.$lang")), lang)
       }
 
       val filters = List(languageFilter)

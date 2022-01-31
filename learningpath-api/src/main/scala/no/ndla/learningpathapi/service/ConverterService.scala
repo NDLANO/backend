@@ -9,6 +9,13 @@
 package no.ndla.learningpathapi.service
 
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.language.Language.{
+  AllLanguages,
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getSearchLanguage,
+  mergeLanguageFields
+}
 import no.ndla.learningpathapi.LearningpathApiProperties.{
   DefaultLanguage,
   Domain,
@@ -19,7 +26,6 @@ import no.ndla.learningpathapi.LearningpathApiProperties.{
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}
-import no.ndla.learningpathapi.model.domain.Language._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.ConfigMeta
 import no.ndla.learningpathapi.model.{api, domain}
@@ -105,7 +111,7 @@ trait ConverterService {
                             language: String,
                             fallback: Boolean,
                             userInfo: UserInfo): Try[api.LearningPathV2] = {
-      val supportedLanguages = findSupportedLanguages(lp)
+      val supportedLanguages = lp.supportedLanguages
       if (languageIsSupported(supportedLanguages, language) || fallback) {
 
         val searchLanguage = getSearchLanguage(language, supportedLanguages)
@@ -162,11 +168,6 @@ trait ConverterService {
 
     private def asApiMessage(message: domain.Message): api.Message =
       api.Message(message.message, message.date)
-
-    private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.value.isEmpty)
-    }
 
     private def extractImageId(url: String): Option[String] = {
       learningPathValidator.validateCoverPhoto(url) match {
@@ -289,13 +290,13 @@ trait ConverterService {
       val titles = updated.title match {
         case None => existing.title
         case Some(value) =>
-          converterService.mergeLanguageFields(existing.title, Seq(domain.Title(value, updated.language)))
+          mergeLanguageFields(existing.title, Seq(domain.Title(value, updated.language)))
       }
 
       val descriptions = updated.description match {
         case None => existing.description
         case Some(value) =>
-          converterService.mergeLanguageFields(existing.description, Seq(domain.Description(value, updated.language)))
+          mergeLanguageFields(existing.description, Seq(domain.Description(value, updated.language)))
       }
 
       val embedUrlsT = updated.embedUrl match {
@@ -303,7 +304,7 @@ trait ConverterService {
         case Some(value) =>
           converterService
             .asDomainEmbedUrl(value, updated.language)
-            .map(newEmbedUrl => converterService.mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
+            .map(newEmbedUrl => mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
       }
 
       embedUrlsT.map(
@@ -343,8 +344,8 @@ trait ConverterService {
           Seq(domain.LearningPathTags(value, newLearningPath.language))
       }
 
-      val title = converterService.mergeLanguageFields(existing.title, oldTitle)
-      val description = converterService.mergeLanguageFields(existing.description, oldDescription)
+      val title = mergeLanguageFields(existing.title, oldTitle)
+      val description = mergeLanguageFields(existing.description, oldDescription)
       val tags = converterService.mergeLearningPathTags(existing.tags, oldTags)
       val coverPhotoId = newLearningPath.coverPhotoMetaUrl
         .map(converterService.extractImageId)
@@ -415,20 +416,19 @@ trait ConverterService {
 
     def asApiLearningpathSummaryV2(learningpath: domain.LearningPath,
                                    user: UserInfo = UserInfo.getUserOrPublic): Try[api.LearningPathSummaryV2] = {
-      val supportedLanguages = findSupportedLanguages(learningpath)
+      val supportedLanguages = learningpath.supportedLanguages
 
-      val title = findByLanguageOrBestEffort(learningpath.title, Language.AllLanguages)
+      val title = findByLanguageOrBestEffort(learningpath.title, AllLanguages)
         .map(asApiTitle)
         .getOrElse(api.Title("", DefaultLanguage))
-      val description = findByLanguageOrBestEffort(learningpath.description, Language.AllLanguages)
+      val description = findByLanguageOrBestEffort(learningpath.description, AllLanguages)
         .map(asApiDescription)
         .getOrElse(api.Description("", DefaultLanguage))
-      val tags = findByLanguageOrBestEffort(learningpath.tags, Language.AllLanguages)
+      val tags = findByLanguageOrBestEffort(learningpath.tags, AllLanguages)
         .map(asApiLearningPathTags)
         .getOrElse(api.LearningPathTags(Seq(), DefaultLanguage))
       val introduction =
-        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)),
-                                   Language.AllLanguages)
+        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)), AllLanguages)
           .getOrElse(api.Introduction("", DefaultLanguage))
 
       val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
@@ -455,7 +455,7 @@ trait ConverterService {
     }
 
     def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
-      val isLanguageNeutral = supportedLangs.contains(UnknownLanguage) && supportedLangs.length == 1
+      val isLanguageNeutral = supportedLangs.contains(UnknownLanguage.toString) && supportedLangs.length == 1
 
       supportedLangs.contains(language) || language == AllLanguages || isLanguageNeutral
     }
@@ -465,7 +465,7 @@ trait ConverterService {
                             language: String,
                             fallback: Boolean,
                             user: UserInfo): Try[api.LearningStepV2] = {
-      val supportedLanguages = findSupportedLanguages(ls)
+      val supportedLanguages = ls.supportedLanguages
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
         val title = findByLanguageOrBestEffort(ls.title, language)
@@ -551,8 +551,7 @@ trait ConverterService {
       val supportedLanguages = allTags.map(_.language).distinct
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
-        val searchLanguage =
-          Language.getSearchLanguage(language, supportedLanguages)
+        val searchLanguage = getSearchLanguage(language, supportedLanguages)
         val tags = allTags
           .filter(_.language == searchLanguage)
           .flatMap(_.tags)

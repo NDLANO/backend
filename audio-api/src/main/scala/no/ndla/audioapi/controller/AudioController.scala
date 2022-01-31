@@ -23,10 +23,11 @@ import no.ndla.audioapi.model.api.{
   ValidationMessage
 }
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
-import no.ndla.audioapi.model.{Language, Sort, api}
+import no.ndla.audioapi.model.{Sort, api}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.language.Language
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._

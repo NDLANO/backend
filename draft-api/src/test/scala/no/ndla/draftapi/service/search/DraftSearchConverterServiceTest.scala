@@ -11,6 +11,7 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.search._
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.draftapi.TestData
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 

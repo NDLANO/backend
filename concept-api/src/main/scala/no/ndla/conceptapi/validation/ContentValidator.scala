@@ -10,7 +10,7 @@ package no.ndla.conceptapi.validation
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
-import no.ndla.language.model.Iso639
+import no.ndla.language.model.{Iso639, WithLanguage}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 import org.joda.time.format.ISODateTimeFormat
@@ -126,7 +126,7 @@ trait ContentValidator {
     }
 
     private def validateExistingLanguageField(fieldPath: String,
-                                              fields: Seq[LanguageField]): Option[ValidationMessage] = {
+                                              fields: Seq[WithLanguage]): Option[ValidationMessage] = {
       if (fields.nonEmpty) None
       else
         Some(

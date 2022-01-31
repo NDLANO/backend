@@ -6,8 +6,9 @@
  */
 
 package no.ndla.searchapi.service.search
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, NestedQuery, Query}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 
 trait TaxonomyFiltering {
@@ -19,7 +20,8 @@ trait TaxonomyFiltering {
         boolQuery().should(
           relevanceIds.map(
             relevanceId =>
-              nestedQuery("contexts").query(
+              nestedQuery(
+                "contexts",
                 boolQuery().must(
                   termQuery("contexts.relevanceId", relevanceId),
                   boolQuery().should(subjectIds.map(sId => termQuery("contexts.subjectId", sId)))
@@ -32,44 +34,44 @@ trait TaxonomyFiltering {
     if (subjects.isEmpty) None
     else
       Some(
-        nestedQuery("contexts")
-          .query(
-            boolQuery().should(
-              subjects.map(
-                subjectId => termQuery(s"contexts.subjectId", subjectId)
-              ))
-          ))
+        nestedQuery(
+          "contexts",
+          boolQuery().should(
+            subjects.map(
+              subjectId => termQuery(s"contexts.subjectId", subjectId)
+            ))
+        ))
 
   protected def topicFilter(topics: List[String]): Option[NestedQuery] =
     if (topics.isEmpty) None
     else
       Some(
-        nestedQuery("contexts")
-          .query(
-            boolQuery().should(
-              topics.map(
-                topicId => termQuery("contexts.parentTopicIds", topicId)
-              ))
-          ))
+        nestedQuery(
+          "contexts",
+          boolQuery().should(
+            topics.map(
+              topicId => termQuery("contexts.parentTopicIds", topicId)
+            ))
+        ))
 
   protected def resourceTypeFilter(resourceTypes: List[String], filterByNoResourceType: Boolean): Option[Query] = {
     if (resourceTypes.isEmpty) {
       if (filterByNoResourceType) {
         Some(
           boolQuery().not(
-            nestedQuery("contexts.resourceTypes").query(existsQuery("contexts.resourceTypes"))
+            nestedQuery("contexts.resourceTypes", existsQuery("contexts.resourceTypes"))
           )
         )
       } else { None }
     } else {
       Some(
-        nestedQuery("contexts.resourceTypes")
-          .query(
-            boolQuery().should(
-              resourceTypes.map(
-                resourceTypeId => termQuery("contexts.resourceTypes.id", resourceTypeId)
-              ))
-          ))
+        nestedQuery(
+          "contexts.resourceTypes",
+          boolQuery().should(
+            resourceTypes.map(
+              resourceTypeId => termQuery("contexts.resourceTypes.id", resourceTypeId)
+            ))
+        ))
     }
   }
 
@@ -84,11 +86,8 @@ trait TaxonomyFiltering {
         List.empty
       }
 
-      val taxonomyContextQuery = contextTypes.map(
-        ct =>
-          nestedQuery("contexts").query(
-            termQuery("contexts.contextType", ct.toString)
-        ))
+      val taxonomyContextQuery =
+        contextTypes.map(ct => nestedQuery("contexts", termQuery("contexts.contextType", ct.toString)))
 
       Some(
         boolQuery().should(articleTypeQuery ++ taxonomyContextQuery ++ notArticleTypeQuery)

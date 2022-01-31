@@ -11,10 +11,11 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
-import no.ndla.audioapi.model.{Language, api, domain}
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
+import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -337,8 +338,7 @@ trait WriteService {
       val mergedFilePaths = savedAudio match {
         // If no audio is uploaded, and the language doesn't have a filePath. Clone a prioritized one.
         case None if existing.filePaths.forall(_.language != toUpdate.language) =>
-          val maybeNewFilePath = Language
-            .findLanguagePrioritized(existing.filePaths, toUpdate.language)
+          val maybeNewFilePath = findByLanguageOrBestEffort(existing.filePaths, toUpdate.language)
             .map(_.copy(language = toUpdate.language))
           converterService.mergeLanguageField(existing.filePaths, maybeNewFilePath, toUpdate.language)
         case None => existing.filePaths

@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.model.api
 
-import no.ndla.learningpathapi.model.domain.LanguageField
+import no.ndla.language.model.LanguageField
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -18,4 +18,7 @@ import scala.annotation.meta.field
 case class Description(
     @(ApiModelProperty @field)(description = "The learningpath description. Basic HTML allowed") description: String,
     @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in description") language: String)
-    extends LanguageField[String] { override def value: String = description }
+    extends LanguageField[String] {
+  override def value: String = description
+  override def isEmpty: Boolean = description.isEmpty
+}

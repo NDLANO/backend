@@ -9,6 +9,7 @@ package db.migration
 
 import no.ndla.articleapi.ArticleApiProperties.Domain
 import no.ndla.articleapi.model.domain._
+import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats

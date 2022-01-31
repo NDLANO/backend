@@ -8,22 +8,22 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.{BoolQuery, Query}
-import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 import no.ndla.imageapi.auth.Role
-import no.ndla.imageapi.model.{Language, ResultWindowTooLargeException}
+import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{Error, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
-import no.ndla.imageapi.model.search.{SearchableImage, SearchableLanguageFormats}
+import no.ndla.imageapi.model.search.SearchableImage
+import no.ndla.language.Language
 import no.ndla.language.model.{Iso639, LanguageTag}
 import no.ndla.mapping.ISO639
 import no.ndla.search.Elastic4sClient
+import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.read
 import org.json4s.Formats
 

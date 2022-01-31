@@ -12,7 +12,7 @@ import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, Language, ReindexResult}
+import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, ReindexResult}
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.Article.jsonEncoder
 import no.ndla.draftapi.repository.DraftRepository
@@ -24,6 +24,7 @@ import no.ndla.draftapi.service.search.{
   IndexService,
   TagIndexService
 }
+import no.ndla.language.Language
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}

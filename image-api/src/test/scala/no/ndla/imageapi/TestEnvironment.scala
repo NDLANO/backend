@@ -25,12 +25,13 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends Elastic4sClient
     with IndexService
+    with BaseIndexService
     with TagIndexService
     with SearchService
     with ImageSearchService
