@@ -11,6 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.mapping.License.{CC_BY_SA, NA}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Mockito._
 
@@ -144,27 +145,28 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with an invalid license") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("beerware", "", Seq(), Seq(), Seq(), None, None, None))
+      copyright = Copyright("beerware", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", "", Seq(), Seq(), Seq(), None, None, None))
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "test")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(), Seq(), Seq(), None, None, None))
+      copyright =
+        Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", "", Seq(), Seq(), Seq(), None, None, None))
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
@@ -311,6 +313,26 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
     res.errors.head.message should be("Meta image ID must be a number")
+  }
+  test("validation should fail if license is chosen and no copyright holders are provided") {
+    val copyright = Copyright(CC_BY_SA.toString, "", Seq(), Seq(), Seq(), None, None, None)
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright))
+    res.errors.length should be(1)
+    res.errors.head.field should be("license.license")
+    res.errors.head.message should be("At least one copyright holder is required when license is CC-BY-SA-4.0")
+  }
+
+  test("an article with no copyright holders can pass validation if license is N/A") {
+    val copyright = Copyright(NA.toString, "", Seq(), Seq(), Seq(), None, None, None)
+    val article = TestData.sampleArticleWithCopyrighted.copy(copyright = copyright)
+    contentValidator.validateArticle(article).isSuccess should be(true)
+  }
+
+  test("an article with one or more copyright holder can pass validation, regardless of license") {
+    val copyright = Copyright(CC_BY_SA.toString, "", Seq(Author("reader", "test")), Seq(), Seq(), None, None, None)
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
+    contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("softvalidation is more lenient than strictvalidation") {

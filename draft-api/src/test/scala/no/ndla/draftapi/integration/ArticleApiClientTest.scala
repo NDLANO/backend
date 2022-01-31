@@ -34,7 +34,7 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
   val testCopyright = domain.Copyright(
     Some("CC-BY-SA-4.0"),
     Some("Origin"),
-    Seq.empty,
+    Seq(domain.Author("Writer", "John doe")),
     Seq.empty,
     Seq.empty,
     None,
