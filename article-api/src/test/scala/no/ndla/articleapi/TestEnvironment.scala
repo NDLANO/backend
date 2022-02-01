@@ -11,6 +11,7 @@ package no.ndla.articleapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -18,6 +19,8 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
+import no.ndla.articleapi.model.api.ErrorHelper
+import no.ndla.articleapi.model.domain.ArticleDBSupport
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
@@ -25,6 +28,11 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends Elastic4sClient
     with ArticleSearchService
+    with WithProps
+    with ErrorHelper
+    with MemoizeHelpers
+    with ArticleDBSupport
+    with NdlaController
     with ArticleIndexService
     with IndexService
     with BaseIndexService
@@ -44,10 +52,15 @@ trait TestEnvironment
     with SearchConverterService
     with ReadService
     with WriteService
+    with ArticleApiInfo
     with ContentValidator
     with Clock
     with User
     with Role {
+
+  val props = new ArticleApiProperties {
+    override val Environment = "local"
+  }
 
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService = mock[ArticleIndexService]

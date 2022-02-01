@@ -76,10 +76,25 @@ class ArticleApiProviderCDCTest
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 
+  val db = postgresContainer.get
+
+  val newProps: ArticleApiProperties = new ArticleApiProperties {
+    override def ApplicationPort: Int = serverPort
+
+    override def MetaUserName: String = db.getUsername
+    override def MetaPassword: String = db.getPassword
+    override def MetaResource: String = db.getDatabaseName
+    override def MetaServer: String = db.getContainerIpAddress
+    override def MetaPort: Int = db.getMappedPort(5432)
+    override def MetaSchema: String = "testschema"
+
+  }
+  val mainClass = new MainClass(newProps)
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+    server = Some(mainClass.startServer())
   }
 
   override def afterAll(): Unit = {
@@ -90,7 +105,7 @@ class ArticleApiProviderCDCTest
   private def setupArticles() =
     (1 to 10)
       .map(id => {
-        ComponentRegistry.articleRepository
+        mainClass.componentRegistry.articleRepository
           .updateArticleFromDraftApi(
             TestData.sampleDomainArticle.copy(
               id = Some(id),
@@ -120,7 +135,7 @@ class ArticleApiProviderCDCTest
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
 
-    ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+    mainClass.componentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
     val consumersToVerify = List(
       TaggedConsumer("draft-api", List("master")),

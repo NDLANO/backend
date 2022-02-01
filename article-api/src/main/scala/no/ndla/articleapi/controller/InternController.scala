@@ -9,7 +9,7 @@
 package no.ndla.articleapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiProperties, WithProps}
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
 import no.ndla.articleapi.model.domain.{Article, Availability}
@@ -35,10 +35,12 @@ trait InternController {
     with ArticleIndexService
     with User
     with Role
-    with ContentValidator =>
+    with ContentValidator
+    with WithProps
+    with NdlaController =>
   val internController: InternController
 
-  class InternController extends NdlaController {
+  class InternController(connectToDatabase: () => Unit) extends NdlaController(connectToDatabase) {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + new EnumNameSerializer(
       Availability)
@@ -63,7 +65,7 @@ trait InternController {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
-      val articleIndex = Future { articleIndexService.findAllIndexes(ArticleApiProperties.ArticleSearchIndex) }
+      val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
 
       val deleteResults: Seq[Try[_]] = Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
         case (Failure(articleFail)) => halt(status = 500, body = articleFail.getMessage)

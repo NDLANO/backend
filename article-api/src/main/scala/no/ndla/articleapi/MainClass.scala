@@ -21,18 +21,19 @@ import org.scalatra.servlet.ScalatraListener
 import scala.jdk.CollectionConverters._
 import scala.io.Source
 
-object JettyLauncher extends LazyLogging {
+class MainClass(props: ArticleApiProperties) extends LazyLogging {
+  val componentRegistry = new ComponentRegistry(props)
 
-  def startServer(port: Int): Server = {
+  def startServer(): Server = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
-    DBMigrator.migrate(ComponentRegistry.dataSource)
+    DBMigrator.migrate(componentRegistry.dataSource)
     logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
 
     val startMillis = System.currentTimeMillis()
 
-    buildMostUsedTagsCache()
+    componentRegistry.readService.getTagUsageMap()
     logger.info(s"Built tags cache in ${System.currentTimeMillis() - startMillis} ms.")
 
     val context = new ServletContextHandler()
@@ -43,33 +44,30 @@ object JettyLauncher extends LazyLogging {
     context.addServlet(classOf[ReportServlet], "/monitoring")
     context.addEventListener(new SessionListener)
     val monitoringFilter = new FilterHolder(new MonitoringFilter())
-    monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, ArticleApiProperties.ApplicationName)
-    ArticleApiProperties.Environment match {
+    monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, props.ApplicationName)
+    props.Environment match {
       case "local" => None
       case _ =>
         monitoringFilter.setInitParameter(Parameter.CLOUDWATCH_NAMESPACE.getCode,
-                                          "NDLA/APP".replace("APP", ArticleApiProperties.ApplicationName))
+                                          "NDLA/APP".replace("APP", props.ApplicationName))
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    val server = new Server(port)
+    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
+    context.setAttribute("ComponentRegistry", componentRegistry)
+
+    val server = new Server(props.ApplicationPort)
     server.setHandler(context)
     server.start()
 
     val startTime = System.currentTimeMillis() - startMillis
-    logger.info(s"Started at port ${ArticleApiProperties.ApplicationPort} in $startTime ms.")
+    logger.info(s"Started at port ${props.ApplicationPort} in $startTime ms.")
 
     server
   }
 
-  def buildMostUsedTagsCache(): Unit = {
-    ComponentRegistry.readService.getTagUsageMap()
-  }
-
-  def main(args: Array[String]): Unit = {
-    setPropsFromEnv()
-
-    val server = startServer(ArticleApiProperties.ApplicationPort)
+  def start(): Unit = {
+    val server = startServer()
     server.join()
   }
 }

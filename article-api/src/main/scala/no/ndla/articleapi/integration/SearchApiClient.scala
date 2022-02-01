@@ -8,9 +8,8 @@
 package no.ndla.articleapi.integration
 
 import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.SearchHost
+import no.ndla.articleapi.WithProps
 import no.ndla.articleapi.model.domain.{Article, ArticleType}
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -23,10 +22,10 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with WithProps =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://$SearchHost") extends LazyLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchHost}") extends LazyLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout = 1000 * 30

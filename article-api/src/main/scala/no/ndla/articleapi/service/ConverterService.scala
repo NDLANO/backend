@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.WithProps
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.{api, domain}
@@ -33,10 +33,11 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ArticleRepository with DraftApiClient with User =>
+  this: Clock with ArticleRepository with DraftApiClient with User with WithProps =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    import props._
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     /**

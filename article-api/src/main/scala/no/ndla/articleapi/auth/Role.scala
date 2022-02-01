@@ -7,11 +7,12 @@
 
 package no.ndla.articleapi.auth
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.WithProps
 import no.ndla.articleapi.model.api.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait Role {
+  this: WithProps =>
 
   val authRole: AuthRole
 
@@ -24,8 +25,8 @@ trait Role {
         throw new AccessDeniedException("User is missing required role(s) to perform this operation")
     }
 
-    def assertHasWritePermission(): Unit = assertHasRoles(ArticleApiProperties.RoleWithWriteAccess)
-    def assertHasDraftWritePermission(): Unit = assertHasRoles(ArticleApiProperties.DraftRoleWithWriteAccess)
+    def assertHasWritePermission(): Unit = assertHasRoles(props.RoleWithWriteAccess)
+    def assertHasDraftWritePermission(): Unit = assertHasRoles(props.DraftRoleWithWriteAccess)
   }
 
 }

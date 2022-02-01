@@ -24,7 +24,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXM6d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.kh82qM84FZgoo3odWbHTLWy-N049m7SyQw4gdatDMk43H2nWHA6gjsbJoiBIZ7BcbSfHElEZH0tP94vRy-kjgA3hflhOBbsD73DIxRvnbH1kSXlBnl6ISbgtHnzv1wQ7ShykMAcBsoWQ6J16ixK_p-msW42kcEqK1LanzPy-_qI"
-  lazy val controller = new InternController
+  lazy val controller = new InternController(() => ())
   addServlet(controller, "/*")
 
   override val authRole = new AuthRole
@@ -53,7 +53,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       status should equal(200)
       body should equal("Deleted 2 indexes")
     }
-    verify(articleIndexService).findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
+    verify(articleIndexService).findAllIndexes(props.ArticleSearchIndex)
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verifyNoMoreInteractions(articleIndexService)
@@ -64,7 +64,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(articleIndexService)
-      .findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
+      .findAllIndexes(props.ArticleSearchIndex)
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     delete("/index") {

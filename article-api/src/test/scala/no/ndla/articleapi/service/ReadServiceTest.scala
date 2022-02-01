@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
@@ -32,7 +31,7 @@ import scala.util.{Success, Try}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
-  val externalImageApiUrl: String = externalApiUrls("image")
+  val externalImageApiUrl: String = props.externalApiUrls("image")
   val resourceIdAttr = s"${TagAttributes.DataResource_Id}"
   val resourceAttr = s"${TagAttributes.DataResource}"
   val imageType = s"${ResourceType.Image}"
@@ -156,7 +155,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val expectedSettings = SearchSettings(
       None,
       List(1, 2, 3, 4),
-      DefaultLanguage,
+      props.DefaultLanguage,
       None,
       1,
       4,

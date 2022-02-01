@@ -12,13 +12,9 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.{
-  ArticleSearchIndex,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
-}
+import no.ndla.articleapi.WithProps
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelper, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
@@ -30,10 +26,17 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleSearchService {
-  this: Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
+  this: Elastic4sClient
+    with SearchConverterService
+    with SearchService
+    with ArticleIndexService
+    with ConverterService
+    with WithProps
+    with ErrorHelper =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
+    import props._
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleSearchIndex
@@ -116,7 +119,7 @@ trait ArticleSearchService {
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
-        Failure(ResultWindowTooLargeException())
+        Failure(ResultWindowTooLargeException(ErrorHelper.WINDOW_TOO_LARGE_DESCRIPTION))
       } else {
 
         val searchToExecute = search(searchIndex)

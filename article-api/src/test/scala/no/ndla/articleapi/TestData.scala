@@ -8,14 +8,14 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.joda.time.{DateTime, DateTimeZone}
 
-object TestData {
+object TestData extends WithDefaultProps {
+  import props._
   private val publicDomainCopyright =
     Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None, None)
   private val byNcSaCopyright =

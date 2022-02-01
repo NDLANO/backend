@@ -9,8 +9,7 @@
 package no.ndla.articleapi.model.domain
 
 import java.util.Date
-
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiProperties, WithProps}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
@@ -44,32 +43,36 @@ case class Article(id: Option[Long],
                    relatedContent: Seq[RelatedContent])
     extends Content
 
-object Article extends SQLSyntaxSupport[Article] {
+trait ArticleDBSupport {
+  this: WithProps =>
 
-  val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability)
-  override val tableName = "contentdata"
-  override lazy val schemaName: Option[String] = Some(ArticleApiProperties.MetaSchema)
+  object Article extends SQLSyntaxSupport[Article] {
 
-  def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
-    fromResultSet(lp.resultName)(rs)
+    val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability)
+    override val tableName = "contentdata"
+    override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
-  def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
-    implicit val formats: Formats = repositorySerializer
+    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
+      fromResultSet(lp.resultName)(rs)
 
-    rs.stringOpt(lp.c("document"))
-      .map(jsonStr => {
-        val meta = read[Article](jsonStr)
-        meta.copy(
-          id = Some(rs.long(lp.c("article_id"))),
-          revision = Some(rs.int(lp.c("revision")))
-        )
-      })
+    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
+      implicit val formats: Formats = repositorySerializer
+
+      rs.stringOpt(lp.c("document"))
+        .map(jsonStr => {
+          val meta = read[Article](jsonStr)
+          meta.copy(
+            id = Some(rs.long(lp.c("article_id"))),
+            revision = Some(rs.int(lp.c("revision")))
+          )
+        })
+    }
+
+    val repositorySerializer: Formats = jsonEncoder +
+      FieldSerializer[Article](
+        ignore("id")
+      )
   }
-
-  val repositorySerializer: Formats = jsonEncoder +
-    FieldSerializer[Article](
-      ignore("id")
-    )
 }
 
 object ArticleType extends Enumeration {

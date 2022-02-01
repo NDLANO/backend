@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.WithProps
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
@@ -36,10 +35,16 @@ trait ArticleControllerV2 {
     with Role
     with User
     with ContentValidator
-    with FeideApiClient =>
+    with FeideApiClient
+    with WithProps
+    with NdlaController
+    with ErrorHelper =>
   val articleControllerV2: ArticleControllerV2
 
-  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class ArticleControllerV2(connectToDatabase: () => Unit)(implicit val swagger: Swagger)
+      extends NdlaController(connectToDatabase)
+      with SwaggerSupport {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
@@ -154,7 +159,7 @@ trait ArticleControllerV2 {
       }
       val tags = readService.getNMostUsedTags(size, language)
       if (tags.isEmpty) {
-        NotFound(body = Error(Error.NOT_FOUND, s"No tags with language $language was found"))
+        NotFound(body = Error(ErrorHelper.NOT_FOUND, s"No tags with language $language was found"))
       } else {
         tags
       }
@@ -176,8 +181,8 @@ trait ArticleControllerV2 {
           .responseMessages(response500))
     ) {
       val query = paramOrDefault(this.query.paramName, "")
-      val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => ArticleApiProperties.DefaultPageSize
+      val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => DefaultPageSize
         case x                        => x
       }
       val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
@@ -255,7 +260,7 @@ trait ArticleControllerV2 {
         val query = paramOrNone(this.query.paramName)
         val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
         val license = paramOrNone(this.license.paramName)
-        val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
+        val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize)
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
@@ -300,7 +305,7 @@ trait ArticleControllerV2 {
         val query = searchParams.query
         val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
         val license = searchParams.license
-        val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
+        val pageSize = searchParams.pageSize.getOrElse(DefaultPageSize)
         val page = searchParams.page.getOrElse(1)
         val idList = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
@@ -399,7 +404,7 @@ trait ArticleControllerV2 {
       val externalId = long(this.deprecatedNodeId.paramName)
       readService.getInternalIdByExternalId(externalId) match {
         case Some(id) => id
-        case None     => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
+        case None     => NotFound(body = Error(ErrorHelper.NOT_FOUND, s"No article with id $externalId"))
       }
     }
 

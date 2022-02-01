@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
@@ -26,6 +25,7 @@ class ArticleSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
+  import props._
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -226,7 +226,7 @@ class ArticleSearchServiceTest
   )
 
   override def beforeAll() = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
+    articleIndexService.createIndexWithName(ArticleSearchIndex)
 
     articleIndexService.indexDocument(article1)
     articleIndexService.indexDocument(article2)
@@ -246,7 +246,7 @@ class ArticleSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, ArticleApiProperties.MaxPageSize))
+    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
   }
 
   test(

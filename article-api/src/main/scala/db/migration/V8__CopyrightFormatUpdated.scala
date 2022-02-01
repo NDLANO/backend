@@ -8,8 +8,7 @@
 package db.migration
 
 import java.util.Date
-
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.WithDefaultProps
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
@@ -17,7 +16,8 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V8__CopyrightFormatUpdated extends BaseJavaMigration {
+class V8__CopyrightFormatUpdated extends BaseJavaMigration with WithDefaultProps {
+  import props._
 
   implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 

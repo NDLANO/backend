@@ -6,7 +6,7 @@
  */
 
 package db.migration
-import no.ndla.articleapi.ArticleApiProperties.Domain
+import no.ndla.articleapi.WithDefaultProps
 import no.ndla.articleapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
@@ -18,7 +18,8 @@ import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.Try
 
-class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
+class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration with WithDefaultProps {
+  import props._
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"

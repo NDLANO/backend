@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.articleapi.ArticleApiProperties.Domain
+import no.ndla.articleapi.{ArticleApiProperties, WithDefaultProps, WithProps}
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
@@ -22,10 +22,10 @@ import scalikejdbc.{DB, DBSession, _}
 import scala.util.{Failure, Random, Success, Try}
 import scala.util.matching.Regex
 
-class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
+class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration with WithDefaultProps with ArticleDBSupport {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"
+  private val TaxonomyApiEndpoint = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout = 20 * 1000 // 20 Seconds
 
   case class TaxonomyResource(contentUri: Option[String], id: Option[String])

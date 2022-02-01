@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiProperties, WithProps}
 import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
@@ -21,13 +21,13 @@ import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 trait ArticleIndexService {
-  this: SearchConverterService with IndexService with ArticleRepository =>
+  this: SearchConverterService with IndexService with ArticleRepository with WithProps =>
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends LazyLogging with IndexService[Article, SearchableArticle] {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = ArticleApiProperties.ArticleSearchDocument
-    override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
+    override val documentType: String = props.ArticleSearchDocument
+    override val searchIndex: String = props.ArticleSearchIndex
     override val repository: Repository[Article] = articleRepository
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {

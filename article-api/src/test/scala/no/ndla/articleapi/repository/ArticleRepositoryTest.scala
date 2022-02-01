@@ -28,7 +28,7 @@ class ArticleRepositoryTest
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
   def serverIsListening: Boolean = {
-    Try(new Socket(ArticleApiProperties.MetaServer, ArticleApiProperties.MetaPort)) match {
+    Try(new Socket(props.MetaServer, props.MetaPort)) match {
       case Success(c) =>
         c.close()
         true

@@ -17,40 +17,45 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
   }
 }
 
-object ArticleApiInfo {
+trait ArticleApiInfo {
+  this: WithProps =>
 
-  val contactInfo = ContactInfo(
-    ArticleApiProperties.ContactName,
-    ArticleApiProperties.ContactUrl,
-    ArticleApiProperties.ContactEmail
-  )
+  class ArticleSwagger {
 
-  val licenseInfo = LicenseInfo(
-    "GPL v3.0",
-    "http://www.gnu.org/licenses/gpl-3.0.en.html"
-  )
+    val contactInfo: ContactInfo = ContactInfo(
+      props.ContactName,
+      props.ContactUrl,
+      props.ContactEmail
+    )
 
-  val apiInfo = ApiInfo(
-    "Article API",
-    "Searching and fetching all articles published on the NDLA platform.\n\n" +
-      "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
-      "returned articles, and typical examples of this are language and license.\n" +
-      "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
-    ArticleApiProperties.TermsUrl,
-    contactInfo,
-    licenseInfo
-  )
-}
+    val licenseInfo: LicenseInfo = LicenseInfo(
+      "GPL v3.0",
+      "http://www.gnu.org/licenses/gpl-3.0.en.html"
+    )
 
-class ArticleSwagger extends Swagger("2.0", "1.0", ArticleApiInfo.apiInfo) {
+    val apiInfo: ApiInfo = ApiInfo(
+      "Article API",
+      "Searching and fetching all articles published on the NDLA platform.\n\n" +
+        "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
+        "returned articles, and typical examples of this are language and license.\n" +
+        "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
+      props.TermsUrl,
+      contactInfo,
+      licenseInfo
+    )
 
-  private def writeRolesInTest: List[String] = {
-    val writeRoles = List(ArticleApiProperties.DraftRoleWithWriteAccess, ArticleApiProperties.RoleWithWriteAccess)
-    writeRoles.map(_.replace(":", "-test:"))
+    private def writeRolesInTest: List[String] = {
+      val writeRoles = List(props.DraftRoleWithWriteAccess, props.RoleWithWriteAccess)
+      writeRoles.map(_.replace(":", "-test:"))
+    }
+
+    val Swagger = new Swagger("2.0", "1.0", apiInfo)
+    Swagger.addAuthorization(
+      OAuth(
+        writeRolesInTest,
+        List(ImplicitGrant(LoginEndpoint(props.Auth0LoginEndpoint), "access_token"))
+      )
+    )
+
   }
-
-  addAuthorization(
-    OAuth(writeRolesInTest,
-          List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
-
 }
