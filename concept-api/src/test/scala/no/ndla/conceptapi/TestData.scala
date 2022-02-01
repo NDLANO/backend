@@ -35,6 +35,9 @@ object TestData {
   val visualElementString =
     """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
 
+  val visualElementStringWithUrl =
+    """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1">"""
+
   val sampleNbApiConcept = api.Concept(
     1.toLong,
     1,
@@ -54,7 +57,7 @@ object TestData {
       current = "DRAFT",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementString, "nb"))
+    Some(api.VisualElement(visualElementStringWithUrl, "nb"))
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -148,7 +151,7 @@ object TestData {
       current = "DRAFT",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementString, "nb"))
+    Some(api.VisualElement(visualElementStringWithUrl, "nb"))
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(
