@@ -71,6 +71,7 @@ export interface IConceptSummary {
   status: IStatus
   updatedBy: string[]
   license?: string
+  visualElement?: IVisualElement
 }
 
 export interface IConceptTags {
