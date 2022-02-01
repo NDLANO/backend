@@ -11,7 +11,14 @@ lazy val `article-api` = Module.setup(
 lazy val `draft-api` = Module.setup(
   project in file("./draft-api/"),
   draftapi,
-  deps = Seq(network, mapping, language, validation, scalatestsuite % "test", common, search, `article-api` % "test")
+  deps = Seq(network,
+             mapping,
+             language,
+             validation,
+             scalatestsuite % "test",
+             common,
+             search,
+             `article-api` % "test->compile;test->test")
 )
 
 lazy val `audio-api` = Module.setup(
