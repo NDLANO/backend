@@ -2,11 +2,13 @@ import Dependencies.versions._
 import sbt.Keys._
 import sbt._
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
+import com.itv.scalapact.plugin.ScalaPactEnv
 import com.itv.scalapact.plugin.ScalaPactPlugin.autoImport.{
   pactBrokerAddress,
   pactBrokerCredentials,
   pactContractTags,
-  pactContractVersion
+  pactContractVersion,
+  scalaPactEnv
 }
 import sbtassembly._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
@@ -169,6 +171,7 @@ trait Module {
     import scala.sys.process._
 
     Seq(
+      scalaPactEnv := ScalaPactEnv.defaults.withOutputPath((baseDirectory.value / "target" / "pacts").toString),
       pactBrokerAddress := sys.env.getOrElse("PACT_BROKER_URL", ""),
       pactBrokerCredentials := (
         sys.env.getOrElse("PACT_BROKER_USERNAME", ""),
