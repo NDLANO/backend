@@ -1,3 +1,5 @@
+package no.ndla.articleapi
+
 /*
  * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
@@ -6,9 +8,9 @@
  *
  */
 
-import javax.servlet.ServletContext
-import no.ndla.articleapi.ComponentRegistry
 import org.scalatra.LifeCycle
+
+import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends LifeCycle {
 

@@ -38,6 +38,7 @@ class MainClass(props: ArticleApiProperties) extends LazyLogging {
 
     val context = new ServletContextHandler()
     context setContextPath "/"
+    context.setInitParameter("org.scalatra.LifeCycle", "no.ndla.articleapi.ScalatraBootstrap")
     context.addEventListener(new ScalatraListener)
     context.addServlet(classOf[DefaultServlet], "/")
     context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
@@ -53,7 +54,7 @@ class MainClass(props: ArticleApiProperties) extends LazyLogging {
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
+    // Necessary to mount ComponentRegistry members in no.ndla.articleapi.ScalatraBootstrap
     context.setAttribute("ComponentRegistry", componentRegistry)
 
     val server = new Server(props.ApplicationPort)

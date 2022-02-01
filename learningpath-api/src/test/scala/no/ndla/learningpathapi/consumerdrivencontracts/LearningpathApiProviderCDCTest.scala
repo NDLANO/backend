@@ -37,30 +37,6 @@ class LearningpathApiProviderCDCTest
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
 
-  def findFreePort: Int = {
-    def closeQuietly(socket: ServerSocket): Unit = {
-      try {
-        socket.close()
-      } catch { case _: Throwable => }
-    }
-    var socket: ServerSocket = null
-    try {
-      socket = new ServerSocket(0)
-      socket.setReuseAddress(true)
-      val port = socket.getLocalPort
-      closeQuietly(socket)
-      return port;
-    } catch {
-      case e: IOException =>
-        logger.trace("Failed to open socket", e);
-    } finally {
-      if (socket != null) {
-        closeQuietly(socket)
-      }
-    }
-    throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
-  }
-
   var server: Option[Server] = None
   val serverPort: Int = findFreePort
 

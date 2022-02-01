@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.integration
 
+import com.zaxxer.hikari.HikariDataSource
+
 import java.util.Date
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
@@ -14,12 +16,36 @@ import no.ndla.draftapi.model.domain.Availability
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.eclipse.jetty.server.Server
+import org.joda.time.DateTime
 import org.json4s.native.Serialization.write
 import org.json4s.Formats
+import no.ndla.articleapi
 
-import scala.util.Success
+import scala.util.{Failure, Success}
+import scala.xml.Properties.setProp
 
-class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvironment {
+class ArticleApiClientTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
+
+  setProp("NDLA_ENVIRONMENT", "local")
+  setProp("ENABLE_JOUBEL_H5P_OEMBED", "true")
+
+  setProp("SEARCH_SERVER", "some-server")
+  setProp("SEARCH_REGION", "some-region")
+  setProp("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
+  setProp("SEARCH_INDEX_NAME", "draft-integration-test-index")
+  setProp("AGREEMENT_SEARCH_INDEX_NAME", "agreement-integration-test-index")
+
+  setProp("AUDIO_API_URL", "localhost:30014")
+  setProp("IMAGE_API_URL", "localhost:30001")
+
+  setProp("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
+  setProp("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
+  setProp("BRIGHTCOVE_API_CLIENT_ID", "some-client-id")
+  setProp("BRIGHTCOVE_API_CLIENT_SECRET", "some-secret")
+
+  override val dataSource: HikariDataSource = testDataSource.get
+
   implicit val formats: Formats = domain.Article.jsonEncoder
   override val ndlaClient = new NdlaClient
 
@@ -73,27 +99,47 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
   val authHeaderMap = Map("Authorization" -> s"Bearer $exampleToken")
 
+  val articleApiPort: Int = findFreePort
+
+  val articleApiProps: articleapi.ArticleApiProperties = new articleapi.ArticleApiProperties {
+    override def ApplicationPort: Int = articleApiPort
+
+    override def MetaUserName: String = {
+      postgresContainer.get.getUsername
+    }
+    override def MetaPassword: String = postgresContainer.get.getPassword
+    override def MetaServer: String = postgresContainer.get.getContainerIpAddress
+    override def MetaPort: Int = postgresContainer.get.getMappedPort(5432)
+    override def MetaResource: String = postgresContainer.get.getDatabaseName
+    override def MetaSchema: String = "testschema"
+  }
+
+  val articleApi = new articleapi.MainClass(articleApiProps)
+  val articleApiServer: Server = articleApi.startServer()
+
+  private def setupArticles() =
+    (1 to 10)
+      .map(id => {
+        articleApi.componentRegistry.articleRepository
+          .updateArticleFromDraftApi(
+            articleapi.TestData.sampleDomainArticle.copy(
+              id = Some(id),
+              updated = new DateTime(0).toDate,
+              created = new DateTime(0).toDate,
+              published = new DateTime(0).toDate
+            ),
+            List(s"1$id")
+          )
+      })
+      .collectFirst { case Failure(ex) => Failure(ex) }
+      .getOrElse(Success(true))
+
   test("that updating articles should work") {
-    forgePact
-      .between("draft-api")
-      .and("article-api")
-      .addInteraction(
-        interaction
-          .description("Updating an article returns 200")
-          .given("articles")
-          .uponReceiving(method = POST,
-                         path = "/intern/article/1",
-                         query = None,
-                         headers = authHeaderMap,
-                         body = write(testArticle),
-                         matchingRules = None)
-          .willRespondWith(200)
-      )
-      .runConsumerTest { mockConfig =>
-        AuthUser.setHeader(s"Bearer $exampleToken")
-        val articleApiClient = new ArticleApiClient(mockConfig.baseUrl)
-        articleApiClient.updateArticle(1, testArticle, List("1234"), false, false)
-      }
+    setupArticles()
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiClient = new ArticleApiClient(s"http://localhost:$articleApiPort")
+    val res = articleApiClient.updateArticle(1, testArticle, List("1234"), false, false)
+    res.isSuccess should be(true)
   }
 
   test("that deleting an article should return 200") {
