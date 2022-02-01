@@ -139,7 +139,7 @@ class ArticleApiClientTest extends IntegrationSuite(EnablePostgresContainer = tr
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(s"http://localhost:$articleApiPort")
     val res = articleApiClient.updateArticle(1, testArticle, List("1234"), false, false)
-    res.isSuccess should be(true)
+    res.get
   }
 
   test("that deleting an article should return 200") {
