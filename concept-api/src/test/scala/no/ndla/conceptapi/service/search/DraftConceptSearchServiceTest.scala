@@ -144,7 +144,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     updatedBy = Seq("Test1"),
     visualElement = List(
       VisualElement(
-        """<embed data-resource="image" data-url="test.url" /><embed data-resource="video" data-url="test.url2" data-resource_id="test.id2" />""",
+        """<embed data-resource="image" data-url="test.url" /><embed data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
         "nb"))
   )
 
@@ -646,7 +646,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedResource matches visual element") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedResource = Some("video"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages))
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
@@ -675,7 +675,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on query parameter as embedResource matches visual element") {
     val Success(search) =
       draftConceptSearchService.matchingQuery(
-        "video",
+        "brightcove",
         searchSettings.copy()
       )
 

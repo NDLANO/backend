@@ -137,7 +137,9 @@ trait SearchConverterService {
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
-        embedResourcesAndIds = embedResourcesAndIds
+        embedResourcesAndIds = embedResourcesAndIds,
+        visualElement = SearchableLanguageValues(
+          c.visualElement.map(element => LanguageValue(element.language, element.visualElement)))
       )
     }
 
@@ -147,6 +149,8 @@ trait SearchConverterService {
       val titles = searchableConcept.title.languageValues.map(lv => domain.ConceptTitle(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags = searchableConcept.tags.languageValues.map(lv => domain.ConceptTags(lv.value, lv.language))
+      val visualElements =
+        searchableConcept.visualElement.languageValues.map(lv => domain.VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, contents)
 
@@ -160,6 +164,8 @@ trait SearchConverterService {
         .map(converterService.toApiMetaImage)
         .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString()))
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
+      val visualElement =
+        findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
 
       api.ConceptSummary(
@@ -173,7 +179,8 @@ trait SearchConverterService {
         lastUpdated = searchableConcept.lastUpdated.toDate,
         status = toApiStatus(searchableConcept.status),
         updatedBy = searchableConcept.updatedBy,
-        license = searchableConcept.license
+        license = searchableConcept.license,
+        visualElement = visualElement
       )
     }
 

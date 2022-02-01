@@ -8,13 +8,13 @@
 package no.ndla.conceptapi.service
 
 import java.util.Date
-
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.{TestData, TestEnvironment}
 import no.ndla.conceptapi.UnitSuite
 import no.ndla.conceptapi.auth.UserInfo
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito._
 
 import scala.util.{Failure, Success}
@@ -22,9 +22,10 @@ import scala.util.{Failure, Success}
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
-  val userInfo = UserInfo.SystemUser.copy(id = "")
+  val userInfo: UserInfo = UserInfo.SystemUser.copy(id = "")
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
+    when(converterService.addUrlOnElement(anyString())).thenCallRealMethod();
     service.toApiConcept(TestData.domainConcept, "nn", fallback = false) should be(
       Success(TestData.sampleNnApiConcept)
     )

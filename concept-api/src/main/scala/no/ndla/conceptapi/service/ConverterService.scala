@@ -9,18 +9,19 @@ package no.ndla.conceptapi.service
 
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.repository.DraftConceptRepository
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.search
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{ConceptStatus, Status}
-import no.ndla.mapping.License.getLicense
+import io.lemonlabs.uri.{Path, Url}
 import no.ndla.conceptapi.ConceptApiProperties._
 import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Status}
+import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
-import no.ndla.language.model.LanguageField
+import no.ndla.mapping.License.getLicense
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
+import org.jsoup.nodes.Element
 
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -123,7 +124,7 @@ trait ConverterService {
                            metaImage.language)
 
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
-      api.VisualElement(visualElement.visualElement, visualElement.language)
+      api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       Success(
@@ -283,6 +284,48 @@ trait ConverterService {
             .filter(t => user.hasRoles(t.requiredRoles))
             .map(_.to.toString)
             .toSeq
+      }
+    }
+
+    def addUrlOnVisualElement(concept: Concept): Concept = {
+      val visualElementWithUrls =
+        concept.visualElement.map(visual => visual.copy(visualElement = addUrlOnElement(visual.visualElement)))
+      concept.copy(visualElement = visualElementWithUrls)
+    }
+
+    private[service] def addUrlOnElement(content: String): String = {
+      val doc = stringToJsoupDocument(content)
+
+      val embedTags = doc.select(s"$ResourceHtmlEmbedTag").asScala.toList
+      embedTags.foreach(addUrlOnEmbedTag)
+      jsoupDocumentToString(doc)
+    }
+
+    private def addUrlOnEmbedTag(embedTag: Element): Unit = {
+      val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
+        case resourceType
+            if resourceType == ResourceType.H5P.toString
+              && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
+          val path = embedTag.attr(TagAttributes.DataPath.toString)
+          Some((resourceType, path))
+
+        case resourceType if embedTag.hasAttr(TagAttributes.DataResource_Id.toString) =>
+          val id = embedTag.attr(TagAttributes.DataResource_Id.toString)
+          Some((resourceType, id))
+        case _ =>
+          None
+      }
+
+      typeAndPathOption match {
+        case Some((resourceType, path)) =>
+          val baseUrl = Url.parse(externalApiUrls(resourceType))
+          val pathParts = Path.parse(path).parts
+
+          embedTag.attr(
+            s"${TagAttributes.DataUrl}",
+            baseUrl.addPathParts(pathParts).toString
+          )
+        case _ =>
       }
     }
 
