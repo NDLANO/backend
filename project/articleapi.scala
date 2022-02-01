@@ -57,7 +57,8 @@ object articleapi extends Module {
     assemblySettings() ++
     dockerSettings() ++
     tsSettings ++
-    fmtSettings
+    fmtSettings ++
+    pactPublishingSettings()
 
   override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig
