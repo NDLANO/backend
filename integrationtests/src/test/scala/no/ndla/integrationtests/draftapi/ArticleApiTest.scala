@@ -28,7 +28,7 @@ class ArticleApiTest extends IntegrationSuite(EnableElasticsearchContainer = tru
 
   test("some cool test") {
 
-    val req = Http(s"localhost:${articleApiPort}/article-api/v2/articles/123123")
+    val req = Http(s"http://localhost:${articleApiPort}/article-api/v2/articles/123123")
     val res = req.asString
     res match {
       case HttpResponse(body, code, headers) =>
