@@ -734,7 +734,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   test("That search with quotes only matches exact content") {
     val Success(search1) =
-      draftConceptSearchService.matchingQuery("\"et urelatert noe noe\"", searchSettings.copy(fallback = true, statusFilter = Set("TRANSLATED")))
+      draftConceptSearchService.matchingQuery("\"et urelatert noe noe\"",
+                                              searchSettings.copy(fallback = true, statusFilter = Set("TRANSLATED")))
 
     search1.totalCount should be(0)
 
