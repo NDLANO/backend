@@ -36,7 +36,6 @@ trait IndexService {
 
     private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
 
-
     override val analysis: Analysis =
       Analysis(
         analyzers = List(customExactAnalyzer, NynorskLanguageAnalyzer),
