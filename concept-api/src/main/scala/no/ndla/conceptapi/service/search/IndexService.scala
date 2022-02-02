@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
+import com.sksamuel.elastic4s.analysis.{Analysis, CustomAnalyzer, CustomNormalizer}
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
@@ -34,9 +34,12 @@ trait IndexService {
     val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
+    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
+
+
     override val analysis: Analysis =
       Analysis(
-        analyzers = List(NynorskLanguageAnalyzer),
+        analyzers = List(customExactAnalyzer, NynorskLanguageAnalyzer),
         tokenFilters = SearchLanguage.NynorskTokenFilters,
         normalizers = List(lowerNormalizer)
       )
@@ -179,7 +182,9 @@ trait IndexService {
                                                             keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
       val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
-        fields += keywordField("raw") += keywordField("lower").normalizer("lower")
+        fields += keywordField("raw") += keywordField("lower").normalizer("lower") +=
+          textField("exact")
+            .analyzer("exact")
       }
       val languageTemplates = languageAnalyzers.map(
         languageAnalyzer => {
