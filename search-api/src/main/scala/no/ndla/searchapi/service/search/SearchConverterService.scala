@@ -35,6 +35,7 @@ import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
+import cats.implicits._
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
@@ -898,19 +899,13 @@ trait SearchConverterService {
       val resourceContexts = getResourceContexts(bundle, filterVisibles, resources)
       val topicContexts = getTopicContexts(bundle, filterVisibles, topics)
 
-      val all = resourceContexts ++ topicContexts
-      val failed = all.collect {
-        case Failure(e) =>
-          logger.error(s"Getting taxonomy context for $id failed with: ", e)
-          Failure(e)
-      }
+      val all = (resourceContexts ++ topicContexts).sequence.map(_.flatten)
 
-      if (failed.nonEmpty) {
-        failed.head
-      } else {
-        val successful = all.collect { case Success(c) => c }
-        val distinctContexts = successful.flatten.distinct
-        Success(distinctContexts)
+      all match {
+        case Failure(ex) =>
+          logger.error(s"Getting taxonomy context for $id failed with: ", ex)
+          Failure(ex)
+        case Success(ctx) => Success(ctx.distinct)
       }
     }
 

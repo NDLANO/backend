@@ -894,41 +894,46 @@ object TestData {
   )
 
   val subjects = List(
-    TaxSubject("urn:subject:1", "Matte", None, Some("/subject:1"), visibleMetadata),
-    TaxSubject("urn:subject:2", "Historie", None, Some("/subject:2"), visibleMetadata),
-    TaxSubject("urn:subject:3", "Religion", None, Some("/subject:3"), invisibleMetadata)
+    TaxSubject("urn:subject:1", "Matte", None, Some("/subject:1"), visibleMetadata, List.empty),
+    TaxSubject("urn:subject:2", "Historie", None, Some("/subject:2"), visibleMetadata, List.empty),
+    TaxSubject("urn:subject:3", "Religion", None, Some("/subject:3"), invisibleMetadata, List.empty)
   )
 
   val relevances = List(
-    Relevance("urn:relevance:core", "Kjernestoff"),
-    Relevance("urn:relevance:supplementary", "Tilleggsstoff")
+    Relevance("urn:relevance:core", "Kjernestoff", List.empty),
+    Relevance("urn:relevance:supplementary", "Tilleggsstoff", List.empty)
   )
 
   val resourceTypes = List(
-    ResourceType("urn:resourcetype:learningpath", "Læringssti", None),
+    ResourceType("urn:resourcetype:learningpath", "Læringssti", None, List.empty),
     ResourceType(
       "urn:resourcetype:subjectMaterial",
       "Fagstoff",
       Some(
         List(
-          ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None),
-          ResourceType("urn:resourcetype:guidance", "Veiledning", None)
-        ))
+          ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None, List.empty),
+          ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
+        )),
+      List.empty
     ),
     ResourceType(
       "urn:resourcetype:reviewResource",
       "Vurderingsressurs",
       Some(
         List(
-          ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None),
-          ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None),
-          ResourceType("urn:resourcetype:peerEvaluation",
-                       "Medelevvurdering",
-                       Some(
-                         List(
-                           ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None)
-                         )))
-        ))
+          ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None, List.empty),
+          ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None, List.empty),
+          ResourceType(
+            "urn:resourcetype:peerEvaluation",
+            "Medelevvurdering",
+            Some(
+              List(
+                ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
+              )),
+            List.empty
+          )
+        )),
+      List.empty
     )
   )
 
@@ -938,120 +943,148 @@ object TestData {
       article1.title.head.title,
       Some(s"urn:article:${article1.id.get}"),
       Some("/subject:3/topic:5/resource:1"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:2",
       article2.title.head.title,
       Some(s"urn:article:${article2.id.get}"),
       Some("/subject:1/topic:1/resource:2"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:3",
       article3.title.head.title,
       Some(s"urn:article:${article3.id.get}"),
       Some("/subject:1/topic:3/resource:3"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:4",
       article4.title.head.title,
       Some(s"urn:article:${article4.id.get}"),
       Some("/subject:1/topic:1/topic:2/resource:4"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:5",
       article5.title.head.title,
       Some(s"urn:article:${article5.id.get}"),
       Some("/subject:2/topic:4/resource:5"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:6",
       article6.title.head.title,
       Some(s"urn:article:${article6.id.get}"),
       Some("/subject:2/topic:4/resource:6"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:7",
       article7.title.head.title,
       Some(s"urn:article:${article7.id.get}"),
       Some("/subject:2/topic:4/resource:7"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:8",
       learningPath1.title.head.title,
       Some(s"urn:learningpath:${learningPath1.id.get}"),
       Some("/subject:1/topic:1/resource:8"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:9",
       learningPath2.title.head.title,
       Some(s"urn:learningpath:${learningPath2.id.get}"),
       Some("/subject:1/topic:1/resource:9"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:10",
       learningPath3.title.head.title,
       Some(s"urn:learningpath:${learningPath3.id.get}"),
       Some("/subject:1/topic:3/resource:10"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:11",
       learningPath4.title.head.title,
       Some(s"urn:learningpath:${learningPath4.id.get}"),
       Some("/subject:1/topic:1/topic:2/resource:11"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:12",
       learningPath5.title.head.title,
       Some(s"urn:learningpath:${learningPath5.id.get}"),
       Some("/subject:2/topic:4/resource:12"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     ),
     Resource(
       "urn:resource:13",
       article12.title.head.title,
       Some(s"urn:article:${article12.id.get}"),
       Some("/subject:2/topic:4/resource:13"),
-      visibleMetadata
+      visibleMetadata,
+      List.empty
     )
   )
 
   val topics = List(
-    Topic("urn:topic:1",
-          article8.title.head.title,
-          Some(s"urn:article:${article8.id.get}"),
-          Some("/subject:1/topic:1"),
-          visibleMetadata),
-    Topic("urn:topic:2",
-          article9.title.head.title,
-          Some(s"urn:article:${article9.id.get}"),
-          Some("/subject:1/topic:1/topic:2"),
-          visibleMetadata),
-    Topic("urn:topic:3",
-          article10.title.head.title,
-          Some(s"urn:article:${article10.id.get}"),
-          Some("/subject:1/topic:3"),
-          visibleMetadata),
-    Topic("urn:topic:4",
-          article11.title.head.title,
-          Some(s"urn:article:${article11.id.get}"),
-          Some("/subject:2/topic:4"),
-          visibleMetadata),
-    Topic("urn:topic:5",
-          draft15.title.head.title,
-          Some(s"urn:article:${draft15.id.get}"),
-          Some("/subject:3/topic:5"),
-          invisibleMetadata)
+    Topic(
+      "urn:topic:1",
+      article8.title.head.title,
+      Some(s"urn:article:${article8.id.get}"),
+      Some("/subject:1/topic:1"),
+      visibleMetadata,
+      List.empty
+    ),
+    Topic(
+      "urn:topic:2",
+      article9.title.head.title,
+      Some(s"urn:article:${article9.id.get}"),
+      Some("/subject:1/topic:1/topic:2"),
+      visibleMetadata,
+      List.empty
+    ),
+    Topic(
+      "urn:topic:3",
+      article10.title.head.title,
+      Some(s"urn:article:${article10.id.get}"),
+      Some("/subject:1/topic:3"),
+      visibleMetadata,
+      List.empty
+    ),
+    Topic(
+      "urn:topic:4",
+      article11.title.head.title,
+      Some(s"urn:article:${article11.id.get}"),
+      Some("/subject:2/topic:4"),
+      visibleMetadata,
+      List.empty
+    ),
+    Topic(
+      "urn:topic:5",
+      draft15.title.head.title,
+      Some(s"urn:article:${draft15.id.get}"),
+      Some("/subject:3/topic:5"),
+      invisibleMetadata,
+      List.empty
+    )
   )
 
   val subjectTopicConnections = List(

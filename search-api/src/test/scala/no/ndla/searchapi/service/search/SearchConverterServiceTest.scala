@@ -58,14 +58,24 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false))
 
   val resources = List(
-    Resource("urn:resource:1",
-             "Resource1",
-             Some("urn:article:1"),
-             Some("/subject:1/topic:10/resource:1"),
-             visibleMetadata))
+    Resource(
+      "urn:resource:1",
+      "Resource1",
+      Some("urn:article:1"),
+      Some("/subject:1/topic:10/resource:1"),
+      visibleMetadata,
+      List.empty
+    ))
 
   val topics = List(
-    Topic("urn:topic:10", "Topic1", Some("urn:article:10"), Some("/subject:1/topic:10"), visibleMetadata))
+    Topic(
+      "urn:topic:10",
+      "Topic1",
+      Some("urn:article:10"),
+      Some("/subject:1/topic:10"),
+      visibleMetadata,
+      List.empty
+    ))
 
   val topicResourceConnections = List(
     TopicResourceConnection("urn:topic:10",
@@ -74,7 +84,15 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
                             primary = true,
                             1,
                             Some("urn:relevance:core")))
-  val subject1: TaxSubject = TaxSubject("urn:subject:1", "Subject1", None, Some("/subject:1"), visibleMetadata)
+
+  val subject1: TaxSubject = TaxSubject(
+    "urn:subject:1",
+    "Subject1",
+    None,
+    Some("/subject:1"),
+    visibleMetadata,
+    List.empty
+  )
   val subjects = List(subject1)
 
   val subjectTopicConnections = List(
