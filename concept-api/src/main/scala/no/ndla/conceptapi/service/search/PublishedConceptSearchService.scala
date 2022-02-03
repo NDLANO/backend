@@ -106,7 +106,8 @@ trait PublishedConceptSearchService {
 
       val fullQuery = settings.exactTitleMatch match {
         case true =>
-          boolQuery().must(SimpleStringQuery(query, flags = Seq(SimpleQueryStringFlag.NONE)).field(s"title.$language.lower"))
+          boolQuery().must(
+            SimpleStringQuery(query, flags = Seq(SimpleQueryStringFlag.NONE)).field(s"title.$language.lower"))
         case false =>
           boolQuery().must(
             boolQuery()
