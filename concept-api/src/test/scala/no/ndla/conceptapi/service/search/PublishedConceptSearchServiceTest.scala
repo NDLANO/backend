@@ -653,9 +653,10 @@ class PublishedConceptSearchServiceTest
 
   test("That search on exactTitleMatch only matches exact") {
     val Success(search1) =
-      publishedConceptSearchService.matchingQuery("\"Urelatert noe noe\"",
+      publishedConceptSearchService.matchingQuery("\"urelatert noe noe\"",
         searchSettings.copy(fallback = true, exactTitleMatch = true))
     search1.totalCount should be(0)
+
     val Success(search2) =
       publishedConceptSearchService.matchingQuery("et urelatert noe noe",
         searchSettings.copy(fallback = true, exactTitleMatch = true))
@@ -665,9 +666,14 @@ class PublishedConceptSearchServiceTest
     search3.totalCount should be(1)
     search3.results.head.id should be(11)
 
-    val Success(search4) =  publishedConceptSearchService.matchingQuery("Unrelated", searchSettings.copy(fallback = true, exactTitleMatch = true))
+    val Success(search4) =  publishedConceptSearchService.matchingQuery("unrelated", searchSettings.copy(fallback = true, exactTitleMatch = true))
     search4.totalCount should be(1)
     search4.results.head.id should be(10)
+
+    val Success(search5) =
+      publishedConceptSearchService.matchingQuery("batmen",
+        searchSettings.copy(fallback = true, exactTitleMatch = true))
+    search5.totalCount should be(0)
 
 
   }
