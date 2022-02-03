@@ -34,7 +34,6 @@ trait IndexService {
     val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
-
     override val analysis: Analysis =
       Analysis(
         analyzers = List(NynorskLanguageAnalyzer),
