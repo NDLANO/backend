@@ -143,7 +143,7 @@ class PublishedConceptSearchServiceTest
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
-                                                       title = List(ConceptTitle("englando", "en")),
+                                                       title = List(ConceptTitle("\"englando\"", "en")),
                                                        content = List(ConceptContent("englandocontent", "en")))
 
   val searchSettings = SearchSettings(
@@ -332,6 +332,7 @@ class PublishedConceptSearchServiceTest
 
     val Success(results2) =
       publishedConceptSearchService.matchingQuery("Pingvinen",
+
                                                   searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
     results2.totalCount should be(0)
 
@@ -647,6 +648,27 @@ class PublishedConceptSearchServiceTest
     search1.results.head.id should be(10)
     search2.totalCount should be(1)
     search2.results.head.id should be(10)
+
+  }
+
+  test("That search on exactTitleMatch only matches exact") {
+    val Success(search1) =
+      publishedConceptSearchService.matchingQuery("\"Urelatert noe noe\"",
+        searchSettings.copy(fallback = true, exactTitleMatch = true))
+    search1.totalCount should be(0)
+    val Success(search2) =
+      publishedConceptSearchService.matchingQuery("et urelatert noe noe",
+        searchSettings.copy(fallback = true, exactTitleMatch = true))
+    search2.totalCount should be(0)
+
+    val Success(search3) =  publishedConceptSearchService.matchingQuery("\"englando\"", searchSettings.copy(fallback = true, exactTitleMatch = true))
+    search3.totalCount should be(1)
+    search3.results.head.id should be(11)
+
+    val Success(search4) =  publishedConceptSearchService.matchingQuery("Unrelated", searchSettings.copy(fallback = true, exactTitleMatch = true))
+    search4.totalCount should be(1)
+    search4.results.head.id should be(10)
+
 
   }
 

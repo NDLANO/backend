@@ -34,7 +34,7 @@ trait IndexService {
     val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
-    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
+    private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace", tokenFilters=  List("lowercase"))
 
     override val analysis: Analysis =
       Analysis(

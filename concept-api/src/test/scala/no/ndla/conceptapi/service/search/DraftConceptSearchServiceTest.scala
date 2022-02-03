@@ -732,22 +732,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   }
 
-  test("That search with quotes only matches exact content") {
-    val Success(search1) =
-
-      draftConceptSearchService.matchingQuery("\"et urelatert noe noe\"",
-                                              searchSettings.copy(fallback = true, statusFilter = Set("TRANSLATED")))
-    
-    search1.totalCount should be(0)
-
-
-    val Success(search2) =      draftConceptSearchService.matchingQuery("\"urelatert\"", searchSettings.copy(fallback = true, statusFilter = Set("TRANSLATED")))
-    search2.totalCount should be(1)
-    search2.results.head.id should be(10)
-
-
-  }
-
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false
