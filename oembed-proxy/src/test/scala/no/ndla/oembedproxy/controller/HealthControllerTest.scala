@@ -1,13 +1,14 @@
 /*
- * Part of NDLA oembed_proxy.
+ * Part of NDLA oembed-proxy.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.oembedproxy
+package no.ndla.oembedproxy.controller
 
+import no.ndla.oembedproxy.{OEmbedProxyProperties, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
