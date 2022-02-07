@@ -764,6 +764,19 @@ trait SearchConverterService {
       }
     }
 
+    private[search] def getSearchableLanguageValues(
+        name: String,
+        translations: List[TaxonomyTranslation]
+    ): SearchableLanguageValues = {
+      val mainLv = LanguageValue(DefaultLanguage, name)
+      val translateLvs = translations.map(t => LanguageValue(t.language, t.name))
+
+      // Keep `mainLv` at the back of the list so a translation is picked if one exists for the default language
+      val lvsToUse = (translateLvs :+ mainLv).distinctBy(_.language)
+
+      SearchableLanguageValues(lvsToUse)
+    }
+
     private def getSearchableTaxonomyContext(taxonomyId: String,
                                              pathIds: List[String],
                                              subject: TaxSubject,
@@ -776,13 +789,15 @@ trait SearchConverterService {
       val path = "/" + pathIds.map(_.replace("urn:", "")).mkString("/")
 
       val searchableResourceTypes = resourceTypes.map(
-        rt =>
+        rt => {
           SearchableTaxonomyResourceType(
             id = rt.id,
-            name = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, rt.name))) // TODO: Get translations
-        ))
+            name = getSearchableLanguageValues(rt.name, rt.translations)
+          )
+        }
+      )
 
-      val subjectLanguageValues = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, subject.name))) // TODO: Get translations
+      val subjectLanguageValues = getSearchableLanguageValues(subject.name, subject.translations)
       val breadcrumbList = Seq(LanguageValue(DefaultLanguage, getBreadcrumbFromIds(pathIds.dropRight(1), bundle))) // TODO: Get translations
       val breadcrumbs = SearchableLanguageList(breadcrumbList)
 
