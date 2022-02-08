@@ -702,10 +702,38 @@ trait SearchConverterService {
       }
     }
 
-    private def getBreadcrumbFromIds(ids: List[String], bundle: TaxonomyBundle): Seq[String] = {
-      ids.map(id => {
-        bundle.getObject(id).map(_.name).getOrElse("")
+    private def getAllLanguagesAndDefault(breadcrumbs: Seq[TaxonomyElement]): Seq[String] =
+      (breadcrumbs
+        .flatMap(_.translations.map(_.language)) :+ DefaultLanguage).distinct
+
+    private def maybeElementToName(maybeElement: Option[TaxonomyElement], language: String): String =
+      maybeElement
+        .map(_.getNameFromTranslationOrDefault(language))
+        .getOrElse("")
+
+    private def logBreadcrumbBuildingError(idsAndTaxonomy: Seq[(String, Option[TaxonomyElement])]): Unit =
+      if (idsAndTaxonomy.exists(_._2.isEmpty)) {
+        val idError = idsAndTaxonomy
+          .map(bc => {
+            if (bc._2.isEmpty) { s"${bc._1} (MISSING)" } else { s"${bc._1} (OK)" }
+          })
+          .mkString(" -> ")
+        logger.warn(s"Something weird when getting taxonomy objects for building breadcrumbs, got: '$idError'")
+      }
+
+    private def getBreadcrumbFromIds(ids: Seq[String], bundle: TaxonomyBundle): SearchableLanguageList = {
+      val idsAndBreadcrumbs = ids.map(id => id -> bundle.getObject(id))
+      logBreadcrumbBuildingError(idsAndBreadcrumbs)
+
+      val breadcrumbs = idsAndBreadcrumbs.map(_._2)
+      val allLanguages = getAllLanguagesAndDefault(breadcrumbs.flatten)
+
+      val languageLists = allLanguages.map(language => {
+        val crumbNames = breadcrumbs.map(e => maybeElementToName(e, language))
+        LanguageValue(language, crumbNames)
       })
+
+      SearchableLanguageList(languageLists)
     }
 
     private def getResourceTaxonomyContexts(resource: Resource,
@@ -798,8 +826,7 @@ trait SearchConverterService {
       )
 
       val subjectLanguageValues = getSearchableLanguageValues(subject.name, subject.translations)
-      val breadcrumbList = Seq(LanguageValue(DefaultLanguage, getBreadcrumbFromIds(pathIds.dropRight(1), bundle))) // TODO: Get translations
-      val breadcrumbs = SearchableLanguageList(breadcrumbList)
+      val breadcrumbs = getBreadcrumbFromIds(pathIds.dropRight(1), bundle)
 
       val parentTopics = getAllParentTopicIds(taxonomyId, bundle)
 

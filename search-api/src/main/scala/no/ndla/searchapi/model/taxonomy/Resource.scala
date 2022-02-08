@@ -14,6 +14,10 @@ sealed trait TaxonomyElement {
   val path: Option[String]
   val metadata: Option[Metadata]
   val translations: List[TaxonomyTranslation]
+
+  def getNameFromTranslationOrDefault(language: String): String = {
+    translations.find(_.language == language).map(_.name).getOrElse(name)
+  }
 }
 
 case class TaxonomyTranslation(name: String, language: String)
