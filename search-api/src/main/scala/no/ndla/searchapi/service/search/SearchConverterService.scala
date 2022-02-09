@@ -736,6 +736,16 @@ trait SearchConverterService {
       SearchableLanguageList(languageLists)
     }
 
+    private def getRelevanceNames(relevanceId: String, bundle: TaxonomyBundle): SearchableLanguageValues = {
+      val relevanceName = bundle.relevancesById
+        .get(relevanceId)
+        .map(relevance => {
+          getSearchableLanguageValues(relevance.name, relevance.translations)
+        })
+
+      relevanceName.getOrElse(SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, ""))))
+    }
+
     private def getResourceTaxonomyContexts(resource: Resource,
                                             filterVisibles: Boolean,
                                             bundle: TaxonomyBundle): Try[List[SearchableTaxonomyContext]] = {
@@ -748,11 +758,7 @@ trait SearchConverterService {
         case Success(contextType) =>
           val contexts = topicsConnections.map({ tc =>
             val relevanceId = tc.relevanceId.getOrElse("urn:relevance:core")
-            val relevanceName = bundle.relevances
-              .find(r => r.id == relevanceId)
-              .map(_.name)
-              .getOrElse("")
-            val relevance = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, relevanceName)))
+            val relevance = getRelevanceNames(relevanceId, bundle)
 
             val topic = bundle.topicById.get(tc.topicid)
             topic
@@ -968,7 +974,7 @@ trait SearchConverterService {
         filterVisibles: Boolean
     ): List[T] =
       if (filterVisibles) {
-        elementsToFilter.filter((e: TaxonomyElement) => e.metadata.exists(_.visible))
+        elementsToFilter.filter(e => e.metadata.exists(_.visible))
       } else {
         elementsToFilter
       }
