@@ -766,19 +766,23 @@ trait SearchConverterService {
                 t =>
                   getParentTopicsAndPaths(t, bundle, List(t.id)).flatMap({
                     case (topic, topicPath) =>
-                      // Subjects needed to check visibility
-                      val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(topic.id, List.empty)
-                      val subjects = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
-
-                      val visibleSubjects = if (filterVisibles) {
-                        subjects.filter(_.metadata.forall(_.visible))
+                      val topicShouldBeExcluded = filterVisibles && (!topic.metadata.forall(_.visible))
+                      if (topicShouldBeExcluded) {
+                        List.empty
                       } else {
-                        subjects
-                      }
+                        // Subjects needed to check visibility
+                        val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(topic.id, List.empty)
+                        val subjects =
+                          subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
 
-                      visibleSubjects.flatMap(subject => {
-                        val pathIds = (resource.id +: topicPath :+ subject.id).reverse
-                        List(
+                        val visibleSubjects = if (filterVisibles) {
+                          subjects.filter(_.metadata.forall(_.visible))
+                        } else {
+                          subjects
+                        }
+
+                        visibleSubjects.map(subject => {
+                          val pathIds = (resource.id +: topicPath :+ subject.id).reverse
                           getSearchableTaxonomyContext(resource.id,
                                                        pathIds,
                                                        subject,
@@ -786,9 +790,11 @@ trait SearchConverterService {
                                                        relevance,
                                                        contextType,
                                                        resourceTypesWithParents,
-                                                       bundle))
+                                                       bundle)
 
-                      })
+                        })
+
+                      }
                   })
               })
               .getOrElse(List.empty)
@@ -818,7 +824,7 @@ trait SearchConverterService {
                                              relevance: SearchableLanguageValues,
                                              contextType: LearningResourceType.Value,
                                              resourceTypes: List[ResourceType],
-                                             bundle: TaxonomyBundle) = {
+                                             bundle: TaxonomyBundle): SearchableTaxonomyContext = {
 
       val path = "/" + pathIds.map(_.replace("urn:", "")).mkString("/")
 
