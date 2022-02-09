@@ -772,8 +772,7 @@ trait SearchConverterService {
                       } else {
                         // Subjects needed to check visibility
                         val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(topic.id, List.empty)
-                        val subjects =
-                          subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
+                        val subjects = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
 
                         val visibleSubjects = if (filterVisibles) {
                           subjects.filter(_.metadata.forall(_.visible))
@@ -901,25 +900,29 @@ trait SearchConverterService {
         case Success(contextType) =>
           val contexts = parentTopicsAndPaths.map({
             case (parentTopic, topicPath) =>
-              val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(parentTopic.id, List.empty)
-              val subjects = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
-
-              val visibleSubjects = if (filterVisibles) {
-                subjects.filter(subject => subject.metadata.exists(_.visible))
+              val topicShouldBeExcluded = filterVisibles && (!parentTopic.metadata.forall(_.visible))
+              if (topicShouldBeExcluded) {
+                List.empty
               } else {
-                subjects
-              }
+                val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(parentTopic.id, List.empty)
+                val subjects =
+                  subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
 
-              visibleSubjects.flatMap(subject => {
-                val pathIds = (topicPath :+ subject.id).reverse
-                val relevanceId = relevanceIds.headOption.getOrElse("urn.relevance.core")
-                val relevanceName = bundle.relevances
-                  .find(r => r.id == relevanceId)
-                  .map(_.name)
-                  .getOrElse("")
-                val relevance = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, relevanceName)))
+                val visibleSubjects = if (filterVisibles) {
+                  subjects.filter(subject => subject.metadata.exists(_.visible))
+                } else {
+                  subjects
+                }
 
-                List(
+                visibleSubjects.map(subject => {
+                  val pathIds = (topicPath :+ subject.id).reverse
+                  val relevanceId = relevanceIds.headOption.getOrElse("urn.relevance.core")
+                  val relevanceName = bundle.relevances
+                    .find(r => r.id == relevanceId)
+                    .map(_.name)
+                    .getOrElse("")
+                  val relevance = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, relevanceName)))
+
                   getSearchableTaxonomyContext(topic.id,
                                                pathIds,
                                                subject,
@@ -927,8 +930,9 @@ trait SearchConverterService {
                                                relevance,
                                                contextType,
                                                List.empty,
-                                               bundle))
-              })
+                                               bundle)
+                })
+              }
           })
           Success(contexts.flatten)
         case Failure(ex) => Failure(ex)

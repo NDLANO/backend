@@ -11,17 +11,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData.blockUntil
 import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.taxonomy.{
-  Metadata,
-  Resource,
-  ResourceResourceTypeConnection,
-  SubjectTopicConnection,
-  TaxSubject,
-  TaxonomyBundle,
-  Topic,
-  TopicResourceConnection,
-  TopicSubtopicConnection
-}
+import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
@@ -119,16 +109,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
 
   }
 
-  test("That taxonomy contexts with hidden elements are ignored") {
-    val article1 = TestData.article1.copy(
-      id = Some(1),
-      content = Seq(
-        ArticleContent(
-          """<section><div data-type="related-content"><embed data-article-id="3" data-resource="related-content"></div></section>""",
-          "nb"
-        )
-      )
-    )
+  test("That resource taxonomy contexts with hidden elements are ignored") {
+    val article1 = TestData.article1.copy(id = Some(1))
 
     val visibleMeta = Some(Metadata(List.empty, visible = true))
     val hiddenMeta = Some(Metadata(List.empty, visible = false))
@@ -277,5 +259,110 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       .get
 
     result.results.head.contexts.map(_.id) should be(Seq("urn:resource:2"))
+  }
+
+  test("That topic taxonomy contexts with hidden elements are ignored") {
+    val article1 = TestData.article1.copy(id = Some(1))
+
+    val visibleMeta = Some(Metadata(List.empty, visible = true))
+    val hiddenMeta = Some(Metadata(List.empty, visible = false))
+
+    val topics = List(
+      // Hidden topic with visible subject
+      Topic(
+        "urn:topic:1",
+        "Top1",
+        Some("urn:article:1"),
+        Some("/subject:1/topic:1"),
+        hiddenMeta,
+        List.empty
+      ),
+      // Visible subtopic
+      Topic(
+        "urn:topic:2",
+        "Top1",
+        Some("urn:article:1"),
+        Some("/subject:1/topic:1/topic:2"),
+        visibleMeta,
+        List.empty
+      ),
+      // Visible topic
+      Topic(
+        "urn:topic:3",
+        "Top1",
+        Some("urn:article:1"),
+        Some("/subject:1/topic:3"),
+        visibleMeta,
+        List.empty
+      )
+    )
+
+    val subjects = List(
+      // Visible subject
+      TaxSubject(
+        "urn:subject:1",
+        "Sub1",
+        None,
+        Some("/subject:1"),
+        visibleMeta,
+        List.empty
+      )
+    )
+
+    val subjectTopicConnections = List(
+      SubjectTopicConnection(
+        "urn:subject:1",
+        "urn:topic:1",
+        "urn:subjecttopic:1",
+        primary = true,
+        1,
+        Some("urn:relevance:core")
+      ),
+      SubjectTopicConnection(
+        "urn:subject:1",
+        "urn:topic:3",
+        "urn:subjecttopic:2",
+        primary = true,
+        1,
+        Some("urn:relevance:core")
+      )
+    )
+
+    val topicSubtopicConnections = List(
+      TopicSubtopicConnection(
+        "urn:topic:1",
+        "urn:topic:2",
+        "urn:topicsubtopic:1",
+        primary = true,
+        1,
+        Some("urn:relevance:core")
+      )
+    )
+
+    val taxonomyBundle = TaxonomyBundle(
+      resources = List.empty,
+      topics = topics,
+      subjects = subjects,
+      relevances = TestData.relevances,
+      resourceResourceTypeConnections = List.empty,
+      resourceTypes = TestData.resourceTypes,
+      subjectTopicConnections = subjectTopicConnections,
+      topicResourceConnections = List.empty,
+      topicSubtopicConnections = topicSubtopicConnections,
+    )
+
+    articleIndexService.indexDocument(article1, taxonomyBundle, Some(TestData.grepBundle)).get
+
+    blockUntil(() => {
+      articleIndexService.countDocuments == 1
+    })
+
+    val result = multiSearchService
+      .matchingQuery(
+        TestData.searchSettings.copy(
+          ))
+      .get
+
+    result.results.head.contexts.map(_.id) should be(Seq("urn:topic:3"))
   }
 }
