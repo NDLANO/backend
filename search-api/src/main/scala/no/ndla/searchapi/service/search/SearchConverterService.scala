@@ -917,11 +917,7 @@ trait SearchConverterService {
                 visibleSubjects.map(subject => {
                   val pathIds = (topicPath :+ subject.id).reverse
                   val relevanceId = relevanceIds.headOption.getOrElse("urn.relevance.core")
-                  val relevanceName = bundle.relevances
-                    .find(r => r.id == relevanceId)
-                    .map(_.name)
-                    .getOrElse("")
-                  val relevance = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, relevanceName)))
+                  val relevance = getRelevanceNames(relevanceId, bundle)
 
                   getSearchableTaxonomyContext(topic.id,
                                                pathIds,
