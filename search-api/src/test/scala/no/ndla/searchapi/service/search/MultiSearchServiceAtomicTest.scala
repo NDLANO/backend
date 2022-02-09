@@ -112,139 +112,143 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
   test("That resource taxonomy contexts with hidden elements are ignored") {
     val article1 = TestData.article1.copy(id = Some(1))
 
-    val visibleMeta = Some(Metadata(List.empty, visible = true))
-    val hiddenMeta = Some(Metadata(List.empty, visible = false))
+    val taxonomyBundle = {
+      val visibleMeta = Some(Metadata(List.empty, visible = true))
+      val hiddenMeta = Some(Metadata(List.empty, visible = false))
 
-    val resources = List(
-      // Visible resource with hidden parent topic
-      Resource(
-        "urn:resource:1",
-        "Res1",
-        Some("urn:article:1"),
-        Some("/subject:1/topic:1/topic:2/resource:1"),
-        visibleMeta,
-        List.empty
-      ),
-      // Visible resource with visible parent topic
-      Resource(
-        "urn:resource:2",
-        "Res2",
-        Some("urn:article:1"),
-        Some("/subject:1/topic:3/resource:2"),
-        visibleMeta,
-        List.empty
+      val resources = List(
+        // Visible resource with hidden parent topic
+        Resource(
+          "urn:resource:1",
+          "Res1",
+          Some("urn:article:1"),
+          Some("/subject:1/topic:1/topic:2/resource:1"),
+          visibleMeta,
+          List.empty
+        ),
+        // Visible resource with visible parent topic
+        Resource(
+          "urn:resource:2",
+          "Res2",
+          Some("urn:article:1"),
+          Some("/subject:1/topic:3/resource:2"),
+          visibleMeta,
+          List.empty
+        )
       )
-    )
 
-    val topics = List(
-      // Hidden topic with visible subject
-      Topic(
-        "urn:topic:1",
-        "Top1",
-        Some("urn:article:2"),
-        Some("/subject:1/topic:1"),
-        hiddenMeta,
-        List.empty
-      ),
-      // Visible subtopic
-      Topic(
-        "urn:topic:2",
-        "Top1",
-        Some("urn:article:3"),
-        Some("/subject:1/topic:1/topic:2"),
-        visibleMeta,
-        List.empty
-      ),
-      // Visible topic
-      Topic(
-        "urn:topic:3",
-        "Top1",
-        Some("urn:article:4"),
-        Some("/subject:1/topic:3"),
-        visibleMeta,
-        List.empty
+      val topics = List(
+        // Hidden topic with visible subject
+        Topic(
+          "urn:topic:1",
+          "Top1",
+          Some("urn:article:2"),
+          Some("/subject:1/topic:1"),
+          hiddenMeta,
+          List.empty
+        ),
+        // Visible subtopic
+        Topic(
+          "urn:topic:2",
+          "Top1",
+          Some("urn:article:3"),
+          Some("/subject:1/topic:1/topic:2"),
+          visibleMeta,
+          List.empty
+        ),
+        // Visible topic
+        Topic(
+          "urn:topic:3",
+          "Top1",
+          Some("urn:article:4"),
+          Some("/subject:1/topic:3"),
+          visibleMeta,
+          List.empty
+        )
       )
-    )
 
-    val subjects = List(
-      // Visible subject
-      TaxSubject(
-        "urn:subject:1",
-        "Sub1",
-        None,
-        Some("/subject:1"),
-        visibleMeta,
-        List.empty
+      val subjects = List(
+        // Visible subject
+        TaxSubject(
+          "urn:subject:1",
+          "Sub1",
+          None,
+          Some("/subject:1"),
+          visibleMeta,
+          List.empty
+        )
       )
-    )
 
-    val resourceResourceTypeConnections = List(
-      ResourceResourceTypeConnection("urn:resource:1",
-                                     "urn:resourcetype:subjectMaterial",
-                                     "urn:resourceresourcetype:1"),
-      ResourceResourceTypeConnection("urn:resource:2", "urn:resourcetype:subjectMaterial", "urn:resourceresourcetype:1")
-    )
-
-    val subjectTopicConnections = List(
-      SubjectTopicConnection(
-        "urn:subject:1",
-        "urn:topic:1",
-        "urn:subjecttopic:1",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
-      ),
-      SubjectTopicConnection(
-        "urn:subject:1",
-        "urn:topic:3",
-        "urn:subjecttopic:2",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
+      val resourceResourceTypeConnections = List(
+        ResourceResourceTypeConnection("urn:resource:1",
+                                       "urn:resourcetype:subjectMaterial",
+                                       "urn:resourceresourcetype:1"),
+        ResourceResourceTypeConnection("urn:resource:2",
+                                       "urn:resourcetype:subjectMaterial",
+                                       "urn:resourceresourcetype:1")
       )
-    )
 
-    val topicSubtopicConnections = List(
-      TopicSubtopicConnection(
-        "urn:topic:1",
-        "urn:topic:2",
-        "urn:topicsubtopic:1",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
+      val subjectTopicConnections = List(
+        SubjectTopicConnection(
+          "urn:subject:1",
+          "urn:topic:1",
+          "urn:subjecttopic:1",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        ),
+        SubjectTopicConnection(
+          "urn:subject:1",
+          "urn:topic:3",
+          "urn:subjecttopic:2",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        )
       )
-    )
 
-    val topicResourceConnections = List(
-      TopicResourceConnection(
-        "urn:topic:2",
-        "urn:resource:1",
-        "urn:topicresource:1",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
-      ),
-      TopicResourceConnection(
-        "urn:topic:3",
-        "urn:resource:2",
-        "urn:topicresource:2",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
+      val topicSubtopicConnections = List(
+        TopicSubtopicConnection(
+          "urn:topic:1",
+          "urn:topic:2",
+          "urn:topicsubtopic:1",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        )
       )
-    )
 
-    val taxonomyBundle = TaxonomyBundle(
-      resources = resources,
-      topics = topics,
-      subjects = subjects,
-      relevances = TestData.relevances,
-      resourceResourceTypeConnections = resourceResourceTypeConnections,
-      resourceTypes = TestData.resourceTypes,
-      subjectTopicConnections = subjectTopicConnections,
-      topicResourceConnections = topicResourceConnections,
-      topicSubtopicConnections = topicSubtopicConnections,
-    )
+      val topicResourceConnections = List(
+        TopicResourceConnection(
+          "urn:topic:2",
+          "urn:resource:1",
+          "urn:topicresource:1",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        ),
+        TopicResourceConnection(
+          "urn:topic:3",
+          "urn:resource:2",
+          "urn:topicresource:2",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        )
+      )
+
+      TaxonomyBundle(
+        resources = resources,
+        topics = topics,
+        subjects = subjects,
+        relevances = TestData.relevances,
+        resourceResourceTypeConnections = resourceResourceTypeConnections,
+        resourceTypes = TestData.resourceTypes,
+        subjectTopicConnections = subjectTopicConnections,
+        topicResourceConnections = topicResourceConnections,
+        topicSubtopicConnections = topicSubtopicConnections,
+      )
+    }
 
     articleIndexService.indexDocument(article1, taxonomyBundle, Some(TestData.grepBundle)).get
 
@@ -264,92 +268,94 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
   test("That topic taxonomy contexts with hidden elements are ignored") {
     val article1 = TestData.article1.copy(id = Some(1))
 
-    val visibleMeta = Some(Metadata(List.empty, visible = true))
-    val hiddenMeta = Some(Metadata(List.empty, visible = false))
+    val taxonomyBundle = {
+      val visibleMeta = Some(Metadata(List.empty, visible = true))
+      val hiddenMeta = Some(Metadata(List.empty, visible = false))
 
-    val topics = List(
-      // Hidden topic with visible subject
-      Topic(
-        "urn:topic:1",
-        "Top1",
-        Some("urn:article:1"),
-        Some("/subject:1/topic:1"),
-        hiddenMeta,
-        List.empty
-      ),
-      // Visible subtopic
-      Topic(
-        "urn:topic:2",
-        "Top1",
-        Some("urn:article:1"),
-        Some("/subject:1/topic:1/topic:2"),
-        visibleMeta,
-        List.empty
-      ),
-      // Visible topic
-      Topic(
-        "urn:topic:3",
-        "Top1",
-        Some("urn:article:1"),
-        Some("/subject:1/topic:3"),
-        visibleMeta,
-        List.empty
+      val topics = List(
+        // Hidden topic with visible subject
+        Topic(
+          "urn:topic:1",
+          "Top1",
+          Some("urn:article:1"),
+          Some("/subject:1/topic:1"),
+          hiddenMeta,
+          List.empty
+        ),
+        // Visible subtopic
+        Topic(
+          "urn:topic:2",
+          "Top1",
+          Some("urn:article:1"),
+          Some("/subject:1/topic:1/topic:2"),
+          visibleMeta,
+          List.empty
+        ),
+        // Visible topic
+        Topic(
+          "urn:topic:3",
+          "Top1",
+          Some("urn:article:1"),
+          Some("/subject:1/topic:3"),
+          visibleMeta,
+          List.empty
+        )
       )
-    )
 
-    val subjects = List(
-      // Visible subject
-      TaxSubject(
-        "urn:subject:1",
-        "Sub1",
-        None,
-        Some("/subject:1"),
-        visibleMeta,
-        List.empty
+      val subjects = List(
+        // Visible subject
+        TaxSubject(
+          "urn:subject:1",
+          "Sub1",
+          None,
+          Some("/subject:1"),
+          visibleMeta,
+          List.empty
+        )
       )
-    )
 
-    val subjectTopicConnections = List(
-      SubjectTopicConnection(
-        "urn:subject:1",
-        "urn:topic:1",
-        "urn:subjecttopic:1",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
-      ),
-      SubjectTopicConnection(
-        "urn:subject:1",
-        "urn:topic:3",
-        "urn:subjecttopic:2",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
+      val subjectTopicConnections = List(
+        SubjectTopicConnection(
+          "urn:subject:1",
+          "urn:topic:1",
+          "urn:subjecttopic:1",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        ),
+        SubjectTopicConnection(
+          "urn:subject:1",
+          "urn:topic:3",
+          "urn:subjecttopic:2",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        )
       )
-    )
 
-    val topicSubtopicConnections = List(
-      TopicSubtopicConnection(
-        "urn:topic:1",
-        "urn:topic:2",
-        "urn:topicsubtopic:1",
-        primary = true,
-        1,
-        Some("urn:relevance:core")
+      val topicSubtopicConnections = List(
+        TopicSubtopicConnection(
+          "urn:topic:1",
+          "urn:topic:2",
+          "urn:topicsubtopic:1",
+          primary = true,
+          1,
+          Some("urn:relevance:core")
+        )
       )
-    )
 
-    val taxonomyBundle = TaxonomyBundle(
-      resources = List.empty,
-      topics = topics,
-      subjects = subjects,
-      relevances = TestData.relevances,
-      resourceResourceTypeConnections = List.empty,
-      resourceTypes = TestData.resourceTypes,
-      subjectTopicConnections = subjectTopicConnections,
-      topicResourceConnections = List.empty,
-      topicSubtopicConnections = topicSubtopicConnections,
-    )
+      TaxonomyBundle(
+        resources = List.empty,
+        topics = topics,
+        subjects = subjects,
+        relevances = TestData.relevances,
+        resourceResourceTypeConnections = List.empty,
+        resourceTypes = TestData.resourceTypes,
+        subjectTopicConnections = subjectTopicConnections,
+        topicResourceConnections = List.empty,
+        topicSubtopicConnections = topicSubtopicConnections,
+      )
+    }
 
     articleIndexService.indexDocument(article1, taxonomyBundle, Some(TestData.grepBundle)).get
 
