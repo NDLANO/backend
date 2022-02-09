@@ -150,7 +150,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         // Visible subtopic
         Topic(
           "urn:topic:2",
-          "Top1",
+          "Top2",
           Some("urn:article:3"),
           Some("/subject:1/topic:1/topic:2"),
           visibleMeta,
