@@ -16,7 +16,7 @@ case class Concept(
     // format: off
     @(ApiModelProperty @field)(description = "The unique id of the concept") id: Long,
     @(ApiModelProperty @field)(description = "The revision of the concept") revision: Int,
-    @(ApiModelProperty @field)(description = "Available titles for the concept") title: Option[ConceptTitle],
+    @(ApiModelProperty @field)(description = "Available titles for the concept") title: ConceptTitle,
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[ConceptContent],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[Copyright],
     @(ApiModelProperty @field)(description = "URL for the source of the concept") source: Option[String],
