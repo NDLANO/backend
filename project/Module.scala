@@ -59,7 +59,10 @@ trait Module {
       "-feature",
       "-Xfatal-warnings",
       "-Xlint",
+      "-Wconf:src=src_managed/.*:silent"
     ),
+    // Disable warns about non-exhaustive match in tests as they are very useful there.
+    Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
       .envOrNone("NDLA_RELEASES")
