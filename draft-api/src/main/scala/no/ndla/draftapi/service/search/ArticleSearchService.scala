@@ -108,6 +108,7 @@ trait ArticleSearchService {
         val searchToExecute = search(searchIndex)
           .size(numResults)
           .from(startAt)
+          .trackTotalHits(true)
           .query(filteredSearch)
           .highlighting(highlight("*"))
           .sortBy(getSortDefinition(settings.sort, searchLanguage))

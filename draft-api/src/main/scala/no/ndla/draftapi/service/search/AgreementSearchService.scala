@@ -78,6 +78,7 @@ trait AgreementSearchService {
         val searchToExecute = search(searchIndex)
           .size(numResults)
           .from(startAt)
+          .trackTotalHits(true)
           .query(filteredSearch)
           .sortBy(getSortDefinition(settings.sort))
 
