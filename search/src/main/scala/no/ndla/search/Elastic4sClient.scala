@@ -7,17 +7,14 @@
 
 package no.ndla.search
 
-import com.sksamuel.elastic4s.ElasticClient
-
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.http.JavaClient
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.search.Elastic4sClientFactory.RequestConfigCallbackWithTimeout
 import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 
-import scala.concurrent.duration.{Duration, DurationInt}
+import java.util.concurrent.Executors
+import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
