@@ -53,7 +53,7 @@ trait ConverterService {
           api.Concept(
             id = concept.id.get,
             revision = concept.revision.getOrElse(-1),
-            title = Some(title),
+            title = title,
             content = Some(content),
             copyright = concept.copyright.map(toApiCopyright),
             source = concept.source,

@@ -96,7 +96,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                          Some(Seq.empty),
                          None,
                          None)
-    val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
+    val expectedConcept = concept.copy(title = api.ConceptTitle(newTitle, "nn"),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
                                        articleIds = Seq.empty)
@@ -126,7 +126,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val expectedConcept = concept.copy(
-      title = Option(api.ConceptTitle(updatedTitle, "en")),
+      title = api.ConceptTitle(updatedTitle, "en"),
       content = Option(api.ConceptContent(updatedContent, "en")),
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
