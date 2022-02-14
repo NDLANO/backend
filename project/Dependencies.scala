@@ -35,6 +35,8 @@ object Dependencies {
     lazy val postgres = "org.postgresql" % "postgresql" % PostgresV
     lazy val hikari = "com.zaxxer" % "HikariCP" % HikariConnectionPoolV
 
+    lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.7.0"
+
     lazy val database = Seq(
       scalikejdbc,
       postgres,
