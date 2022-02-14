@@ -75,6 +75,7 @@ trait GrepCodesSearchService {
         val searchToExecute = search(searchIndex)
           .size(numResults)
           .from(startAt)
+          .trackTotalHits(true)
           .query(queryBuilder)
           .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 

@@ -100,6 +100,7 @@ trait MultiSearchService {
           .query(filteredSearch)
           .suggestions(suggestions(settings.query, searchLanguage, settings.fallback))
           .from(startAt)
+          .trackTotalHits(true)
           .size(numResults)
           .highlighting(highlight("*"))
           .aggs(aggregations)

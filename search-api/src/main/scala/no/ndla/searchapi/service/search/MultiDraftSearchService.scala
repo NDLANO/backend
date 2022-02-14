@@ -111,6 +111,7 @@ trait MultiDraftSearchService {
         val searchToExecute = search(searchIndex)
           .query(filteredSearch)
           .suggestions(suggestions(settings.query, searchLanguage, settings.fallback))
+          .trackTotalHits(true)
           .from(startAt)
           .size(numResults)
           .highlighting(highlight("*"))

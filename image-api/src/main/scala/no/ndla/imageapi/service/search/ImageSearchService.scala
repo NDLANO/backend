@@ -136,6 +136,7 @@ trait ImageSearchService {
         val searchToExecute =
           search(searchIndex)
             .size(numResults)
+            .trackTotalHits(true)
             .from(startAt)
             .highlighting(highlight("*"))
             .query(filteredSearch)
