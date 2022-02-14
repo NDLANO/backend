@@ -8,7 +8,7 @@ export interface IAuthor {
 export interface IConcept {
   id: number
   revision: number
-  title?: IConceptTitle
+  title: IConceptTitle
   content?: IConceptContent
   copyright?: ICopyright
   source?: string
