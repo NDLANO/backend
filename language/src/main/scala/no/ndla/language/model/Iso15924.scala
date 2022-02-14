@@ -8,7 +8,6 @@
 package no.ndla.language.model
 
 import CodeLists.{Iso15924, iso15924Definitions}
-import no.ndla.language.model.CodeLists.Iso15924
 
 import scala.util.{Failure, Success, Try}
 
