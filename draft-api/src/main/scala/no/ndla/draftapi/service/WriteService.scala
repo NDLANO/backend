@@ -36,7 +36,7 @@ import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.jdk.CollectionConverters._
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try}
@@ -307,9 +307,10 @@ trait WriteService {
         case None           => toUpdate
       }
 
-      val willPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
+      val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
       val withPartialPublishNote =
-        if (willPartialPublish) converterService.addNote(toUpdate, "Artikkelen har blitt delpublisert", user)
+        if (fieldsToPartialPublish.nonEmpty)
+          converterService.addNote(toUpdate, "Artikkelen har blitt delpublisert", user)
         else toUpdate
 
       for {
@@ -321,10 +322,9 @@ trait WriteService {
                                               importId,
                                               shouldAlwaysCopy,
                                               user)
-        _ <- partialPublishIfNeeded(willPartialPublish,
-                                    domainArticle,
-                                    PartialArticleFields.values.toSeq,
-                                    language.getOrElse(Language.AllLanguages))
+        _ = partialPublishIfNeeded(domainArticle,
+                                   PartialArticleFields.values.toSeq,
+                                   language.getOrElse(Language.AllLanguages))
         _ <- indexArticle(domainArticle)
         _ <- updateTaxonomyForArticle(domainArticle)
       } yield domainArticle
@@ -383,21 +383,38 @@ trait WriteService {
       shouldUpdateStatus
     }
 
-    def shouldPartialPublish(existingArticle: Option[domain.Article], changedArticle: domain.Article): Boolean = {
+    def compareField(field: PartialArticleFields.Value,
+                     old: domain.Article,
+                     changed: domain.Article): Option[PartialArticleFields.Value] = {
+      val shouldInclude = field match {
+        case PartialArticleFields.availability    => old.availability != changed.availability
+        case PartialArticleFields.grepCodes       => old.grepCodes != changed.grepCodes
+        case PartialArticleFields.relatedContent  => old.relatedContent != changed.relatedContent
+        case PartialArticleFields.tags            => old.tags.sorted != changed.tags.sorted
+        case PartialArticleFields.metaDescription => old.metaDescription.sorted != changed.metaDescription.sorted
+        case PartialArticleFields.license         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
+      }
+
+      Option.when(shouldInclude)(field)
+    }
+
+    /** Returns fields to partial publish _if_ we partial-publishing requirements are satisfied,
+      * otherwise returns an empty set. */
+    def shouldPartialPublish(existingArticle: Option[domain.Article],
+                             changedArticle: domain.Article): Set[PartialArticleFields.Value] = {
       val isPublished =
         changedArticle.status.current == ArticleStatus.PUBLISHED ||
           changedArticle.status.other.contains(ArticleStatus.PUBLISHED)
 
-      val hasChangedPartialPublishField = existingArticle.forall(e => {
-        e.availability != changedArticle.availability ||
-        e.grepCodes != changedArticle.grepCodes ||
-        e.copyright.flatMap(e => e.license) != changedArticle.copyright.flatMap(e => e.license) ||
-        e.metaDescription.sorted != changedArticle.metaDescription.sorted ||
-        e.relatedContent != changedArticle.relatedContent ||
-        e.tags.sorted != changedArticle.tags.sorted
-      })
+      if (isPublished) {
+        val changedFields = existingArticle
+          .map(e => PartialArticleFields.values.flatMap(field => compareField(field, e, changedArticle)))
+          .getOrElse(PartialArticleFields.values)
 
-      isPublished && hasChangedPartialPublishField
+        changedFields
+      } else {
+        Set.empty
+      }
     }
 
     private def updateStatusIfNeeded(convertedArticle: domain.Article,
@@ -696,25 +713,42 @@ trait WriteService {
                        articleFieldsToUpdate: Seq[PartialArticleFields.Value],
                        language: String): (Long, Try[domain.Article]) =
       draftRepository.withId(id) match {
-        case None          => id -> Failure(NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
-        case Some(article) => id -> partialPublish(article, articleFieldsToUpdate, language)
+        case None => id -> Failure(NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
+        case Some(article) =>
+          partialPublish(article, articleFieldsToUpdate, language)
+          id -> Success(article)
       }
 
-    private def partialPublishIfNeeded(shouldPartialPublish: Boolean,
-                                       article: domain.Article,
+    private def partialPublishIfNeeded(article: domain.Article,
                                        articleFieldsToUpdate: Seq[PartialArticleFields.Value],
-                                       language: String): Try[domain.Article] =
-      if (shouldPartialPublish) partialPublish(article, articleFieldsToUpdate, language) else Success(article)
+                                       language: String): Future[Try[domain.Article]] = {
+      if (articleFieldsToUpdate.nonEmpty)
+        partialPublish(article, articleFieldsToUpdate, language)
+      else
+        Future.successful(Success(article))
+    }
 
     private def partialPublish(article: domain.Article,
                                fieldsToPublish: Seq[PartialArticleFields.Value],
-                               language: String): Try[domain.Article] =
+                               language: String): Future[Try[domain.Article]] = {
       article.id match {
-        case None => Failure(new IllegalStateException(s"Article to partial publish did not have id. This is a bug."))
+        case None =>
+          Future.successful(
+            Failure(new IllegalStateException(s"Article to partial publish did not have id. This is a bug.")))
         case Some(id) =>
+          implicit val executionContext: ExecutionContextExecutorService =
+            ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-          articleApiClient.partialPublishArticle(id, partialArticle).map(_ => article)
+          val fut = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
+
+          fut.onComplete {
+            case Failure(ex) => logger.error(s"Failed to partial publish article with id '$id', with error", ex)
+            case _           => logger.info(s"Successfully partial published article with id '$id'")
+          }
+
+          fut.map(_.map(_ => article))
       }
+    }
 
     def partialPublishMultiple(language: String, partialBulk: PartialBulkArticles): Try[MultiPartialPublishResult] = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))

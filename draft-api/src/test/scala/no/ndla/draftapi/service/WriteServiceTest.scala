@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 import java.io.ByteArrayInputStream
 import java.util.Date
 import no.ndla.draftapi.auth.{Role, UserInfo}
-import no.ndla.draftapi.model.api.ArticleApiArticle
+import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.model.domain._
@@ -1083,7 +1083,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.shouldUpdateStatus(article3, article4) should be(false)
   }
 
-  test("shouldPartialPublish return false if articles are equal") {
+  test("shouldPartialPublish return empty-set if articles are equal") {
     val nnMeta = ArticleMetaDescription("Meta nn", "nn")
     val nbMeta = ArticleMetaDescription("Meta nb", "nb")
 
@@ -1091,14 +1091,43 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                                      metaDescription = Seq(nnMeta, nbMeta))
     val article2 = TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set(PUBLISHED)),
                                                      metaDescription = Seq(nnMeta, nbMeta))
-    service.shouldPartialPublish(Some(article1), article2) should be(false)
+    service.shouldPartialPublish(Some(article1), article2) should be(Set.empty)
 
     val article3 = TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set(PUBLISHED)),
                                                      metaDescription = Seq(nnMeta, nbMeta))
     val article4 = TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set(PUBLISHED)),
                                                      metaDescription = Seq(nbMeta, nnMeta))
-    service.shouldPartialPublish(Some(article3), article4) should be(false)
+    service.shouldPartialPublish(Some(article3), article4) should be(Set.empty)
 
+  }
+
+  test("shouldPartialPublish returns set of changed fields") {
+
+    val article1 = TestData.sampleDomainArticle.copy(
+      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      metaDescription = Seq(
+        ArticleMetaDescription("Meta nn", "nn"),
+        ArticleMetaDescription("Meta nb", "nb")
+      ),
+      grepCodes = Seq(
+        "KE123"
+      )
+    )
+
+    val article2 = TestData.sampleDomainArticle.copy(
+      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      metaDescription = Seq(
+        ArticleMetaDescription("Ny Meta nn", "nn"),
+        ArticleMetaDescription("Meta nb", "nb")
+      ),
+      grepCodes = Seq("KE123", "KE456")
+    )
+
+    service.shouldPartialPublish(Some(article1), article2) should be(
+      Set(
+        PartialArticleFields.metaDescription,
+        PartialArticleFields.grepCodes
+      ))
   }
 
 }
