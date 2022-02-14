@@ -7,18 +7,17 @@
 
 package no.ndla.draftapi.service.search
 
-import java.lang.Math.max
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
-import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
+import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
@@ -63,7 +62,7 @@ trait SearchService {
           )
         })
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage => DefaultLanguage
         case _                   => language
@@ -94,7 +93,7 @@ trait SearchService {
   trait BasicSearchService[T] {
     val searchIndex: String
 
-    def getSortDefinition(sort: Sort.Value): FieldSort = {
+    def getSortDefinition(sort: Sort): FieldSort = {
       sort match {
         case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.Asc).missing("_last")
         case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.Desc).missing("_last")

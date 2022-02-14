@@ -8,7 +8,8 @@
 package db.migration
 
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
-import scala.util.{Success, Try}
+
+import scala.util.Success
 
 class V31__ConvertBrightcoveIdsTest extends UnitSuite with TestEnvironment {
 

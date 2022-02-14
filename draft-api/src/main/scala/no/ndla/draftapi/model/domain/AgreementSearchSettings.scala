@@ -13,6 +13,6 @@ case class AgreementSearchSettings(
     license: Option[String],
     page: Int,
     pageSize: Int,
-    sort: Sort.Value,
+    sort: Sort,
     shouldScroll: Boolean
 )

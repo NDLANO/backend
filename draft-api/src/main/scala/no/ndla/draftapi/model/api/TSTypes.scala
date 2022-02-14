@@ -7,9 +7,8 @@
 
 package no.ndla.draftapi.model.api
 
-import com.scalatsi._
-import com.scalatsi.dsl._
 import com.scalatsi.TypescriptType.TSNull
+import com.scalatsi._
 import no.ndla.draftapi.model.domain
 
 /**

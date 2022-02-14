@@ -9,11 +9,10 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.network.NdlaClient
+import scalaj.http.Http
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scalaj.http.Http
 
 trait ReindexClient {
   val reindexClient: ReindexClient

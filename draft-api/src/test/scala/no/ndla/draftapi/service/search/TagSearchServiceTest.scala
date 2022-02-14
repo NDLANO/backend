@@ -96,7 +96,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

@@ -20,12 +20,12 @@ import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import org.joda.time.DateTime
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success, Try}
+import enumeratum.Json4s
 
 trait DraftController {
   this: ReadService
@@ -38,7 +38,7 @@ trait DraftController {
   val draftController: DraftController
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + new EnumNameSerializer(
+    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + Json4s.serializer(
       PartialArticleFields)
     protected val applicationDescription = "API for accessing draft articles."
 
@@ -162,7 +162,7 @@ trait DraftController {
     }
 
     private def search(query: Option[String],
-                       sort: Option[Sort.Value],
+                       sort: Option[Sort],
                        language: String,
                        license: Option[String],
                        page: Int,
@@ -698,7 +698,7 @@ trait DraftController {
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       doOrAccessDenied(userInfo.canWrite) {
-        extract[Seq[PartialArticleFields.Value]](request.body) match {
+        extract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
             writeService.partialPublishAndConvertToApiArticle(articleId, articleFieldsToUpdate, language, fallback) match {

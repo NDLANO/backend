@@ -7,12 +7,9 @@
 
 package db.migration
 
-import java.util.Date
-import java.util.UUID.randomUUID
-
+import enumeratum.Json4s
 import no.ndla.draftapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.{JArray, JObject}
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
@@ -22,7 +19,8 @@ import org.jsoup.nodes.TextNode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import scala.language.{implicitConversions, postfixOps}
+import java.util.Date
+import java.util.UUID.randomUUID
 
 class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
@@ -73,9 +71,8 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
     else extractedArticle.status
 
   def convertTopicArticle(document: String): String = {
-    implicit val formats
-      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V16__ArticleStatus) + new EnumNameSerializer(
-      ArticleType)
+    implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V16__ArticleStatus) + Json4s
+      .serializer(ArticleType)
 
     val oldArticle = parse(document)
     val extractedArticle = oldArticle.extract[V16__Article]
@@ -161,7 +158,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
   case class V16__VisualElement(resource: String, language: String)
   case class V16__Article(content: Seq[V16__Content],
                           visualElement: Seq[V16__VisualElement],
-                          articleType: ArticleType.Value,
+                          articleType: ArticleType,
                           status: V16__Status,
                           notes: Seq[V16__EditorNote])
 

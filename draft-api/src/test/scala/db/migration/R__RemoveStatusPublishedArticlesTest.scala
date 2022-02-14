@@ -6,7 +6,7 @@
  */
 
 package db.migration
-import no.ndla.draftapi.model.domain.{Article, ArticleStatus, Status}
+import no.ndla.draftapi.model.domain.{ArticleStatus, Status}
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class R__RemoveStatusPublishedArticlesTest extends UnitSuite with TestEnvironment {

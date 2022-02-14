@@ -7,13 +7,12 @@
 
 package no.ndla.draftapi.integration
 
+import cats.implicits._
 import no.ndla.draftapi.model.domain.ArticleTitle
 import no.ndla.draftapi.{DraftApiProperties, TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
-import cats.implicits._
 
 import scala.concurrent.TimeoutException
 import scala.util.{Failure, Success}
@@ -270,7 +269,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => Success(i.getArgument[Topic](1))).when(taxonomyApiClient).putRaw(any[String], any[Topic], any[(String, String)])(any[Formats])
     doAnswer((i: InvocationOnMock) => Success(i.getArgument[Resource](1))).when(taxonomyApiClient).putRaw(any[String], any[Resource], any[(String, String)])(any[Formats])
     doAnswer((i: InvocationOnMock) => Success(i.getArgument[Translation](1))).when(taxonomyApiClient).putRaw(any[String], any[Translation], any[(String, String)])(any[Formats])
-    
+
     doReturn(Success(()), Success(())).when(taxonomyApiClient).delete(any[String], any[(String, String)])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getResourceTranslations(any[String])
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).getTopicTranslations(any[String])

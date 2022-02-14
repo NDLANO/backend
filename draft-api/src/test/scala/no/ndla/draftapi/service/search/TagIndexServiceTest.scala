@@ -8,12 +8,9 @@
 package no.ndla.draftapi.service.search
 
 import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
-
-import scala.util.Success
 
 class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
@@ -41,7 +38,7 @@ class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer 
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

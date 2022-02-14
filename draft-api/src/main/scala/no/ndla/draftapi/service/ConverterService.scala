@@ -7,16 +7,15 @@
 
 package no.ndla.draftapi.service
 
-import java.util.Date
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.DraftApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewAgreement, NotFoundException, RelatedContentLink}
+import no.ndla.draftapi.model.api.{NewAgreement, NotFoundException}
 import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain.{ArticleStatus, _}
+import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -26,6 +25,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.jsoup.nodes.Element
 
+import java.util.Date
 import scala.jdk.CollectionConverters._
 import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
@@ -298,7 +298,7 @@ trait ConverterService {
             article.updated,
             article.updatedBy,
             article.published,
-            article.articleType.toString,
+            article.articleType.entryName,
             article.supportedLanguages,
             article.notes.map(toApiEditorNote),
             article.editorLabels,
@@ -336,22 +336,6 @@ trait ConverterService {
         latestEditedArticles = userData.latestEditedArticles,
         favoriteSubjects = userData.favoriteSubjects
       )
-    }
-
-    def toDomainStatus(status: api.Status): Try[domain.Status] = {
-      val newCurrent = ArticleStatus.valueOfOrError(status.current)
-      val newOther = status.other.map(ArticleStatus.valueOfOrError)
-      val (newOtherValids, newOtherInvalids) = newOther.partition(_.isSuccess)
-
-      (newCurrent, newOtherInvalids, newOtherValids) match {
-        case (Failure(_), _, _) => Failure(new ValidationException(s"Status ${status.current} is invalid", Seq()))
-        case (_, invalidOthers, _) if invalidOthers.nonEmpty =>
-          val messages = invalidOthers.map(_.failed.get).map(x => ValidationMessage("status.other", x.getMessage))
-          Failure(new ValidationException(s"One or more status(es) are invalid", messages))
-        case (Success(current), _, others) if others.forall(_.isSuccess) =>
-          Success(domain.Status(current, others.map(_.get).toSet))
-      }
-
     }
 
     def toApiEditorNote(note: domain.EditorNote): api.EditorNote =
@@ -477,7 +461,7 @@ trait ConverterService {
         updated = article.updated,
         updatedBy = article.updatedBy,
         published = article.published,
-        articleType = article.articleType.toString,
+        articleType = article.articleType.entryName,
         grepCodes = article.grepCodes,
         conceptIds = article.conceptIds,
         availability = article.availability,

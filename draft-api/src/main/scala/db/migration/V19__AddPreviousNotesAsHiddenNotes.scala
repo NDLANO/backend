@@ -7,16 +7,15 @@
 
 package db.migration
 
-import java.util.Date
-
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.{DefaultFormats, Extraction}
-import org.json4s.JsonAST.{JArray, JField, JObject}
+import org.json4s.JsonAST.{JField, JObject}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read
+import org.json4s.{DefaultFormats, Extraction}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
+import java.util.Date
 import scala.util.{Success, Try}
 
 class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {

@@ -58,7 +58,7 @@ trait SearchConverterService {
           .map(a => a.map(_.name))
           .toSeq
           .flatten,
-        articleType = ai.articleType.toString,
+        articleType = ai.articleType.entryName,
         notes = ai.notes.map(_.note),
         defaultTitle = defaultTitle.map(_.title),
         users = ai.updatedBy +: ai.notes.map(_.user),

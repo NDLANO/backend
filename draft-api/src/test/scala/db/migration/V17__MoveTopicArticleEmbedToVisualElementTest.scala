@@ -7,8 +7,9 @@
 
 package db.migration
 
-import java.util.Date
+import enumeratum.Json4s
 
+import java.util.Date
 import no.ndla.draftapi.model.domain.ArticleType
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats
@@ -77,7 +78,7 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
 
   test("Status should be sucessfully updated to wait for quality assurance if it is published") {
     implicit val formats
-      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + new EnumNameSerializer(
+      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(
       ArticleType)
 
     val old1 =
@@ -106,7 +107,7 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
 
   test("Notes should be added if embed is deleted") {
     implicit val formats
-      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + new EnumNameSerializer(
+      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(
       ArticleType)
 
     val d = write(new Date())

@@ -161,7 +161,7 @@ trait DraftRepository {
       failIfRevisionMismatch(count, article, newRevision)
     }
 
-    private def deletePreviousRevisions(article: Article)(implicit session: DBSession = AutoSession): Int = {
+    private def deletePreviousRevisions(article: Article)(implicit session: DBSession): Int = {
       val a = Article.syntax("ar")
       withSQL {
         delete

@@ -231,7 +231,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   test("all should return only articles of a given type if a type filter is specified") {
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
-        articleTypes = Seq(ArticleType.TopicArticle.toString)
+        articleTypes = Seq(ArticleType.TopicArticle.entryName)
       ))
     results.totalCount should be(3)
     results.results.map(_.id) should be(Seq(8, 9, 11))
@@ -386,7 +386,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
-        articleTypes = Seq(ArticleType.TopicArticle.toString)
+        articleTypes = Seq(ArticleType.TopicArticle.entryName)
       ))
     results.totalCount should be(0)
 
@@ -394,7 +394,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
-        articleTypes = Seq(ArticleType.Standard.toString)
+        articleTypes = Seq(ArticleType.Standard.entryName)
       ))
 
     results2.totalCount should be(3)
@@ -712,7 +712,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

@@ -7,23 +7,22 @@
 
 package no.ndla.draftapi.service
 
-import java.io.ByteArrayInputStream
-import java.util.Date
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
-import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite, integration}
 import no.ndla.validation.{HtmlTagRules, ValidationMessage}
-import org.joda.time.{DateTime, DateTimeUtils}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.joda.time.DateTime
+import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
+import java.io.ByteArrayInputStream
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -44,13 +43,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val agreement: Agreement = TestData.sampleDomainAgreement.copy(id = Some(agreementId))
 
   override def beforeEach(): Unit = {
-    Mockito.reset(articleIndexService,
-                  draftRepository,
-                  agreementIndexService,
-                  tagIndexService,
-                  grepCodesIndexService,
-                  agreementRepository,
-                  contentValidator)
+    reset(articleIndexService,
+          draftRepository,
+          agreementIndexService,
+          tagIndexService,
+          grepCodesIndexService,
+          agreementRepository,
+          contentValidator)
 
     when(draftRepository.withId(articleId)).thenReturn(Option(article))
     when(agreementRepository.withId(agreementId)).thenReturn(Option(agreement))
@@ -99,8 +98,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .isSuccess should be(true)
 
     verify(draftRepository, times(1)).newEmptyArticle()
-    verify(draftRepository, times(0)).insert(any[Article])
-    verify(draftRepository, times(1)).updateArticle(any[Article], any[Boolean])
+    verify(draftRepository, times(0)).insert(any[Article])(any)
+    verify(draftRepository, times(1)).updateArticle(any[Article], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexDocument(any[Article])
   }
 
@@ -110,7 +109,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.newAgreement(TestData.newAgreement, TestData.userWithWriteAccess).get.id.toString should equal(
       agreement.id.get.toString)
-    verify(agreementRepository, times(1)).insert(any[Agreement])
+    verify(agreementRepository, times(1)).insert(any[Agreement])(any)
     verify(agreementIndexService, times(1)).indexDocument(any[Agreement])
   }
 
@@ -345,7 +344,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
     service.deleteLanguage(article.id.get, "nn", UserInfo("asdf", Set()))
-    verify(draftRepository).updateArticle(articleCaptor.capture(), anyBoolean)
+    verify(draftRepository).updateArticle(articleCaptor.capture(), anyBoolean)(any)
 
     articleCaptor.getValue.title.length should be(1)
   }
@@ -414,7 +413,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
             notes = updatedArticle.notes.map(_.copy(timestamp = today)))
 
     when(draftRepository.withId(10)).thenReturn(Some(articleToUpdate))
-    when(draftRepository.updateArticle(any[Article], eqTo(false))).thenReturn(Success(updatedAndInserted))
+    when(draftRepository.updateArticle(any[Article], eqTo(false))(any)).thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
     when(searchApiClient.indexDraft(any[Article])).thenReturn(updatedAndInserted)
@@ -1030,7 +1029,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
 
     val captor: ArgumentCaptor[domain.Article] = ArgumentCaptor.forClass(classOf[domain.Article])
-    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)
+    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
     articlePassedToUpdate.notes.head.note should be("Artikkelen har blitt delpublisert")
   }
@@ -1059,7 +1058,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val captor: ArgumentCaptor[domain.Article] = ArgumentCaptor.forClass(classOf[domain.Article])
-    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)
+    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
 
     articlePassedToUpdate.content should be(Seq.empty)

@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.model.domain
 
-import java.awt.image.BufferedImage
 import java.io.InputStream
 
 trait FileStream {

@@ -7,8 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import java.util.Date
-
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, IllegalStatusStateTransition}
 import no.ndla.draftapi.model.domain
@@ -16,14 +14,11 @@ import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.ValidationException
-import org.eclipse.jetty.util.IO
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
-import org.mockito.internal.matchers.Any
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {

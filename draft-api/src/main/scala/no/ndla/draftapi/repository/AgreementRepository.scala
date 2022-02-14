@@ -41,7 +41,7 @@ trait AgreementRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(agreement))
 
-      val count = sql"update ${Agreement.table} set document=${dataObject} where id=${agreement.id}".update()
+      sql"update ${Agreement.table} set document=${dataObject} where id=${agreement.id}".update()
 
       logger.info(s"Updated agreement ${agreement.id}")
       Success(agreement)

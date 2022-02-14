@@ -8,8 +8,8 @@
 package no.ndla.draftapi.integration
 
 import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
+import enumeratum.Json4s
 import no.ndla.draftapi.DraftApiProperties.SearchApiHost
 import no.ndla.draftapi.model.domain.{Article, ArticleStatus, ArticleType}
 import no.ndla.draftapi.service.ConverterService
@@ -35,7 +35,7 @@ trait SearchApiClient {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
           new EnumNameSerializer(ArticleStatus) +
-          new EnumNameSerializer(ArticleType)
+          Json4s.serializer(ArticleType)
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

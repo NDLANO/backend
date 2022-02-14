@@ -8,10 +8,10 @@
 
 package no.ndla.draftapi.model.api
 
-import java.util.Date
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
+import java.util.Date
 import scala.annotation.meta.field
-import no.ndla.draftapi.model.domain.Availability
 
 @ApiModel(description = "Information about the article")
 case class UpdatedArticle(
