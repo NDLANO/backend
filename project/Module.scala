@@ -51,8 +51,15 @@ trait Module {
     organization := "ndla",
     version := "0.0.1",
     scalaVersion := ScalaV,
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
+    javacOptions ++= Seq("-source", "11", "-target", "11"),
+    scalacOptions := Seq(
+      "-target:jvm-11",
+      "-unchecked",
+      "-deprecation",
+      "-feature",
+      "-Xfatal-warnings",
+      "-Xlint",
+    ),
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
       .envOrNone("NDLA_RELEASES")
