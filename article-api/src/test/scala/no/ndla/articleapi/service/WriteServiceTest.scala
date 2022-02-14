@@ -8,18 +8,14 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.api
-
-import java.util.Date
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers._
-import org.mockito.{ArgumentCaptor, InvocationOps, Mockito}
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
 
+import java.util.Date
 import scala.util.{Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {

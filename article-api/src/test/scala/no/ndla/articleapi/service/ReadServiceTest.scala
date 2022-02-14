@@ -9,23 +9,13 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
-import no.ndla.articleapi.model.domain.{
-  ArticleContent,
-  ArticleTag,
-  ArticleType,
-  Cachable,
-  SearchSettings,
-  Sort,
-  VisualElement
-}
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
-import no.ndla.validation.{ResourceType, TagAttributes}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
 
 import scala.util.{Success, Try}

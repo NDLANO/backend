@@ -6,10 +6,9 @@
  */
 package db.migration
 
-import no.ndla.articleapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.{DefaultFormats, JObject}
-import org.json4s.JsonAST.{JArray, JString}
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}

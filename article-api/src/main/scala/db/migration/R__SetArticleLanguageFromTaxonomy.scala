@@ -19,7 +19,7 @@ import org.postgresql.util.PGobject
 import scalaj.http.Http
 import scalikejdbc.{DB, DBSession, _}
 
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
 
 class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
@@ -53,7 +53,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     val externalId = resource.id.flatMap(i => Try(i.split(':').last.toLong).toOption)
 
     convertedArticleId match {
-      case Some(articleId) => Some(articleId, externalId)
+      case Some(articleId) => Some((articleId, externalId))
       case _               => None
     }
 
@@ -74,7 +74,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
         keywords.keyword
           .flatMap(_.names)
           .flatMap(_.data)
-          .flatMap(_.toIterable)
+          .flatMap(_.toList)
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))

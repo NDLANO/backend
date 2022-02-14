@@ -13,9 +13,8 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 import no.ndla.validation.{ValidationException, ValidationMessage}
-import org.mockito.Mockito._
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator()

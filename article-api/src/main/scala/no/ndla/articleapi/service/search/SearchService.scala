@@ -8,20 +8,19 @@
 
 package no.ndla.articleapi.service.search
 
-import java.lang.Math.max
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
-import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
+import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
@@ -74,7 +73,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case NoLanguage => DefaultLanguage
         case _          => language

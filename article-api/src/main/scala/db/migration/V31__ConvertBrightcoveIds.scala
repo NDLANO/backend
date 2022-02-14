@@ -125,7 +125,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
     while (numPagesLeft > 0) {
-      var futures = ListBuffer.empty[Future[(String, Long)]]
+      val futures = ListBuffer.empty[Future[(String, Long)]]
 
       allArticles(offset * 1000).map {
         case (id, document) =>

@@ -7,8 +7,6 @@
 
 package no.ndla.articleapi.integration
 
-import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.SearchHost
 import no.ndla.articleapi.model.domain.{Article, ArticleType}
@@ -17,8 +15,9 @@ import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import scalaj.http.Http
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 

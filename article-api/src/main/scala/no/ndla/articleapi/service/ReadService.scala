@@ -199,7 +199,7 @@ trait ReadService {
 
     def search(
         query: Option[String],
-        sort: Option[Sort.Value],
+        sort: Option[Sort],
         language: String,
         license: Option[String],
         page: Int,

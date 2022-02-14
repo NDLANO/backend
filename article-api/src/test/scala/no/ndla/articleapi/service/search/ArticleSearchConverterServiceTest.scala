@@ -12,8 +12,6 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
