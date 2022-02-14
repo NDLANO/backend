@@ -21,7 +21,7 @@ object Dependencies {
     val FlywayV = "7.5.3"
     val PostgresV = "42.2.18"
     val PactV = "2.3.16"
-    val ScalaTsiV = "0.5.1"
+    val ScalaTsiV = "0.6.0"
     val Http4sV = "0.21.21"
     val RhoV = "0.21.0"
     val CirceV = "0.13.0"
