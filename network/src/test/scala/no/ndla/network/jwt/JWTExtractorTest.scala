@@ -9,8 +9,6 @@ package no.ndla.network.jwt
 
 import no.ndla.network.UnitSuite
 import no.ndla.network.model.NdlaHttpRequest
-import org.mockito.Mockito.when
-import org.mockito.ArgumentMatchers._
 
 class JWTExtractorTest extends UnitSuite {
 
