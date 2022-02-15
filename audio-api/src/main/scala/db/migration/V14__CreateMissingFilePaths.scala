@@ -8,10 +8,9 @@
 package db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.{JArray, JValue}
-import org.json4s.{Extraction, JNothing, JObject, JString, JValue}
+import org.json4s.Extraction
+import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.native.Serialization
 import org.postgresql.util.PGobject
 import scalikejdbc._
 

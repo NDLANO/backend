@@ -14,6 +14,7 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import java.util.Date
 import scala.annotation.meta.field
+import scala.annotation.unused
 
 // format: off
 @ApiModel(description = "Meta information about the audio object")
@@ -36,6 +37,7 @@ case class AudioMetaInformation(
 
 object AudioMetaInformation {
   implicit val audioMetaInformationTSI: TSIType[AudioMetaInformation] = {
+    @unused
     implicit val seriesReference: TSNamedType[Series] = TSType.external[Series]("ISeries")
     TSType.fromCaseClass[AudioMetaInformation]
   }

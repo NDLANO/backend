@@ -14,6 +14,6 @@ case class SeriesSearchSettings(
     language: Option[String],
     page: Option[Int],
     pageSize: Option[Int],
-    sort: Sort.Value,
+    sort: Sort,
     shouldScroll: Boolean,
 )

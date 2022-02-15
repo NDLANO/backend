@@ -553,7 +553,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0)))
 
-    var updated = writeService.deleteAudioLanguageVersion(audioId, "nn")
+    val updated = writeService.deleteAudioLanguageVersion(audioId, "nn")
     verify(audioRepository, times(1)).update(expectedAudio, audioId)
     updated.get.head.supportedLanguages should not contain ("nn")
   }

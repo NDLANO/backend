@@ -8,14 +8,12 @@
 
 package no.ndla.audioapi.integration
 
-import java.util.Date
-
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.model.api
 import no.ndla.network.NdlaClient
-
-import scala.util.{Success, Try}
 import scalaj.http.{Http, HttpRequest}
+
+import java.util.Date
 
 trait DraftApiClient {
   this: NdlaClient =>

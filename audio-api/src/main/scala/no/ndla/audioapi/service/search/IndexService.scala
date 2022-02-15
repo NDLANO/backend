@@ -70,18 +70,15 @@ trait IndexService {
     }
 
     def sendToElastic(indexName: String): Try[Int] = {
-      var numIndexed = 0
-      getRanges.map(ranges => {
-        ranges.foreach(range => {
-          val documentsToIndex = repository.documentsWithIdBetween(range._1, range._2)
-          val numberInBulk = documentsToIndex.flatMap(indexDocuments(_, indexName))
-          numberInBulk match {
-            case Success(num) => numIndexed += num
-            case Failure(f)   => return Failure(f)
+      getRanges
+        .flatMap(ranges => {
+          ranges.traverse {
+            case (start, end) =>
+              val documentsToIndex = repository.documentsWithIdBetween(start, end)
+              documentsToIndex.flatMap(indexDocuments(_, indexName))
           }
         })
-        numIndexed
-      })
+        .map(_.sum)
     }
 
     def getRanges: Try[List[(Long, Long)]] = {

@@ -10,6 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.AudioApiProperties._
 import no.ndla.audioapi.auth.{Role, User}
+import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
   AudioSummarySearchResult,
@@ -23,7 +24,6 @@ import no.ndla.audioapi.model.api.{
   ValidationMessage
 }
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
-import no.ndla.audioapi.model.{Sort, api}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
@@ -81,7 +81,7 @@ trait AudioController {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")

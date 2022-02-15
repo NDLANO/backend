@@ -8,15 +8,13 @@
 package db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
+import org.json4s.JObject
 import org.json4s.JsonAST.JField
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, Formats, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V13__AddSeriesDescriptionField extends BaseJavaMigration {
-  private implicit val formats: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

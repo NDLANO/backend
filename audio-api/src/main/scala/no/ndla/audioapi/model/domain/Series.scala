@@ -10,7 +10,6 @@ package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.search.SearchLanguage
 import org.joda.time.DateTime
 import org.json4s.FieldSerializer.ignore
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}

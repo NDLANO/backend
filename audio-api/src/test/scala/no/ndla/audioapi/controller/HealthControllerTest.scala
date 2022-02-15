@@ -12,9 +12,6 @@ import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.test.scalatest.ScalatraFunSuite
-import org.mockito.Mockito._
-import org.json4s.native.Serialization.write
-
 import scalaj.http.HttpResponse
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

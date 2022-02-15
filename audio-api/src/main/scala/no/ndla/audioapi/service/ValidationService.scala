@@ -317,13 +317,6 @@ trait ValidationService {
 
     private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
-    private def validateNonEmpty(fieldPath: String, option: Option[_]): Option[ValidationMessage] = {
-      option match {
-        case Some(_) => None
-        case None    => Some(ValidationMessage(fieldPath, "There is no element to validate."))
-      }
-    }
-
     def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
       if (sequence.nonEmpty) {
         None

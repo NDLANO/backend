@@ -8,12 +8,11 @@
 
 package no.ndla.audioapi.service
 
-import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Mockito._
 import no.ndla.mapping.License.CC_BY_SA
+import org.joda.time.{DateTime, DateTimeZone}
 
 import java.util.Date
 import scala.util.Success

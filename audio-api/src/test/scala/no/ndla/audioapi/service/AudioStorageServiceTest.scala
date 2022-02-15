@@ -11,8 +11,6 @@ package no.ndla.audioapi.service
 import com.amazonaws.AmazonClientException
 import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 
 class AudioStorageServiceTest extends UnitSuite with TestEnvironment {
   val storage = new AudioStorage

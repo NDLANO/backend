@@ -16,7 +16,6 @@ import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
-import cats.implicits._
 
 import scala.util.{Failure, Success, Try}
 
@@ -145,7 +144,7 @@ trait AudioRepository {
     }
 
     private def audioMetaInformationWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
+        implicit session: DBSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       val se = Series.syntax("se")
       sql"""
