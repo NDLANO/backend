@@ -12,12 +12,10 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.caching.Memoize
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import org.scalatest.TryValues._
+import scalaj.http.HttpRequest
 
 import scala.util.{Failure, Success}
-import scalaj.http.HttpRequest
 
 class OEmbedServiceTest extends UnitSuite with TestEnvironment {
 
