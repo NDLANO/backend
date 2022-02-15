@@ -21,6 +21,7 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 trait IndexService {
   this: Elastic4sClient with ImageRepository with BaseIndexService =>
@@ -61,17 +62,15 @@ trait IndexService {
     }
 
     def sendToElastic(indexName: String): Try[Int] = {
-      var numIndexed = 0
-      getRanges.map(ranges => {
-        ranges.foreach(range => {
-          val numberInBulk = indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
-          numberInBulk match {
-            case Success(num) => numIndexed += num
-            case Failure(f)   => return Failure(f)
+      getRanges
+        .flatMap(ranges => {
+          ranges.traverse {
+            case (start, end) =>
+              val toIndex = repository.documentsWithIdBetween(start, end)
+              indexDocuments(toIndex, indexName)
           }
         })
-        numIndexed
-      })
+        .map(_.sum)
     }
 
     def getRanges: Try[List[(Long, Long)]] = {

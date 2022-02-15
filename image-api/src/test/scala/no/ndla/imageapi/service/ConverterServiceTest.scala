@@ -8,15 +8,14 @@
 
 package no.ndla.imageapi.service
 
-import java.util.Date
-
-import javax.servlet.http.HttpServletRequest
-import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.api
+import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.{ApplicationUrl, Domains}
+import no.ndla.network.ApplicationUrl
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.Mockito._
+
+import java.util.Date
+import javax.servlet.http.HttpServletRequest
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 

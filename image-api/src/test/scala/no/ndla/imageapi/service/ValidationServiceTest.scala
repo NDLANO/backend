@@ -7,15 +7,12 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.servlet.FileItem
-import org.mockito.Mockito._
-
-import scala.util.Failure
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
   override val validationService = new ValidationService

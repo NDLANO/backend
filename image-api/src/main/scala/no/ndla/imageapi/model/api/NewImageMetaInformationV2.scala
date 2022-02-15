@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.model.api
 
-import no.ndla.imageapi.model.domain.{EditorNote, ModelReleasedStatus}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field

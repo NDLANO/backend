@@ -10,16 +10,13 @@ package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
-import no.ndla.imageapi.model.{ImageStorageException, api, domain}
+import no.ndla.imageapi.model.{api, domain}
 import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import java.util.Date
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {

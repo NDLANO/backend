@@ -7,9 +7,9 @@
 
 package no.ndla.imageapi.model.api
 
-import no.ndla.imageapi.ImageApiProperties
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+
 import scala.annotation.meta.field
 
 // format: off

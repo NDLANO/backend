@@ -43,7 +43,6 @@ trait HealthController {
     }
 
     get("/") {
-      val applicationUrl = ApplicationUrl.get
       val host = "localhost"
       val port = ImageApiProperties.ApplicationPort
 

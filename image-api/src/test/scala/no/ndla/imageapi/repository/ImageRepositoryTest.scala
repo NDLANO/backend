@@ -115,7 +115,7 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val path1 = "/path1.jpg"
     val image1 = TestData.bjorn.copy(id = None, imageUrl = path1)
     val id1 = repository.insert(image1).id.get
-    val id2 = repository.insert(image1.copy(id = None)).id.get
+    repository.insert(image1.copy(id = None)).id.get
 
     repository.getImageFromFilePath(path1).get should be(image1.copy(id = Some(id1)))
   }

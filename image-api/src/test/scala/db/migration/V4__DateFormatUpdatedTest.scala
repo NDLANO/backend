@@ -8,7 +8,6 @@
 package db.migration
 
 import no.ndla.imageapi.UnitSuite
-import org.mockito.Mockito.when
 
 class V4__DateFormatUpdatedTest extends UnitSuite {
 

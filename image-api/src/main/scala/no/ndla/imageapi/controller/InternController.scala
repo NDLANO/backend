@@ -10,15 +10,14 @@ package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.auth.User
-import no.ndla.imageapi.model.ImageStorageException
-import no.ndla.imageapi.model.api.Error
-import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.{ConverterService, ReadService}
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadRequest, GatewayTimeout, InternalServerError, NotFound, Ok}
 import no.ndla.imageapi.model.ImageNotFoundException
+import no.ndla.imageapi.model.api.Error
 import no.ndla.imageapi.model.domain.ImageMetaInformation
+import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
+import no.ndla.imageapi.service.{ConverterService, ReadService}
+import org.json4s.Formats
+import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.duration.Duration

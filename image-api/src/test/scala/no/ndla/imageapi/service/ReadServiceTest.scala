@@ -9,17 +9,14 @@
 package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
-
-import javax.servlet.http.HttpServletRequest
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonParser
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import scalikejdbc.DBSession
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {

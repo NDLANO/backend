@@ -8,7 +8,6 @@
 package db.migration
 
 import no.ndla.imageapi.UnitSuite
-import org.mockito.Mockito._
 
 class V3__AddUpdatedColoumsTest extends UnitSuite {
 

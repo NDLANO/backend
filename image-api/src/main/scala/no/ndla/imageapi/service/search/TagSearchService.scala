@@ -42,7 +42,7 @@ trait TagSearchService {
       searchableTag.tag
     }
 
-    override def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    override def getSortDefinition(sort: Sort, language: String): FieldSort = {
       sort match {
         case Sort.ByRelevanceAsc  => fieldSort("_score").sortOrder(SortOrder.Asc)
         case Sort.ByRelevanceDesc => fieldSort("_score").sortOrder(SortOrder.Desc)
@@ -56,7 +56,7 @@ trait TagSearchService {
         language: String,
         page: Int,
         pageSize: Int,
-        sort: Sort.Value
+        sort: Sort
     ): Try[SearchResult[String]] = executeSearch(language, page, pageSize, sort, boolQuery())
 
     def matchingQuery(
@@ -64,7 +64,7 @@ trait TagSearchService {
         searchLanguage: String,
         page: Int,
         pageSize: Int,
-        sort: Sort.Value
+        sort: Sort
     ): Try[SearchResult[String]] = {
 
       val fullQuery = boolQuery()
@@ -82,7 +82,7 @@ trait TagSearchService {
         language: String,
         page: Int,
         pageSize: Int,
-        sort: Sort.Value,
+        sort: Sort,
         queryBuilder: BoolQuery,
     ): Try[SearchResult[String]] = {
 

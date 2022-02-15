@@ -80,7 +80,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSort
+    def getSortDefinition(sort: Sort, language: String): FieldSort
 
     def countDocuments(): Long = {
       val response = e4sClient.execute {
@@ -108,7 +108,7 @@ trait SearchService {
       (startAt, numResults)
     }
 
-    protected def errorHandler[T](exception: Throwable): Failure[T] = {
+    protected def errorHandler[E](exception: Throwable): Failure[E] = {
       exception match {
         case e: NdlaSearchException =>
           e.rf.map(_.status).getOrElse(0) match {

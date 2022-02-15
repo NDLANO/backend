@@ -7,14 +7,13 @@
 
 package no.ndla.imageapi.service
 
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
-
 import no.ndla.imageapi.TestData.NdlaLogoImage
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
 import org.scalactic.TolerantNumerics
+
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 
 class ImageConverterTest extends UnitSuite with TestEnvironment {
   val service = new ImageConverter
@@ -27,14 +26,14 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("transformCoordinates returns a CoordOptions object with correctly transformed coordinates") {
-    service.transformCoordinates(image, PercentPoint(10, 5), PercentPoint(1, 20)) should equal(PixelPoint(10, 50),
-                                                                                               PixelPoint(100, 200))
-    service.transformCoordinates(image, PercentPoint(10, 20), PercentPoint(1, 5)) should equal(PixelPoint(10, 50),
-                                                                                               PixelPoint(100, 200))
-    service.transformCoordinates(image, PercentPoint(1, 5), PercentPoint(10, 20)) should equal(PixelPoint(10, 50),
-                                                                                               PixelPoint(100, 200))
-    service.transformCoordinates(image, PercentPoint(1, 20), PercentPoint(10, 5)) should equal(PixelPoint(10, 50),
-                                                                                               PixelPoint(100, 200))
+    service.transformCoordinates(image, PercentPoint(10, 5), PercentPoint(1, 20)) should equal(
+      (PixelPoint(10, 50), PixelPoint(100, 200)))
+    service.transformCoordinates(image, PercentPoint(10, 20), PercentPoint(1, 5)) should equal(
+      (PixelPoint(10, 50), PixelPoint(100, 200)))
+    service.transformCoordinates(image, PercentPoint(1, 5), PercentPoint(10, 20)) should equal(
+      (PixelPoint(10, 50), PixelPoint(100, 200)))
+    service.transformCoordinates(image, PercentPoint(1, 20), PercentPoint(10, 5)) should equal(
+      (PixelPoint(10, 50), PixelPoint(100, 200)))
   }
 
   test("getWidthHeight returns the width and height of a segment to crop") {
@@ -134,9 +133,9 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("minimalCropSizesToPreserveRatio calculates correct image sizes given ratio") {
-    service.minimalCropSizesToPreserveRatio(640, 426, 0.81) should equal(345, 426)
-    service.minimalCropSizesToPreserveRatio(851, 597, 1.5) should equal(850, 567)
-    service.minimalCropSizesToPreserveRatio(851, 597, 1.2) should equal(716, 597)
+    service.minimalCropSizesToPreserveRatio(640, 426, 0.81) should equal((345, 426))
+    service.minimalCropSizesToPreserveRatio(851, 597, 1.5) should equal((850, 567))
+    service.minimalCropSizesToPreserveRatio(851, 597, 1.2) should equal((716, 597))
   }
 
   test(

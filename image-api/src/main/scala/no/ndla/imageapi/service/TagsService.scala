@@ -30,7 +30,7 @@ trait TagsService {
       read[Keywords](Source.fromInputStream(stream).mkString).keyword
         .flatMap(_.names)
         .flatMap(_.data)
-        .flatMap(_.toIterable)
+        .flatMap(_.toList)
         .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
         .groupBy(_._1)
         .map(entry => (entry._1, entry._2.map(_._2)))

@@ -12,7 +12,7 @@ case class SearchSettings(
     minimumSize: Option[Int],
     language: Option[String],
     license: Option[String],
-    sort: Sort.Value,
+    sort: Sort,
     page: Option[Int],
     pageSize: Option[Int],
     includeCopyrighted: Boolean,
