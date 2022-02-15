@@ -16,7 +16,6 @@ import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.{SearchApiProperties, TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
 
@@ -63,12 +62,10 @@ class MultiSearchServiceTest
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      val indexedArticles =
-        articlesToIndex.map(article => articleIndexService.indexDocument(article, taxonomyTestBundle, Some(grepBundle)))
+      articlesToIndex.map(article => articleIndexService.indexDocument(article, taxonomyTestBundle, Some(grepBundle)))
 
-      val indexedLearningPaths =
-        learningPathsToIndex.map(lp =>
-          learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle)))
+      learningPathsToIndex.map(lp =>
+        learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle)))
 
       blockUntil(() => {
         articleIndexService.countDocuments == articlesToIndex.size &&
@@ -768,7 +765,6 @@ class MultiSearchServiceTest
     val Success(results) =
       multiSearchService.matchingQuery(
         searchSettings.copy(query = Some("\"delt!streng\"+\"delt-streng\""), language = "*"))
-    val hits = results.results
     results.totalCount should be(0)
   }
 
@@ -784,7 +780,6 @@ class MultiSearchServiceTest
   test("That exact and regular words can be searched with - operator") {
     val Success(results) =
       multiSearchService.matchingQuery(searchSettings.copy(query = Some("\"delt!streng\"+-katt"), language = "*"))
-    val hits = results.results
     results.totalCount should be(0)
   }
 

@@ -52,9 +52,7 @@ trait SearchService {
 
       val indexType = hit.index.split("_").headOption match {
         case Some(indexType) => indexType
-        case _               =>
-          // TODO: Handle this by returning `Try[MultiSearchSummary]` instead.
-          // Some stuff so i remember to fix this
+        case _ =>
           throw NdlaSearchException("Index type was bad when determining search result type.")
       }
 
@@ -62,6 +60,8 @@ trait SearchService {
         case `articleType`      => searchConverterService.articleHitAsMultiSummary _
         case `draftType`        => searchConverterService.draftHitAsMultiSummary _
         case `learningPathType` => searchConverterService.learningpathHitAsMultiSummary _
+        case _ =>
+          throw NdlaSearchException("Index type was bad when determining search result type.")
       }
 
       convertFunc(hit, language)
@@ -339,7 +339,7 @@ trait SearchService {
         })
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage => DefaultLanguage
         case _                   => language

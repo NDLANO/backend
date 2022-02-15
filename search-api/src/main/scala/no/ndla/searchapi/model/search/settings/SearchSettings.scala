@@ -17,7 +17,7 @@ case class SearchSettings(
     license: Option[String],
     page: Int,
     pageSize: Int,
-    sort: Sort.Value,
+    sort: Sort,
     withIdIn: List[Long],
     subjects: List[String],
     resourceTypes: List[String],

@@ -8,14 +8,13 @@
 package no.ndla.searchapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
-
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.InvalidIndexBodyException
 import no.ndla.searchapi.model.domain.article.Article
 import no.ndla.searchapi.model.domain.draft.Draft
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{ReindexResult, RequestInfo}
+import no.ndla.searchapi.model.domain.{Content, ReindexResult, RequestInfo}
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
 import org.scalatra._
 
@@ -76,6 +75,7 @@ trait InternController {
         case articleIndexService.documentType      => articleIndexService.deleteDocument(documentId)
         case draftIndexService.documentType        => draftIndexService.deleteDocument(documentId)
         case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
+        case _                                     =>
       }
     }
 
@@ -87,20 +87,25 @@ trait InternController {
     post("/:type/") {
       val indexType = params("type")
 
-      val indexedTry = indexType match {
-        case articleIndexService.documentType =>
-          parseBody[Article](request.body).flatMap(a => articleIndexService.indexDocument(a))
-        case draftIndexService.documentType =>
-          parseBody[Draft](request.body).flatMap(d => draftIndexService.indexDocument(d))
-        case learningPathIndexService.documentType =>
-          parseBody[LearningPath](request.body).flatMap(l => learningPathIndexService.indexDocument(l))
+      val Respond = (indexed: Try[Content]) => {
+        indexed match {
+          case Success(doc) => Created(doc)
+          case Failure(ex) =>
+            logger.error("Could not index document...", ex)
+            errorHandler(ex)
+        }
       }
 
-      indexedTry match {
-        case Success(doc) => Created(doc)
-        case Failure(ex) =>
-          logger.error("Could not index document...", ex)
-          errorHandler(ex)
+      indexType match {
+        case articleIndexService.documentType =>
+          Respond(parseBody[Article](request.body).flatMap(a => articleIndexService.indexDocument(a)))
+        case draftIndexService.documentType =>
+          Respond(parseBody[Draft](request.body).flatMap(d => draftIndexService.indexDocument(d)))
+        case learningPathIndexService.documentType =>
+          Respond(parseBody[LearningPath](request.body).flatMap(l => learningPathIndexService.indexDocument(l)))
+        case _ =>
+          BadRequest(
+            s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'")
       }
     }
 

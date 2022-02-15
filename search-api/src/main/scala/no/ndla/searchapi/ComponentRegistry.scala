@@ -11,12 +11,12 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
-import no.ndla.searchapi.integration._
 import no.ndla.searchapi.SearchApiProperties._
 import no.ndla.searchapi.auth.User
+import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
+import no.ndla.searchapi.integration._
 import no.ndla.searchapi.service.search._
-import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients, search}
+import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
 
 object ComponentRegistry
     extends ArticleApiClient

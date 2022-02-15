@@ -9,16 +9,12 @@
 package no.ndla.searchapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-
-import javax.servlet.http.HttpServletRequest
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.SearchApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.searchapi.integration.FeideApiClient
 import no.ndla.searchapi.model.api.{
   AccessDeniedException,
   Error,
-  FeideApiException,
   InvalidIndexBodyException,
   ResultWindowTooLargeException,
   TaxonomyException,
@@ -35,6 +31,7 @@ import org.json4s.native.Serialization.read
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -167,6 +164,6 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     }
   }
 
-  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
+  case class Param[T](paramName: String, description: String)
 
 }

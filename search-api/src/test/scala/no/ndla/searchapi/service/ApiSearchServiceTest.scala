@@ -12,8 +12,6 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.searchapi.model.api
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}

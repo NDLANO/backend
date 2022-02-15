@@ -9,7 +9,6 @@ package no.ndla.searchapi.integration
 
 import no.ndla.network.AuthUser
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article.{
   ArticleContent,

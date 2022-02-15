@@ -7,15 +7,14 @@
 
 package no.ndla.searchapi.service
 
-import no.ndla.searchapi.model.domain._
-import no.ndla.searchapi.model.{api, domain}
-import no.ndla.searchapi.SearchApiProperties.Domain
-import no.ndla.network.ApplicationUrl
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.network.ApplicationUrl
+import no.ndla.searchapi.SearchApiProperties.Domain
 import no.ndla.searchapi.integration.DraftApiClient
-import no.ndla.searchapi.model
-import no.ndla.searchapi.model.api.{LearningPathIntroduction, MetaDescription}
+import no.ndla.searchapi.model.api
+import no.ndla.searchapi.model.api.LearningPathIntroduction
 import no.ndla.searchapi.model.api.article.ArticleIntroduction
+import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.article.Article
 
 trait ConverterService {

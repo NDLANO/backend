@@ -10,7 +10,6 @@ package no.ndla.searchapi.model.domain.article
 import no.ndla.searchapi.model.domain.article.RelatedContentLink.RelatedContent
 import no.ndla.searchapi.model.domain.{Content, Tag, Title}
 import org.joda.time.DateTime
-import org.json4s.FieldSerializer
 
 case class Article(id: Option[Long],
                    revision: Option[Int],
