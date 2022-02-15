@@ -941,14 +941,13 @@ trait SearchConverterService {
       bundle match {
         case None => List.empty
         case Some(grepBundle) =>
-          val grepContext = grepBundle.kjerneelementer ++ grepBundle.kompetansemaal ++ grepBundle.tverrfagligeTemaer
           grepCodes
             .map(
               grepCode =>
                 SearchableGrepContext(
                   grepCode,
-                  grepContext
-                    .find(grepElement => grepElement.kode == grepCode)
+                  grepBundle.grepContextByCode
+                    .get(grepCode)
                     .flatMap(element =>
                       element.tittel.find(title => title.spraak == "default").map(title => title.verdi))
               ))
