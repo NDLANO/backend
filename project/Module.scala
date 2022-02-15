@@ -59,7 +59,8 @@ trait Module {
       "-feature",
       "-Xfatal-warnings",
       "-Xlint",
-      "-Wconf:src=src_managed/.*:silent"
+      "-Wconf:src=src_managed/.*:silent",
+      "-Wconf:cat=lint-byname-implicit:silent", // https://github.com/scala/bug/issues/12072
     ),
     // Disable warns about non-exhaustive match in tests as they are very useful there.
     Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),

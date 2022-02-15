@@ -6,10 +6,8 @@
  */
 
 package no.ndla.frontpageapi.controller
-import cats.Monad
 import cats.effect.{Effect, IO}
 import io.circe.generic.auto._
-import io.circe.syntax._
 import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
@@ -23,8 +21,7 @@ trait FilmPageController {
   this: ReadService with WriteService =>
   val filmPageController: FilmPageController[IO]
 
-  class FilmPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F])(implicit F: Monad[F])
-      extends AuthController[F] {
+  class FilmPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
 
     import swaggerSyntax._
 

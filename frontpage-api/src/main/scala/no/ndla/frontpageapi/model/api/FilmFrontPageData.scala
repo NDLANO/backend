@@ -7,8 +7,6 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe.generic.auto._
-
 case class FilmFrontPageData(name: String,
                              about: Seq[AboutFilmSubject],
                              movieThemes: Seq[MovieTheme],

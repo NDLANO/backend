@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi
 
 import cats.effect.IO
-import no.ndla.frontpageapi.controller.{FilmPageController, InternController}
+import no.ndla.frontpageapi.controller.FilmPageController
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}

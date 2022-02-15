@@ -14,7 +14,6 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 import io.circe.syntax._
 import io.circe.generic.auto._
-import io.circe.parser._
 import SubjectFrontPageData._
 import scala.util.{Failure, Success, Try}
 

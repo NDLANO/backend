@@ -6,8 +6,6 @@
  */
 
 package db.migration
-import io.circe.syntax._
-import no.ndla.frontpageapi.repository._
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V4__AddLanguageToAboutTest extends UnitSuite with TestEnvironment {

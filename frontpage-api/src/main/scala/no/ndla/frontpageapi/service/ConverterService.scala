@@ -111,7 +111,7 @@ object ConverterService {
       case VisualElementType.Brightcove =>
         s"https://players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayer}_default/index.html?videoId=${visual.id}"
     }
-    api.VisualElement(visual.`type`.toString, url, visual.alt)
+    api.VisualElement(visual.`type`.entryName, url, visual.alt)
   }
 
   def toDomainSubjectPage(id: Long, subject: api.NewSubjectFrontPageData): Try[domain.SubjectFrontPageData] =

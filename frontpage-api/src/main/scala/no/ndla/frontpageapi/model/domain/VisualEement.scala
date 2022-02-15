@@ -10,16 +10,24 @@ package no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
+import enumeratum._
 
-case class VisualElement(`type`: VisualElementType.Value, id: String, alt: Option[String])
+case class VisualElement(`type`: VisualElementType, id: String, alt: Option[String])
 
-object VisualElementType extends Enumeration {
-  val Image: VisualElementType.Value = Value("image")
-  val Brightcove: VisualElementType.Value = Value("brightcove")
+sealed abstract class VisualElementType(override val entryName: String) extends EnumEntry
 
-  def fromString(str: String): Try[VisualElementType.Value] =
-    VisualElementType.values.find(_.toString == str) match {
+object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualElementType] {
+  case object Image extends VisualElementType("image")
+  case object Brightcove extends VisualElementType("brightcove")
+
+  val values: IndexedSeq[VisualElementType] = findValues
+
+  val all: Seq[String] = values.map(_.entryName)
+
+  def fromString(str: String): Try[VisualElementType] =
+    VisualElementType.values.find(_.entryName == str) match {
       case Some(v) => Success(v)
       case None    => Failure(ValidationException(s"'$str' is an invalid visual element type"))
     }
+
 }

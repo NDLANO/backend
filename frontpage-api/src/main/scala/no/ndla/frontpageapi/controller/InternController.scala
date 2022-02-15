@@ -7,7 +7,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.Monad
 import cats.effect.{Effect, IO}
 import no.ndla.frontpageapi.FrontpageApiProperties
 import no.ndla.frontpageapi.model.api._
@@ -16,14 +15,13 @@ import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import org.http4s.rho.RhoRoutes
 import org.http4s.rho.swagger.SwaggerSyntax
 
-import scala.language.higherKinds
 import scala.util.{Failure, Success}
 
 trait InternController {
   this: ReadService with WriteService =>
   val internController: InternController[IO]
 
-  class InternController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F])(implicit F: Monad[F]) extends RhoRoutes[F] {
+  class InternController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
     import swaggerSyntax._
 
     "Get subject page id from external id" **

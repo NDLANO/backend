@@ -37,6 +37,7 @@ object Dependencies {
 
     lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.7.0"
     lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"
+    lazy val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.7.0"
 
     lazy val database = Seq(
       scalikejdbc,

@@ -13,8 +13,6 @@ import org.http4s.EntityDecoder
 import org.http4s.circe.jsonOf
 import io.circe.generic.auto._
 
-import scala.language.higherKinds
-
 case class NewOrUpdatedFilmFrontPageData(name: String,
                                          about: Seq[NewOrUpdatedAboutSubject],
                                          movieThemes: Seq[NewOrUpdatedMovieTheme],
