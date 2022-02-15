@@ -56,7 +56,6 @@ trait WriteService {
         concept.id match {
           case Some(id) if draftConceptRepository.exists(id) =>
             if (forceUpdate) {
-              val existing = draftConceptRepository.withId(id)
               updateConcept(concept) match {
                 case Failure(ex) =>
                   logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
@@ -68,7 +67,7 @@ trait WriteService {
             } else {
               Failure(ConceptExistsAlreadyException("The concept already exists."))
             }
-          case None => draftConceptRepository.insertWithId(concept)
+          case _ => draftConceptRepository.insertWithId(concept)
         }
       })
     }

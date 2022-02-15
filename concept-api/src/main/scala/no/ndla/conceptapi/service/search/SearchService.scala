@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.service.search
 
-import java.lang.Math.max
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
@@ -16,12 +15,13 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.term.TermQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.language.Language.{AllLanguages, NoLanguage}
-import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
+import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.mapping.ISO639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
+import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
@@ -135,7 +135,7 @@ trait SearchService {
       } else { orFilter(seq, s"$fieldName.$language.raw") }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case NoLanguage => DefaultLanguage
         case _          => language
@@ -162,7 +162,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value): FieldSort = {
+    def getSortDefinition(sort: Sort): FieldSort = {
       sort match {
         case Sort.ByTitleAsc        => fieldSort("title.lower").order(SortOrder.Asc).missing("_last")
         case Sort.ByTitleDesc       => fieldSort("title.lower").order(SortOrder.Desc).missing("_last")

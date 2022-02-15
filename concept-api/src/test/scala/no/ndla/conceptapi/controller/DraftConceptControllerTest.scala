@@ -6,18 +6,15 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.{ConceptSummary, NewConcept, NewConceptMetaImage, NotFoundException, UpdatedConcept}
-import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
-import no.ndla.conceptapi.UnitSuite
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
-import no.ndla.conceptapi.model.search.{DraftSearchSettings, SearchSettings}
+import no.ndla.conceptapi.model.search.DraftSearchSettings
+import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
-import org.mockito.Mockito
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}

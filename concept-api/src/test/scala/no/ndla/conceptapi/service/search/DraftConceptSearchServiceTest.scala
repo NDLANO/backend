@@ -438,8 +438,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("That searching for not indexed language should work and not return hits") {
     val Success(search) =
       draftConceptSearchService.all(searchSettings.copy(searchLanguage = "bij"))
-    val hits = search.results
-
     search.totalCount should equal(0)
   }
 
@@ -742,7 +740,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

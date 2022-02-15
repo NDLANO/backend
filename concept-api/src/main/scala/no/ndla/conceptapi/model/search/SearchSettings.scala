@@ -16,7 +16,7 @@ case class SearchSettings(
     searchLanguage: String,
     page: Int,
     pageSize: Int,
-    sort: Sort.Value,
+    sort: Sort,
     fallback: Boolean,
     subjects: Set[String],
     tagsToFilterBy: Set[String],

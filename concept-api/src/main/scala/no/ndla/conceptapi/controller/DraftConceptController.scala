@@ -76,7 +76,7 @@ trait DraftConceptController {
 
     private def search(
         query: Option[String],
-        sort: Option[Sort.Value],
+        sort: Option[Sort],
         language: String,
         page: Int,
         pageSize: Int,

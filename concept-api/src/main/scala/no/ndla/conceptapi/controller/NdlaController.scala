@@ -7,44 +7,32 @@
 
 package no.ndla.conceptapi.controller
 
-import java.nio.file.AccessDeniedException
 import com.typesafe.scalalogging.LazyLogging
-
-import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
-import no.ndla.conceptapi.ConceptApiProperties.{
-  CorrelationIdHeader,
-  CorrelationIdKey,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  InitialScrollContextKeywords
-}
-import no.ndla.conceptapi.auth.User
+import no.ndla.conceptapi.ConceptApiProperties._
 import no.ndla.conceptapi.model.api.{
-  Concept,
   Error,
   IllegalStatusStateTransition,
-  NewConcept,
   NotFoundException,
   OperationNotAllowedException,
   OptimisticLockException,
-  ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.conceptapi.service.WriteService
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
-import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
+import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
+import org.scalatra.swagger.{ResponseMessage, SwaggerSupport}
 import org.scalatra.util.NotNothing
-import org.scalatra.swagger.{ParamType, Parameter, ResponseMessage, SwaggerSupport}
 
+import java.nio.file.AccessDeniedException
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport with LazyLogging with SwaggerSupport {
@@ -69,7 +57,7 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     ApplicationUrl.clear()
   }
 
-  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
+  case class Param[T](paramName: String, description: String)
 
   error {
     case a: AccessDeniedException         => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))

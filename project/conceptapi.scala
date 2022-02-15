@@ -13,6 +13,7 @@ object conceptapi extends Module {
     Seq(
       scalaTsi,
       scalaUri,
+      enumeratum,
       "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
       "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",

@@ -11,9 +11,6 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
@@ -102,12 +99,6 @@ class V11__RemoveEmptyStringMetaImages extends BaseJavaMigration {
 
     sql"update conceptdata set document = $dataObject where id = $id"
       .update()
-  }
-
-  private def stringToJsoupDocument(htmlString: String): Element = {
-    val document = Jsoup.parseBodyFragment(htmlString)
-    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    document.select("body").first()
   }
 
   def convertToNewConcept(document: String): String = {

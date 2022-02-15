@@ -12,10 +12,6 @@ import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
   val migration = new R__MetaImageAsVisualElement
 
-  private val metaImage = (id: String, alt: String, lang: String) => {
-    s"""{"imageId":"$id","altText":"$alt","language":"$lang"}"""
-  }
-
   test("Meta images without ids should not affect visual elements") {
     val oldMetaImage = """{"imageId":"","altText":"","language":"nb"}"""
     val oldVisualElement = """"""

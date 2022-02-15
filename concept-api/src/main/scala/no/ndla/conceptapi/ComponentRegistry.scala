@@ -10,34 +10,12 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.ConceptApiProperties.SearchServer
-import no.ndla.conceptapi.controller.{
-  DraftConceptController,
-  DraftNdlaController,
-  HealthController,
-  InternController,
-  NdlaController,
-  PublishedConceptController
-}
 import no.ndla.conceptapi.auth.User
+import no.ndla.conceptapi.controller._
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search.{
-  DraftConceptIndexService,
-  DraftConceptSearchService,
-  IndexService,
-  PublishedConceptIndexService,
-  PublishedConceptSearchService,
-  SearchConverterService,
-  SearchService
-}
-import no.ndla.conceptapi.service.{
-  Clock,
-  ConverterService,
-  ImportService,
-  ReadService,
-  StateTransitionRules,
-  WriteService
-}
+import no.ndla.conceptapi.service.search._
+import no.ndla.conceptapi.service._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
