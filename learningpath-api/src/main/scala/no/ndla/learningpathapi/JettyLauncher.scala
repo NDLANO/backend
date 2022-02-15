@@ -8,17 +8,15 @@
 
 package no.ndla.learningpathapi
 
-import java.util
 import com.typesafe.scalalogging.LazyLogging
-
-import javax.servlet.DispatcherType
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
 import no.ndla.common.Environment.setPropsFromEnv
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
 
-import scala.jdk.CollectionConverters._
+import java.util
+import javax.servlet.DispatcherType
 import scala.io.Source
 
 object JettyLauncher extends LazyLogging {

@@ -117,8 +117,7 @@ class LearningPathRepositoryComponentIntegrationTest
 
     try {
       inTransaction { implicit session =>
-        val inserted =
-          repository.insert(DefaultLearningPath.copy(owner = owner))
+        repository.insert(DefaultLearningPath.copy(owner = owner))
         throw new RuntimeException("Provoking exception inside transaction")
       }
       fail("Exception should prevent normal execution")
@@ -145,7 +144,7 @@ class LearningPathRepositoryComponentIntegrationTest
 
   test("That trying to update a learningPath with old revision number throws optimistic locking exception") {
     val inserted = repository.insert(DefaultLearningPath)
-    val firstUpdate = repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
+    repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
 
     assertResult(
       s"Conflicting revision is detected for learningPath with id = ${inserted.id} and revision = ${inserted.revision}") {
@@ -160,7 +159,7 @@ class LearningPathRepositoryComponentIntegrationTest
   test("That trying to update a learningStep with old revision throws optimistic locking exception") {
     val learningPath = repository.insert(DefaultLearningPath)
     val insertedStep = repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    val firstUpdate = repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
+    repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
 
     assertResult(
       s"Conflicting revision is detected for learningStep with id = ${insertedStep.id} and revision = ${insertedStep.revision}") {
@@ -296,9 +295,9 @@ class LearningPathRepositoryComponentIntegrationTest
 
   test("That only learningsteps with status ACTIVE are returned together with a learningpath") {
     val learningPath = repository.insert(DefaultLearningPath)
-    val activeStep1 = repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    val activeStep2 = repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    val deletedStep = repository.insertLearningStep(
+    repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
+    repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
+    repository.insertLearningStep(
       DefaultLearningStep.copy(learningPathId = learningPath.id, status = StepStatus.DELETED))
 
     learningPath.id.isDefined should be(true)

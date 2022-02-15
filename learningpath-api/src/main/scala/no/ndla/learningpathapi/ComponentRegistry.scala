@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.learningpathapi
 import no.ndla.learningpathapi.LearningpathApiProperties.SearchServer
 import no.ndla.learningpathapi.controller.{
   ConfigController,

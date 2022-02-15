@@ -13,7 +13,6 @@ import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.Clock
 import no.ndla.mapping.License.PublicDomain
-import org.mockito.Mockito._
 
 class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironment {
 

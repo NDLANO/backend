@@ -9,9 +9,8 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.learningpathapi.model.api.ValidationMessage
-import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.learningpathapi.model.domain.Title
-import org.mockito.Mockito._
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class TitleValidatorTest extends UnitSuite with TestEnvironment {
 

@@ -8,8 +8,6 @@
 
 package no.ndla.learningpathapi.service
 
-import java.util.Date
-
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
@@ -22,12 +20,10 @@ import no.ndla.learningpathapi.model.api.{
 }
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import scala.reflect.runtime.universe.Try
+import java.util.Date
 import scala.util.{Failure, Success}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -250,7 +246,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       service.addLearningPathV2(NEW_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER)
     assert(saved.get.id == PRIVATE_LEARNINGPATH.id.get)
 
-    verify(learningPathRepository, times(1)).insert(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).insert(any[domain.LearningPath])(any)
     verify(searchIndexService, never).indexDocument(any[domain.LearningPath])
   }
 
@@ -271,7 +267,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .id
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
 
   }
@@ -288,7 +284,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .id
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -356,7 +352,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -378,7 +374,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
     verify(searchIndexService, times(0)).deleteDocument(any[domain.LearningPath])
   }
@@ -396,7 +392,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
   }
 
   test("That updateLearningPathStatusV2 updates the status when the given user is owner and the status is DELETED") {
@@ -412,7 +408,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -431,7 +427,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .status
     }
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -455,7 +451,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .status
     }
 
-    verify(learningPathRepository, times(3)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(3)).update(any[domain.LearningPath])(any)
     verify(learningPathRepository, times(1)).learningPathsWithIsBasedOn(any[Long])
     verify(searchIndexService, times(1))
       .indexDocument(any[domain.LearningPath])
@@ -482,7 +478,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .status
     }
     verify(learningPathRepository, times(1)).learningPathsWithIsBasedOn(any[Long])
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -500,7 +496,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .status
     }
     verify(learningPathRepository, times(1)).learningPathsWithIsBasedOn(any[Long])
-    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])
+    verify(learningPathRepository, times(1)).update(any[domain.LearningPath])(any)
     verify(searchIndexService, times(1)).indexDocument(any[domain.LearningPath])
   }
 
@@ -557,8 +553,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(None)
     val Failure(ex) = service.addLearningStepV2(PRIVATE_ID, NEW_STEPV2, PRIVATE_OWNER)
     ex.isInstanceOf[NotFoundException] should be(true)
-    verify(learningPathRepository, never).insertLearningStep(any[domain.LearningStep])
-    verify(learningPathRepository, never).update(any[domain.LearningPath])
+    verify(learningPathRepository, never).insertLearningStep(any[domain.LearningStep])(any)
+    verify(learningPathRepository, never).update(any[domain.LearningPath])(any)
   }
 
   test(
@@ -614,8 +610,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) = service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER)
     ex.isInstanceOf[NotFoundException] should be(true)
 
-    verify(learningPathRepository, never).updateLearningStep(any[domain.LearningStep])
-    verify(learningPathRepository, never).update(any[domain.LearningPath])
+    verify(learningPathRepository, never).updateLearningStep(any[domain.LearningStep])(any)
+    verify(learningPathRepository, never).update(any[domain.LearningPath])(any)
   }
 
   test("That updateLearningStepV2 returns None when the learningstep does not exist") {
@@ -721,7 +717,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.DELETED.toString)
+    updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(any[DBSession])
@@ -748,7 +744,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.DELETED.toString)
+    updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(any[DBSession])
@@ -779,7 +775,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.DELETED, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.DELETED.toString)
+    updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(any[DBSession])
@@ -810,7 +806,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP1.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.ACTIVE.toString)
+    updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.ACTIVE)))(any[DBSession])
@@ -839,7 +835,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.DELETED, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.DELETED.toString)
+    updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(any[LearningStep])(any[DBSession])
@@ -866,7 +862,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP3.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.ACTIVE.toString)
+    updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(any[LearningStep])(any[DBSession])
@@ -891,7 +887,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.DELETED, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.DELETED.toString)
+    updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP2.copy(status = StepStatus.DELETED)))(any[DBSession])
@@ -920,7 +916,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedStep =
       service.updateLearningStepStatusV2(PRIVATE_ID, STEP2.id.get, StepStatus.ACTIVE, PRIVATE_OWNER)
     updatedStep.isSuccess should be(true)
-    updatedStep.get.status should equal(StepStatus.ACTIVE.toString)
+    updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
     verify(learningPathRepository, times(1))
       .updateLearningStep(eqTo(STEP2.copy(status = StepStatus.ACTIVE)))(any[DBSession])
@@ -1193,7 +1189,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     verify(learningPathRepository, times(1))
-      .insert(eqTo(expectedNewLearningPath))
+      .insert(eqTo(expectedNewLearningPath))(any)
   }
 
   test("That isBasedOn is not sat if the existing learningpath is PRIVATE") {
@@ -1218,7 +1214,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     verify(learningPathRepository, times(1))
-      .insert(eqTo(expectedNewLearningPath))
+      .insert(eqTo(expectedNewLearningPath))(any)
   }
 
   test("That isBasedOn is sat if the existing learningpath is PUBLISHED") {
@@ -1243,7 +1239,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     verify(learningPathRepository, times(1))
-      .insert(eqTo(expectedNewLearningPath))
+      .insert(eqTo(expectedNewLearningPath))(any)
   }
 
   test("That all editable fields are overridden if specified in input in newFromExisting") {
@@ -1293,15 +1289,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     verify(learningPathRepository, times(1))
-      .insert(eqTo(expectedNewLearningPath))
+      .insert(eqTo(expectedNewLearningPath))(any)
   }
 
   test("That learningsteps are copied but with basic information reset in newFromExistingV2") {
     val now = new Date()
     when(clock.now()).thenReturn(now)
-
-    val toCopy =
-      PUBLISHED_LEARNINGPATH_NO_STEPS.copy(learningsteps = Some(STEP1 :: Nil))
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
@@ -1324,7 +1317,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     verify(learningPathRepository, times(1))
-      .insert(eqTo(expectedNewLearningPath))
+      .insert(eqTo(expectedNewLearningPath))(any)
 
   }
 

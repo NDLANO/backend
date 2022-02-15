@@ -9,12 +9,9 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
-
-import java.util.Date
-import java.util.concurrent.Executors
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
-import no.ndla.learningpathapi.model.api.{config, _}
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
+import no.ndla.learningpathapi.model.api.{config, _}
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus, UserInfo, LearningPath => _, LearningStep => _, _}
@@ -22,7 +19,7 @@ import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathReposit
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 trait UpdateService {
@@ -273,7 +270,7 @@ trait UpdateService {
 
     def updateLearningStepStatusV2(learningPathId: Long,
                                    learningStepId: Long,
-                                   newStatus: StepStatus.Value,
+                                   newStatus: StepStatus,
                                    owner: UserInfo): Try[LearningStepV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
@@ -330,9 +327,7 @@ trait UpdateService {
         }
       }
 
-    def updateConfig(configKey: ConfigKey.Value,
-                     value: UpdateConfigValue,
-                     userInfo: UserInfo): Try[config.ConfigMeta] = {
+    def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: UserInfo): Try[config.ConfigMeta] = {
 
       writeOrAccessDenied(userInfo.isAdmin, "Only administrators can edit configuration.") {
         ConfigMeta(configKey, value.value, new Date(), userInfo.userId).validate.flatMap(newConfigValue => {

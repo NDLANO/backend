@@ -8,12 +8,11 @@
 
 package no.ndla.learningpathapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
-import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
+import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
@@ -25,13 +24,14 @@ import no.ndla.learningpathapi.LearningpathApiProperties.{
   ElasticSearchScrollKeepAlive
 }
 import no.ndla.learningpathapi.model.api.{Copyright, Error, LearningPathSummaryV2, License}
-import no.ndla.learningpathapi.model.domain.{Sort, _}
+import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.Formats
 import org.json4s.native.Serialization._
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -250,7 +250,7 @@ trait SearchService extends LazyLogging {
       }
     }
 
-    private def getSortDefinition(sort: Sort.Value, language: String) = {
+    private def getSortDefinition(sort: Sort, language: String) = {
       val sortLanguage = language match {
         case NoLanguage => DefaultLanguage
         case _          => language

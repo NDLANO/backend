@@ -8,26 +8,34 @@
 
 package no.ndla.learningpathapi.model.domain
 
-object Sort extends Enumeration {
-  val ByIdDesc = Value("-id")
-  val ByIdAsc = Value("id")
-  val ByRelevanceDesc = Value("-relevance")
-  val ByRelevanceAsc = Value("relevance")
-  val ByLastUpdatedDesc = Value("-lastUpdated")
-  val ByLastUpdatedAsc = Value("lastUpdated")
-  val ByDurationDesc = Value("-duration")
-  val ByDurationAsc = Value("duration")
-  val ByTitleDesc = Value("-title")
-  val ByTitleAsc = Value("title")
+import enumeratum._
 
-  def valueOf(s: String): Option[Sort.Value] = {
-    Sort.values.find(_.toString == s)
-  }
+sealed abstract class Sort(override val entryName: String) extends EnumEntry
 
-  def valueOf(s: Option[String]): Option[Sort.Value] = {
+object Sort extends Enum[Sort] {
+
+  val values: IndexedSeq[Sort] = findValues
+
+  val all: Seq[String] = values.map(_.entryName)
+
+  case object ByIdDesc extends Sort("-id")
+  case object ByIdAsc extends Sort("id")
+  case object ByRelevanceDesc extends Sort("-relevance")
+  case object ByRelevanceAsc extends Sort("relevance")
+  case object ByLastUpdatedDesc extends Sort("-lastUpdated")
+  case object ByLastUpdatedAsc extends Sort("lastUpdated")
+  case object ByDurationDesc extends Sort("-duration")
+  case object ByDurationAsc extends Sort("duration")
+  case object ByTitleDesc extends Sort("-title")
+  case object ByTitleAsc extends Sort("title")
+
+  def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
+
+  def valueOf(s: Option[String]): Option[Sort] = {
     s match {
       case None    => None
       case Some(s) => valueOf(s)
     }
   }
+
 }

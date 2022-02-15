@@ -8,22 +8,20 @@
 
 package no.ndla.learningpathapi.controller
 
-import java.util.Date
-import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.{Resource, Topic}
-import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.SearchResultV2
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.{LearningpathSwagger, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization._
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
-import scalikejdbc.TxBoundary.Try
 
+import java.util.Date
+import javax.servlet.http.HttpServletRequest
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 

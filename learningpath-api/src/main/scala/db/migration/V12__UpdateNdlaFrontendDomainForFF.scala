@@ -7,7 +7,7 @@
 
 package db.migration
 
-import no.ndla.learningpathapi.LearningpathApiProperties
+import io.lemonlabs.uri.Url
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
 import org.json4s.JsonAST.{JArray, JObject, JString}
@@ -15,7 +15,6 @@ import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
-import io.lemonlabs.uri.Url
 
 class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
   implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V11_EmbedType)

@@ -22,7 +22,6 @@ import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, 
 import no.ndla.learningpathapi.validation._
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
-import org.mockito.Mockito
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -81,7 +80,7 @@ trait TestEnvironment
   val oembedProxyClient: OembedProxyClient = mock[OembedProxyClient]
 
   def resetMocks(): Unit = {
-    Mockito.reset(
+    reset(
       dataSource,
       learningPathRepository,
       configRepository,

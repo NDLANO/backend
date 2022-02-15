@@ -7,20 +7,19 @@
 
 package no.ndla.learningpathapi.model.domain.config
 
-import java.util.Date
-
+import enumeratum.Json4s
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.learningpathapi.model.domain.ValidationException
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
 import scalikejdbc.{WrappedResultSet, _}
-import no.ndla.learningpathapi.model.domain.ValidationException
 
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 case class ConfigMeta(
-    key: ConfigKey.Value,
+    key: ConfigKey,
     value: String,
     updatedAt: Date,
     updatedBy: String
@@ -34,7 +33,7 @@ case class ConfigMeta(
           case Failure(_) =>
             val validationMessage = ValidationMessage(
               "value",
-              s"Value of '${ConfigKey.IsWriteRestricted.toString}' must be a boolean string ('true' or 'false')")
+              s"Value of '${ConfigKey.IsWriteRestricted.entryName}' must be a boolean string ('true' or 'false')")
             Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
         }
       // Add case here for validation for new ConfigKeys
@@ -44,7 +43,7 @@ case class ConfigMeta(
 
 object ConfigMeta extends SQLSyntaxSupport[ConfigMeta] {
   implicit val formats: Formats = org.json4s.DefaultFormats +
-    new EnumNameSerializer(ConfigKey) ++
+    Json4s.serializer(ConfigKey) ++
     org.json4s.ext.JodaTimeSerializers.all
 
   override val tableName = "configtable"

@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.learningpathapi.LearningpathApiProperties.BasicHtmlTags
-import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.UnitSuite
 
 class TextValidatorTest extends UnitSuite {
 

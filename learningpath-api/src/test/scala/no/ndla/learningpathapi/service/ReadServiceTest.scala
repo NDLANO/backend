@@ -8,16 +8,11 @@
 
 package no.ndla.learningpathapi.service
 
-import java.util.Date
-
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.model.api.License
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
-import no.ndla.learningpathapi.model._
-import org.mockito.Mockito._
-import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
+import java.util.Date
 import scala.util.Failure
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
