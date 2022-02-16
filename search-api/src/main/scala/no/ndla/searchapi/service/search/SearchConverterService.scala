@@ -49,8 +49,8 @@ trait SearchConverterService {
     def getParentTopicsAndPaths(topic: Topic,
                                 bundle: TaxonomyBundle,
                                 path: List[String]): List[(Topic, List[String])] = {
-      val parentConnections = bundle.topicSubtopicConnections.filter(_.subtopicid == topic.id)
-      val parents = bundle.topics.filter(t => parentConnections.map(_.topicid).contains(t.id))
+      val parentConnections = bundle.topicSubtopicConnectionsBySubTopicId.getOrElse(topic.id, List.empty)
+      val parents = parentConnections.flatMap(pc => bundle.topicById.get(pc.topicid))
 
       parents.flatMap(parent => getParentTopicsAndPaths(parent, bundle, path :+ parent.id)) :+ (topic, path)
     }
@@ -685,10 +685,6 @@ trait SearchConverterService {
 
     }
 
-    private def compareId(contentUri: String, id: Long, `type`: String): Boolean = {
-      contentUri == s"urn:${`type`}:$id"
-    }
-
     private def getContextType(resourceId: String, contentUri: Option[String]): Try[LearningResourceType.Value] = {
       contentUri match {
         case Some(uri) if uri.contains("article") =>
@@ -711,51 +707,12 @@ trait SearchConverterService {
       })
     }
 
-    /**
-      * Returns every parent of resourceType.
-      *
-      * @param resourceType ResourceType to derive parents for.
-      * @param allTypes All resourceTypes to derive parents from.
-      * @return List of parents including resourceType.
-      */
-    def getResourceTypeParents(resourceType: ResourceType, allTypes: List[ResourceType]): List[ResourceType] = {
-      def allTypesWithParents(allTypes: List[ResourceType],
-                              parents: List[ResourceType]): List[(ResourceType, List[ResourceType])] = {
-        allTypes.flatMap(resourceType => {
-          val thisLevelWithParents = allTypes.map(resourceType => (resourceType, parents))
-
-          val nextLevelWithParents = resourceType.subtypes match {
-            case Some(subtypes) => allTypesWithParents(subtypes, parents :+ resourceType)
-            case None           => List.empty
-          }
-          nextLevelWithParents ++ thisLevelWithParents
-        })
-      }
-      allTypesWithParents(allTypes, List.empty).filter(x => x._1 == resourceType).flatMap(_._2).distinct
-    }
-
-    /**
-      * Returns a flattened list of resourceType with its subtypes
-      *
-      * @param resourceType A resource with subtypes
-      * @return Flattened list of resourceType with subtypes.
-      */
-    private def getTypeAndSubtypes(resourceType: ResourceType): List[ResourceType] = {
-      def getTypeAndSubtypesWithParent(resourceType: ResourceType, parents: List[ResourceType]): List[ResourceType] = {
-        resourceType.subtypes match {
-          case None => (parents :+ resourceType).distinct
-          case Some(subtypes) =>
-            subtypes.flatMap(x => getTypeAndSubtypesWithParent(x, parents :+ resourceType))
-        }
-      }
-      getTypeAndSubtypesWithParent(resourceType, List.empty)
-    }
-
     private def getResourceTaxonomyContexts(resource: Resource,
                                             filterVisibles: Boolean,
                                             bundle: TaxonomyBundle): Try[List[SearchableTaxonomyContext]] = {
-      val topicsConnections = bundle.topicResourceConnections.filter(_.resourceId == resource.id)
-      val resourceTypeConnections = bundle.resourceResourceTypeConnections.filter(_.resourceId == resource.id)
+      val topicsConnections = bundle.topicResourceConnectionsByResourceId.getOrElse(resource.id, List.empty)
+      val resourceTypeConnections =
+        bundle.resourceResourceTypeConnectionsByResourceId.getOrElse(resource.id, List.empty)
       val resourceTypesWithParents = getConnectedResourceTypesWithParents(resourceTypeConnections, bundle)
 
       getContextType(resource.id, resource.contentUri) match {
@@ -768,16 +725,15 @@ trait SearchConverterService {
               .getOrElse("")
             val relevance = SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, relevanceName)))
 
-            val topic = bundle.topics.find(topic => tc.topicid == topic.id)
+            val topic = bundle.topicById.get(tc.topicid)
             topic
               .map({
                 t =>
                   getParentTopicsAndPaths(t, bundle, List(t.id)).flatMap({
                     case (topic, topicPath) =>
                       // Subjects needed to check visibility
-                      val subjectConnections = bundle.subjectTopicConnections.filter(_.topicid == topic.id)
-                      val subjects =
-                        bundle.subjects.filter(subject => subjectConnections.map(_.subjectid).contains(subject.id))
+                      val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(topic.id, List.empty)
+                      val subjects = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
 
                       val visibleSubjects = if (filterVisibles) {
                         subjects.filter(_.metadata.forall(_.visible))
@@ -846,13 +802,11 @@ trait SearchConverterService {
     }
 
     private def getAllParentTopicIds(id: String, bundle: TaxonomyBundle): List[String] = {
-      val topicResourceConnections = bundle.topicResourceConnections.filter(_.resourceId == id)
-      val topicSubtopicConnections = bundle.topicSubtopicConnections.filter(_.subtopicid == id)
+      val topicResourceConnections = bundle.topicResourceConnectionsByResourceId.getOrElse(id, List.empty)
+      val topicSubtopicConnections = bundle.topicSubtopicConnectionsBySubTopicId.getOrElse(id, List.empty)
 
-      val directlyConnectedResourceTopics =
-        bundle.topics.filter(t => topicResourceConnections.map(_.topicid).contains(t.id))
-      val directlyConnectedTopicTopics =
-        bundle.topics.filter(t => topicSubtopicConnections.map(_.topicid).contains(t.id))
+      val directlyConnectedResourceTopics = topicResourceConnections.flatMap(trc => bundle.topicById.get(trc.topicid))
+      val directlyConnectedTopicTopics = topicSubtopicConnections.flatMap(tsc => bundle.topicById.get(tsc.topicid))
 
       val allConnectedTopics = (directlyConnectedResourceTopics ++ directlyConnectedTopicTopics)
         .map(topic => getParentTopicsAndPaths(topic, bundle, List.empty))
@@ -862,27 +816,28 @@ trait SearchConverterService {
 
     private def getConnectedResourceTypesWithParents(connections: List[ResourceTypeConnection],
                                                      bundle: TaxonomyBundle): List[ResourceType] = {
-      val allResourceTypes = bundle.resourceTypes.flatMap(rt => getTypeAndSubtypes(rt))
 
       // Every explicitly specified resourceType
-      val resourceTypes = allResourceTypes.filter(r => connections.map(_.resourceTypeId).contains(r.id))
+      val connectedResourceTypes = connections.flatMap(c => bundle.allResourceTypesById.get(c.resourceTypeId))
 
       // Include parents of resourceTypes if they exist
       val subParents =
-        resourceTypes.flatMap(rt => getResourceTypeParents(rt, bundle.resourceTypes)).filterNot(resourceTypes.contains)
-      (resourceTypes ++ subParents).distinct
+        connectedResourceTypes
+          .flatMap(rt => bundle.resourceTypeParentsByResourceTypeId.getOrElse(rt.id, List.empty))
+          .filterNot(connectedResourceTypes.contains)
+      (connectedResourceTypes ++ subParents).distinct
     }
 
     private def getTopicTaxonomyContexts(topic: Topic,
                                          filterVisibles: Boolean,
                                          bundle: TaxonomyBundle): Try[List[SearchableTaxonomyContext]] = {
-      val parentTopicsConnections = bundle.topicSubtopicConnections.filter(_.subtopicid == topic.id)
+      val parentTopicsConnections = bundle.topicSubtopicConnectionsBySubTopicId.getOrElse(topic.id, List.empty)
       val parentTopicsAndPaths = getParentTopicsAndPaths(topic, bundle, List(topic.id))
 
       val relevanceIds = parentTopicsConnections.length match {
         case 0 =>
-          bundle.subjectTopicConnections
-            .filter(_.topicid == topic.id)
+          bundle.subjectTopicConnectionsByTopicId
+            .getOrElse(topic.id, List.empty)
             .map(tc => tc.relevanceId.getOrElse("urn:relevance:core"))
         case _ => parentTopicsConnections.map(tc => tc.relevanceId.getOrElse("urn:relevance:core"))
       }
@@ -891,8 +846,8 @@ trait SearchConverterService {
         case Success(contextType) =>
           val contexts = parentTopicsAndPaths.map({
             case (parentTopic, topicPath) =>
-              val subjectConnections = bundle.subjectTopicConnections.filter(_.topicid == parentTopic.id)
-              val subjects = bundle.subjects.filter(subject => subjectConnections.map(_.subjectid).contains(subject.id))
+              val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(parentTopic.id, List.empty)
+              val subjects = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
 
               val visibleSubjects = if (filterVisibles) {
                 subjects.filter(subject => subject.metadata.exists(_.visible))
@@ -986,14 +941,13 @@ trait SearchConverterService {
       bundle match {
         case None => List.empty
         case Some(grepBundle) =>
-          val grepContext = grepBundle.kjerneelementer ++ grepBundle.kompetansemaal ++ grepBundle.tverrfagligeTemaer
           grepCodes
             .map(
               grepCode =>
                 SearchableGrepContext(
                   grepCode,
-                  grepContext
-                    .find(grepElement => grepElement.kode == grepCode)
+                  grepBundle.grepContextByCode
+                    .get(grepCode)
                     .flatMap(element =>
                       element.tittel.find(title => title.spraak == "default").map(title => title.verdi))
               ))
@@ -1004,15 +958,9 @@ trait SearchConverterService {
     private def getTaxonomyResourceAndTopicsForId(id: Long,
                                                   bundle: TaxonomyBundle,
                                                   taxonomyType: String): (List[Resource], List[Topic]) = {
-      val idMatchingTaxonomy = (elem: TaxonomyElement) => elem.contentUri.exists(compareId(_, id, taxonomyType))
-
-      val resources = bundle.resources
-        .filter(idMatchingTaxonomy)
-        .distinct
-
-      val topics = bundle.topics
-        .filter(idMatchingTaxonomy)
-        .distinct
+      val potentialContentUri = s"urn:$taxonomyType:$id"
+      val resources = bundle.resourcesByContentUri.getOrElse(potentialContentUri, List.empty)
+      val topics = bundle.topicsByContentUri.getOrElse(potentialContentUri, List.empty)
 
       (resources, topics)
     }
