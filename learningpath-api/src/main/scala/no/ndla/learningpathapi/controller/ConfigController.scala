@@ -10,16 +10,16 @@ package no.ndla.learningpathapi.controller
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.model.api.ValidationError
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
-import no.ndla.learningpathapi.model.domain.{AccessDeniedException, NotFoundException, UserInfo}
+import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadRequest, ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.DataType.ValueDataType
-import org.scalatra.swagger.{ParamType, Parameter, ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
+import org.scalatra.{BadRequest, ScalatraServlet}
 
+import scala.annotation.unused
 import scala.util.{Failure, Success}
 
 trait ConfigController {
@@ -57,6 +57,7 @@ trait ConfigController {
 
     case class Param[T](paramName: String, description: String)
 
+    @unused
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
 
@@ -66,6 +67,7 @@ trait ConfigController {
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
 
+    @unused
     private def asFormParam[T: Manifest: NotNothing](param: Param[T]) =
       formParam[T](param.paramName).description(param.description)
 

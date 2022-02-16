@@ -19,7 +19,6 @@ import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHa
 import org.scalatra.servlet.ScalatraListener
 
 import scala.io.Source
-import scala.jdk.CollectionConverters.MapHasAsScala
 
 object JettyLauncher extends LazyLogging {
 

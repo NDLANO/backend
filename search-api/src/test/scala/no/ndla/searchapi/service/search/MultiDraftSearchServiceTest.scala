@@ -8,19 +8,15 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.language.Language.AllLanguages
-
-import java.nio.file.{Files, Path}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.SearchApiProperties.DefaultPageSize
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
+import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.search.SearchType
-import no.ndla.searchapi.{SearchApiProperties, TestEnvironment, UnitSuite}
-import org.joda.time.DateTime
+import no.ndla.searchapi.{SearchApiProperties, TestEnvironment}
 import org.scalatest.Outcome
 
 import java.util.Date
@@ -61,12 +57,10 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      val indexedDrafts =
-        draftsToIndex.map(draft => draftIndexService.indexDocument(draft, taxonomyTestBundle, Some(emptyGrepBundle)))
+      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, taxonomyTestBundle, Some(emptyGrepBundle)))
 
-      val indexedLearningPaths =
-        learningPathsToIndex.map(lp =>
-          learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle)))
+      learningPathsToIndex.map(lp =>
+        learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle)))
 
       blockUntil(() => {
         draftIndexService.countDocuments == draftsToIndex.size &&
@@ -912,7 +906,6 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val Success(results) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some("\"delt!streng\"+\"delt-streng\""), language = "*"))
-    val hits = results.results
     results.totalCount should be(0)
   }
 
@@ -929,7 +922,6 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val Success(results) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some("\"delt!streng\"+-Helsesøster"), language = "*"))
-    val hits = results.results
     results.totalCount should be(0)
   }
 

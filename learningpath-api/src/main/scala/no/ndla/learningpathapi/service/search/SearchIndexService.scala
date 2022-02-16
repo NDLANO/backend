@@ -31,6 +31,7 @@ import org.json4s.native.Serialization._
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 trait SearchIndexService {
   this: Elastic4sClient
@@ -113,19 +114,15 @@ trait SearchIndexService {
     }
 
     private def sendToElastic(indexName: String): Try[Int] = {
-      var numIndexed = 0
-      getRanges.map(ranges => {
-        ranges.foreach(range => {
-          val numberInBulk =
-            searchIndexService.indexLearningPaths(learningPathRepository.learningPathsWithIdBetween(range._1, range._2),
-                                                  indexName)
-          numberInBulk match {
-            case Success(num) => numIndexed += num
-            case Failure(f)   => return Failure(f)
+      getRanges
+        .flatMap(ranges => {
+          ranges.traverse {
+            case (start, end) =>
+              val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
+              indexLearningPaths(toIndex, indexName)
           }
         })
-        numIndexed
-      })
+        .map(_.sum)
     }
 
     private def getRanges: Try[List[(Long, Long)]] = {

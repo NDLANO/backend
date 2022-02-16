@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.model.domain
 
+import enumeratum._
 import java.util.Date
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.language.Language.getSupportedLanguages
@@ -40,7 +41,7 @@ case class Article(
     updated: Date,
     updatedBy: String,
     published: Date,
-    articleType: ArticleType.Value,
+    articleType: ArticleType,
     notes: Seq[EditorNote],
     previousVersionsNotes: Seq[EditorNote],
     editorLabels: Seq[String],
@@ -58,7 +59,7 @@ object Article extends SQLSyntaxSupport[Article] {
 
   val jsonEncoder: Formats = DefaultFormats.withLong +
     new EnumNameSerializer(ArticleStatus) +
-    new EnumNameSerializer(ArticleType) +
+    Json4s.serializer(ArticleType) +
     new EnumNameSerializer(Availability)
 
   val repositorySerializer = jsonEncoder +
@@ -106,14 +107,20 @@ object ArticleStatus extends Enumeration {
   def valueOf(s: String): Option[ArticleStatus.Value] = values.find(_.toString == s.toUpperCase)
 }
 
-object ArticleType extends Enumeration {
-  val Standard = Value("standard")
-  val TopicArticle = Value("topic-article")
+sealed abstract class ArticleType(override val entryName: String) extends EnumEntry {
+  override def toString: String = super.toString
+}
 
-  def all = ArticleType.values.map(_.toString).toSeq
-  def valueOf(s: String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
+object ArticleType extends Enum[ArticleType] {
+  case object Standard extends ArticleType("standard")
+  case object TopicArticle extends ArticleType("topic-article")
 
-  def valueOfOrError(s: String): ArticleType.Value =
+  val values: IndexedSeq[ArticleType] = findValues
+
+  def all: Seq[String] = ArticleType.values.map(_.entryName)
+  def valueOf(s: String): Option[ArticleType] = ArticleType.withNameOption(s)
+
+  def valueOfOrError(s: String): ArticleType =
     valueOf(s).getOrElse(throw new ValidationException(errors = List(
       ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
 }

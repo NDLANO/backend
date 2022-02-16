@@ -7,16 +7,13 @@
 
 package no.ndla.imageapi.controller
 
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
-
-import no.ndla.imageapi.TestData.{NdlaLogoImage, NdlaLogoGIFImage, CCLogoSvgImage}
+import no.ndla.imageapi.TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{ImageSwagger, TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {

@@ -14,8 +14,5 @@ package object domain {
 
   type RelatedContent = Either[RelatedContentLink, Long]
 
-  case class ArticleIds(articleId: Long, externalId: List[String], importId: Option[String] = None)
-  case class ImportId(importId: Option[String])
-
   type IgnoreFunction = (Option[Article], StateTransition) => Boolean
 }

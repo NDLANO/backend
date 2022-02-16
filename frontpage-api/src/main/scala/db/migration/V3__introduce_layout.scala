@@ -6,7 +6,6 @@
  */
 
 package db.migration
-import java.sql.Connection
 
 import io.circe.generic.auto._
 import io.circe.generic.semiauto._

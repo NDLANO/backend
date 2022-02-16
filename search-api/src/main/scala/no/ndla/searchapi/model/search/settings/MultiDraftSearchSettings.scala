@@ -19,7 +19,7 @@ case class MultiDraftSearchSettings(
     license: Option[String],
     page: Int,
     pageSize: Int,
-    sort: Sort.Value,
+    sort: Sort,
     withIdIn: List[Long],
     subjects: List[String],
     topics: List[String],

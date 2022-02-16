@@ -51,8 +51,19 @@ trait Module {
     organization := "ndla",
     version := "0.0.1",
     scalaVersion := ScalaV,
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
+    javacOptions ++= Seq("-source", "11", "-target", "11"),
+    scalacOptions := Seq(
+      "-target:jvm-11",
+      "-unchecked",
+      "-deprecation",
+      "-feature",
+      "-Xfatal-warnings",
+      "-Xlint",
+      "-Wconf:src=src_managed/.*:silent",
+      "-Wconf:cat=lint-byname-implicit:silent", // https://github.com/scala/bug/issues/12072
+    ),
+    // Disable warns about non-exhaustive match in tests as they are very useful there.
+    Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
       .envOrNone("NDLA_RELEASES")

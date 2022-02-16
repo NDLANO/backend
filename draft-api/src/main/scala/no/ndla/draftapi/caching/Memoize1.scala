@@ -22,7 +22,7 @@ private[caching] class Memoize[R](maxCacheAgeMs: Long,
 
   private[this] var cache: Option[CacheValue] = None
 
-  private def renewCache = {
+  private def renewCache(): Unit = {
     val result = f()
 
     if (shouldCacheResult(result))
@@ -32,7 +32,7 @@ private[caching] class Memoize[R](maxCacheAgeMs: Long,
   if (autoRefreshCache) {
     val ex = new ScheduledThreadPoolExecutor(1)
     val task = new Runnable {
-      def run() = renewCache
+      def run() = renewCache()
     }
     ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS)
   }
@@ -42,7 +42,7 @@ private[caching] class Memoize[R](maxCacheAgeMs: Long,
       case Some(cachedValue) if autoRefreshCache       => Some(cachedValue.value)
       case Some(cachedValue) if !cachedValue.isExpired => Some(cachedValue.value)
       case _ =>
-        renewCache
+        renewCache()
         cache.map(_.value)
     }
   }

@@ -11,16 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, InitialScrollContextKeywords}
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{
-  Concept,
-  ConceptSearchParams,
-  ConceptSearchResult,
-  NewConcept,
-  NotFoundException,
-  SubjectTags,
-  TagsSearchResult,
-  UpdatedConcept
-}
+import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{
@@ -31,7 +22,7 @@ import no.ndla.conceptapi.service.search.{
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{Created, Ok}
+import org.scalatra.Ok
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success}
@@ -70,7 +61,7 @@ trait PublishedConceptController {
 
     private def search(
         query: Option[String],
-        sort: Option[Sort.Value],
+        sort: Option[Sort],
         language: String,
         page: Int,
         pageSize: Int,

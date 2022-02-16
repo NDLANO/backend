@@ -6,17 +6,16 @@
  */
 
 package no.ndla.frontpageapi
-import java.io.IOException
-import java.net.ServerSocket
 import cats.effect.{ContextShift, IO, Timer}
 import no.ndla.frontpageapi.controller.NdlaMiddleware
 import org.http4s.implicits._
 import org.http4s.rho.swagger.syntax.{io => ioSwagger}
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.mockito.Mockito._
 import scalaj.http.Http
 
+import java.io.IOException
+import java.net.ServerSocket
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -58,7 +57,7 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
     ).orNotFound
 
     val serverBuilder = BlazeServerBuilder[IO](ExecutionContext.global).withHttpApp(app).bindLocal(serverPort)
-    val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
+    serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
     Thread.sleep(100) // The server takes some time to actually listen
   }
 

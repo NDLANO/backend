@@ -12,6 +12,7 @@ import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties._
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
+import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.model.api.{
   Error,
   ImageMetaInformationV2,
@@ -23,12 +24,11 @@ import no.ndla.imageapi.model.api.{
   ValidationError
 }
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
-import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService, SearchService}
+import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.Formats
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
@@ -84,7 +84,7 @@ trait ImageControllerV2 {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
@@ -148,7 +148,7 @@ trait ImageControllerV2 {
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes)))
 
     /**
-      * Does a scroll with [[SearchService]]
+      * Does a scroll with [[ImageSearchService]]
       * If no scrollId is specified execute the function @orFunction in the second parameter list.
       *
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
@@ -171,7 +171,7 @@ trait ImageControllerV2 {
         query: Option[String],
         language: Option[String],
         license: Option[String],
-        sort: Option[Sort.Value],
+        sort: Option[Sort],
         pageSize: Option[Int],
         page: Option[Int],
         includeCopyrighted: Boolean,

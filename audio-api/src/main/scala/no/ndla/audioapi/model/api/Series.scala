@@ -11,7 +11,9 @@ package no.ndla.audioapi.model.api
 import com.scalatsi._
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+
 import scala.annotation.meta.field
+import scala.annotation.unused
 
 // format: off
 @ApiModel(description = "Meta information about the series")
@@ -27,6 +29,7 @@ case class Series(
 // format: on
 object Series {
   implicit val seriesTSI: TSIType[Series] = {
+    @unused
     implicit val audioMetaInformationReference: TSNamedType[AudioMetaInformation] =
       TSType.external[AudioMetaInformation]("IAudioMetaInformation")
     TSType.fromCaseClass[Series]

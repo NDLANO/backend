@@ -7,13 +7,11 @@
 
 package no.ndla.imageapi.service.search
 
-import java.util.Date
-import javax.servlet.http.HttpServletRequest
 import no.ndla.imageapi.ImageApiProperties.{DefaultPageSize, MaxPageSize}
+import no.ndla.imageapi.TestData.searchSettings
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
-import no.ndla.imageapi.TestData.searchSettings
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
 import no.ndla.network.ApplicationUrl
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -21,6 +19,8 @@ import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{Outcome, PrivateMethodTester}
 
+import java.util.Date
+import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
 class ImageSearchServiceTest
@@ -173,7 +173,7 @@ class ImageSearchServiceTest
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
       val indexName = imageIndexService.createIndexWithGeneratedName
-      val alias = imageIndexService.updateAliasTarget(None, indexName.get)
+      imageIndexService.updateAliasTarget(None, indexName.get)
 
       when(draftApiClient.getAgreementCopyright(any[Long])).thenReturn(None)
 
@@ -561,7 +561,7 @@ class ImageSearchServiceTest
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

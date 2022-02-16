@@ -10,7 +10,6 @@ package no.ndla.frontpageapi.model.api
 import cats.effect.Sync
 import org.http4s.circe.jsonOf
 import org.http4s.EntityDecoder
-import scala.language.higherKinds
 import io.circe.generic.semiauto._
 import io.circe.generic.auto._
 

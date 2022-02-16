@@ -41,7 +41,7 @@ trait NdlaClient {
       doRequest(addCorrelationId(addForwardedAuth(request)))
     }
 
-    private def doFetch[A](request: HttpRequest)(implicit mf: Manifest[A], formats: Formats = formats): Try[A] = {
+    private def doFetch[A](request: HttpRequest)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       for {
         httpResponse <- doRequest(request)
         bodyObject <- parseResponse[A](httpResponse)(mf, formats)
@@ -62,8 +62,7 @@ trait NdlaClient {
       })
     }
 
-    private def parseResponse[A](response: HttpResponse[String])(implicit mf: Manifest[A],
-                                                                 formats: Formats = formats): Try[A] = {
+    private def parseResponse[A](response: HttpResponse[String])(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       Try(parse(response.body).camelizeKeys.extract[A]) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex)        =>

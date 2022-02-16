@@ -6,7 +6,6 @@
  */
 package db.migration
 
-import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import no.ndla.articleapi.ArticleApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats

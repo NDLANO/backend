@@ -13,7 +13,7 @@ case class SearchSettings(
     withPaths: List[String],
     taggedWith: Option[String],
     language: Option[String],
-    sort: Sort.Value,
+    sort: Sort,
     page: Option[Int],
     pageSize: Option[Int],
     fallback: Boolean,

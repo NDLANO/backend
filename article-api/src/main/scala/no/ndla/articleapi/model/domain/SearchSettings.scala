@@ -15,7 +15,7 @@ case class SearchSettings(
     license: Option[String],
     page: Int,
     pageSize: Int,
-    sort: Sort.Value,
+    sort: Sort,
     articleTypes: Seq[String],
     fallback: Boolean,
     grepCodes: Seq[String],

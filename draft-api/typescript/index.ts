@@ -169,7 +169,7 @@ export interface IUpdatedArticle {
   tags?: string[]
   introduction?: string
   metaDescription?: string
-  metaImage: (null | (INewArticleMetaImage | undefined))
+  metaImage?: (null | INewArticleMetaImage)
   visualElement?: string
   copyright?: ICopyright
   requiredLibraries?: IRequiredLibrary[]

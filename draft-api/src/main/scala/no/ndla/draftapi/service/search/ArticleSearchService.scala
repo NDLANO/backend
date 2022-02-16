@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
@@ -15,10 +14,11 @@ import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ResultWindowTooLargeException
-import no.ndla.draftapi.model.domain.{Sort, _}
+import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 

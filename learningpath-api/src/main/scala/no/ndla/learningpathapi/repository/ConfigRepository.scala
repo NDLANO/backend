@@ -46,14 +46,14 @@ trait ConfigRepository {
         update(ConfigMeta)
           .set(ConfigMeta.column.column("value") -> config)
           .where
-          .eq(ConfigMeta.column.column("configkey"), config.key.toString)
+          .eq(ConfigMeta.column.column("configkey"), config.key.entryName)
       }.update()
 
       if (updatedCount != 1) {
         logger.info(s"No existing value for ${config.key}, inserting the value.")
         withSQL {
           insertInto(ConfigMeta).namedValues(
-            ConfigMeta.column.c("configkey") -> config.key.toString,
+            ConfigMeta.column.c("configkey") -> config.key.entryName,
             ConfigMeta.column.c("value") -> config,
           )
         }.update()
@@ -64,13 +64,13 @@ trait ConfigRepository {
       }
     }
 
-    def getConfigWithKey(key: ConfigKey.Value)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[ConfigMeta] = {
+    def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Option[ConfigMeta] = {
+      val keyName = key.entryName
       val c = ConfigMeta.syntax("c")
       sql"""
            select ${c.result.*}
            from ${ConfigMeta.as(c)}
-           where configkey = ${key.toString};
+           where configkey = $keyName;
         """
         .map(ConfigMeta(c))
         .single()

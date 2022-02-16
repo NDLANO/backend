@@ -136,7 +136,7 @@ trait RawController {
       val focalX = doubleInRange("focalX", PercentPoint.MinValue, PercentPoint.MaxValue)
       val focalY = doubleInRange("focalY", PercentPoint.MinValue, PercentPoint.MaxValue)
       val ratio = doubleOrNone("ratio")
-      val Seq(widthOpt, heightOpt) = extractDoubleOpts("width", "height")
+      val (widthOpt, heightOpt) = extractDoubleOpt2("width", "height")
 
       (focalX, focalY, widthOpt, heightOpt) match {
         case (Some(fx), Some(fy), w, h) =>
@@ -146,7 +146,7 @@ trait RawController {
     }
 
     private def resize(image: ImageStream)(implicit request: HttpServletRequest): Try[ImageStream] = {
-      val Seq(widthOpt, heightOpt) = extractDoubleOpts("width", "height")
+      val (widthOpt, heightOpt) = extractDoubleOpt2("width", "height")
       (widthOpt, heightOpt) match {
         case (Some(width), Some(height)) => imageConverter.resize(image, width.toInt, height.toInt)
         case (Some(width), _)            => imageConverter.resizeWidth(image, width.toInt)

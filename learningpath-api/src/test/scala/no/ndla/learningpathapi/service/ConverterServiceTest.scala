@@ -9,9 +9,6 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
-
-import java.util.Date
-import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
@@ -20,9 +17,10 @@ import no.ndla.learningpathapi.{LearningpathApiProperties, TestData, UnitSuite, 
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
 import org.joda.time.DateTime
-import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 
+import java.util.Date
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {

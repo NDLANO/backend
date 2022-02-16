@@ -11,8 +11,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData.blockUntil
 import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.search.SearchType
-import no.ndla.searchapi.{SearchApiProperties, TestData, TestEnvironment}
+import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
 import scala.util.{Failure, Success}

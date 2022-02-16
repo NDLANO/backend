@@ -8,8 +8,6 @@
 
 package no.ndla.articleapi.model.api
 
-import java.util.Date
-
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field

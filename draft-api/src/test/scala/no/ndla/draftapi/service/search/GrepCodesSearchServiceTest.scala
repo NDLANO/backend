@@ -8,7 +8,6 @@
 package no.ndla.draftapi.service.search
 
 import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
@@ -70,7 +69,7 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

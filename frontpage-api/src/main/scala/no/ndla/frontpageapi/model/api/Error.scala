@@ -14,7 +14,6 @@ import cats.effect.Sync
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
 
-import scala.language.higherKinds
 import io.circe.generic.semiauto._
 
 case class Error(code: String, description: String, occuredAt: LocalDateTime)

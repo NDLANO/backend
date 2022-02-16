@@ -30,7 +30,7 @@ sealed trait FakeAgg {
       val subIdx = toMerge.subAggregations.zipWithIndex
 
       val (mergedLSubIdxes, mergedSubs) =
-        this.subAggregations.foldLeft(Seq.empty[Int], Seq.empty[FakeAgg])((acc, thisSub) => {
+        this.subAggregations.foldLeft((Seq.empty[Int], Seq.empty[FakeAgg]))((acc, thisSub) => {
           val (mergedIdxes, result) = acc
 
           // Attempts to merge all sub-aggregations from `toMerge` and keeps track of the merged ids

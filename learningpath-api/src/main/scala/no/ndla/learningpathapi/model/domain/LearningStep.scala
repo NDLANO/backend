@@ -11,14 +11,11 @@ package no.ndla.learningpathapi.model.domain
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.api.ValidationMessage
-import no.ndla.search.SearchLanguage
 import org.json4s.FieldSerializer._
 import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
 import scalikejdbc._
-
-import scala.util.Try
 
 case class LearningStep(id: Option[Long],
                         revision: Option[Int],
@@ -31,7 +28,7 @@ case class LearningStep(id: Option[Long],
                         `type`: StepType.Value,
                         license: Option[String],
                         showTitle: Boolean = false,
-                        status: StepStatus.Value = StepStatus.ACTIVE) {
+                        status: StepStatus = StepStatus.ACTIVE) {
 
   def supportedLanguages: Seq[String] = {
     getSupportedLanguages(
@@ -42,15 +39,22 @@ case class LearningStep(id: Option[Long],
   }
 }
 
-object StepStatus extends Enumeration {
+import enumeratum._
 
-  val ACTIVE, DELETED = Value
+sealed abstract class StepStatus(override val entryName: String) extends EnumEntry
 
-  def valueOf(s: String): Option[StepStatus.Value] = {
-    StepStatus.values.find(_.toString == s)
+object StepStatus extends Enum[StepStatus] {
+
+  case object ACTIVE extends StepStatus("ACTIVE")
+  case object DELETED extends StepStatus("DELETED")
+
+  def values: IndexedSeq[StepStatus] = findValues
+
+  def valueOf(s: String): Option[StepStatus] = {
+    StepStatus.values.find(_.entryName == s)
   }
 
-  def valueOfOrError(status: String): StepStatus.Value = {
+  def valueOfOrError(status: String): StepStatus = {
     valueOf(status) match {
       case Some(s) => s
       case None =>
@@ -58,9 +62,10 @@ object StepStatus extends Enumeration {
     }
   }
 
-  def valueOfOrDefault(s: String): StepStatus.Value = {
+  def valueOfOrDefault(s: String): StepStatus = {
     valueOf(s).getOrElse(StepStatus.ACTIVE)
   }
+
 }
 
 object StepType extends Enumeration {
@@ -85,18 +90,14 @@ object StepType extends Enumeration {
 
 object LearningStep extends SQLSyntaxSupport[LearningStep] {
 
-  val jsonSerializer = List(
+  val jsonSerializer: List[Serializer[_]] = List(
     new EnumNameSerializer(StepType),
-    new EnumNameSerializer(StepStatus),
+    Json4s.serializer(StepStatus),
     new EnumNameSerializer(EmbedType)
   )
 
   val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningStep](
-    serializer =
-      ignore("id") orElse
-        ignore("learningPathId") orElse
-        ignore("externalId") orElse
-        ignore("revision")
+    serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
   )
 
   val jsonEncoder = DefaultFormats ++ jsonSerializer

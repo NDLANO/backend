@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service.search
 
 import no.ndla.draftapi.DraftApiProperties.DefaultPageSize
-import no.ndla.draftapi.TestData.{agreementSearchSettings, searchSettings}
+import no.ndla.draftapi.TestData.agreementSearchSettings
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -311,7 +311,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

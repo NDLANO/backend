@@ -14,7 +14,6 @@ import no.ndla.oembedproxy.{OEmbedProxyProperties, OEmbedSwagger, TestEnvironmen
 import org.mockito.ArgumentMatchers.anyString
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.net.http.HttpResponse
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

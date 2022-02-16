@@ -7,16 +7,13 @@
 
 package no.ndla.conceptapi.service
 
-import java.util.Date
-import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.{TestData, TestEnvironment}
-import no.ndla.conceptapi.UnitSuite
 import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
+import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito._
 
+import java.util.Date
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {

@@ -9,8 +9,6 @@ package db.migration
 
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
-import scala.util.Success
-
 class V32__FullbreddeImagesToFullTest extends UnitSuite with TestEnvironment {
 
   test("Images in visualElement and content should be converted correctly") {

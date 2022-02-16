@@ -7,15 +7,15 @@
 
 package db.migration
 
+import no.ndla.draftapi.DraftApiProperties.Domain
+import no.ndla.draftapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalaj.http.Http
-import scalikejdbc.{DB, DBSession, _}
-import no.ndla.draftapi.DraftApiProperties.Domain
-import no.ndla.draftapi.model.domain.ArticleType
+import scalikejdbc.{DBSession, _}
 
 import scala.util.Try
 
@@ -85,9 +85,9 @@ class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
 
     val newArticle = oldArticle.mapField {
       case ("articleType", _: JString) if topicIds.contains(id) =>
-        "articleType" -> JString(ArticleType.TopicArticle.toString)
+        "articleType" -> JString(ArticleType.TopicArticle.entryName)
       case ("articleType", _: JString) if resourceIds.contains(id) && !topicIds.contains(id) =>
-        "articleType" -> JString(ArticleType.Standard.toString)
+        "articleType" -> JString(ArticleType.Standard.entryName)
       case x => x
     }
     compact(render(newArticle))

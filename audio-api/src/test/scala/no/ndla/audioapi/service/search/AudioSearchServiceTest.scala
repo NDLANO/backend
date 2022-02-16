@@ -9,11 +9,11 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.TestData.searchSettings
-import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{AudioApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
@@ -565,7 +565,7 @@ class AudioSearchServiceTest
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

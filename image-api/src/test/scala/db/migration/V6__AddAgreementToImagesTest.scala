@@ -8,7 +8,7 @@
 package db.migration
 
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import org.json4s.native.Serialization.{read, write}
+import org.json4s.native.Serialization.read
 
 class V6__AddAgreementToImagesTest extends UnitSuite with TestEnvironment {
 

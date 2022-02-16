@@ -11,7 +11,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
-import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._

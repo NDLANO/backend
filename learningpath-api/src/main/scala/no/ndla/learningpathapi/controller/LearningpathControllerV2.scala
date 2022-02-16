@@ -38,6 +38,7 @@ import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
 import org.scalatra.{Created, NoContent, NotFound, Ok, ScalatraServlet}
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait LearningpathControllerV2 {
@@ -85,7 +86,7 @@ trait LearningpathControllerV2 {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val pageNo =
@@ -122,12 +123,18 @@ trait LearningpathControllerV2 {
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
+
     private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
       headerParam[T](param.paramName).description(param.description)
+
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
+
+    @unused
     private def asFormParam[T: Manifest: NotNothing](param: Param[T]) =
       formParam[T](param.paramName).description(param.description)
+
+    @unused
     private def asFileParam(param: Param[_]) =
       Parameter(name = param.paramName,
                 `type` = ValueDataType("file"),

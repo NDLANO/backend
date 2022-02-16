@@ -79,7 +79,7 @@ trait SearchService {
       }
     }
 
-    protected def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    protected def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case supportedLanguage if Iso639.get(supportedLanguage).isSuccess =>
           supportedLanguage
@@ -106,7 +106,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value): FieldSort = {
+    def getSortDefinition(sort: Sort): FieldSort = {
       sort match {
         case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
         case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")

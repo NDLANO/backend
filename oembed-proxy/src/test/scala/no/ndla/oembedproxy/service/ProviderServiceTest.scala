@@ -11,11 +11,9 @@ package no.ndla.oembedproxy.service
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import scalaj.http.{Http, HttpRequest}
 
 import scala.util.{Failure, Success}
-import scalaj.http.{Http, HttpRequest}
 
 class ProviderServiceTest extends UnitSuite with TestEnvironment {
 

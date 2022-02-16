@@ -191,7 +191,6 @@ trait ArticleRepository {
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
-      val ar = Article.syntax("ar")
       sql"""
            select count(distinct article_id)
            from (select

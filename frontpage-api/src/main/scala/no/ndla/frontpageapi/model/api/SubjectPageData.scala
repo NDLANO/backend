@@ -11,7 +11,6 @@ import cats.Applicative
 import cats.effect.Sync
 import org.http4s.circe.{jsonOf, jsonEncoderWithPrinterOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
-import scala.language.higherKinds
 import io.circe.generic.semiauto._
 import io.circe.generic.auto._
 import io.circe._

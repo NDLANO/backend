@@ -9,9 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito.when
 import org.scalatra.test.scalatest.ScalatraFunSuite
-
 import scalaj.http.HttpResponse
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

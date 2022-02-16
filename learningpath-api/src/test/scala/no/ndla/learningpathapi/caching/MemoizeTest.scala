@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.caching
 
 import no.ndla.learningpathapi.UnitSuite
-import org.mockito.Mockito._
 
 class MemoizeTest extends UnitSuite {
 

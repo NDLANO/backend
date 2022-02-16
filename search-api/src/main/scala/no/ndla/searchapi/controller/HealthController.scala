@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.Elastic4sClient
 import org.scalatra.{InternalServerError, Ok, ScalatraServlet}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait HealthController {
   this: Elastic4sClient =>

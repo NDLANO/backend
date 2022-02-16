@@ -10,6 +10,8 @@ object frontpageapi extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,
+      enumeratum,
+      enumeratumCirce,
       "org.http4s" %% "http4s-circe" % Http4sV,
       "io.circe" %% "circe-generic" % CirceV,
       "io.circe" %% "circe-generic-extras" % CirceV,

@@ -8,21 +8,19 @@
 
 package no.ndla.learningpathapi.controller
 
-import java.util.UUID
-
-import javax.servlet.http.HttpServletRequest
+import enumeratum.Json4s
 import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.learningpathapi.model.api.ImportReport
-import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
-import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
+import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.AuthUser
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.scalatra._
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 trait InternController {
@@ -39,7 +37,7 @@ trait InternController {
         new EnumNameSerializer(LearningPathStatus) +
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
-        new EnumNameSerializer(StepStatus) +
+        Json4s.serializer(StepStatus) +
         new EnumNameSerializer(EmbedType)
 
     def requireClientId(implicit request: HttpServletRequest): String = {

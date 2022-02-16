@@ -33,7 +33,7 @@ trait FilmFrontPageRepository {
       ).map(deleteAllBut).map(_ => page)
     }
 
-    private def deleteAllBut(id: Long)(implicit session: DBSession = AutoSession) = {
+    private def deleteAllBut(id: Long)(implicit session: DBSession) = {
       Try(
         sql"delete from ${FilmFrontPageData.table} where id<>${id} "
           .update()

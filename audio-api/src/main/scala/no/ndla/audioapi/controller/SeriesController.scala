@@ -23,7 +23,7 @@ import no.ndla.audioapi.model.api.{
 }
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService, SeriesSearchService}
+import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
@@ -33,6 +33,7 @@ import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
@@ -77,7 +78,7 @@ trait SeriesController {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
@@ -102,6 +103,8 @@ trait SeriesController {
       headerParam[T](param.paramName).description(param.description)
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
+
+    @unused
     private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
       val className = manifest[T].runtimeClass.getSimpleName
       val modelOpt = models.get(className)
@@ -114,6 +117,8 @@ trait SeriesController {
           formParam[T](param.paramName).description(param.description)
       }
     }
+
+    @unused
     private def asFileParam(param: Param[_]) =
       Parameter(name = param.paramName,
                 `type` = ValueDataType("file"),
@@ -121,7 +126,7 @@ trait SeriesController {
                 paramType = ParamType.Form)
 
     /**
-      * Does a scroll with [[AudioSearchService]]
+      * Does a scroll with [[SeriesSearchService]]
       * If no scrollId is specified execute the function @orFunction in the second parameter list.
       *
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)

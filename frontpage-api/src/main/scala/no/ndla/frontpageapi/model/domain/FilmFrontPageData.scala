@@ -26,9 +26,6 @@ object FilmFrontPageData extends SQLSyntaxSupport[FilmFrontPageData] {
   override val tableName = "filmfrontpage"
   override val schemaName = FrontpageApiProperties.MetaSchema.some
 
-  implicit val elementDecoder = Decoder.decodeEnumeration(VisualElementType)
-  implicit val elementEncoder = Encoder.encodeEnumeration(VisualElementType)
-
   implicit val decoder: Decoder[FilmFrontPageData] = deriveDecoder
   implicit val encoder: Encoder[FilmFrontPageData] = deriveEncoder
 

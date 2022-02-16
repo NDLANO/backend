@@ -7,19 +7,14 @@
 
 package no.ndla.conceptapi.service
 
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.{ArticleApiClient, DomainImageMeta, ImageApiClient}
-import no.ndla.conceptapi.model.api.{ConceptImportResults, ImportException}
-import no.ndla.conceptapi.model.api.listing.Cover
+import no.ndla.conceptapi.integration.{ArticleApiClient, ImageApiClient}
+import no.ndla.conceptapi.model.api.ConceptImportResults
 import no.ndla.conceptapi.repository.DraftConceptRepository
-import no.ndla.conceptapi.model.domain
-import cats._
-import cats.data._
-import cats.implicits._
-import no.ndla.conceptapi.model.domain.Status
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait ImportService {
   this: ConverterService

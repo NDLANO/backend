@@ -6,6 +6,7 @@
  */
 
 package db.migration
+import enumeratum.Json4s
 import no.ndla.draftapi.model.domain.{Article, ArticleStatus, ArticleType, Status}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.EnumNameSerializer
@@ -15,7 +16,7 @@ import scalikejdbc.{DB, DBSession, _}
 
 class R__RemoveStatusPublishedArticles extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + new EnumNameSerializer(
+  implicit val formats = org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + Json4s.serializer(
     ArticleType)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration

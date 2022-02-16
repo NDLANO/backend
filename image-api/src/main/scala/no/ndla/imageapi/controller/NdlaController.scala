@@ -100,6 +100,23 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     paramValue.toLong
   }
 
+  def extractDoubleOpt2(one: String, two: String)(
+      implicit request: HttpServletRequest): (Option[Double], Option[Double]) = {
+    (extractDoubleOpt(one), extractDoubleOpt(two))
+  }
+
+  def extractDoubleOpt(paramName: String)(implicit request: HttpServletRequest): Option[Double] = {
+    params.get(paramName) match {
+      case Some(value) =>
+        if (!isDouble(value))
+          throw new ValidationException(
+            errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only numbers are allowed.")))
+
+        Some(value.toDouble)
+      case _ => None
+    }
+  }
+
   def extractDoubleOpts(paramNames: String*)(implicit request: HttpServletRequest): Seq[Option[Double]] = {
     paramNames.map(paramName => {
       params.get(paramName) match {

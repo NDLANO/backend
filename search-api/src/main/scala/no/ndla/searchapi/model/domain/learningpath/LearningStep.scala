@@ -9,7 +9,6 @@ package no.ndla.searchapi.model.domain.learningpath
 
 import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.searchapi.model.domain.Title
-import no.ndla.searchapi.model.domain.article.MetaDescription
 
 case class LearningStep(id: Option[Long],
                         revision: Option[Int],

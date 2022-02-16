@@ -20,16 +20,13 @@ import no.ndla.imageapi.model.api.{Error, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.language.Language
-import no.ndla.language.model.{Iso639, LanguageTag}
-import no.ndla.mapping.ISO639
+import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s.native.Serialization.read
 import org.json4s.Formats
+import org.json4s.native.Serialization.read
 
-import scala.collection.immutable.{AbstractSeq, LinearSeq}
 import scala.util.{Failure, Success, Try}
-import scala.xml.NodeSeq
 
 trait ImageSearchService {
   this: Elastic4sClient with ImageIndexService with SearchService with SearchConverterService with Role =>
@@ -45,7 +42,7 @@ trait ImageSearchService {
       searchConverterService.asImageMetaSummary(read[SearchableImage](hit), language)
     }
 
-    override def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
+    override def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage | Language.AllLanguages => "*"
         case _                                           => language

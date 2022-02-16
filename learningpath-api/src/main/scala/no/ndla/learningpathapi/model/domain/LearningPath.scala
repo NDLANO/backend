@@ -9,18 +9,16 @@
 package no.ndla.learningpathapi.model.domain
 
 import no.ndla.language.Language.getSupportedLanguages
-
-import java.util.Date
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.validation.DurationValidator
-import no.ndla.search.SearchLanguage
-import org.json4s.{DefaultFormats, FieldSerializer}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
+import org.json4s.{DefaultFormats, FieldSerializer, Serializer}
 import scalikejdbc._
 
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 case class LearningPath(id: Option[Long],
@@ -150,16 +148,13 @@ object LearningPathVerificationStatus extends Enumeration {
 
 object LearningPath extends SQLSyntaxSupport[LearningPath] {
 
-  val jsonSerializer = List(
+  val jsonSerializer: List[Serializer[_]] = List(
     new EnumNameSerializer(LearningPathStatus),
     new EnumNameSerializer(LearningPathVerificationStatus)
   )
 
   val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
-    ignore("id") orElse
-      ignore("learningsteps") orElse
-      ignore("externalId") orElse
-      ignore("revision")
+    ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
   )
 
   val jsonEncoder = DefaultFormats ++ jsonSerializer

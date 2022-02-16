@@ -107,7 +107,7 @@ trait ImageRepository {
       imageMetaInformationsWhere(sqls"im.id between $min and $max")
 
     private def imageMetaInformationWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
+        implicit session: DBSession): Option[ImageMetaInformation] = {
       val im = ImageMetaInformation.syntax("im")
       sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where $whereClause"
         .map(ImageMetaInformation.fromResultSet(im))

@@ -96,7 +96,7 @@ trait SearchConverterServiceComponent {
       SearchableLearningStep(
         learningStep.`type`.toString,
         learningStep.embedUrl.map(_.url).toList,
-        learningStep.status.toString,
+        learningStep.status.entryName,
         SearchableLanguageValues(learningStep.title.map(title => LanguageValue(title.language, title.title))),
         SearchableLanguageValues(learningStep.description.map(desc => LanguageValue(desc.language, desc.description))),
       )

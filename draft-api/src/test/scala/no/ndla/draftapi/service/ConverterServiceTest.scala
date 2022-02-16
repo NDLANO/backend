@@ -7,24 +7,20 @@
 
 package no.ndla.draftapi.service
 
-import java.util.UUID
-
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NewArticleMetaImage}
-import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ResourceType, TagAttributes, ValidationException}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.validation.{ResourceType, TagAttributes, ValidationException}
 import org.joda.time.DateTime
 import org.jsoup.nodes.Element
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
-import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success, Try}
+import java.util.UUID
+import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 

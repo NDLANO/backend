@@ -383,9 +383,9 @@ trait WriteService {
       shouldUpdateStatus
     }
 
-    def compareField(field: PartialArticleFields.Value,
+    def compareField(field: PartialArticleFields,
                      old: domain.Article,
-                     changed: domain.Article): Option[PartialArticleFields.Value] = {
+                     changed: domain.Article): Option[PartialArticleFields] = {
       val shouldInclude = field match {
         case PartialArticleFields.availability    => old.availability != changed.availability
         case PartialArticleFields.grepCodes       => old.grepCodes != changed.grepCodes
@@ -401,7 +401,7 @@ trait WriteService {
     /** Returns fields to partial publish _if_ we partial-publishing requirements are satisfied,
       * otherwise returns an empty set. */
     def shouldPartialPublish(existingArticle: Option[domain.Article],
-                             changedArticle: domain.Article): Set[PartialArticleFields.Value] = {
+                             changedArticle: domain.Article): Set[PartialArticleFields] = {
       val isPublished =
         changedArticle.status.current == ArticleStatus.PUBLISHED ||
           changedArticle.status.other.contains(ArticleStatus.PUBLISHED)
@@ -411,7 +411,7 @@ trait WriteService {
           .map(e => PartialArticleFields.values.flatMap(field => compareField(field, e, changedArticle)))
           .getOrElse(PartialArticleFields.values)
 
-        changedFields
+        changedFields.toSet
       } else {
         Set.empty
       }
@@ -674,7 +674,7 @@ trait WriteService {
     }
 
     private[service] def partialArticleFieldsUpdate(articleToPartialPublish: domain.Article,
-                                                    articleFieldsToUpdate: Seq[PartialArticleFields.Value],
+                                                    articleFieldsToUpdate: Seq[PartialArticleFields],
                                                     language: String): PartialPublishArticle = {
 
       val initialPartial = PartialPublishArticle(None, None, None, None, None, None)
@@ -703,14 +703,14 @@ trait WriteService {
     }
 
     def partialPublishAndConvertToApiArticle(id: Long,
-                                             fieldsToPublish: Seq[PartialArticleFields.Value],
+                                             fieldsToPublish: Seq[PartialArticleFields],
                                              language: String,
                                              fallback: Boolean): Try[api.Article] =
       partialPublish(id, fieldsToPublish, language)._2.flatMap(article =>
         converterService.toApiArticle(article, language, fallback))
 
     def partialPublish(id: Long,
-                       articleFieldsToUpdate: Seq[PartialArticleFields.Value],
+                       articleFieldsToUpdate: Seq[PartialArticleFields],
                        language: String): (Long, Try[domain.Article]) =
       draftRepository.withId(id) match {
         case None => id -> Failure(NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
@@ -720,7 +720,7 @@ trait WriteService {
       }
 
     private def partialPublishIfNeeded(article: domain.Article,
-                                       articleFieldsToUpdate: Seq[PartialArticleFields.Value],
+                                       articleFieldsToUpdate: Seq[PartialArticleFields],
                                        language: String): Future[Try[domain.Article]] = {
       if (articleFieldsToUpdate.nonEmpty)
         partialPublish(article, articleFieldsToUpdate, language)
@@ -729,7 +729,7 @@ trait WriteService {
     }
 
     private def partialPublish(article: domain.Article,
-                               fieldsToPublish: Seq[PartialArticleFields.Value],
+                               fieldsToPublish: Seq[PartialArticleFields],
                                language: String): Future[Try[domain.Article]] = {
       article.id match {
         case None =>

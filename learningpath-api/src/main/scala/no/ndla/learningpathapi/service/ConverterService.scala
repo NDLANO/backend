@@ -491,7 +491,7 @@ trait ConverterService {
             ls.license.map(asApiLicense),
             createUrlToLearningStep(ls, lp),
             lp.canEdit(user),
-            ls.status.toString,
+            ls.status.entryName,
             supportedLanguages
           ))
       } else {
@@ -514,7 +514,7 @@ trait ConverterService {
         ))
     }
 
-    def asLearningStepContainerSummary(status: StepStatus.Value,
+    def asLearningStepContainerSummary(status: StepStatus,
                                        learningPath: domain.LearningPath,
                                        language: String,
                                        fallback: Boolean): Try[api.LearningStepContainerSummary] = {
@@ -634,7 +634,7 @@ trait ConverterService {
 
     def asApiConfig(configValue: ConfigMeta): api.config.ConfigMeta = {
       api.config.ConfigMeta(
-        configValue.key.toString,
+        configValue.key.entryName,
         configValue.value,
         configValue.updatedAt,
         configValue.updatedBy

@@ -741,8 +741,7 @@ trait SearchConverterService {
       * @return Flattened list of resourceType with subtypes.
       */
     private def getTypeAndSubtypes(resourceType: ResourceType): List[ResourceType] = {
-      def getTypeAndSubtypesWithParent(resourceType: ResourceType,
-                                       parents: List[ResourceType] = List.empty): List[ResourceType] = {
+      def getTypeAndSubtypesWithParent(resourceType: ResourceType, parents: List[ResourceType]): List[ResourceType] = {
         resourceType.subtypes match {
           case None => (parents :+ resourceType).distinct
           case Some(subtypes) =>
@@ -974,7 +973,7 @@ trait SearchConverterService {
 
     private def filterByVisibility[T <: TaxonomyElement](
         elementsToFilter: List[T],
-        filterVisibles: Boolean = true
+        filterVisibles: Boolean
     ): List[T] =
       if (filterVisibles) {
         elementsToFilter.filter((e: TaxonomyElement) => e.metadata.exists(_.visible))

@@ -4,7 +4,7 @@ import sbt._
 object Dependencies {
 
   object versions {
-    val ScalaV = "2.13.2"
+    val ScalaV = "2.13.8"
     val ScalatraV = "2.8.2"
     val HikariConnectionPoolV = "4.0.1"
     val ScalaLoggingV = "3.9.4"
@@ -21,7 +21,7 @@ object Dependencies {
     val FlywayV = "7.5.3"
     val PostgresV = "42.2.18"
     val PactV = "2.3.16"
-    val ScalaTsiV = "0.5.1"
+    val ScalaTsiV = "0.6.0"
     val Http4sV = "0.21.21"
     val RhoV = "0.21.0"
     val CirceV = "0.13.0"
@@ -34,6 +34,10 @@ object Dependencies {
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres = "org.postgresql" % "postgresql" % PostgresV
     lazy val hikari = "com.zaxxer" % "HikariCP" % HikariConnectionPoolV
+
+    lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.7.0"
+    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"
+    lazy val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % "1.7.0"
 
     lazy val database = Seq(
       scalikejdbc,

@@ -18,7 +18,6 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.language.Language.AllLanguages
-import no.ndla.search.SearchLanguage
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
@@ -64,7 +63,7 @@ trait ArticleControllerV2 {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
@@ -191,7 +190,7 @@ trait ArticleControllerV2 {
 
     private def search(
         query: Option[String],
-        sort: Option[Sort.Value],
+        sort: Option[Sort],
         language: String,
         license: Option[String],
         page: Int,

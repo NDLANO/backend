@@ -7,8 +7,6 @@
 
 package db.migration
 
-import java.sql.Connection
-
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
 import org.json4s.JsonAST.JArray

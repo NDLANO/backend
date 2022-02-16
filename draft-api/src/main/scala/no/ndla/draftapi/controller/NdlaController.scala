@@ -98,7 +98,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       InternalServerError(body = Error.GenericError)
   }
 
-  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
+  case class Param[T](paramName: String, description: String)
 
   protected val correlationId =
     Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")

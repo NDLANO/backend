@@ -8,7 +8,6 @@
 package no.ndla.searchapi.integration
 
 import no.ndla.network.NdlaClient
-import no.ndla.searchapi.model.domain.article.Article
 import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, SearchParams}
 
 import scala.concurrent.{ExecutionContext, Future}

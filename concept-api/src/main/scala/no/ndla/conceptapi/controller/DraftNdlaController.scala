@@ -9,16 +9,9 @@ package no.ndla.conceptapi.controller
 
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{
-  Concept,
-  NewConcept,
-  NotFoundException,
-  SubjectTags,
-  TagsSearchResult,
-  UpdatedConcept
-}
-import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.conceptapi.model.api.{Concept, NewConcept, TagsSearchResult, UpdatedConcept}
 import no.ndla.conceptapi.service.search.DraftConceptSearchService
+import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.language.Language.AllLanguages
 import org.scalatra.{Created, Ok}
 

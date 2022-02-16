@@ -69,7 +69,7 @@ trait AgreementController {
     }
 
     private def search(query: Option[String],
-                       sort: Option[Sort.Value],
+                       sort: Option[Sort],
                        license: Option[String],
                        page: Int,
                        pageSize: Int,

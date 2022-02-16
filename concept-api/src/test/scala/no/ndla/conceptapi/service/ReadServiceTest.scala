@@ -7,9 +7,8 @@
 
 package no.ndla.conceptapi.service
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{Concept, VisualElement}
+import no.ndla.conceptapi.model.domain.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService

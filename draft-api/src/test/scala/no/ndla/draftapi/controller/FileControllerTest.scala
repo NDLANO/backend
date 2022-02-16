@@ -11,11 +11,9 @@ import no.ndla.draftapi.model.api.UploadedFile
 import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
 import org.scalatra.servlet.FileItem
-import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.scalatra.test.BytesPart
+import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.Success
 

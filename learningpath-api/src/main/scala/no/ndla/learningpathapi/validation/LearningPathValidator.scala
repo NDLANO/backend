@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.validation
 
 import io.lemonlabs.uri.Url
-import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.learningpathapi.model.api.{UpdatedLearningPathV2, ValidationMessage}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.getLicense

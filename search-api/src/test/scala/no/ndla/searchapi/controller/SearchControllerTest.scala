@@ -15,8 +15,6 @@ import no.ndla.searchapi.model.domain.SearchParams
 import no.ndla.searchapi.model.domain.article.Availability
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{SearchSwagger, TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.Success

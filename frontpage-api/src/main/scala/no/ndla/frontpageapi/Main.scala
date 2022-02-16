@@ -8,7 +8,6 @@
 package no.ndla.frontpageapi
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.implicits._
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.frontpageapi.FrontpageApiProperties.{ApplicationPort, NumThreads}
 import org.http4s.implicits._

@@ -7,30 +7,22 @@
 
 package no.ndla.searchapi.integration
 
-import java.util.Date
-import no.ndla.network.AuthUser
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.model.domain
-import no.ndla.searchapi.model.domain.draft.{ArticleStatus, Copyright}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.network.AuthUser
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.DomainDumpResults
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.learningpath.{
-  EmbedType,
-  LearningPathStatus,
-  LearningPathVerificationStatus,
-  StepStatus,
-  StepType
-}
+import no.ndla.searchapi.model.domain.draft.{ArticleStatus, Copyright}
+import no.ndla.searchapi.model.domain.learningpath._
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
+import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
-import org.json4s.{DefaultFormats, Formats}
 
-import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
-import scala.util.Success
+import scala.concurrent.{Await, ExecutionContext}
 
 class DraftApiClientTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats =

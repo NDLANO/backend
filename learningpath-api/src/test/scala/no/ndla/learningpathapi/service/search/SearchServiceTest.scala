@@ -429,7 +429,6 @@ class SearchServiceTest
         sort = Sort.ByTitleAsc,
         language = Some("kra")
       ))
-    val hits = searchResult.results
 
     searchResult.totalCount should be(0)
   }
@@ -735,7 +734,7 @@ class SearchServiceTest
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

@@ -13,6 +13,7 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import java.util.Date
 import scala.annotation.meta.field
+import scala.annotation.unused
 
 // format: off
 @ApiModel(description = "Short summary of information about the audio")
@@ -31,6 +32,7 @@ case class AudioSummary(
 // format: on
 object AudioSummary {
   implicit val AudioSummaryTSI: TSIType[AudioSummary] = {
+    @unused
     implicit val seriesSummaryReference: TSType[SeriesSummary] = TSType.external[SeriesSummary]("ISeriesSummary")
     TSType.fromCaseClass[AudioSummary]
   }

@@ -15,7 +15,6 @@ import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import scalaj.http.Http
 
-import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 case class ConceptStatus(current: String)

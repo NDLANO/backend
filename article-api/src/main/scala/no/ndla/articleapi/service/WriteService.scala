@@ -10,14 +10,14 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.User
+import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.integration.SearchApiClient
-import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
-import no.ndla.validation.{ValidationException, ValidationMessage}
+import no.ndla.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
 

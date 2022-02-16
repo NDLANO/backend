@@ -7,7 +7,6 @@
 
 package no.ndla.frontpageapi.service
 
-import org.log4s.getLogger
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}

@@ -8,14 +8,12 @@
 
 package no.ndla.imageapi.integration
 
-import java.util.Date
-
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.model.api
 import no.ndla.network.NdlaClient
-
-import scala.util.{Success, Try}
 import scalaj.http.{Http, HttpRequest}
+
+import java.util.Date
 
 trait DraftApiClient {
   this: NdlaClient =>

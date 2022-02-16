@@ -11,10 +11,7 @@ import cats.Applicative
 import cats.effect.Sync
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
-import scala.language.higherKinds
 import io.circe.generic.semiauto._
-import io.circe.generic.auto._
-import io.circe._
 
 case class SubjectPageId(id: Long)
 

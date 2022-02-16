@@ -12,9 +12,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ResourceType, TagAttributes}
 import org.joda.time.DateTime
-import org.mockito.Mockito._
 
 import scala.util.Success
 

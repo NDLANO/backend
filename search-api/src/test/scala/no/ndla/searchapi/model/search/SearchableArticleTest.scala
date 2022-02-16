@@ -127,16 +127,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
     val embedResourcesAndIds =
       List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
 
-    val embedResources = SearchableLanguageList(
-      Seq(
-        LanguageValue("nb", List("test resource 1", "test resource 2")),
-      ))
-
-    val embedIds = SearchableLanguageList(
-      Seq(
-        LanguageValue("nb", List("test id 1", "test id 2")),
-      ))
-
     val metaImages = List(ArticleMetaImage("1", "alt", "nb"))
 
     val original = SearchableArticle(

@@ -13,7 +13,6 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime

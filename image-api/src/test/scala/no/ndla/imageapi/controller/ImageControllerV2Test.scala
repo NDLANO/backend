@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi.controller
 
-import java.util.Date
 import no.ndla.imageapi.ImageApiProperties.MaxImageFileSizeBytes
 import no.ndla.imageapi.model.api.{
   ImageMetaSummary,
@@ -16,20 +15,19 @@ import no.ndla.imageapi.model.api.{
   SearchResult,
   UpdateImageMetaInformation
 }
-import no.ndla.imageapi.model.domain.{Sort, _}
+import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.{ImageSwagger, TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonParser
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import java.text.{DateFormat, SimpleDateFormat}
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnvironment {

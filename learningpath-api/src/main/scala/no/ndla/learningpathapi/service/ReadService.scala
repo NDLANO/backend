@@ -66,7 +66,7 @@ trait ReadService {
     }
 
     def learningstepsForWithStatusV2(learningPathId: Long,
-                                     status: StepStatus.Value,
+                                     status: StepStatus,
                                      language: String,
                                      fallback: Boolean,
                                      user: UserInfo = UserInfo.getUserOrPublic): Try[LearningStepContainerSummary] = {

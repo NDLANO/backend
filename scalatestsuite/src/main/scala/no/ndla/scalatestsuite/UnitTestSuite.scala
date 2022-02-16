@@ -8,7 +8,6 @@
 package no.ndla.scalatestsuite
 
 import org.joda.time.{DateTime, DateTimeUtils}
-import org.mockito.MockitoScalaSession
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite

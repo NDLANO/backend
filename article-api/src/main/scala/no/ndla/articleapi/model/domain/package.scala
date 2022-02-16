@@ -14,6 +14,4 @@ package object domain {
   }
 
   type RelatedContent = Either[RelatedContentLink, Long]
-
-  case class ArticleIds(articleId: Long, externalId: List[String])
 }

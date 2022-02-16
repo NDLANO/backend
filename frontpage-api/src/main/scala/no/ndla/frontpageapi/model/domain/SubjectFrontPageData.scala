@@ -39,8 +39,6 @@ object SubjectFrontPageData extends SQLSyntaxSupport[SubjectFrontPageData] {
   override val tableName = "subjectpage"
   override val schemaName: Option[String] = FrontpageApiProperties.MetaSchema.some
 
-  implicit val elementDecoder: Decoder[VisualElementType.Value] = Decoder.decodeEnumeration(VisualElementType)
-  implicit val elementEncoder: Encoder[VisualElementType.Value] = Encoder.encodeEnumeration(VisualElementType)
   implicit val layoutDecoder: Decoder[LayoutType.Value] = Decoder.decodeEnumeration(LayoutType)
   implicit val layoutEncoder: Encoder[LayoutType.Value] = Encoder.encodeEnumeration(LayoutType)
 

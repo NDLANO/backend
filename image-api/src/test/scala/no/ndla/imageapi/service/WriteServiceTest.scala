@@ -8,22 +8,19 @@
 
 package no.ndla.imageapi.service
 
-import java.io.InputStream
-import java.util.Date
-import javax.servlet.http.HttpServletRequest
-import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.model.api._
-import no.ndla.imageapi.model.domain
+import no.ndla.imageapi.model.{ValidationException, domain}
 import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
 import org.joda.time.{DateTime, DateTimeZone}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
+import java.io.InputStream
+import java.util.Date
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {

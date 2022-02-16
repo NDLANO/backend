@@ -8,9 +8,6 @@
 package no.ndla.draftapi.caching
 
 import no.ndla.draftapi.UnitSuite
-import org.mockito.Mockito._
-
-import scala.util.{Failure, Try}
 
 class MemoizeTest extends UnitSuite {
 

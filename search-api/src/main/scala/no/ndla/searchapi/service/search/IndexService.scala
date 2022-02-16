@@ -128,7 +128,7 @@ trait IndexService {
           case Failure(ex) => Future.successful(Failure(ex))
           case Success(c) =>
             indexDocuments(c, indexName, taxonomyBundle, grepBundle).map(numIndexed =>
-              Success(numIndexed.getOrElse(0), c.size))
+              Success((numIndexed.getOrElse(0), c.size)))
 
         })
         .toList

@@ -19,7 +19,6 @@ import org.scalatra.servlet.ScalatraListener
 import java.util
 import javax.servlet.DispatcherType
 import scala.io.Source
-import scala.jdk.CollectionConverters.MapHasAsScala
 
 object JettyLauncher extends LazyLogging {
 

@@ -23,7 +23,7 @@ class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
       } catch {
         case _: Throwable =>
           fail(
-            s"Every ConfigKey value needs to be validated. '${key.toString}' threw an exception when attempted validation.")
+            s"Every ConfigKey value needs to be validated. '${key.entryName}' threw an exception when attempted validation.")
       }
     })
   }

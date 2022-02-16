@@ -125,7 +125,7 @@ case class V5_LearningStep(id: Option[Long],
                            `type`: StepType.Value,
                            license: Option[String],
                            showTitle: Boolean = false,
-                           status: StepStatus.Value = StepStatus.ACTIVE)
+                           status: StepStatus = StepStatus.ACTIVE)
 
 case class V5_Title(title: String, language: Option[String])
 case class V5_Description(description: String, language: Option[String])

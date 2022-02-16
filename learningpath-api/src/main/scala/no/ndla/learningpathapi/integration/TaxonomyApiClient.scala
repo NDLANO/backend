@@ -222,7 +222,7 @@ trait TaxonomyApiClient {
       ndlaClient.fetchWithForwardedAuth[A](
         Http(url)
           .timeout(taxonomyTimeout, taxonomyTimeout)
-          .postData(write(data))
+          .postData(write(data)(format))
           .method("put")
           .header("content-type", "application/json")
           .params(params.toMap)
@@ -244,8 +244,9 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def postRaw[B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(
-        implicit format: org.json4s.Formats): Try[HttpResponse[String]] = {
+    private def postRaw[B <: AnyRef](endpointUrl: String,
+                                     data: B,
+                                     params: (String, String)*): Try[HttpResponse[String]] = {
       ndlaClient.fetchRawWithForwardedAuth(
         Http(endpointUrl)
           .postData(write(data))

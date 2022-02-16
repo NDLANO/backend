@@ -7,7 +7,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.Monad
 import cats.effect.{Effect, IO}
 import no.ndla.frontpageapi.FrontpageApiProperties
 import no.ndla.frontpageapi.auth.UserInfo
@@ -22,8 +21,7 @@ trait SubjectPageController {
   this: ReadService with WriteService =>
   val subjectPageController: SubjectPageController[IO]
 
-  class SubjectPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F])(implicit F: Monad[F])
-      extends AuthController[F] {
+  class SubjectPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
 
     import swaggerSyntax._
 

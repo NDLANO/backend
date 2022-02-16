@@ -7,9 +7,9 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.Sort
+import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
@@ -80,7 +80,7 @@ class TagSearchServiceTest
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     val indexName = tagIndexService.createIndexWithGeneratedName
-    val alias = tagIndexService.updateAliasTarget(None, indexName.get)
+    tagIndexService.updateAliasTarget(None, indexName.get)
 
     imagesToIndex.foreach(a => {
       val x = tagIndexService.indexDocument(a)
@@ -104,7 +104,7 @@ class TagSearchServiceTest
       try {
         done = predicate()
       } catch {
-        case e: Throwable => println("problem while testing predicate", e)
+        case e: Throwable => println(("problem while testing predicate", e))
       }
     }
 

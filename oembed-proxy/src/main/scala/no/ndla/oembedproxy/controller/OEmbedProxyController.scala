@@ -13,12 +13,11 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadGateway, BadRequest, InternalServerError, NotFound, NotImplemented, ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport, SwaggerSupportSyntax}
 import org.scalatra.util.NotNothing
+import org.scalatra._
 
 import scala.util.{Failure, Success}
 

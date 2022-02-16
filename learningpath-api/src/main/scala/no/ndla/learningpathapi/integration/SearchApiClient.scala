@@ -7,8 +7,8 @@
 
 package no.ndla.learningpathapi.integration
 import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
+import enumeratum.Json4s
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import no.ndla.learningpathapi.LearningpathApiProperties.SearchApiHost
@@ -17,6 +17,7 @@ import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
 
+import scala.annotation.unused
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -26,13 +27,14 @@ trait SearchApiClient {
 
   class SearchApiClient extends LazyLogging {
     private val IndexTimeout = 90 * 1000 // 90 seconds
+    @unused
     private val SearchApiBaseUrl = s"http://$SearchApiHost"
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
         new EnumNameSerializer(LearningPathStatus) +
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
-        new EnumNameSerializer(StepStatus) +
+        Json4s.serializer(StepStatus) +
         new EnumNameSerializer(EmbedType)
 
     def deleteLearningPathDocument(id: Long): Try[_] = {

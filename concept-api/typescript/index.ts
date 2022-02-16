@@ -159,7 +159,7 @@ export interface IUpdatedConcept {
   language: string
   title?: string
   content?: string
-  metaImage: (null | (INewConceptMetaImage | undefined))
+  metaImage?: (null | INewConceptMetaImage)
   copyright?: ICopyright
   source?: string
   tags?: string[]

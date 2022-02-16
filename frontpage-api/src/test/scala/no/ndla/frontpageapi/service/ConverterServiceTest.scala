@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain
-import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException}
+import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.model.domain.{AboutSubject, Errors, MetaDescription, VisualElement, VisualElementType}
 import no.ndla.frontpageapi.{FrontpageApiProperties, TestData, TestEnvironment, UnitSuite}
 

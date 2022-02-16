@@ -9,23 +9,13 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.language.Language.AllLanguages
-
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit.MINUTES
 import no.ndla.searchapi.SearchApiProperties
-import no.ndla.searchapi.SearchApiProperties.{
-  DefaultPageSize,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  InitialScrollContextKeywords,
-  MaxPageSize
-}
-import no.ndla.searchapi.auth.{Role, User, UserInfo}
+import no.ndla.searchapi.SearchApiProperties._
+import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.{FeideApiClient, SearchApiClient}
 import no.ndla.searchapi.model.api.{
   AccessDeniedException,
   Error,
-  FeideApiException,
   GroupSearchResult,
   MultiSearchResult,
   SearchResults,
@@ -47,12 +37,13 @@ import org.scalatra.Ok
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit.MINUTES
 import javax.servlet.http.HttpServletRequest
+import scala.annotation.unused
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.language.reflectiveCalls
 import scala.util.{Failure, Success, Try}
-import no.ndla.search.SearchLanguage
 
 trait SearchController {
   this: ApiSearchService
@@ -90,7 +81,7 @@ trait SearchController {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.values.mkString(", ")}.
+             The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
     )
 
@@ -202,6 +193,7 @@ trait SearchController {
     private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
       headerParam[T](param.paramName).description(param.description)
 
+    @unused
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
 
@@ -247,7 +239,6 @@ trait SearchController {
         .valueOf(paramOrDefault(this.sort.paramName, ""))
         .getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByIdAsc)
       val idList = paramAsListOfLong(this.learningResourceIds.paramName)
-      val taxonomyFilters = paramAsListOfString(this.levels.paramName)
       val contextTypes = paramAsListOfString(this.contextTypes.paramName)
       val supportedLanguagesFilter = paramAsListOfString(this.languageFilter.paramName)
       val relevances = paramAsListOfString(this.relevanceFilter.paramName)
@@ -365,11 +356,10 @@ trait SearchController {
       val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, "-relevance")).getOrElse(Sort.ByRelevanceDesc)
       val page = intOrDefault(this.pageNo.paramName, 1)
       val pageSize = intOrDefault(this.pageSize.paramName, 5)
-      val apisToSearch: Set[SearchApiClient] =
-        paramAsListOfString(this.apiTypes.paramName).flatMap(SearchClients.get).toSet match {
-          case apiClients if apiClients.nonEmpty => apiClients
-          case apiClients if apiClients.isEmpty  => SearchClients.values.toSet
-        }
+      val apisToSearch: Set[SearchApiClient] = {
+        val apiClients = paramAsListOfString(this.apiTypes.paramName).flatMap(SearchClients.get).toSet
+        if (apiClients.isEmpty) SearchClients.values.toSet else apiClients
+      }
 
       val usedKeys =
         Set(this.language.paramName, this.pageNo.paramName, this.pageSize.paramName, this.apiTypes.paramName)
@@ -387,7 +377,6 @@ trait SearchController {
       val contextTypes = paramAsListOfString(this.contextTypes.paramName)
       val idList = paramAsListOfLong(this.learningResourceIds.paramName)
       val resourceTypes = paramAsListOfString(this.resourceTypes.paramName)
-      val taxonomyFilters = paramAsListOfString(this.levels.paramName)
       val license = paramOrNone(this.license.paramName)
       val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
       val subjects = paramAsListOfString(this.subjects.paramName)
@@ -433,7 +422,6 @@ trait SearchController {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val idList = paramAsListOfLong(this.learningResourceIds.paramName)
       val resourceTypes = paramAsListOfString(this.resourceTypes.paramName)
-      val taxonomyFilters = paramAsListOfString(this.levels.paramName)
       val license = paramOrNone(this.license.paramName)
       val query = paramOrNone(this.query.paramName)
       val noteQuery = paramOrNone(this.noteQuery.paramName)

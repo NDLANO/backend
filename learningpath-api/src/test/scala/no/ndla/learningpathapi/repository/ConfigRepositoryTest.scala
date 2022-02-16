@@ -7,17 +7,15 @@
 
 package no.ndla.learningpathapi.repository
 
-import java.util.Date
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.learningpathapi.{DBMigrator, LearningpathApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{DBMigrator, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.network.secrets.PropertyKeys
 import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome
 import scalikejdbc.{DB, _}
 
+import java.util.Date
 import scala.util.{Failure, Try}
-import scala.util.Properties.setProp
 
 @IntegrationTest
 class ConfigRepositoryTest

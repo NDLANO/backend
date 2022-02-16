@@ -8,9 +8,9 @@
 package no.ndla.frontpageapi.service
 
 import no.ndla.frontpageapi.FrontpageApiProperties
-import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, OperationNotAllowedException, ValidationException}
+import no.ndla.frontpageapi.model.api
+import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.model.{api, domain}
 
 import scala.util.{Failure, Success, Try}
 

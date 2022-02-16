@@ -8,8 +8,6 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{LearningpathApiProperties, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
 

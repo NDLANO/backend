@@ -7,21 +7,20 @@
 
 package no.ndla.draftapi.integration
 
-import java.util.concurrent.{Executor, Executors}
-
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.H5PAddress
 import no.ndla.draftapi.model.api.H5PException
+import no.ndla.draftapi.model.domain.RequestInfo
 import no.ndla.network.NdlaClient
 import org.json4s.DefaultFormats
 import scalaj.http.Http
 
+import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import no.ndla.draftapi.model.domain.RequestInfo
 
 trait H5PApiClient {
   this: NdlaClient =>
@@ -78,8 +77,7 @@ trait H5PApiClient {
     }
 
     private[integration] def putNothing(url: String, params: (String, String)*)(
-        implicit formats: org.json4s.Formats,
-        ec: ExecutionContext): Future[Try[Unit]] = {
+        implicit ec: ExecutionContext): Future[Try[Unit]] = {
       val threadInfo = RequestInfo()
       Future {
         logger.info(s"Doing call to $url")

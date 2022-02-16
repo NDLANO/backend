@@ -9,7 +9,6 @@
 package no.ndla.audioapi.caching
 
 import no.ndla.audioapi.UnitSuite
-import org.mockito.Mockito._
 
 class MemoizeTest extends UnitSuite {
 

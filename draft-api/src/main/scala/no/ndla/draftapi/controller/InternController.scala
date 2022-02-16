@@ -7,28 +7,22 @@
 
 package no.ndla.draftapi.controller
 
-import java.util.concurrent.{Executors, TimeUnit}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, ReindexResult}
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.Article.jsonEncoder
+import no.ndla.draftapi.model.domain.{ArticleStatus, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
-import no.ndla.draftapi.service.search.{
-  AgreementIndexService,
-  ArticleIndexService,
-  GrepCodesIndexService,
-  IndexService,
-  TagIndexService
-}
+import no.ndla.draftapi.service.search._
 import no.ndla.language.Language
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.tailrec
 import scala.concurrent._
 import scala.concurrent.duration.Duration

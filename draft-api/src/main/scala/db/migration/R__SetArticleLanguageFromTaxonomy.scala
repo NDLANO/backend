@@ -7,11 +7,13 @@
 
 package db.migration
 
+import enumeratum.Json4s
 import no.ndla.draftapi.DraftApiProperties.Domain
 import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language.languageOrUnknown
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
@@ -24,8 +26,9 @@ import scala.util.{Failure, Success, Try}
 
 class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + new EnumNameSerializer(
-    ArticleType)
+  implicit val formats: Formats = org.json4s.DefaultFormats +
+    new EnumNameSerializer(ArticleStatus) +
+    Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"
   private val taxonomyTimeout = 20 * 1000 // 20 Seconds
 
@@ -71,7 +74,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     val externalId = resource.id.flatMap(i => Try(i.split(':').last.toLong).toOption)
 
     convertedArticleId match {
-      case Some(articleId) => Some(articleId, externalId)
+      case Some(articleId) => Some((articleId, externalId))
       case _               => None
     }
 
@@ -92,7 +95,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
         keywords.keyword
           .flatMap(_.names)
           .flatMap(_.data)
-          .flatMap(_.toIterable)
+          .flatMap(_.toList)
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))

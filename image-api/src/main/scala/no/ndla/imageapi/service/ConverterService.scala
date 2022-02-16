@@ -9,20 +9,20 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.auth.{Role, User}
-import no.ndla.imageapi.model.{api, domain}
-import no.ndla.network.ApplicationUrl
-import io.lemonlabs.uri.{Uri, Url, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.{Uri, UrlPath}
+import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
+import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
+import no.ndla.imageapi.model.{api, domain}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.ApplicationUrl
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 trait ConverterService {
   this: User with Role with Clock with DraftApiClient =>

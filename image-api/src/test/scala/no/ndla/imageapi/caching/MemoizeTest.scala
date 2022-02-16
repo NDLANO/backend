@@ -9,7 +9,6 @@
 package no.ndla.imageapi.caching
 
 import no.ndla.imageapi.UnitSuite
-import org.mockito.Mockito._
 
 class MemoizeTest extends UnitSuite {
 

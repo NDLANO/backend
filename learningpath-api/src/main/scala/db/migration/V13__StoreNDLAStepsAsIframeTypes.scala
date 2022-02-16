@@ -7,22 +7,20 @@
 package db.migration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.LearningpathApiProperties
-import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.{Formats, JField}
-import org.json4s.JsonAST.{JArray, JObject, JString}
-import org.json4s.ext.EnumNameSerializer
-import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.native.Serialization.read
-import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
 import io.lemonlabs.uri.Url
 import no.ndla.learningpathapi.LearningpathApiProperties.{ApiGatewayHost, NdlaFrontendHost, NdlaFrontendProtocol}
 import no.ndla.learningpathapi.model.domain.InvalidOembedResponse
+import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.Formats
+import org.json4s.JsonAST.{JArray, JString}
+import org.json4s.native.JsonMethods.{compact, parse, render}
+import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
+import org.postgresql.util.PGobject
 import scalaj.http.{Http, HttpResponse}
+import scalikejdbc.{DB, DBSession, _}
 
-import java.util.concurrent.{Executor, Executors}
+import java.util.concurrent.Executors
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -48,7 +46,7 @@ class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLoggin
 
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(3))
 
-    var futs = mutable.ListBuffer[Future[Unit]]()
+    val futs = mutable.ListBuffer[Future[Unit]]()
 
     while (numPagesLeft > 0) {
       allLearningSteps(offset * 1000).map {

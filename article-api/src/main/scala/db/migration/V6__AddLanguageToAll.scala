@@ -8,7 +8,6 @@
 package db.migration
 
 import no.ndla.language.Language.languageOrUnknown
-import no.ndla.search.SearchLanguage
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore
