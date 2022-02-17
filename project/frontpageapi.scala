@@ -12,21 +12,22 @@ object frontpageapi extends Module {
       scalaTsi,
       enumeratum,
       enumeratumCirce,
-      "org.http4s" %% "http4s-circe" % Http4sV,
-      "io.circe" %% "circe-generic" % CirceV,
-      "io.circe" %% "circe-generic-extras" % CirceV,
-      "io.circe" %% "circe-literal" % CirceV,
-      "io.circe" %% "circe-parser" % CirceV,
-      "org.http4s" %% "rho-swagger" % RhoV,
-      "org.http4s" %% "http4s-server" % Http4sV,
-      "org.http4s" %% "http4s-dsl" % Http4sV,
-      "org.http4s" %% "http4s-blaze-server" % Http4sV,
-      "org.flywaydb" % "flyway-core" % FlywayV,
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1"
-    ) ++ database ++ vulnerabilityOverrides)
+      "org.http4s"    %% "http4s-circe"            % Http4sV,
+      "io.circe"      %% "circe-generic"           % CirceV,
+      "io.circe"      %% "circe-generic-extras"    % CirceV,
+      "io.circe"      %% "circe-literal"           % CirceV,
+      "io.circe"      %% "circe-parser"            % CirceV,
+      "org.http4s"    %% "rho-swagger"             % RhoV,
+      "org.http4s"    %% "http4s-server"           % Http4sV,
+      "org.http4s"    %% "http4s-dsl"              % Http4sV,
+      "org.http4s"    %% "http4s-blaze-server"     % Http4sV,
+      "org.flywaydb"   % "flyway-core"             % FlywayV,
+      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
+      "javax.servlet"  % "javax.servlet-api"       % "4.0.1"
+    ) ++ database ++ vulnerabilityOverrides
+  )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.frontpageapi.model.api._"),
@@ -48,8 +49,7 @@ object frontpageapi extends Module {
     commonSettings ++
     assemblySettings() ++
     dockerSettings() ++
-    tsSettings ++
-    fmtSettings
+    tsSettings
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,

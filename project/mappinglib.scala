@@ -9,10 +9,9 @@ object mappinglib extends Module {
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "mapping",
-    libraryDependencies ++= dependencies,
+    libraryDependencies ++= dependencies
   ) ++
-    commonSettings ++
-    fmtSettings
+    commonSettings
 
   override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

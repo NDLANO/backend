@@ -5,19 +5,18 @@ import sbt._
 
 object validationlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
-    "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-    "org.jsoup" % "jsoup" % "1.11.3",
-    "org.json4s" %% "json4s-native" % Json4SV,
-    "org.json4s" %% "json4s-ext" % Json4SV,
+    "org.scalatest" %% "scalatest"     % ScalaTestV % "test",
+    "org.jsoup"      % "jsoup"         % "1.11.3",
+    "org.json4s"    %% "json4s-native" % Json4SV,
+    "org.json4s"    %% "json4s-ext"    % Json4SV,
     scalaUri
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "validation",
-    libraryDependencies ++= dependencies,
+    libraryDependencies ++= dependencies
   ) ++
-    commonSettings ++
-    fmtSettings
+    commonSettings
 
   override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

@@ -6,8 +6,7 @@ object commonlib extends Module {
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "common"
   ) ++
-    commonSettings ++
-    fmtSettings
+    commonSettings
 
   override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

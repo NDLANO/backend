@@ -10,16 +10,17 @@ object oembedproxy extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaUri,
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test"
-    ) ++ scalatra ++ vulnerabilityOverrides)
+      "org.eclipse.jetty" % "jetty-webapp"            % JettyV     % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus"              % JettyV     % "container",
+      "javax.servlet"     % "javax.servlet-api"       % "3.1.0"    % "container;provided;test",
+      "org.json4s"       %% "json4s-native"           % Json4SV,
+      "org.scalaj"       %% "scalaj-http"             % "2.4.2",
+      "org.jsoup"         % "jsoup"                   % "1.11.3",
+      "org.scalatest"    %% "scalatest"               % ScalaTestV % "test",
+      "org.mockito"      %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"      %% "mockito-scala-scalatest" % MockitoV   % "test"
+    ) ++ scalatra ++ vulnerabilityOverrides
+  )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "oembed-proxy",
@@ -27,8 +28,7 @@ object oembedproxy extends Module {
   ) ++
     commonSettings ++
     assemblySettings() ++
-    dockerSettings() ++
-    fmtSettings
+    dockerSettings()
 
   override lazy val plugins = Seq(
     JettyPlugin,

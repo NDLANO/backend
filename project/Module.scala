@@ -26,9 +26,11 @@ import scala.language.postfixOps
 
 object Module {
 
-  def setup(project: sbt.Project,
-            module: Module,
-            deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty): sbt.Project = {
+  def setup(
+      project: sbt.Project,
+      module: Module,
+      deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty
+  ): sbt.Project = {
     project
       .settings(module.settings: _*)
       .configs(module.configs: _*)
@@ -39,18 +41,18 @@ object Module {
 }
 
 trait Module {
-  lazy val settings: Seq[Def.Setting[_]] = Seq.empty
+  lazy val settings: Seq[Def.Setting[_]]                     = Seq.empty
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
-  lazy val plugins: Seq[sbt.Plugins] = Seq.empty
-  lazy val disablePlugins: Seq[sbt.AutoPlugin] = Seq.empty
+  lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
+  lazy val disablePlugins: Seq[sbt.AutoPlugin]               = Seq.empty
 
   protected val MainClass: Option[String] = None
   lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
-    run / mainClass := this.MainClass,
+    run / mainClass     := this.MainClass,
     Compile / mainClass := this.MainClass,
-    organization := "ndla",
-    version := "0.0.1",
-    scalaVersion := ScalaV,
+    organization        := "ndla",
+    version             := "0.0.1",
+    scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "11", "-target", "11"),
     scalacOptions := Seq(
       "-target:jvm-11",
@@ -60,7 +62,7 @@ trait Module {
       "-Xfatal-warnings",
       "-Xlint",
       "-Wconf:src=src_managed/.*:silent",
-      "-Wconf:cat=lint-byname-implicit:silent", // https://github.com/scala/bug/issues/12072
+      "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
     ),
     // Disable warns about non-exhaustive match in tests as they are very useful there.
     Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
@@ -69,7 +71,7 @@ trait Module {
       .envOrNone("NDLA_RELEASES")
       .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
       .toSeq
-  ) ++ loadEnvFile()
+  ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
     Seq(
@@ -89,7 +91,7 @@ trait Module {
 
   def assemblySettings() = Seq(
     assembly / assemblyJarName := name.value + ".jar",
-    assembly / mainClass := this.MainClass,
+    assembly / mainClass       := this.MainClass,
     assembly / assemblyMergeStrategy := {
       case "module-info.class"                                           => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")                         => MergeStrategy.discard
@@ -108,9 +110,9 @@ trait Module {
   lazy val PactSettings: Seq[Def.Setting[_]] = inConfig(PactTestConfig)(Defaults.testTasks) ++ Seq(
     // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
     // To run all tests use pact config 'sbt PactTest/test' (or 'sbt article_api/PactTest/test' for a single subproject)
-    Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
-    Test / testOnly / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
-    PactTestConfig / testOptions := Seq.empty,
+    Test / testOptions                      := Seq(Tests.Argument("-l", "PactProviderTest")),
+    Test / testOnly / testOptions           := Seq(Tests.Argument("-l", "PactProviderTest")),
+    PactTestConfig / testOptions            := Seq.empty,
     PactTestConfig / testOnly / testOptions := Seq.empty
   )
 
@@ -118,12 +120,12 @@ trait Module {
     Seq(
       docker := (docker dependsOn assembly).value,
       docker / dockerfile := {
-        val artifact = (assembly / assemblyOutputPath).value
+        val artifact           = (assembly / assemblyOutputPath).value
         val artifactTargetPath = s"/app/${artifact.name}"
 
         val entry = Seq(
           "java",
-          "-Dorg.scalatra.environment=production",
+          "-Dorg.scalatra.environment=production"
         ) ++
           extraJavaOpts ++
           Seq("-jar", artifactTargetPath)
@@ -136,23 +138,23 @@ trait Module {
         }
       },
       docker / imageNames := Seq(
-        ImageName(namespace = Some(organization.value),
-                  repository = name.value,
-                  tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
+        ImageName(
+          namespace = Some(organization.value),
+          repository = name.value,
+          tag = Some(System.getProperty("docker.tag", "SNAPSHOT"))
+        )
       )
     )
   }
 
-  val checkfmt = taskKey[Boolean]("Check for code style errors")
-  val fmt = taskKey[Unit]("Automatically apply code style fixes")
+  val checkfmt = taskKey[Unit]("Check for code style errors")
+  val fmt      = taskKey[Unit]("Automatically apply code style fixes")
 
   val checkfmtSetting = {
     checkfmt := {
-      val noErrorsInMainFiles = (Compile / scalafmtCheck).value
-      val noErrorsInTestFiles = (Test / scalafmtCheck).value
-      val noErrorsInSbtConfigFiles = (Compile / scalafmtSbtCheck).value
-
-      noErrorsInMainFiles && noErrorsInTestFiles && noErrorsInSbtConfigFiles
+      (Compile / scalafmtCheck).value
+      (Test / scalafmtCheck).value
+      (Compile / scalafmtSbtCheck).value
     }
   }
 
@@ -173,8 +175,8 @@ trait Module {
   protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
     Seq(
       typescriptGenerationImports := imports,
-      typescriptExports := exports,
-      typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts"
+      typescriptExports           := exports,
+      typescriptOutputFile        := baseDirectory.value / "typescript" / "index.ts"
     )
   }
 
@@ -182,7 +184,7 @@ trait Module {
     import scala.sys.process._
 
     Seq(
-      scalaPactEnv := ScalaPactEnv.defaults.withOutputPath((baseDirectory.value / "target" / "pacts").toString),
+      scalaPactEnv      := ScalaPactEnv.defaults.withOutputPath((baseDirectory.value / "target" / "pacts").toString),
       pactBrokerAddress := sys.env.getOrElse("PACT_BROKER_URL", ""),
       pactBrokerCredentials := (
         sys.env.getOrElse("PACT_BROKER_USERNAME", ""),
