@@ -19,9 +19,9 @@ There will be more detailed README's in the respective subdirectories.
 
 You could run the sbt-tasks directly to execute the tasks for _all_ subprojects (IE: `sbt test`), this however can take a long time and in some cases even fail because of dependencies or jvm memory problems. We should improve upon this in the future, but for now it imposes no real problems.
 
-** Check code formatting for everything:** `sbt scalafmtCheck scalafmtCheckSbt`
+**Check code formatting for everything:** `sbt scalafmtCheck scalafmtCheckSbt`
 
-** Apply code formatting for everything:** `sbt scalafmt scalafmtSbt`
+**Apply code formatting for everything:** `sbt scalafmt scalafmtSbt`
 
 
 ### Merging in sub-projects
