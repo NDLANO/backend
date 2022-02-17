@@ -126,17 +126,19 @@ trait MultiDraftSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
+            getHits(response.result, settings.language).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
                 page = Some(settings.page),
                 pageSize = numResults,
                 language = searchLanguage,
-                results = getHits(response.result, settings.language),
+                results = hits,
                 suggestions = getSuggestions(response.result),
                 aggregations = getAggregationsFromResult(response.result),
                 scrollId = response.result.scrollId
-              ))
+              )
+            })
+
           case Failure(ex) => Failure(ex)
         }
       }

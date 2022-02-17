@@ -26,6 +26,7 @@ import no.ndla.searchapi.model.domain._
 import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.search.SearchType
 
+import cats.implicits._
 import java.lang.Math.max
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
@@ -45,26 +46,17 @@ trait SearchService {
       * @param language language as ISO639 code
       * @return api-model summary of hit
       */
-    def hitToApiModel(hit: SearchHit, language: String): MultiSearchSummary = {
+    def hitToApiModel(hit: SearchHit, language: String): Try[MultiSearchSummary] = {
       val articleType = SearchApiProperties.SearchIndexes(SearchType.Articles)
       val draftType = SearchApiProperties.SearchIndexes(SearchType.Drafts)
       val learningPathType = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
 
-      val indexType = hit.index.split("_").headOption match {
-        case Some(indexType) => indexType
-        case _ =>
-          throw NdlaSearchException("Index type was bad when determining search result type.")
+      hit.index.split("_").headOption match {
+        case Some(`articleType`)      => Success(searchConverterService.articleHitAsMultiSummary(hit, language))
+        case Some(`draftType`)        => Success(searchConverterService.draftHitAsMultiSummary(hit, language))
+        case Some(`learningPathType`) => Success(searchConverterService.learningpathHitAsMultiSummary(hit, language))
+        case _                        => Failure(NdlaSearchException("Index type was bad when determining search result type."))
       }
-
-      val convertFunc = indexType match {
-        case `articleType`      => searchConverterService.articleHitAsMultiSummary _
-        case `draftType`        => searchConverterService.draftHitAsMultiSummary _
-        case `learningPathType` => searchConverterService.learningpathHitAsMultiSummary _
-        case _ =>
-          throw NdlaSearchException("Index type was bad when determining search result type.")
-      }
-
-      convertFunc(hit, language)
     }
 
     def buildSimpleStringQueryForField(
@@ -125,12 +117,12 @@ trait SearchService {
       }
     }
 
-    protected def getHits(response: SearchResponse, language: String): Seq[MultiSearchSummary] = {
+    protected def getHits(response: SearchResponse, language: String): Try[Seq[MultiSearchSummary]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
 
-          resultArray.map(result => {
+          resultArray.traverse(result => {
             val matchedLanguage = language match {
               case Language.AllLanguages | "*" =>
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
@@ -138,7 +130,7 @@ trait SearchService {
             }
             hitToApiModel(result, matchedLanguage)
           })
-        case _ => Seq.empty
+        case _ => Success(Seq.empty)
       }
     }
 
@@ -322,20 +314,21 @@ trait SearchService {
         .execute {
           searchScroll(scrollId, ElasticSearchScrollKeepAlive)
         }
-        .map(response => {
-          val hits = getHits(response.result, language)
-          val suggestions = getSuggestions(response.result)
-          val aggregations = getAggregationsFromResult(response.result)
-          SearchResult(
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language = language,
-            results = hits,
-            suggestions = suggestions,
-            aggregations = aggregations,
-            scrollId = response.result.scrollId
-          )
+        .flatMap(response => {
+          getHits(response.result, language).map(hits => {
+            val suggestions = getSuggestions(response.result)
+            val aggregations = getAggregationsFromResult(response.result)
+            SearchResult(
+              totalCount = response.result.totalHits,
+              page = None,
+              pageSize = response.result.hits.hits.length,
+              language = language,
+              results = hits,
+              suggestions = suggestions,
+              aggregations = aggregations,
+              scrollId = response.result.scrollId
+            )
+          })
         })
     }
 

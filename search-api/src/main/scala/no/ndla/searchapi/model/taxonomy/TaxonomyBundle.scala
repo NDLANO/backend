@@ -37,6 +37,7 @@ case class TaxonomyBundle(
   val topicById: Map[String, Topic] = Map.from(topics.map(t => t.id -> t))
   val resourceById: Map[String, Resource] = Map.from(resources.map(r => r.id -> r))
   val subjectsById: Map[String, TaxSubject] = Map.from(subjects.map(s => s.id -> s))
+  val relevancesById: Map[String, Relevance] = Map.from(relevances.map(r => r.id -> r))
 
   val topicsByContentUri: Map[String, List[Topic]] = {
     val contentUriToTopics = topics.flatMap(t => t.contentUri.map(cu => cu -> t))

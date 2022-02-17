@@ -7,4 +7,4 @@
 
 package no.ndla.searchapi.model.taxonomy
 
-case class Relevance(id: String, name: String)
+case class Relevance(id: String, name: String, translations: List[TaxonomyTranslation])
