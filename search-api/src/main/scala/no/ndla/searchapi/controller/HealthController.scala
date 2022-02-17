@@ -23,8 +23,10 @@ trait HealthController {
     get("/") {
       e4sClient.execute(clusterHealth()) match {
         case Failure(exception) =>
-          logger.error("Something went wrong when contacting elasticsearch instance when performing health check",
-                       exception)
+          logger.error(
+            "Something went wrong when contacting elasticsearch instance when performing health check",
+            exception
+          )
           InternalServerError()
         case Success(successfulResponse) if successfulResponse.status == 200 && successfulResponse.isSuccess =>
           Ok()

@@ -22,13 +22,15 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   val ndlaProvider: OEmbedProvider = OEmbedProvider(
     "ndla",
     "https://ndla.no",
-    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), Some("https://ndla.no/oembed"), None, None)))
+    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), Some("https://ndla.no/oembed"), None, None))
+  )
 
   val youtubeProvider: OEmbedProvider = OEmbedProvider(
     "YouTube",
     "https://www.youtube.com/",
     List(
-      OEmbedEndpoint(Some(List("https://www.youtube.com/*")), Some("https://www.youtube.com/oembed"), Some(true), None))
+      OEmbedEndpoint(Some(List("https://www.youtube.com/*")), Some("https://www.youtube.com/oembed"), Some(true), None)
+    )
   )
 
   val OEmbedResponse: OEmbed = OEmbed(
@@ -51,7 +53,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override val oEmbedService = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize = new Memoize(0, 0, () => List[OEmbedProvider](), false)
+  val providerMemoize        = new Memoize(0, 0, () => List[OEmbedProvider](), false)
   override val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }

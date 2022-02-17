@@ -47,7 +47,10 @@ trait WriteService {
 
       val validationResult =
         if (useSoftValidation) {
-          (strictValidationResult, contentValidator.softValidateArticle(article, isImported = useImportValidation)) match {
+          (
+            strictValidationResult,
+            contentValidator.softValidateArticle(article, isImported = useImportValidation)
+          ) match {
             case (Failure(strictEx: ValidationException), Success(art)) =>
               val strictErrors = strictEx.errors
                 .map(msg => {
@@ -56,7 +59,8 @@ trait WriteService {
                 .mkString("\n\t")
 
               logger.warn(
-                s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors")
+                s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors"
+              )
               Success(art)
             case (_, Success(art)) => Success(art)
             case (_, Failure(ex))  => Failure(ex)
@@ -64,10 +68,10 @@ trait WriteService {
         } else strictValidationResult
 
       for {
-        _ <- validationResult
+        _             <- validationResult
         domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
-        _ <- articleIndexService.indexDocument(domainArticle)
-        _ <- Try(searchApiClient.indexArticle(domainArticle))
+        _             <- articleIndexService.indexDocument(domainArticle)
+        _             <- Try(searchApiClient.indexArticle(domainArticle))
       } yield domainArticle
     }
 
@@ -80,7 +84,7 @@ trait WriteService {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
-          val newArticle = converterService.updateArticleFields(existingArticle, partialArticle)
+          val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)
           val externalIds = articleRepository.getExternalIdsFromId(articleId)
 
           updateArticle(

@@ -17,7 +17,7 @@ class R__SetArticleLanguageFromTaxonomyTest extends UnitSuite with TestEnvironme
     val newTags =
       Seq(ArticleTag(Seq("en", "to"), "nb"), ArticleTag(Seq("one", "two"), "en"), ArticleTag(Seq("uno", "dos"), "es"))
     val contentEnglish = Seq("en")
-    val contentEnNb = Seq("en", "nb")
+    val contentEnNb    = Seq("en", "nb")
     val mergedNbEnTags = Seq(ArticleTag(Seq("en", "to"), "nb"), ArticleTag(Seq("one", "two", "three"), "en"))
 
     migration.mergeTags(oldTags, newTags, contentEnglish) should be(oldTags)

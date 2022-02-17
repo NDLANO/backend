@@ -50,15 +50,17 @@ trait TagsService {
 
 case class Keywords(keyword: List[Keyword])
 
-case class Keyword(psi: Option[String],
-                   topicId: Option[String],
-                   visibility: Option[String],
-                   approved: Option[String],
-                   processState: Option[String],
-                   psis: List[String],
-                   originatingSites: List[String],
-                   types: List[Any],
-                   names: List[KeywordName])
+case class Keyword(
+    psi: Option[String],
+    topicId: Option[String],
+    visibility: Option[String],
+    approved: Option[String],
+    processState: Option[String],
+    psis: List[String],
+    originatingSites: List[String],
+    types: List[Any],
+    names: List[KeywordName]
+)
 
 case class Type(typeId: String)
 

@@ -27,16 +27,16 @@ import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger: DraftSwagger = new DraftSwagger
+  implicit val swagger: DraftSwagger        = new DraftSwagger
 
   lazy val controller = new DraftController
   addServlet(controller, "/test")
 
-  val updateTitleJson = """{"revision": 1, "title": "hehe", "language": "nb", "content": "content"}"""
-  val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}""" // typo in "titlee"
+  val updateTitleJson   = """{"revision": 1, "title": "hehe", "language": "nb", "content": "content"}"""
+  val invalidArticle    = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""    // typo in "titlee"
   val invalidNewArticle = """{ "language": "nb", "content": "<section><h2>Hi</h2></section>" }""" // missing title
-  val lang = "nb"
-  val articleId = 1
+  val lang              = "nb"
+  val articleId         = 1
 
   override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)
@@ -105,7 +105,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           pageSize = 4,
           sort = Sort.ByTitleAsc,
           articleTypes = ArticleType.all
-        ))
+        )
+      )
     }
   }
 
@@ -118,13 +119,16 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   test("POST / should return 201 on created") {
     when(
       writeService
-        .newArticle(any[NewArticle],
-                    any[List[String]],
-                    any[Seq[String]],
-                    any[UserInfo],
-                    any[Option[Date]],
-                    any[Option[Date]],
-                    any[Option[String]]))
+        .newArticle(
+          any[NewArticle],
+          any[List[String]],
+          any[Seq[String]],
+          any[UserInfo],
+          any[Option[Date]],
+          any[Option[Date]],
+          any[Option[String]]
+        )
+    )
       .thenReturn(Success(TestData.sampleArticleV2))
     post("/test/", write(TestData.newArticle), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(201)
@@ -170,14 +174,16 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     }
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUALITY_ASSURED_DELAYED.toString, Seq.empty))))
+      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUALITY_ASSURED_DELAYED.toString, Seq.empty)))
+    )
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
     }
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUEUED_FOR_PUBLISHING_DELAYED.toString, Seq.empty))))
+      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUEUED_FOR_PUBLISHING_DELAYED.toString, Seq.empty)))
+    )
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -202,7 +208,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[Option[Date]],
         any[Option[Date]],
         any[Option[String]]
-      ))
+      )
+    )
       .thenReturn(Failure(new AccessDeniedException("Not today")))
 
     patch("/test/123", body = write(TestData.sampleApiUpdateArticle)) {
@@ -212,14 +219,17 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
   test("That PATCH /:id returns 200 on success") {
     when(
-      writeService.updateArticle(any[Long],
-                                 any[UpdatedArticle],
-                                 any[List[String]],
-                                 any[Seq[String]],
-                                 any[UserInfo],
-                                 any[Option[Date]],
-                                 any[Option[Date]],
-                                 any[Option[String]]))
+      writeService.updateArticle(
+        any[Long],
+        any[UpdatedArticle],
+        any[List[String]],
+        any[Seq[String]],
+        any[UserInfo],
+        any[Option[Date]],
+        any[Option[Date]],
+        any[Option[String]]
+      )
+    )
       .thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
     patch("/test/123", updateTitleJson) {
       status should equal(200)
@@ -337,24 +347,28 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test(
-    "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewArticleMetaImage]]") {
+    "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewArticleMetaImage]]"
+  ) {
     reset(writeService)
     when(
       writeService
-        .updateArticle(eqTo(1.toLong),
-                       any[UpdatedArticle],
-                       any[List[String]],
-                       any[Seq[String]],
-                       any[UserInfo],
-                       any[Option[Date]],
-                       any[Option[Date]],
-                       any[Option[String]]))
+        .updateArticle(
+          eqTo(1.toLong),
+          any[UpdatedArticle],
+          any[List[String]],
+          any[Seq[String]],
+          any[UserInfo],
+          any[Option[Date]],
+          any[Option[Date]],
+          any[Option[String]]
+        )
+    )
       .thenReturn(Success(TestData.sampleArticleV2))
 
-    val missing = """{"revision": 1, "language":"nb"}"""
+    val missing         = """{"revision": 1, "language":"nb"}"""
     val missingExpected = TestData.blankUpdatedArticle.copy(language = Some("nb"), metaImage = Right(None))
 
-    val nullArtId = """{"revision": 1, "language":"nb","metaImage":null}"""
+    val nullArtId    = """{"revision": 1, "language":"nb","metaImage":null}"""
     val nullExpected = TestData.blankUpdatedArticle.copy(language = Some("nb"), metaImage = Left(null))
 
     val existingArtId = """{"revision": 1, "language":"nb","metaImage": {"id": "1",
@@ -364,38 +378,44 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateArticle(eqTo(1),
-                                                   eqTo(missingExpected),
-                                                   any[List[String]],
-                                                   any[Seq[String]],
-                                                   any[UserInfo],
-                                                   any[Option[Date]],
-                                                   any[Option[Date]],
-                                                   any[Option[String]])
+      verify(writeService, times(1)).updateArticle(
+        eqTo(1),
+        eqTo(missingExpected),
+        any[List[String]],
+        any[Seq[String]],
+        any[UserInfo],
+        any[Option[Date]],
+        any[Option[Date]],
+        any[Option[String]]
+      )
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateArticle(eqTo(1),
-                                                   eqTo(nullExpected),
-                                                   any[List[String]],
-                                                   any[Seq[String]],
-                                                   any[UserInfo],
-                                                   any[Option[Date]],
-                                                   any[Option[Date]],
-                                                   any[Option[String]])
+      verify(writeService, times(1)).updateArticle(
+        eqTo(1),
+        eqTo(nullExpected),
+        any[List[String]],
+        any[Seq[String]],
+        any[UserInfo],
+        any[Option[Date]],
+        any[Option[Date]],
+        any[Option[String]]
+      )
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateArticle(eqTo(1),
-                                                   eqTo(existingExpected),
-                                                   any[List[String]],
-                                                   any[Seq[String]],
-                                                   any[UserInfo],
-                                                   any[Option[Date]],
-                                                   any[Option[Date]],
-                                                   any[Option[String]])
+      verify(writeService, times(1)).updateArticle(
+        eqTo(1),
+        eqTo(existingExpected),
+        any[List[String]],
+        any[Seq[String]],
+        any[UserInfo],
+        any[Option[Date]],
+        any[Option[Date]],
+        any[Option[String]]
+      )
     }
   }
 

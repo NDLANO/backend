@@ -29,7 +29,7 @@ trait GrepApiClient {
 
   class GrepApiClient extends LazyLogging {
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-    private val GrepApiEndpoint = s"$GrepApiUrl/kl06/v201906"
+    private val GrepApiEndpoint               = s"$GrepApiUrl/kl06/v201906"
 
     def getAllKjerneelementer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/kjerneelementer-lk20/").map(_.distinct)
@@ -45,7 +45,7 @@ trait GrepApiClient {
     /** The memoized function of this [[getGrepBundle]] should probably be used in most cases */
     private def getGrepBundleUncached: Try[GrepBundle] = {
       logger.info("Fetching grep in bulk...")
-      val startFetch = System.currentTimeMillis()
+      val startFetch                            = System.currentTimeMillis()
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
 
       val requestInfo = RequestInfo()
@@ -53,8 +53,8 @@ trait GrepApiClient {
       /** Calls function in separate thread and converts Try to Future */
       def tryToFuture[T](x: () => Try[T]) = Future { requestInfo.setRequestInfo(); x() }.flatMap(Future.fromTry)
 
-      val kjerneelementer = tryToFuture(() => getAllKjerneelementer)
-      val kompetansemaal = tryToFuture(() => getAllKompetansemaal)
+      val kjerneelementer    = tryToFuture(() => getAllKjerneelementer)
+      val kompetansemaal     = tryToFuture(() => getAllKompetansemaal)
       val tverrfagligeTemaer = tryToFuture(() => getAllTverrfagligeTemaer)
 
       val x = for {

@@ -36,10 +36,12 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}",
-                request.getMethod,
-                request.getRequestURI,
-                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info(
+      "{} {}{}",
+      request.getMethod,
+      request.getRequestURI,
+      Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+    )
   }
 
   after() {
@@ -64,8 +66,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case NdlaSearchException(_, Some(rf), _)
-        if rf.error.rootCause.exists(x =>
-          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable => {
       t.printStackTrace()
@@ -87,7 +89,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case true => paramValue.toLong
       case false =>
         throw new ValidationException(
-          errors = Seq(ValidationMessage("parameter", s"Invalid value for $paramName. Only digits are allowed.")))
+          errors = Seq(ValidationMessage("parameter", s"Invalid value for $paramName. Only digits are allowed."))
+        )
     }
   }
 

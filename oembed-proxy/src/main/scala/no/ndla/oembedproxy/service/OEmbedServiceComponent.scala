@@ -30,10 +30,12 @@ trait OEmbedServiceComponent extends LazyLogging {
     private def getProvider(url: String): Option[OEmbedProvider] =
       providers.find(_.supports(url))
 
-    private def fetchOembedFromProvider(provider: OEmbedProvider,
-                                        url: String,
-                                        maxWidth: Option[String],
-                                        maxHeight: Option[String]): Try[OEmbed] = {
+    private def fetchOembedFromProvider(
+        provider: OEmbedProvider,
+        url: String,
+        maxWidth: Option[String],
+        maxHeight: Option[String]
+    ): Try[OEmbed] = {
       ndlaClient.fetch[OEmbed](
         Http(provider.requestUrl(url, maxWidth, maxHeight))
           .option(HttpOptions.followRedirects(true))

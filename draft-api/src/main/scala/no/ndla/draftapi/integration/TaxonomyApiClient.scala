@@ -25,31 +25,38 @@ trait TaxonomyApiClient {
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends LazyLogging {
-    private val TaxonomyApiEndpoint = s"http://$ApiGatewayHost/taxonomy/v1"
-    private val taxonomyTimeout = 20 * 1000 // 20 Seconds
+    private val TaxonomyApiEndpoint           = s"http://$ApiGatewayHost/taxonomy/v1"
+    private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
     def updateTaxonomyIfExists(articleId: Long, article: Article): Try[Long] = {
       for {
         resources <- queryResource(articleId)
-        _ <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations)
-        topics <- queryTopic(articleId)
-        _ <- updateTaxonomy[Topic](topics, article.title, updateTopicTitleAndTranslations)
+        _         <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations)
+        topics    <- queryTopic(articleId)
+        _         <- updateTaxonomy[Topic](topics, article.title, updateTopicTitleAndTranslations)
       } yield articleId
     }
 
-    /**
-      * Updates the taxonomy for an article
+    /** Updates the taxonomy for an article
       *
-      * @param resource Resources or Topics of article
-      * @param titles Titles that are to be updated as translations
-      * @param updateFunc Function that updates taxonomy and translations ([[updateResourceTitleAndTranslations]] or [[updateTopicTitleAndTranslations]])
-      * @tparam T Taxonomy resource type ([[Resource]] or [[Topic]])
-      * @return List of Resources or Topics that were updated if none failed.
+      * @param resource
+      *   Resources or Topics of article
+      * @param titles
+      *   Titles that are to be updated as translations
+      * @param updateFunc
+      *   Function that updates taxonomy and translations ([[updateResourceTitleAndTranslations]] or
+      *   [[updateTopicTitleAndTranslations]])
+      * @tparam T
+      *   Taxonomy resource type ([[Resource]] or [[Topic]])
+      * @return
+      *   List of Resources or Topics that were updated if none failed.
       */
-    private def updateTaxonomy[T](resource: Seq[T],
-                                  titles: Seq[ArticleTitle],
-                                  updateFunc: (T, ArticleTitle, Seq[ArticleTitle]) => Try[T]): Try[List[T]] = {
+    private def updateTaxonomy[T](
+        resource: Seq[T],
+        titles: Seq[ArticleTitle],
+        updateFunc: (T, ArticleTitle, Seq[ArticleTitle]) => Try[T]
+    ): Try[List[T]] = {
       Language.findByLanguageOrBestEffort(titles, DefaultLanguage) match {
         case Some(title) =>
           val updated = resource.map(updateFunc(_, title, titles))
@@ -68,8 +75,9 @@ trait TaxonomyApiClient {
         updateFunc: T => Try[T],
         updateTranslationsFunc: Seq[ArticleTitle] => Try[List[Translation]],
         getTranslationsFunc: String => Try[List[Translation]],
-        deleteTranslationFunc: Translation => Try[Unit]) = {
-      val resourceResult = updateFunc(res.withName(defaultTitle.title))
+        deleteTranslationFunc: Translation => Try[Unit]
+    ) = {
+      val resourceResult    = updateFunc(res.withName(defaultTitle.title))
       val translationResult = updateTranslationsFunc(titles)
 
       val deleteResult = getTranslationsFunc(res.id).flatMap(translations => {
@@ -88,16 +96,20 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def updateTranslations(id: String,
-                                   titles: Seq[ArticleTitle],
-                                   updateTranslationFunc: (String, String, String) => Try[Translation]) = {
+    private def updateTranslations(
+        id: String,
+        titles: Seq[ArticleTitle],
+        updateTranslationFunc: (String, String, String) => Try[Translation]
+    ) = {
       val tries = titles.map(t => updateTranslationFunc(id, t.language, t.title))
       Traverse[List].sequence(tries.toList)
     }
 
-    private def updateResourceTitleAndTranslations(res: Resource,
-                                                   defaultTitle: ArticleTitle,
-                                                   titles: Seq[ArticleTitle]) = {
+    private def updateResourceTitleAndTranslations(
+        res: Resource,
+        defaultTitle: ArticleTitle,
+        titles: Seq[ArticleTitle]
+    ) = {
       val updateTranslationsFunc = updateTranslations(res.id, _: Seq[ArticleTitle], updateResourceTranslation)
       updateTitleAndTranslations(
         res,
@@ -165,16 +177,16 @@ trait TaxonomyApiClient {
 
     def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean) = {
       for {
-        resources <- queryResource(articleId)
+        resources                      <- queryResource(articleId)
         existingResourceMetadataWithId <- resources.traverse(res => getResourceMetadata(res.id).map((res.id, _)))
-        _ <- existingResourceMetadataWithId.traverse {
-          case (resId, existingMeta) => updateResourceMetadata(resId, existingMeta.copy(visible = visible))
+        _ <- existingResourceMetadataWithId.traverse { case (resId, existingMeta) =>
+          updateResourceMetadata(resId, existingMeta.copy(visible = visible))
         }
 
-        topics <- queryTopic(articleId)
+        topics                      <- queryTopic(articleId)
         existingTopicMetadataWithId <- topics.traverse(top => getTopicMetadata(top.id).map((top.id, _)))
-        _ <- existingTopicMetadataWithId.traverse {
-          case (topId, existingMeta) => updateTopicMetadata(topId, existingMeta.copy(visible = visible))
+        _ <- existingTopicMetadataWithId.traverse { case (topId, existingMeta) =>
+          updateTopicMetadata(topId, existingMeta.copy(visible = visible))
         }
       } yield articleId
     }
@@ -206,13 +218,15 @@ trait TaxonomyApiClient {
 
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)) match {
+        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
+      ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())
       }
 
-    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(
-        implicit formats: org.json4s.Formats): Try[B] = {
+    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
+        formats: org.json4s.Formats
+    ): Try[B] = {
       logger.info(s"Doing call to $url")
       ndlaClient.fetchRawWithForwardedAuth(
         Http(url)

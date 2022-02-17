@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
 
 class UserDataControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger: DraftSwagger = new DraftSwagger
+  implicit val swagger: DraftSwagger        = new DraftSwagger
 
   lazy val controller = new UserDataController()
   addServlet(controller, "/test")

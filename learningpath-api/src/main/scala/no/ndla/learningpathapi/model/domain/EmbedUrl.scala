@@ -12,14 +12,14 @@ import no.ndla.language.model.LanguageField
 import no.ndla.learningpathapi.model.api.ValidationMessage
 
 case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
-  override def value: String = url
+  override def value: String    = url
   override def isEmpty: Boolean = url.isEmpty
 }
 
 object EmbedType extends Enumeration {
 
   val OEmbed = Value("oembed")
-  val LTI = Value("lti")
+  val LTI    = Value("lti")
   val IFrame = Value("iframe")
 
   def valueOf(s: String): Option[EmbedType.Value] = {
@@ -31,7 +31,8 @@ object EmbedType extends Enumeration {
       case Some(s) => s
       case None =>
         throw new ValidationException(
-          errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type.")))
+          errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type."))
+        )
     }
   }
 

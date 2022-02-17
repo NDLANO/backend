@@ -19,23 +19,27 @@ object TestData {
   private val publicDomainCopyright =
     Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None, None)
   private val byNcSaCopyright =
-    Copyright(License.CC_BY_NC_SA.toString,
-              "Gotham City",
-              List(Author("Writer", "DC Comics")),
-              List(),
-              List(),
-              None,
-              None,
-              None)
+    Copyright(
+      License.CC_BY_NC_SA.toString,
+      "Gotham City",
+      List(Author("Writer", "DC Comics")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    )
   private val copyrighted =
-    Copyright(License.Copyrighted.toString,
-              "New York",
-              List(Author("Writer", "Clark Kent")),
-              List(),
-              List(),
-              None,
-              None,
-              None)
+    Copyright(
+      License.Copyrighted.toString,
+      "New York",
+      List(Author("Writer", "Clark Kent")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    )
   private val today = new DateTime().toDate
 
   val (articleId, externalId) = (1, "751234")
@@ -46,14 +50,16 @@ object TestData {
     revision = 1,
     title = api.ArticleTitle("title", "nb"),
     content = api.ArticleContentV2("this is content", "nb"),
-    copyright = api.Copyright(api.License("licence", None, None),
-                              "origin",
-                              Seq(api.Author("developer", "Per")),
-                              List(),
-                              List(),
-                              None,
-                              None,
-                              None),
+    copyright = api.Copyright(
+      api.License("licence", None, None),
+      "origin",
+      Seq(api.Author("developer", "Per")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     tags = api.ArticleTag(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
     visualElement = None,
@@ -79,9 +85,11 @@ object TestData {
     api.ArticleTitle("title", "nb"),
     api.ArticleContentV2("content", "nb"),
     api.Copyright(
-      api.License("CC-BY-4.0",
-                  Some("Creative Commons Attribution 4.0 International"),
-                  Some("https://creativecommons.org/licenses/by/4.0/")),
+      api.License(
+        "CC-BY-4.0",
+        Some("Creative Commons Attribution 4.0 International"),
+        Some("https://creativecommons.org/licenses/by/4.0/")
+      ),
       "",
       List(),
       List(),
@@ -177,7 +185,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
+  val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
   val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright = copyrighted)
 
   val sampleDomainArticleWithHtmlFault = Article(
@@ -192,7 +200,8 @@ object TestData {
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
         "en"
-      )),
+      )
+    ),
     Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
     Seq(),
     Seq(),
@@ -244,11 +253,12 @@ object TestData {
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
-  val sampleTitle = ArticleTitle("title", "en")
+  val sampleTitle       = ArticleTitle("title", "en")
 
   val visualElement = VisualElement(
     s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
-    "nb")
+    "nb"
+  )
 
   def sampleDomainArticleWithLanguage(lang: String): Article = {
     Article(

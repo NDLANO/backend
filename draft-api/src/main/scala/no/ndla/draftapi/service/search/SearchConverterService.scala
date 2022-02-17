@@ -49,7 +49,8 @@ trait SearchConverterService {
         introduction =
           SearchableLanguageValues(ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))),
         content = SearchableLanguageValues(
-          ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
+          ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
+        ),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = new DateTime(ai.updated),
         license = ai.copyright.flatMap(_.license),
@@ -75,7 +76,7 @@ trait SearchConverterService {
         searchableArticle.introduction.languageValues.map(lv => domain.ArticleIntroduction(lv.value, lv.language))
       val visualElements =
         searchableArticle.visualElement.languageValues.map(lv => domain.VisualElement(lv.value, lv.language))
-      val tags = searchableArticle.tags.languageValues.map(lv => domain.ArticleTag(lv.value, lv.language))
+      val tags  = searchableArticle.tags.languageValues.map(lv => domain.ArticleTag(lv.value, lv.language))
       val notes = searchableArticle.notes
       val users = searchableArticle.users
 
@@ -115,19 +116,20 @@ trait SearchConverterService {
     }
 
     def hitAsAgreementSummary(hitString: String): api.AgreementSummary = {
-      val hit = parse(hitString)
-      val id = (hit \ "id").extract[Long]
-      val title = (hit \ "title").extract[String]
+      val hit     = parse(hitString)
+      val id      = (hit \ "id").extract[Long]
+      val title   = (hit \ "title").extract[String]
       val license = (hit \ "license").extract[String]
 
       api.AgreementSummary(id, title, license)
     }
 
-    /**
-      * Attempts to extract language that hit from highlights in elasticsearch response.
+    /** Attempts to extract language that hit from highlights in elasticsearch response.
       *
-      * @param result Elasticsearch hit.
-      * @return Language if found.
+      * @param result
+      *   Elasticsearch hit.
+      * @return
+      *   Language if found.
       */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       def keyToLanguage(keys: Iterable[String]): Option[String] = {
@@ -135,7 +137,8 @@ trait SearchConverterService {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -145,7 +148,7 @@ trait SearchConverterService {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>
@@ -173,21 +176,23 @@ trait SearchConverterService {
       )
 
     def asApiAgreementSearchResult(searchResult: SearchResult[api.AgreementSummary]): AgreementSearchResult =
-      api.AgreementSearchResult(searchResult.totalCount,
-                                searchResult.page,
-                                searchResult.pageSize,
-                                searchResult.language,
-                                searchResult.results)
+      api.AgreementSearchResult(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
 
     def asSearchableTags(article: domain.Article): Seq[SearchableTag] = {
-      article.tags.flatMap(
-        articleTags =>
-          articleTags.tags.map(
-            tag =>
-              SearchableTag(
-                tag = tag,
-                language = articleTags.language
-            )))
+      article.tags.flatMap(articleTags =>
+        articleTags.tags.map(tag =>
+          SearchableTag(
+            tag = tag,
+            language = articleTags.language
+          )
+        )
+      )
     }
 
     def asSearchableGrepCodes(article: domain.Article): Seq[SearchableGrepCode] =

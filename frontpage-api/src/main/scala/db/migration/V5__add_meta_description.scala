@@ -73,17 +73,19 @@ class V5__add_meta_description extends BaseJavaMigration {
 }
 
 case class V5_MetaDescription(metaDescription: String, language: String)
-case class V5_SubjectFrontPageData(id: Option[Long],
-                                   name: String,
-                                   filters: Option[List[String]],
-                                   layout: String,
-                                   twitter: Option[String],
-                                   facebook: Option[String],
-                                   bannerImage: V2_BannerImage,
-                                   about: Seq[V4_AboutSubject],
-                                   metaDescription: Seq[V5_MetaDescription],
-                                   topical: Option[String],
-                                   mostRead: List[String],
-                                   editorsChoices: List[String],
-                                   latestContent: Option[List[String]],
-                                   goTo: List[String])
+case class V5_SubjectFrontPageData(
+    id: Option[Long],
+    name: String,
+    filters: Option[List[String]],
+    layout: String,
+    twitter: Option[String],
+    facebook: Option[String],
+    bannerImage: V2_BannerImage,
+    about: Seq[V4_AboutSubject],
+    metaDescription: Seq[V5_MetaDescription],
+    topical: Option[String],
+    mostRead: List[String],
+    editorsChoices: List[String],
+    latestContent: Option[List[String]],
+    goTo: List[String]
+)

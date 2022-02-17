@@ -21,8 +21,8 @@ import scala.util.Try
 class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"
-  private val taxonomyTimeout = 20 * 1000 // 20 Seconds
+  private val TaxonomyApiEndpoint           = s"$Domain/taxonomy/v1"
+  private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
 
   case class TaxonomyResource(contentUri: Option[String])
 
@@ -32,7 +32,7 @@ class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
+      response  <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 
@@ -40,10 +40,11 @@ class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
       .getOrElse(Seq.empty)
       .flatMap(resource =>
         resource.contentUri.flatMap(contentUri => {
-          val splits = contentUri.split(':')
+          val splits    = contentUri.split(':')
           val articleId = splits.lastOption.filter(_ => splits.contains("article"))
           articleId.flatMap(idStr => Try(idStr.toLong).toOption)
-        }))
+        })
+      )
   }
 
   override def migrate(context: Context): Unit = {
@@ -56,16 +57,16 @@ class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
-    val topicIds: Seq[Long] = fetchResourceFromTaxonomy("/topics")
+    val topicIds: Seq[Long]    = fetchResourceFromTaxonomy("/topics")
     val resourceIds: Seq[Long] = fetchResourceFromTaxonomy("/resources")
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertArticleUpdate(document, id, topicIds, resourceIds), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertArticleUpdate(document, id, topicIds, resourceIds), id)
       }
       numPagesLeft -= 1
       offset += 1

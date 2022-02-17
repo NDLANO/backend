@@ -68,9 +68,9 @@ trait SearchConverterService {
         .map(converterService.toApiPodcastMeta)
 
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
-      val manuscript = findByLanguageOrBestEffort(manuscripts, language).map(converterService.toApiManuscript)
+      val manuscript  = findByLanguageOrBestEffort(manuscripts, language).map(converterService.toApiManuscript)
 
-      val tags = searchable.tags.languageValues.map(lv => domain.Tag(lv.value, lv.language))
+      val tags      = searchable.tags.languageValues.map(lv => domain.Tag(lv.value, lv.language))
       val filePaths = searchable.filePaths.map(lv => domain.Title(lv.filePath, lv.language)) // Hacky but functional
 
       val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta, filePaths, tags)
@@ -89,7 +89,8 @@ trait SearchConverterService {
             manuscript = manuscript,
             series = series,
             lastUpdated = searchable.lastUpdated
-        ))
+          )
+        )
     }
 
     def asSeriesSummary(searchable: SearchableSeries, language: String): Try[api.SeriesSummary] = {
@@ -97,27 +98,31 @@ trait SearchConverterService {
         title <- converterService.findAndConvertDomainToApiField(
           searchable.titles.languageValues,
           Some(language),
-          (lv: LanguageValue[String]) => api.Title(lv.value, lv.language))
+          (lv: LanguageValue[String]) => api.Title(lv.value, lv.language)
+        )
 
         description <- converterService.findAndConvertDomainToApiField(
           searchable.descriptions.languageValues,
           Some(language),
-          (lv: LanguageValue[String]) => api.Description(lv.value, lv.language))
+          (lv: LanguageValue[String]) => api.Description(lv.value, lv.language)
+        )
 
         episodes <- searchable.episodes.traverse(eps =>
-          eps.traverse(ep => searchConverterService.asAudioSummary(ep, language)))
-
-        supportedLanguages = getSupportedLanguages(searchable.titles.languageValues,
-                                                   searchable.descriptions.languageValues)
-      } yield
-        api.SeriesSummary(
-          id = searchable.id.toLong,
-          title = title,
-          description = description,
-          supportedLanguages = supportedLanguages,
-          episodes = episodes,
-          coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
+          eps.traverse(ep => searchConverterService.asAudioSummary(ep, language))
         )
+
+        supportedLanguages = getSupportedLanguages(
+          searchable.titles.languageValues,
+          searchable.descriptions.languageValues
+        )
+      } yield api.SeriesSummary(
+        id = searchable.id.toLong,
+        title = title,
+        description = description,
+        supportedLanguages = supportedLanguages,
+        episodes = episodes,
+        coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
+      )
     }
 
     def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
@@ -136,10 +141,12 @@ trait SearchConverterService {
           metaWithAgreement.copyright.rightsholders.map(_.name)
 
       val podcastMetaIntros = SearchableLanguageValues(
-        metaWithAgreement.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction)))
+        metaWithAgreement.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction))
+      )
 
       val searchablePodcastMeta = metaWithAgreement.podcastMeta.map(pm =>
-        SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
+        SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language)
+      )
 
       val searchableAudios = metaWithAgreement.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
 
@@ -160,7 +167,8 @@ trait SearchConverterService {
             podcastMeta = searchablePodcastMeta,
             manuscript = SearchableLanguageValues.fromFields(metaWithAgreement.manuscript),
             series = series
-        ))
+          )
+        )
     }
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {
@@ -169,7 +177,8 @@ trait SearchConverterService {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -179,7 +188,7 @@ trait SearchConverterService {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>
@@ -190,7 +199,8 @@ trait SearchConverterService {
     }
 
     def asApiAudioSummarySearchResult(
-        searchResult: domain.SearchResult[api.AudioSummary]): api.AudioSummarySearchResult =
+        searchResult: domain.SearchResult[api.AudioSummary]
+    ): api.AudioSummarySearchResult =
       api.AudioSummarySearchResult(
         searchResult.totalCount,
         searchResult.page,
@@ -200,7 +210,8 @@ trait SearchConverterService {
       )
 
     def asApiSeriesSummarySearchResult(
-        searchResult: domain.SearchResult[api.SeriesSummary]): api.SeriesSummarySearchResult =
+        searchResult: domain.SearchResult[api.SeriesSummary]
+    ): api.SeriesSummarySearchResult =
       api.SeriesSummarySearchResult(
         searchResult.totalCount,
         searchResult.page,
@@ -210,14 +221,14 @@ trait SearchConverterService {
       )
 
     def asSearchableTags(audio: domain.AudioMetaInformation): Seq[SearchableTag] =
-      audio.tags.flatMap(
-        audioTags =>
-          audioTags.tags.map(
-            tag =>
-              SearchableTag(
-                tag = tag,
-                language = audioTags.language
-            )))
+      audio.tags.flatMap(audioTags =>
+        audioTags.tags.map(tag =>
+          SearchableTag(
+            tag = tag,
+            language = audioTags.language
+          )
+        )
+      )
 
     def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResult =
       api.TagsSearchResult(

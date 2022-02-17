@@ -39,14 +39,16 @@ class AudioSearchServiceTest
   val byNcSa: Copyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
 
-  val publicDomain: Copyright = Copyright("publicdomain",
-                                          Some("Metropolis"),
-                                          List(Author("Forfatter", "Bruce Wayne")),
-                                          Seq(),
-                                          Seq(),
-                                          None,
-                                          None,
-                                          None)
+  val publicDomain: Copyright = Copyright(
+    "publicdomain",
+    Some("Metropolis"),
+    List(Author("Forfatter", "Bruce Wayne")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    None
+  )
 
   val copyrighted: Copyright =
     Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
@@ -58,7 +60,7 @@ class AudioSearchServiceTest
   val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val updated7: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val created: Date = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val created: Date  = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val podcastSeries1: Series = Series(
     id = 1,
@@ -68,7 +70,7 @@ class AudioSearchServiceTest
     description = Seq(domain.Description("TestSeriesDesc", "nb")),
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,
-    created = TestData.yesterday,
+    created = TestData.yesterday
   )
 
   val audio1: AudioMetaInformation = AudioMetaInformation(
@@ -125,9 +127,11 @@ class AudioSearchServiceTest
   val audio4: AudioMetaInformation = AudioMetaInformation(
     Some(4),
     Some(1),
-    List(Title("Donald Duck kjører bil", "nb"),
-         Title("Donald Duck kjører bil", "nn"),
-         Title("Donald Duck drives a car", "en")),
+    List(
+      Title("Donald Duck kjører bil", "nb"),
+      Title("Donald Duck kjører bil", "nn"),
+      Title("Donald Duck drives a car", "en")
+    ),
     List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")),
     publicDomain,
     List(Tag(List("and"), "nb")),
@@ -173,7 +177,8 @@ class AudioSearchServiceTest
         introduction = "podcastintroritehere",
         coverPhoto = domain.CoverPhoto("2", "altyo"),
         language = "nb"
-      )),
+      )
+    ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
@@ -217,7 +222,8 @@ class AudioSearchServiceTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[AudioMetaInformation](0))
+      i.getArgument[AudioMetaInformation](0)
+    )
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
@@ -249,18 +255,21 @@ class AudioSearchServiceTest
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * AudioApiProperties.DefaultPageSize
     audioSearchService.getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, AudioApiProperties.DefaultPageSize))
+      (expectedStartAt, AudioApiProperties.DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
+    val page            = 123
     val expectedStartAt = (page - 1) * AudioApiProperties.MaxPageSize
     audioSearchService.getStartAtAndNumResults(Some(page), Some(AudioApiProperties.MaxPageSize)) should equal(
-      (expectedStartAt, AudioApiProperties.MaxPageSize))
+      (expectedStartAt, AudioApiProperties.MaxPageSize)
+    )
   }
 
   test("That no language returns all documents ordered by title ascending") {
@@ -296,7 +305,8 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("Pingvinen"),
         language = Some("nb")
-      ))
+      )
+    )
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
@@ -306,7 +316,8 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("2"),
         language = Some("nb")
-      ))
+      )
+    )
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
@@ -316,7 +327,8 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("and"),
         language = Some("nb")
-      ))
+      )
+    )
     results.totalCount should be(1)
     results.results.head.id should be(4)
   }
@@ -326,7 +338,8 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb")
-      ))
+      )
+    )
     results.totalCount should be(0)
   }
 
@@ -336,7 +349,8 @@ class AudioSearchServiceTest
         query = Some("batmen"),
         language = Some("nb"),
         license = Some("copyrighted")
-      ))
+      )
+    )
     results.totalCount should be(1)
     results.results.head.id should be(1)
   }
@@ -345,15 +359,17 @@ class AudioSearchServiceTest
     val Success(search1) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("bilde + bil"),
-        language = Some("nb"),
-      ))
+        language = Some("nb")
+      )
+    )
     search1.results.map(_.id) should equal(Seq.empty)
 
     val Success(search2) = audioSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("ute + -går"),
-        language = Some("nb"),
-      ))
+        language = Some("nb")
+      )
+    )
     search2.results.map(_.id) should equal(Seq(3))
   }
 
@@ -394,7 +410,7 @@ class AudioSearchServiceTest
   }
 
   test("That searching for language not in indexed data should not fail") {
-    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("ait"))) //Arikem
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("ait"))) // Arikem
     result.totalCount should be(0)
     result.language should be("ait")
   }
@@ -418,11 +434,11 @@ class AudioSearchServiceTest
   }
 
   test("that hit is converted to summary correctly") {
-    val id = 5
-    val title = "Synge sangen"
-    val audioType = "standard"
-    val license = "gnu"
-    val tag = "synge"
+    val id                 = 5
+    val title              = "Synge sangen"
+    val audioType          = "standard"
+    val license            = "gnu"
+    val tag                = "synge"
     val supportedLanguages = Seq("nb")
     val hitString =
       s"""{"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
@@ -483,12 +499,13 @@ class AudioSearchServiceTest
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(2, 3, 4, 5, 6, 7).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
       audioSearchService.matchingQuery(
-        searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true))
+        searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true)
+      )
 
     val Success(scroll1) = audioSearchService.scroll(initialSearch.scrollId.get, "*")
     val Success(scroll2) = audioSearchService.scroll(scroll1.scrollId.get, "*")
@@ -557,7 +574,7 @@ class AudioSearchServiceTest
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

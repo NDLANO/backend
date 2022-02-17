@@ -43,9 +43,11 @@ trait PublishedConceptSearchService {
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
 
-    def getTagsWithSubjects(subjectIds: List[String],
-                            language: String,
-                            fallback: Boolean): Try[List[api.SubjectTags]] = {
+    def getTagsWithSubjects(
+        subjectIds: List[String],
+        language: String,
+        fallback: Boolean
+    ): Try[List[api.SubjectTags]] = {
       if (subjectIds.size <= 0) {
         Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
       } else {
@@ -56,8 +58,9 @@ trait PublishedConceptSearchService {
       }
     }
 
-    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(
-        implicit executor: ExecutionContext): Future[Try[List[SubjectTags]]] =
+    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(implicit
+        executor: ExecutionContext
+    ): Future[Try[List[SubjectTags]]] =
       Future {
         val settings = SearchSettings.empty.copy(
           subjects = Set(subjectId),
@@ -69,8 +72,8 @@ trait PublishedConceptSearchService {
         searchUntilNoMoreResults(settings).map(searchResults => {
           val tagsInSubject = for {
             searchResult <- searchResults
-            searchHits <- searchResult.results
-            matchedTags <- searchHits.tags.toSeq
+            searchHits   <- searchResult.results
+            matchedTags  <- searchHits.tags.toSeq
           } yield matchedTags
 
           searchConverterService
@@ -94,7 +97,7 @@ trait PublishedConceptSearchService {
       result match {
         case Failure(ex)                                                        => Failure(ex)
         case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
-        case Success(value)                                                     => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
+        case Success(value) => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
       }
     }
 
@@ -125,9 +128,9 @@ trait PublishedConceptSearchService {
     }
 
     def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
-      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
+      val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | AllLanguages =>
@@ -156,7 +159,8 @@ trait PublishedConceptSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ConceptApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
         val searchToExecute =
@@ -183,7 +187,8 @@ trait PublishedConceptSearchService {
                 searchLanguage,
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -200,7 +205,8 @@ trait PublishedConceptSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

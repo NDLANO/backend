@@ -36,11 +36,11 @@ object RequestInfo {
 
   def apply(): RequestInfo = {
     val correlationId = CorrelationID.get
-    val authHeader = AuthUser.getHeader
-    val userId = AuthUser.get
-    val roles = AuthUser.getRoles
-    val name = AuthUser.getName
-    val clientId = AuthUser.getClientId
+    val authHeader    = AuthUser.getHeader
+    val userId        = AuthUser.get
+    val roles         = AuthUser.getRoles
+    val name          = AuthUser.getName
+    val clientId      = AuthUser.getClientId
 
     RequestInfo(correlationId, authHeader, userId, roles, name, clientId)
   }

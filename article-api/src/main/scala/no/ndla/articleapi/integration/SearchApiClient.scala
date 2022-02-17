@@ -28,7 +28,7 @@ trait SearchApiClient {
   class SearchApiClient(SearchApiBaseUrl: String = s"http://$SearchHost") extends LazyLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
-    private val indexTimeout = 1000 * 30
+    private val indexTimeout     = 1000 * 30
 
     def indexArticle(article: Article): Article = {
       implicit val formats: Formats =
@@ -42,22 +42,29 @@ trait SearchApiClient {
       future.onComplete {
         case Success(Success(_)) =>
           logger.info(s"Successfully indexed article with id: '${article.id
-            .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
+              .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api")
         case Failure(e) =>
-          logger.error(s"Failed to indexed article with id: '${article.id
-            .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api", e)
+          logger.error(
+            s"Failed to indexed article with id: '${article.id
+                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
+            e
+          )
         case Success(Failure(e)) =>
-          logger.error(s"Failed to indexed article with id: '${article.id
-            .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api", e)
+          logger.error(
+            s"Failed to indexed article with id: '${article.id
+                .getOrElse(-1)}' and revision '${article.revision.getOrElse(-1)}' in search-api",
+            e
+          )
       }
 
       article
     }
 
-    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(
-        implicit mf: Manifest[A],
+    private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
+        mf: Manifest[A],
         format: org.json4s.Formats,
-        executionContext: ExecutionContext): Future[Try[A]] = {
+        executionContext: ExecutionContext
+    ): Future[Try[A]] = {
 
       Future {
         ndlaClient.fetchWithForwardedAuth[A](

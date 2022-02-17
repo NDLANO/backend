@@ -18,7 +18,7 @@ import scalikejdbc._
 class V3__AddUpdatedColoums extends BaseJavaMigration with LazyLogging {
 
   implicit val formats = org.json4s.DefaultFormats
-  val timeService = new TimeService()
+  val timeService      = new TimeService()
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)
@@ -62,7 +62,7 @@ case class V3__DBImageMetaInformation(id: Long, document: String)
 class TimeService() {
 
   def nowAsString(): String = {
-    //NB!!! BUG day format is wrong should have been dd, and the Z should have been 'Z'
+    // NB!!! BUG day format is wrong should have been dd, and the Z should have been 'Z'
     val formatter: DateTimeFormatter = DateTimeFormat.forPattern("YYYY-MM-DD'T'HH:mm:ssZ")
     (new DateTime).toString(formatter)
   }

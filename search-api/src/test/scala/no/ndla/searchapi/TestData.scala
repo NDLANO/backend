@@ -29,7 +29,7 @@ object TestData {
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)
@@ -51,9 +51,9 @@ object TestData {
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
   val today: DateTime = new DateTime().withMillisOfSecond(0).withZone(DateTimeZone.UTC)
 
-  val sampleArticleTitle = ArticleApiTitle("tittell", "nb")
+  val sampleArticleTitle         = ArticleApiTitle("tittell", "nb")
   val sampleArticleVisualElement = ArticleApiVisualElement("""<embed data-resource="image">""", "nb")
-  val sampleArticleIntro = ArticleApiIntro("intro", "nb")
+  val sampleArticleIntro         = ArticleApiIntro("intro", "nb")
 
   val sampleArticleSearch = ArticleApiSearchResults(
     totalCount = 2,
@@ -61,14 +61,16 @@ object TestData {
     pageSize = 10,
     language = "nb",
     results = Seq(
-      ArticleApiSearchResult(1,
-                             sampleArticleTitle,
-                             Option(sampleArticleVisualElement),
-                             Option(sampleArticleIntro),
-                             "http://articles/1",
-                             "by",
-                             "standard",
-                             Seq("nb", "en")),
+      ArticleApiSearchResult(
+        1,
+        sampleArticleTitle,
+        Option(sampleArticleVisualElement),
+        Option(sampleArticleIntro),
+        "http://articles/1",
+        "by",
+        "standard",
+        Seq("nb", "en")
+      ),
       ArticleApiSearchResult(
         2,
         ArticleApiTitle("Another title", "nb"),
@@ -88,20 +90,24 @@ object TestData {
     pageSize = 10,
     language = "nb",
     results = Seq(
-      ImageApiSearchResult("1",
-                           ImageTitle("title", "en"),
-                           ImageAltText("alt text", "en"),
-                           "http://images/1.jpg",
-                           "http://images/1",
-                           "by",
-                           Seq("en")),
-      ImageApiSearchResult("1",
-                           ImageTitle("title", "en"),
-                           ImageAltText("alt text", "en"),
-                           "http://images/1.jpg",
-                           "http://images/1",
-                           "by",
-                           Seq("en"))
+      ImageApiSearchResult(
+        "1",
+        ImageTitle("title", "en"),
+        ImageAltText("alt text", "en"),
+        "http://images/1.jpg",
+        "http://images/1",
+        "by",
+        Seq("en")
+      ),
+      ImageApiSearchResult(
+        "1",
+        ImageTitle("title", "en"),
+        ImageAltText("alt text", "en"),
+        "http://images/1.jpg",
+        "http://images/1",
+        "by",
+        Seq("en")
+      )
     )
   )
 
@@ -138,7 +144,7 @@ object TestData {
         LearningPathApiTags(Seq(), "nb"),
         Seq("nb"),
         None
-      ),
+      )
     )
   )
 
@@ -234,7 +240,8 @@ object TestData {
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
     content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")),
+      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+    ),
     copyright = byNcSaCopyright.copy(creators = List(Author("Forfatter", "Kjekspolitiet"))),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
@@ -250,8 +257,8 @@ object TestData {
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    copyright = publicDomainCopyright.copy(creators = List(Author("Forfatter", "Pjolter")),
-                                           processors = List(Author("Editorial", "Svims"))),
+    copyright = publicDomainCopyright
+      .copy(creators = List(Author("Forfatter", "Pjolter")), processors = List(Author("Editorial", "Svims"))),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
@@ -308,15 +315,18 @@ object TestData {
     id = Option(6),
     title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
     content = List(
-      ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-                     "nb")),
+      ArticleContent(
+        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+        "nb"
+      )
+    ),
     tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
     visualElement = List.empty,
     introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(30),
     updated = today.minusDays(25),
-    published = today.minusDays(25),
+    published = today.minusDays(25)
   )
 
   val article7: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -329,7 +339,7 @@ object TestData {
     metaDescription = List.empty,
     created = today.minusDays(20),
     updated = today.minusDays(15),
-    published = today.minusDays(15),
+    published = today.minusDays(15)
   )
 
   val article8: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -382,7 +392,8 @@ object TestData {
     content = List(
       ArticleContent(
         "<p>Søkeord: delt?streng delt!streng delt&streng</p><embed data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>",
-        "nb"),
+        "nb"
+      ),
       ArticleContent("<p>Something about a cat</p>", "en"),
       ArticleContent("<p>Something about a Chhattisgarhi cat</p>", "hne")
     ),
@@ -498,29 +509,33 @@ object TestData {
     grepCodes = Seq.empty
   )
 
-  val draftStatus = draft.Status(draft.ArticleStatus.DRAFT, Set.empty)
+  val draftStatus         = draft.Status(draft.ArticleStatus.DRAFT, Set.empty)
   val importedDraftStatus = draft.Status(draft.ArticleStatus.DRAFT, Set(draft.ArticleStatus.IMPORTED))
 
   val draftPublicDomainCopyright: domain.draft.Copyright =
     draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
 
-  val draftByNcSaCopyright = draft.Copyright(Some("by-nc-sa"),
-                                             Some("Gotham City"),
-                                             List(Author("Forfatter", "DC Comics")),
-                                             List(),
-                                             List(),
-                                             None,
-                                             None,
-                                             None)
+  val draftByNcSaCopyright = draft.Copyright(
+    Some("by-nc-sa"),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val draftCopyrighted = draft.Copyright(Some("copyrighted"),
-                                         Some("New York"),
-                                         List(Author("Forfatter", "Clark Kent")),
-                                         List(),
-                                         List(),
-                                         None,
-                                         None,
-                                         None)
+  val draftCopyrighted = draft.Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val sampleDraftWithPublicDomain = Draft(
     Option(1),
@@ -545,7 +560,7 @@ object TestData {
     Seq.empty
   )
 
-  val sampleDraftWithByNcSa: Draft = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
+  val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
   val sampleDraftWithCopyrighted: Draft = sampleDraftWithPublicDomain.copy(copyright = Some(draftCopyrighted))
 
   val draft1: Draft = TestData.sampleDraftWithByNcSa.copy(
@@ -555,7 +570,8 @@ object TestData {
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")),
+      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+    ),
     tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(3),
@@ -574,8 +590,9 @@ object TestData {
     created = today.minusDays(4),
     updated = today.minusDays(2),
     copyright = Some(
-      draftPublicDomainCopyright.copy(creators = List(Author("Forfatter", "Pjolter")),
-                                      processors = List(Author("Editorial", "Svims")))),
+      draftPublicDomainCopyright
+        .copy(creators = List(Author("Forfatter", "Pjolter")), processors = List(Author("Editorial", "Svims")))
+    ),
     grepCodes = Seq("K456", "K123")
   )
 
@@ -621,14 +638,16 @@ object TestData {
         "ndalId54321",
         Status(ArticleStatus.DRAFT, Set.empty),
         today.minusDays(30).toDate
-      )),
+      )
+    ),
     previousVersionsNotes = List(
       draft.EditorNote(
         "kultgammeltnotat",
         "ndalId12345",
         Status(ArticleStatus.DRAFT, Set.empty),
         today.minusDays(31).toDate
-      )),
+      )
+    ),
     grepCodes = Seq("K456")
   )
 
@@ -639,8 +658,11 @@ object TestData {
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(
-      ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-                     "nb")),
+      ArticleContent(
+        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+        "nb"
+      )
+    ),
     tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
     created = today.minusDays(30),
     updated = today.minusDays(25)
@@ -723,7 +745,8 @@ object TestData {
       ArticleContent(
         "<section><p>artikkeltekst med fire deler</p><embed data-resource=\"concept\" data-resource_id=\"222\" /><embed data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"/><embed data-resource=\"image\" data-resource_id=\"55\"/><embed data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\" /><embed data-videoid=\"77\" data-resource=\"video\"  /><embed data-resource=\"video\" data-resource_id=\"66\"  /><embed data-resource=\"video\"  data-url=\"http://test.test\" />",
         "nb"
-      )),
+      )
+    ),
     visualElement = List(VisualElement("<embed data-resource_id=\"333\">", "nb")),
     tags = List(Tag(List(""), "nb")),
     created = today.minusDays(10),
@@ -739,8 +762,10 @@ object TestData {
     content = List(
       ArticleContent("<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>", "nb"),
       ArticleContent("Header <embed data-resource_id=\"222\" /><embed data-resource=\"concept\" />", "en"),
-      ArticleContent("Header in Chhattisgarhi <embed data-resource_id=\"222\" /><embed data-resource=\"concept\" />",
-                     "hne")
+      ArticleContent(
+        "Header in Chhattisgarhi <embed data-resource_id=\"222\" /><embed data-resource=\"concept\" />",
+        "hne"
+      )
     ),
     visualElement = List.empty,
     tags = List(Tag(List(""), "nb")),
@@ -772,8 +797,10 @@ object TestData {
     title = List(Title("Engler og demoner", "nb")),
     introduction = List(ArticleIntroduction("Religion", "nb")),
     metaDescription = List(MetaDescription("metareligion", "nb")),
-    content = List(ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
-                   ArticleContent("<p>Christianity!</p>", "en")),
+    content = List(
+      ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
+      ArticleContent("<p>Christianity!</p>", "en")
+    ),
     visualElement = List.empty,
     tags = List(Tag(List("engel"), "nb")),
     created = today.minusDays(10),
@@ -799,10 +826,10 @@ object TestData {
     draft15
   )
 
-  val paul = Author("author", "Truly Weird Rand Paul")
-  val license = "publicdomain"
-  val copyright = domain.learningpath.Copyright(license, List(paul))
-  val visibleMetadata = Some(Metadata(Seq.empty, visible = true))
+  val paul              = Author("author", "Truly Weird Rand Paul")
+  val license           = "publicdomain"
+  val copyright         = domain.learningpath.Copyright(license, List(paul))
+  val visibleMetadata   = Some(Metadata(Seq.empty, visible = true))
   val invisibleMetadata = Some(Metadata(Seq.empty, visible = false))
 
   val DefaultLearningPath = LearningPath(
@@ -822,12 +849,12 @@ object TestData {
     copyright = copyright
   )
 
-  val PenguinId = 1
-  val BatmanId = 2
-  val DonaldId = 3
+  val PenguinId   = 1
+  val BatmanId    = 2
+  val DonaldId    = 3
   val UnrelatedId = 4
-  val EnglandoId = 5
-  val KekId = 6
+  val EnglandoId  = 5
+  val KekId       = 6
 
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
@@ -913,7 +940,8 @@ object TestData {
         List(
           ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None, List.empty),
           ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
-        )),
+        )
+      ),
       List.empty
     ),
     ResourceType(
@@ -929,10 +957,12 @@ object TestData {
             Some(
               List(
                 ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
-              )),
+              )
+            ),
             List.empty
           )
-        )),
+        )
+      ),
       List.empty
     )
   )
@@ -1088,144 +1118,188 @@ object TestData {
   )
 
   val subjectTopicConnections = List(
-    SubjectTopicConnection("urn:subject:1",
-                           "urn:topic:1",
-                           "urn:subject-topic:1",
-                           primary = true,
-                           1,
-                           Some("urn:relevance:core")),
-    SubjectTopicConnection("urn:subject:1",
-                           "urn:topic:3",
-                           "urn:subject-topic:2",
-                           primary = true,
-                           1,
-                           Some("urn:relevance:core")),
-    SubjectTopicConnection("urn:subject:2",
-                           "urn:topic:4",
-                           "urn:subject-topic:3",
-                           primary = true,
-                           1,
-                           Some("urn:relevance:core")),
-    SubjectTopicConnection("urn:subject:3",
-                           "urn:topic:5",
-                           "urn:subject-topic:4",
-                           primary = true,
-                           1,
-                           Some("urn:relevance:supplementary")),
+    SubjectTopicConnection(
+      "urn:subject:1",
+      "urn:topic:1",
+      "urn:subject-topic:1",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    SubjectTopicConnection(
+      "urn:subject:1",
+      "urn:topic:3",
+      "urn:subject-topic:2",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    SubjectTopicConnection(
+      "urn:subject:2",
+      "urn:topic:4",
+      "urn:subject-topic:3",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    SubjectTopicConnection(
+      "urn:subject:3",
+      "urn:topic:5",
+      "urn:subject-topic:4",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    )
   )
 
   val topicResourceConnections = List(
-    TopicResourceConnection("urn:topic:1",
-                            "urn:resource:1",
-                            "urn:topic-resource:1",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:1",
-                            "urn:topic-resource:2",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:1",
-                            "urn:resource:2",
-                            "urn:topic-resource:3",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:3",
-                            "urn:resource:3",
-                            "urn:topic-resource:4",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:2",
-                            "urn:resource:4",
-                            "urn:topic-resource:5",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:5",
-                            "urn:topic-resource:6",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:6",
-                            "urn:topic-resource:7",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:7",
-                            "urn:topic-resource:8",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:3",
-                            "urn:resource:5",
-                            "urn:topic-resource:9",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:1",
-                            "urn:resource:8",
-                            "urn:topic-resource:10",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:1",
-                            "urn:resource:9",
-                            "urn:topic-resource:11",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:3",
-                            "urn:resource:10",
-                            "urn:topic-resource:12",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:2",
-                            "urn:resource:11",
-                            "urn:topic-resource:13",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:12",
-                            "urn:topic-resource:14",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:1",
-                            "urn:resource:13",
-                            "urn:topic-resource:15",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core")),
-    TopicResourceConnection("urn:topic:4",
-                            "urn:resource:13",
-                            "urn:topic-resource:16",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:supplementary")),
-    TopicResourceConnection("urn:topic:5",
-                            "urn:resource:1",
-                            "urn:topic-resource:17",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core"))
+    TopicResourceConnection(
+      "urn:topic:1",
+      "urn:resource:1",
+      "urn:topic-resource:1",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:1",
+      "urn:topic-resource:2",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:1",
+      "urn:resource:2",
+      "urn:topic-resource:3",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:3",
+      "urn:resource:3",
+      "urn:topic-resource:4",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:2",
+      "urn:resource:4",
+      "urn:topic-resource:5",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:5",
+      "urn:topic-resource:6",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:6",
+      "urn:topic-resource:7",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:7",
+      "urn:topic-resource:8",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:3",
+      "urn:resource:5",
+      "urn:topic-resource:9",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:1",
+      "urn:resource:8",
+      "urn:topic-resource:10",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:1",
+      "urn:resource:9",
+      "urn:topic-resource:11",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:3",
+      "urn:resource:10",
+      "urn:topic-resource:12",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:2",
+      "urn:resource:11",
+      "urn:topic-resource:13",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:12",
+      "urn:topic-resource:14",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:1",
+      "urn:resource:13",
+      "urn:topic-resource:15",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    ),
+    TopicResourceConnection(
+      "urn:topic:4",
+      "urn:resource:13",
+      "urn:topic-resource:16",
+      primary = true,
+      1,
+      Some("urn:relevance:supplementary")
+    ),
+    TopicResourceConnection(
+      "urn:topic:5",
+      "urn:resource:1",
+      "urn:topic-resource:17",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    )
   )
 
   val topicSubtopicConnections = List(
-    TopicSubtopicConnection("urn:topic:1",
-                            "urn:topic:2",
-                            "urn:topic-subtopic:1",
-                            primary = true,
-                            1,
-                            Some("urn:relevance:core"))
+    TopicSubtopicConnection(
+      "urn:topic:1",
+      "urn:topic:2",
+      "urn:topic-subtopic:1",
+      primary = true,
+      1,
+      Some("urn:relevance:core")
+    )
   )
 
   val resourceResourceTypeConnections = List(
@@ -1243,9 +1317,11 @@ object TestData {
     ResourceResourceTypeConnection("urn:resource:10", "urn:resourcetype:learningpath", "urn:resource-resourcetype:12"),
     ResourceResourceTypeConnection("urn:resource:11", "urn:resourcetype:learningpath", "urn:resource-resourcetype:13"),
     ResourceResourceTypeConnection("urn:resource:12", "urn:resourcetype:learningpath", "urn:resource-resourcetype:14"),
-    ResourceResourceTypeConnection("urn:resource:13",
-                                   "urn:resourcetype:subjectMaterial",
-                                   "urn:resource-resourcetype:15"),
+    ResourceResourceTypeConnection(
+      "urn:resource:13",
+      "urn:resourcetype:subjectMaterial",
+      "urn:resource-resourcetype:15"
+    )
   )
 
   val taxonomyTestBundle = TaxonomyBundle(
@@ -1263,7 +1339,7 @@ object TestData {
   val emptyGrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
-    tverrfagligeTemaer = List.empty,
+    tverrfagligeTemaer = List.empty
   )
 
   val grepBundle = emptyGrepBundle.copy(
@@ -1272,8 +1348,11 @@ object TestData {
       GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
     ),
     kompetansemaal = List(
-      GrepElement("KM123",
-                  Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")))),
+      GrepElement(
+        "KM123",
+        Seq(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
+      )
+    ),
     tverrfagligeTemaer = List(GrepElement("TT2", Seq(GrepTitle("default", "Demokrati og medborgerskap"))))
   )
 
@@ -1328,10 +1407,14 @@ object TestData {
   )
 
   val searchableResourceTypes = List(
-    SearchableTaxonomyResourceType("urn:resourcetype:subjectMaterial",
-                                   SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))),
-    SearchableTaxonomyResourceType("urn:resourcetype:academicArticle",
-                                   SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel"))))
+    SearchableTaxonomyResourceType(
+      "urn:resourcetype:subjectMaterial",
+      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
+    ),
+    SearchableTaxonomyResourceType(
+      "urn:resourcetype:academicArticle",
+      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel")))
+    )
   )
 
   val singleSearchableTaxonomyContext =
@@ -1343,7 +1426,8 @@ object TestData {
       breadcrumbs = SearchableLanguageList(
         Seq(
           LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen"))
-        )),
+        )
+      ),
       contextType = LearningResourceType.Article.toString,
       relevanceId = Some("urn:relevance:core"),
       relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),

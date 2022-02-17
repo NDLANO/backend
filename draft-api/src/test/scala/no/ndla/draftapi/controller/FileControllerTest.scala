@@ -19,7 +19,7 @@ import scala.util.Success
 
 class FileControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger: DraftSwagger = new DraftSwagger
+  implicit val swagger: DraftSwagger        = new DraftSwagger
 
   lazy val controller = new FileController
   addServlet(controller, "/test")

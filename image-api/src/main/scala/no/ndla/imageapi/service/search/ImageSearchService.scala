@@ -33,9 +33,9 @@ trait ImageSearchService {
   val imageSearchService: ImageSearchService
 
   class ImageSearchService extends LazyLogging with SearchService[ImageMetaSummary] {
-    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
+    private val noCopyright          = boolQuery().not(termQuery("license", "copyrighted"))
     override val searchIndex: String = ImageApiProperties.SearchIndex
-    override val indexService = imageIndexService
+    override val indexService        = imageIndexService
 
     def hitToApiModel(hit: String, language: String): ImageMetaSummary = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
@@ -120,14 +120,15 @@ trait ImageSearchService {
         boolQuery().should(settings.modelReleased.map(mrs => termQuery("modelReleased", mrs.toString)))
       )
 
-      val filters = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter)
+      val filters        = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
       } else {
         val searchToExecute =
@@ -156,7 +157,8 @@ trait ImageSearchService {
                 searchLanguage,
                 getHits(response.result, searchLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }

@@ -3,11 +3,11 @@ package no.ndla.language
 import no.ndla.language.model.{LanguageField, LanguageTag, WithLanguage}
 
 object Language {
-  val DefaultLanguage = "nb"
+  val DefaultLanguage              = "nb"
   val UnknownLanguage: LanguageTag = LanguageTag("und")
-  val NoLanguage = ""
-  val AllLanguages = "*"
-  val Nynorsk = "nynorsk"
+  val NoLanguage                   = ""
+  val AllLanguages                 = "*"
+  val Nynorsk                      = "nynorsk"
 
   val languagePriority = Seq(
     "nb",

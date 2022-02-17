@@ -31,5 +31,5 @@ case class SearchableArticle(
     traits: List[String],
     embedAttributes: SearchableLanguageList,
     embedResourcesAndIds: List[EmbedValues],
-    availability: String,
+    availability: String
 )

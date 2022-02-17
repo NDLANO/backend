@@ -25,26 +25,33 @@ object ConverterService {
     api.SubjectCollection(coll.name, coll.subjects.map(sf => api.SubjectFilters(sf.id, sf.filters)))
 
   private def toApiBannerImage(banner: domain.BannerImage): api.BannerImage =
-    api.BannerImage(banner.mobileImageId.map(createImageUrl),
-                    banner.mobileImageId,
-                    createImageUrl(banner.desktopImageId),
-                    banner.desktopImageId)
+    api.BannerImage(
+      banner.mobileImageId.map(createImageUrl),
+      banner.mobileImageId,
+      createImageUrl(banner.desktopImageId),
+      banner.desktopImageId
+    )
 
   def toApiFilmFrontPage(page: domain.FilmFrontPageData, language: Option[String]): api.FilmFrontPageData = {
-    api.FilmFrontPageData(page.name,
-                          toApiAboutFilmSubject(page.about, language),
-                          toApiMovieThemes(page.movieThemes, language),
-                          page.slideShow)
+    api.FilmFrontPageData(
+      page.name,
+      toApiAboutFilmSubject(page.about, language),
+      toApiMovieThemes(page.movieThemes, language),
+      page.slideShow
+    )
   }
 
-  private def toApiAboutFilmSubject(aboutSeq: Seq[domain.AboutSubject],
-                                    language: Option[String]): Seq[api.AboutFilmSubject] = {
+  private def toApiAboutFilmSubject(
+      aboutSeq: Seq[domain.AboutSubject],
+      language: Option[String]
+  ): Seq[api.AboutFilmSubject] = {
     val filteredAboutSeq = language match {
       case Some(lang) => aboutSeq.filter(about => about.language == lang)
       case None       => aboutSeq
     }
     filteredAboutSeq.map(about =>
-      api.AboutFilmSubject(about.title, about.description, toApiVisualElement(about.visualElement), about.language))
+      api.AboutFilmSubject(about.title, about.description, toApiVisualElement(about.visualElement), about.language)
+    )
   }
 
   private def toApiMovieThemes(themes: Seq[domain.MovieTheme], language: Option[String]): Seq[api.MovieTheme] = {
@@ -60,9 +67,11 @@ object ConverterService {
     filteredNames.map(name => api.MovieThemeName(name.name, name.language))
   }
 
-  def toApiSubjectPage(sub: domain.SubjectFrontPageData,
-                       language: String,
-                       fallback: Boolean = false): Try[api.SubjectPageData] = {
+  def toApiSubjectPage(
+      sub: domain.SubjectFrontPageData,
+      language: String,
+      fallback: Boolean = false
+  ): Try[api.SubjectPageData] = {
     if (sub.supportedLanguages.contains(language) || fallback) {
       sub.id match {
         case None => Failure(MissingIdException())
@@ -89,8 +98,10 @@ object ConverterService {
       }
     } else {
       Failure(
-        LanguageNotFoundException(s"The subjectpage with id ${sub.id.get} and language $language was not found",
-                                  sub.supportedLanguages)
+        LanguageNotFoundException(
+          s"The subjectpage with id ${sub.id.get} and language $language was not found",
+          sub.supportedLanguages
+        )
       )
     }
   }
@@ -123,7 +134,7 @@ object ConverterService {
   def toDomainSubjectPage(subject: api.NewSubjectFrontPageData): Try[domain.SubjectFrontPageData] = {
     for {
       layout <- toDomainLayout(subject.layout)
-      about <- toDomainAboutSubject(subject.about)
+      about  <- toDomainAboutSubject(subject.about)
       newSubject = domain.SubjectFrontPageData(
         id = None,
         name = subject.name,
@@ -144,10 +155,12 @@ object ConverterService {
     } yield newSubject
   }
 
-  def toDomainSubjectPage(toMergeInto: domain.SubjectFrontPageData,
-                          subject: api.UpdatedSubjectFrontPageData): Try[domain.SubjectFrontPageData] = {
+  def toDomainSubjectPage(
+      toMergeInto: domain.SubjectFrontPageData,
+      subject: api.UpdatedSubjectFrontPageData
+  ): Try[domain.SubjectFrontPageData] = {
     for {
-      layout <- subject.layout.traverse(toDomainLayout)
+      layout       <- subject.layout.traverse(toDomainLayout)
       aboutSubject <- subject.about.traverse(toDomainAboutSubject)
       metaDescription = subject.metaDescription.map(toDomainMetaDescription)
 
@@ -174,11 +187,13 @@ object ConverterService {
   }
 
   private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubject]): Try[Seq[domain.AboutSubject]] = {
-    val seq = aboutSeq.map(
-      about =>
-        toDomainVisualElement(about.visualElement)
-          .map(domain
-            .AboutSubject(about.title, about.description, about.language, _)))
+    val seq = aboutSeq.map(about =>
+      toDomainVisualElement(about.visualElement)
+        .map(
+          domain
+            .AboutSubject(about.title, about.description, about.language, _)
+        )
+    )
     Try(seq.map(_.get))
   }
 
@@ -215,6 +230,6 @@ object ConverterService {
     names.map(name => domain.MovieThemeName(name.name, name.language))
   }
 
-  private def createImageUrl(id: Long): String = createImageUrl(id.toString)
+  private def createImageUrl(id: Long): String   = createImageUrl(id.toString)
   private def createImageUrl(id: String): String = s"$RawImageApiUrl/id/$id"
 }

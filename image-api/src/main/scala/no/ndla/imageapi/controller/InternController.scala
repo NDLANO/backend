@@ -42,7 +42,7 @@ trait InternController {
 
       val indexResults = for {
         imageIndex <- Future { imageIndexService.indexDocuments }
-        tagIndex <- Future { tagIndexService.indexDocuments }
+        tagIndex   <- Future { tagIndexService.indexDocuments }
       } yield (imageIndex, tagIndex)
 
       Await.result(indexResults, Duration(60, TimeUnit.MINUTES)) match {
@@ -84,7 +84,7 @@ trait InternController {
 
     get("/extern/:image_id") {
       val externalId = params("image_id")
-      val language = paramOrNone("language")
+      val language   = paramOrNone("language")
       imageRepository.withExternalId(externalId) match {
         case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
         case None        => NotFound(Error(Error.NOT_FOUND, s"Image with external id $externalId not found"))
@@ -93,7 +93,7 @@ trait InternController {
 
     get("/domain_image_from_url/") {
       val urlQueryParam = "url"
-      val url = paramOrNone(urlQueryParam)
+      val url           = paramOrNone(urlQueryParam)
       url match {
         case Some(p) =>
           readService.getDomainImageMetaFromUrl(p) match {
@@ -106,7 +106,7 @@ trait InternController {
     }
 
     get("/dump/image/") {
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       readService.getMetaImageDomainDump(pageNo, pageSize)
     }

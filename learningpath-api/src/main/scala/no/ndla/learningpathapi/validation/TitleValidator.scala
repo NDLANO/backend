@@ -32,8 +32,8 @@ trait TitleValidator {
     private def validate(title: Title, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       noHtmlTextValidator.validate("title.title", title.title).toList :::
         languageValidator
-        .validate("title.language", title.language, allowUnknownLanguage)
-        .toList
+          .validate("title.language", title.language, allowUnknownLanguage)
+          .toList
     }
   }
 }

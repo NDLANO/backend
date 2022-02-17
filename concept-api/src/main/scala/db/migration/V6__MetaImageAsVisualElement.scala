@@ -28,13 +28,13 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
   }
 
   def migratePublishedConcepts()(implicit session: DBSession): Unit = {
-    val count = countAllPublishedConcepts.get
+    val count        = countAllPublishedConcepts.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allPublishedConcepts(offset * 1000).map {
-        case (id, document) => updatePublishedConcept(convertToNewConcept(document), id)
+      allPublishedConcepts(offset * 1000).map { case (id, document) =>
+        updatePublishedConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -42,13 +42,13 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
   }
 
   def migrateConcepts()(implicit session: DBSession): Unit = {
-    val count = countAllConcepts.get
+    val count        = countAllConcepts.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allConcepts(offset * 1000).map {
-        case (id, document) => updateConcept(convertToNewConcept(document), id)
+      allConcepts(offset * 1000).map { case (id, document) =>
+        updateConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -116,14 +116,14 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
   }
 
   def convertToNewConcept(document: String): String = {
-    val concept = parse(document)
-    val metaImages = (concept \ "metaImage").extract[Seq[OldMetaImage]]
+    val concept        = parse(document)
+    val metaImages     = (concept \ "metaImage").extract[Seq[OldMetaImage]]
     val visualElements = (concept \ "visualElement").extract[Seq[NewVisualElement]]
 
     val convertedVisualElements = metaImages.map(convertMetaImageToVisualElement)
 
     val newVisualElements = mergeFields(convertedVisualElements, visualElements)
-    val newConcept = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
+    val newConcept        = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
 
     compact(render(newConcept))
   }

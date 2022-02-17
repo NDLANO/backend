@@ -45,7 +45,7 @@ abstract class IntegrationSuite(
   })
 
   val postgresContainer: Try[PostgreSQLContainer[Nothing]] = if (EnablePostgresContainer) {
-    val username = "postgres"
+    val username         = "postgres"
     val password: String = "hemmelig"
     val resource: String = "postgres"
 
@@ -64,11 +64,13 @@ abstract class IntegrationSuite(
       dataSourceConfig.setUsername(pgc.getUsername)
       dataSourceConfig.setPassword(pgc.getPassword)
       dataSourceConfig.setJdbcUrl(
-        s"jdbc:postgresql://${pgc.getContainerIpAddress}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}")
+        s"jdbc:postgresql://${pgc.getContainerIpAddress}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}"
+      )
       dataSourceConfig.setSchema(schemaName)
       dataSourceConfig.setMaximumPoolSize(10)
       new HikariDataSource(dataSourceConfig)
-  })
+    }
+  )
 
   private var previousDatabaseEnv = Map.empty[String, String]
 
@@ -87,9 +89,9 @@ abstract class IntegrationSuite(
         PropertyKeys.MetaUserNameKey -> container.getUsername,
         PropertyKeys.MetaPasswordKey -> container.getPassword,
         PropertyKeys.MetaResourceKey -> container.getDatabaseName,
-        PropertyKeys.MetaServerKey -> container.getContainerIpAddress,
-        PropertyKeys.MetaPortKey -> container.getMappedPort(5432).toString,
-        PropertyKeys.MetaSchemaKey -> schemaName
+        PropertyKeys.MetaServerKey   -> container.getContainerIpAddress,
+        PropertyKeys.MetaPortKey     -> container.getMappedPort(5432).toString,
+        PropertyKeys.MetaSchemaKey   -> schemaName
       )
     })
   }

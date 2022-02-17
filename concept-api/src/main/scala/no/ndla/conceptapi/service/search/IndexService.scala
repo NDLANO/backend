@@ -46,9 +46,9 @@ trait IndexService {
 
     def indexDocument(imported: D): Try[D] = {
       for {
-        _ <- createIndexIfNotExists()
+        _       <- createIndexIfNotExists()
         request <- createIndexRequest(imported, searchIndex)
-        _ <- e4sClient.execute(request)
+        _       <- e4sClient.execute(request)
       } yield imported
     }
 
@@ -57,9 +57,9 @@ trait IndexService {
         val start = System.currentTimeMillis()
         createIndexWithGeneratedName.flatMap(indexName => {
           val operations = for {
-            numIndexed <- sendToElastic(indexName)
+            numIndexed  <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
-            _ <- updateAliasTarget(aliasTarget, indexName)
+            _           <- updateAliasTarget(aliasTarget, indexName)
           } yield numIndexed
 
           operations match {
@@ -76,10 +76,9 @@ trait IndexService {
     def sendToElastic(indexName: String): Try[Int] = {
       getRanges
         .flatMap(ranges => {
-          ranges.traverse {
-            case (start, end) =>
-              val toIndex = repository.documentsWithIdBetween(start, end)
-              indexDocuments(toIndex, indexName)
+          ranges.traverse { case (start, end) =>
+            val toIndex = repository.documentsWithIdBetween(start, end)
+            indexDocuments(toIndex, indexName)
           }
         })
         .map(_.sum)
@@ -100,9 +99,9 @@ trait IndexService {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val req = contents.map(content => createIndexRequest(content, indexName))
-        val indexRequests = req.collect { case Success(indexRequest) => indexRequest }
-        val failedToCreateRequests = req.collect { case Failure(ex)  => Failure(ex) }
+        val req                    = contents.map(content => createIndexRequest(content, indexName))
+        val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
+        val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
         if (indexRequests.nonEmpty) {
           val response = e4sClient.execute {
@@ -140,10 +139,12 @@ trait IndexService {
 
     /** Returns Sequence of FieldDefinitions for a given field.
       *
-      * @param fieldName Name of field in mapping.
-      * @param keepRaw   Whether to add a keywordField named raw.
-      *                  Usually used for sorting, aggregations or scripts.
-      * @return Sequence of FieldDefinitions for a field.
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of FieldDefinitions for a field.
       */
     protected def generateLanguageSupportedFieldList(
         fieldName: String,
@@ -151,46 +152,47 @@ trait IndexService {
     ): Seq[ElasticField] = {
       keepRaw match {
         case true =>
-          languageAnalyzers.map(
-            langAnalyzer =>
-              textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-                .fielddata(false)
-                .analyzer(langAnalyzer.analyzer)
-                .fields(keywordField("raw"), keywordField("lower").normalizer("lower")))
+          languageAnalyzers.map(langAnalyzer =>
+            textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
+              .fielddata(false)
+              .analyzer(langAnalyzer.analyzer)
+              .fields(keywordField("raw"), keywordField("lower").normalizer("lower"))
+          )
         case false =>
-          languageAnalyzers.map(
-            langAnalyzer =>
-              textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-                .fielddata(false)
-                .analyzer(langAnalyzer.analyzer))
+          languageAnalyzers.map(langAnalyzer =>
+            textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
+              .fielddata(false)
+              .analyzer(langAnalyzer.analyzer)
+          )
       }
     }
 
-    /**
-      * Returns Sequence of DynamicTemplateRequest for a given field.
+    /** Returns Sequence of DynamicTemplateRequest for a given field.
       *
-      * @param fieldName Name of field in mapping.
-      * @param keepRaw   Whether to add a keywordField named raw.
-      *                  Usually used for sorting, aggregations or scripts.
-      * @return Sequence of DynamicTemplateRequest for a field.
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of DynamicTemplateRequest for a field.
       */
-    protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
-                                                            keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
+    protected def generateLanguageSupportedDynamicTemplates(
+        fieldName: String,
+        keepRaw: Boolean = false
+    ): Seq[DynamicTemplateRequest] = {
       val fields = new ListBuffer[ElasticField]()
       if (keepRaw) {
         fields += keywordField("raw") += keywordField("lower").normalizer("lower")
       }
-      val languageTemplates = languageAnalyzers.map(
-        languageAnalyzer => {
-          val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-          DynamicTemplateRequest(
-            name = name,
-            mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields.toList),
-            matchMappingType = Some("string"),
-            pathMatch = Some(name)
-          )
-        }
-      )
+      val languageTemplates = languageAnalyzers.map(languageAnalyzer => {
+        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
+        DynamicTemplateRequest(
+          name = name,
+          mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields.toList),
+          matchMappingType = Some("string"),
+          pathMatch = Some(name)
+        )
+      })
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
         mapping = textField(fieldName).analyzer("standard").fields(fields.toList),

@@ -29,7 +29,7 @@ trait TaxonomyApiClient {
 
   class TaxonomyApiClient extends LazyLogging {
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-    private val TaxonomyApiEndpoint = s"$ApiGatewayUrl/taxonomy/v1"
+    private val TaxonomyApiEndpoint           = s"$ApiGatewayUrl/taxonomy/v1"
 
     def getAllResources: Try[List[Resource]] =
       get[List[Resource]](s"$TaxonomyApiEndpoint/resources/").map(_.distinct)
@@ -63,7 +63,7 @@ trait TaxonomyApiClient {
     /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
     private def getTaxonomyBundleUncached: Try[TaxonomyBundle] = {
       logger.info("Fetching taxonomy in bulk...")
-      val startFetch = System.currentTimeMillis()
+      val startFetch                            = System.currentTimeMillis()
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(12))
 
       val requestInfo = RequestInfo()
@@ -71,23 +71,23 @@ trait TaxonomyApiClient {
       /** Calls function in separate thread and converts Try to Future */
       def tryToFuture[T](x: () => Try[T]) = Future { requestInfo.setRequestInfo(); x() }.flatMap(Future.fromTry)
 
-      val relevances = tryToFuture(() => getAllRelevances)
+      val relevances                      = tryToFuture(() => getAllRelevances)
       val resourceResourceTypeConnections = tryToFuture(() => getAllResourceResourceTypeConnections)
-      val resourceTypes = tryToFuture(() => getAllResourceTypes)
-      val resources = tryToFuture(() => getAllResources)
-      val subjectTopicConnections = tryToFuture(() => getAllSubjectTopicConnections)
-      val subjects = tryToFuture(() => getAllSubjects)
-      val topicResourceConnections = tryToFuture(() => getAllTopicResourceConnections)
-      val topicSubtopicConnections = tryToFuture(() => getAllTopicSubtopicConnections)
-      val topics = tryToFuture(() => getAllTopics)
+      val resourceTypes                   = tryToFuture(() => getAllResourceTypes)
+      val resources                       = tryToFuture(() => getAllResources)
+      val subjectTopicConnections         = tryToFuture(() => getAllSubjectTopicConnections)
+      val subjects                        = tryToFuture(() => getAllSubjects)
+      val topicResourceConnections        = tryToFuture(() => getAllTopicResourceConnections)
+      val topicSubtopicConnections        = tryToFuture(() => getAllTopicSubtopicConnections)
+      val topics                          = tryToFuture(() => getAllTopics)
 
       val x = for {
-        f2 <- relevances
-        f4 <- resourceResourceTypeConnections
-        f5 <- resourceTypes
-        f6 <- resources
-        f7 <- subjectTopicConnections
-        f8 <- subjects
+        f2  <- relevances
+        f4  <- resourceResourceTypeConnections
+        f5  <- resourceTypes
+        f6  <- resources
+        f7  <- subjectTopicConnections
+        f8  <- subjects
         f10 <- topicResourceConnections
         f11 <- topicSubtopicConnections
         f13 <- topics

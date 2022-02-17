@@ -16,9 +16,9 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V4__DateFormatUpdated extends BaseJavaMigration with LazyLogging {
-  //There was a bug in the dateformat of V3__AddUpdatedColoums had days as DD and the 'Z' got stored as +0000 not as 'Z'.
+  // There was a bug in the dateformat of V3__AddUpdatedColoums had days as DD and the 'Z' got stored as +0000 not as 'Z'.
   implicit val formats = org.json4s.DefaultFormats
-  val timeService = new TimeService2()
+  val timeService      = new TimeService2()
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)

@@ -34,20 +34,22 @@ trait WriteService {
 
   class WriteService {
 
-    def insertListingImportedConcepts(conceptsWithListingId: Seq[(domain.Concept, Long)],
-                                      forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
-      conceptsWithListingId.map {
-        case (concept, listingId) =>
-          val existing = draftConceptRepository.withListingId(listingId).nonEmpty
-          if (existing && !forceUpdate) {
-            logger.warn(
-              s"Concept with listing_id of $listingId already exists, and forceUpdate was not 'true', skipping...")
-            Failure(ConceptExistsAlreadyException(s"the concept already exists with listing_id of $listingId."))
-          } else if (existing && forceUpdate) {
-            draftConceptRepository.updateWithListingId(concept, listingId)
-          } else {
-            Success(draftConceptRepository.insertwithListingId(concept, listingId))
-          }
+    def insertListingImportedConcepts(
+        conceptsWithListingId: Seq[(domain.Concept, Long)],
+        forceUpdate: Boolean
+    ): Seq[Try[domain.Concept]] = {
+      conceptsWithListingId.map { case (concept, listingId) =>
+        val existing = draftConceptRepository.withListingId(listingId).nonEmpty
+        if (existing && !forceUpdate) {
+          logger.warn(
+            s"Concept with listing_id of $listingId already exists, and forceUpdate was not 'true', skipping..."
+          )
+          Failure(ConceptExistsAlreadyException(s"the concept already exists with listing_id of $listingId."))
+        } else if (existing && forceUpdate) {
+          draftConceptRepository.updateWithListingId(concept, listingId)
+        } else {
+          Success(draftConceptRepository.insertwithListingId(concept, listingId))
+        }
       }
     }
 
@@ -74,11 +76,11 @@ trait WriteService {
 
     def newConcept(newConcept: api.NewConcept, userInfo: UserInfo): Try[api.Concept] = {
       for {
-        concept <- converterService.toDomainConcept(newConcept, userInfo)
-        _ <- contentValidator.validateConcept(concept)
+        concept          <- converterService.toDomainConcept(newConcept, userInfo)
+        _                <- contentValidator.validateConcept(concept)
         persistedConcept <- Try(draftConceptRepository.insert(concept))
-        _ <- draftConceptIndexService.indexDocument(persistedConcept)
-        apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
+        _                <- draftConceptIndexService.indexDocument(persistedConcept)
+        apiC             <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
       } yield apiC
     }
 
@@ -90,7 +92,7 @@ trait WriteService {
             revision = None,
             created = new Date(0),
             updated = new Date(0)
-        )
+          )
       withComparableValues(existing) != withComparableValues(changed)
     }
 
@@ -103,9 +105,9 @@ trait WriteService {
       if (!shouldUpdateStatus(existing, changed) && updateStatus.isEmpty) {
         Success(changed)
       } else {
-        val oldStatus = existing.status.current
+        val oldStatus             = existing.status.current
         val newStatusIfNotDefined = if (oldStatus == PUBLISHED) DRAFT else oldStatus
-        val newStatus = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
+        val newStatus             = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
 
         converterService
           .updateStatus(newStatus, changed, user)
@@ -118,9 +120,9 @@ trait WriteService {
 
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
-        _ <- contentValidator.validateConcept(toUpdate)
+        _             <- contentValidator.validateConcept(toUpdate)
         domainConcept <- draftConceptRepository.update(toUpdate)
-        _ <- draftConceptIndexService.indexDocument(domainConcept)
+        _             <- draftConceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
     }
 
@@ -131,14 +133,14 @@ trait WriteService {
 
           for {
             withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
-            updated <- updateConcept(withStatus)
-            converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+            updated    <- updateConcept(withStatus)
+            converted  <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept, userInfo)
           for {
-            updated <- updateConcept(concept)
+            updated   <- updateConcept(concept)
             converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
           } yield converted
         case None =>
@@ -152,23 +154,23 @@ trait WriteService {
           existingConcept.title.size match {
             case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
             case _ =>
-              val title = existingConcept.title.filter(_.language != language)
-              val content = existingConcept.content.filter(_.language != language)
-              val tags = existingConcept.tags.filter(_.language != language)
-              val metaImage = existingConcept.metaImage.filter(_.language != language)
+              val title         = existingConcept.title.filter(_.language != language)
+              val content       = existingConcept.content.filter(_.language != language)
+              val tags          = existingConcept.tags.filter(_.language != language)
+              val metaImage     = existingConcept.metaImage.filter(_.language != language)
               val visualElement = existingConcept.visualElement.filter(_.language != language)
               val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
                 tags = tags,
                 metaImage = metaImage,
-                visualElement = visualElement,
+                visualElement = visualElement
               )
 
               for {
                 withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
-                updated <- updateConcept(withStatus)
-                converted <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
+                updated    <- updateConcept(withStatus)
+                converted  <- converterService.toApiConcept(updated, Language.AllLanguages, fallback = false)
               } yield converted
           }
         case None => Failure(NotFoundException("Concept does not exist"))
@@ -187,9 +189,9 @@ trait WriteService {
               .unsafeRunSync()
               .toTry
             convertedConcept <- convertedConceptT
-            updatedConcept <- updateConcept(convertedConcept)
-            _ <- draftConceptIndexService.indexDocument(updatedConcept)
-            apiConcept <- converterService.toApiConcept(updatedConcept, Language.AllLanguages, fallback = true)
+            updatedConcept   <- updateConcept(convertedConcept)
+            _                <- draftConceptIndexService.indexDocument(updatedConcept)
+            apiConcept       <- converterService.toApiConcept(updatedConcept, Language.AllLanguages, fallback = true)
           } yield apiConcept
       }
     }
@@ -197,7 +199,7 @@ trait WriteService {
     def publishConcept(concept: domain.Concept): Try[domain.Concept] = {
       for {
         inserted <- publishedConceptRepository.insertOrUpdate(concept)
-        indexed <- publishedConceptIndexService.indexDocument(inserted)
+        indexed  <- publishedConceptIndexService.indexDocument(inserted)
       } yield indexed
     }
 

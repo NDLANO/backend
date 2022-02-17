@@ -50,21 +50,21 @@ class V8__UpdateLicenses extends BaseJavaMigration {
 
   def updateLicense(license: String): String = {
     val mapping = Map(
-      "by" -> "CC-BY-4.0",
-      "by-sa" -> "CC-BY-SA-4.0",
-      "by-nc" -> "CC-BY-NC-4.0",
-      "by-nd" -> "CC-BY-ND-4.0",
-      "by-nc-sa" -> "CC-BY-NC-SA-4.0",
-      "by-nc-nd" -> "CC-BY-NC-ND-4.0",
-      "by-3.0" -> "CC-BY-4.0",
-      "by-sa-3.0" -> "CC-BY-SA-4.0",
-      "by-nc-3.0" -> "CC-BY-NC-4.0",
-      "by-nd-3.0" -> "CC-BY-ND-4.0",
+      "by"           -> "CC-BY-4.0",
+      "by-sa"        -> "CC-BY-SA-4.0",
+      "by-nc"        -> "CC-BY-NC-4.0",
+      "by-nd"        -> "CC-BY-ND-4.0",
+      "by-nc-sa"     -> "CC-BY-NC-SA-4.0",
+      "by-nc-nd"     -> "CC-BY-NC-ND-4.0",
+      "by-3.0"       -> "CC-BY-4.0",
+      "by-sa-3.0"    -> "CC-BY-SA-4.0",
+      "by-nc-3.0"    -> "CC-BY-NC-4.0",
+      "by-nd-3.0"    -> "CC-BY-ND-4.0",
       "by-nc-sa-3.0" -> "CC-BY-NC-SA-4.0",
       "by-nc-nd-3.0" -> "CC-BY-NC-ND-4.0",
-      "cc0" -> "CC0-1.0",
-      "pd" -> "PD",
-      "copyrighted" -> "COPYRIGHTED"
+      "cc0"          -> "CC0-1.0",
+      "pd"           -> "PD",
+      "copyrighted"  -> "COPYRIGHTED"
     )
 
     mapping.getOrElse(license, license)

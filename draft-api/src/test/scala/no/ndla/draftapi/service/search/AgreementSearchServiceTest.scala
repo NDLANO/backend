@@ -32,35 +32,41 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   override val agreementIndexService: AgreementIndexService = new AgreementIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(Some("by-nc-sa"),
-                         Some("Gotham City"),
-                         List(Author("Forfatter", "DC Comics")),
-                         List(),
-                         List(),
-                         None,
-                         None,
-                         None)
+  val byNcSa = Copyright(
+    Some("by-nc-sa"),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val publicDomain = Copyright(Some("publicdomain"),
-                               Some("Metropolis"),
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               List(),
-                               List(),
-                               None,
-                               None,
-                               None)
+  val publicDomain = Copyright(
+    Some("publicdomain"),
+    Some("Metropolis"),
+    List(Author("Forfatter", "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val copyrighted = Copyright(Some("copyrighted"),
-                              Some("New York"),
-                              List(Author("Forfatter", "Clark Kent")),
-                              List(),
-                              List(),
-                              None,
-                              None,
-                              None)
+  val copyrighted = Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val today: DateTime = DateTime.now()
 
@@ -80,9 +86,11 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   val agreement2: Agreement =
     sampleAgreement.copy(id = Some(3), title = "Ugler er slemme", content = "Ugler er de slemmeste dyrene")
 
-  val agreement3: Agreement = sampleAgreement.copy(id = Some(4),
-                                                   title = "Tyven stjeler penger",
-                                                   content = "Det er ikke hemmelig at tyven er den som stjeler penger")
+  val agreement3: Agreement = sampleAgreement.copy(
+    id = Some(4),
+    title = "Tyven stjeler penger",
+    content = "Det er ikke hemmelig at tyven er den som stjeler penger"
+  )
 
   val agreement4: Agreement =
     sampleAgreement.copy(id = Some(5), title = "Vi får låne bildene", content = "Vi får låne bildene av kjeltringene")
@@ -93,9 +101,11 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   val agreement6: Agreement =
     sampleAgreement.copy(id = Some(7), title = "Du er en tyv", content = "Det er du som er tyven")
 
-  val agreement7: Agreement = sampleAgreement.copy(id = Some(8),
-                                                   title = "Lurerier er ikke bra",
-                                                   content = "Lurerier er bare lov dersom du er en tyv")
+  val agreement7: Agreement = sampleAgreement.copy(
+    id = Some(8),
+    title = "Lurerier er ikke bra",
+    content = "Lurerier er bare lov dersom du er en tyv"
+  )
 
   val agreement8: Agreement =
     sampleAgreement.copy(id = Some(9), title = "Hvorfor er aper så slemme", content = "Har du blitt helt ape")
@@ -130,23 +140,26 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     agreementSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
+    val page            = 123
     val expectedStartAt = (page - 1) * DefaultPageSize
     agreementSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That all returns all documents ordered by id ascending") {
     val Success(results) = agreementSearchService.matchingQuery(agreementSearchSettings.copy(sort = Sort.ByIdAsc))
-    val hits = results.results
+    val hits             = results.results
     results.totalCount should be(10)
     hits.head.id should be(2)
     hits(1).id should be(3)
@@ -162,7 +175,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   test("That all returns all documents ordered by id descending") {
     val Success(results) = agreementSearchService.matchingQuery(agreementSearchSettings.copy(sort = Sort.ByIdDesc))
-    val hits = results.results
+    val hits             = results.results
     results.totalCount should be(10)
     hits.head.id should be(11)
     hits.last.id should be(2)
@@ -170,7 +183,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   test("That all returns all documents ordered by title ascending") {
     val Success(results) = agreementSearchService.matchingQuery(agreementSearchSettings.copy(sort = Sort.ByTitleAsc))
-    val hits = results.results
+    val hits             = results.results
     results.totalCount should be(10)
     hits.head.id should be(2)
     hits(1).id should be(10)
@@ -185,7 +198,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   test("That all returns all documents ordered by title descending") {
     val Success(results) = agreementSearchService.matchingQuery(agreementSearchSettings.copy(sort = Sort.ByTitleDesc))
-    val hits = results.results
+    val hits             = results.results
     results.totalCount should be(10)
     hits.head.id should be(11)
     hits(1).id should be(5)
@@ -225,7 +238,8 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
         query = Some("Du"),
         withIdIn = List(10),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(10)
@@ -236,7 +250,8 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
       agreementSearchSettings.copy(
         query = Some("Ugler"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -247,13 +262,14 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
       agreementSearchSettings.copy(
         query = Some("supermann"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     results.totalCount should be(0)
   }
 
   test("Searching with logical AND only returns results with all terms") {
     val Success(search1) = agreementSearchService.matchingQuery(agreementSearchSettings.copy(query = Some("aper + du")))
-    val hits1 = search1.results
+    val hits1            = search1.results
     hits1.map(_.id) should equal(Seq(2, 7, 8, 9, 10))
 
     val Success(search2) =
@@ -275,13 +291,14 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   test("search in content should be ranked lower than title") {
     val Success(search) =
       agreementSearchService.matchingQuery(
-        agreementSearchSettings.copy(query = Some("lov"), sort = Sort.ByRelevanceDesc))
+        agreementSearchSettings.copy(query = Some("lov"), sort = Sort.ByRelevanceDesc)
+      )
     val hits = search.results
     hits.map(_.id) should equal(Seq(2, 8))
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
@@ -303,7 +320,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.model.api
 
 object ImportStatus extends Enumeration {
-  val OK = Value("OK")
+  val OK    = Value("OK")
   val ERROR = Value("ERROR")
 }
 case class ImportReport(nid: String, status: ImportStatus.Value, messages: Seq[String], id: Option[Long])

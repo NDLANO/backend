@@ -16,8 +16,8 @@ import scalikejdbc.{DB, DBSession, _}
 
 class R__RemoveStatusPublishedArticles extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + Json4s.serializer(
-    ArticleType)
+  implicit val formats =
+    org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + Json4s.serializer(ArticleType)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
 
@@ -31,9 +31,9 @@ class R__RemoveStatusPublishedArticles extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map(updateArticle)
       numPagesLeft -= 1

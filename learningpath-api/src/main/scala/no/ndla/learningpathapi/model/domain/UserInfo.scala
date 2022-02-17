@@ -12,12 +12,12 @@ import no.ndla.network.AuthUser
 import scala.util.{Failure, Success}
 
 case class UserInfo(userId: String, roles: Set[LearningPathRole.Value]) {
-  def isAdmin: Boolean = roles.contains(LearningPathRole.ADMIN)
-  def isPublisher: Boolean = roles.contains(LearningPathRole.PUBLISH)
-  def isWriter: Boolean = roles.contains(LearningPathRole.WRITE)
+  def isAdmin: Boolean                        = roles.contains(LearningPathRole.ADMIN)
+  def isPublisher: Boolean                    = roles.contains(LearningPathRole.PUBLISH)
+  def isWriter: Boolean                       = roles.contains(LearningPathRole.WRITE)
   def canWriteDuringWriteRestriction: Boolean = isAdmin || isPublisher || isWriter
-  def canPublish: Boolean = isAdmin || isPublisher
-  def isNdla: Boolean = roles.nonEmpty
+  def canPublish: Boolean                     = isAdmin || isPublisher
+  def isNdla: Boolean                         = roles.nonEmpty
 }
 
 object UserInfo extends LazyLogging {
@@ -30,7 +30,7 @@ object UserInfo extends LazyLogging {
     )
   }
 
-  def getUser = AuthUser.get.map(UserInfo.apply)
+  def getUser                   = AuthUser.get.map(UserInfo.apply)
   def getUserOrPublic: UserInfo = getUser.getOrElse(PublicReadUser)
 
   def get: Option[UserInfo] = AuthUser.get.orElse(AuthUser.getClientId).map(UserInfo.apply)
@@ -41,7 +41,7 @@ object UserInfo extends LazyLogging {
       case None =>
         this.get match {
           case Some(user) if user.isAdmin => Success(user)
-          case _                          => Failure(AccessDeniedException("You do not have access to the requested resource."))
+          case _ => Failure(AccessDeniedException("You do not have access to the requested resource."))
         }
     }
   }

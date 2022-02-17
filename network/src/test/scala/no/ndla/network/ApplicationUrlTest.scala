@@ -15,10 +15,10 @@ import org.mockito.ArgumentMatchers._
 class ApplicationUrlTest extends UnitSuite {
 
   val httpRequest = mock[HttpServletRequest]
-  val servername = "unittest.testesen.no"
-  val scheme = "testscheme"
-  val port = 666
-  val path = "dette/er/en/test/path"
+  val servername  = "unittest.testesen.no"
+  val scheme      = "testscheme"
+  val port        = 666
+  val path        = "dette/er/en/test/path"
 
   override def beforeEach(): Unit = {
     reset(httpRequest)

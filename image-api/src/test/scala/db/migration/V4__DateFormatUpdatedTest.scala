@@ -25,7 +25,7 @@ class V4__DateFormatUpdatedTest extends UnitSuite {
 
     when(migration.timeService.nowAsString()).thenReturn("2017-05-08T07:57:05Z")
 
-    val image = V4__DBImageMetaInformation(1, before)
+    val image     = V4__DBImageMetaInformation(1, before)
     val converted = migration.fixImageUpdatestring(image)
     converted.document should equal(expectedAfter)
 

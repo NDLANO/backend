@@ -30,7 +30,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     new EnumNameSerializer(ArticleStatus) +
     Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"$Domain/taxonomy/v1"
-  private val taxonomyTimeout = 20 * 1000 // 20 Seconds
+  private val taxonomyTimeout     = 20 * 1000 // 20 Seconds
 
   case class TaxonomyResource(contentUri: Option[String], id: Option[String])
 
@@ -51,14 +51,14 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     db.withinTx { implicit session =>
       migrateArticles
     }
-   */
+     */
   }
 
   def fetchResourceFromTaxonomy(endpoint: String): Seq[(Long, Option[Long])] = {
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
+      response  <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 
@@ -85,7 +85,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     val url = "http://api.topic.ndla.no/rest/v1/keywords/?filter%5Bnode%5D=ndlanode_" + externalId.toString
 
     val keywordsT = for {
-      response <- Try(Http(url).asString)
+      response  <- Try(Http(url).asString)
       extracted <- Try(parse(response.body).extract[Keywords])
     } yield extracted
 
@@ -117,12 +117,13 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
   def migrateArticles(implicit session: DBSession): Unit = {
 
     val topicIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy(
-      "/subjects/urn:subject:15/topics?recursive=true")
+      "/subjects/urn:subject:15/topics?recursive=true"
+    )
     val convertedTopicArticles = topicIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
     for {
       convertedArticle <- convertedTopicArticles
-      article <- convertedArticle
+      article          <- convertedArticle
     } yield updateArticle(article)
 
     val resourceIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy("/subjects/urn:subject:15/resources")
@@ -130,14 +131,14 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
 
     for {
       convertedArticle <- convertedResourceArticles
-      article <- convertedArticle
+      article          <- convertedArticle
     } yield updateArticle(article)
 
   }
 
   def convertArticle(articleId: Long, externalId: Option[Long])(implicit session: DBSession): Option[Article] = {
     val externalTags = externalId.map(fetchArticleTags).getOrElse(Seq())
-    val oldArticle = fetchArticleInfo(articleId)
+    val oldArticle   = fetchArticleInfo(articleId)
     convertArticleLanguage(oldArticle, externalTags)
   }
 
@@ -152,22 +153,24 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
 
   def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[ArticleTag]): Option[Article] = {
     val contentLanguages = oldArticle.map(_.content).getOrElse(Seq()).map(content => content.language)
-    oldArticle.map(
-      article =>
-        article.copy(
-          title = article.title.map(copyArticleTitle),
-          content = article.content.map(copyArticleContent),
-          tags = mergeTags(article.tags, externalTags, contentLanguages),
-          visualElement = article.visualElement.map(copyVisualElement),
-          introduction = article.introduction.map(copyArticleIntroduction),
-          metaDescription = article.metaDescription.map(copyArticleMetaDescription),
-          metaImage = article.metaImage.map(copyArticleMetaImage)
-      ))
+    oldArticle.map(article =>
+      article.copy(
+        title = article.title.map(copyArticleTitle),
+        content = article.content.map(copyArticleContent),
+        tags = mergeTags(article.tags, externalTags, contentLanguages),
+        visualElement = article.visualElement.map(copyVisualElement),
+        introduction = article.introduction.map(copyArticleIntroduction),
+        metaDescription = article.metaDescription.map(copyArticleMetaDescription),
+        metaImage = article.metaImage.map(copyArticleMetaImage)
+      )
+    )
   }
 
-  def mergeTags(oldTags: Seq[ArticleTag],
-                externalTags: Seq[ArticleTag],
-                contentLanguages: Seq[String]): Seq[ArticleTag] = {
+  def mergeTags(
+      oldTags: Seq[ArticleTag],
+      externalTags: Seq[ArticleTag],
+      contentLanguages: Seq[String]
+  ): Seq[ArticleTag] = {
     val combinedSeq = oldTags ++ externalTags
     combinedSeq
       .groupBy(_.language)

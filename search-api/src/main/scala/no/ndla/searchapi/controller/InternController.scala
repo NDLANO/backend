@@ -37,7 +37,7 @@ trait InternController {
 
     private def resolveResultFutures(indexResults: List[Future[(String, Try[ReindexResult])]]): ActionResult = {
 
-      val futureIndexed = Future.sequence(indexResults)
+      val futureIndexed    = Future.sequence(indexResults)
       val completedIndexed = Await.result(futureIndexed, Duration(60, TimeUnit.MINUTES))
 
       completedIndexed.collect { case (name, Failure(ex)) => (name, ex) } match {
@@ -45,9 +45,8 @@ trait InternController {
           val successful = completedIndexed.collect { case (name, Success(r)) => (name, r) }
 
           val indexResults = successful
-            .map({
-              case (name: String, reindexResult: ReindexResult) =>
-                s"${reindexResult.totalIndexed} $name in ${reindexResult.millisUsed} ms"
+            .map({ case (name: String, reindexResult: ReindexResult) =>
+              s"${reindexResult.totalIndexed} $name in ${reindexResult.millisUsed} ms"
             })
             .mkString(", and ")
           val resultString = s"Completed indexing of $indexResults"
@@ -56,10 +55,9 @@ trait InternController {
           Ok(resultString)
         case failures =>
           val failedIndexResults = failures
-            .map({
-              case (name: String, failure: Throwable) =>
-                logger.error(s"Failed to index $name: ${failure.getMessage}.", failure)
-                s"$name: ${failure.getMessage}"
+            .map({ case (name: String, failure: Throwable) =>
+              logger.error(s"Failed to index $name: ${failure.getMessage}.", failure)
+              s"$name: ${failure.getMessage}"
             })
             .mkString(", and ")
 
@@ -68,7 +66,7 @@ trait InternController {
     }
 
     delete("/:type/:id") {
-      val indexType = params("type")
+      val indexType  = params("type")
       val documentId = long("id")
 
       indexType match {
@@ -105,7 +103,8 @@ trait InternController {
           Respond(parseBody[LearningPath](request.body).flatMap(l => learningPathIndexService.indexDocument(l)))
         case _ =>
           BadRequest(
-            s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'")
+            s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+          )
       }
     }
 
@@ -143,7 +142,7 @@ trait InternController {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
-        grepBundle <- grepApiClient.getGrepBundle()
+        grepBundle     <- grepApiClient.getGrepBundle()
       } yield (taxonomyBundle, grepBundle)
 
       val start = System.currentTimeMillis()

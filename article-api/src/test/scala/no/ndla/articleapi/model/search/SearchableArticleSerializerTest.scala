@@ -23,12 +23,15 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     content = SearchableLanguageValues(Vector(LanguageValue("nb", "innhold"), LanguageValue("en", "content"))),
     visualElement =
       SearchableLanguageValues(Vector(LanguageValue("nb", "visueltelement"), LanguageValue("en", "visualelement"))),
-    introduction = SearchableLanguageValues(Vector(LanguageValue("nb", "ingress"), LanguageValue("en", "introduction"))),
+    introduction =
+      SearchableLanguageValues(Vector(LanguageValue("nb", "ingress"), LanguageValue("en", "introduction"))),
     metaDescription = SearchableLanguageValues(
-      Vector(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))),
+      Vector(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))
+    ),
     metaImage = Vector(ArticleMetaImage("nb", "alt", "1")),
     tags = SearchableLanguageList(
-      Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))),
+      Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
+    ),
     lastUpdated = new DateTime(2018, 2, 22, 14, 0, 51, DateTimeZone.UTC).withMillisOfSecond(0),
     license = "by-sa",
     authors = Seq("Jonas Natty"),
@@ -39,7 +42,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {
-    val json = writePretty(searchableArticle1)
+    val json         = writePretty(searchableArticle1)
     val deserialized = read[SearchableArticle](json)
 
     deserialized should be(searchableArticle1)

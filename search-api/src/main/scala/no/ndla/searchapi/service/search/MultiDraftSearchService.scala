@@ -40,7 +40,7 @@ trait MultiDraftSearchService {
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends LazyLogging with SearchService with TaxonomyFiltering {
-    override val searchIndex = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
+    override val searchIndex   = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
     override val indexServices = List(draftIndexService, learningPathIndexService)
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
@@ -55,7 +55,7 @@ trait MultiDraftSearchService {
             settings.language,
             settings.fallback,
             searchDecompounded = settings.searchDecompounded
-        )
+          )
 
         boolQuery().should(
           List(
@@ -86,7 +86,7 @@ trait MultiDraftSearchService {
       })
 
       val boolQueries: List[BoolQuery] = List(contentSearch, noteSearch).flatten
-      val fullQuery = boolQuery().must(boolQueries)
+      val fullQuery                    = boolQuery().must(boolQueries)
 
       executeSearch(settings, fullQuery)
     }
@@ -102,7 +102,8 @@ trait MultiDraftSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(ResultWindowTooLargeException())
       } else {
 
@@ -144,11 +145,12 @@ trait MultiDraftSearchService {
       }
     }
 
-    /**
-      * Returns a list of QueryDefinitions of different search filters depending on settings.
+    /** Returns a list of QueryDefinitions of different search filters depending on settings.
       *
-      * @param settings SearchSettings object.
-      * @return List of QueryDefinitions.
+      * @param settings
+      *   SearchSettings object.
+      * @return
+      *   List of QueryDefinitions.
       */
     private def getSearchFilters(settings: MultiDraftSearchSettings): List[Query] = {
       val languageFilter = settings.language match {
@@ -172,13 +174,13 @@ trait MultiDraftSearchService {
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
       val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
-      val usersFilter = boolUsersFilter(settings.userFilter)
+      val usersFilter  = boolUsersFilter(settings.userFilter)
 
-      val taxonomyContextFilter = contextTypeFilter(settings.learningResourceTypes)
+      val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
-      val taxonomySubjectFilter = subjectFilter(settings.subjects)
-      val taxonomyTopicFilter = topicFilter(settings.topics)
-      val taxonomyRelevanceFilter = relevanceFilter(settings.relevanceIds, settings.subjects)
+      val taxonomySubjectFilter       = subjectFilter(settings.subjects)
+      val taxonomyTopicFilter         = topicFilter(settings.topics)
+      val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
 
       val supportedLanguageFilter =
         if (settings.supportedLanguages.isEmpty) None

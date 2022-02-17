@@ -63,8 +63,9 @@ trait DraftConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
-    def updateWithListingId(concept: Concept, listingId: Long)(
-        implicit session: DBSession = AutoSession): Try[Concept] = {
+    def updateWithListingId(concept: Concept, listingId: Long)(implicit
+        session: DBSession = AutoSession
+    ): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
@@ -204,16 +205,18 @@ trait DraftConceptRepository {
     override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
       conceptsWhere(sqls"co.id between $min and $max")
 
-    private def conceptWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+    private def conceptWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
         .single()
     }
 
-    private def conceptsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+    private def conceptsWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
@@ -236,16 +239,18 @@ trait DraftConceptRepository {
     def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Int = {
       val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
       val sequenceName = SQLSyntax.createUnsafely(
-        s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
+        s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq"
+      )
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
     }
 
-    def getTags(input: String, pageSize: Int, offset: Int, language: String)(
-        implicit session: DBSession = AutoSession): (Seq[String], Int) = {
-      val sanitizedInput = input.replaceAll("%", "")
+    def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
+        session: DBSession = AutoSession
+    ): (Seq[String], Int) = {
+      val sanitizedInput    = input.replaceAll("%", "")
       val sanitizedLanguage = language.replaceAll("%", "")
-      val langOrAll = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
+      val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from

@@ -7,8 +7,10 @@
 
 package no.ndla.searchapi.model.domain
 
-case class SearchParams(language: Option[String],
-                        sort: Sort,
-                        page: Int,
-                        pageSize: Int,
-                        remaindingParams: Map[String, String])
+case class SearchParams(
+    language: Option[String],
+    sort: Sort,
+    page: Int,
+    pageSize: Int,
+    remaindingParams: Map[String, String]
+)

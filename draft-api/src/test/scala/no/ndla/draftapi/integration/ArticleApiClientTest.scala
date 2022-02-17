@@ -21,14 +21,14 @@ import scala.util.Success
 
 class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvironment {
   implicit val formats: Formats = domain.Article.jsonEncoder
-  override val ndlaClient = new NdlaClient
+  override val ndlaClient       = new NdlaClient
 
   // Pact CDC imports
   import com.itv.scalapact.ScalaPactForger._
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
 
-  val idResponse = ContentId(1)
+  val idResponse                = ContentId(1)
   override val converterService = new ConverterService
 
   val testCopyright = domain.Copyright(
@@ -81,12 +81,14 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
         interaction
           .description("Updating an article returns 200")
           .given("articles")
-          .uponReceiving(method = POST,
-                         path = "/intern/article/1",
-                         query = None,
-                         headers = authHeaderMap,
-                         body = write(testArticle),
-                         matchingRules = None)
+          .uponReceiving(
+            method = POST,
+            path = "/intern/article/1",
+            query = None,
+            headers = authHeaderMap,
+            body = write(testArticle),
+            matchingRules = None
+          )
           .willRespondWith(200)
       )
       .runConsumerTest { mockConfig =>
@@ -106,12 +108,14 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
         interaction
           .description("Deleting an article should return 200")
           .given("articles")
-          .uponReceiving(method = DELETE,
-                         path = "/intern/article/1/",
-                         query = None,
-                         headers = authHeaderMap,
-                         body = None,
-                         matchingRules = None)
+          .uponReceiving(
+            method = DELETE,
+            path = "/intern/article/1/",
+            query = None,
+            headers = authHeaderMap,
+            body = None,
+            matchingRules = None
+          )
           .willRespondWith(200, write(contentId))
       )
       .runConsumerTest { mockConfig =>
@@ -129,12 +133,14 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
         interaction
           .description("Unpublishing an article should return 200")
           .given("articles")
-          .uponReceiving(method = POST,
-                         path = "/intern/article/1/unpublish/",
-                         query = None,
-                         headers = authHeaderMap,
-                         body = None,
-                         matchingRules = None)
+          .uponReceiving(
+            method = POST,
+            path = "/intern/article/1/unpublish/",
+            query = None,
+            headers = authHeaderMap,
+            body = None,
+            matchingRules = None
+          )
           .willRespondWith(200, write(ContentId(1)))
       )
       .runConsumerTest { mockConfig =>
@@ -153,18 +159,20 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
         interaction
           .description("Validating article returns 200")
           .given("empty")
-          .uponReceiving(method = POST,
-                         path = "/intern/validate/article",
-                         query = None,
-                         headers = authHeaderMap,
-                         body = write(articleApiArticle),
-                         matchingRules = None)
+          .uponReceiving(
+            method = POST,
+            path = "/intern/validate/article",
+            query = None,
+            headers = authHeaderMap,
+            body = write(articleApiArticle),
+            matchingRules = None
+          )
           .willRespondWith(200, write(articleApiArticle))
       )
       .runConsumerTest { mockConfig =>
         AuthUser.setHeader(s"Bearer $exampleToken")
         val articleApiCient = new ArticleApiClient(mockConfig.baseUrl)
-        val result = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
+        val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
         result.isSuccess should be(true)
       }
   }

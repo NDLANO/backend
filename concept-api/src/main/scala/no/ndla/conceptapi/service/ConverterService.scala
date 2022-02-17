@@ -33,7 +33,8 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
 
     def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
-      val isLanguageNeutral = concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
+      val isLanguageNeutral =
+        concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
       if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
         val title = findByLanguageOrBestEffort(concept.title, language)
           .map(toApiConceptTitle)
@@ -71,8 +72,11 @@ trait ConverterService {
         )
       } else {
         Failure(
-          NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
-                            concept.supportedLanguages.toSeq))
+          NotFoundException(
+            s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
+            concept.supportedLanguages.toSeq
+          )
+        )
       }
     }
 
@@ -119,9 +123,11 @@ trait ConverterService {
       api.ConceptContent(title.content, title.language)
 
     def toApiMetaImage(metaImage: domain.ConceptMetaImage): api.ConceptMetaImage =
-      api.ConceptMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
-                           metaImage.altText,
-                           metaImage.language)
+      api.ConceptMetaImage(
+        s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
+        metaImage.altText,
+        metaImage.language
+      )
 
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
@@ -147,7 +153,8 @@ trait ConverterService {
           status = Status.default,
           visualElement =
             concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq
-        ))
+        )
+      )
     }
 
     private def removeUnknownEmbedTagAttributes(html: String): String = {
@@ -175,9 +182,11 @@ trait ConverterService {
     private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
       if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
 
-    def toDomainConcept(toMergeInto: domain.Concept,
-                        updateConcept: api.UpdatedConcept,
-                        userInfo: UserInfo): domain.Concept = {
+    def toDomainConcept(
+        toMergeInto: domain.Concept,
+        updateConcept: api.UpdatedConcept,
+        userInfo: UserInfo
+    ): domain.Concept = {
       val domainTitle = updateConcept.title
         .map(t => domain.ConceptTitle(t, updateConcept.language))
         .toSeq
@@ -269,21 +278,22 @@ trait ConverterService {
     def toDomainAuthor(author: api.Author): domain.Author =
       domain.Author(author.`type`, author.name)
 
-    def toApiConceptTags(tags: Seq[String],
-                         tagsCount: Int,
-                         pageSize: Int,
-                         offset: Int,
-                         language: String): api.TagsSearchResult = {
+    def toApiConceptTags(
+        tags: Seq[String],
+        tagsCount: Int,
+        pageSize: Int,
+        offset: Int,
+        language: String
+    ): api.TagsSearchResult = {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 
     def stateTransitionsToApi(user: UserInfo): Map[String, Seq[String]] = {
-      StateTransitionRules.StateTransitions.groupBy(_.from).map {
-        case (from, to) =>
-          from.toString -> to
-            .filter(t => user.hasRoles(t.requiredRoles))
-            .map(_.to.toString)
-            .toSeq
+      StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
+        from.toString -> to
+          .filter(t => user.hasRoles(t.requiredRoles))
+          .map(_.to.toString)
+          .toSeq
       }
     }
 
@@ -318,7 +328,7 @@ trait ConverterService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl = Url.parse(externalApiUrls(resourceType))
+          val baseUrl   = Url.parse(externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(

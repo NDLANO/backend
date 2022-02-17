@@ -43,11 +43,12 @@ trait InternController {
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
-    protected val applicationDescription = "API for accessing internal functionality in draft API"
+    protected val applicationDescription                 = "API for accessing internal functionality in draft API"
     protected implicit override val jsonFormats: Formats = jsonEncoder
 
-    def createIndexFuture(indexService: IndexService[_, _])(
-        implicit ec: ExecutionContext): Future[Try[ReindexResult]] = {
+    def createIndexFuture(
+        indexService: IndexService[_, _]
+    )(implicit ec: ExecutionContext): Future[Try[ReindexResult]] = {
 
       val fut = Future { indexService.indexDocuments }
 
@@ -57,7 +58,8 @@ trait InternController {
       fut.onComplete {
         case Success(Success(result)) =>
           logger.info(
-            s"Successfully indexed ${result.totalIndexed} ${indexService.documentType}'s in ${result.millisUsed}ms")
+            s"Successfully indexed ${result.totalIndexed} ${indexService.documentType}'s in ${result.millisUsed}ms"
+          )
         case Failure(ex)          => logEx(ex)
         case Success(Failure(ex)) => logEx(ex)
       }
@@ -68,10 +70,10 @@ trait InternController {
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val indexResults = for {
-        articleIndex <- createIndexFuture(articleIndexService)
+        articleIndex   <- createIndexFuture(articleIndexService)
         agreementIndex <- createIndexFuture(agreementIndexService)
-        tagIndex <- createIndexFuture(tagIndexService)
-        grepIndex <- createIndexFuture(grepCodesIndexService)
+        tagIndex       <- createIndexFuture(tagIndexService)
+        grepIndex      <- createIndexFuture(grepCodesIndexService)
       } yield (articleIndex, agreementIndex, tagIndex, grepIndex)
 
       Await.result(indexResults, Duration.Inf) match {
@@ -103,14 +105,14 @@ trait InternController {
     }
 
     delete("/index") {
-      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+      implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
       val indexes = for {
-        articleIndex <- Future { articleIndexService.findAllIndexes(DraftApiProperties.DraftSearchIndex) }
+        articleIndex   <- Future { articleIndexService.findAllIndexes(DraftApiProperties.DraftSearchIndex) }
         agreementIndex <- Future { agreementIndexService.findAllIndexes(DraftApiProperties.AgreementSearchIndex) }
-        tagIndex <- Future { tagIndexService.findAllIndexes(DraftApiProperties.DraftTagSearchIndex) }
-        grepIndex <- Future { grepCodesIndexService.findAllIndexes(DraftApiProperties.DraftGrepCodesSearchIndex) }
+        tagIndex       <- Future { tagIndexService.findAllIndexes(DraftApiProperties.DraftTagSearchIndex) }
+        grepIndex      <- Future { grepCodesIndexService.findAllIndexes(DraftApiProperties.DraftGrepCodesSearchIndex) }
       } yield (articleIndex, agreementIndex, tagIndex, grepIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
@@ -176,9 +178,9 @@ trait InternController {
     }
 
     get("/articles") {
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
-      val lang = paramOrDefault("language", Language.AllLanguages)
+      val lang     = paramOrDefault("language", Language.AllLanguages)
       val fallback = booleanOrDefault("fallback", default = false)
 
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
@@ -205,7 +207,7 @@ trait InternController {
 
     post("/empty_article/") {
       doOrAccessDenied(user.getUser.canWrite) {
-        val externalId = paramAsListOfString("externalId")
+        val externalId         = paramAsListOfString("externalId")
         val externalSubjectIds = paramAsListOfString("externalSubjectId")
         writeService.newEmptyArticle(externalId, externalSubjectIds) match {
           case Success(id) => ContentId(id)
@@ -216,7 +218,7 @@ trait InternController {
 
     get("/dump/article/?") {
       // Dumps all domain articles
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getArticleDomainDump(pageNo, pageSize)

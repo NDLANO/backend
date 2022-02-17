@@ -21,12 +21,12 @@ import scala.util.{Failure, Success}
 
 class DraftConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger = new ConceptSwagger
-  lazy val controller = new DraftConceptController
+  implicit val swagger                      = new ConceptSwagger
+  lazy val controller                       = new DraftConceptController
   addServlet(controller, "/test")
 
   val conceptId = 1
-  val lang = "nb"
+  val lang      = "nb"
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
@@ -67,9 +67,14 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   test("POST / should return 201 on created") {
     when(
       writeService
-        .newConcept(any[NewConcept], any[UserInfo]))
+        .newConcept(any[NewConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
-    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    post(
+      "/test/",
+      write(TestData.sampleNewConcept),
+      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+    ) {
       status should equal(201)
     }
   }
@@ -78,9 +83,14 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService
-        .newConcept(any[NewConcept], any[UserInfo]))
+        .newConcept(any[NewConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
-    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    post(
+      "/test/",
+      write(TestData.sampleNewConcept),
+      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+    ) {
       status should equal(403)
     }
   }
@@ -88,10 +98,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   test("PATCH / should return 200 on updated") {
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    patch(
+      "/test/1",
+      write(TestData.updatedConcept),
+      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+    ) {
       status should equal(200)
     }
   }
@@ -100,10 +115,15 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    patch(
+      "/test/1",
+      write(TestData.updatedConcept),
+      headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)
+    ) {
       status should equal(403)
     }
   }
@@ -112,13 +132,14 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    val missing = """{"language":"nb"}"""
+    val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
 
-    val nullArtId = """{"language":"nb","metaImage":null}"""
+    val nullArtId    = """{"language":"nb","metaImage":null}"""
     val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
     val existingArtId = """{"language":"nb","metaImage":{"id":"123","alt":"alt123"}}"""
@@ -151,17 +172,19 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   }
 
   test(
-    "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]") {
+    "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]"
+  ) {
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+    )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
-    val missing = """{"language":"nb"}"""
+    val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
 
-    val nullArtId = """{"language":"nb","metaImage":null}"""
+    val nullArtId    = """{"language":"nb","metaImage":null}"""
     val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
     val existingArtId = """{"language":"nb","metaImage": {"id": "1",

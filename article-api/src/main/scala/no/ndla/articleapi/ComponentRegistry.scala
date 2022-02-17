@@ -55,29 +55,29 @@ object ComponentRegistry
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   connectToDatabase()
 
-  lazy val internController = new InternController
+  lazy val internController    = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
-  lazy val resourcesApp = new ResourcesApp
-  lazy val healthController = new HealthController
+  lazy val resourcesApp        = new ResourcesApp
+  lazy val healthController    = new HealthController
 
-  lazy val articleRepository = new ArticleRepository
+  lazy val articleRepository    = new ArticleRepository
   lazy val articleSearchService = new ArticleSearchService
-  lazy val articleIndexService = new ArticleIndexService
+  lazy val articleIndexService  = new ArticleIndexService
 
   lazy val converterService = new ConverterService
   lazy val contentValidator = new ContentValidator()
 
-  lazy val ndlaClient = new NdlaClient
+  lazy val ndlaClient             = new NdlaClient
   lazy val searchConverterService = new SearchConverterService
-  lazy val readService = new ReadService
-  lazy val writeService = new WriteService
+  lazy val readService            = new ReadService
+  lazy val writeService           = new WriteService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
-  lazy val draftApiClient = new DraftApiClient
-  lazy val searchApiClient = new SearchApiClient
-  lazy val feideApiClient = new FeideApiClient
+  lazy val draftApiClient      = new DraftApiClient
+  lazy val searchApiClient     = new SearchApiClient
+  lazy val feideApiClient      = new FeideApiClient
 
-  lazy val clock = new SystemClock
+  lazy val clock    = new SystemClock
   lazy val authRole = new AuthRole
   lazy val authUser = new AuthUser
 }

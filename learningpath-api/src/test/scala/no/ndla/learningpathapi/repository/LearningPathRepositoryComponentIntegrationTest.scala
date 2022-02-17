@@ -44,8 +44,8 @@ class LearningPathRepositoryComponentIntegrationTest
     super.withFixture(test)
   }
 
-  val clinton = Author("author", "Hilla the Hun")
-  val license = "publicdomain"
+  val clinton   = Author("author", "Hilla the Hun")
+  val license   = "publicdomain"
   val copyright = Copyright(license, List(clinton))
 
   val DefaultLearningPath = LearningPath(
@@ -129,10 +129,10 @@ class LearningPathRepositoryComponentIntegrationTest
   }
 
   test("That updating several times is not throwing optimistic locking exception") {
-    val inserted = repository.insert(DefaultLearningPath)
-    val firstUpdate = repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
+    val inserted     = repository.insert(DefaultLearningPath)
+    val firstUpdate  = repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
     val secondUpdate = repository.update(firstUpdate.copy(title = List(Title("Second change", "unknown"))))
-    val thirdUpdate = repository.update(secondUpdate.copy(title = List(Title("Third change", "unknown"))))
+    val thirdUpdate  = repository.update(secondUpdate.copy(title = List(Title("Third change", "unknown"))))
 
     inserted.revision should equal(Some(1))
     firstUpdate.revision should equal(Some(2))
@@ -147,7 +147,8 @@ class LearningPathRepositoryComponentIntegrationTest
     repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
 
     assertResult(
-      s"Conflicting revision is detected for learningPath with id = ${inserted.id} and revision = ${inserted.revision}") {
+      s"Conflicting revision is detected for learningPath with id = ${inserted.id} and revision = ${inserted.revision}"
+    ) {
       intercept[OptimisticLockException] {
         repository.update(inserted.copy(title = List(Title("Second change, but with old revision", "unknown"))))
       }.getMessage
@@ -162,7 +163,8 @@ class LearningPathRepositoryComponentIntegrationTest
     repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
 
     assertResult(
-      s"Conflicting revision is detected for learningStep with id = ${insertedStep.id} and revision = ${insertedStep.revision}") {
+      s"Conflicting revision is detected for learningStep with id = ${insertedStep.id} and revision = ${insertedStep.revision}"
+    ) {
       intercept[OptimisticLockException] {
         repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
       }.getMessage
@@ -179,12 +181,14 @@ class LearningPathRepositoryComponentIntegrationTest
       learningPath1.copy(
         id = None,
         isBasedOn = learningPath1.id
-      ))
+      )
+    )
     val copiedLearningPath2 = repository.insert(
       learningPath1.copy(
         id = None,
         isBasedOn = learningPath1.id
-      ))
+      )
+    )
 
     val learningPaths =
       repository.learningPathsWithIsBasedOn(learningPath1.id.get)
@@ -204,10 +208,15 @@ class LearningPathRepositoryComponentIntegrationTest
 
   test("That allPublishedTags returns only published tags") {
     val publicPath = repository.insert(
-      DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED,
-                               tags = List(LearningPathTags(Seq("aaa"), "nb"),
-                                           LearningPathTags(Seq("bbb"), "nn"),
-                                           LearningPathTags(Seq("ccc"), "en"))))
+      DefaultLearningPath.copy(
+        status = LearningPathStatus.PUBLISHED,
+        tags = List(
+          LearningPathTags(Seq("aaa"), "nb"),
+          LearningPathTags(Seq("bbb"), "nn"),
+          LearningPathTags(Seq("ccc"), "en")
+        )
+      )
+    )
 
     val privatePath = repository.insert(DefaultLearningPath.copy(tags = List(LearningPathTags(Seq("ddd"), "nb"))))
 
@@ -223,11 +232,17 @@ class LearningPathRepositoryComponentIntegrationTest
 
   test("That allPublishedTags removes duplicates") {
     val publicPath1 = repository.insert(
-      DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED,
-                               tags = List(LearningPathTags(Seq("aaa"), "nb"), LearningPathTags(Seq("aaa"), "nn"))))
+      DefaultLearningPath.copy(
+        status = LearningPathStatus.PUBLISHED,
+        tags = List(LearningPathTags(Seq("aaa"), "nb"), LearningPathTags(Seq("aaa"), "nn"))
+      )
+    )
     val publicPath2 = repository.insert(
-      DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED,
-                               tags = List(LearningPathTags(Seq("aaa", "bbb"), "nb"))))
+      DefaultLearningPath.copy(
+        status = LearningPathStatus.PUBLISHED,
+        tags = List(LearningPathTags(Seq("aaa", "bbb"), "nb"))
+      )
+    )
 
     val publicTags = repository.allPublishedTags
     publicTags should contain(LearningPathTags(Seq("aaa", "bbb"), "nb"))
@@ -246,16 +261,22 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright("by",
-                              List(Author("forfatter", "James Bond"),
-                                   Author("forfatter", "Christian Bond"),
-                                   Author("forfatter", "Jens Petrius")))
-      ))
+        copyright = Copyright(
+          "by",
+          List(
+            Author("forfatter", "James Bond"),
+            Author("forfatter", "Christian Bond"),
+            Author("forfatter", "Jens Petrius")
+          )
+        )
+      )
+    )
 
     val privatePath = repository.insert(
       DefaultLearningPath.copy(
         copyright = Copyright("by", List(Author("forfatter", "Test testesen")))
-      ))
+      )
+    )
 
     val publicContributors = repository.allPublishedContributors
     publicContributors should contain(Author("forfatter", "James Bond"))
@@ -271,15 +292,22 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath1 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright("by",
-                              List(Author("forfatter", "James Bond"),
-                                   Author("forfatter", "Christian Bond"),
-                                   Author("forfatter", "Jens Petrius")))
-      ))
+        copyright = Copyright(
+          "by",
+          List(
+            Author("forfatter", "James Bond"),
+            Author("forfatter", "Christian Bond"),
+            Author("forfatter", "Jens Petrius")
+          )
+        )
+      )
+    )
     val publicPath2 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright = Copyright("by", List(Author("forfatter", "James Bond"), Author("forfatter", "Test testesen")))))
+        copyright = Copyright("by", List(Author("forfatter", "James Bond"), Author("forfatter", "Test testesen")))
+      )
+    )
 
     val publicContributors = repository.allPublishedContributors
     publicContributors should contain(Author("forfatter", "James Bond"))
@@ -298,7 +326,8 @@ class LearningPathRepositoryComponentIntegrationTest
     repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
     repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
     repository.insertLearningStep(
-      DefaultLearningStep.copy(learningPathId = learningPath.id, status = StepStatus.DELETED))
+      DefaultLearningStep.copy(learningPathId = learningPath.id, status = StepStatus.DELETED)
+    )
 
     learningPath.id.isDefined should be(true)
     val savedLearningPath = repository.withId(learningPath.id.get)
@@ -370,7 +399,7 @@ class LearningPathRepositoryComponentIntegrationTest
     )
 
     val inserted = repository.insert(path)
-    val fetched = repository.withId(inserted.id.get)
+    val fetched  = repository.withId(inserted.id.get)
 
     inserted should be(fetched.get)
     repository.deletePath(inserted.id.get)

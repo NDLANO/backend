@@ -26,13 +26,13 @@ class V23__RenameCompetences extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertArticleUpdate(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
       offset += 1

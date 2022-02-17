@@ -29,7 +29,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   override val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   val article1 = TestData.sampleDomainArticle.copy(
@@ -79,8 +79,8 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
     articlesToIndex.foreach(a => tagIndexService.indexDocument(a))
 
-    val allTagsToIndex = articlesToIndex.flatMap(_.tags)
-    val groupedByLanguage = allTagsToIndex.groupBy(_.language)
+    val allTagsToIndex         = articlesToIndex.flatMap(_.tags)
+    val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
     val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
 
     blockUntil(() => tagSearchService.countDocuments == tagsDistinctByLanguage.size)
@@ -88,7 +88,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

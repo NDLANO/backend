@@ -32,14 +32,19 @@ trait ValidationService {
           ValidationMessage(
             "file",
             s"The file ${imageFile.name} does not have a known file extension. Must be one of ${ValidFileExtensions
-              .mkString(",")}"))
+                .mkString(",")}"
+          )
+        )
 
       val actualMimeType = imageFile.contentType.getOrElse("")
 
       if (!ValidMimeTypes.contains(actualMimeType))
-        return Some(ValidationMessage(
-          "file",
-          s"The file ${imageFile.name} is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"))
+        return Some(
+          ValidationMessage(
+            "file",
+            s"The file ${imageFile.name} is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
+          )
+        )
 
       None
     }
@@ -49,8 +54,8 @@ trait ValidationService {
     }
 
     def validate(image: ImageMetaInformation, oldImage: Option[ImageMetaInformation]): Try[ImageMetaInformation] = {
-      val oldTitleLanguages = oldImage.map(_.titles.map(_.language)).getOrElse(Seq())
-      val oldTagLanguages = oldImage.map(_.tags.map(_.language)).getOrElse(Seq())
+      val oldTitleLanguages   = oldImage.map(_.titles.map(_.language)).getOrElse(Seq())
+      val oldTagLanguages     = oldImage.map(_.tags.map(_.language)).getOrElse(Seq())
       val oldAltTextLanguages = oldImage.map(_.alttexts.map(_.language)).getOrElse(Seq())
       val oldCaptionLanguages = oldImage.map(_.captions.map(_.language)).getOrElse(Seq())
 
@@ -68,35 +73,46 @@ trait ValidationService {
       Failure(new ValidationException(errors = validationMessages))
     }
 
-    private def validateTitle(fieldPath: String,
-                              title: ImageTitle,
-                              oldLanguages: Seq[String]): Seq[ValidationMessage] = {
+    private def validateTitle(
+        fieldPath: String,
+        title: ImageTitle,
+        oldLanguages: Seq[String]
+    ): Seq[ValidationMessage] = {
       containsNoHtml(fieldPath, title.title).toList ++
         validateLanguage(fieldPath, title.language, oldLanguages)
     }
 
-    private def validateAltText(fieldPath: String,
-                                altText: ImageAltText,
-                                oldLanguages: Seq[String]): Seq[ValidationMessage] = {
+    private def validateAltText(
+        fieldPath: String,
+        altText: ImageAltText,
+        oldLanguages: Seq[String]
+    ): Seq[ValidationMessage] = {
       containsNoHtml(fieldPath, altText.alttext).toList ++
         validateLanguage(fieldPath, altText.language, oldLanguages)
     }
 
-    private def validateCaption(fieldPath: String,
-                                caption: ImageCaption,
-                                oldLanguages: Seq[String]): Seq[ValidationMessage] = {
+    private def validateCaption(
+        fieldPath: String,
+        caption: ImageCaption,
+        oldLanguages: Seq[String]
+    ): Seq[ValidationMessage] = {
       containsNoHtml(fieldPath, caption.caption).toList ++
         validateLanguage(fieldPath, caption.language, oldLanguages)
     }
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-        validateAuthorLicenseCorrelation(Some(copyright.license),
-                                         copyright.rightsholders ++ copyright.creators ++ copyright.processors) ++
+        validateAuthorLicenseCorrelation(
+          Some(copyright.license),
+          copyright.rightsholders ++ copyright.creators ++ copyright.processors
+        ) ++
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ImageApiProperties.creatorTypes)) ++
-        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ImageApiProperties.processorTypes)) ++
+        copyright.processors.flatMap(a =>
+          validateAuthor("copyright.processors", a, ImageApiProperties.processorTypes)
+        ) ++
         copyright.rightsholders.flatMap(a =>
-          validateAuthor("copyright.rightsholders", a, ImageApiProperties.rightsholderTypes)) ++
+          validateAuthor("copyright.rightsholders", a, ImageApiProperties.rightsholderTypes)
+        ) ++
         containsNoHtml("copyright.origin", copyright.origin) ++
         validateAgreement(copyright)
     }
@@ -157,9 +173,11 @@ trait ValidationService {
       }
     }
 
-    private def validateLanguage(fieldPath: String,
-                                 languageCode: String,
-                                 oldLanguages: Seq[String]): Option[ValidationMessage] = {
+    private def validateLanguage(
+        fieldPath: String,
+        languageCode: String,
+        oldLanguages: Seq[String]
+    ): Option[ValidationMessage] = {
 
       if (languageCodeSupported6391(languageCode) || oldLanguages.contains(languageCode)) {
         None

@@ -34,7 +34,8 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       titles =
         audioMeta.titles.map(t => V5_ImageTitle(t.title, Some(Language.languageOrUnknown(t.language).toString()))),
       alttexts = audioMeta.alttexts.map(t =>
-        V5_ImageAltText(t.alttext, Some(Language.languageOrUnknown(t.language).toString()))),
+        V5_ImageAltText(t.alttext, Some(Language.languageOrUnknown(t.language).toString()))
+      ),
       tags = audioMeta.tags.map(t => V5_ImageTag(t.tags, Some(Language.languageOrUnknown(t.language).toString()))),
       captions =
         audioMeta.captions.map(t => V5_ImageCaption(t.caption, Some(Language.languageOrUnknown(t.language).toString())))
@@ -80,14 +81,16 @@ case class V5_Image(fileName: String, size: Long, contentType: String)
 case class V5_Copyright(license: V5_License, origin: String, authors: Seq[V5_Author])
 case class V5_License(license: String, description: String, url: Option[String])
 case class V5_Author(`type`: String, name: String)
-case class V5_ImageMetaInformation(id: Option[Long],
-                                   titles: Seq[V5_ImageTitle],
-                                   alttexts: Seq[V5_ImageAltText],
-                                   imageUrl: String,
-                                   size: Long,
-                                   contentType: String,
-                                   copyright: V5_Copyright,
-                                   tags: Seq[V5_ImageTag],
-                                   captions: Seq[V5_ImageCaption],
-                                   updatedBy: String,
-                                   updated: Date)
+case class V5_ImageMetaInformation(
+    id: Option[Long],
+    titles: Seq[V5_ImageTitle],
+    alttexts: Seq[V5_ImageAltText],
+    imageUrl: String,
+    size: Long,
+    contentType: String,
+    copyright: V5_Copyright,
+    tags: Seq[V5_ImageTag],
+    captions: Seq[V5_ImageCaption],
+    updatedBy: String,
+    updated: Date
+)

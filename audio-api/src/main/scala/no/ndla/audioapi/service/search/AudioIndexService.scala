@@ -30,8 +30,8 @@ trait AudioIndexService {
   val audioIndexService: AudioIndexService
 
   class AudioIndexService extends LazyLogging with IndexService[AudioMetaInformation, SearchableAudioInformation] {
-    override val documentType: String = AudioApiProperties.SearchDocument
-    override val searchIndex: String = AudioApiProperties.SearchIndex
+    override val documentType: String        = AudioApiProperties.SearchDocument
+    override val searchIndex: String         = AudioApiProperties.SearchIndex
     override val repository: AudioRepository = audioRepository
 
     override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
@@ -58,11 +58,13 @@ trait AudioIndexService {
         nestedField("series").fields(seriesIndexService.seriesIndexFields),
         nestedField("podcastMeta").fields(
           keywordField("language"),
-          ObjectField("coverPhoto",
-                      properties = Seq(
-                        keywordField("imageId"),
-                        keywordField("altText")
-                      ))
+          ObjectField(
+            "coverPhoto",
+            properties = Seq(
+              keywordField("imageId"),
+              keywordField("altText")
+            )
+          )
         )
       )
 

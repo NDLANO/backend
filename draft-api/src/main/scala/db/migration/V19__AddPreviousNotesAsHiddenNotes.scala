@@ -31,13 +31,13 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document, article_id) => updateArticle(convertArticleUpdate(article_id, id, document), id)
+      allArticles(offset * 1000).map { case (id, document, article_id) =>
+        updateArticle(convertArticleUpdate(article_id, id, document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -78,14 +78,14 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
   def convertArticleUpdate(articleId: Long, id: Long, document: String)(implicit session: DBSession): String = {
     val oldArticle = parse(document)
 
-    val allVersions = allArticlesWithArticleId(articleId)
+    val allVersions         = allArticlesWithArticleId(articleId)
     val allPreviousVersions = allVersions.filter(_._1 < id)
-    val allPreviousNotes = allPreviousVersions.flatMap(artTup => read[V18__Article](artTup._2).notes)
+    val allPreviousNotes    = allPreviousVersions.flatMap(artTup => read[V18__Article](artTup._2).notes)
 
     Try(oldArticle.extract[V18__Article]) match {
       case Success(art) =>
         val previousNotes = JObject(JField("previousVersionsNotes", Extraction.decompose(allPreviousNotes)))
-        val newArticle = oldArticle.merge(previousNotes)
+        val newArticle    = oldArticle.merge(previousNotes)
         compact(render(newArticle))
       case _ => compact(render(oldArticle))
     }

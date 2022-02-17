@@ -38,8 +38,8 @@ trait DraftController {
   val draftController: DraftController
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + Json4s.serializer(
-      PartialArticleFields)
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats.withLong + Json4s.serializer(PartialArticleFields)
     protected val applicationDescription = "API for accessing draft articles."
 
     // Additional models used in error responses
@@ -47,39 +47,45 @@ trait DraftController {
     registerModel[Error]()
 
     val converterService = new ConverterService
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400      = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403      = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404      = ResponseMessage(404, "Not found", Some("Error"))
+    val response500      = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val query =
       Param[Option[String]]("query", "Return only articles with content matching the specified query.")
     private val optionalArticleId =
       Param[Option[Long]]("articleId", description = "The ID of the article to generate a status state machine for")
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fetched")
-    private val size = Param[Option[Int]]("size", "Limit the number of results to this many elements")
+    private val size      = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val articleTypes = Param[Option[String]](
       "articleTypes",
-      "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
+      "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
+    )
     private val articleIds = Param[Option[String]](
       "ids",
-      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
-    private val filter = Param[Option[String]]("filter", "A filter to include a specific entry")
+      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
+    private val filter    = Param[Option[String]]("filter", "A filter to include a specific entry")
     private val filterNot = Param[Option[String]]("filterNot", "A filter to remove a specific entry")
-    private val statuss = Param[String]("STATUS", "An article status")
+    private val statuss   = Param[String]("STATUS", "An article status")
     private val copiedTitleFlag =
-      Param[Option[String]]("copied-title-postfix",
-                            "Add a string to the title marking this article as a copy, defaults to 'true'.")
+      Param[Option[String]](
+        "copied-title-postfix",
+        "Add a string to the title marking this article as a copy, defaults to 'true'."
+      )
     private val grepCodes = Param[Option[Seq[String]]](
       "grep-codes",
-      "A comma separated list of codes from GREP API the resources should be filtered by.")
+      "A comma separated list of codes from GREP API the resources should be filtered by."
+    )
 
-    /**
-      * Does a scroll with [[ArticleSearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
+      * second parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any = {
       scrollId match {
@@ -106,12 +112,13 @@ trait DraftController {
             asQueryParam(language)
           )
           .responseMessages(response404, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val defaultSize = 20
-        val language = paramOrDefault("language", Language.AllLanguages)
+        val language    = paramOrDefault("language", Language.AllLanguages)
         val size = intOrDefault("size", defaultSize) match {
           case tooSmall if tooSmall < 1 => defaultSize
           case x                        => x
@@ -139,7 +146,8 @@ trait DraftController {
             asQueryParam(language)
           )
           .responseMessages(response403, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -161,17 +169,19 @@ trait DraftController {
       }
     }
 
-    private def search(query: Option[String],
-                       sort: Option[Sort],
-                       language: String,
-                       license: Option[String],
-                       page: Int,
-                       pageSize: Int,
-                       idList: List[Long],
-                       articleTypesFilter: Seq[String],
-                       fallback: Boolean,
-                       grepCodes: Seq[String],
-                       shouldScroll: Boolean) = {
+    private def search(
+        query: Option[String],
+        sort: Option[Sort],
+        language: String,
+        license: Option[String],
+        page: Int,
+        pageSize: Int,
+        idList: List[Long],
+        articleTypesFilter: Seq[String],
+        fallback: Boolean,
+        grepCodes: Seq[String],
+        shouldScroll: Boolean
+    ) = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -224,7 +234,8 @@ trait DraftController {
             asQueryParam(pageNo)
           )
           .responseMessages(response403, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
 
       val userInfo = user.getUser
@@ -263,7 +274,8 @@ trait DraftController {
             asQueryParam(grepCodes)
           )
           .authorizations("oauth2")
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -272,16 +284,16 @@ trait DraftController {
         val scrollId = paramOrNone(this.scrollId.paramName)
 
         scrollSearchOr(scrollId, language) {
-          val query = paramOrNone(this.query.paramName)
-          val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-          val license = paramOrNone(this.license.paramName)
-          val pageSize = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
-          val page = intOrDefault(this.pageNo.paramName, 1)
-          val idList = paramAsListOfLong(this.articleIds.paramName)
+          val query              = paramOrNone(this.query.paramName)
+          val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+          val license            = paramOrNone(this.license.paramName)
+          val pageSize           = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
+          val page               = intOrDefault(this.pageNo.paramName, 1)
+          val idList             = paramAsListOfLong(this.articleIds.paramName)
           val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
-          val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-          val grepCodes = paramAsListOfString(this.grepCodes.paramName)
-          val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+          val fallback           = booleanOrDefault(this.fallback.paramName, default = false)
+          val grepCodes          = paramAsListOfString(this.grepCodes.paramName)
+          val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
           search(
             query,
@@ -313,7 +325,8 @@ trait DraftController {
             asQueryParam(scrollId)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -321,16 +334,16 @@ trait DraftController {
           case Success(searchParams) =>
             val language = searchParams.language.getOrElse(Language.AllLanguages)
             scrollSearchOr(searchParams.scrollId, language) {
-              val query = searchParams.query
-              val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-              val license = searchParams.license
-              val pageSize = searchParams.pageSize.getOrElse(DraftApiProperties.DefaultPageSize)
-              val page = searchParams.page.getOrElse(1)
-              val idList = searchParams.idList
+              val query              = searchParams.query
+              val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
+              val license            = searchParams.license
+              val pageSize           = searchParams.pageSize.getOrElse(DraftApiProperties.DefaultPageSize)
+              val page               = searchParams.page.getOrElse(1)
+              val idList             = searchParams.idList
               val articleTypesFilter = searchParams.articleTypes
-              val fallback = searchParams.fallback.getOrElse(false)
-              val grepCodes = searchParams.grepCodes
-              val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+              val fallback           = searchParams.fallback.getOrElse(false)
+              val grepCodes          = searchParams.grepCodes
+              val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
               search(
                 query,
@@ -364,14 +377,15 @@ trait DraftController {
             asQueryParam(fallback)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
-      val userInfo = user.getUser
+      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      val article = readService.withId(articleId, language, fallback)
+      val article       = readService.withId(articleId, language, fallback)
       val currentOption = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(ArticleStatus.USER_TEST.toString) ||
         currentOption.contains(ArticleStatus.QUALITY_ASSURED_DELAYED.toString) ||
@@ -390,7 +404,8 @@ trait DraftController {
         apiOperation[Article]("getArticleById")
           .summary("Get all saved articles with a specified Id, latest revision first")
           .description(
-            "Retrieves all current and previously published articles with the specified id, latest revision first.")
+            "Retrieves all current and previously published articles with the specified id, latest revision first."
+          )
           .parameters(
             asHeaderParam(correlationId),
             asPathParam(articleId),
@@ -398,12 +413,13 @@ trait DraftController {
             asQueryParam(fallback)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
-      val userInfo = user.getUser
+      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
       doOrAccessDenied(userInfo.canWrite) {
         readService.getArticles(articleId, language, fallback)
@@ -421,7 +437,8 @@ trait DraftController {
             asPathParam(deprecatedNodeId)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -445,10 +462,11 @@ trait DraftController {
             asQueryParam(filterNot)
           )
           .responseMessages(response403, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
       val filterNot = paramOrNone(this.filterNot.paramName)
-      val filter = paramOrNone(this.filter.paramName)
+      val filter    = paramOrNone(this.filter.paramName)
 
       val licenses: Seq[LicenseDefinition] = mapping.License.getLicenses
         .filter {
@@ -474,23 +492,20 @@ trait DraftController {
             bodyParam[NewArticle]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val externalId = paramAsListOfString("externalId")
+        val externalId         = paramAsListOfString("externalId")
         val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(new DateTime(_).toDate)
         val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(new DateTime(_).toDate)
         val externalSubjectids = paramAsListOfString("externalSubjectIds")
-        val importId = paramOrNone("importId")
+        val importId           = paramOrNone("importId")
         extract[NewArticle](request.body).flatMap(
-          writeService.newArticle(_,
-                                  externalId,
-                                  externalSubjectids,
-                                  userInfo,
-                                  oldNdlaCreatedDate,
-                                  oldNdlaUpdatedDate,
-                                  importId)) match {
+          writeService
+            .newArticle(_, externalId, externalSubjectids, userInfo, oldNdlaCreatedDate, oldNdlaUpdatedDate, importId)
+        ) match {
           case Success(article)   => Created(body = article)
           case Failure(exception) => errorHandler(exception)
         }
@@ -509,27 +524,31 @@ trait DraftController {
             bodyParam[UpdatedArticle]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val externalId = paramAsListOfString("externalId")
-        val externalSubjectIds = paramAsListOfString("externalSubjectIds")
-        val oldNdlaCreateddDate = paramOrNone("oldNdlaCreatedDate").map(new DateTime(_).toDate)
-        val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(new DateTime(_).toDate)
-        val importId = paramOrNone("importId")
-        val id = long(this.articleId.paramName)
+        val externalId                         = paramAsListOfString("externalId")
+        val externalSubjectIds                 = paramAsListOfString("externalSubjectIds")
+        val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(new DateTime(_).toDate)
+        val oldNdlaUpdatedDate                 = paramOrNone("oldNdlaUpdatedDate").map(new DateTime(_).toDate)
+        val importId                           = paramOrNone("importId")
+        val id                                 = long(this.articleId.paramName)
         val updateArticle: Try[UpdatedArticle] = extract[UpdatedArticle](request.body)
 
         updateArticle.flatMap(
-          writeService.updateArticle(id,
-                                     _,
-                                     externalId,
-                                     externalSubjectIds,
-                                     userInfo,
-                                     oldNdlaCreateddDate,
-                                     oldNdlaUpdatedDate,
-                                     importId)) match {
+          writeService.updateArticle(
+            id,
+            _,
+            externalId,
+            externalSubjectIds,
+            userInfo,
+            oldNdlaCreateddDate,
+            oldNdlaUpdatedDate,
+            importId
+          )
+        ) match {
           case Success(article)   => Ok(body = article)
           case Failure(exception) => errorHandler(exception)
         }
@@ -547,11 +566,12 @@ trait DraftController {
             asPathParam(statuss)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val id = long(this.articleId.paramName)
+        val id         = long(this.articleId.paramName)
         val isImported = booleanOrDefault("import_publish", default = false)
         domain.ArticleStatus
           .valueOfOrError(params(this.statuss.paramName))
@@ -575,19 +595,22 @@ trait DraftController {
             bodyParam[Option[UpdatedArticle]]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val importValidate = booleanOrDefault("import_validate", default = false)
-        val updateArticle = extract[UpdatedArticle](request.body)
+        val updateArticle  = extract[UpdatedArticle](request.body)
 
         val validationMessage = updateArticle match {
           case Success(art) =>
-            contentValidator.validateArticleApiArticle(long(this.articleId.paramName),
-                                                       art,
-                                                       importValidate,
-                                                       user.getUser)
+            contentValidator.validateArticleApiArticle(
+              long(this.articleId.paramName),
+              art,
+              importValidate,
+              user.getUser
+            )
           case Failure(_) if request.body.isEmpty =>
             contentValidator.validateArticleApiArticle(long(this.articleId.paramName), importValidate)
           case Failure(ex) => Failure(ex)
@@ -612,11 +635,12 @@ trait DraftController {
             asPathParam(pathLanguage)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val id = long(this.articleId.paramName)
+        val id       = long(this.articleId.paramName)
         val language = params(this.language.paramName)
         writeService.deleteLanguage(id, language, userInfo)
       }
@@ -659,12 +683,13 @@ trait DraftController {
             asQueryParam(fallback)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
-      val userInfo = user.getUser
-      val articleId = long(this.articleId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val userInfo           = user.getUser
+      val articleId          = long(this.articleId.paramName)
+      val language           = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback           = booleanOrDefault(this.fallback.paramName, default = false)
       val copiedTitlePostfix = booleanOrDefault(this.copiedTitleFlag.paramName, default = true)
 
       doOrAccessDenied(userInfo.canWrite) {
@@ -692,16 +717,21 @@ trait DraftController {
           .responseMessages(response404, response500)
       )
     ) {
-      val userInfo = user.getUser
+      val userInfo  = user.getUser
       val articleId = long(this.articleId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
       doOrAccessDenied(userInfo.canWrite) {
         extract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
-            writeService.partialPublishAndConvertToApiArticle(articleId, articleFieldsToUpdate, language, fallback) match {
+            writeService.partialPublishAndConvertToApiArticle(
+              articleId,
+              articleFieldsToUpdate,
+              language,
+              fallback
+            ) match {
               case Success(article) => Ok(article)
               case Failure(ex)      => errorHandler(ex)
             }

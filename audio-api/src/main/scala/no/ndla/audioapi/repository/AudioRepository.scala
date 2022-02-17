@@ -45,8 +45,9 @@ trait AudioRepository {
       }
     }
 
-    def insert(audioMetaInformation: AudioMetaInformation)(
-        implicit session: DBSession = AutoSession): AudioMetaInformation = {
+    def insert(
+        audioMetaInformation: AudioMetaInformation
+    )(implicit session: DBSession = AutoSession): AudioMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(audioMetaInformation))
@@ -131,7 +132,8 @@ trait AudioRepository {
           .single() match {
           case Some(minmax) => minmax
           case None         => (0L, 0L)
-        })
+        }
+      )
     }
 
     def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
@@ -143,8 +145,9 @@ trait AudioRepository {
       audioMetaInformationsWhere(sqls"au.id between $min and $max")
     }
 
-    private def audioMetaInformationWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession): Option[AudioMetaInformation] = {
+    private def audioMetaInformationWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession): Option[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       val se = Series.syntax("se")
       sql"""
@@ -159,8 +162,9 @@ trait AudioRepository {
         .single()
     }
 
-    private def audioMetaInformationsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
+    private def audioMetaInformationsWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
       val au = AudioMetaInformation.syntax("au")
       val se = Series.syntax("se")
       Try(
@@ -184,8 +188,9 @@ trait AudioRepository {
         .single()
     }
 
-    def getByPage(pageSize: Int, offset: Int)(
-        implicit session: DBSession = ReadOnlyAutoSession): Seq[AudioMetaInformation] = {
+    def getByPage(pageSize: Int, offset: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Seq[AudioMetaInformation] = {
       val au = AudioMetaInformation.syntax("au")
       sql"""
            select ${au.result.*}

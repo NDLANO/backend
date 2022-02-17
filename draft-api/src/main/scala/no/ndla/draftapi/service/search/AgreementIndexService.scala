@@ -23,9 +23,9 @@ trait AgreementIndexService {
   val agreementIndexService: AgreementIndexService
 
   class AgreementIndexService extends LazyLogging with IndexService[Agreement, SearchableArticle] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = DraftApiProperties.AgreementSearchDocument
-    override val searchIndex: String = DraftApiProperties.AgreementSearchIndex
+    implicit val formats                           = SearchableLanguageFormats.JSonFormats
+    override val documentType: String              = DraftApiProperties.AgreementSearchDocument
+    override val searchIndex: String               = DraftApiProperties.AgreementSearchIndex
     override val repository: Repository[Agreement] = agreementRepository
 
     override def createIndexRequests(domainModel: Agreement, indexName: String): Seq[IndexRequest] = {

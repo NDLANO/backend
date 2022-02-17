@@ -32,33 +32,42 @@ trait ProviderService {
     implicit val formats: DefaultFormats = org.json4s.DefaultFormats
 
     val NdlaFrontendEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(OEmbedProxyProperties.NdlaApprovedUrl),
-                     Some(OEmbedProxyProperties.NdlaFrontendOembedServiceUrl),
-                     None,
-                     None)
+      OEmbedEndpoint(
+        Some(OEmbedProxyProperties.NdlaApprovedUrl),
+        Some(OEmbedProxyProperties.NdlaFrontendOembedServiceUrl),
+        None,
+        None
+      )
 
     val ListingFrontendEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(OEmbedProxyProperties.ListingFrontendApprovedUrls),
-                     Some(OEmbedProxyProperties.ListingFrontendOembedServiceUrl),
-                     None,
-                     None)
+      OEmbedEndpoint(
+        Some(OEmbedProxyProperties.ListingFrontendApprovedUrls),
+        Some(OEmbedProxyProperties.ListingFrontendOembedServiceUrl),
+        None,
+        None
+      )
 
     val NdlaApiProvider: OEmbedProvider =
-      OEmbedProvider("NDLA Api",
-                     OEmbedProxyProperties.NdlaApiOembedProvider,
-                     List(NdlaFrontendEndpoint, ListingFrontendEndpoint))
+      OEmbedProvider(
+        "NDLA Api",
+        OEmbedProxyProperties.NdlaApiOembedProvider,
+        List(NdlaFrontendEndpoint, ListingFrontendEndpoint)
+      )
 
     val YoutubeEndpoint: OEmbedEndpoint = OEmbedEndpoint(
       Some(List("https://*.youtube.com/watch*", "https://*.youtube.com/v/*", "https://youtu.be/*")),
       Some("https://www.youtube.com/oembed"),
       None,
-      None)
+      None
+    )
 
-    val YoutubeProvider: OEmbedProvider = OEmbedProvider("YouTube",
-                                                         "https://www.youtube.com",
-                                                         List(YoutubeEndpoint),
-                                                         handleYoutubeRequestUrl,
-                                                         addYoutubeTimestampIfdefinedInRequest)
+    val YoutubeProvider: OEmbedProvider = OEmbedProvider(
+      "YouTube",
+      "https://www.youtube.com",
+      List(YoutubeEndpoint),
+      handleYoutubeRequestUrl,
+      addYoutubeTimestampIfdefinedInRequest
+    )
 
     val H5PApprovedUrls = List(OEmbedProxyProperties.NdlaH5PApprovedUrl)
 
@@ -102,7 +111,8 @@ trait ProviderService {
 
     def _loadProviders(): List[OEmbedProvider] = {
       NdlaApiProvider :: TedProvider :: H5PProvider :: YoutubeProvider :: IssuuProvider :: loadProvidersFromRequest(
-        Http(OEmbedProxyProperties.JSonProviderUrl))
+        Http(OEmbedProxyProperties.JSonProviderUrl)
+      )
     }
 
     def loadProvidersFromRequest(request: HttpRequest): List[OEmbedProvider] = {

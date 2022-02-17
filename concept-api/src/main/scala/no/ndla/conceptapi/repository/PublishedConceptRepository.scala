@@ -62,7 +62,7 @@ trait PublishedConceptRepository {
       ) match {
         case Success(count) if count > 0 => Success(id)
         case Failure(ex)                 => Failure(ex)
-        case _                           => Failure(NotFoundException("Could not find concept to delete from Published concepts table."))
+        case _ => Failure(NotFoundException("Could not find concept to delete from Published concepts table."))
       }
     }
 
@@ -92,8 +92,9 @@ trait PublishedConceptRepository {
         .list()
     }
 
-    private def conceptWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+    private def conceptWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
@@ -120,8 +121,9 @@ trait PublishedConceptRepository {
       }
     }
 
-    private def conceptsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+    private def conceptsWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))

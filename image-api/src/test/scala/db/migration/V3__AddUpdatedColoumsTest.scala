@@ -25,7 +25,7 @@ class V3__AddUpdatedColoumsTest extends UnitSuite {
 
     when(migration.timeService.nowAsString()).thenReturn("2017-05-124T14:22:55+0200")
 
-    val image = V3__DBImageMetaInformation(1, before)
+    val image     = V3__DBImageMetaInformation(1, before)
     val converted = migration.convertImageUpdate(image)
     converted.document should equal(expectedAfter)
 

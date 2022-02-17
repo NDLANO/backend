@@ -25,12 +25,12 @@ class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer 
   override val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

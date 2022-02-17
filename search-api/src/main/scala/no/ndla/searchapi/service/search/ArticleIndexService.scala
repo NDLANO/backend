@@ -28,15 +28,17 @@ trait ArticleIndexService {
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends LazyLogging with IndexService[Article] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-    override val documentType: String = SearchApiProperties.SearchDocuments(SearchType.Articles)
-    override val searchIndex: String = SearchApiProperties.SearchIndexes(SearchType.Articles)
+    implicit val formats: Formats            = SearchableLanguageFormats.JSonFormatsWithMillis
+    override val documentType: String        = SearchApiProperties.SearchDocuments(SearchType.Articles)
+    override val searchIndex: String         = SearchApiProperties.SearchIndexes(SearchType.Articles)
     override val apiClient: ArticleApiClient = articleApiClient
 
-    override def createIndexRequest(domainModel: Article,
-                                    indexName: String,
-                                    taxonomyBundle: TaxonomyBundle,
-                                    grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
+    override def createIndexRequest(
+        domainModel: Article,
+        indexName: String,
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: Option[GrepBundle]
+    ): Try[IndexRequest] = {
       searchConverterService.asSearchableArticle(domainModel, taxonomyBundle, grepBundle) match {
         case Success(searchableArticle) =>
           val source = Try(write(searchableArticle))
@@ -69,7 +71,7 @@ trait ArticleIndexService {
           keywordField("imageId"),
           keywordField("altText"),
           keywordField("language")
-        ),
+        )
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("metaDescription") ++

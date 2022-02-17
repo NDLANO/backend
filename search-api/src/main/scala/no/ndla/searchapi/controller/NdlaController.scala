@@ -91,8 +91,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case te: TaxonomyException             => InternalServerError(body = Error(Error.TAXONOMY_FAILURE, te.getMessage))
     case ade: AccessDeniedException        => Forbidden(Error(Error.ACCESS_DENIED, ade.getMessage))
     case NdlaSearchException(_, Some(rf), _)
-        if rf.error.rootCause.exists(x =>
-          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
@@ -132,8 +132,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case Some(_) =>
         if (!strings.forall(entry => entry.forall(_.isDigit))) {
           throw new ValidationException(
-            errors =
-              Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+            errors = Seq(
+              ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
+            )
+          )
         }
         strings.map(_.toLong)
     }
@@ -145,7 +147,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       paramValue.toLong
     } else {
       throw new ValidationException(
-        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+      )
     }
   }
 

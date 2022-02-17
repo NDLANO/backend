@@ -31,7 +31,7 @@ case class Service(service: HttpRoutes[IO], override val mountPoint: String) ext
 
 class SwaggerService(service: RhoRoutes[IO], override val mountPoint: String) extends ServiceWithMountPoint {
   override def toRoutes: HttpRoutes[IO] = NdlaMiddleware(service.toRoutes())
-  def service(): RhoRoutes[IO] = this.service
+  def service(): RhoRoutes[IO]          = this.service
 }
 
 class AuthedSwaggerService(override val service: AuthController[IO], override val mountPoint: String)
@@ -44,7 +44,7 @@ class AuthedSwaggerService(override val service: AuthController[IO], override va
 object Routes {
 
   def buildRoutes(): List[ServiceWithMountPoint] = {
-    val frontPage = new SwaggerService(ComponentRegistry.frontPageController, "/frontpage-api/v1/frontpage")
+    val frontPage   = new SwaggerService(ComponentRegistry.frontPageController, "/frontpage-api/v1/frontpage")
     val subjectPage = new AuthedSwaggerService(ComponentRegistry.subjectPageController, "/frontpage-api/v1/subjectpage")
     val filmFrontPage =
       new AuthedSwaggerService(ComponentRegistry.filmPageController, "/frontpage-api/v1/filmfrontpage")
@@ -98,7 +98,7 @@ object Routes {
     })
 
     val swagRoutes = routes.flatten
-    val swagger = createSwagger(swaggerMetadata = swaggerMetadata)(swagRoutes)
+    val swagger    = createSwagger(swaggerMetadata = swaggerMetadata)(swagRoutes)
 
     createSwaggerRoute(swagger, TypedPath(PathMatch(""))).toRoutes()
   }

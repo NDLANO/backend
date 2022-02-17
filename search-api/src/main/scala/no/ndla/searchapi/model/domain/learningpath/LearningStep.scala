@@ -10,18 +10,20 @@ package no.ndla.searchapi.model.domain.learningpath
 import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.searchapi.model.domain.Title
 
-case class LearningStep(id: Option[Long],
-                        revision: Option[Int],
-                        externalId: Option[String],
-                        learningPathId: Option[Long],
-                        seqNo: Int,
-                        title: Seq[Title],
-                        description: Seq[Description],
-                        embedUrl: Seq[EmbedUrl],
-                        `type`: StepType.Value,
-                        license: Option[String],
-                        showTitle: Boolean = false,
-                        status: StepStatus.Value = StepStatus.ACTIVE) {}
+case class LearningStep(
+    id: Option[Long],
+    revision: Option[Int],
+    externalId: Option[String],
+    learningPathId: Option[Long],
+    seqNo: Int,
+    title: Seq[Title],
+    description: Seq[Description],
+    embedUrl: Seq[EmbedUrl],
+    `type`: StepType.Value,
+    license: Option[String],
+    showTitle: Boolean = false,
+    status: StepStatus.Value = StepStatus.ACTIVE
+) {}
 
 object StepStatus extends Enumeration {
 

@@ -28,7 +28,7 @@ class V3__ConvertCoverPhotoUrlToIDTest extends UnitSuite {
     val before =
       """{"coverPhotoMetaUrl": "http://localhost/image-api/v2/images/55"}"""
     val expectedAfter = """{"coverPhotoId":"55"}"""
-    val learningPath = V3_DBLearningPath(3, before)
+    val learningPath  = V3_DBLearningPath(3, before)
 
     val optConverted = migration.convertCoverPhotoUrl(learningPath)
     optConverted.isDefined should be(true)

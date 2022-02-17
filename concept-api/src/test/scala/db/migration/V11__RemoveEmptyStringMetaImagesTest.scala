@@ -18,10 +18,11 @@ class V11__RemoveEmptyStringMetaImagesTest extends UnitSuite with TestEnvironmen
 
   test("MetaImages without ids should be removed") {
     val old =
-      s"""{"metaImage":[${metaImage("", "alt", "nb")},${metaImage("1", "", "en")},${metaImage("", "", "nn")},${metaImage(
-        "2",
-        "alt",
-        "zh")}]}"""
+      s"""{"metaImage":[${metaImage("", "alt", "nb")},${metaImage("1", "", "en")},${metaImage(
+          "",
+          "",
+          "nn"
+        )},${metaImage("2", "alt", "zh")}]}"""
     val expected =
       s"""{"metaImage":[${metaImage("1", "", "en")},${metaImage("2", "alt", "zh")}]}"""
 

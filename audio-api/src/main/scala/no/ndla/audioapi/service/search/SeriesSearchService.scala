@@ -41,7 +41,7 @@ trait SeriesSearchService {
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummary] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchable = Serialization.read[SearchableSeries](hitString)
+      val searchable                = Serialization.read[SearchableSeries](hitString)
       searchConverterService.asSeriesSummary(searchable, language)
     }
 
@@ -64,22 +64,25 @@ trait SeriesSearchService {
       executeSearch(settings, fullSearch)
     }
 
-    def executeSearch(settings: SeriesSearchSettings,
-                      queryBuilder: BoolQuery): Try[domain.SearchResult[api.SeriesSummary]] = {
+    def executeSearch(
+        settings: SeriesSearchSettings,
+        queryBuilder: BoolQuery
+    ): Try[domain.SearchResult[api.SeriesSummary]] = {
 
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(AllLanguages) => (None, "*")
         case Some(lang)                => (Some(existsQuery(s"titles.$lang")), lang)
       }
 
-      val filters = List(languageFilter)
+      val filters        = List(languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
 
@@ -100,16 +103,16 @@ trait SeriesSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, searchLanguage).map(
-              hits =>
-                domain.SearchResult(
-                  response.result.totalHits,
-                  Some(settings.page.getOrElse(1)),
-                  numResults,
-                  searchLanguage,
-                  hits,
-                  response.result.scrollId
-              ))
+            getHits(response.result, searchLanguage).map(hits =>
+              domain.SearchResult(
+                response.result.totalHits,
+                Some(settings.page.getOrElse(1)),
+                numResults,
+                searchLanguage,
+                hits,
+                response.result.scrollId
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -122,7 +125,8 @@ trait SeriesSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

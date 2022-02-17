@@ -14,4 +14,7 @@ import scala.annotation.meta.field
 case class NewAgreement(
     @(ApiModelProperty @field)(description = "Titles for the agreement") title: String,
     @(ApiModelProperty @field)(description = "The content of the agreement") content: String,
-    @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: NewAgreementCopyright)
+    @(ApiModelProperty @field)(
+      description = "Describes the copyright information for the article"
+    ) copyright: NewAgreementCopyright
+)

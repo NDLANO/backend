@@ -22,7 +22,7 @@ class ArticleRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val dataSource = testDataSource.get
+  override val dataSource           = testDataSource.get
   var repository: ArticleRepository = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
@@ -61,8 +61,8 @@ class ArticleRepositoryTest
   test("getAllIds returns a list with all ids in the database") {
     assume(databaseIsAvailable, "Database is unavailable")
     val externalIdsAndRegularIds = (100 to 150).map(_.toString).zipWithIndex
-    externalIdsAndRegularIds.foreach {
-      case (exId, id) => repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id)), List(exId))
+    externalIdsAndRegularIds.foreach { case (exId, id) =>
+      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id)), List(exId))
     }
     val expected = externalIdsAndRegularIds.map { case (exId, id) => ArticleIds(id, List(exId)) }.toList
     repository.getAllIds should equal(expected)
@@ -82,8 +82,8 @@ class ArticleRepositoryTest
   test("getArticleIdsFromExternalId should return ArticleIds object with externalIds") {
     assume(databaseIsAvailable, "Database is unavailable")
     val externalIds = List("1", "6010", "6011", "5084", "763", "8881", "1919")
-    val inserted = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
-    val inserted2 = repository.updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2)), externalIds)
+    val inserted    = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
+    val inserted2   = repository.updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2)), externalIds)
 
     repository.getArticleIdsFromExternalId("6011").get.externalId should be(externalIds)
     repository.deleteMaxRevision(inserted.get.id.get)
@@ -108,8 +108,8 @@ class ArticleRepositoryTest
   test("Fetching external ids works as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
 
-    val externalIds = List("1", "2", "3")
-    val idWithExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), externalIds)
+    val externalIds        = List("1", "2", "3")
+    val idWithExternals    = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), externalIds)
     val idWithoutExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty)
 
     val result1 = repository.getExternalIdsFromId(idWithExternals.get.id.get)
@@ -171,18 +171,24 @@ class ArticleRepositoryTest
   test("getTags returns non-duplicate tags and correct number of them") {
     assume(databaseIsAvailable, "Database is unavailable")
     val sampleArticle1 = TestData.sampleDomainArticle2
-      .copy(id = Some(1L),
-            revision = Some(0),
-            tags = Seq(ArticleTag(Seq("abc", "bcd", "ddd"), "nb"), ArticleTag(Seq("abc", "bcd"), "nn")))
+      .copy(
+        id = Some(1L),
+        revision = Some(0),
+        tags = Seq(ArticleTag(Seq("abc", "bcd", "ddd"), "nb"), ArticleTag(Seq("abc", "bcd"), "nn"))
+      )
     val sampleArticle2 = TestData.sampleDomainArticle2
-      .copy(id = Some(2L),
-            revision = Some(0),
-            tags = Seq(ArticleTag(Seq("bcd", "cde"), "nb"), ArticleTag(Seq("bcd", "cde"), "nn")))
+      .copy(
+        id = Some(2L),
+        revision = Some(0),
+        tags = Seq(ArticleTag(Seq("bcd", "cde"), "nb"), ArticleTag(Seq("bcd", "cde"), "nn"))
+      )
     val sampleArticle3 =
       TestData.sampleDomainArticle2
-        .copy(id = Some(3L),
-              revision = Some(0),
-              tags = Seq(ArticleTag(Seq("def"), "nb"), ArticleTag(Seq("d", "def", "asd"), "nn")))
+        .copy(
+          id = Some(3L),
+          revision = Some(0),
+          tags = Seq(ArticleTag(Seq("def"), "nb"), ArticleTag(Seq("d", "def", "asd"), "nn"))
+        )
     val sampleArticle4 = TestData.sampleDomainArticle2.copy(id = Some(4L), revision = Some(0), tags = Seq.empty)
 
     repository.updateArticleFromDraftApi(sampleArticle1, List.empty)
@@ -237,8 +243,10 @@ class ArticleRepositoryTest
   }
 
   test("withId parse relatedContent correctly") {
-    repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))),
-                                         List("6000", "10"))
+    repository.updateArticleFromDraftApi(
+      sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))),
+      List("6000", "10")
+    )
 
     val Right(relatedId) = repository.withId(1).get.relatedContent.head
     relatedId.toLong should be(2L)

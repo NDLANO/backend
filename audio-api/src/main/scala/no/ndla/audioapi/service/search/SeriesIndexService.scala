@@ -29,8 +29,8 @@ trait SeriesIndexService {
   val seriesIndexService: SeriesIndexService
 
   class SeriesIndexService extends LazyLogging with IndexService[Series, SearchableSeries] {
-    override val documentType: String = AudioApiProperties.SeriesSearchDocument
-    override val searchIndex: String = AudioApiProperties.SeriesSearchIndex
+    override val documentType: String         = AudioApiProperties.SeriesSearchDocument
+    override val searchIndex: String          = AudioApiProperties.SeriesSearchIndex
     override val repository: SeriesRepository = seriesRepository
 
     override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {
@@ -46,7 +46,7 @@ trait SeriesIndexService {
       List(
         intField("id"),
         keywordField("defaultTitle"),
-        dateField("lastUpdated"),
+        dateField("lastUpdated")
       )
 
     val seriesDynamics: Seq[DynamicTemplateRequest] =

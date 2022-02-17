@@ -17,7 +17,7 @@ import org.mockito.invocation.InvocationOnMock
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
-  val sampleArticle: Article = TestData.sampleArticleWithPublicDomain.copy()
+  val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles = List(
     ArticleTitle("Bokmål tittel", "nb"),
@@ -51,23 +51,24 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      invocation.getArgument[Article](0))
+      invocation.getArgument[Article](0)
+    )
   }
 
   test("That asSearchableArticle converts titles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles)
+    val article           = TestData.sampleArticleWithByNcSa.copy(title = titles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTitles(searchableArticle)
   }
 
   test("That asSearchable converts articles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = articles)
+    val article           = TestData.sampleArticleWithByNcSa.copy(content = articles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyArticles(searchableArticle)
   }
 
   test("That asSearchable converts tags with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
+    val article           = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTags(searchableArticle)
   }

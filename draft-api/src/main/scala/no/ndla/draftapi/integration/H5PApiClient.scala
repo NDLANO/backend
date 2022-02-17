@@ -27,8 +27,8 @@ trait H5PApiClient {
   val h5pApiClient: H5PApiClient
 
   class H5PApiClient extends LazyLogging {
-    private val H5PApi = s"$H5PAddress/v1"
-    private val h5pTimeout = 20 * 1000 // 20 Seconds
+    private val H5PApi                        = s"$H5PAddress/v1"
+    private val h5pTimeout                    = 20 * 1000 // 20 Seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
     def publishH5Ps(paths: Seq[String]): Try[Unit] = {
@@ -36,7 +36,7 @@ trait H5PApiClient {
         Success(())
       } else {
         implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(paths.size))
-        val future = Future.sequence(paths.map(publishH5P))
+        val future      = Future.sequence(paths.map(publishH5P))
         Try(Await.result(future, Duration.Inf)) match {
           case Failure(ex) => Failure(ex)
           case Success(s)  => s.toList.sequence.map(_ => ())
@@ -59,8 +59,9 @@ trait H5PApiClient {
       }
     }
 
-    private def logWhenComplete(future: Future[Try[Unit]], path: String, h5pId: String)(
-        implicit ec: ExecutionContext) = {
+    private def logWhenComplete(future: Future[Try[Unit]], path: String, h5pId: String)(implicit
+        ec: ExecutionContext
+    ) = {
       future.onComplete {
         case Failure(ex) =>
           logger.error(s"failed to publish h5p with path '$path' (id '$h5pId'): ${ex.getMessage}", ex)
@@ -76,8 +77,9 @@ trait H5PApiClient {
       }
     }
 
-    private[integration] def putNothing(url: String, params: (String, String)*)(
-        implicit ec: ExecutionContext): Future[Try[Unit]] = {
+    private[integration] def putNothing(url: String, params: (String, String)*)(implicit
+        ec: ExecutionContext
+    ): Future[Try[Unit]] = {
       val threadInfo = RequestInfo()
       Future {
         logger.info(s"Doing call to $url")

@@ -18,5 +18,5 @@ case class SearchableSeries(
     descriptions: SearchableLanguageValues,
     episodes: Option[Seq[SearchableAudioInformation]],
     coverPhoto: CoverPhoto,
-    lastUpdated: DateTime,
+    lastUpdated: DateTime
 )

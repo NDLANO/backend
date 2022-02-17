@@ -23,11 +23,11 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
   val embed1 = """<embed data-resource=\"image\" data-resource_id=\"1\">"""
   val embed2 = """<embed data-resource=\"image\" data-resource_id=\"2\">"""
   val embed3 = """<embed data-resource=\"image\" data-resource_id=\"3\">"""
-  val ve1 = s"""{"resource":"$embed1","language":"nb"}"""
-  val ve2 = s"""{"resource":"$embed2","language":"nn"}"""
-  val ve3 = s"""{"resource":"$embed3","language":"nn"}"""
-  val co1 = """{"content":"<section><h1>No extract anything here brother</h1></section>","language":"nb"}"""
-  val co2 = s"""{"content":"<section>$embed3<h1>Extract something here brother</h1></section>","language":"nn"}"""
+  val ve1    = s"""{"resource":"$embed1","language":"nb"}"""
+  val ve2    = s"""{"resource":"$embed2","language":"nn"}"""
+  val ve3    = s"""{"resource":"$embed3","language":"nn"}"""
+  val co1    = """{"content":"<section><h1>No extract anything here brother</h1></section>","language":"nb"}"""
+  val co2    = s"""{"content":"<section>$embed3<h1>Extract something here brother</h1></section>","language":"nn"}"""
 
   test("embed should be extracted if before all text") {
     val old =
@@ -77,9 +77,8 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
   }
 
   test("Status should be sucessfully updated to wait for quality assurance if it is published") {
-    implicit val formats
-      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(
-      ArticleType)
+    implicit val formats: Formats =
+      org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(ArticleType)
 
     val old1 =
       s"""{"articleType":"topic-article","visualElement":[$ve1],"content":[$co1,$co2],"status":{"current":"PUBLISHED","other":["IMPORTED"]},"notes":[]}"""
@@ -106,11 +105,10 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
   }
 
   test("Notes should be added if embed is deleted") {
-    implicit val formats
-      : Formats = org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(
-      ArticleType)
+    implicit val formats: Formats =
+      org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(ArticleType)
 
-    val d = write(new Date())
+    val d            = write(new Date())
     val existingNote = s"""{"note":"kake","user":"testleif","timestamp":$d,"status":{"current":"DRAFT","other":[]}}"""
     val noteText =
       s"Embed plassert før første tekst har blitt slettet og gjort om til visuelt element, dersom det var mulig. Status har blitt endret til 'Til kvalitetssikring'."
@@ -120,14 +118,14 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
     val old2 =
       s"""{"articleType":"topic-article","visualElement":[$ve1],"content":[$co1],"status":{"current":"PUBLISHED","other":[]},"notes":[]}"""
 
-    val res1 = migration.convertTopicArticle(old1)
+    val res1   = migration.convertTopicArticle(old1)
     val notes1 = (parse(res1) \ "notes").extract[Seq[migration.V16__EditorNote]]
     notes1.head.note should be("kake")
     notes1(1).note should be(noteText)
     notes1(1).user should be("System")
     notes1.size should be(2)
 
-    val res2 = migration.convertTopicArticle(old2)
+    val res2   = migration.convertTopicArticle(old2)
     val notes2 = (parse(res2) \ "notes").extract[Seq[migration.V16__EditorNote]]
     notes2.isEmpty should be(true)
   }

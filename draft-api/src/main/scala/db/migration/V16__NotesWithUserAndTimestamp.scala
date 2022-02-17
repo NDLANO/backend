@@ -32,13 +32,13 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
   }
 
   def migrateArticleNotes(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertNotes(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertNotes(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -65,7 +65,7 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
       case Success(old) =>
         val newArticle = oldArticle.mapField {
           case ("notes", _) =>
-            val editorNotes = old.notes.map(EditorNote(_, "System", old.status, old.updated))
+            val editorNotes        = old.notes.map(EditorNote(_, "System", old.status, old.updated))
             val notesWithNewFormat = Extraction.decompose(editorNotes)
             ("notes", notesWithNewFormat)
           case x => x

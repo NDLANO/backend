@@ -44,11 +44,11 @@ trait ArticleSearchService {
         case Some(query) =>
           val language =
             if (settings.fallback) "*" else settings.searchLanguage
-          val titleSearch = simpleStringQuery(query).field(s"title.$language", 6)
-          val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
-          val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-          val tagSearch = simpleStringQuery(query).field(s"tags.$language", 2)
-          val notesSearch = simpleStringQuery(query).field("notes", 1)
+          val titleSearch         = simpleStringQuery(query).field(s"title.$language", 6)
+          val introSearch         = simpleStringQuery(query).field(s"introduction.$language", 2)
+          val contentSearch       = simpleStringQuery(query).field(s"content.$language", 1)
+          val tagSearch           = simpleStringQuery(query).field(s"tags.$language", 2)
+          val notesSearch         = simpleStringQuery(query).field("notes", 1)
           val previousNotesSearch = simpleStringQuery(query).field("previousNotes", 1)
 
           boolQuery()
@@ -95,14 +95,15 @@ trait ArticleSearchService {
       val grepCodesFilter =
         if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes))) else None
 
-      val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, grepCodesFilter)
+      val filters        = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, grepCodesFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
         val searchToExecute = search(searchIndex)
@@ -128,7 +129,8 @@ trait ArticleSearchService {
                 searchLanguage,
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }
@@ -146,7 +148,8 @@ trait ArticleSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

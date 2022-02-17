@@ -28,20 +28,21 @@ trait ConceptApiClient {
   val conceptApiClient: ConceptApiClient
 
   class ConceptApiClient(conceptBaseUrl: String = s"http://$ConceptApiHost") extends LazyLogging {
-    private val draftEndpoint = s"concept-api/v1/drafts"
+    private val draftEndpoint  = s"concept-api/v1/drafts"
     private val conceptTimeout = 1000 * 10 // 10 seconds
 
     // Currently not in use. Code not removed as it may be reimplemented later (February 2020).
     def publishConceptsIfToPublishing(ids: Seq[Long]): Seq[Try[DraftConcept]] = {
       val statusToPublish = "QUALITY_ASSURED"
-      val shouldPublish = (c: DraftConcept) => c.status.current == statusToPublish
+      val shouldPublish   = (c: DraftConcept) => c.status.current == statusToPublish
 
       ids.map(id => {
         getDraftConcept(id) match {
           case Success(concept) if shouldPublish(concept) => publishConcept(concept.id)
           case Success(concept) =>
             logger.info(
-              s"Not publishing concept with id '${concept.id}' since status '${concept.status.current}' does not match '${statusToPublish}'")
+              s"Not publishing concept with id '${concept.id}' since status '${concept.status.current}' does not match '${statusToPublish}'"
+            )
             Success(concept)
           case Failure(ex) =>
             logger.error(s"Something went wrong when fetching concept with id: '$id'", ex)
@@ -57,8 +58,9 @@ trait ConceptApiClient {
     private def getDraftConcept(id: Long): Try[DraftConcept] =
       get[DraftConcept](s"$draftEndpoint/$id", 10 * 1000, "fallback" -> "true")
 
-    private[integration] def get[T](path: String, timeout: Int, params: (String, String)*)(
-        implicit mf: Manifest[T]): Try[T] = {
+    private[integration] def get[T](path: String, timeout: Int, params: (String, String)*)(implicit
+        mf: Manifest[T]
+    ): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
         Http((conceptBaseUrl / path).toString)
@@ -67,8 +69,9 @@ trait ConceptApiClient {
       )
     }
 
-    private[integration] def put[A](path: String, timeout: Int, params: (String, String)*)(
-        implicit mf: Manifest[A]): Try[A] = {
+    private[integration] def put[A](path: String, timeout: Int, params: (String, String)*)(implicit
+        mf: Manifest[A]
+    ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         Http((conceptBaseUrl / path).toString)
           .timeout(timeout, timeout)

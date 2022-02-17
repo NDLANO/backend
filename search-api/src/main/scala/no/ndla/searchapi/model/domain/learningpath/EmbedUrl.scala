@@ -15,7 +15,7 @@ case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) e
 object EmbedType extends Enumeration {
 
   val OEmbed = Value("oembed")
-  val LTI = Value("lti")
+  val LTI    = Value("lti")
   val IFrame = Value("iframe")
 
   def valueOf(s: String): Option[EmbedType.Value] = {
@@ -27,7 +27,8 @@ object EmbedType extends Enumeration {
       case Some(s) => s
       case None =>
         throw new ValidationException(
-          errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type.")))
+          errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type."))
+        )
     }
   }
 

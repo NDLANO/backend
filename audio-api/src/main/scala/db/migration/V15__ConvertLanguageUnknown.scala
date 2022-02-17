@@ -21,14 +21,14 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allAudios.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }
 
   def convertDocument(document: String): String = {
-    val oldAudio = parse(document)
+    val oldAudio       = parse(document)
     val extractedAudio = oldAudio.extract[V15_Audio]
     val tags = extractedAudio.tags.map(t => {
       if (t.language == "unknown")
@@ -80,8 +80,10 @@ class V15__ConvertLanguageUnknown extends BaseJavaMigration {
   case class V15_Titles(title: String, language: String)
   case class V15_FilePaths(filePath: String, fileSize: Int, language: String, mimeType: String)
   case class V15_Manuscript(manuscript: String, language: String)
-  case class V15_Audio(tags: Seq[V15_Tags],
-                       titles: Seq[V15_Titles],
-                       filePaths: Seq[V15_FilePaths],
-                       manuscript: Seq[V15_Manuscript])
+  case class V15_Audio(
+      tags: Seq[V15_Tags],
+      titles: Seq[V15_Titles],
+      filePaths: Seq[V15_FilePaths],
+      manuscript: Seq[V15_Manuscript]
+  )
 }

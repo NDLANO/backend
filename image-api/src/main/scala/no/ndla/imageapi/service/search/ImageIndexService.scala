@@ -25,9 +25,9 @@ trait ImageIndexService {
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableImage] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = ImageApiProperties.SearchDocument
-    override val searchIndex: String = ImageApiProperties.SearchIndex
+    implicit val formats                                      = SearchableLanguageFormats.JSonFormats
+    override val documentType: String                         = ImageApiProperties.SearchDocument
+    override val searchIndex: String                          = ImageApiProperties.SearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
 
     override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
@@ -44,7 +44,7 @@ trait ImageIndexService {
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
         keywordField("modelReleased"),
-        textField("editorNotes"),
+        textField("editorNotes")
       )
 
       val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++

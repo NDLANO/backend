@@ -13,11 +13,11 @@ import org.scalatra.ActionResult
 
 import scala.util.Try
 
-/** Wrapper class for content that can have different cachability attributes based on the content
-  * Useful for Articles that require login
+/** Wrapper class for content that can have different cachability attributes based on the content Useful for Articles
+  * that require login
   *
-  * One would use the class by using `Cachable.yes(value)` (Or `Cachable.no(value)`) for values that can be cached
-  * and then use `returnValue.Ok()` in the controller to get the scalatra type with headers.
+  * One would use the class by using `Cachable.yes(value)` (Or `Cachable.no(value)`) for values that can be cached and
+  * then use `returnValue.Ok()` in the controller to get the scalatra type with headers.
   */
 case class Cachable[T](
     value: T,
@@ -30,8 +30,7 @@ case class Cachable[T](
     scalatra.Ok(value, headers = headers ++ cacheHeaders)
   }
 
-  /** Return a [[Cachable]] object with the function applied to value
-    * Example:
+  /** Return a [[Cachable]] object with the function applied to value Example:
     * ```
     * val a = Cachable.yes("TestString")
     * val b = a.map(s => s.toLowerCase())

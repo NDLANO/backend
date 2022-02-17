@@ -29,7 +29,7 @@ trait ContentValidator {
 
   class ContentValidator() {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator = new TextValidator(allowHtml = true)
+    private val HtmlValidator   = new TextValidator(allowHtml = true)
 
     def validate(content: Content): Try[Content] = {
       content match {
@@ -38,8 +38,10 @@ trait ContentValidator {
       }
     }
 
-    def validateAgreement(agreement: Agreement,
-                          preExistingErrors: Seq[ValidationMessage] = Seq.empty): Try[Agreement] = {
+    def validateAgreement(
+        agreement: Agreement,
+        preExistingErrors: Seq[ValidationMessage] = Seq.empty
+    ): Try[Agreement] = {
       val validationErrors = NoHtmlValidator.validate("title", agreement.title).toList ++
         NoHtmlValidator.validate("content", agreement.content).toList ++
         preExistingErrors.toList ++
@@ -95,10 +97,12 @@ trait ContentValidator {
       }
     }
 
-    def validateArticleApiArticle(id: Long,
-                                  updatedArticle: UpdatedArticle,
-                                  importValidate: Boolean,
-                                  user: UserInfo): Try[ContentId] = {
+    def validateArticleApiArticle(
+        id: Long,
+        updatedArticle: UpdatedArticle,
+        importValidate: Boolean,
+        user: UserInfo
+    ): Try[ContentId] = {
       draftRepository.withId(id) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) =>
@@ -118,7 +122,7 @@ trait ContentValidator {
 
     def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
       val legalTopLevelTag = "section"
-      val topLevelTags = HtmlTagRules.stringToJsoupDocument(html).children().asScala.map(_.tagName())
+      val topLevelTags     = HtmlTagRules.stringToJsoupDocument(html).children().asScala.map(_.tagName())
 
       if (topLevelTags.forall(_ == legalTopLevelTag)) {
         None
@@ -127,15 +131,19 @@ trait ContentValidator {
         Some(
           ValidationMessage(
             field,
-            s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
+            s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "
+          )
+        )
       }
     }
 
     private def validateVisualElement(content: VisualElement): List[ValidationMessage] = {
       HtmlValidator
-        .validateVisualElement("visualElement",
-                               content.resource,
-                               requiredToOptional = Map("image" -> Seq("data-caption")))
+        .validateVisualElement(
+          "visualElement",
+          content.resource,
+          requiredToOptional = Map("image" -> Seq("data-caption"))
+        )
         .toList ++ validateLanguage("language", content.language)
     }
 
@@ -154,7 +162,9 @@ trait ContentValidator {
         Seq(
           ValidationMessage(
             "title",
-            "An article must contain at least one title. Perhaps you tried to delete the only title in the article?"))
+            "An article must contain at least one title. Perhaps you tried to delete the only title in the article?"
+          )
+        )
       else
         titles.flatMap(t => validateTitle(t.title, t.language))
     }
@@ -176,7 +186,8 @@ trait ContentValidator {
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors.flatMap(
-        validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
+        validateAuthor
+      ) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
         copyright.origin.map(origin => NoHtmlValidator.validate("copyright.origin", origin)).toSeq.flatten
 
@@ -207,9 +218,12 @@ trait ContentValidator {
       if (permittedLibraries.contains(requiredLibrary.url)) {
         None
       } else {
-        Some(ValidationMessage(
-          "requiredLibraries.url",
-          s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
+        Some(
+          ValidationMessage(
+            "requiredLibraries.url",
+            s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"
+          )
+        )
       }
     }
 
@@ -246,8 +260,11 @@ trait ContentValidator {
     private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
       if (content.trim.length < minLength)
         Some(
-          ValidationMessage(fieldPath,
-                            s"This field does not meet the minimum length requirement of $minLength characters"))
+          ValidationMessage(
+            fieldPath,
+            s"This field does not meet the minimum length requirement of $minLength characters"
+          )
+        )
       else
         None
 

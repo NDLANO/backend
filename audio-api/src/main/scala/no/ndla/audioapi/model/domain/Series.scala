@@ -28,8 +28,9 @@ class SeriesWithoutId(
     val description: Seq[Description]
 )
 
-/** Series with database generated fields. Should match [[SeriesWithoutId]]
-  * exactly except for the fields added when inserting into database. */
+/** Series with database generated fields. Should match [[SeriesWithoutId]] exactly except for the fields added when
+  * inserting into database.
+  */
 case class Series(
     id: Long,
     revision: Int,
@@ -53,7 +54,7 @@ object Series extends SQLSyntaxSupport[Series] {
         ignore("episodes")
     )
 
-  override val tableName = "seriesdata"
+  override val tableName                  = "seriesdata"
   override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
 
   def fromId(id: Long, revision: Int, series: SeriesWithoutId): Series = {
@@ -74,15 +75,15 @@ object Series extends SQLSyntaxSupport[Series] {
 
   def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
     implicit val formats: Formats = jsonEncoder
-    val jsonStr = rs.string(s.c("document"))
-    val meta = Try(Serialization.read[SeriesWithoutId](jsonStr))
+    val jsonStr                   = rs.string(s.c("document"))
+    val meta                      = Try(Serialization.read[SeriesWithoutId](jsonStr))
 
-    meta.map(
-      m =>
-        fromId(
-          id = rs.long(s.c("id")),
-          revision = rs.int(s.c("revision")),
-          series = m
-      ))
+    meta.map(m =>
+      fromId(
+        id = rs.long(s.c("id")),
+        revision = rs.int(s.c("revision")),
+        series = m
+      )
+    )
   }
 }

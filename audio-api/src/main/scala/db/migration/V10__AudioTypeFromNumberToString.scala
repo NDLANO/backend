@@ -19,7 +19,7 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
 
   object MigrationAudioType extends Enumeration {
     val Standard: this.Value = Value("standard")
-    val Podcast: this.Value = Value("podcast")
+    val Podcast: this.Value  = Value("podcast")
   }
 
   override def migrate(context: Context): Unit = {
@@ -27,8 +27,8 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allAudios.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }
@@ -48,11 +48,11 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
     val oldArticle = parse(document)
 
     val existingAudioType = (oldArticle \ "audioType").extractOpt[MigrationAudioType.Value](oldFormats, enumManifest)
-    val audioType = existingAudioType.getOrElse(MigrationAudioType.Standard)
-    val audioTypeString = Extraction.decompose(audioType)(newFormats)
+    val audioType         = existingAudioType.getOrElse(MigrationAudioType.Standard)
+    val audioTypeString   = Extraction.decompose(audioType)(newFormats)
 
     val objectToMerge = JObject(JField("audioType", audioTypeString))
-    val newArticle = oldArticle.merge(objectToMerge)
+    val newArticle    = oldArticle.merge(objectToMerge)
 
     compact(render(newArticle))
   }

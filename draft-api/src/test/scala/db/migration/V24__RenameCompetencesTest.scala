@@ -13,7 +13,7 @@ class V24__RenameCompetencesTest extends UnitSuite with TestEnvironment {
   val migration = new V24__RenameCompetences
 
   test("migration should remove the competences field and add grepCodes instead") {
-    val before = """{"competences":["1","2","3","asd"],"title":[{"title":"tittel","language":"nb"}]}"""
+    val before   = """{"competences":["1","2","3","asd"],"title":[{"title":"tittel","language":"nb"}]}"""
     val expected = """{"grepCodes":["1","2","3","asd"],"title":[{"title":"tittel","language":"nb"}]}"""
 
     migration.convertArticleUpdate(before) should equal(expected)

@@ -34,9 +34,9 @@ class SearchableLearningStepTest extends UnitSuite with TestEnvironment {
       description = SearchableLanguageValues(Seq(LanguageValue("en", "TextarUøø")))
     )
 
-    val json1 = write(original1)
-    val json2 = write(original2)
-    val json3 = write(original3)
+    val json1         = write(original1)
+    val json2         = write(original2)
+    val json3         = write(original3)
     val deserialized1 = read[SearchableLearningStep](json1)
     val deserialized2 = read[SearchableLearningStep](json2)
     val deserialized3 = read[SearchableLearningStep](json3)

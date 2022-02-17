@@ -44,43 +44,53 @@ trait ReadService {
         .flatMap(value => converterService.asApiLearningpathSummaryV2(value, user).toOption)
     }
 
-    def withIdV2(learningPathId: Long,
-                 language: String,
-                 fallback: Boolean,
-                 user: UserInfo = UserInfo.getUserOrPublic): Try[LearningPathV2] = {
+    def withIdV2(
+        learningPathId: Long,
+        language: String,
+        fallback: Boolean,
+        user: UserInfo = UserInfo.getUserOrPublic
+    ): Try[LearningPathV2] = {
       withIdAndAccessGranted(learningPathId, user).flatMap(lp =>
-        converterService.asApiLearningpathV2(lp, language, fallback, user))
+        converterService.asApiLearningpathV2(lp, language, fallback, user)
+      )
     }
 
     def statusFor(learningPathId: Long, user: UserInfo = UserInfo.getUserOrPublic): Try[LearningPathStatus] = {
       withIdAndAccessGranted(learningPathId, user).map(lp => LearningPathStatus(lp.status.toString))
     }
 
-    def learningStepStatusForV2(learningPathId: Long,
-                                learningStepId: Long,
-                                language: String,
-                                fallback: Boolean,
-                                user: UserInfo = UserInfo.getUserOrPublic): Try[LearningStepStatus] = {
+    def learningStepStatusForV2(
+        learningPathId: Long,
+        learningStepId: Long,
+        language: String,
+        fallback: Boolean,
+        user: UserInfo = UserInfo.getUserOrPublic
+    ): Try[LearningStepStatus] = {
       learningstepV2For(learningPathId, learningStepId, language, fallback, user).map(ls =>
-        LearningStepStatus(ls.status.toString))
+        LearningStepStatus(ls.status.toString)
+      )
     }
 
-    def learningstepsForWithStatusV2(learningPathId: Long,
-                                     status: StepStatus,
-                                     language: String,
-                                     fallback: Boolean,
-                                     user: UserInfo = UserInfo.getUserOrPublic): Try[LearningStepContainerSummary] = {
+    def learningstepsForWithStatusV2(
+        learningPathId: Long,
+        status: StepStatus,
+        language: String,
+        fallback: Boolean,
+        user: UserInfo = UserInfo.getUserOrPublic
+    ): Try[LearningStepContainerSummary] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) => converterService.asLearningStepContainerSummary(status, lp, language, fallback)
         case Failure(ex) => Failure(ex)
       }
     }
 
-    def learningstepV2For(learningPathId: Long,
-                          learningStepId: Long,
-                          language: String,
-                          fallback: Boolean,
-                          user: UserInfo = UserInfo.getUserOrPublic): Try[LearningStepV2] = {
+    def learningstepV2For(
+        learningPathId: Long,
+        learningStepId: Long,
+        language: String,
+        fallback: Boolean,
+        user: UserInfo = UserInfo.getUserOrPublic
+    ): Try[LearningStepV2] = {
       withIdAndAccessGranted(learningPathId, user) match {
         case Success(lp) =>
           learningPathRepository
@@ -90,7 +100,9 @@ trait ReadService {
             case None =>
               Failure(
                 NotFoundException(
-                  s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"))
+                  s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
+                )
+              )
           }
         case Failure(ex) => Failure(ex)
       }
@@ -128,7 +140,8 @@ trait ReadService {
             Success(
               learningPathRepository
                 .learningPathsWithStatus(ps)
-                .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption))
+                .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
+            )
           case _ => Failure(InvalidStatusException(s"Parameter '$status' is not a valid status"))
         }
       } else { Failure(AccessDeniedException("You do not have access to this resource.")) }

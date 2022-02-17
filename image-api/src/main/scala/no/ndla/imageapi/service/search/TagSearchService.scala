@@ -33,9 +33,9 @@ trait TagSearchService {
   val tagSearchService: TagSearchService
 
   class TagSearchService extends LazyLogging with SearchService[String] {
-    implicit val formats: Formats = DefaultFormats
+    implicit val formats: Formats    = DefaultFormats
     override val searchIndex: String = ImageApiProperties.TagSearchIndex
-    override val indexService = tagIndexService
+    override val indexService        = tagIndexService
 
     override def hitToApiModel(hit: String, language: String): String = {
       val searchableTag = read[SearchableTag](hit)
@@ -83,7 +83,7 @@ trait TagSearchService {
         page: Int,
         pageSize: Int,
         sort: Sort,
-        queryBuilder: BoolQuery,
+        queryBuilder: BoolQuery
     ): Try[SearchResult[String]] = {
 
       val (languageFilter, searchLanguage) = language match {
@@ -92,14 +92,15 @@ trait TagSearchService {
         case _ => (None, "*")
       }
 
-      val filters = List(languageFilter)
+      val filters        = List(languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(Some(page), Some(pageSize))
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
       } else {
         val searchToExecute = search(searchIndex)
@@ -110,7 +111,8 @@ trait TagSearchService {
           .sortBy(getSortDefinition(sort, searchLanguage))
 
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          if (startAt != 0) { searchToExecute }
+          else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
@@ -122,7 +124,8 @@ trait TagSearchService {
                 language,
                 getHits(response.result, language),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }

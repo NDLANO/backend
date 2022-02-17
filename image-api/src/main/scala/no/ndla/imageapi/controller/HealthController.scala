@@ -50,8 +50,7 @@ trait HealthController {
         .getRandomImage()
         .map(image => {
           val previewUrl =
-            s"http://$host:$port${ImageApiProperties.RawControllerPath}/${parse(
-              image.imageUrl.toStringRaw.dropWhile(_ == '/')).toString}"
+            s"http://$host:$port${ImageApiProperties.RawControllerPath}/${parse(image.imageUrl.toStringRaw.dropWhile(_ == '/')).toString}"
           getReturnCode(getApiResponse(previewUrl))
         })
         .getOrElse(Ok())

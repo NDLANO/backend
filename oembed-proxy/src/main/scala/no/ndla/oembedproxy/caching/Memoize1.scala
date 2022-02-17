@@ -35,7 +35,8 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
           .currentTimeMillis() - maxCacheAgeMs + retryTimeInMs
         cache = Some(CacheValue(cache.get.value, retryTime))
         logger.warn(
-          s"Caught ${mex.getClass.getName}, with message: '${mex.getMessage}', will not update cached output.")
+          s"Caught ${mex.getClass.getName}, with message: '${mex.getMessage}', will not update cached output."
+        )
     }
   }
 

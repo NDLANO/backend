@@ -21,53 +21,53 @@ trait InternController {
   this: ReadService with WriteService =>
   val internController: InternController[IO]
 
-  class InternController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
+  class InternController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
     import swaggerSyntax._
 
     "Get subject page id from external id" **
       GET / "subjectpage" / "external" / pathVar[String]("externalId", "old NDLA node id") |>> { nid: String =>
-      {
-        readService.getIdFromExternalId(nid) match {
-          case Success(Some(id)) => Ok(id)
-          case Success(None)     => NotFound(Error.notFound)
-          case Failure(_)        => InternalServerError(Error.generic)
+        {
+          readService.getIdFromExternalId(nid) match {
+            case Success(Some(id)) => Ok(id)
+            case Success(None)     => NotFound(Error.notFound)
+            case Failure(_)        => InternalServerError(Error.generic)
+          }
         }
       }
-    }
 
     "Create new subject page" **
       POST / "subjectpage" ^ NewSubjectFrontPageData.decoder |>> { subjectPage: NewSubjectFrontPageData =>
-      {
-        writeService.newSubjectPage(subjectPage) match {
-          case Success(s)                       => Ok(s)
-          case Failure(ex: ValidationException) => BadRequest(Error.badRequest(ex.getMessage))
-          case Failure(_)                       => InternalServerError(Error.generic)
-        }
-      }
-    }
-
-    "Update subject page" **
-      PUT / "subjectpage" / pathVar[Long]("subject-id", "The subject id") ^ NewSubjectFrontPageData.decoder |>> {
-      (id: Long, subjectPage: NewSubjectFrontPageData) =>
         {
-          writeService.updateSubjectPage(id, subjectPage, FrontpageApiProperties.DefaultLanguage) match {
+          writeService.newSubjectPage(subjectPage) match {
             case Success(s)                       => Ok(s)
-            case Failure(_: NotFoundException)    => NotFound(Error.notFound)
             case Failure(ex: ValidationException) => BadRequest(Error.badRequest(ex.getMessage))
             case Failure(_)                       => InternalServerError(Error.generic)
           }
         }
-    }
+      }
+
+    "Update subject page" **
+      PUT / "subjectpage" / pathVar[Long]("subject-id", "The subject id") ^ NewSubjectFrontPageData.decoder |>> {
+        (id: Long, subjectPage: NewSubjectFrontPageData) =>
+          {
+            writeService.updateSubjectPage(id, subjectPage, FrontpageApiProperties.DefaultLanguage) match {
+              case Success(s)                       => Ok(s)
+              case Failure(_: NotFoundException)    => NotFound(Error.notFound)
+              case Failure(ex: ValidationException) => BadRequest(Error.badRequest(ex.getMessage))
+              case Failure(_)                       => InternalServerError(Error.generic)
+            }
+          }
+      }
 
     "Update front page" **
       POST / "frontpage" ^ FrontPageData.decoder |>> { frontPage: FrontPageData =>
-      {
-        writeService.updateFrontPage(frontPage) match {
-          case Success(s) => Ok(s)
-          case Failure(_) => InternalServerError(Error.generic)
+        {
+          writeService.updateFrontPage(frontPage) match {
+            case Success(s) => Ok(s)
+            case Failure(_) => InternalServerError(Error.generic)
+          }
         }
       }
-    }
 
   }
 }

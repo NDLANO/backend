@@ -23,9 +23,9 @@ case class StateTransition(
     private val ignoreRolesIf: Option[(Set[Role.Value], IgnoreFunction)]
 ) {
 
-  def keepCurrentOnTransition: StateTransition = copy(addCurrentStateToOthersOnTransition = true)
+  def keepCurrentOnTransition: StateTransition                      = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[ArticleStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
-  def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
+  def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffects = sideEffects :+ sideEffect)
 
   def require(roles: Set[Role.Value], ignoreIf: Option[IgnoreFunction] = None): StateTransition =
     copy(requiredRoles = roles, ignoreRolesIf = ignoreIf.map(requiredRoles -> _))

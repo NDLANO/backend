@@ -34,7 +34,8 @@ class OEmbedProviderTest extends UnitSuite {
 
   test("That hostMatches returns false for nonexistant hosts") {
     youtubeProvider.copy(providerUrl = "https:///onlypathere").hostMatches("https:///onlypathere") should be(
-      right = false)
+      right = false
+    )
   }
 
   test("That supports returns true when host matches") {
@@ -92,6 +93,7 @@ class OEmbedProviderTest extends UnitSuite {
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", Some("100"), Some("200"))
     requestUrl should equal(
-      "https://youtube.com/oembed?url=https://www.youtube.com/v/ABC&format=json&maxwidth=100&maxheight=200")
+      "https://youtube.com/oembed?url=https://www.youtube.com/v/ABC&format=json&maxwidth=100&maxheight=200"
+    )
   }
 }

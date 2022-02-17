@@ -43,15 +43,15 @@ object ComponentRegistry
   override val dataSource = new HikariDataSource(dataSourceConfig)
   ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-  override val subjectPageRepository = new SubjectPageRepository
-  override val frontPageRepository = new FrontPageRepository
+  override val subjectPageRepository   = new SubjectPageRepository
+  override val frontPageRepository     = new FrontPageRepository
   override val filmFrontPageRepository = new FilmFrontPageRepository
 
-  override val readService = new ReadService
+  override val readService  = new ReadService
   override val writeService = new WriteService
 
   override val subjectPageController = new SubjectPageController[IO](ioSwagger)
-  override val frontPageController = new FrontPageController[IO](ioSwagger)
-  override val filmPageController = new FilmPageController[IO](ioSwagger)
-  override val internController = new InternController[IO](ioSwagger)
+  override val frontPageController   = new FrontPageController[IO](ioSwagger)
+  override val filmPageController    = new FilmPageController[IO](ioSwagger)
+  override val internController      = new InternController[IO](ioSwagger)
 }

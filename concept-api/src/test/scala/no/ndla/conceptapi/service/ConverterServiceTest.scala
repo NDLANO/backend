@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  val service = new ConverterService
+  val service            = new ConverterService
   val userInfo: UserInfo = UserInfo.SystemUser.copy(id = "")
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
@@ -34,8 +34,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toApiConcept failure if concept not found in specified language without fallback") {
     service.toApiConcept(TestData.domainConcept, "hei", fallback = false) should be(
       Failure(
-        NotFoundException(s"The concept with id ${TestData.domainConcept.id.get} and language 'hei' was not found.",
-                          TestData.domainConcept.supportedLanguages.toSeq))
+        NotFoundException(
+          s"The concept with id ${TestData.domainConcept.id.get} and language 'hei' was not found.",
+          TestData.domainConcept.supportedLanguages.toSeq
+        )
+      )
     )
   }
 
@@ -84,22 +87,26 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept("en",
-                     Some("Title"),
-                     Some("My content"),
-                     Right(None),
-                     None,
-                     None,
-                     None,
-                     None,
-                     Some(Seq(42L)),
-                     None,
-                     None)
+      UpdatedConcept(
+        "en",
+        Some("Title"),
+        Some("My content"),
+        Right(None),
+        None,
+        None,
+        None,
+        None,
+        Some(Seq(42L)),
+        None,
+        None
+      )
     service.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
-        title = Seq(domain.ConceptTitle("Tittel", "nb"),
-                    domain.ConceptTitle("Tittelur", "nn"),
-                    domain.ConceptTitle("Title", "en")),
+        title = Seq(
+          domain.ConceptTitle("Tittel", "nb"),
+          domain.ConceptTitle("Tittelur", "nn"),
+          domain.ConceptTitle("Title", "en")
+        ),
         content = Seq(
           domain.ConceptContent("Innhold", "nb"),
           domain.ConceptContent("Innhald", "nn"),
@@ -154,7 +161,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             None,
             None,
             None
-          )),
+          )
+        ),
         updated = updated
       )
     )
@@ -219,7 +227,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq(15),
       created = today,
-      updated = today,
+      updated = today
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(15)))
 
@@ -236,7 +244,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       articleIds = Seq.empty,
       created = today,
-      updated = today,
+      updated = today
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
@@ -274,8 +282,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Seq(domain.ConceptMetaImage("2", "Hej", "nn"), domain.ConceptMetaImage("1", "Hola", "nb")),
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb",
-                                                          metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola"))))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(
+      language = "nb",
+      metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
+    )
 
     service.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
   }
@@ -305,10 +315,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq(domain.ConceptMetaImage("1", "Hola", "nb")),
       created = today,
-      updated = today,
+      updated = today
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb",
-                                                          metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola"))))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(
+      language = "nb",
+      metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
+    )
 
     service.toDomainConcept(12, updateWith, userInfo) should be(
       afterUpdate
@@ -323,7 +335,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       metaImage = Seq.empty,
       created = today,
-      updated = today,
+      updated = today
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
@@ -345,7 +357,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updated = updated
     )
     val updateWith = UserInfo.SystemUser.copy(id = "test")
-    val dummy = TestData.emptyApiUpdatedConcept
+    val dummy      = TestData.emptyApiUpdatedConcept
 
     service.toDomainConcept(beforeUpdate, dummy, updateWith) should be(afterUpdate)
   }
@@ -363,7 +375,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       updated = updated
     )
     val updateWith = UserInfo.SystemUser.copy(id = "test1")
-    val dummy = TestData.emptyApiUpdatedConcept
+    val dummy      = TestData.emptyApiUpdatedConcept
 
     service.toDomainConcept(beforeUpdate, dummy, updateWith) should be(afterUpdate)
   }
@@ -376,10 +388,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       id = Some(12),
       updatedBy = Seq("test"),
       created = today,
-      updated = today,
+      updated = today
     )
     val updateWith = UserInfo.SystemUser.copy(id = "test")
-    val dummy = TestData.emptyApiUpdatedConcept
+    val dummy      = TestData.emptyApiUpdatedConcept
 
     service.toDomainConcept(12, dummy, updateWith) should be(afterUpdate)
   }
@@ -392,10 +404,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Seq(domain.ConceptTitle("", "")),
       updatedBy = Seq("test"),
       created = today,
-      updated = today,
+      updated = today
     )
     val updateWith = UserInfo.SystemUser.copy(id = "test")
-    val dummy = TestData.emptyApiNewConcept
+    val dummy      = TestData.emptyApiNewConcept
 
     service.toDomainConcept(dummy, updateWith) should be(Success(afterUpdate))
   }

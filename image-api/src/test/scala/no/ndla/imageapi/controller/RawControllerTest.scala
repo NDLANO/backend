@@ -18,15 +18,15 @@ import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
   implicit val swagger = new ImageSwagger
-  val imageName = "ndla_logo.jpg"
-  val imageGifName = "ndla_logo.gif"
-  val imageSvgName = "logo.svg"
+  val imageName        = "ndla_logo.jpg"
+  val imageGifName     = "ndla_logo.gif"
+  val imageSvgName     = "logo.svg"
 
   override val imageConverter = new ImageConverter
-  lazy val controller = new RawController
+  lazy val controller         = new RawController
   addServlet(controller, "/*")
 
-  val id = 1
+  val id    = 1
   val idGif = 1
 
   override def beforeEach() = {

@@ -38,10 +38,11 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
-    /**
-      * Attempts to extract language that hit from highlights in elasticsearch response.
-      * @param result Elasticsearch hit.
-      * @return Language if found.
+    /** Attempts to extract language that hit from highlights in elasticsearch response.
+      * @param result
+      *   Elasticsearch hit.
+      * @return
+      *   Language if found.
       */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       def keyToLanguage(keys: Iterable[String]): Option[String] = {
@@ -49,7 +50,8 @@ trait ConverterService {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -59,7 +61,7 @@ trait ConverterService {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>
@@ -69,18 +71,19 @@ trait ConverterService {
       }
     }
 
-    /**
-      * Returns article summary from json string returned by elasticsearch.
-      * Will always return summary, even if language does not exist in hitString.
-      * Language will be prioritized according to [[findByLanguageOrBestEffort]].
-      * @param hitString Json string returned from elasticsearch for one article.
-      * @param language Language to extract from the hitString.
-      * @return Article summary extracted from hitString in specified language.
+    /** Returns article summary from json string returned by elasticsearch. Will always return summary, even if language
+      * does not exist in hitString. Language will be prioritized according to [[findByLanguageOrBestEffort]].
+      * @param hitString
+      *   Json string returned from elasticsearch for one article.
+      * @param language
+      *   Language to extract from the hitString.
+      * @return
+      *   Article summary extracted from hitString in specified language.
       */
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
 
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchableArticle = read[SearchableArticle](hitString)
+      val searchableArticle         = read[SearchableArticle](hitString)
 
       val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
       val introductions =
@@ -97,12 +100,12 @@ trait ConverterService {
       val title = findByLanguageOrBestEffort(titles, language)
         .map(toApiArticleTitle)
         .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
-      val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
-      val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
+      val visualElement   = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
+      val introduction    = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
-      val metaImage = findByLanguageOrBestEffort(metaImages, language).map(toApiArticleMetaImage)
-      val lastUpdated = searchableArticle.lastUpdated
-      val availability = searchableArticle.availability
+      val metaImage       = findByLanguageOrBestEffort(metaImages, language).map(toApiArticleMetaImage)
+      val lastUpdated     = searchableArticle.lastUpdated
+      val availability    = searchableArticle.availability
 
       ArticleSummaryV2(
         searchableArticle.id,
@@ -117,12 +120,12 @@ trait ConverterService {
         lastUpdated.toDate,
         supportedLanguages,
         searchableArticle.grepCodes,
-        availability,
+        availability
       )
     }
 
     private[service] def oldToNewLicenseKey(license: String): String = {
-      val licenses = Map("nolaw" -> "CC0-1.0", "noc" -> "PD")
+      val licenses   = Map("nolaw" -> "CC0-1.0", "noc" -> "PD")
       val newLicense = licenses.getOrElse(license, license)
 
       if (getLicense(newLicense).isEmpty) {
@@ -132,13 +135,15 @@ trait ConverterService {
     }
 
     private def toNewAuthorType(author: Author): Author = {
-      val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-      val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+      val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+      val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
       val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-      (creatorMap(author.`type`.toLowerCase),
-       processorMap(author.`type`.toLowerCase),
-       rightsholderMap(author.`type`.toLowerCase)) match {
+      (
+        creatorMap(author.`type`.toLowerCase),
+        processorMap(author.`type`.toLowerCase),
+        rightsholderMap(author.`type`.toLowerCase)
+      ) match {
         case (t: String, _, _) => Author(t.capitalize, author.name)
         case (_, t: String, _) => Author(t.capitalize, author.name)
         case (_, _, t: String) => Author(t.capitalize, author.name)
@@ -152,14 +157,15 @@ trait ConverterService {
     }
 
     def updateExistingTagsField(existingTags: Seq[ArticleTag], updatedTags: Seq[ArticleTag]): Seq[ArticleTag] = {
-      val newTags = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
+      val newTags    = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
       val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
       newTags ++ tagsToKeep
     }
 
     def updateExistingMetaDescriptionField(
         existingMetaDesc: Seq[ArticleMetaDescription],
-        updatedMetaDesc: Seq[ArticleMetaDescription]): Seq[ArticleMetaDescription] = {
+        updatedMetaDesc: Seq[ArticleMetaDescription]
+    ): Seq[ArticleMetaDescription] = {
       val newMetaDescriptions = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
       val metaDescToKeep = existingMetaDesc.filterNot(tag => newMetaDescriptions.map(_.language).contains(tag.language))
       newMetaDescriptions ++ metaDescToKeep
@@ -167,8 +173,8 @@ trait ConverterService {
 
     def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
       val newAvailability = partialArticle.availability.getOrElse(existingArticle.availability)
-      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
-      val newLicense = partialArticle.license.getOrElse(existingArticle.copyright.license)
+      val newGrepCodes    = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+      val newLicense      = partialArticle.license.getOrElse(existingArticle.copyright.license)
 
       val newMeta = partialArticle.metaDescription match {
         case Some(metaDesc) =>
@@ -216,7 +222,8 @@ trait ConverterService {
           rightsholders = agreementCopyright.rightsholders,
           validFrom = agreementCopyright.validFrom,
           validTo = agreementCopyright.validTo
-        ))
+        )
+      )
     }
 
     def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
@@ -349,7 +356,7 @@ trait ConverterService {
 
     def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       val supportedLanguages = getSupportedArticleLanguages(article)
-      val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
+      val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language)
@@ -361,7 +368,7 @@ trait ConverterService {
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
           .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
-        val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
+        val introduction  = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language)
           .map(toApiArticleContentV2)
@@ -392,11 +399,15 @@ trait ConverterService {
             article.conceptIds,
             availability = article.availability.toString,
             article.relatedContent.map(toApiRelatedContent)
-          ))
+          )
+        )
       } else {
         Failure(
-          NotFoundException(s"The article with id ${article.id.get} and language $language was not found",
-                            supportedLanguages))
+          NotFoundException(
+            s"The article with id ${article.id.get} and language $language was not found",
+            supportedLanguages
+          )
+        )
       }
     }
 
@@ -464,20 +475,24 @@ trait ConverterService {
     }
 
     def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
-      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
-                           metaImage.altText,
-                           metaImage.language)
+      api.ArticleMetaImage(
+        s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
+        metaImage.altText,
+        metaImage.language
+      )
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
     def toApiArticleIds(ids: ArticleIds): api.ArticleIds = api.ArticleIds(ids.articleId, ids.externalId)
 
-    def toApiArticleTags(tags: Seq[String],
-                         tagsCount: Int,
-                         pageSize: Int,
-                         offset: Int,
-                         language: String): api.TagsSearchResult = {
+    def toApiArticleTags(
+        tags: Seq[String],
+        tagsCount: Int,
+        pageSize: Int,
+        offset: Int,
+        language: String
+    ): api.TagsSearchResult = {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 

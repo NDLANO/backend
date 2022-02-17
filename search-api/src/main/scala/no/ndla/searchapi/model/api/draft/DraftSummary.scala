@@ -20,11 +20,17 @@ case class DraftSummary(
     @(ApiModelProperty @field)(description = "The title of the article") title: Title,
     @(ApiModelProperty @field)(description = "A visual element article") visualElement: Option[VisualElement],
     @(ApiModelProperty @field)(description = "An introduction for the article") introduction: Option[
-      ArticleIntroduction],
+      ArticleIntroduction
+    ],
     @(ApiModelProperty @field)(
-      description = "The full url to where the complete information about the article can be found") url: String,
+      description = "The full url to where the complete information about the article can be found"
+    ) url: String,
     @(ApiModelProperty @field)(description = "Describes the license of the article") license: String,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
+    @(ApiModelProperty @field)(
+      description = "The type of article this is. Possible values are topic-article,standard"
+    ) articleType: String,
     @(ApiModelProperty @field)(description = "A list of available languages for this audio") supportedLanguages: Seq[
-      String],
-    @(ApiModelProperty @field)(description = "The notes for this draft article") notes: Seq[String])
+      String
+    ],
+    @(ApiModelProperty @field)(description = "The notes for this draft article") notes: Seq[String]
+)

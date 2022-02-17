@@ -17,4 +17,5 @@ import scala.annotation.meta.field
 case class LearningStepContainerSummary(
     @(ApiModelProperty @field)(description = "The chosen search language") language: String,
     @(ApiModelProperty @field)(description = "The chosen search language") learningsteps: Seq[LearningStepSummaryV2],
-    @(ApiModelProperty @field)(description = "The chosen search language") supportedLanguages: Seq[String])
+    @(ApiModelProperty @field)(description = "The chosen search language") supportedLanguages: Seq[String]
+)

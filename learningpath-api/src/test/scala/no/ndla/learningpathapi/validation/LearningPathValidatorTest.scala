@@ -26,8 +26,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
 
   }
 
-  val trump = Author("author", "Donald Drumpf")
-  val license = PublicDomain.toString
+  val trump     = Author("author", "Donald Drumpf")
+  val license   = PublicDomain.toString
   val copyright = Copyright(license, List(trump))
 
   val ValidLearningPath = LearningPath(
@@ -64,7 +64,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
   test("That validate returns no error for no coverPhoto") {
     validMock()
     validator.validateLearningPath(ValidLearningPath.copy(coverPhotoId = None), allowUnknownLanguage = false) should be(
-      List())
+      List()
+    )
   }
 
   test("That validateCoverPhoto returns an error when metaUrl is pointing to some another api on ndla") {
@@ -102,18 +103,23 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
     errorMessages.head.message should equal("At least one description is required.")
   }
 
-  test("That validate does not return error message when no descriptions are defined and no descriptions are required") {
+  test(
+    "That validate does not return error message when no descriptions are defined and no descriptions are required"
+  ) {
     validMock()
     new LearningPathValidator(descriptionRequired = false)
       .validateLearningPath(ValidLearningPath.copy(description = List()), allowUnknownLanguage = false) should equal(
-      List())
+      List()
+    )
   }
 
   test("That validate returns error message when description contains html") {
     validMock()
     val validationErrors =
-      validator.validateLearningPath(ValidLearningPath.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
-                                     false)
+      validator.validateLearningPath(
+        ValidLearningPath.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
+        false
+      )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description.description")
   }
@@ -127,7 +133,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
 
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(description = List(Description("Gyldig beskrivelse", "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description.language")
   }
@@ -150,7 +157,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
 
     val validationErrors = new LearningPathValidator(descriptionRequired = false).validateLearningPath(
       ValidLearningPath.copy(description = List(Description("Gyldig beskrivelse", "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description.language")
   }
@@ -165,7 +173,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
 
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(description = List(Description("<h1>Ugyldig</h1>", "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("description.description")
     validationErrors.last.field should equal("description.language")
@@ -179,7 +188,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
           Description("Gyldig", "nb"),
           Description("<h1>Ugyldig</h1>", "nb"),
           Description("<h2>Også ugyldig</h2>", "nb")
-        )),
+        )
+      ),
       false
     )
 
@@ -205,7 +215,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
     validMock()
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(tags = List(LearningPathTags(Seq("<strong>ugyldig</strong>"), "nb"))),
-      false)
+      false
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("tags.tags")
   }
@@ -219,8 +230,10 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
       .thenReturn(Some(ValidationMessage("tags.language", "Error")))
 
     val validationErrors =
-      validator.validateLearningPath(ValidLearningPath.copy(tags = List(LearningPathTags(Seq("Gyldig"), "bergensk"))),
-                                     false)
+      validator.validateLearningPath(
+        ValidLearningPath.copy(tags = List(LearningPathTags(Seq("Gyldig"), "bergensk"))),
+        false
+      )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("tags.language")
   }
@@ -235,7 +248,8 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
 
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(tags = List(LearningPathTags(Seq("<strong>ugyldig</strong>"), "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("tags.tags")
     validationErrors.last.field should equal("tags.language")
@@ -247,8 +261,10 @@ class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironmen
       ValidLearningPath.copy(
         tags = List(
           LearningPathTags(Seq("<strong>ugyldig</strong>", "<li>også ugyldig</li>"), "nb")
-        )),
-      false)
+        )
+      ),
+      false
+    )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("tags.tags")
     validationErrors.last.field should equal("tags.tags")

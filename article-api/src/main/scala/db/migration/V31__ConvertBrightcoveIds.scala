@@ -38,9 +38,9 @@ class BrightcoveApiClient {
   implicit val jsonFormats: Formats = DefaultFormats
 
   private val BrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  private val ClientId = prop("BRIGHTCOVE_API_CLIENT_ID")
-  private val ClientSecret = prop("BRIGHTCOVE_API_CLIENT_SECRET")
-  private val timeout = 20 * 1000 // 20 Seconds
+  private val ClientId            = prop("BRIGHTCOVE_API_CLIENT_ID")
+  private val ClientSecret        = prop("BRIGHTCOVE_API_CLIENT_SECRET")
+  private val timeout             = 20 * 1000 // 20 Seconds
 
   private var accessToken: Option[StoredToken] = None
 
@@ -70,7 +70,8 @@ class BrightcoveApiClient {
     doRequest(
       Http(s"https://cms.api.brightcove.com/v1/accounts/$BrightcoveAccountId/videos/$id")
         .header("Authorization", s"Bearer ${token.accessToken}")
-        .timeout(timeout, timeout))
+        .timeout(timeout, timeout)
+    )
       .flatMap(e => extract[BrightcoveData](e.body))
   }
 
@@ -79,7 +80,8 @@ class BrightcoveApiClient {
       Http("https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials")
         .method("POST")
         .auth(ClientId, ClientSecret)
-        .timeout(timeout, timeout))
+        .timeout(timeout, timeout)
+    )
       .flatMap(e => extract[BrightcoveToken](e.body))
   }
 
@@ -93,9 +95,12 @@ class BrightcoveApiClient {
   private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
     Try(request.asString).flatMap(response => {
       if (response.isError) {
-        Failure(new HttpRequestException(
-          s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
-          Some(response)))
+        Failure(
+          new HttpRequestException(
+            s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
+            Some(response)
+          )
+        )
       } else {
         Success(response)
       }
@@ -118,30 +123,28 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
     while (numPagesLeft > 0) {
       val futures = ListBuffer.empty[Future[(String, Long)]]
 
-      allArticles(offset * 1000).map {
-        case (id, document) =>
-          // Convert each article in separate thread
-          futures += Future { convertArticleUpdate(document, id) }
+      allArticles(offset * 1000).map { case (id, document) =>
+        // Convert each article in separate thread
+        futures += Future { convertArticleUpdate(document, id) }
       }
       numPagesLeft -= 1
       offset += 1
 
       // Wait for all threads to finish before doing database stuff because memory runs out if we do all at once
-      val futs = Future.sequence(futures)
+      val futs            = Future.sequence(futures)
       val allThemArticles = Await.result(futs, Duration.Inf)
 
-      allThemArticles.map {
-        case (newDocument, articleId) =>
-          updateArticle(newDocument, articleId)(session)
+      allThemArticles.map { case (newDocument, articleId) =>
+        updateArticle(newDocument, articleId)(session)
       }
     }
   }
@@ -206,7 +209,8 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
       content.mapField {
         case (`contentType`, JString(html)) => (`contentType`, JString(updateContent(html, id)))
         case z                              => z
-    })
+      }
+    )
   }
 
   private[migration] def convertArticleUpdate(document: String, id: Long): (String, Long) = {

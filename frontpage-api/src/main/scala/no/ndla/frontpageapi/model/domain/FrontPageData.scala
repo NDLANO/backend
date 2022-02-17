@@ -21,7 +21,7 @@ import scala.util.Try
 case class FrontPageData(topical: List[String], categories: List[SubjectCollection])
 
 object FrontPageData extends SQLSyntaxSupport[FrontPageData] {
-  override val tableName = "mainfrontpage"
+  override val tableName  = "mainfrontpage"
   override val schemaName = FrontpageApiProperties.MetaSchema.some
 
   private[domain] def decodeJson(json: String): Try[FrontPageData] = {

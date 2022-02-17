@@ -14,7 +14,7 @@ import scala.language.implicitConversions
 
 object SideEffect {
   type SideEffect = (domain.Article, Boolean) => Try[domain.Article]
-  def none: SideEffect = (article, isImported) => Success(article)
+  def none: SideEffect                                    = (article, isImported) => Success(article)
   def fromOutput(output: Try[domain.Article]): SideEffect = (_, _) => output
 
   /** Implicits used to simplify creating a [[SideEffect]] which doesn't need all the parameters */

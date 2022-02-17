@@ -48,15 +48,18 @@ trait AgreementSearchService {
                 .should(
                   queryStringQuery(query).field("title").boost(2),
                   queryStringQuery(query).field("content").boost(1)
-                ))
+                )
+            )
         case None => boolQuery()
       }
 
       executeSearch(settings, fullQuery)
     }
 
-    def executeSearch(settings: AgreementSearchSettings,
-                      queryBuilder: BoolQuery): Try[SearchResult[api.AgreementSummary]] = {
+    def executeSearch(
+        settings: AgreementSearchSettings,
+        queryBuilder: BoolQuery
+    ): Try[SearchResult[api.AgreementSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
@@ -64,14 +67,15 @@ trait AgreementSearchService {
         case Some(lic) => Some(termQuery("license", lic))
       }
 
-      val filters = List(idFilter, licenseFilter)
+      val filters        = List(idFilter, licenseFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
 
@@ -98,7 +102,8 @@ trait AgreementSearchService {
                 Language.NoLanguage,
                 getHits(response.result, Language.NoLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }
@@ -116,7 +121,8 @@ trait AgreementSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} agreements in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} agreements in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

@@ -24,7 +24,8 @@ object JettyLauncher extends LazyLogging {
     logger.info(
       Source
         .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))
-        .mkString)
+        .mkString
+    )
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
     DBMigrator.migrate(ComponentRegistry.dataSource)
@@ -44,8 +45,10 @@ object JettyLauncher extends LazyLogging {
     ConceptApiProperties.Environment match {
       case "local" => None
       case _ =>
-        monitoringFilter.setInitParameter(Parameter.CLOUDWATCH_NAMESPACE.getCode,
-                                          "NDLA/APP".replace("APP", ConceptApiProperties.ApplicationName))
+        monitoringFilter.setInitParameter(
+          Parameter.CLOUDWATCH_NAMESPACE.getCode,
+          "NDLA/APP".replace("APP", ConceptApiProperties.ApplicationName)
+        )
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 

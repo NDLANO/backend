@@ -28,7 +28,7 @@ case class TaxSubject(
     contentUri: Option[String],
     path: Option[String],
     metadata: Option[Metadata],
-    translations: List[TaxonomyTranslation],
+    translations: List[TaxonomyTranslation]
 ) extends TaxonomyElement
 
 case class Resource(

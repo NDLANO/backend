@@ -24,7 +24,7 @@ trait DraftApiClient {
       s"http://${AudioApiProperties.DraftApiHost}/draft-api/v1/agreements/:agreement_id"
 
     def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
-      implicit val formats = org.json4s.DefaultFormats
+      implicit val formats     = org.json4s.DefaultFormats
       val request: HttpRequest = Http(s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString))
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright)
@@ -36,10 +36,12 @@ trait DraftApiClient {
   }
 }
 
-case class Agreement(id: Long,
-                     title: String,
-                     content: String,
-                     copyright: api.Copyright,
-                     created: Date,
-                     updated: Date,
-                     updatedBy: String)
+case class Agreement(
+    id: Long,
+    title: String,
+    content: String,
+    copyright: api.Copyright,
+    created: Date,
+    updated: Date,
+    updatedBy: String
+)

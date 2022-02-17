@@ -19,10 +19,11 @@ trait AudioApiClient {
 
   class AudioApiClient(val baseUrl: String) extends SearchApiClient {
     override val searchPath = "audio-api/v1/audio"
-    override val name = "audios"
+    override val name       = "audios"
 
-    def search(searchParams: SearchParams)(
-        implicit executionContext: ExecutionContext): Future[Try[AudioApiSearchResults]] =
+    def search(searchParams: SearchParams)(implicit
+        executionContext: ExecutionContext
+    ): Future[Try[AudioApiSearchResults]] =
       search[AudioApiSearchResults](searchParams)
   }
 }

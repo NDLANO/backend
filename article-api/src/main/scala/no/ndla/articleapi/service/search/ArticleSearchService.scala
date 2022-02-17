@@ -45,12 +45,12 @@ trait ArticleSearchService {
     def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
       val fullQuery = settings.query match {
         case Some(query) =>
-          val language = if (settings.fallback) "*" else settings.language
-          val titleSearch = simpleStringQuery(query).field(s"title.$language", 3)
-          val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
-          val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
+          val language      = if (settings.fallback) "*" else settings.language
+          val titleSearch   = simpleStringQuery(query).field(s"title.$language", 3)
+          val introSearch   = simpleStringQuery(query).field(s"introduction.$language", 2)
+          val metaSearch    = simpleStringQuery(query).field(s"metaDescription.$language", 1)
           val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-          val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
+          val tagSearch     = simpleStringQuery(query).field(s"tags.$language", 1)
 
           boolQuery()
             .must(
@@ -115,7 +115,8 @@ trait ArticleSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(ResultWindowTooLargeException())
       } else {
 
@@ -143,7 +144,8 @@ trait ArticleSearchService {
                 settings.language,
                 getHits(response.result, settings.language, settings.fallback),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -159,7 +161,8 @@ trait ArticleSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

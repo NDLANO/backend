@@ -30,5 +30,5 @@ case class SearchableLearningPath(
     supportedLanguages: List[String],
     authors: List[String],
     contexts: List[SearchableTaxonomyContext],
-    embedResourcesAndIds: List[EmbedValues],
+    embedResourcesAndIds: List[EmbedValues]
 )

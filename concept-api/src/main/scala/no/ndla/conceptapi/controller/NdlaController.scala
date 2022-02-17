@@ -44,10 +44,12 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}",
-                request.getMethod,
-                request.getRequestURI,
-                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info(
+      "{} {}{}",
+      request.getMethod,
+      request.getRequestURI,
+      Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+    )
   }
 
   after() {
@@ -67,8 +69,8 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     case st: IllegalStatusStateTransition => BadRequest(body = Error(Error.VALIDATION, st.getMessage))
     case e: IndexNotFoundException        => InternalServerError(body = Error.IndexMissingError)
     case NdlaSearchException(_, Some(rf), _)
-        if rf.error.rootCause.exists(x =>
-          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case ona: OperationNotAllowedException => BadRequest(body = Error(Error.OPERATION_NOT_ALLOWED, ona.getMessage))
     case psqle: PSQLException =>
@@ -102,10 +104,11 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     Param[Long]("concept_id", "Id of the concept that is to be returned")
   protected val conceptIds = Param[Option[Seq[Long]]](
     "ids",
-    "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+    "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+  )
   protected val correlationId =
     Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
-  protected val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
+  protected val pageNo   = Param[Option[Int]]("page", "The page number of the search hits to display.")
   protected val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
   protected val sort = Param[Option[String]](
     "sort",
@@ -114,14 +117,14 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
   )
   protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
-  protected val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-  protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
-  protected val license = Param[Option[String]]("license", "Return only results with provided license.")
+  protected val language         = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+  protected val pathLanguage     = Param[String]("language", "The ISO 639-1 language code describing language.")
+  protected val license          = Param[Option[String]]("license", "Return only results with provided license.")
   protected val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
   protected val scrollId = Param[Option[String]](
     "search-context",
     s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-         .mkString("[", ",", "]")}.
+        .mkString("[", ",", "]")}.
        |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}' and '${this.fallback.paramName}'.
        |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
        |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -138,7 +141,7 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
   )
 
   protected val embedResource = Param[Option[String]]("embed-resource", "Return concepts with matching embed type.")
-  protected val embedId = Param[Option[String]]("embed-id", "Return concepts with matching embed id.")
+  protected val embedId       = Param[Option[String]]("embed-id", "Return concepts with matching embed id.")
 
   protected val exactTitleMatch =
     Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
@@ -172,7 +175,8 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       case true => paramValue.toLong
       case false =>
         throw new ValidationException(
-          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+        )
     }
   }
 
@@ -213,8 +217,10 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       case Some(_) =>
         if (!strings.forall(entry => entry.forall(_.isDigit))) {
           throw new ValidationException(
-            errors =
-              Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+            errors = Seq(
+              ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
+            )
+          )
         }
         strings.map(_.toLong)
     }

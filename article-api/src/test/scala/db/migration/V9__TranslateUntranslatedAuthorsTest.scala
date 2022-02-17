@@ -10,7 +10,7 @@ package db.migration
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V9__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration = new V9__TranslateUntranslatedAuthors
+  val migration        = new V9__TranslateUntranslatedAuthors
   implicit val formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {

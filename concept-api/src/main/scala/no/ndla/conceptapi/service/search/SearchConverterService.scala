@@ -52,14 +52,15 @@ trait SearchConverterService {
     // To be removed
     private def getEmbedResources(embed: Element): List[String] = {
       val attributesToKeep = List(
-        "data-resource",
+        "data-resource"
       )
 
       attributesToKeep.flatMap(attr =>
         embed.attr(attr) match {
           case "" => None
           case a  => Some(a)
-      })
+        }
+      )
     }
 
     // To be removed
@@ -84,7 +85,7 @@ trait SearchConverterService {
         "data-videoid",
         "data-url",
         "data-resource_id",
-        "data-content-id",
+        "data-content-id"
       )
 
       attributesToKeep
@@ -92,7 +93,8 @@ trait SearchConverterService {
           embed.attr(attr) match {
             case "" => None
             case a  => Some(a)
-        })
+          }
+        )
     }
 
     private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
@@ -107,8 +109,10 @@ trait SearchConverterService {
         .toList
     }
 
-    private def getEmbedResourcesAndIdsToIndex(visualElement: Seq[domain.VisualElement],
-                                               metaImage: Seq[domain.ConceptMetaImage]): List[EmbedValues] = {
+    private def getEmbedResourcesAndIdsToIndex(
+        visualElement: Seq[domain.VisualElement],
+        metaImage: Seq[domain.ConceptMetaImage]
+    ): List[EmbedValues] = {
       val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.visualElement, v.language))
       val metaImageTuples =
         metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some("image"), language = m.language))
@@ -139,16 +143,17 @@ trait SearchConverterService {
         license = c.copyright.flatMap(_.license),
         embedResourcesAndIds = embedResourcesAndIds,
         visualElement = SearchableLanguageValues(
-          c.visualElement.map(element => LanguageValue(element.language, element.visualElement)))
+          c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
+        )
       )
     }
 
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
 
       val searchableConcept = read[SearchableConcept](hitString)
-      val titles = searchableConcept.title.languageValues.map(lv => domain.ConceptTitle(lv.value, lv.language))
+      val titles   = searchableConcept.title.languageValues.map(lv => domain.ConceptTitle(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
-      val tags = searchableConcept.tags.languageValues.map(lv => domain.ConceptTags(lv.value, lv.language))
+      val tags     = searchableConcept.tags.languageValues.map(lv => domain.ConceptTags(lv.value, lv.language))
       val visualElements =
         searchableConcept.visualElement.languageValues.map(lv => domain.VisualElement(lv.value, lv.language))
 
@@ -187,18 +192,18 @@ trait SearchConverterService {
     def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTags]): List[SubjectTags] =
       tags
         .groupBy(_.language)
-        .map {
-          case (lang, conceptTags) =>
-            val tagsForLang = conceptTags.flatMap(_.tags).distinct
-            api.SubjectTags(subjectId, tagsForLang, lang)
+        .map { case (lang, conceptTags) =>
+          val tagsForLang = conceptTags.flatMap(_.tags).distinct
+          api.SubjectTags(subjectId, tagsForLang, lang)
         }
         .toList
 
-    /**
-      * Attempts to extract language that hit from highlights in elasticsearch response.
+    /** Attempts to extract language that hit from highlights in elasticsearch response.
       *
-      * @param result Elasticsearch hit.
-      * @return Language if found.
+      * @param result
+      *   Elasticsearch hit.
+      * @return
+      *   Language if found.
       */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       def keyToLanguage(keys: Iterable[String]): Option[String] = {
@@ -206,7 +211,8 @@ trait SearchConverterService {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -216,7 +222,7 @@ trait SearchConverterService {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>
@@ -227,11 +233,13 @@ trait SearchConverterService {
     }
 
     def asApiConceptSearchResult(searchResult: SearchResult[api.ConceptSummary]): ConceptSearchResult =
-      api.ConceptSearchResult(searchResult.totalCount,
-                              searchResult.page,
-                              searchResult.pageSize,
-                              searchResult.language,
-                              searchResult.results)
+      api.ConceptSearchResult(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
 
     def toApiStatus(status: Status): api.Status = {
       api.Status(

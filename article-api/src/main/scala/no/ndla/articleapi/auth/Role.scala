@@ -24,7 +24,7 @@ trait Role {
         throw new AccessDeniedException("User is missing required role(s) to perform this operation")
     }
 
-    def assertHasWritePermission(): Unit = assertHasRoles(ArticleApiProperties.RoleWithWriteAccess)
+    def assertHasWritePermission(): Unit      = assertHasRoles(ArticleApiProperties.RoleWithWriteAccess)
     def assertHasDraftWritePermission(): Unit = assertHasRoles(ArticleApiProperties.DraftRoleWithWriteAccess)
   }
 

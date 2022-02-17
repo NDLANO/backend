@@ -14,5 +14,7 @@ import scala.annotation.meta.field
 @ApiModel(description = "Meta image for the concept")
 case class ConceptTags(
     @(ApiModelProperty @field)(description = "Searchable tags") tags: Seq[String],
-    @(ApiModelProperty @field)(description =
-      "The ISO 639-1 language code describing which concept translation these tags belongs to") language: String)
+    @(ApiModelProperty @field)(
+      description = "The ISO 639-1 language code describing which concept translation these tags belongs to"
+    ) language: String
+)

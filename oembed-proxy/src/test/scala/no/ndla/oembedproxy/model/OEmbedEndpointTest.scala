@@ -17,7 +17,8 @@ class OEmbedEndpointTest extends UnitSuite {
   test("That matches returns true for a matching expression") {
     dummyEndpoint.matches("http://www.ndla.no/*/test", "http://www.ndla.no/123123/test") should be(right = true)
     dummyEndpoint.matches("http://www.*.no/*/test/*", "http://www.aftenposten.no/123123/test/adf") should be(
-      right = true)
+      right = true
+    )
     dummyEndpoint.matches("a.*.c", "a.b.c") should be(right = true)
   }
 

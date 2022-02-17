@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
   override val converterService = new ConverterService
-  lazy val controller = new InternController
+  lazy val controller           = new InternController
   addServlet(controller, "/*")
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
@@ -109,7 +109,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   }
 
   test(
-    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
+    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless"
+  ) {
     reset(audioIndexService)
     when(audioIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
@@ -120,7 +121,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     delete("/index") {
       status should equal(500)
       body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully.")
+        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
+      )
     }
     verify(audioIndexService).deleteIndexWithName(Some("index1"))
     verify(audioIndexService).deleteIndexWithName(Some("index2"))

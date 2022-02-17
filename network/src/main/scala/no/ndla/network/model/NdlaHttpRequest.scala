@@ -21,10 +21,10 @@ object NdlaHttpRequest {
 
   def apply(req: HttpServletRequest): NdlaHttpRequest =
     new NdlaHttpRequest {
-      override def serverPort: Int = req.getServerPort
+      override def serverPort: Int                         = req.getServerPort
       override def getHeader(name: String): Option[String] = Option(req.getHeader(name))
-      override def getScheme: String = req.getScheme
-      override def serverName: String = req.getServerName
-      override def servletPath: String = req.getServletPath
+      override def getScheme: String                       = req.getScheme
+      override def serverName: String                      = req.getServerName
+      override def servletPath: String                     = req.getServletPath
     }
 }

@@ -37,8 +37,8 @@ class LearningpathApiClientTest extends UnitSuite with TestEnvironment {
       new EnumNameSerializer(LearningResourceType) ++
       org.json4s.ext.JodaTimeSerializers.all
 
-  override val ndlaClient = new NdlaClient
-  override val converterService = new ConverterService
+  override val ndlaClient             = new NdlaClient
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   // Pact CDC imports
@@ -132,8 +132,8 @@ class LearningpathApiClientTest extends UnitSuite with TestEnvironment {
           AuthUser.setHeader(s"Bearer $exampleToken")
           val learningPathApiClient = new LearningPathApiClient(mockConfig.baseUrl)
 
-          implicit val ec = ExecutionContext.global
-          val chunks = learningPathApiClient.getChunks[domain.learningpath.LearningPath].toList
+          implicit val ec         = ExecutionContext.global
+          val chunks              = learningPathApiClient.getChunks[domain.learningpath.LearningPath].toList
           val fetchedLearningPath = Await.result(chunks.head, Duration.Inf).get.head
 
           val searchable =

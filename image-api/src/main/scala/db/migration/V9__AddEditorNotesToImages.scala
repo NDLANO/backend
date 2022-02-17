@@ -18,15 +18,15 @@ import scalikejdbc.{DB, DBSession, _}
 class V9__AddEditorNotesToImages extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val timeService = new TimeService()
+  val timeService                           = new TimeService()
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      imagesToUpdate.map {
-        case (id, document) => update(convertImageUpdate(document), id)
+      imagesToUpdate.map { case (id, document) =>
+        update(convertImageUpdate(document), id)
       }
     }
   }
@@ -40,9 +40,9 @@ class V9__AddEditorNotesToImages extends BaseJavaMigration {
   }
 
   def convertImageUpdate(imageMeta: String): String = {
-    val oldDocument = parse(imageMeta)
+    val oldDocument     = parse(imageMeta)
     val updatedByString = (oldDocument \ "updatedBy").extract[String]
-    val updatedString = (oldDocument \ "updated").extract[String]
+    val updatedString   = (oldDocument \ "updated").extract[String]
 
     val mergeObject = JObject(
       JField("createdBy", JString(updatedByString)),

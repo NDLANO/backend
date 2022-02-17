@@ -26,10 +26,10 @@ trait TestEnvironment
 
   override val dataSource = mock[javax.sql.DataSource]
 
-  override val filmPageController = mock[FilmPageController[IO]]
-  override val subjectPageRepository = mock[SubjectPageRepository]
-  override val frontPageRepository = mock[FrontPageRepository]
+  override val filmPageController      = mock[FilmPageController[IO]]
+  override val subjectPageRepository   = mock[SubjectPageRepository]
+  override val frontPageRepository     = mock[FrontPageRepository]
   override val filmFrontPageRepository = mock[FilmFrontPageRepository]
-  override val readService = mock[ReadService]
-  override val writeService = mock[WriteService]
+  override val readService             = mock[ReadService]
+  override val writeService            = mock[WriteService]
 }

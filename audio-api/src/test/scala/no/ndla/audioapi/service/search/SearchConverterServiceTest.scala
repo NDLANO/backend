@@ -84,7 +84,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[AudioMetaInformation](0))
+      i.getArgument[AudioMetaInformation](0)
+    )
   }
 
   test("That asSearchableAudioInformation converts titles with correct language") {

@@ -68,16 +68,18 @@ trait AgreementRepository {
     override def documentsWithIdBetween(min: Long, max: Long): List[Agreement] =
       agreementsWhere(sqls"agr.id between $min and $max")
 
-    private def agreementWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[Agreement] = {
+    private def agreementWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Agreement] = {
       val agr = Agreement.syntax("agr")
       sql"select ${agr.result.*} from ${Agreement.as(agr)} where $whereClause"
         .map(Agreement.fromResultSet(agr))
         .single()
     }
 
-    private def agreementsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): List[Agreement] = {
+    private def agreementsWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): List[Agreement] = {
       val agr = Agreement.syntax("agr")
       sql"select ${agr.result.*} from ${Agreement.as(agr)} where $whereClause"
         .map(Agreement.fromResultSet(agr))

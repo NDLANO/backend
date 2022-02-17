@@ -31,7 +31,7 @@ trait ContentValidator {
 
   class ContentValidator() {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator = new TextValidator(allowHtml = true)
+    private val HtmlValidator   = new TextValidator(allowHtml = true)
 
     def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
       val metaValidation =
@@ -81,7 +81,9 @@ trait ContentValidator {
           Seq(
             ValidationMessage(
               "articleType",
-              s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
+              s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"
+            )
+          )
         case _ => Seq.empty
       }
     }
@@ -97,7 +99,7 @@ trait ContentValidator {
 
     def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
       val legalTopLevelTag = "section"
-      val topLevelTags = stringToJsoupDocument(html).children().asScala.map(_.tagName())
+      val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName())
 
       if (topLevelTags.forall(_ == legalTopLevelTag)) {
         None
@@ -106,7 +108,9 @@ trait ContentValidator {
         Some(
           ValidationMessage(
             field,
-            s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
+            s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "
+          )
+        )
       }
     }
 
@@ -124,8 +128,10 @@ trait ContentValidator {
         validateLanguage("introduction.language", content.language)
     }
 
-    private def validateMetaDescription(contents: Seq[ArticleMetaDescription],
-                                        allowEmpty: Boolean): Seq[ValidationMessage] = {
+    private def validateMetaDescription(
+        contents: Seq[ArticleMetaDescription],
+        allowEmpty: Boolean
+    ): Seq[ValidationMessage] = {
       val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
       val validations = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
@@ -145,16 +151,18 @@ trait ContentValidator {
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
-      val licenseMessage = validateLicense(copyright.license)
-      val allAuthors = copyright.creators ++ copyright.processors ++ copyright.rightsholders
+      val licenseMessage            = validateLicense(copyright.license)
+      val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages =
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
           copyright.processors.flatMap(a =>
-            validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
+            validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)
+          ) ++
           copyright.rightsholders.flatMap(a =>
-            validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
-      val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+            validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes)
+          )
+      val originMessage    = NoHtmlValidator.validate("copyright.origin", copyright.origin)
       val agreementMessage = validateAgreement(copyright)
 
       licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
@@ -205,8 +213,11 @@ trait ContentValidator {
       val languageTagAmountErrors = tags.groupBy(_.language).flatMap {
         case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < MinimumAllowedTags =>
           Seq(
-            ValidationMessage(s"tags.$lang",
-                              s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."))
+            ValidationMessage(
+              s"tags.$lang",
+              s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."
+            )
+          )
         case _ => Seq()
       }
 
@@ -224,9 +235,12 @@ trait ContentValidator {
       if (permittedLibraries.contains(requiredLibrary.url)) {
         None
       } else {
-        Some(ValidationMessage(
-          "requiredLibraries.url",
-          s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
+        Some(
+          ValidationMessage(
+            "requiredLibraries.url",
+            s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"
+          )
+        )
       }
     }
 

@@ -26,9 +26,9 @@ trait PublishedConceptIndexService {
   val publishedConceptIndexService: PublishedConceptIndexService
 
   class PublishedConceptIndexService extends LazyLogging with IndexService[Concept] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = ConceptApiProperties.ConceptSearchDocument
-    override val searchIndex: String = ConceptApiProperties.PublishedConceptSearchIndex
+    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
+    override val documentType: String            = ConceptApiProperties.ConceptSearchDocument
+    override val searchIndex: String             = ConceptApiProperties.PublishedConceptSearchIndex
     override val repository: Repository[Concept] = publishedConceptRepository
 
     override def createIndexRequest(concept: Concept, indexName: String): Try[IndexRequest] = {

@@ -75,7 +75,7 @@ trait ImageRepository {
     }
 
     def update(imageMetaInformation: ImageMetaInformation, id: Long): ImageMetaInformation = {
-      val json = write(imageMetaInformation)
+      val json       = write(imageMetaInformation)
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(json)
@@ -106,16 +106,18 @@ trait ImageRepository {
     def documentsWithIdBetween(min: Long, max: Long): List[ImageMetaInformation] =
       imageMetaInformationsWhere(sqls"im.id between $min and $max")
 
-    private def imageMetaInformationWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession): Option[ImageMetaInformation] = {
+    private def imageMetaInformationWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession): Option[ImageMetaInformation] = {
       val im = ImageMetaInformation.syntax("im")
       sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where $whereClause"
         .map(ImageMetaInformation.fromResultSet(im))
         .single()
     }
 
-    private def imageMetaInformationsWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): List[ImageMetaInformation] = {
+    private def imageMetaInformationsWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): List[ImageMetaInformation] = {
       val im = ImageMetaInformation.syntax("im")
       sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where $whereClause"
         .map(ImageMetaInformation.fromResultSet(im))
@@ -126,7 +128,7 @@ trait ImageRepository {
 
     def getImageFromFilePath(filePath: String)(implicit session: DBSession = ReadOnlyAutoSession) = {
       val wildcardMatch = s"%${escapeSQLWildcards(filePath.dropWhile(_ == '/'))}"
-      val im = ImageMetaInformation.syntax("im")
+      val im            = ImageMetaInformation.syntax("im")
       sql"""
             select ${im.result.*}
             from ${ImageMetaInformation.as(im)}
@@ -148,8 +150,9 @@ trait ImageRepository {
       }
     }
 
-    def getByPage(pageSize: Int, offset: Int)(
-        implicit session: DBSession = ReadOnlyAutoSession): Seq[ImageMetaInformation] = {
+    def getByPage(pageSize: Int, offset: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Seq[ImageMetaInformation] = {
       val im = ImageMetaInformation.syntax("im")
       sql"""
            select ${im.result.*}

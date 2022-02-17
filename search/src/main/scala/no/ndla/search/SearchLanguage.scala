@@ -35,7 +35,7 @@ object SearchLanguage {
     LanguageAnalyzer(LanguageTag("nb"), LanguageAnalyzers.norwegian),
     LanguageAnalyzer(LanguageTag("nn"), NynorskLanguageAnalyzer.name),
     LanguageAnalyzer(LanguageTag("sma"), standardAnalyzer), // Southern sami
-    LanguageAnalyzer(LanguageTag("se"), standardAnalyzer), // Northern Sami
+    LanguageAnalyzer(LanguageTag("se"), standardAnalyzer),  // Northern Sami
     LanguageAnalyzer(LanguageTag("en"), LanguageAnalyzers.english),
     LanguageAnalyzer(LanguageTag("ar"), LanguageAnalyzers.arabic),
     LanguageAnalyzer(LanguageTag("hy"), LanguageAnalyzers.armenian),

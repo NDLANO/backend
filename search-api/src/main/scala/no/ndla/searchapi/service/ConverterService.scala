@@ -33,12 +33,14 @@ trait ConverterService {
     }
 
     private def articleSearchResultsToApi(articles: ArticleApiSearchResults): api.ArticleResults = {
-      api.ArticleResults("articles",
-                         articles.language,
-                         articles.totalCount,
-                         articles.page,
-                         articles.pageSize,
-                         articles.results.map(articleSearchResultToApi))
+      api.ArticleResults(
+        "articles",
+        articles.language,
+        articles.totalCount,
+        articles.page,
+        articles.pageSize,
+        articles.results.map(articleSearchResultToApi)
+      )
     }
 
     private def articleSearchResultToApi(article: ArticleApiSearchResult): api.ArticleResult = {
@@ -72,20 +74,22 @@ trait ConverterService {
     }
 
     private def imageSearchResultsToApi(images: ImageApiSearchResults): api.ImageResults = {
-      api.ImageResults("images",
-                       images.language,
-                       images.totalCount,
-                       images.page,
-                       images.pageSize,
-                       images.results.map(imageSearchResultToApi))
+      api.ImageResults(
+        "images",
+        images.language,
+        images.totalCount,
+        images.page,
+        images.pageSize,
+        images.results.map(imageSearchResultToApi)
+      )
     }
 
     private def imageSearchResultToApi(image: ImageApiSearchResult): api.ImageResult = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
-      val host = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
+      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
       val previewUrl = image.previewUrl.withHost(host).withScheme(scheme)
-      val metaUrl = image.metaUrl.withHost(host).withScheme(scheme)
+      val metaUrl    = image.metaUrl.withHost(host).withScheme(scheme)
 
       api.ImageResult(
         image.id.toLong,
@@ -98,17 +102,19 @@ trait ConverterService {
     }
 
     private def audioSearchResultsToApi(audios: AudioApiSearchResults): api.AudioResults = {
-      api.AudioResults("audios",
-                       audios.language,
-                       audios.totalCount,
-                       audios.page,
-                       audios.pageSize,
-                       audios.results.map(audioSearchResultToApi))
+      api.AudioResults(
+        "audios",
+        audios.language,
+        audios.totalCount,
+        audios.page,
+        audios.pageSize,
+        audios.results.map(audioSearchResultToApi)
+      )
     }
 
     private def audioSearchResultToApi(audio: AudioApiSearchResult): api.AudioResult = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
-      val host = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
+      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
 
       val url = audio.url.withHost(host).withScheme(scheme).toString
       api.AudioResult(audio.id, api.Title(audio.title.title, audio.title.language), url, audio.supportedLanguages)
@@ -126,7 +132,8 @@ trait ConverterService {
           rightsholders = agreementCopyright.rightsholders,
           validFrom = agreementCopyright.validFrom,
           validTo = agreementCopyright.validTo
-        ))
+        )
+      )
     }
 
   }

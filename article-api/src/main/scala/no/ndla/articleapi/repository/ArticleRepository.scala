@@ -27,8 +27,9 @@ trait ArticleRepository {
   class ArticleRepository extends LazyLogging with Repository[Article] {
     implicit val formats: Formats = Article.repositorySerializer
 
-    def updateArticleFromDraftApi(article: Article, externalIds: List[String])(
-        implicit session: DBSession = AutoSession): Try[Article] = {
+    def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
+        session: DBSession = AutoSession
+    ): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -181,12 +182,12 @@ trait ArticleRepository {
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
       sql"select article_id, external_id from ${Article.table}"
-        .map(
-          rs =>
-            ArticleIds(
-              rs.long("article_id"),
-              externalIdsFromResultSet(rs)
-          ))
+        .map(rs =>
+          ArticleIds(
+            rs.long("article_id"),
+            externalIdsFromResultSet(rs)
+          )
+        )
         .list()
     }
 
@@ -232,18 +233,18 @@ trait ArticleRepository {
       allTags
         .flatMap(tag => parse(tag).extract[List[ArticleTag]])
         .groupBy(_.language)
-        .map {
-          case (language, tags) =>
-            ArticleTag(tags.flatMap(_.tags), language)
+        .map { case (language, tags) =>
+          ArticleTag(tags.flatMap(_.tags), language)
         }
         .toList
     }
 
-    def getTags(input: String, pageSize: Int, offset: Int, language: String)(
-        implicit session: DBSession = AutoSession): (Seq[String], Int) = {
-      val sanitizedInput = input.replaceAll("%", "")
+    def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
+        session: DBSession = AutoSession
+    ): (Seq[String], Int) = {
+      val sanitizedInput    = input.replaceAll("%", "")
       val sanitizedLanguage = language.replaceAll("%", "")
-      val langOrAll = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
+      val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
@@ -287,8 +288,9 @@ trait ArticleRepository {
     override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
       articlesWhere(sqls"ar.article_id between $min and $max").toList
 
-    private def articleWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
+    private def articleWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")
       sql"""
            select ${ar.result.*}
@@ -300,8 +302,9 @@ trait ArticleRepository {
         .flatten
     }
 
-    private def articlesWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
+    private def articlesWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
       sql"""
         select ${ar.result.*}
@@ -314,16 +317,17 @@ trait ArticleRepository {
         .flatten
     }
 
-    def getArticleIdsFromExternalId(externalId: String)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
+    def getArticleIdsFromExternalId(
+        externalId: String
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
       val ar = Article.syntax("ar")
       sql"select distinct article_id, external_id from ${Article.as(ar)} where $externalId=ANY(ar.external_id)"
-        .map(
-          rs =>
-            ArticleIds(
-              rs.long("article_id"),
-              externalIdsFromResultSet(rs)
-          ))
+        .map(rs =>
+          ArticleIds(
+            rs.long("article_id"),
+            externalIdsFromResultSet(rs)
+          )
+        )
         .single()
     }
 

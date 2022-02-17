@@ -14,7 +14,7 @@ import no.ndla.learningpathapi.UnitSuite
 class TextValidatorTest extends UnitSuite {
 
   var basicHtmlValidator: TextValidator = _
-  var noHtmlValidator: TextValidator = _
+  var noHtmlValidator: TextValidator    = _
 
   override def beforeEach() = {
     basicHtmlValidator = new TextValidator(allowHtml = true)
@@ -24,7 +24,7 @@ class TextValidatorTest extends UnitSuite {
   test("That TextValidator allows all tags in BasicHtmlTags tags") {
     BasicHtmlTags.foreach(tag => {
       val starttext = s"<$tag>This is text with $tag"
-      val text = starttext + (if (tag.equals("br")) "" else s"</$tag>")
+      val text      = starttext + (if (tag.equals("br")) "" else s"</$tag>")
       basicHtmlValidator.validate("path1.path2", text) should equal(None)
     })
   }

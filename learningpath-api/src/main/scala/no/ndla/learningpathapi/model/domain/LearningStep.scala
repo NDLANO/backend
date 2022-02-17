@@ -17,18 +17,20 @@ import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
-case class LearningStep(id: Option[Long],
-                        revision: Option[Int],
-                        externalId: Option[String],
-                        learningPathId: Option[Long],
-                        seqNo: Int,
-                        title: Seq[Title],
-                        description: Seq[Description],
-                        embedUrl: Seq[EmbedUrl],
-                        `type`: StepType.Value,
-                        license: Option[String],
-                        showTitle: Boolean = false,
-                        status: StepStatus = StepStatus.ACTIVE) {
+case class LearningStep(
+    id: Option[Long],
+    revision: Option[Int],
+    externalId: Option[String],
+    learningPathId: Option[Long],
+    seqNo: Int,
+    title: Seq[Title],
+    description: Seq[Description],
+    embedUrl: Seq[EmbedUrl],
+    `type`: StepType.Value,
+    license: Option[String],
+    showTitle: Boolean = false,
+    status: StepStatus = StepStatus.ACTIVE
+) {
 
   def supportedLanguages: Seq[String] = {
     getSupportedLanguages(
@@ -45,7 +47,7 @@ sealed abstract class StepStatus(override val entryName: String) extends EnumEnt
 
 object StepStatus extends Enum[StepStatus] {
 
-  case object ACTIVE extends StepStatus("ACTIVE")
+  case object ACTIVE  extends StepStatus("ACTIVE")
   case object DELETED extends StepStatus("DELETED")
 
   def values: IndexedSeq[StepStatus] = findValues
@@ -102,7 +104,7 @@ object LearningStep extends SQLSyntaxSupport[LearningStep] {
 
   val jsonEncoder = DefaultFormats ++ jsonSerializer
 
-  override val tableName = "learningsteps"
+  override val tableName  = "learningsteps"
   override val schemaName = Some(LearningpathApiProperties.MetaSchema)
 
   def apply(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep = apply(ls.resultName)(rs)

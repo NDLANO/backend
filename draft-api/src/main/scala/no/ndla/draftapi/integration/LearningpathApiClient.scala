@@ -19,15 +19,17 @@ trait LearningpathApiClient {
   val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
-    implicit val format = org.json4s.DefaultFormats
+    implicit val format          = org.json4s.DefaultFormats
     private val InternalEndpoint = s"http://$LearningpathApiHost/intern"
 
     def getLearningpathsWithPaths(paths: Seq[String]): Try[Seq[LearningPath]] = {
       get[Seq[LearningPath]](s"$InternalEndpoint/containsArticle?paths=${paths.mkString(",")}")
     }
 
-    private def get[A](endpointUrl: String, params: (String, String)*)(implicit mf: Manifest[A],
-                                                                       format: org.json4s.Formats): Try[A] = {
+    private def get[A](endpointUrl: String, params: (String, String)*)(implicit
+        mf: Manifest[A],
+        format: org.json4s.Formats
+    ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](Http(endpointUrl).method("GET").params(params.toMap))
     }
 

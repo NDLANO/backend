@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 
 class ApiSearchServiceTest extends UnitSuite with TestEnvironment {
   ApplicationUrl.applicationUrl.set("https://unit-test")
-  override val searchService = new ApiSearchService
+  override val searchService    = new ApiSearchService
   override val converterService = new ConverterService
 
   test("search should return a list of search results from other apis") {
@@ -29,7 +29,7 @@ class ApiSearchServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Future(Success(TestData.sampleLearningpath)))
 
     val searchParams = SearchParams(Some("nb"), Sort.ByRelevanceDesc, 1, 10, Map.empty)
-    val res = searchService.search(searchParams, Set(draftApiClient, learningPathApiClient))
+    val res          = searchService.search(searchParams, Set(draftApiClient, learningPathApiClient))
 
     res.length should be(2)
     res.exists(ent => ent.isInstanceOf[api.ArticleResults]) should be(true)
@@ -48,7 +48,7 @@ class ApiSearchServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Future(Success(TestData.sampleAudio)))
 
     val searchParams = SearchParams(Some("nb"), Sort.ByRelevanceDesc, 1, 10, Map.empty)
-    val res = searchService.search(searchParams, SearchClients.values.toSet)
+    val res          = searchService.search(searchParams, SearchClients.values.toSet)
 
     res.length should be(4)
     res.exists(ent => ent.isInstanceOf[api.SearchError]) should be(true)

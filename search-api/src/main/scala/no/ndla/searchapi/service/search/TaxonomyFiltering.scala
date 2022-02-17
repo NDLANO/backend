@@ -18,17 +18,17 @@ trait TaxonomyFiltering {
     else
       Some(
         boolQuery().should(
-          relevanceIds.map(
-            relevanceId =>
-              nestedQuery(
-                "contexts",
-                boolQuery().must(
-                  termQuery("contexts.relevanceId", relevanceId),
-                  boolQuery().should(subjectIds.map(sId => termQuery("contexts.subjectId", sId)))
-                )
+          relevanceIds.map(relevanceId =>
+            nestedQuery(
+              "contexts",
+              boolQuery().must(
+                termQuery("contexts.relevanceId", relevanceId),
+                boolQuery().should(subjectIds.map(sId => termQuery("contexts.subjectId", sId)))
+              )
             )
           )
-        ))
+        )
+      )
 
   protected def subjectFilter(subjects: List[String]): Option[NestedQuery] =
     if (subjects.isEmpty) None
@@ -36,11 +36,9 @@ trait TaxonomyFiltering {
       Some(
         nestedQuery(
           "contexts",
-          boolQuery().should(
-            subjects.map(
-              subjectId => termQuery(s"contexts.subjectId", subjectId)
-            ))
-        ))
+          boolQuery().should(subjects.map(subjectId => termQuery(s"contexts.subjectId", subjectId)))
+        )
+      )
 
   protected def topicFilter(topics: List[String]): Option[NestedQuery] =
     if (topics.isEmpty) None
@@ -48,11 +46,9 @@ trait TaxonomyFiltering {
       Some(
         nestedQuery(
           "contexts",
-          boolQuery().should(
-            topics.map(
-              topicId => termQuery("contexts.parentTopicIds", topicId)
-            ))
-        ))
+          boolQuery().should(topics.map(topicId => termQuery("contexts.parentTopicIds", topicId)))
+        )
+      )
 
   protected def resourceTypeFilter(resourceTypes: List[String], filterByNoResourceType: Boolean): Option[Query] = {
     if (resourceTypes.isEmpty) {
@@ -68,10 +64,10 @@ trait TaxonomyFiltering {
         nestedQuery(
           "contexts.resourceTypes",
           boolQuery().should(
-            resourceTypes.map(
-              resourceTypeId => termQuery("contexts.resourceTypes.id", resourceTypeId)
-            ))
-        ))
+            resourceTypes.map(resourceTypeId => termQuery("contexts.resourceTypes.id", resourceTypeId))
+          )
+        )
+      )
     }
   }
 

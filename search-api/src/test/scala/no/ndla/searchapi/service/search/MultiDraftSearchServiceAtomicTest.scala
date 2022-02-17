@@ -44,8 +44,8 @@ class MultiDraftSearchServiceAtomicTest
     override val indexShards = 1
   }
   override val multiDraftSearchService = new MultiDraftSearchService
-  override val converterService = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override val converterService        = new ConverterService
+  override val searchConverterService  = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {

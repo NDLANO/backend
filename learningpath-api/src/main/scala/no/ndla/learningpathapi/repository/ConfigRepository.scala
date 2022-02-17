@@ -54,7 +54,7 @@ trait ConfigRepository {
         withSQL {
           insertInto(ConfigMeta).namedValues(
             ConfigMeta.column.c("configkey") -> config.key.entryName,
-            ConfigMeta.column.c("value") -> config,
+            ConfigMeta.column.c("value")     -> config
           )
         }.update()
         Success(config)
@@ -66,7 +66,7 @@ trait ConfigRepository {
 
     def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Option[ConfigMeta] = {
       val keyName = key.entryName
-      val c = ConfigMeta.syntax("c")
+      val c       = ConfigMeta.syntax("c")
       sql"""
            select ${c.result.*}
            from ${ConfigMeta.as(c)}

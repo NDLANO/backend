@@ -66,21 +66,19 @@ class V15__MergeDuplicateLanguageFields extends BaseJavaMigration {
       array
     } else {
       val grouped = array.arr.groupBy(v => (v \ "language").extract[String])
-      val newLanguages = grouped.map {
-        case (language, value) =>
-          val dist = value.distinct
-          if (dist.length > 1) {
-            println(
-              s"WARNING!: $docType with id '$id' had duplicate of '$fieldName' of language '$language' with different content, merging!"
-            )
+      val newLanguages = grouped.map { case (language, value) =>
+        val dist = value.distinct
+        if (dist.length > 1) {
+          println(
+            s"WARNING!: $docType with id '$id' had duplicate of '$fieldName' of language '$language' with different content, merging!"
+          )
 
-            // Reverse so the first one wins
-            value.reverse.foldLeft(JObject()) {
-              case (acc, cur) =>
-                val obj = cur.extract[JObject]
-                acc.merge(obj)
-            }
-          } else { value.head }
+          // Reverse so the first one wins
+          value.reverse.foldLeft(JObject()) { case (acc, cur) =>
+            val obj = cur.extract[JObject]
+            acc.merge(obj)
+          }
+        } else { value.head }
       }.toList
 
       JArray(newLanguages)
@@ -89,13 +87,13 @@ class V15__MergeDuplicateLanguageFields extends BaseJavaMigration {
 
   def convertLearningStepDocument(id: Long, document: String): String = {
     val oldLearningStep = parse(document)
-    val updated = mergeDuplicateLanguageFields("learningStep", id, oldLearningStep)
+    val updated         = mergeDuplicateLanguageFields("learningStep", id, oldLearningStep)
     compact(render(updated))
   }
 
   def convertLearningPathDocument(id: Long, document: String): String = {
     val oldLearningpath = parse(document)
-    val updated = mergeDuplicateLanguageFields("learningPath", id, oldLearningpath)
+    val updated         = mergeDuplicateLanguageFields("learningPath", id, oldLearningpath)
     compact(render(updated))
   }
 

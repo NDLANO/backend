@@ -17,7 +17,7 @@ case class VisualElement(`type`: VisualElementType, id: String, alt: Option[Stri
 sealed abstract class VisualElementType(override val entryName: String) extends EnumEntry
 
 object VisualElementType extends Enum[VisualElementType] with CirceEnum[VisualElementType] {
-  case object Image extends VisualElementType("image")
+  case object Image      extends VisualElementType("image")
   case object Brightcove extends VisualElementType("brightcove")
 
   val values: IndexedSeq[VisualElementType] = findValues

@@ -93,8 +93,8 @@ trait InternController {
     }
 
     get("/dump/learningpath/?") {
-      val pageNo = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
+      val pageNo               = intOrDefault("page", 1)
+      val pageSize             = intOrDefault("page-size", 250)
       val onlyIncludePublished = booleanOrDefault("only-published", true)
 
       readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished)

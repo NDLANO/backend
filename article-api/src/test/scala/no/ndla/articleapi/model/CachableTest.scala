@@ -34,11 +34,11 @@ class CachableTest extends UnitSuite with TestEnvironment {
   }
 
   test("That constructors for both `Try` and others works as expected") {
-    val t1 = Success(1)
+    val t1                     = Success(1)
     val c1: Try[Cachable[Int]] = Cachable.yes(t1)
     c1 should be(Success(Cachable(1, true)))
 
-    val t2 = Success(2)
+    val t2                     = Success(2)
     val c2: Cachable[Try[Int]] = Cachable.yes(t2)
     c2 should be(Cachable(Success(2), true))
   }

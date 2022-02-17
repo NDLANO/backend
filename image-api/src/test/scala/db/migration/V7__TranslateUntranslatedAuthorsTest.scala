@@ -11,7 +11,7 @@ import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class V7__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
 
-  val migration = new V7__TranslateUntranslatedAuthors
+  val migration        = new V7__TranslateUntranslatedAuthors
   implicit val formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
@@ -20,7 +20,8 @@ class V7__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironmen
     val result = migration.updateAuthorFormat(5, metaString)
 
     result.copyright.creators should equal(
-      List(V5_Author("Originator", "Mariana Ruiz Villarreal"), V5_Author("Editorial", "Bjørg E. B. Aurebekk")))
+      List(V5_Author("Originator", "Mariana Ruiz Villarreal"), V5_Author("Editorial", "Bjørg E. B. Aurebekk"))
+    )
     result.copyright.processors should equal(List.empty)
     result.copyright.rightsholders should equal(List(V5_Author("Supplier", "Amendor")))
 

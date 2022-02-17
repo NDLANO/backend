@@ -57,34 +57,34 @@ object ComponentRegistry
     with TitleValidator
     with SearchApiClient {
 
-  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+  def connectToDatabase(): Unit         = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
   connectToDatabase()
 
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
-  lazy val learningPathRepository = new LearningPathRepository
-  lazy val configRepository = new ConfigRepository
-  lazy val readService = new ReadService
-  lazy val updateService = new UpdateService
-  lazy val searchConverterService = new SearchConverterService
-  lazy val searchService = new SearchService
-  lazy val searchIndexService = new SearchIndexService
-  lazy val converterService = new ConverterService
-  lazy val clock = new SystemClock
+  lazy val learningPathRepository   = new LearningPathRepository
+  lazy val configRepository         = new ConfigRepository
+  lazy val readService              = new ReadService
+  lazy val updateService            = new UpdateService
+  lazy val searchConverterService   = new SearchConverterService
+  lazy val searchService            = new SearchService
+  lazy val searchIndexService       = new SearchIndexService
+  lazy val converterService         = new ConverterService
+  lazy val clock                    = new SystemClock
   lazy val learningpathControllerV2 = new LearningpathControllerV2
-  lazy val internController = new InternController
-  lazy val configController = new ConfigController
-  lazy val resourcesApp = new ResourcesApp
-  lazy val taxononyApiClient = new TaxonomyApiClient
-  lazy val ndlaClient = new NdlaClient
-  lazy val imageApiClient = new ImageApiClient
-  lazy val healthController = new HealthController
-  lazy val languageValidator = new LanguageValidator
-  lazy val titleValidator = new TitleValidator
-  lazy val learningPathValidator = new LearningPathValidator
-  lazy val learningStepValidator = new LearningStepValidator
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
-  lazy val searchApiClient = new SearchApiClient
-  lazy val oembedProxyClient = new OembedProxyClient
+  lazy val internController         = new InternController
+  lazy val configController         = new ConfigController
+  lazy val resourcesApp             = new ResourcesApp
+  lazy val taxononyApiClient        = new TaxonomyApiClient
+  lazy val ndlaClient               = new NdlaClient
+  lazy val imageApiClient           = new ImageApiClient
+  lazy val healthController         = new HealthController
+  lazy val languageValidator        = new LanguageValidator
+  lazy val titleValidator           = new TitleValidator
+  lazy val learningPathValidator    = new LearningPathValidator
+  lazy val learningStepValidator    = new LearningStepValidator
+  var e4sClient: NdlaE4sClient      = Elastic4sClientFactory.getClient(SearchServer)
+  lazy val searchApiClient          = new SearchApiClient
+  lazy val oembedProxyClient        = new OembedProxyClient
 }

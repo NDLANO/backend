@@ -25,7 +25,7 @@ trait FileController {
 
   class FileController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for uploading files to ndla.no."
+    protected val applicationDescription                 = "API for uploading files to ndla.no."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -36,7 +36,7 @@ trait FileController {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    private val file = Param("file", "File to upload")
+    private val file     = Param("file", "File to upload")
     private val filePath = Param[String]("path", "Path to file. Eg: resources/awdW2CaX.png")
 
     post(
@@ -51,7 +51,8 @@ trait FileController {
             asHeaderParam(correlationId),
             asFileParam(file)
           )
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -63,7 +64,8 @@ trait FileController {
             }
           case None =>
             errorHandler(
-              new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain a file"))))
+              new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain a file")))
+            )
         }
       }
     }
@@ -76,9 +78,10 @@ trait FileController {
           .description("Deletes provided file")
           .authorizations("oauth2")
           .parameters(
-            asHeaderParam(correlationId),
+            asHeaderParam(correlationId)
           )
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -89,8 +92,13 @@ trait FileController {
               case Success(_)  => NoContent()
             }
           case None =>
-            errorHandler(new ValidationException(errors =
-              Seq(ValidationMessage(this.filePath.paramName, "The request must contain a file path query parameter"))))
+            errorHandler(
+              new ValidationException(
+                errors = Seq(
+                  ValidationMessage(this.filePath.paramName, "The request must contain a file path query parameter")
+                )
+              )
+            )
         }
       }
     }

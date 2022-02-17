@@ -21,22 +21,24 @@ import scalikejdbc._
 import java.util.Date
 import scala.util.{Failure, Success, Try}
 
-case class LearningPath(id: Option[Long],
-                        revision: Option[Int],
-                        externalId: Option[String],
-                        isBasedOn: Option[Long],
-                        title: Seq[Title],
-                        description: Seq[Description],
-                        coverPhotoId: Option[String],
-                        duration: Option[Int],
-                        status: LearningPathStatus.Value,
-                        verificationStatus: LearningPathVerificationStatus.Value,
-                        lastUpdated: Date,
-                        tags: Seq[LearningPathTags],
-                        owner: String,
-                        copyright: Copyright,
-                        learningsteps: Option[Seq[LearningStep]] = None,
-                        message: Option[Message] = None) {
+case class LearningPath(
+    id: Option[Long],
+    revision: Option[Int],
+    externalId: Option[String],
+    isBasedOn: Option[Long],
+    title: Seq[Title],
+    description: Seq[Description],
+    coverPhotoId: Option[String],
+    duration: Option[Int],
+    status: LearningPathStatus.Value,
+    verificationStatus: LearningPathVerificationStatus.Value,
+    lastUpdated: Date,
+    tags: Seq[LearningPathTags],
+    owner: String,
+    copyright: Copyright,
+    learningsteps: Option[Seq[LearningStep]] = None,
+    message: Option[Message] = None
+) {
 
   def supportedLanguages: Seq[String] = {
     val stepLanguages = learningsteps.getOrElse(Seq.empty).flatMap(_.supportedLanguages)
@@ -65,9 +67,11 @@ case class LearningPath(id: Option[Long],
   }
 
   def canEditLearningpath(user: UserInfo): Try[LearningPath] = {
-    if ((user.userId == owner) ||
-        user.isAdmin ||
-        (user.isWriter && verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)) {
+    if (
+      (user.userId == owner) ||
+      user.isAdmin ||
+      (user.isWriter && verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
+    ) {
       Success(this)
     } else {
       Failure(AccessDeniedException("You do not have access to the requested resource."))
@@ -89,7 +93,8 @@ case class LearningPath(id: Option[Long],
   def validateSeqNo(seqNo: Int): Unit = {
     if (seqNo < 0 || seqNo > lsLength - 1) {
       throw new ValidationException(
-        errors = List(ValidationMessage("seqNo", s"seqNo must be between 0 and ${lsLength - 1}")))
+        errors = List(ValidationMessage("seqNo", s"seqNo must be between 0 and ${lsLength - 1}"))
+      )
     }
   }
 
@@ -103,8 +108,8 @@ case class LearningPath(id: Option[Long],
 }
 
 object LearningPathRole extends Enumeration {
-  val ADMIN: LearningPathRole.Value = Value("ADMIN")
-  val WRITE: LearningPathRole.Value = Value("WRITE")
+  val ADMIN: LearningPathRole.Value   = Value("ADMIN")
+  val WRITE: LearningPathRole.Value   = Value("WRITE")
   val PUBLISH: LearningPathRole.Value = Value("PUBLISH")
 
   def valueOf(s: String): Option[LearningPathRole.Value] = {
@@ -125,7 +130,8 @@ object LearningPathStatus extends Enumeration {
       case Some(status) => status
       case None =>
         throw new ValidationException(
-          errors = List(ValidationMessage("status", s"'$status' is not a valid publishingstatus.")))
+          errors = List(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
+        )
     }
   }
 
@@ -159,14 +165,14 @@ object LearningPath extends SQLSyntaxSupport[LearningPath] {
 
   val jsonEncoder = DefaultFormats ++ jsonSerializer
 
-  override val tableName = "learningpaths"
+  override val tableName  = "learningpaths"
   override val schemaName = Some(LearningpathApiProperties.MetaSchema)
 
   def apply(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath = apply(lp.resultName)(rs)
 
   def apply(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
     implicit val formats = jsonEncoder
-    val meta = read[LearningPath](rs.string(lp.c("document")))
+    val meta             = read[LearningPath](rs.string(lp.c("document")))
     meta.copy(
       id = Some(rs.long(lp.c("id"))),
       revision = Some(rs.int(lp.c("revision"))),

@@ -17,16 +17,16 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V12__AddSeriesDateField extends BaseJavaMigration {
   private implicit val formats: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-  private val dateToUse = new DateTime()
-  private val jsonDate = Extraction.decompose(dateToUse)(formats)
+  private val dateToUse                 = new DateTime()
+  private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allAudios.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }

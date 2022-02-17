@@ -17,19 +17,19 @@ trait FrontPageController {
   this: ReadService with WriteService =>
   val frontPageController: FrontPageController[IO]
 
-  class FrontPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
+  class FrontPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
 
     import swaggerSyntax._
 
     "Get data to display on the front page" **
       GET |>> { () =>
-      {
-        readService.frontPage match {
-          case Some(s) => Ok(s)
-          case None    => NotFound(Error.notFound)
+        {
+          readService.frontPage match {
+            case Some(s) => Ok(s)
+            case None    => NotFound(Error.notFound)
+          }
         }
       }
-    }
 
   }
 

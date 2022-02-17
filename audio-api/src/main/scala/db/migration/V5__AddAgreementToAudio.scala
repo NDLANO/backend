@@ -36,9 +36,11 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
   }
 
   def toNewAuthorType(author: V4_Author): V4_Author = {
-    (creatorTypeMap.get(author.`type`.toLowerCase),
-     processorTypeMap.get(author.`type`.toLowerCase),
-     rightsholderTypeMap.get(author.`type`.toLowerCase)) match {
+    (
+      creatorTypeMap.get(author.`type`.toLowerCase),
+      processorTypeMap.get(author.`type`.toLowerCase),
+      rightsholderTypeMap.get(author.`type`.toLowerCase)
+    ) match {
       case (Some(t), None, None) => V4_Author(t.capitalize, author.name)
       case (None, Some(t), None) => V4_Author(t.capitalize, author.name)
       case (None, None, Some(t)) => V4_Author(t.capitalize, author.name)
@@ -47,16 +49,18 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
   }
 
   def updateAuthorFormat(id: Long, revision: Int, metaString: String): V5_AudioMetaInformation = {
-    val meta = read[V4_AudioMetaInformation](metaString)
+    val meta   = read[V4_AudioMetaInformation](metaString)
     val metaV5 = read[V5_AudioMetaInformation](metaString)
 
     // If entry contains V6 features -> Don't update.
-    if (metaV5.copyright.creators.nonEmpty ||
-        metaV5.copyright.processors.nonEmpty ||
-        metaV5.copyright.rightsholders.nonEmpty ||
-        metaV5.copyright.agreementId.nonEmpty ||
-        metaV5.copyright.validFrom.nonEmpty ||
-        metaV5.copyright.validTo.nonEmpty) {
+    if (
+      metaV5.copyright.creators.nonEmpty ||
+      metaV5.copyright.processors.nonEmpty ||
+      metaV5.copyright.rightsholders.nonEmpty ||
+      metaV5.copyright.agreementId.nonEmpty ||
+      metaV5.copyright.validFrom.nonEmpty ||
+      metaV5.copyright.validTo.nonEmpty
+    ) {
       metaV5.copy(id = None)
     } else {
       val creators =
@@ -76,14 +80,16 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
         Some(revision),
         meta.titles,
         meta.filePaths,
-        V5_Copyright(meta.copyright.license,
-                     meta.copyright.origin,
-                     creators,
-                     processors,
-                     rightsholders,
-                     None,
-                     None,
-                     None),
+        V5_Copyright(
+          meta.copyright.license,
+          meta.copyright.origin,
+          creators,
+          processors,
+          rightsholders,
+          None,
+          None,
+          None
+        ),
         meta.tags,
         meta.updatedBy,
         meta.updated
@@ -100,19 +106,23 @@ class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
   }
 
 }
-case class V5_Copyright(license: String,
-                        origin: Option[String],
-                        creators: Seq[V4_Author],
-                        processors: Seq[V4_Author],
-                        rightsholders: Seq[V4_Author],
-                        agreementId: Option[Long],
-                        validFrom: Option[Date],
-                        validTo: Option[Date])
-case class V5_AudioMetaInformation(id: Option[Long],
-                                   revision: Option[Int],
-                                   titles: Seq[V4_Title],
-                                   filePaths: Seq[V4_Audio],
-                                   copyright: V5_Copyright,
-                                   tags: Seq[V4_Tag],
-                                   updatedBy: String,
-                                   updated: Date)
+case class V5_Copyright(
+    license: String,
+    origin: Option[String],
+    creators: Seq[V4_Author],
+    processors: Seq[V4_Author],
+    rightsholders: Seq[V4_Author],
+    agreementId: Option[Long],
+    validFrom: Option[Date],
+    validTo: Option[Date]
+)
+case class V5_AudioMetaInformation(
+    id: Option[Long],
+    revision: Option[Int],
+    titles: Seq[V4_Title],
+    filePaths: Seq[V4_Audio],
+    copyright: V5_Copyright,
+    tags: Seq[V4_Tag],
+    updatedBy: String,
+    updated: Date
+)

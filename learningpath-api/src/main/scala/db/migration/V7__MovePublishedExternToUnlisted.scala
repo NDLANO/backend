@@ -23,13 +23,11 @@ class V7__MovePublishedExternToUnlisted extends BaseJavaMigration {
 
     db.withinTx { implicit session =>
       allLearningPaths
-        .map {
-          case (id, document) =>
-            (id, updateStatus(document))
+        .map { case (id, document) =>
+          (id, updateStatus(document))
         }
-        .foreach {
-          case (id, document) =>
-            update(id, document)
+        .foreach { case (id, document) =>
+          update(id, document)
         }
     }
   }

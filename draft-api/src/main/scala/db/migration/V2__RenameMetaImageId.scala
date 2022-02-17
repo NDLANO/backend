@@ -27,13 +27,13 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertArticleUpdate(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -57,7 +57,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
 
     val newArticle = oldArticle.mapField {
       case ("metaImageId", JString(metaImageId)) =>
-        val id = JField("imageId", JString(metaImageId))
+        val id   = JField("imageId", JString(metaImageId))
         val lang = JField("language", JString("nb"))
 
         "metaImage" -> JArray(List(JObject(id, lang)))

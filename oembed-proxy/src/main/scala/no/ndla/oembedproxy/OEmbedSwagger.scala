@@ -41,5 +41,6 @@ object OEmbedProxyInfo {
 
 class OEmbedSwagger extends Swagger("2.0", "1.0", OEmbedProxyInfo.apiInfo) {
   addAuthorization(
-    OAuth(List(), List(ImplicitGrant(LoginEndpoint(OEmbedProxyProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(List(), List(ImplicitGrant(LoginEndpoint(OEmbedProxyProperties.Auth0LoginEndpoint), "access_token")))
+  )
 }

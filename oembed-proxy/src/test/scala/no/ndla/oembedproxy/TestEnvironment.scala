@@ -20,11 +20,11 @@ trait TestEnvironment
     with ProviderService
     with MockitoSugar
     with HealthController {
-  val oEmbedService: OEmbedService = mock[OEmbedService]
+  val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
-  val ndlaClient: NdlaClient = mock[NdlaClient]
-  val providerService: ProviderService = mock[ProviderService]
-  val healthController: HealthController = mock[HealthController]
+  val ndlaClient: NdlaClient                       = mock[NdlaClient]
+  val providerService: ProviderService             = mock[ProviderService]
+  val healthController: HealthController           = mock[HealthController]
 
   def resetMocks(): Unit = {
     reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)

@@ -29,15 +29,17 @@ trait LearningPathIndexService {
   val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends LazyLogging with IndexService[LearningPath] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-    override val documentType: String = SearchApiProperties.SearchDocuments(SearchType.LearningPaths)
-    override val searchIndex: String = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
+    implicit val formats: Formats                 = SearchableLanguageFormats.JSonFormatsWithMillis
+    override val documentType: String             = SearchApiProperties.SearchDocuments(SearchType.LearningPaths)
+    override val searchIndex: String              = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
     override val apiClient: LearningPathApiClient = learningPathApiClient
 
-    override def createIndexRequest(domainModel: LearningPath,
-                                    indexName: String,
-                                    taxonomyBundle: TaxonomyBundle,
-                                    grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
+    override def createIndexRequest(
+        domainModel: LearningPath,
+        indexName: String,
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: Option[GrepBundle]
+    ): Try[IndexRequest] = {
       searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle) match {
         case Success(searchableLearningPath) =>
           val source = Try(write(searchableLearningPath))
@@ -66,12 +68,14 @@ trait LearningPathIndexService {
         ObjectField(
           "copyright",
           properties = Seq(
-            ObjectField("license",
-                        properties = Seq(
-                          textField("license"),
-                          textField("description"),
-                          textField("url")
-                        )),
+            ObjectField(
+              "license",
+              properties = Seq(
+                textField("license"),
+                textField("description"),
+                textField("url")
+              )
+            ),
             nestedField("contributors").fields(
               textField("type"),
               textField("name")

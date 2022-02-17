@@ -38,9 +38,9 @@ class IndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = t
   }
 
   test("That cleanupIndexes does not delete others indexes") {
-    val image1Name = s"${testIndexPrefix}_image_1"
-    val article1Name = s"${testIndexPrefix}_article_1"
-    val article2Name = s"${testIndexPrefix}_article_2"
+    val image1Name        = s"${testIndexPrefix}_image_1"
+    val article1Name      = s"${testIndexPrefix}_article_1"
+    val article2Name      = s"${testIndexPrefix}_article_2"
     val learningpath1Name = s"${testIndexPrefix}_learningpath_1"
 
     searchIndexService.createIndexWithName(image1Name)
@@ -52,8 +52,8 @@ class IndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = t
     searchIndexService.cleanupIndexes(s"${testIndexPrefix}_article")
 
     val Success(response) = e4sClient.execute(getAliases())
-    val result = response.result.mappings
-    val indexNames = result.map(_._1.name)
+    val result            = response.result.mappings
+    val indexNames        = result.map(_._1.name)
 
     indexNames should contain(image1Name)
     indexNames should contain(article1Name)

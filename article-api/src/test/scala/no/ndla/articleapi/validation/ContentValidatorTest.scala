@@ -18,8 +18,8 @@ import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator()
-  val validDocument = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val invalidDocument = """<section><invalid></invalid></section>"""
+  val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument           = """<section><invalid></invalid></section>"""
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")))
@@ -44,40 +44,50 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle should throw an error if introduction contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        introduction = Seq(ArticleIntroduction(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      introduction = Seq(ArticleIntroduction(validDocument, "nb"))
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if introduction contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        introduction = Seq(ArticleIntroduction("introduction", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      introduction = Seq(ArticleIntroduction("introduction", "nb"))
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        metaDescription =
-                                                          Seq(ArticleMetaDescription(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      metaDescription = Seq(ArticleMetaDescription(validDocument, "nb"))
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if metaDescription contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        metaDescription =
-                                                          Seq(ArticleMetaDescription("meta description", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      metaDescription = Seq(ArticleMetaDescription("meta description", "nb"))
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if title contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        title = Seq(ArticleTitle(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      title = Seq(ArticleTitle(validDocument, "nb"))
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if title contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")),
-                                                        title = Seq(ArticleTitle("title", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(ArticleContent(validDocument, "nb")),
+      title = Seq(ArticleTitle("title", "nb"))
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
@@ -91,7 +101,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("Validation should fail if content contains other tags than section on root") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent("<h1>lolol</h1>", "nb")))
-    val result = contentValidator.validateArticle(article)
+    val result  = contentValidator.validateArticle(article)
     result.isFailure should be(true)
 
     val validationMessage = result.failed.get.asInstanceOf[ValidationException].errors.head.message
@@ -100,7 +110,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws a validation exception on an invalid visual element") {
     val invalidVisualElement = TestData.visualElement.copy(resource = invalidDocument)
-    val article = TestData.sampleArticleWithByNcSa.copy(visualElement = Seq(invalidVisualElement))
+    val article              = TestData.sampleArticleWithByNcSa.copy(visualElement = Seq(invalidVisualElement))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
@@ -132,69 +142,78 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with an illegal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "naughty", "http://scary.bad.source.net/notNice.js")
-    val article = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
+    val article            = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a legal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "h5p", H5PResizerScriptUrl)
-    val article = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
+    val article            = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with an invalid license") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("beerware", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("beerware", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None)
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "test")), Seq(), Seq(), None, None, None))
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "test")), Seq(), Seq(), None, None, None)
+      )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       copyright =
-        Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+        Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None)
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(
-        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None))
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John doe")), Seq(), Seq(), None, None, None)
+      )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None)
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA", "", Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA", "", Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, None)
+    )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with correct author type") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None)
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with invalid author type") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, None)
+    )
     val result = contentValidator.validateArticle(article)
     result.isSuccess should be(false)
     result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)
     result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
-      "Author is of illegal type. Must be one of originator, photographer, artist, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer")
+      "Author is of illegal type. Must be one of originator, photographer, artist, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer"
+    )
     result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.type")
   }
 
@@ -211,14 +230,16 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("Validation should succeed if agreement exists") {
     when(draftApiClient.agreementExists(10)).thenReturn(true)
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10)))
+      copyright = TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10))
+    )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("Validation should fail if agreement doesnt exist") {
     when(draftApiClient.agreementExists(10)).thenReturn(false)
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10)))
+      copyright = TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10))
+    )
     contentValidator.validateArticle(article).isSuccess should be(false)
   }
 
@@ -227,7 +248,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
     val Failure(res1: ValidationException) = contentValidator.validateArticle(article)
     res1.errors should be(
-      Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed")))
+      Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed"))
+    )
 
     val article2 = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "Krutte god", "nb")))
     contentValidator.validateArticle(article2).isSuccess should be(true)
@@ -235,62 +257,79 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validation should fail if not imported and tags are < 3") {
     val Failure(res0: ValidationException) = contentValidator.validateArticle(
-      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a", "b"), "nb"))))
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a", "b"), "nb")))
+    )
 
     res0.errors should be(
-      Seq(ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")))
+      Seq(ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."))
+    )
 
     val Failure(res1: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b"), "en"))))
+          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b"), "en"))
+        )
+      )
 
     res1.errors should be(
-      Seq(ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")))
+      Seq(ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."))
+    )
 
     val Failure(res2: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))))
+          tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+        )
+      )
     res2.errors.sortBy(_.field) should be(
       Seq(
         ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."),
         ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")
-      ))
+      )
+    )
 
     val res3 =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))))
+          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+        )
+      )
     res3.isSuccess should be(true)
   }
 
   test("imported articles should pass validation for amount of tags") {
     val res0 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(
-        tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
+        tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+      ),
       isImported = true
     )
     res0.isSuccess should be(true)
 
     val res1 =
-      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a"), "en"))),
-                                       isImported = true)
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a"), "en"))),
+        isImported = true
+      )
     res1.isSuccess should be(true)
 
     val Failure(res2: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
-        isImported = true)
+        isImported = true
+      )
     res2.errors should be(
       Seq(
         ValidationMessage("tags.nn", s"The content contains illegal html-characters. No HTML is allowed")
-      ))
+      )
+    )
   }
 
   test("imported articles should pass validation for missing metaDescription") {
-    val res0 = contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(metaDescription = Seq.empty),
-                                                isImported = true)
+    val res0 = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(metaDescription = Seq.empty),
+      isImported = true
+    )
     res0.isSuccess should be(true)
   }
 
@@ -304,10 +343,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validation should fail if metaImageId is an empty string") {
     val Failure(res: ValidationException) =
-      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(
-                                         metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
-                                       ),
-                                       false)
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
+        ),
+        false
+      )
 
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
@@ -324,24 +365,26 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("an article with no copyright holders can pass validation if license is N/A") {
     val copyright = Copyright(NA.toString, "", Seq(), Seq(), Seq(), None, None, None)
-    val article = TestData.sampleArticleWithCopyrighted.copy(copyright = copyright)
+    val article   = TestData.sampleArticleWithCopyrighted.copy(copyright = copyright)
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("an article with one or more copyright holder can pass validation, regardless of license") {
     val copyright = Copyright(CC_BY_SA.toString, "", Seq(Author("reader", "test")), Seq(), Seq(), None, None, None)
-    val article = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
+    val article   = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("softvalidation is more lenient than strictvalidation") {
     val Failure(strictRes: ValidationException) = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
-      false)
+      false
+    )
 
     val softRes = contentValidator.softValidateArticle(
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
-      false)
+      false
+    )
 
     strictRes.errors.length should be(1)
     strictRes.errors.head.field should be("metaImageId")

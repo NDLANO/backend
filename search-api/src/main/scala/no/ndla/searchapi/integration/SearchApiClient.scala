@@ -36,15 +36,15 @@ trait SearchApiClient {
     val dumpDomainPath: String = s"intern/dump/$name"
 
     def getChunks[T](implicit mf: Manifest[T], ec: ExecutionContext): Iterator[Future[Try[Seq[T]]]] = {
-      val fut = getChunk(0, 0)
+      val fut     = getChunk(0, 0)
       val initial = Await.result(fut, 10.minutes)
 
       initial match {
         case Success(initSearch) =>
-          val dbCount = initSearch.totalCount
+          val dbCount  = initSearch.totalCount
           val pageSize = SearchApiProperties.IndexBulkSize
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
-          val pages = Seq.range(1, numPages + 1)
+          val pages    = Seq.range(1, numPages + 1)
 
           val iterator: Iterator[Future[Try[Seq[T]]]] = pages.iterator.map(p => {
             getChunk[T](p, pageSize).map(_.map(_.results))
@@ -57,10 +57,12 @@ trait SearchApiClient {
       }
     }
 
-    private def getChunk[T](page: Int, pageSize: Int)(implicit mf: Manifest[T],
-                                                      ec: ExecutionContext): Future[Try[DomainDumpResults[T]]] = {
+    private def getChunk[T](page: Int, pageSize: Int)(implicit
+        mf: Manifest[T],
+        ec: ExecutionContext
+    ): Future[Try[DomainDumpResults[T]]] = {
       val params = Map(
-        "page" -> page.toString,
+        "page"      -> page.toString,
         "page-size" -> pageSize.toString
       )
       val reqs = RequestInfo()
@@ -72,7 +74,8 @@ trait SearchApiClient {
             Success(result)
           case Failure(ex) =>
             logger.error(
-              s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'")
+              s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
+            )
             Failure(ex)
         }
       }
@@ -96,11 +99,12 @@ trait SearchApiClient {
     }
 
     protected def search[T <: ApiSearchResults](
-        searchParams: SearchParams)(implicit mf: Manifest[T], executionContext: ExecutionContext): Future[Try[T]] = {
+        searchParams: SearchParams
+    )(implicit mf: Manifest[T], executionContext: ExecutionContext): Future[Try[T]] = {
       val queryParams = searchParams.remaindingParams ++ Map(
-        "language" -> searchParams.language.getOrElse("*"),
-        "sort" -> searchParams.sort.entryName,
-        "page" -> searchParams.page.toString,
+        "language"  -> searchParams.language.getOrElse("*"),
+        "sort"      -> searchParams.sort.entryName,
+        "page"      -> searchParams.page.toString,
         "page-size" -> searchParams.pageSize.toString
       )
 

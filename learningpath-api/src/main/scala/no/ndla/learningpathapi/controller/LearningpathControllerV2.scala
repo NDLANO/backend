@@ -100,10 +100,13 @@ trait LearningpathControllerV2 {
     private val tag = Param[Option[String]]("tag", "Return only Learningpaths that are tagged with this exact tag.")
     private val learningpathIds = Param[Option[String]](
       "ids",
-      "Return only Learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+      "Return only Learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
     private val licenseFilter =
-      Param[Option[String]]("filter",
-                            "Query for filtering licenses. Only licenses containing filter-string are returned.")
+      Param[Option[String]](
+        "filter",
+        "Query for filtering licenses. Only licenses containing filter-string are returned."
+      )
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
     private val createResourceIfMissing =
       Param[Option[Boolean]]("create-if-missing", "Create taxonomy resource if missing for learningPath")
@@ -112,7 +115,7 @@ trait LearningpathControllerV2 {
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-           .mkString("[", ",", "]")}.
+          .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}' and '${this.fallback.paramName}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -136,17 +139,20 @@ trait LearningpathControllerV2 {
 
     @unused
     private def asFileParam(param: Param[_]) =
-      Parameter(name = param.paramName,
-                `type` = ValueDataType("file"),
-                description = Some(param.description),
-                paramType = ParamType.Form)
+      Parameter(
+        name = param.paramName,
+        `type` = ValueDataType("file"),
+        description = Some(param.description),
+        paramType = ParamType.Form
+      )
 
-    /**
-      * Does a scroll with [[SearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[SearchService]] If no scrollId is specified execute the function @orFunction in the second
+      * parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any = {
       scrollId match {
@@ -163,16 +169,18 @@ trait LearningpathControllerV2 {
       }
     }
 
-    private def search(query: Option[String],
-                       searchLanguage: String,
-                       tag: Option[String],
-                       idList: List[Long],
-                       sort: Option[String],
-                       pageSize: Option[Int],
-                       page: Option[Int],
-                       fallback: Boolean,
-                       verificationStatus: Option[String],
-                       shouldScroll: Boolean) = {
+    private def search(
+        query: Option[String],
+        searchLanguage: String,
+        tag: Option[String],
+        idList: List[Long],
+        sort: Option[String],
+        pageSize: Option[Int],
+        page: Option[Int],
+        fallback: Boolean,
+        verificationStatus: Option[String],
+        shouldScroll: Boolean
+    ) = {
       val settings = query match {
         case Some(q) =>
           SearchSettings(
@@ -242,16 +250,16 @@ trait LearningpathControllerV2 {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
 
       scrollSearchOr(scrollId, language) {
-        val query = paramOrNone(this.query.paramName)
-        val tag = paramOrNone(this.tag.paramName)
-        val idList = paramAsListOfLong(this.learningpathIds.paramName)
-        val sort = paramOrNone(this.sort.paramName)
+        val query    = paramOrNone(this.query.paramName)
+        val tag      = paramOrNone(this.tag.paramName)
+        val idList   = paramAsListOfLong(this.learningpathIds.paramName)
+        val sort     = paramOrNone(this.sort.paramName)
         val pageSize = paramOrNone(this.pageSize.paramName).flatMap(ps => Try(ps.toInt).toOption)
-        val page = paramOrNone(this.pageNo.paramName).flatMap(idx => Try(idx.toInt).toOption)
+        val page     = paramOrNone(this.pageNo.paramName).flatMap(idx => Try(idx.toInt).toOption)
         val fallback =
           booleanOrDefault(this.fallback.paramName, default = false)
         val verificationStatus = paramOrNone(this.verificationStatus.paramName)
-        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
         search(query, language, tag, idList, sort, pageSize, page, fallback, verificationStatus, shouldScroll)
       }
@@ -269,21 +277,22 @@ trait LearningpathControllerV2 {
             asQueryParam(scrollId)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
       val searchParams = extract[SearchParams](request.body)
-      val language = searchParams.language.getOrElse(AllLanguages)
+      val language     = searchParams.language.getOrElse(AllLanguages)
 
       scrollSearchOr(searchParams.scrollId, language) {
-        val query = searchParams.query
-        val tag = searchParams.tag
-        val idList = searchParams.ids
-        val sort = searchParams.sort
-        val pageSize = searchParams.pageSize
-        val page = searchParams.page
-        val fallback = searchParams.fallback.getOrElse(false)
+        val query              = searchParams.query
+        val tag                = searchParams.tag
+        val idList             = searchParams.ids
+        val sort               = searchParams.sort
+        val pageSize           = searchParams.pageSize
+        val page               = searchParams.page
+        val fallback           = searchParams.fallback.getOrElse(false)
         val verificationStatus = searchParams.verificationStatus
-        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+        val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
         search(query, language, tag, idList, sort, pageSize, page, fallback, verificationStatus, shouldScroll)
       }
@@ -307,7 +316,7 @@ trait LearningpathControllerV2 {
     ) {
       val language =
         paramOrDefault(this.language.paramName, AllLanguages)
-      val id = long(this.learningpathId.paramName)
+      val id       = long(this.learningpathId.paramName)
       val userInfo = UserInfo.getUserOrPublic
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
@@ -356,10 +365,16 @@ trait LearningpathControllerV2 {
     ) {
       val language =
         paramOrDefault(this.language.paramName, AllLanguages)
-      val id = long(this.learningpathId.paramName)
+      val id       = long(this.learningpathId.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      readService.learningstepsForWithStatusV2(id, StepStatus.ACTIVE, language, fallback, UserInfo.getUserOrPublic) match {
+      readService.learningstepsForWithStatusV2(
+        id,
+        StepStatus.ACTIVE,
+        language,
+        fallback,
+        UserInfo.getUserOrPublic
+      ) match {
         case Success(x)  => Ok(x)
         case Failure(ex) => errorHandler(ex)
       }
@@ -384,8 +399,8 @@ trait LearningpathControllerV2 {
     ) {
       val language =
         paramOrDefault(this.language.paramName, AllLanguages)
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
+      val pathId   = long(this.learningpathId.paramName)
+      val stepId   = long(this.learningstepId.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       readService.learningstepV2For(pathId, stepId, language, fallback, UserInfo.getUserOrPublic) match {
@@ -412,7 +427,7 @@ trait LearningpathControllerV2 {
     ) {
       val language =
         paramOrDefault(this.language.paramName, AllLanguages)
-      val id = long(this.learningpathId.paramName)
+      val id       = long(this.learningpathId.paramName)
       val userInfo = UserInfo(requireUserId)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
@@ -438,8 +453,8 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
+      val pathId   = long(this.learningpathId.paramName)
+      val stepId   = long(this.learningstepId.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       readService.learningStepStatusForV2(pathId, stepId, DefaultLanguage, fallback, UserInfo.getUserOrPublic) match {
@@ -502,7 +517,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val newLearningPath = extract[NewLearningPathV2](request.body)
-      val userInfo = UserInfo(requireUserId)
+      val userInfo        = UserInfo(requireUserId)
       updateService.addLearningPathV2(newLearningPath, userInfo) match {
         case Failure(ex) => errorHandler(ex)
         case Success(learningPath) =>
@@ -530,7 +545,7 @@ trait LearningpathControllerV2 {
         case Failure(ex) => errorHandler(ex)
         case Success(userInfo) =>
           val newLearningPath = extract[NewCopyLearningPathV2](request.body)
-          val pathId = long(this.learningpathId.paramName)
+          val pathId          = long(this.learningpathId.paramName)
           updateService.newFromExistingV2(pathId, newLearningPath, userInfo) match {
             case Success(learningPath) =>
               logger.info(s"COPIED LearningPath with ID =  ${learningPath.id}")
@@ -556,7 +571,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       val userInfo = UserInfo(requireUserId)
-      val pathId = long(this.learningpathId.paramName)
+      val pathId   = long(this.learningpathId.paramName)
       updateService.updateLearningPathV2(pathId, extract[UpdatedLearningPathV2](request.body), userInfo) match {
         case Success(lp) => Ok(lp)
         case Failure(ex) => errorHandler(ex)
@@ -578,9 +593,9 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
+      val userInfo        = UserInfo(requireUserId)
       val newLearningStep = extract[NewLearningStepV2](request.body)
-      val pathId = long(this.learningpathId.paramName)
+      val pathId          = long(this.learningpathId.paramName)
       updateService.addLearningStepV2(pathId, newLearningStep, userInfo) match {
         case Failure(ex) => errorHandler(ex)
         case Success(learningStep) =>
@@ -605,10 +620,10 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
+      val userInfo            = UserInfo(requireUserId)
       val updatedLearningStep = extract[UpdatedLearningStepV2](request.body)
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
+      val pathId              = long(this.learningpathId.paramName)
+      val stepId              = long(this.learningstepId.paramName)
       val createdLearningStep =
         updateService.updateLearningStepV2(pathId, stepId, updatedLearningStep, userInfo)
 
@@ -626,7 +641,8 @@ trait LearningpathControllerV2 {
         apiOperation[LearningStepSeqNo]("updatetLearningstepSeqNo")
           .summary("Store new sequence number for learningstep.")
           .description(
-            "Updates the sequence number for the given learningstep. The sequence number of other learningsteps will be affected by this.")
+            "Updates the sequence number for the given learningstep. The sequence number of other learningsteps will be affected by this."
+          )
           .parameters(
             asHeaderParam(correlationId),
             asPathParam(learningpathId),
@@ -639,8 +655,8 @@ trait LearningpathControllerV2 {
     ) {
       val userInfo = UserInfo(requireUserId)
       val newSeqNo = extract[LearningStepSeqNo](request.body)
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
+      val pathId   = long(this.learningpathId.paramName)
+      val stepId   = long(this.learningstepId.paramName)
 
       updateService.updateSeqNo(pathId, stepId, newSeqNo.seqNo, userInfo) match {
         case Success(seqNo) => Ok(seqNo)
@@ -664,11 +680,11 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
+      val userInfo           = UserInfo(requireUserId)
       val learningStepStatus = extract[LearningStepStatus](request.body)
-      val stepStatus = StepStatus.valueOfOrError(learningStepStatus.status)
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
+      val stepStatus         = StepStatus.valueOfOrError(learningStepStatus.status)
+      val pathId             = long(this.learningpathId.paramName)
+      val stepId             = long(this.learningstepId.paramName)
 
       val updatedStep = updateService.updateLearningStepStatusV2(pathId, stepId, stepStatus, userInfo)
 
@@ -676,7 +692,8 @@ trait LearningpathControllerV2 {
         case Failure(ex) => errorHandler(ex)
         case Success(learningStep) =>
           logger.info(
-            s"UPDATED LearningStep with id: $stepId for LearningPath with id: $pathId to STATUS = ${learningStep.status}")
+            s"UPDATED LearningStep with id: $stepId for LearningPath with id: $pathId to STATUS = ${learningStep.status}"
+          )
           Ok(learningStep)
       }
     }
@@ -696,10 +713,10 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val toUpdate = extract[UpdateLearningPathStatus](request.body)
+      val userInfo   = UserInfo(requireUserId)
+      val toUpdate   = extract[UpdateLearningPathStatus](request.body)
       val pathStatus = domain.LearningPathStatus.valueOfOrError(toUpdate.status)
-      val pathId = long(this.learningpathId.paramName)
+      val pathId     = long(this.learningpathId.paramName)
 
       updateService.updateLearningPathStatusV2(pathId, pathStatus, userInfo, DefaultLanguage, toUpdate.message) match {
         case Failure(ex) => errorHandler(ex)
@@ -741,10 +758,11 @@ trait LearningpathControllerV2 {
             asPathParam(learningpathId)
           )
           .responseMessages(response403, response404, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
       val userInfo = UserInfo(requireUserId)
-      val pathId = long(this.learningpathId.paramName)
+      val pathId   = long(this.learningpathId.paramName)
 
       updateService.updateLearningPathStatusV2(
         pathId,
@@ -775,9 +793,9 @@ trait LearningpathControllerV2 {
       )
     ) {
       val userInfo = UserInfo(requireUserId)
-      val pathId = long(this.learningpathId.paramName)
-      val stepId = long(this.learningstepId.paramName)
-      val deleted = updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, userInfo)
+      val pathId   = long(this.learningpathId.paramName)
+      val stepId   = long(this.learningstepId.paramName)
+      val deleted  = updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, userInfo)
       deleted match {
         case Failure(ex) => errorHandler(ex)
         case Success(_) =>
@@ -803,7 +821,7 @@ trait LearningpathControllerV2 {
     ) {
       val language =
         paramOrDefault(this.language.paramName, AllLanguages)
-      val allTags = readService.tags
+      val allTags  = readService.tags
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       converterService.asApiLearningPathTagsSummary(allTags, language, fallback) match {
@@ -844,10 +862,10 @@ trait LearningpathControllerV2 {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
-      val pathId = long(this.learningpathId.paramName)
-      val language = paramOrDefault(this.language.paramName, AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val userInfo                = UserInfo(requireUserId)
+      val pathId                  = long(this.learningpathId.paramName)
+      val language                = paramOrDefault(this.language.paramName, AllLanguages)
+      val fallback                = booleanOrDefault(this.fallback.paramName, default = false)
       val createResourceIfMissing = booleanOrDefault(this.createResourceIfMissing.paramName, default = false)
 
       updateService.updateTaxonomyForLearningPath(pathId, createResourceIfMissing, language, fallback, userInfo) match {
@@ -869,7 +887,7 @@ trait LearningpathControllerV2 {
     ) {
       val articleId = long(this.articleId.paramName)
       val resources = taxononyApiClient.queryResource(articleId).getOrElse(List.empty).flatMap(_.paths)
-      val topics = taxononyApiClient.queryTopic(articleId).getOrElse(List.empty).flatMap(_.paths)
+      val topics    = taxononyApiClient.queryTopic(articleId).getOrElse(List.empty).flatMap(_.paths)
       val plainPaths = List(
         s"/article-iframe/*/$articleId",
         s"/article-iframe/*/$articleId/",

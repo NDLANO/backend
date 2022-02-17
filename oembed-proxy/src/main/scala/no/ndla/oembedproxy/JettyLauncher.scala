@@ -28,10 +28,11 @@ object JettyLauncher extends LazyLogging {
     logger.info(
       Source
         .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))
-        .mkString)
+        .mkString
+    )
 
     val startMillis = System.currentTimeMillis
-    val port = OEmbedProxyProperties.ApplicationPort
+    val port        = OEmbedProxyProperties.ApplicationPort
 
     val servletContext = new ServletContextHandler
     servletContext.setContextPath("/")

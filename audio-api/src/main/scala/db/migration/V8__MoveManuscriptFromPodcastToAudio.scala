@@ -16,11 +16,13 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
   case class V7__CoverPhoto(imageId: String, altText: String)
-  case class V7__PodcastMeta(header: String,
-                             introduction: String,
-                             coverPhoto: V7__CoverPhoto,
-                             manuscript: String,
-                             language: String)
+  case class V7__PodcastMeta(
+      header: String,
+      introduction: String,
+      coverPhoto: V7__CoverPhoto,
+      manuscript: String,
+      language: String
+  )
   case class V8__Manuscripts(manuscript: String, language: String)
   case class V8__PodcastMeta(header: String, introduction: String, coverPhoto: V7__CoverPhoto, language: String)
 
@@ -31,8 +33,8 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allAudios.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }
@@ -44,23 +46,23 @@ class V8__MoveManuscriptFromPodcastToAudio extends BaseJavaMigration {
   }
 
   def convertDocument(document: String): String = {
-    val oldArticle = parse(document)
+    val oldArticle      = parse(document)
     val oldPodcastMetas = (oldArticle \ "podcastMeta").extract[Seq[V7__PodcastMeta]]
 
-    val newManuscripts = oldPodcastMetas.map(
-      meta =>
-        V8__Manuscripts(
-          meta.manuscript,
-          meta.language
-      ))
-    val newPodcastMetas = oldPodcastMetas.map(
-      meta =>
-        V8__PodcastMeta(
-          meta.header,
-          meta.introduction,
-          meta.coverPhoto,
-          meta.language
-      ))
+    val newManuscripts = oldPodcastMetas.map(meta =>
+      V8__Manuscripts(
+        meta.manuscript,
+        meta.language
+      )
+    )
+    val newPodcastMetas = oldPodcastMetas.map(meta =>
+      V8__PodcastMeta(
+        meta.header,
+        meta.introduction,
+        meta.coverPhoto,
+        meta.language
+      )
+    )
 
     val newArticle = oldArticle
       .replace(List("podcastMeta"), Extraction.decompose(newPodcastMetas))

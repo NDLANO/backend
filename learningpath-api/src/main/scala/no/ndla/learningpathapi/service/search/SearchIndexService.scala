@@ -42,9 +42,9 @@ trait SearchIndexService {
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = SearchDocument
-    override val searchIndex: String = SearchIndex
+    implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
+    override val documentType: String       = SearchDocument
+    override val searchIndex: String        = SearchIndex
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
     def indexDocuments: Try[ReindexResult] = {
@@ -52,9 +52,9 @@ trait SearchIndexService {
         val start = System.currentTimeMillis()
         createIndexWithGeneratedName.flatMap(indexName => {
           val operations = for {
-            numIndexed <- sendToElastic(indexName)
+            numIndexed  <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
-            _ <- updateAliasTarget(aliasTarget, indexName)
+            _           <- updateAliasTarget(aliasTarget, indexName)
           } yield numIndexed
 
           operations match {
@@ -116,10 +116,9 @@ trait SearchIndexService {
     private def sendToElastic(indexName: String): Try[Int] = {
       getRanges
         .flatMap(ranges => {
-          ranges.traverse {
-            case (start, end) =>
-              val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
-              indexLearningPaths(toIndex, indexName)
+          ranges.traverse { case (start, end) =>
+            val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
+            indexLearningPaths(toIndex, indexName)
           }
         })
         .map(_.sum)
@@ -180,17 +179,19 @@ trait SearchIndexService {
         nestedField("learningsteps").fields(
           textField("stepType"),
           keywordField("embedUrl"),
-          keywordField("status"),
+          keywordField("status")
         ),
         ObjectField(
           "copyright",
           properties = Seq(
-            ObjectField("license",
-                        properties = Seq(
-                          textField("license"),
-                          textField("description"),
-                          textField("url")
-                        )),
+            ObjectField(
+              "license",
+              properties = Seq(
+                textField("license"),
+                textField("description"),
+                textField("url")
+              )
+            ),
             nestedField("contributors").fields(
               textField("type"),
               textField("name")
@@ -206,16 +207,19 @@ trait SearchIndexService {
       properties(fields).dynamicTemplates(dynamics)
     }
 
-    /**
-      * Returns Sequence of DynamicTemplateRequest for a given field.
+    /** Returns Sequence of DynamicTemplateRequest for a given field.
       *
-      * @param fieldName Name of field in mapping.
-      * @param keepRaw   Whether to add a keywordField named raw.
-      *                  Usually used for sorting, aggregations or scripts.
-      * @return Sequence of DynamicTemplateRequest for a field.
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of DynamicTemplateRequest for a field.
       */
-    protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
-                                                            keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
+    protected def generateLanguageSupportedDynamicTemplates(
+        fieldName: String,
+        keepRaw: Boolean = false
+    ): Seq[DynamicTemplateRequest] = {
 
       val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
         DynamicTemplateRequest(
@@ -229,18 +233,14 @@ trait SearchIndexService {
       if (keepRaw) {
         fields += keywordField("raw")
       }
-      val languageTemplates = languageAnalyzers.map(
-        languageAnalyzer => {
-          val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-          dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
-        }
-      )
-      val languageSubTemplates = languageAnalyzers.map(
-        languageAnalyzer => {
-          val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
-          dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
-        }
-      )
+      val languageTemplates = languageAnalyzers.map(languageAnalyzer => {
+        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
+      })
+      val languageSubTemplates = languageAnalyzers.map(languageAnalyzer => {
+        val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, fields.toList)
+      })
       val catchAllTemplate = dynamicFunc(s"$fieldName.*", SearchLanguage.standardAnalyzer, fields.toList)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate)
     }

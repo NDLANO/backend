@@ -42,7 +42,7 @@ case class Concept(
 }
 
 object Concept extends SQLSyntaxSupport[Concept] {
-  override val tableName = "conceptdata"
+  override val tableName  = "conceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
@@ -51,9 +51,9 @@ object Concept extends SQLSyntaxSupport[Concept] {
   def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
     implicit val formats = this.repositorySerializer
 
-    val id = rs.long(lp.c("id"))
+    val id       = rs.long(lp.c("id"))
     val revision = rs.int(lp.c("revision"))
-    val jsonStr = rs.string(lp.c("document"))
+    val jsonStr  = rs.string(lp.c("document"))
 
     val meta = read[Concept](jsonStr)
 
@@ -86,7 +86,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
 }
 
 object PublishedConcept extends SQLSyntaxSupport[Concept] {
-  override val tableName = "publishedconceptdata"
+  override val tableName  = "publishedconceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 }
 
@@ -102,7 +102,9 @@ object ConceptStatus extends Enumeration {
         Failure(
           new ValidationException(
             errors =
-              Seq(ValidationMessage("status", s"'$s' is not a valid concept status. Must be one of $validStatuses"))))
+              Seq(ValidationMessage("status", s"'$s' is not a valid concept status. Must be one of $validStatuses"))
+          )
+        )
     }
 
   def valueOf(s: String): Option[ConceptStatus.Value] = values.find(_.toString == s.toUpperCase)

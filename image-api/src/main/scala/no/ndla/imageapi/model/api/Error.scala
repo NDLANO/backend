@@ -16,24 +16,26 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 import scala.annotation.meta.field
 
 @ApiModel(description = "Information about errors")
-case class Error(@(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-                 @(ApiModelProperty @field)(description = "Description of the error") description: String,
-                 @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: String =
-                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
+case class Error(
+    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
+    @(ApiModelProperty @field)(description = "Description of the error") description: String,
+    @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: String =
+      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date())
+)
 
 object Error {
-  val GENERIC = "GENERIC"
-  val NOT_FOUND = "NOT FOUND"
-  val INDEX_MISSING = "INDEX MISSING"
-  val VALIDATION = "VALIDATION"
-  val FILE_TOO_BIG = "FILE TOO BIG"
-  val ACCESS_DENIED = "ACCESS DENIED"
-  val GATEWAY_TIMEOUT = "GATEWAY TIMEOUT"
-  val WINDOW_TOO_LARGE = "RESULT WINDOW TOO LARGE"
-  val IMPORT_FAILED = "IMPORT FAILED"
-  val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
+  val GENERIC                = "GENERIC"
+  val NOT_FOUND              = "NOT FOUND"
+  val INDEX_MISSING          = "INDEX MISSING"
+  val VALIDATION             = "VALIDATION"
+  val FILE_TOO_BIG           = "FILE TOO BIG"
+  val ACCESS_DENIED          = "ACCESS DENIED"
+  val GATEWAY_TIMEOUT        = "GATEWAY TIMEOUT"
+  val WINDOW_TOO_LARGE       = "RESULT WINDOW TOO LARGE"
+  val IMPORT_FAILED          = "IMPORT FAILED"
+  val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
   val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
-  val INVALID_URL = "INVALID_URL"
+  val INVALID_URL            = "INVALID_URL"
 
   val GenericError = Error(
     GENERIC,
@@ -47,7 +49,8 @@ object Error {
 
   val FileTooBigError = Error(
     FILE_TOO_BIG,
-    s"The file is too big. Max file size is ${ImageApiProperties.MaxImageFileSizeBytes / 1024 / 1024} MiB")
+    s"The file is too big. Max file size is ${ImageApiProperties.MaxImageFileSizeBytes / 1024 / 1024} MiB"
+  )
   val ImageNotFoundError = Error(NOT_FOUND, s"Ooops. That image does not exists")
 
   val WindowTooLargeError = Error(
@@ -58,5 +61,6 @@ object Error {
 
   val InvalidSearchContext = Error(
     INVALID_SEARCH_CONTEXT,
-    "The search-context specified was not expected. Please create one by searching from page 1.")
+    "The search-context specified was not expected. Please create one by searching from page 1."
+  )
 }

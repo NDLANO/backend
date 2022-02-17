@@ -36,15 +36,19 @@ class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(updateService.updateConfig(any[ConfigKey], any[UpdateConfigValue], any[UserInfo]))
       .thenReturn(Success(ConfigMeta(ConfigKey.IsWriteRestricted.entryName, "true", new Date(), "someoneCool")))
 
-    post(s"/${ConfigKey.IsWriteRestricted.entryName}",
-         body = "{\"value\": \"true\"}",
-         headers = Map("Authorization" -> s"Bearer $adminScopeClientToken")) {
+    post(
+      s"/${ConfigKey.IsWriteRestricted.entryName}",
+      body = "{\"value\": \"true\"}",
+      headers = Map("Authorization" -> s"Bearer $adminScopeClientToken")
+    ) {
       status should be(200)
     }
 
-    post(s"/${ConfigKey.IsWriteRestricted.entryName}",
-         body = "{\"value\": \"true\"}",
-         headers = Map("Authorization" -> s"Bearer $adminAndWriteScopeClientToken")) {
+    post(
+      s"/${ConfigKey.IsWriteRestricted.entryName}",
+      body = "{\"value\": \"true\"}",
+      headers = Map("Authorization" -> s"Bearer $adminAndWriteScopeClientToken")
+    ) {
       status should be(200)
     }
   }

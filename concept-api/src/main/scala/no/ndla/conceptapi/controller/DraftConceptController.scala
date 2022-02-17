@@ -45,7 +45,7 @@ trait DraftConceptController {
       with SwaggerSupport
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    val applicationDescription = "This is the Api for concept drafts"
+    val applicationDescription                           = "This is the Api for concept drafts"
 
     after() {
       // We don't want to cache draft responses in nginx since they could require access
@@ -133,7 +133,8 @@ trait DraftConceptController {
             asQueryParam(fallback)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val conceptId = long(this.conceptId.paramName)
       val language =
@@ -167,28 +168,29 @@ trait DraftConceptController {
             asQueryParam(statusFilter),
             asQueryParam(userFilter),
             asQueryParam(embedResource),
-            asQueryParam(embedId),
+            asQueryParam(embedId)
           )
           .authorizations("oauth2")
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
 
       scrollSearchOr(scrollId, language) {
-        val query = paramOrNone(this.query.paramName)
-        val sort = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
-        val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
-        val page = intOrDefault(this.pageNo.paramName, 1)
-        val idList = paramAsListOfLong(this.conceptIds.paramName)
-        val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-        val subjects = paramAsListOfString(this.subjects.paramName)
-        val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
+        val query              = paramOrNone(this.query.paramName)
+        val sort               = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
+        val pageSize           = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
+        val page               = intOrDefault(this.pageNo.paramName, 1)
+        val idList             = paramAsListOfLong(this.conceptIds.paramName)
+        val fallback           = booleanOrDefault(this.fallback.paramName, default = false)
+        val subjects           = paramAsListOfString(this.subjects.paramName)
+        val tagsToFilterBy     = paramAsListOfString(this.tagsToFilterBy.paramName)
         val statusesToFilterBy = paramAsListOfString(this.statusFilter.paramName)
-        val usersToFilterBy = paramAsListOfString(this.userFilter.paramName)
-        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
-        val embedResource = paramOrNone(this.embedResource.paramName)
-        val embedId = paramOrNone(this.embedId.paramName)
+        val usersToFilterBy    = paramAsListOfString(this.userFilter.paramName)
+        val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val embedResource      = paramOrNone(this.embedResource.paramName)
+        val embedId            = paramOrNone(this.embedId.paramName)
 
         search(
           query,
@@ -220,7 +222,8 @@ trait DraftConceptController {
             asHeaderParam(correlationId)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       readService.allSubjects(true) match {
         case Success(subjects) => Ok(subjects)
@@ -241,7 +244,8 @@ trait DraftConceptController {
             asQueryParam(subjects)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val subjects = paramAsListOfString(this.subjects.paramName)
       val language = paramOrDefault(this.language.paramName, AllLanguages)
@@ -250,8 +254,8 @@ trait DraftConceptController {
       if (subjects.nonEmpty) {
         draftConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)                  => errorHandler(ex)
+          case Success(res) => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex)  => errorHandler(ex)
         }
       } else {
         readService.allTagsFromDraftConcepts(language, fallback)
@@ -269,29 +273,30 @@ trait DraftConceptController {
             bodyParam[DraftConceptSearchParams]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
-      val body = extract[DraftConceptSearchParams](request.body)
+      val body     = extract[DraftConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
-      val lang = body.map(_.language).toOption.flatten
+      val lang     = body.map(_.language).toOption.flatten
 
       scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
         body match {
           case Success(searchParams) =>
-            val query = searchParams.query
-            val sort = searchParams.sort.flatMap(Sort.valueOf)
-            val language = searchParams.language.getOrElse(AllLanguages)
-            val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
-            val page = searchParams.page.getOrElse(1)
-            val idList = searchParams.idList
-            val fallback = searchParams.fallback.getOrElse(false)
-            val subjects = searchParams.subjects
+            val query          = searchParams.query
+            val sort           = searchParams.sort.flatMap(Sort.valueOf)
+            val language       = searchParams.language.getOrElse(AllLanguages)
+            val pageSize       = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
+            val page           = searchParams.page.getOrElse(1)
+            val idList         = searchParams.idList
+            val fallback       = searchParams.fallback.getOrElse(false)
+            val subjects       = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
-            val statusFilter = searchParams.status
-            val userFilter = searchParams.users
-            val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-            val embedResource = searchParams.embedResource
-            val embedId = searchParams.embedId
+            val statusFilter   = searchParams.status
+            val userFilter     = searchParams.users
+            val shouldScroll   = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val embedResource  = searchParams.embedResource
+            val embedId        = searchParams.embedId
 
             search(
               query,
@@ -307,7 +312,7 @@ trait DraftConceptController {
               userFilter,
               shouldScroll,
               embedResource,
-              embedId,
+              embedId
             )
           case Failure(ex) => errorHandler(ex)
         }
@@ -326,7 +331,8 @@ trait DraftConceptController {
             asQueryParam(pathLanguage)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       val language = paramOrNone(this.language.paramName)
@@ -350,7 +356,8 @@ trait DraftConceptController {
             asPathParam(statuss)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {

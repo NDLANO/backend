@@ -25,7 +25,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R) extends (() => R) with LazyLog
     def isExpired: Boolean =
       lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
-  private[this] var cache: Option[CacheValue] = None
+  private[this] var cache: Option[CacheValue]              = None
   private[this] var isUpdating: Option[Future[CacheValue]] = None
 
   private def scheduleRenewCache(): Future[CacheValue] = synchronized {

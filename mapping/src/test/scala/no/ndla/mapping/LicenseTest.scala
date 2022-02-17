@@ -11,9 +11,12 @@ package no.ndla.mapping
 class LicenseTest extends UnitSuite {
   test("getLicense returns a LicenseDefinition if input code is valid") {
     val expectedResult = Some(
-      LicenseDefinition(License.CC_BY,
-                        "Creative Commons Attribution 4.0 International",
-                        Some("https://creativecommons.org/licenses/by/4.0/")))
+      LicenseDefinition(
+        License.CC_BY,
+        "Creative Commons Attribution 4.0 International",
+        Some("https://creativecommons.org/licenses/by/4.0/")
+      )
+    )
     License.getLicense("CC-BY-4.0") should equal(expectedResult)
   }
 
@@ -23,9 +26,11 @@ class LicenseTest extends UnitSuite {
 
   test("getLicenses returns a list of all licenses") {
     val byLicense =
-      LicenseDefinition(License.CC_BY,
-                        "Creative Commons Attribution 4.0 International",
-                        Some("https://creativecommons.org/licenses/by/4.0/"))
+      LicenseDefinition(
+        License.CC_BY,
+        "Creative Commons Attribution 4.0 International",
+        Some("https://creativecommons.org/licenses/by/4.0/")
+      )
 
     License.getLicenses.size should equal(10)
     License.getLicenses

@@ -23,7 +23,7 @@ trait ContentValidator {
 
   class ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
-    private val HtmlValidator = new TextValidator(allowHtml = true)
+    private val HtmlValidator   = new TextValidator(allowHtml = true)
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       val parser = ISODateTimeFormat.dateOptionalTimeParser()
@@ -56,9 +56,11 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       HtmlValidator
-        .validateVisualElement("visualElement",
-                               content.visualElement,
-                               requiredToOptional = Map("image" -> Seq("data-caption")))
+        .validateVisualElement(
+          "visualElement",
+          content.visualElement,
+          requiredToOptional = Map("image" -> Seq("data-caption"))
+        )
         .toList ++
         validateLanguage("language", content.language)
     }
@@ -81,8 +83,8 @@ trait ContentValidator {
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
-      val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
-      val allAuthors = copyright.creators ++ copyright.processors ++ copyright.rightsholders
+      val licenseMessage            = copyright.license.map(validateLicense).toSeq.flatten
+      val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors
         .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
@@ -125,15 +127,18 @@ trait ContentValidator {
       }
     }
 
-    private def validateExistingLanguageField(fieldPath: String,
-                                              fields: Seq[WithLanguage]): Option[ValidationMessage] = {
+    private def validateExistingLanguageField(
+        fieldPath: String,
+        fields: Seq[WithLanguage]
+    ): Option[ValidationMessage] = {
       if (fields.nonEmpty) None
       else
         Some(
           ValidationMessage(
             fieldPath,
             s"The field does not have any entries, whereas at least one is required."
-          ))
+          )
+        )
     }
 
     private def validateLength(fieldPath: String, content: String, maxLength: Int): Option[ValidationMessage] = {
@@ -146,8 +151,11 @@ trait ContentValidator {
     private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
       if (content.trim.length < minLength)
         Some(
-          ValidationMessage(fieldPath,
-                            s"This field does not meet the minimum length requirement of $minLength characters"))
+          ValidationMessage(
+            fieldPath,
+            s"This field does not meet the minimum length requirement of $minLength characters"
+          )
+        )
       else
         None
 

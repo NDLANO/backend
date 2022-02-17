@@ -75,7 +75,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test(
-    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
+    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless"
+  ) {
     reset(articleIndexService)
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
@@ -87,7 +88,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     delete("/index") {
       status should equal(500)
       body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 1 index were deleted successfully.")
+        "Failed to delete 1 index: No index with name 'index2' exists. 1 index were deleted successfully."
+      )
     }
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))

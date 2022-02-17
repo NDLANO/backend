@@ -31,7 +31,8 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
     audioMeta.copy(
       titles = audioMeta.titles.map(t => V4_Title(t.title, Some(languageOrUnknown(t.language).toString()))),
       filePaths = audioMeta.filePaths.map(f =>
-        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(languageOrUnknown(f.language).toString()))),
+        V4_Audio(f.filePath, f.mimeType, f.fileSize, Some(languageOrUnknown(f.language).toString()))
+      ),
       tags = audioMeta.tags.map(t => V4_Tag(t.tags, Some(languageOrUnknown(t.language).toString())))
     )
   }
@@ -40,14 +41,16 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
     sql"select id, revision, document from audiodata"
       .map(rs => {
         val meta = read[V4_AudioMetaInformation](rs.string("document"))
-        V4_AudioMetaInformation(Some(rs.long("id")),
-                                Some(rs.int("revision")),
-                                meta.titles,
-                                meta.filePaths,
-                                meta.copyright,
-                                meta.tags,
-                                meta.updatedBy,
-                                meta.updated)
+        V4_AudioMetaInformation(
+          Some(rs.long("id")),
+          Some(rs.int("revision")),
+          meta.titles,
+          meta.filePaths,
+          meta.copyright,
+          meta.tags,
+          meta.updatedBy,
+          meta.updated
+        )
       })
       .list()
   }
@@ -62,14 +65,16 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
 
 }
 
-case class V4_AudioMetaInformation(id: Option[Long],
-                                   revision: Option[Int],
-                                   titles: Seq[V4_Title],
-                                   filePaths: Seq[V4_Audio],
-                                   copyright: V4_Copyright,
-                                   tags: Seq[V4_Tag],
-                                   updatedBy: String,
-                                   updated: Date)
+case class V4_AudioMetaInformation(
+    id: Option[Long],
+    revision: Option[Int],
+    titles: Seq[V4_Title],
+    filePaths: Seq[V4_Audio],
+    copyright: V4_Copyright,
+    tags: Seq[V4_Tag],
+    updatedBy: String,
+    updated: Date
+)
 
 case class V4_Title(title: String, language: Option[String])
 case class V4_Audio(filePath: String, mimeType: String, fileSize: Long, language: Option[String])

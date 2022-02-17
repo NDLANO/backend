@@ -20,17 +20,21 @@ object HtmlCleaner {
     val withoutHeaders = changeHeadersToStrongWrappedInP(text)
     allowHtml match {
       case true =>
-        Jsoup.clean(withoutHeaders,
-                    "",
-                    new Whitelist().addTags(BasicHtmlTags: _*),
-                    new OutputSettings().prettyPrint(false).charset("ascii"))
+        Jsoup.clean(
+          withoutHeaders,
+          "",
+          new Whitelist().addTags(BasicHtmlTags: _*),
+          new OutputSettings().prettyPrint(false).charset("ascii")
+        )
       case false =>
-        Jsoup.clean(withoutHeaders,
-                    "",
-                    Whitelist.none(),
-                    new OutputSettings()
-                      .prettyPrint(false)
-                      .escapeMode(Entities.EscapeMode.xhtml))
+        Jsoup.clean(
+          withoutHeaders,
+          "",
+          Whitelist.none(),
+          new OutputSettings()
+            .prettyPrint(false)
+            .escapeMode(Entities.EscapeMode.xhtml)
+        )
     }
   }
 

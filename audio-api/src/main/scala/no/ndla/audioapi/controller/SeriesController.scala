@@ -52,7 +52,7 @@ trait SeriesController {
       with FileUploadSupport
       with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "Services for accessing audio."
+    protected val applicationDescription                 = "Services for accessing audio."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -84,13 +84,14 @@ trait SeriesController {
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]](
       "page-size",
-      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+    )
     private val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
 
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-           .mkString("[", ",", "]")}.
+          .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -107,7 +108,7 @@ trait SeriesController {
     @unused
     private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
       val className = manifest[T].runtimeClass.getSimpleName
-      val modelOpt = models.get(className)
+      val modelOpt  = models.get(className)
 
       modelOpt match {
         case Some(value) =>
@@ -120,17 +121,20 @@ trait SeriesController {
 
     @unused
     private def asFileParam(param: Param[_]) =
-      Parameter(name = param.paramName,
-                `type` = ValueDataType("file"),
-                description = Some(param.description),
-                paramType = ParamType.Form)
+      Parameter(
+        name = param.paramName,
+        `type` = ValueDataType("file"),
+        description = Some(param.description),
+        paramType = ParamType.Form
+      )
 
-    /**
-      * Does a scroll with [[SeriesSearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[SeriesSearchService]] If no scrollId is specified execute the function @orFunction in the
+      * second parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -157,18 +161,19 @@ trait SeriesController {
             asQueryParam(sort),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
-            asQueryParam(scrollId),
+            asQueryParam(scrollId)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val language = paramOrNone("language")
       val scrollId = paramOrNone(this.scrollId.paramName)
 
       scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
-        val query = paramOrNone(this.query.paramName)
-        val sort = paramOrNone(this.sort.paramName)
-        val pageSize = paramOrNone(this.pageSize.paramName).flatMap(ps => Try(ps.toInt).toOption)
-        val page = paramOrNone(this.pageNo.paramName).flatMap(idx => Try(idx.toInt).toOption)
+        val query        = paramOrNone(this.query.paramName)
+        val sort         = paramOrNone(this.sort.paramName)
+        val pageSize     = paramOrNone(this.pageSize.paramName).flatMap(ps => Try(ps.toInt).toOption)
+        val page         = paramOrNone(this.pageNo.paramName).flatMap(idx => Try(idx.toInt).toOption)
         val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
 
         search(query, language, sort, pageSize, page, shouldScroll)
@@ -186,27 +191,30 @@ trait SeriesController {
             bodyParam[SeriesSearchParams],
             asQueryParam(scrollId)
           )
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
       val searchParams = extract[SeriesSearchParams](request.body)
       scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
-        val query = searchParams.query
-        val language = searchParams.language
-        val sort = searchParams.sort
-        val pageSize = searchParams.pageSize
-        val page = searchParams.page
+        val query        = searchParams.query
+        val language     = searchParams.language
+        val sort         = searchParams.sort
+        val pageSize     = searchParams.pageSize
+        val page         = searchParams.page
         val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
         search(query, language, sort, pageSize, page, shouldScroll)
       }
     }
 
-    private def search(query: Option[String],
-                       language: Option[String],
-                       sort: Option[String],
-                       pageSize: Option[Int],
-                       page: Option[Int],
-                       shouldScroll: Boolean) = {
+    private def search(
+        query: Option[String],
+        language: Option[String],
+        sort: Option[String],
+        pageSize: Option[Int],
+        page: Option[Int],
+        shouldScroll: Boolean
+    ) = {
       val searchSettings = query match {
         case Some(q) =>
           SeriesSearchSettings(
@@ -215,7 +223,7 @@ trait SeriesController {
             page = page,
             pageSize = pageSize,
             sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
-            shouldScroll = shouldScroll,
+            shouldScroll = shouldScroll
           )
 
         case None =>
@@ -248,9 +256,10 @@ trait SeriesController {
             asPathParam(this.seriesId),
             asQueryParam(language)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
-      val id = long(this.seriesId.paramName)
+      val id       = long(this.seriesId.paramName)
       val language = paramOrNone(this.language.paramName)
 
       readService.seriesWithId(id, language) match {
@@ -294,7 +303,8 @@ trait SeriesController {
             asPathParam(pathLanguage)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -320,7 +330,8 @@ trait SeriesController {
             bodyParam[api.NewSeries]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -346,11 +357,12 @@ trait SeriesController {
             bodyParam[api.NewSeries]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
-      val id = long(this.seriesId.paramName)
+      val id           = long(this.seriesId.paramName)
       val updateSeries = extract[api.NewSeries](request.body)
 
       writeService.updateSeries(id, updateSeries) match {

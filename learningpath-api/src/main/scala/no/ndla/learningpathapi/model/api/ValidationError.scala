@@ -21,4 +21,5 @@ case class ValidationError(
     @(ApiModelProperty @field)(description = "Description of the error") description: String =
       Error.VALIDATION_DESCRIPTION,
     @(ApiModelProperty @field)(description = "List of validation messages") messages: Seq[ValidationMessage],
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date())
+    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date()
+)
