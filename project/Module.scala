@@ -168,8 +168,7 @@ trait Module {
 
   val fmtSettings = Seq(
     checkfmtSetting,
-    fmtSetting,
-    Test / test := (Test / test).dependsOn(Test / checkfmt).value
+    fmtSetting
   )
 
   protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
