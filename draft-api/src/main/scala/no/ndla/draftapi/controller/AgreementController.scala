@@ -34,23 +34,24 @@ trait AgreementController {
 
   class AgreementController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for accessing agreements."
+    protected val applicationDescription                 = "API for accessing agreements."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
 
     val converterService = new ConverterService
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400      = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403      = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404      = ResponseMessage(404, "Not found", Some("Error"))
+    val response500      = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val query =
       Param[Option[String]]("query", "Return only agreements with content matching the specified query.")
     private val agreementIds = Param[Option[Seq[String]]](
       "ids",
-      "Return only agreements that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+      "Return only agreements that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
     private val agreementId = Param[Long]("agreement_id", "Id of the agreement that is to be returned")
 
     private def scrollSearchOr(orFunction: => Any): Any = {
@@ -68,13 +69,15 @@ trait AgreementController {
       }
     }
 
-    private def search(query: Option[String],
-                       sort: Option[Sort],
-                       license: Option[String],
-                       page: Int,
-                       pageSize: Int,
-                       idList: List[Long],
-                       shouldScroll: Boolean) = {
+    private def search(
+        query: Option[String],
+        sort: Option[Sort],
+        license: Option[String],
+        page: Int,
+        pageSize: Int,
+        idList: List[Long],
+        shouldScroll: Boolean
+    ) = {
       val settings = query match {
         case Some(q) =>
           AgreementSearchSettings(
@@ -123,17 +126,18 @@ trait AgreementController {
             asQueryParam(scrollId)
           )
           .authorizations("oauth2")
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         scrollSearchOr {
-          val query = paramOrNone(this.query.paramName)
-          val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-          val license = paramOrNone(this.license.paramName)
-          val pageSize = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
-          val page = intOrDefault(this.pageNo.paramName, 1)
-          val idList = paramAsListOfLong(this.agreementIds.paramName)
+          val query        = paramOrNone(this.query.paramName)
+          val sort         = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+          val license      = paramOrNone(this.license.paramName)
+          val pageSize     = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
+          val page         = intOrDefault(this.pageNo.paramName, 1)
+          val idList       = paramAsListOfLong(this.agreementIds.paramName)
           val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
           search(query, sort, license, page, pageSize, idList, shouldScroll)
@@ -152,7 +156,8 @@ trait AgreementController {
             pathParam[Long]("agreement_id").description("Id of the article that is to be returned")
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -176,7 +181,8 @@ trait AgreementController {
             bodyParam[NewAgreement]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -203,12 +209,13 @@ trait AgreementController {
             bodyParam[UpdatedAgreement]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
 
       doOrAccessDenied(userInfo.canWrite) {
-        val agreementId = long(this.agreementId.paramName)
+        val agreementId      = long(this.agreementId.paramName)
         val updatedAgreement = extract[UpdatedAgreement](request.body)
         updatedAgreement.flatMap(writeService.updateAgreement(agreementId, _, userInfo)) match {
           case Success(agreement) =>

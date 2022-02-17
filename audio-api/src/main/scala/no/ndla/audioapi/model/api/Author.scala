@@ -12,4 +12,5 @@ import scala.annotation.meta.field
 
 case class Author(
     @(ApiModelProperty @field)(description = "The description of the author. Eg. author or publisher") `type`: String,
-    @(ApiModelProperty @field)(description = "The name of the of the author") name: String)
+    @(ApiModelProperty @field)(description = "The name of the of the author") name: String
+)

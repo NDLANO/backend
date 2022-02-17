@@ -56,30 +56,30 @@ object LanguageTag {
       case lang :: region :: Nil if region.length == 2 => withLanguageAndRegion(lang, region)
       case lang :: script :: Nil if script.length == 4 => withLanguageAndScript(lang, script)
       case lang :: script :: region :: Nil             => withLanguageScriptAndRegion(lang, script, region)
-      case _                                           => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
+      case _ => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
     }
 
-    tag.get //throws the exception if it is a failure.
+    tag.get // throws the exception if it is a failure.
   }
 
   private def withLanguageScriptAndRegion(language: String, script: String, region: String): Try[LanguageTag] = {
     for {
-      iso639 <- Iso639.get(language)
-      iso3166 <- Iso3166.get(region)
+      iso639   <- Iso639.get(language)
+      iso3166  <- Iso3166.get(region)
       iso15924 <- Iso15924.get(script)
     } yield LanguageTag(iso639, Some(iso15924), Some(iso3166))
   }
 
   private def withLanguageAndScript(language: String, script: String): Try[LanguageTag] = {
     for {
-      iso639 <- Iso639.get(language)
+      iso639   <- Iso639.get(language)
       iso15924 <- Iso15924.get(script)
     } yield LanguageTag(iso639, Some(iso15924), None)
   }
 
   private def withLanguageAndRegion(language: String, region: String): Try[LanguageTag] = {
     for {
-      iso639 <- Iso639.get(language)
+      iso639  <- Iso639.get(language)
       iso3166 <- Iso3166.get(region)
     } yield LanguageTag(iso639, None, Some(iso3166))
   }

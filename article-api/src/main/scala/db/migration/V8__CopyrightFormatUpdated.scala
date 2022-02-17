@@ -35,9 +35,9 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
   //
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map(t => convertArticleUpdate(t._1, t._2, t._3)).foreach(updateArticle)
@@ -59,13 +59,15 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
   }
 
   def toNewAuthorType(author: V6_Author): V8_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+    val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+    val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (
+      creatorMap(author.`type`.toLowerCase),
+      processorMap(author.`type`.toLowerCase),
+      rightsholderMap(author.`type`.toLowerCase)
+    ) match {
       case (t: String, None, None) => V8_Author(t.capitalize, author.name)
       case (None, t: String, None) => V8_Author(t.capitalize, author.name)
       case (None, None, t: String) => V8_Author(t.capitalize, author.name)
@@ -78,11 +80,13 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
     val articlev8 = read[V7_Article](document)
 
     // If entry contains V7 features -> Don't update.
-    if (articlev8.copyright.creators.nonEmpty ||
-        articlev8.copyright.processors.nonEmpty ||
-        articlev8.copyright.rightsholders.nonEmpty ||
-        articlev8.copyright.validFrom.nonEmpty ||
-        articlev8.copyright.validTo.nonEmpty) {
+    if (
+      articlev8.copyright.creators.nonEmpty ||
+      articlev8.copyright.processors.nonEmpty ||
+      articlev8.copyright.rightsholders.nonEmpty ||
+      articlev8.copyright.validFrom.nonEmpty ||
+      articlev8.copyright.validTo.nonEmpty
+    ) {
 
       articlev8.copy(id = None, revision = Some(revision))
     } else {
@@ -99,14 +103,16 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
       articlev8.copy(
         id = Some(id),
         revision = Some(revision),
-        copyright = V7_Copyright(articlev6.copyright.license,
-                                 articlev6.copyright.origin,
-                                 creators,
-                                 processors,
-                                 rightsholders,
-                                 None,
-                                 None,
-                                 None)
+        copyright = V7_Copyright(
+          articlev6.copyright.license,
+          articlev6.copyright.origin,
+          creators,
+          processors,
+          rightsholders,
+          None,
+          None,
+          None
+        )
       )
     }
 
@@ -130,33 +136,39 @@ case class V8_ArticleIntroduction(introduction: String, language: Option[String]
 case class V8_ArticleMetaDescription(content: String, language: Option[String])
 case class V8_RequiredLibrary(mediaType: String, name: String, url: String)
 case class V8_Author(`type`: String, name: String)
-case class V8_FootNoteItem(title: String,
-                           `type`: String,
-                           year: String,
-                           edition: String,
-                           publisher: String,
-                           authors: Seq[String])
+case class V8_FootNoteItem(
+    title: String,
+    `type`: String,
+    year: String,
+    edition: String,
+    publisher: String,
+    authors: Seq[String]
+)
 
-case class V7_Copyright(license: String,
-                        origin: String,
-                        creators: Seq[V8_Author],
-                        processors: Seq[V8_Author],
-                        rightsholders: Seq[V8_Author],
-                        agreement: Option[Long],
-                        validFrom: Option[Date],
-                        validTo: Option[Date])
-case class V7_Article(id: Option[Long],
-                      revision: Option[Int],
-                      title: Seq[V8_ArticleTitle],
-                      content: Seq[V8_ArticleContent],
-                      copyright: V7_Copyright,
-                      tags: Seq[V8_ArticleTag],
-                      requiredLibraries: Seq[V8_RequiredLibrary],
-                      visualElement: Seq[V8_VisualElement],
-                      introduction: Seq[V8_ArticleIntroduction],
-                      metaDescription: Seq[V8_ArticleMetaDescription],
-                      metaImageId: Option[String],
-                      created: Date,
-                      updated: Date,
-                      updatedBy: String,
-                      articleType: String)
+case class V7_Copyright(
+    license: String,
+    origin: String,
+    creators: Seq[V8_Author],
+    processors: Seq[V8_Author],
+    rightsholders: Seq[V8_Author],
+    agreement: Option[Long],
+    validFrom: Option[Date],
+    validTo: Option[Date]
+)
+case class V7_Article(
+    id: Option[Long],
+    revision: Option[Int],
+    title: Seq[V8_ArticleTitle],
+    content: Seq[V8_ArticleContent],
+    copyright: V7_Copyright,
+    tags: Seq[V8_ArticleTag],
+    requiredLibraries: Seq[V8_RequiredLibrary],
+    visualElement: Seq[V8_VisualElement],
+    introduction: Seq[V8_ArticleIntroduction],
+    metaDescription: Seq[V8_ArticleMetaDescription],
+    metaImageId: Option[String],
+    created: Date,
+    updated: Date,
+    updatedBy: String,
+    articleType: String
+)

@@ -45,9 +45,9 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
     throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
   }
 
-  val serverPort: Int = findFreePort
+  val serverPort: Int               = findFreePort
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  implicit val timer: Timer[IO] = IO.timer(global)
+  implicit val timer: Timer[IO]     = IO.timer(global)
 
   override val filmPageController = new FilmPageController[IO](ioSwagger)
 

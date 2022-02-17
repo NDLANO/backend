@@ -24,9 +24,9 @@ trait Elastic4sClient {
 
 case class NdlaE4sClient(client: ElasticClient) {
 
-  def executeAsync[T, U](request: T)(implicit handler: Handler[T, U],
-                                     mf: Manifest[U],
-                                     ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
+  def executeAsync[T, U](
+      request: T
+  )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
     client.execute(request).map {
       case failure: RequestFailure   => Failure(NdlaSearchException(failure))
       case result: RequestSuccess[U] => Success(result)
@@ -34,7 +34,8 @@ case class NdlaE4sClient(client: ElasticClient) {
   }
 
   def executeBlocking[T, U](
-      request: T)(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
+      request: T
+  )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
     Try(Await.result(this.executeAsync(request), Duration.Inf)).flatten
   }
 
@@ -51,8 +52,8 @@ object Elastic4sClientFactory {
 
   private def getProperties(searchServer: String, defaultPort: Int): ElasticProperties = {
     val scheme = searchServer.schemeOption.getOrElse("http")
-    val host = searchServer.hostOption.map(_.toString()).getOrElse("localhost")
-    val port = searchServer.port.getOrElse(defaultPort)
+    val host   = searchServer.hostOption.map(_.toString()).getOrElse("localhost")
+    val port   = searchServer.port.getOrElse(defaultPort)
 
     ElasticProperties(s"$scheme://$host:$port?ssl=false")
   }
@@ -66,12 +67,13 @@ object Elastic4sClientFactory {
   }
 
   private def getNonSigningClient(searchServer: String): ElasticClient = {
-    val props = getProperties(searchServer, 9200)
+    val props                 = getProperties(searchServer, 9200)
     val requestConfigCallback = new RequestConfigCallbackWithTimeout
     ElasticClient(
       JavaClient(
         props,
         requestConfigCallback
-      ))
+      )
+    )
   }
 }

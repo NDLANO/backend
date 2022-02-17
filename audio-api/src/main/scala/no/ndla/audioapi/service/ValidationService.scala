@@ -31,8 +31,10 @@ trait ValidationService {
 
   class ValidationService {
 
-    def validatePodcastEpisodes(episodes: Seq[(Long, Option[AudioMetaInformation])],
-                                seriesId: Option[Long]): Try[Seq[AudioMetaInformation]] = {
+    def validatePodcastEpisodes(
+        episodes: Seq[(Long, Option[AudioMetaInformation])],
+        seriesId: Option[Long]
+    ): Try[Seq[AudioMetaInformation]] = {
       val validated = episodes.map {
         case (id, Some(ep)) =>
           validatePodcastEpisode(id, ep, seriesId) match {
@@ -45,25 +47,30 @@ trait ValidationService {
               ValidationMessage(
                 s"episodes.$id",
                 s"Provided episode with id '$id' was not found in the database."
-              )))
+              )
+            )
+          )
       }
 
       val (errors, eps) = validated.separate
-      val messages = errors.flatten
+      val messages      = errors.flatten
 
       validationTry(eps, messages)
     }
 
-    private def validatePodcastEpisode(episodeId: Long,
-                                       episode: AudioMetaInformation,
-                                       seriesId: Option[Long]): Seq[ValidationMessage] = {
+    private def validatePodcastEpisode(
+        episodeId: Long,
+        episode: AudioMetaInformation,
+        seriesId: Option[Long]
+    ): Seq[ValidationMessage] = {
       val correctTypeError =
         if (episode.audioType != AudioType.Podcast)
           Seq(
             ValidationMessage(
               s"episodes.$episodeId",
               s"Provided episode $episodeId, is not of '${AudioType.Podcast}' type"
-            ))
+            )
+          )
         else Seq.empty
 
       val overrideSeriesIdError = episode.seriesId match {
@@ -72,7 +79,8 @@ trait ValidationService {
             ValidationMessage(
               s"episodes.$episodeId",
               s"Provided episode $episodeId, is already a part of a series (With id: '$episodeSeriesId')."
-            ))
+            )
+          )
         case _ => None
       }
 
@@ -86,25 +94,31 @@ trait ValidationService {
       val actualMimeType = audioFile.getContentType.getOrElse("")
 
       if (!validMimeTypes.contains(actualMimeType)) {
-        return Some(ValidationMessage(
-          "files",
-          s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"))
+        return Some(
+          ValidationMessage(
+            "files",
+            s"The file ${audioFile.name} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'"
+          )
+        )
       }
 
       if (audioFile.name.toLowerCase.endsWith(".mp3")) None
       else
         Some(
-          ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3"))
+          ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3")
+        )
     }
 
-    def validate(audio: domain.AudioMetaInformation,
-                 oldAudio: Option[domain.AudioMetaInformation],
-                 partOfSeries: Option[domain.Series],
-                 language: Option[String]): Try[domain.AudioMetaInformation] = {
+    def validate(
+        audio: domain.AudioMetaInformation,
+        oldAudio: Option[domain.AudioMetaInformation],
+        partOfSeries: Option[domain.Series],
+        language: Option[String]
+    ): Try[domain.AudioMetaInformation] = {
 
       val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
-      val oldTagsLanguages = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
-      val oldLanguages = (oldTitleLanguages ++ oldTagsLanguages).distinct
+      val oldTagsLanguages  = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
+      val oldLanguages      = (oldTitleLanguages ++ oldTagsLanguages).distinct
 
       val validationMessages = validateNonEmpty("title", audio.titles).toSeq ++
         audio.titles.flatMap(title => validateNonEmpty("title", title.language)) ++
@@ -118,8 +132,10 @@ trait ValidationService {
 
     }
 
-    private def validateEpisodeIfSeries(audio: AudioMetaInformation,
-                                        series: Option[domain.Series]): Seq[ValidationMessage] = {
+    private def validateEpisodeIfSeries(
+        audio: AudioMetaInformation,
+        series: Option[domain.Series]
+    ): Seq[ValidationMessage] = {
       if (audio.seriesId.isDefined) {
         val correctTypeError =
           if (audio.audioType != AudioType.Podcast)
@@ -127,7 +143,8 @@ trait ValidationService {
               ValidationMessage(
                 s"seriesId",
                 s"Audio must be of '${AudioType.Podcast}' type to add to series."
-              ))
+              )
+            )
           else None
 
         val seriesExistsError =
@@ -136,7 +153,8 @@ trait ValidationService {
               ValidationMessage(
                 s"seriesId",
                 s"Series specified did not exist."
-              ))
+              )
+            )
           else None
 
         val hasPodcastMetaError = validateNonEmpty(s"podcastMeta", audio.podcastMeta)
@@ -165,10 +183,10 @@ trait ValidationService {
     }
 
     def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
-      val imageUrl = converterService.getPhotoUrl(coverPhoto)
-      val image = readImage(imageUrl)
+      val imageUrl    = converterService.getPhotoUrl(coverPhoto)
+      val image       = readImage(imageUrl)
       val imageHeight = image.getHeight
-      val imageWidth = image.getWidth
+      val imageWidth  = image.getWidth
 
       val squareValidationMessage =
         if (imageHeight == imageWidth) Seq.empty
@@ -177,7 +195,7 @@ trait ValidationService {
       val minImageSize = 1400
       val maxImageSize = 3000
 
-      val isBigEnough = imageHeight >= minImageSize || imageWidth >= minImageSize
+      val isBigEnough   = imageHeight >= minImageSize || imageWidth >= minImageSize
       val isSmallEnough = imageHeight <= maxImageSize || imageWidth <= maxImageSize
 
       val sizeValidationMessage =
@@ -187,7 +205,8 @@ trait ValidationService {
             ValidationMessage(
               fieldName,
               s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x$imageHeight."
-            ))
+            )
+          )
 
       squareValidationMessage ++ sizeValidationMessage
     }
@@ -203,13 +222,18 @@ trait ValidationService {
       }
     }
 
-    def validatePodcastMeta(audioType: AudioType.Value,
-                            meta: Seq[PodcastMeta],
-                            language: Option[String]): Seq[ValidationMessage] = {
+    def validatePodcastMeta(
+        audioType: AudioType.Value,
+        meta: Seq[PodcastMeta],
+        language: Option[String]
+    ): Seq[ValidationMessage] = {
       if (meta.nonEmpty && audioType != AudioType.Podcast) {
         Seq(
-          ValidationMessage("podcastMeta",
-                            s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"))
+          ValidationMessage(
+            "podcastMeta",
+            s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"
+          )
+        )
       } else {
         meta.flatMap(m => {
           val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
@@ -236,19 +260,25 @@ trait ValidationService {
     private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
       if (content.trim.length < minLength)
         Some(
-          ValidationMessage(fieldPath,
-                            s"This field does not meet the minimum length requirement of $minLength characters"))
+          ValidationMessage(
+            fieldPath,
+            s"This field does not meet the minimum length requirement of $minLength characters"
+          )
+        )
       else
         None
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       validateLicense(copyright.license).toList ++
-        validateAuthorLicenseCorrelation(Some(copyright.license),
-                                         copyright.rightsholders ++ copyright.processors ++ copyright.creators) ++
+        validateAuthorLicenseCorrelation(
+          Some(copyright.license),
+          copyright.rightsholders ++ copyright.processors ++ copyright.creators
+        ) ++
         copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, creatorTypeMap.values.toList)) ++
         copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, processorTypeMap.values.toList)) ++
         copyright.rightsholders.flatMap(a =>
-          validateAuthor("copyright.rightsholders", a, rightsholderTypeMap.values.toList)) ++
+          validateAuthor("copyright.rightsholders", a, rightsholderTypeMap.values.toList)
+        ) ++
         validateAgreement(copyright) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
@@ -305,9 +335,11 @@ trait ValidationService {
       }
     }
 
-    private def validateLanguage(fieldPath: String,
-                                 languageCode: String,
-                                 oldLanguages: Seq[String]): Option[ValidationMessage] = {
+    private def validateLanguage(
+        fieldPath: String,
+        languageCode: String,
+        oldLanguages: Seq[String]
+    ): Option[ValidationMessage] = {
       if (languageCodeSupported639(languageCode) || oldLanguages.contains(languageCode)) {
         None
       } else {

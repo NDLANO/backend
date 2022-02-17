@@ -17,9 +17,8 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.mapping
 import org.joda.time.{DateTime, DateTimeZone}
 
-/**
-  * Testklasse (og kanskje et utgangspunkt for en mer permanent løsning) som
-  * kan benyttes til å laste opp bilder til en S3-bucket, samt metainformasjon til en DynamoDB-instans
+/** Testklasse (og kanskje et utgangspunkt for en mer permanent løsning) som kan benyttes til å laste opp bilder til en
+  * S3-bucket, samt metainformasjon til en DynamoDB-instans
   */
 object TestData {
 
@@ -63,9 +62,11 @@ object TestData {
     2865539,
     "image/jpeg",
     api.Copyright(
-      api.License("by-nc-sa",
-                  "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
-                  Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")),
+      api.License(
+        "by-nc-sa",
+        "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
+        Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+      ),
       "http://www.scanpix.no",
       List(api.Author("Fotograf", "Test Testesen")),
       List(),
@@ -90,14 +91,16 @@ object TestData {
     "Bjørn.jpg",
     141134,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("rovdyr", "bjørn"), "nb")),
     List(ImageCaption("Bjørn i busk", "nb")),
     "ndla124",
@@ -115,14 +118,16 @@ object TestData {
     "Jerv.jpg",
     39061,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("rovdyr", "jerv"), "nb")),
     List(ImageCaption("Jerv på stein", "nb")),
     "ndla124",
@@ -140,14 +145,16 @@ object TestData {
     "Mink.jpg",
     102559,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("rovdyr", "mink"), "nb")),
     List(ImageCaption("Overrasket mink", "nb")),
     "ndla124",
@@ -165,14 +172,16 @@ object TestData {
     "Rein.jpg",
     504911,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("rovdyr", "rein", "jakt"), "nb")),
     List(ImageCaption("Rein har fanget rødtopp", "nb")),
     "ndla124",
@@ -190,14 +199,16 @@ object TestData {
     "Krokodille.jpg",
     2865539,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("rovdyr", "krokodille"), "nb")),
     List(ImageCaption("Krokodille på krok", "nb")),
     "ndla124",
@@ -215,14 +226,16 @@ object TestData {
     "Bison.jpg",
     2865539,
     "image/jpeg",
-    Copyright(ByNcSa,
-              "http://www.scanpix.no",
-              List(Author("Fotograf", "Test Testesen")),
-              List(),
-              List(),
-              None,
-              None,
-              None),
+    Copyright(
+      ByNcSa,
+      "http://www.scanpix.no",
+      List(Author("Fotograf", "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     List(ImageTag(List("bison"), "nb")),
     List(ImageCaption("Bison på sletten", "nb")),
     "ndla124",
@@ -239,17 +252,19 @@ object TestData {
     override def contentType: String = s"image/$format"
 
     override def stream: InputStream = getClass.getResourceAsStream(s"/$filename")
-    override def fileName: String = filename
+    override def fileName: String    = filename
 
     override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-    lazy val rawBytes = scala.io.Source.fromInputStream(stream).mkString
+    lazy val rawBytes                            = scala.io.Source.fromInputStream(stream).mkString
   }
 
-  val NdlaLogoImage = DiskImage("ndla_logo.jpg")
+  val NdlaLogoImage    = DiskImage("ndla_logo.jpg")
   val NdlaLogoGIFImage = DiskImage("ndla_logo.gif")
-  val CCLogoSvgImage = DiskImage("cc.svg")
+  val CCLogoSvgImage   = DiskImage("cc.svg")
 
-  val ChildrensImage = DiskImage("children-drawing-582306_640.jpg") // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+  val ChildrensImage = DiskImage(
+    "children-drawing-582306_640.jpg"
+  ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
 
   val searchSettings = SearchSettings(
     query = None,

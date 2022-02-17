@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with LazyLogging {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val auth0Host = AuthUser.getAuth0HostForEnv(LearningpathApiProperties.Environment)
+  private val auth0Host                     = AuthUser.getAuth0HostForEnv(LearningpathApiProperties.Environment)
 
   case class UserMetaDataObject(ndla_id: String)
   case class UserResponseObject(app_metadata: UserMetaDataObject)
@@ -43,10 +43,9 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
         case Success(ownerIds) if ownerIds.size > 0 =>
           allLearningPathsWithOwnerInList(ownerIds)
             .map { case (id, document) => (id, convertLearningPathDocument(document)) }
-            .foreach {
-              case (id, convertedDocument) =>
-                println(s"Setting the verificationStatus of $id to '${LearningPathVerificationStatus.CREATED_BY_NDLA}'")
-                updateLearningPath(id, convertedDocument)
+            .foreach { case (id, convertedDocument) =>
+              println(s"Setting the verificationStatus of $id to '${LearningPathVerificationStatus.CREATED_BY_NDLA}'")
+              updateLearningPath(id, convertedDocument)
             }
         case _ => // No paths to migrate
       }
@@ -55,15 +54,14 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
 
   def getAuth0Token: Try[String] = {
     val requestBody = for {
-      client_id <- Try(prop("LEARNINGPATH_CLIENT_ID"))
+      client_id     <- Try(prop("LEARNINGPATH_CLIENT_ID"))
       client_secret <- Try(prop("LEARNINGPATH_CLIENT_SECRET"))
-    } yield
-      Auth0TokenRequestBody(
-        "client_credentials",
-        client_id,
-        client_secret,
-        s"https://$auth0Host/api/v2/"
-      )
+    } yield Auth0TokenRequestBody(
+      "client_credentials",
+      client_id,
+      client_secret,
+      s"https://$auth0Host/api/v2/"
+    )
 
     requestBody
       .flatMap(body => {
@@ -79,7 +77,8 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
           read[Auth0TokenResponseBody](res.body).access_token
         } else {
           throw new RuntimeException("Could not fetch auth0 token for listing users with roles.")
-      })
+        }
+      )
   }
 
   private def getAuth0Response(token: String, page: Int, pageSize: Int) = {
@@ -91,7 +90,7 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
         .params(
           "search_engine" -> "v3",
           "q" -> """app_metadata.roles:"learningpath:write" || app_metadata.roles:"learningpath:admin" || app_metadata.roles:"learningpath:publish"""",
-          "page" -> page.toString,
+          "page"     -> page.toString,
           "per_page" -> pageSize.toString
         )
         .asString
@@ -105,9 +104,11 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with 
     }
   }
 
-  private def getOwnerIdsWithRolesOnPage(token: String,
-                                         page: Int,
-                                         results: List[String] = List.empty): Try[List[String]] = {
+  private def getOwnerIdsWithRolesOnPage(
+      token: String,
+      page: Int,
+      results: List[String] = List.empty
+  ): Try[List[String]] = {
     val pageSize = 50
     getAuth0Response(token, page, pageSize) match {
       case Failure(ex) => Failure(ex)

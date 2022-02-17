@@ -11,16 +11,16 @@ package no.ndla.mapping
 import scala.collection.immutable.ListMap
 
 object ISO639 {
-  private val NORWEGIAN_BOKMAL = "nb"
+  private val NORWEGIAN_BOKMAL  = "nb"
   private val NORWEGIAN_NYNORSK = "nn"
-  private val ENGLISH = "en"
-  private val FRENCH = "fr"
-  private val GERMAN = "de"
-  private val SAMI = "se"
-  private val SOUTHERN_SAMI = "sma"
-  private val SPANISH = "es"
-  private val CHINESE = "zh"
-  private val UNKNOWN = "und"
+  private val ENGLISH           = "en"
+  private val FRENCH            = "fr"
+  private val GERMAN            = "de"
+  private val SAMI              = "se"
+  private val SOUTHERN_SAMI     = "sma"
+  private val SPANISH           = "es"
+  private val CHINESE           = "zh"
+  private val UNKNOWN           = "und"
 
   private val iso639Map = ListMap(
     "nob" -> NORWEGIAN_BOKMAL,

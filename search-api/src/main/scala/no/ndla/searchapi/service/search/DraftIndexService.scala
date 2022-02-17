@@ -28,15 +28,17 @@ trait DraftIndexService {
   val draftIndexService: DraftIndexService
 
   class DraftIndexService extends LazyLogging with IndexService[Draft] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-    override val documentType: String = SearchApiProperties.SearchDocuments(SearchType.Drafts)
-    override val searchIndex: String = SearchApiProperties.SearchIndexes(SearchType.Drafts)
+    implicit val formats: Formats          = SearchableLanguageFormats.JSonFormatsWithMillis
+    override val documentType: String      = SearchApiProperties.SearchDocuments(SearchType.Drafts)
+    override val searchIndex: String       = SearchApiProperties.SearchIndexes(SearchType.Drafts)
     override val apiClient: DraftApiClient = draftApiClient
 
-    override def createIndexRequest(domainModel: Draft,
-                                    indexName: String,
-                                    taxonomyBundle: TaxonomyBundle,
-                                    grepBundle: Option[GrepBundle]): Try[IndexRequest] = {
+    override def createIndexRequest(
+        domainModel: Draft,
+        indexName: String,
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: Option[GrepBundle]
+    ): Try[IndexRequest] = {
       searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle) match {
         case Success(searchableDraft) =>
           val source = Try(write(searchableDraft))

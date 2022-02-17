@@ -35,10 +35,10 @@ object JWTClaims {
   )
 
   def apply(claims: JwtClaim): JWTClaims = {
-    val content = parse(claims.content).extract[ClaimsJSON]
-    val oldScopes = content.scope.map(_.split(' ').toList).getOrElse(List.empty)
+    val content        = parse(claims.content).extract[ClaimsJSON]
+    val oldScopes      = content.scope.map(_.split(' ').toList).getOrElse(List.empty)
     val newPermissions = content.permissions.getOrElse(List.empty)
-    val mergedScopes = (oldScopes ++ newPermissions).distinct
+    val mergedScopes   = (oldScopes ++ newPermissions).distinct
 
     new JWTClaims(
       claims.issuer,

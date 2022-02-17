@@ -14,5 +14,7 @@ import scala.annotation.meta.field
 case class ConceptMetaImage(
     @(ApiModelProperty @field)(description = "The meta image url") url: String,
     @(ApiModelProperty @field)(description = "The alt text for the meta image") alt: String,
-    @(ApiModelProperty @field)(description =
-      "The ISO 639-1 language code describing which concept translation this meta image belongs to") language: String)
+    @(ApiModelProperty @field)(
+      description = "The ISO 639-1 language code describing which concept translation this meta image belongs to"
+    ) language: String
+)

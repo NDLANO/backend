@@ -40,17 +40,17 @@ trait ArticleControllerV2 {
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
-    protected val applicationDescription = "Services for accessing articles from NDLA."
+    protected val applicationDescription                 = "Services for accessing articles from NDLA."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
 
     val converterService = new ConverterService
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400      = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403      = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404      = ResponseMessage(404, "Not found", Some("Error"))
+    val response500      = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
@@ -59,34 +59,38 @@ trait ArticleControllerV2 {
     private val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
     private val license = Param[Option[String]](
       "license",
-      "Return only results with provided license. Specifying 'all' gives all articles regardless of licence.")
+      "Return only results with provided license. Specifying 'all' gives all articles regardless of licence."
+    )
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
     )
-    private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
-    private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+    private val pageNo    = Param[Option[Int]]("page", "The page number of the search hits to display.")
+    private val pageSize  = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
     private val revision =
       Param[Option[Int]]("revision", "Revision of article to fetch. If not provided the current revision is returned.")
     private val size =
       Param[Option[Int]](
         "size",
-        s"Limit the number of results to this many elements. Default is $DefaultPageSize and max is $MaxPageSize.")
+        s"Limit the number of results to this many elements. Default is $DefaultPageSize and max is $MaxPageSize."
+      )
     private val articleTypes = Param[Option[String]](
       "articleTypes",
-      "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
+      "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
+    )
     private val articleIds = Param[Option[Seq[Long]]](
       "ids",
-      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
     protected val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-           .mkString("[", ",", "]")}.
+          .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}' and '${this.fallback.paramName}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -94,7 +98,8 @@ trait ArticleControllerV2 {
     )
     private val grepCodes = Param[Option[Seq[String]]](
       "grep-codes",
-      "A comma separated list of codes from GREP API the resources should be filtered by.")
+      "A comma separated list of codes from GREP API the resources should be filtered by."
+    )
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -107,15 +112,17 @@ trait ArticleControllerV2 {
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
 
-    /**
-      * Does a scroll with [[ArticleSearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
+      * second parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String, fallback: Boolean)(
-        orFunction: => Any): Any = {
+        orFunction: => Any
+    ): Any = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language, fallback) match {
@@ -143,10 +150,11 @@ trait ArticleControllerV2 {
             asQueryParam(size),
             asQueryParam(language)
           )
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val defaultSize = 20
-      val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val language    = paramOrDefault(this.language.paramName, AllLanguages)
       val size = intOrDefault(this.size.paramName, defaultSize) match {
         case tooSmall if tooSmall < 1 => defaultSize
         case x                        => x
@@ -172,7 +180,8 @@ trait ArticleControllerV2 {
             asQueryParam(pageNo),
             asQueryParam(language)
           )
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val query = paramOrDefault(this.query.paramName, "")
       val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize) match {
@@ -199,7 +208,7 @@ trait ArticleControllerV2 {
         articleTypesFilter: Seq[String],
         fallback: Boolean,
         grepCodes: Seq[String],
-        shouldScroll: Boolean,
+        shouldScroll: Boolean
     )(implicit request: HttpServletRequest) = {
       val result = readService.search(
         query,
@@ -244,22 +253,23 @@ trait ArticleControllerV2 {
             asQueryParam(sort),
             asQueryParam(scrollId)
           )
-          .responseMessages(response500))
+          .responseMessages(response500)
+      )
     ) {
       val scrollId = paramOrNone(this.scrollId.paramName)
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       scrollSearchOr(scrollId, language, fallback) {
-        val query = paramOrNone(this.query.paramName)
-        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-        val license = paramOrNone(this.license.paramName)
-        val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
-        val page = intOrDefault(this.pageNo.paramName, 1)
-        val idList = paramAsListOfLong(this.articleIds.paramName)
+        val query              = paramOrNone(this.query.paramName)
+        val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+        val license            = paramOrNone(this.license.paramName)
+        val pageSize           = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
+        val page               = intOrDefault(this.pageNo.paramName, 1)
+        val idList             = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
-        val grepCodes = paramAsListOfString(this.grepCodes.paramName)
-        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val grepCodes          = paramAsListOfString(this.grepCodes.paramName)
+        val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
         search(
           query,
@@ -272,7 +282,7 @@ trait ArticleControllerV2 {
           articleTypesFilter,
           fallback,
           grepCodes,
-          shouldScroll,
+          shouldScroll
         )
       }
     }
@@ -289,22 +299,23 @@ trait ArticleControllerV2 {
             asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
           )
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
       val searchParams = extract[ArticleSearchParams](request.body)
-      val language = searchParams.language.getOrElse(AllLanguages)
-      val fallback = searchParams.fallback.getOrElse(false)
+      val language     = searchParams.language.getOrElse(AllLanguages)
+      val fallback     = searchParams.fallback.getOrElse(false)
 
       scrollSearchOr(searchParams.scrollId, language, fallback) {
-        val query = searchParams.query
-        val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-        val license = searchParams.license
-        val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
-        val page = searchParams.page.getOrElse(1)
-        val idList = searchParams.idList
+        val query              = searchParams.query
+        val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
+        val license            = searchParams.license
+        val pageSize           = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
+        val page               = searchParams.page.getOrElse(1)
+        val idList             = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
-        val grepCodes = searchParams.grepCodes
-        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+        val grepCodes          = searchParams.grepCodes
+        val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
         search(
           query,
@@ -348,7 +359,8 @@ trait ArticleControllerV2 {
             asQueryParam(fallback),
             asQueryParam(revision)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       parseArticleIdAndRevision(params(this.articleId.paramName)) match {
         case (Failure(ex), _) => errorHandler(ex)
@@ -372,9 +384,10 @@ trait ArticleControllerV2 {
           .description("Fetch list of existing revisions for article-id")
           .parameters(
             asHeaderParam(correlationId),
-            asPathParam(articleId),
+            asPathParam(articleId)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val articleId = long(this.articleId.paramName)
       readService.getRevisions(articleId) match {
@@ -393,7 +406,8 @@ trait ArticleControllerV2 {
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val externalId = long(this.deprecatedNodeId.paramName)
       readService.getInternalIdByExternalId(externalId) match {
@@ -408,12 +422,14 @@ trait ArticleControllerV2 {
         apiOperation[ArticleIds]("getExternalIdsByExternalId")
           .summary("Get all ids related to article corresponding to specified deprecated node id.")
           .description(
-            "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id.")
+            "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id."
+          )
           .parameters(
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val externalId = params(this.deprecatedNodeId.paramName)
       readService.getArticleIdsByExternalId(externalId) match {

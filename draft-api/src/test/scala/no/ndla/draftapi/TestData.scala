@@ -33,29 +33,33 @@ object TestData {
   val authHeaderWithAllRoles =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXMtdGVzdDpwdWJsaXNoIGRyYWZ0cy10ZXN0OndyaXRlIGRyYWZ0cy10ZXN0OnNldF90b19wdWJsaXNoIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
 
-  val userWithNoRoles: UserInfo = UserInfo("unit test", Set.empty)
-  val userWithWriteAccess: UserInfo = UserInfo("unit test", Set(Role.WRITE))
+  val userWithNoRoles: UserInfo       = UserInfo("unit test", Set.empty)
+  val userWithWriteAccess: UserInfo   = UserInfo("unit test", Set(Role.WRITE))
   val userWithPublishAccess: UserInfo = UserInfo("unit test", Set(Role.WRITE, Role.PUBLISH))
-  val userWithAdminAccess: UserInfo = UserInfo("unit test", Set(Role.WRITE, Role.PUBLISH, Role.ADMIN))
+  val userWithAdminAccess: UserInfo   = UserInfo("unit test", Set(Role.WRITE, Role.PUBLISH, Role.ADMIN))
 
   val publicDomainCopyright: Copyright =
     Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
-  private val byNcSaCopyright = Copyright(Some(CC_BY_NC_SA.toString),
-                                          Some("Gotham City"),
-                                          List(Author("Forfatter", "DC Comics")),
-                                          List(),
-                                          List(),
-                                          None,
-                                          None,
-                                          None)
-  private val copyrighted = Copyright(Some("copyrighted"),
-                                      Some("New York"),
-                                      List(Author("Forfatter", "Clark Kent")),
-                                      List(),
-                                      List(),
-                                      None,
-                                      None,
-                                      None)
+  private val byNcSaCopyright = Copyright(
+    Some(CC_BY_NC_SA.toString),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
+  private val copyrighted = Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
   val today: Date = new DateTime().toDate
 
   val (articleId, externalId) = (1, "751234")
@@ -68,14 +72,17 @@ object TestData {
     title = Some(api.ArticleTitle("title", "nb")),
     content = Some(api.ArticleContent("this is content", "nb")),
     copyright = Some(
-      api.Copyright(Some(api.License("licence", None, None)),
-                    Some("origin"),
-                    Seq(api.Author("developer", "Per")),
-                    List(),
-                    List(),
-                    None,
-                    None,
-                    None)),
+      api.Copyright(
+        Some(api.License("licence", None, None)),
+        Some("origin"),
+        Seq(api.Author("developer", "Per")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      )
+    ),
     tags = Some(api.ArticleTag(Seq("tag"), "nb")),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
     visualElement = None,
@@ -123,7 +130,7 @@ object TestData {
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
     revision = 1,
     language = Some("nb"),
-    title = Some("tittel"),
+    title = Some("tittel")
   )
 
   val articleHit1: String = """
@@ -165,9 +172,12 @@ object TestData {
     Some(
       api.Copyright(
         Some(
-          api.License(CC_BY.toString,
-                      Some("Creative Commons Attribution 4.0 International"),
-                      Some("https://creativecommons.org/licenses/by/4.0/"))),
+          api.License(
+            CC_BY.toString,
+            Some("Creative Commons Attribution 4.0 International"),
+            Some("https://creativecommons.org/licenses/by/4.0/")
+          )
+        ),
         Some(""),
         Seq.empty,
         List(),
@@ -175,7 +185,8 @@ object TestData {
         None,
         None,
         None
-      )),
+      )
+    ),
     None,
     Seq.empty,
     None,
@@ -206,9 +217,12 @@ object TestData {
     Some(
       api.Copyright(
         Some(
-          api.License(CC_BY.toString,
-                      Some("Creative Commons Attribution 4.0 International"),
-                      Some("https://creativecommons.org/licenses/by/4.0/"))),
+          api.License(
+            CC_BY.toString,
+            Some("Creative Commons Attribution 4.0 International"),
+            Some("https://creativecommons.org/licenses/by/4.0/")
+          )
+        ),
         Some(""),
         Seq.empty,
         List(),
@@ -216,7 +230,8 @@ object TestData {
         None,
         None,
         None
-      )),
+      )
+    ),
     None,
     Seq.empty,
     None,
@@ -356,14 +371,17 @@ object TestData {
     None,
     None,
     Some(
-      api.Copyright(Some(api.License("publicdomain", None, None)),
-                    Some(""),
-                    Seq.empty,
-                    Seq.empty,
-                    Seq.empty,
-                    None,
-                    None,
-                    None)),
+      api.Copyright(
+        Some(api.License("publicdomain", None, None)),
+        Some(""),
+        Seq.empty,
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        None
+      )
+    ),
     Seq.empty,
     "standard",
     Seq.empty,
@@ -374,7 +392,7 @@ object TestData {
     Seq.empty
   )
 
-  val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
+  val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
   val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
   val sampleDomainArticleWithHtmlFault: Article = Article(
@@ -390,7 +408,8 @@ object TestData {
       |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
     """.stripMargin,
         "en"
-      )),
+      )
+    ),
     Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     Seq.empty,
     Seq.empty,
@@ -426,16 +445,20 @@ object TestData {
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
         "en"
-      )),
+      )
+    ),
     Some(
-      api.Copyright(Some(api.License("publicdomain", None, None)),
-                    Some(""),
-                    Seq.empty,
-                    Seq.empty,
-                    Seq.empty,
-                    None,
-                    None,
-                    None)),
+      api.Copyright(
+        Some(api.License("publicdomain", None, None)),
+        Some(""),
+        Seq.empty,
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        None
+      )
+    ),
     Some(api.ArticleTag(Seq.empty, "en")),
     Seq.empty,
     None,
@@ -456,12 +479,13 @@ object TestData {
     Seq.empty
   )
 
-  val (nodeId, nodeId2) = ("1234", "4321")
+  val (nodeId, nodeId2)         = ("1234", "4321")
   val sampleTitle: ArticleTitle = ArticleTitle("title", "en")
 
   val visualElement: VisualElement = VisualElement(
     s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
-    "nb")
+    "nb"
+  )
 
   val sampleApiAgreement: api.Agreement = api.Agreement(
     1,
@@ -499,28 +523,32 @@ object TestData {
   val emptyApiUserData: api.UserData =
     api.UserData(userId = "", savedSearches = None, latestEditedArticles = None, favoriteSubjects = None)
 
-  val newAgreement: NewAgreement = NewAgreement("newTitle",
-                                                "newString",
-                                                api.NewAgreementCopyright(Some(api.License("by-sa", None, None)),
-                                                                          Some(""),
-                                                                          List(),
-                                                                          List(),
-                                                                          List(),
-                                                                          None,
-                                                                          None,
-                                                                          None))
-  val statusWithAwaitingPublishing = Set(ArticleStatus.DRAFT, ArticleStatus.QUEUED_FOR_PUBLISHING)
-  val statusWithPublished: Status = domain.Status(ArticleStatus.PUBLISHED, Set.empty)
-  val statusWithDraft: Status = domain.Status(ArticleStatus.DRAFT, Set.empty)
-  val statusWithProposal: Status = domain.Status(ArticleStatus.PROPOSAL, Set.empty)
-  val statusWithUserTest: Status = domain.Status(ArticleStatus.USER_TEST, Set.empty)
-  val statusWithAwaitingQA: Status = domain.Status(ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty)
+  val newAgreement: NewAgreement = NewAgreement(
+    "newTitle",
+    "newString",
+    api.NewAgreementCopyright(
+      Some(api.License("by-sa", None, None)),
+      Some(""),
+      List(),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    )
+  )
+  val statusWithAwaitingPublishing          = Set(ArticleStatus.DRAFT, ArticleStatus.QUEUED_FOR_PUBLISHING)
+  val statusWithPublished: Status           = domain.Status(ArticleStatus.PUBLISHED, Set.empty)
+  val statusWithDraft: Status               = domain.Status(ArticleStatus.DRAFT, Set.empty)
+  val statusWithProposal: Status            = domain.Status(ArticleStatus.PROPOSAL, Set.empty)
+  val statusWithUserTest: Status            = domain.Status(ArticleStatus.USER_TEST, Set.empty)
+  val statusWithAwaitingQA: Status          = domain.Status(ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty)
   val statusWithQueuedForPublishing: Status = domain.Status(ArticleStatus.QUEUED_FOR_PUBLISHING, Set.empty)
 
   val sampleLearningPath: LearningPath = LearningPath(Some(1))
 
   val sampleApiGrepCodesSearchResult: GrepCodesSearchResult = api.GrepCodesSearchResult(10, 1, 1, Seq("a", "b"))
-  val sampleApiTagsSearchResult: TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+  val sampleApiTagsSearchResult: TagsSearchResult           = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,

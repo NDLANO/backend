@@ -21,8 +21,8 @@ class V3__AddUpdatedColoums extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      val count = countAllArticles.get
-      var delt = (count / 1000) + 1
+      val count  = countAllArticles.get
+      var delt   = (count / 1000) + 1
       var offset = 0L
 
       while (delt > 0) {

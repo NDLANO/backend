@@ -43,8 +43,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
   override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override val multiSearchService = new MultiSearchService
-  override val converterService = new ConverterService
+  override val multiSearchService     = new MultiSearchService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
@@ -114,7 +114,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
 
     val taxonomyBundle = {
       val visibleMeta = Some(Metadata(List.empty, visible = true))
-      val hiddenMeta = Some(Metadata(List.empty, visible = false))
+      val hiddenMeta  = Some(Metadata(List.empty, visible = false))
 
       val resources = List(
         // Visible resource with hidden parent topic
@@ -180,12 +180,16 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       )
 
       val resourceResourceTypeConnections = List(
-        ResourceResourceTypeConnection("urn:resource:1",
-                                       "urn:resourcetype:subjectMaterial",
-                                       "urn:resourceresourcetype:1"),
-        ResourceResourceTypeConnection("urn:resource:2",
-                                       "urn:resourcetype:subjectMaterial",
-                                       "urn:resourceresourcetype:1")
+        ResourceResourceTypeConnection(
+          "urn:resource:1",
+          "urn:resourcetype:subjectMaterial",
+          "urn:resourceresourcetype:1"
+        ),
+        ResourceResourceTypeConnection(
+          "urn:resource:2",
+          "urn:resourcetype:subjectMaterial",
+          "urn:resourceresourcetype:1"
+        )
       )
 
       val subjectTopicConnections = List(
@@ -246,7 +250,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         resourceTypes = TestData.resourceTypes,
         subjectTopicConnections = subjectTopicConnections,
         topicResourceConnections = topicResourceConnections,
-        topicSubtopicConnections = topicSubtopicConnections,
+        topicSubtopicConnections = topicSubtopicConnections
       )
     }
 
@@ -259,7 +263,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
     val result = multiSearchService
       .matchingQuery(
         TestData.searchSettings.copy(
-          ))
+        )
+      )
       .get
 
     result.results.head.contexts.map(_.id) should be(Seq("urn:resource:2"))
@@ -270,7 +275,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
 
     val taxonomyBundle = {
       val visibleMeta = Some(Metadata(List.empty, visible = true))
-      val hiddenMeta = Some(Metadata(List.empty, visible = false))
+      val hiddenMeta  = Some(Metadata(List.empty, visible = false))
 
       val topics = List(
         // Hidden topic with visible subject
@@ -353,7 +358,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         resourceTypes = TestData.resourceTypes,
         subjectTopicConnections = subjectTopicConnections,
         topicResourceConnections = List.empty,
-        topicSubtopicConnections = topicSubtopicConnections,
+        topicSubtopicConnections = topicSubtopicConnections
       )
     }
 
@@ -366,7 +371,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
     val result = multiSearchService
       .matchingQuery(
         TestData.searchSettings.copy(
-          ))
+        )
+      )
       .get
 
     result.results.head.contexts.map(_.id) should be(Seq("urn:topic:3"))

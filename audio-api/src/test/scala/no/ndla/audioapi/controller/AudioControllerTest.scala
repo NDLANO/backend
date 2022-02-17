@@ -31,14 +31,14 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
   implicit val swagger: AudioSwagger = new AudioSwagger
-  lazy val controller = new AudioController
+  lazy val controller                = new AudioController
   addServlet(controller, "/*")
 
   val sampleUploadFile: Uploadable = new Uploadable {
-    override def contentLength = 3
+    override def contentLength        = 3
     override def content: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
-    override def contentType = "audio/mp3"
-    override def fileName = "test.mp3"
+    override def contentType          = "audio/mp3"
+    override def fileName             = "test.mp3"
   }
 
   val sampleNewAudioMeta: String =
@@ -84,14 +84,16 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         None,
         None,
         TestData.yesterday.toDate,
-        TestData.today.toDate,
+        TestData.today.toDate
       )
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Success(sampleAudioMeta))
 
-    post("/",
-         Map("metadata" -> sampleNewAudioMeta),
-         Map("file" -> sampleUploadFile),
-         headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post(
+      "/",
+      Map("metadata" -> sampleNewAudioMeta),
+      Map("file"     -> sampleUploadFile),
+      headers = Map("Authorization" -> authHeaderWithWriteRole)
+    ) {
       status should equal(200)
       body.contains("audioType\":\"podcast\"") should be(true)
     }
@@ -105,10 +107,12 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem]))
       .thenReturn(Failure(runtimeMock))
 
-    post("/",
-         Map("metadata" -> sampleNewAudioMeta),
-         Map("file" -> sampleUploadFile),
-         headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post(
+      "/",
+      Map("metadata" -> sampleNewAudioMeta),
+      Map("file"     -> sampleUploadFile),
+      headers = Map("Authorization" -> authHeaderWithWriteRole)
+    ) {
       status should equal(500)
     }
   }

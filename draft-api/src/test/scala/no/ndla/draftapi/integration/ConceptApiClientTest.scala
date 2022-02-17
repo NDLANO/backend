@@ -12,9 +12,9 @@ import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import scala.util.Success
 
 class ConceptApiClientTest extends UnitSuite with TestEnvironment {
-  val baseUrl = "http://mockpath"
+  val baseUrl   = "http://mockpath"
   val draftPath = s"concept-api/v1/drafts"
-  val idPath = (id: Long) => s"$draftPath/$id"
+  val idPath    = (id: Long) => s"$draftPath/$id"
 
   override val conceptApiClient: ConceptApiClient = spy(new ConceptApiClient(baseUrl))
 

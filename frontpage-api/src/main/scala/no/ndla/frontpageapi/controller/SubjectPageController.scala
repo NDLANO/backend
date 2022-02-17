@@ -21,22 +21,22 @@ trait SubjectPageController {
   this: ReadService with WriteService =>
   val subjectPageController: SubjectPageController[IO]
 
-  class SubjectPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
+  class SubjectPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
 
     import swaggerSyntax._
 
     "Get data to display on a subject page" **
       GET / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
-      "language",
-      FrontpageApiProperties.DefaultLanguage) & param[Boolean]("fallback", false) |>> {
-      (id: Long, language: String, fallback: Boolean) =>
+        "language",
+        FrontpageApiProperties.DefaultLanguage
+      ) & param[Boolean]("fallback", false) |>> { (id: Long, language: String, fallback: Boolean) =>
         {
           readService.subjectPage(id, language, fallback) match {
             case Some(s) => Ok(s)
             case None    => NotFound(Error.notFound)
           }
         }
-    }
+      }
 
     AuthOptions.^^("Create new subject page" ** POST) >>> Auth.auth ^ NewSubjectFrontPageData.decoder |>> {
       (user: Option[UserInfo], newSubjectFrontPageData: NewSubjectFrontPageData) =>
@@ -54,10 +54,13 @@ trait SubjectPageController {
         }
     }
 
-    AuthOptions.^^("Update subject page" **
-      PATCH) / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
+    AuthOptions.^^(
+      "Update subject page" **
+        PATCH
+    ) / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
       "language",
-      FrontpageApiProperties.DefaultLanguage) >>> Auth.auth ^ UpdatedSubjectFrontPageData.decoder |>> {
+      FrontpageApiProperties.DefaultLanguage
+    ) >>> Auth.auth ^ UpdatedSubjectFrontPageData.decoder |>> {
       (id: Long, language: String, user: Option[UserInfo], subjectPage: UpdatedSubjectFrontPageData) =>
         {
           user match {

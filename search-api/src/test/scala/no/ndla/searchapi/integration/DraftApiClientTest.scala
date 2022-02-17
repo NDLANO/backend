@@ -36,7 +36,7 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
       new EnumNameSerializer(LearningResourceType) ++
       org.json4s.ext.JodaTimeSerializers.all
 
-  override val ndlaClient = new NdlaClient
+  override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
 
   // Pact CDC imports
@@ -69,7 +69,8 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
             None,
             None,
             None
-          )),
+          )
+        ),
         Seq.empty,
         Seq.empty,
         Seq.empty,
@@ -119,12 +120,11 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
           AuthUser.setHeader(s"Bearer $exampleToken")
           val draftApiClient = new DraftApiClient(mockConfig.baseUrl)
 
-          implicit val ec = ExecutionContext.global
-          val chunks = draftApiClient.getChunks[domain.draft.Draft].toList
+          implicit val ec  = ExecutionContext.global
+          val chunks       = draftApiClient.getChunks[domain.draft.Draft].toList
           val fetchedDraft = Await.result(chunks.head, Duration.Inf).get.head
-          val searchable = searchConverterService.asSearchableDraft(fetchedDraft,
-                                                                    TestData.taxonomyTestBundle,
-                                                                    TestData.emptyGrepBundle)
+          val searchable = searchConverterService
+            .asSearchableDraft(fetchedDraft, TestData.taxonomyTestBundle, TestData.emptyGrepBundle)
 
           searchable.isSuccess should be(true)
           searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

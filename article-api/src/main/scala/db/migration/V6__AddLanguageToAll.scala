@@ -19,8 +19,8 @@ import java.util.Date
 
 class V6__AddLanguageToAll extends BaseJavaMigration {
 
-  implicit val formats: Formats = org.json4s.DefaultFormats + FieldSerializer[V6_Article](
-    ignore("id") orElse ignore("revision"))
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats + FieldSerializer[V6_Article](ignore("id") orElse ignore("revision"))
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -37,9 +37,9 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   //
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map(convertArticleUpdate).foreach(updateArticle)
@@ -66,14 +66,17 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     articleMeta.copy(
       title = articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(languageOrUnknown(t.language).toString))),
       content = articleMeta.content.map(c =>
-        V6_ArticleContent(c.content, c.footNotes, Some(languageOrUnknown(c.language).toString))),
+        V6_ArticleContent(c.content, c.footNotes, Some(languageOrUnknown(c.language).toString))
+      ),
       tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(languageOrUnknown(t.language).toString))),
       visualElement =
         articleMeta.visualElement.map(v => V6_VisualElement(v.resource, Some(languageOrUnknown(v.language).toString))),
       introduction = articleMeta.introduction.map(i =>
-        V6_ArticleIntroduction(i.introduction, Some(languageOrUnknown(i.language).toString))),
+        V6_ArticleIntroduction(i.introduction, Some(languageOrUnknown(i.language).toString))
+      ),
       metaDescription = articleMeta.metaDescription.map(m =>
-        V6_ArticleMetaDescription(m.content, Some(languageOrUnknown(m.language).toString)))
+        V6_ArticleMetaDescription(m.content, Some(languageOrUnknown(m.language).toString))
+      )
     )
   }
 
@@ -90,9 +93,9 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   //
 
   def migrateConcepts(implicit session: DBSession): Unit = {
-    val count = countAllConcepts.get
+    val count        = countAllConcepts.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
       allConcepts(offset * 1000).map(convertConceptUpdate).foreach(updateConcept)
@@ -141,34 +144,40 @@ case class V6_ArticleMetaDescription(content: String, language: Option[String])
 case class V6_RequiredLibrary(mediaType: String, name: String, url: String)
 case class V6_Copyright(license: String, origin: String, authors: Seq[V6_Author])
 case class V6_Author(`type`: String, name: String)
-case class V6_FootNoteItem(title: String,
-                           `type`: String,
-                           year: String,
-                           edition: String,
-                           publisher: String,
-                           authors: Seq[String])
+case class V6_FootNoteItem(
+    title: String,
+    `type`: String,
+    year: String,
+    edition: String,
+    publisher: String,
+    authors: Seq[String]
+)
 
-case class V6_Article(id: Option[Long],
-                      revision: Option[Int],
-                      title: Seq[V6_ArticleTitle],
-                      content: Seq[V6_ArticleContent],
-                      copyright: V6_Copyright,
-                      tags: Seq[V6_ArticleTag],
-                      requiredLibraries: Seq[V6_RequiredLibrary],
-                      visualElement: Seq[V6_VisualElement],
-                      introduction: Seq[V6_ArticleIntroduction],
-                      metaDescription: Seq[V6_ArticleMetaDescription],
-                      metaImageId: Option[String],
-                      created: Date,
-                      updated: Date,
-                      updatedBy: String,
-                      articleType: String)
+case class V6_Article(
+    id: Option[Long],
+    revision: Option[Int],
+    title: Seq[V6_ArticleTitle],
+    content: Seq[V6_ArticleContent],
+    copyright: V6_Copyright,
+    tags: Seq[V6_ArticleTag],
+    requiredLibraries: Seq[V6_RequiredLibrary],
+    visualElement: Seq[V6_VisualElement],
+    introduction: Seq[V6_ArticleIntroduction],
+    metaDescription: Seq[V6_ArticleMetaDescription],
+    metaImageId: Option[String],
+    created: Date,
+    updated: Date,
+    updatedBy: String,
+    articleType: String
+)
 
-case class V6_Concept(id: Option[Long],
-                      title: Seq[V6_ConceptTitle],
-                      content: Seq[V6_ConceptContent],
-                      authors: Seq[V6_Author],
-                      created: Date,
-                      updated: Date)
+case class V6_Concept(
+    id: Option[Long],
+    title: Seq[V6_ConceptTitle],
+    content: Seq[V6_ConceptContent],
+    authors: Seq[V6_Author],
+    created: Date,
+    updated: Date
+)
 case class V6_ConceptTitle(title: String, language: Option[String])
 case class V6_ConceptContent(content: String, language: Option[String])

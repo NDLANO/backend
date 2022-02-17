@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val swagger = new OEmbedSwagger
-  lazy val controller = new OEmbedProxyController
+  lazy val controller  = new OEmbedProxyController
   addServlet(controller, OEmbedProxyProperties.OembedProxyControllerMountPoint)
 
   val oembed = OEmbed(
@@ -38,7 +38,8 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Scal
     width = Some(800L),
     height = Some(600L),
     html = Some(
-      "<div><iframe loading=\"lazy\" width=\"800\" height=\"600\" allowfullscreen=\"allowfullscreen\" src=\"https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730\"></iframe><script src=\"https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js\"></script></div>\"")
+      "<div><iframe loading=\"lazy\" width=\"800\" height=\"600\" allowfullscreen=\"allowfullscreen\" src=\"https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730\"></iframe><script src=\"https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js\"></script></div>\""
+    )
   )
 
   test("h5p url should return ok if found") {

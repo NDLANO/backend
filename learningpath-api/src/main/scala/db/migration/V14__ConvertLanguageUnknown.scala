@@ -49,7 +49,7 @@ class V14__ConvertLanguageUnknown extends BaseJavaMigration {
   }
 
   def convertLearningStepDocument(document: String): String = {
-    val oldStep = parse(document)
+    val oldStep       = parse(document)
     val extractedStep = oldStep.extract[V14_LearningStep]
     val embedUrl = extractedStep.embedUrl.map(t => {
       if (t.language == "unknown")
@@ -78,7 +78,7 @@ class V14__ConvertLanguageUnknown extends BaseJavaMigration {
 
   def convertLearningPathDocument(document: String): String = {
     val oldLearningpath = parse(document)
-    val extractedPath = oldLearningpath.extract[V14_LearningPath]
+    val extractedPath   = oldLearningpath.extract[V14_LearningPath]
     val tags = extractedPath.tags.map(t => {
       if (t.language == "unknown")
         t.copy(language = "und")

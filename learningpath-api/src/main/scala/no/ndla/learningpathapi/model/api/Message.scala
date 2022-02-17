@@ -14,4 +14,5 @@ import scala.annotation.meta.field
 @ApiModel(description = "Administrator message left on learningpaths")
 case class Message(
     @(ApiModelProperty @field)(description = "Message left on a learningpath by administrator") message: String,
-    @(ApiModelProperty @field)(description = "When the message was left") date: Date)
+    @(ApiModelProperty @field)(description = "When the message was left") date: Date
+)

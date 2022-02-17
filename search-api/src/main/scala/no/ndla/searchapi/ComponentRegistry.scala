@@ -52,35 +52,35 @@ object ComponentRegistry
   lazy val searchController = new SearchController
   lazy val healthController = new HealthController
   lazy val internController = new InternController
-  lazy val resourcesApp = new ResourcesApp
+  lazy val resourcesApp     = new ResourcesApp
 
-  lazy val ndlaClient = new NdlaClient
+  lazy val ndlaClient          = new NdlaClient
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
 
   lazy val taxonomyApiClient = new TaxonomyApiClient
-  lazy val grepApiClient = new GrepApiClient
+  lazy val grepApiClient     = new GrepApiClient
 
-  lazy val draftApiClient = new DraftApiClient(DraftApiUrl)
+  lazy val draftApiClient        = new DraftApiClient(DraftApiUrl)
   lazy val learningPathApiClient = new LearningPathApiClient(LearningpathApiUrl)
-  lazy val imageApiClient = new ImageApiClient(ImageApiUrl)
-  lazy val audioApiClient = new AudioApiClient(AudioApiUrl)
-  lazy val articleApiClient = new ArticleApiClient(ArticleApiUrl)
-  lazy val feideApiClient = new FeideApiClient
+  lazy val imageApiClient        = new ImageApiClient(ImageApiUrl)
+  lazy val audioApiClient        = new AudioApiClient(AudioApiUrl)
+  lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
+  lazy val feideApiClient        = new FeideApiClient
   lazy val SearchClients = Map[String, SearchApiClient](
-    draftApiClient.name -> draftApiClient,
+    draftApiClient.name        -> draftApiClient,
     learningPathApiClient.name -> learningPathApiClient,
-    imageApiClient.name -> imageApiClient,
-    audioApiClient.name -> audioApiClient
+    imageApiClient.name        -> imageApiClient,
+    audioApiClient.name        -> audioApiClient
   )
 
-  lazy val searchService = new ApiSearchService
-  lazy val converterService = new ConverterService
-  lazy val searchConverterService = new SearchConverterService
-  lazy val multiSearchService = new MultiSearchService
-  lazy val articleIndexService = new ArticleIndexService
+  lazy val searchService            = new ApiSearchService
+  lazy val converterService         = new ConverterService
+  lazy val searchConverterService   = new SearchConverterService
+  lazy val multiSearchService       = new MultiSearchService
+  lazy val articleIndexService      = new ArticleIndexService
   lazy val learningPathIndexService = new LearningPathIndexService
-  lazy val draftIndexService = new DraftIndexService
-  lazy val multiDraftSearchService = new MultiDraftSearchService
+  lazy val draftIndexService        = new DraftIndexService
+  lazy val multiDraftSearchService  = new MultiDraftSearchService
 
   lazy val user = new User
 }

@@ -33,13 +33,13 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
   }
 
   def migrateTopicArticleEmbeds(implicit session: DBSession): Unit = {
-    val count = countAllTopicArticles.get
+    val count        = countAllTopicArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allTopicArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertTopicArticle(document), id)
+      allTopicArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertTopicArticle(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -74,7 +74,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
     implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V16__ArticleStatus) + Json4s
       .serializer(ArticleType)
 
-    val oldArticle = parse(document)
+    val oldArticle       = parse(document)
     val extractedArticle = oldArticle.extract[V16__Article]
 
     val contentWithExtractedEmbeds = extractedArticle.content.map(cont => {
@@ -92,7 +92,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
       }
 
       val allVisualElements = extractedArticle.visualElement ++ newVisualElements
-      val updatedStatus = newStatus(extractedArticle)
+      val updatedStatus     = newStatus(extractedArticle)
       val noteToAppend = V16__EditorNote(
         s"Embed plassert før første tekst har blitt slettet og gjort om til visuelt element, dersom det var mulig. Status har blitt endret til 'Til kvalitetssikring'.",
         "System",
@@ -115,11 +115,11 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
     val document = Jsoup.parseBodyFragment(content)
     document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
     val parsedContent = document.body()
-    val firstEmbed = Option(parsedContent.select("embed").first())
+    val firstEmbed    = Option(parsedContent.select("embed").first())
 
     val willExtract = firstEmbed match {
       case Some(embed) =>
-        val uuidStr = randomUUID().toString
+        val uuidStr  = randomUUID().toString
         val textNode = new TextNode(uuidStr)
         embed.before(textNode)
 
@@ -156,16 +156,18 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
   case class V16__Content(content: String, language: String)
   case class V16__EditorNote(note: String, user: String, status: V16__Status, timestamp: Date)
   case class V16__VisualElement(resource: String, language: String)
-  case class V16__Article(content: Seq[V16__Content],
-                          visualElement: Seq[V16__VisualElement],
-                          articleType: ArticleType,
-                          status: V16__Status,
-                          notes: Seq[V16__EditorNote])
+  case class V16__Article(
+      content: Seq[V16__Content],
+      visualElement: Seq[V16__VisualElement],
+      articleType: ArticleType,
+      status: V16__Status,
+      notes: Seq[V16__EditorNote]
+  )
 
   object V16__ArticleStatus extends Enumeration {
 
     val IMPORTED, DRAFT, PUBLISHED, PROPOSAL, QUEUED_FOR_PUBLISHING, USER_TEST, AWAITING_QUALITY_ASSURANCE,
-    QUALITY_ASSURED, AWAITING_UNPUBLISHING, UNPUBLISHED, ARCHIVED = Value
+        QUALITY_ASSURED, AWAITING_UNPUBLISHING, UNPUBLISHED, ARCHIVED = Value
   }
 
 }

@@ -20,5 +20,5 @@ case class MetaImage(
     ) language: String
 ) extends LanguageField[(String, String)] {
   override def value: (String, String) = url -> alt
-  override def isEmpty: Boolean = url.isEmpty || alt.isEmpty
+  override def isEmpty: Boolean        = url.isEmpty || alt.isEmpty
 }

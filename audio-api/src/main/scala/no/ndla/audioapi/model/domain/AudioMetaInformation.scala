@@ -33,7 +33,7 @@ case class AudioMetaInformation(
     audioType: AudioType.Value = AudioType.Standard,
     manuscript: Seq[Manuscript],
     seriesId: Option[Long],
-    series: Option[Series],
+    series: Option[Series]
 ) {
   lazy val supportedLanguages: Seq[String] =
     getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
@@ -41,40 +41,42 @@ case class AudioMetaInformation(
 
 object AudioType extends Enumeration {
   val Standard: this.Value = Value("standard")
-  val Podcast: this.Value = Value("podcast")
+  val Podcast: this.Value  = Value("podcast")
 
-  def all: Seq[String] = this.values.map(_.toString).toSeq
+  def all: Seq[String]                       = this.values.map(_.toString).toSeq
   def valueOf(s: String): Option[this.Value] = this.values.find(_.toString == s)
 }
 
 case class Title(title: String, language: String) extends LanguageField[String] {
-  override def value: String = title
+  override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty
 }
 case class Manuscript(manuscript: String, language: String) extends LanguageField[String] {
-  override def value: String = manuscript
+  override def value: String    = manuscript
   override def isEmpty: Boolean = manuscript.isEmpty
 }
 case class Audio(filePath: String, mimeType: String, fileSize: Long, language: String) extends LanguageField[Audio] {
-  override def value: Audio = this
+  override def value: Audio     = this
   override def isEmpty: Boolean = false
 }
-case class Copyright(license: String,
-                     origin: Option[String],
-                     creators: Seq[Author],
-                     processors: Seq[Author],
-                     rightsholders: Seq[Author],
-                     agreementId: Option[Long],
-                     validFrom: Option[Date],
-                     validTo: Option[Date])
+case class Copyright(
+    license: String,
+    origin: Option[String],
+    creators: Seq[Author],
+    processors: Seq[Author],
+    rightsholders: Seq[Author],
+    agreementId: Option[Long],
+    validFrom: Option[Date],
+    validTo: Option[Date]
+)
 case class Author(`type`: String, name: String)
 case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
   override def value: Seq[String] = tags
-  override def isEmpty: Boolean = tags.isEmpty
+  override def isEmpty: Boolean   = tags.isEmpty
 }
 
 object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
-  override val tableName = "audiodata"
+  override val tableName                  = "audiodata"
   override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
 
   val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
@@ -93,7 +95,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
 
   def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
     implicit val formats: Formats = jsonEncoder
-    val meta = read[AudioMetaInformation](rs.string(au.c("document")))
+    val meta                      = read[AudioMetaInformation](rs.string(au.c("document")))
     meta.copy(
       id = Some(rs.long(au.c("id"))),
       revision = Some(rs.int(au.c("revision"))),

@@ -34,9 +34,11 @@ class V6__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
   }
 
   private def toNewAuthorType(author: V4_Author): V4_Author = {
-    (creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-     processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
-     rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)) match {
+    (
+      creatorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+      processorTypeMap.getOrElse(author.`type`.toLowerCase, None),
+      rightsholderTypeMap.getOrElse(author.`type`.toLowerCase, None)
+    ) match {
       case (t: String, _, _) => V4_Author(t.capitalize, author.name)
       case (_, t: String, _) => V4_Author(t.capitalize, author.name)
       case (_, _, t: String) => V4_Author(t.capitalize, author.name)
@@ -47,14 +49,15 @@ class V6__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
   def updateAuthorFormat(id: Long, revision: Int, metaString: String): V5_AudioMetaInformation = {
     val meta = read[V5_AudioMetaInformation](metaString)
 
-    val creators = meta.copyright.creators.map(toNewAuthorType)
-    val processors = meta.copyright.processors.map(toNewAuthorType)
+    val creators      = meta.copyright.creators.map(toNewAuthorType)
+    val processors    = meta.copyright.processors.map(toNewAuthorType)
     val rightsholders = meta.copyright.rightsholders.map(toNewAuthorType)
 
-    meta.copy(id = Some(id),
-              revision = Some(revision),
-              copyright =
-                meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
+    meta.copy(
+      id = Some(id),
+      revision = Some(revision),
+      copyright = meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders)
+    )
   }
 
   def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {

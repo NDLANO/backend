@@ -46,7 +46,8 @@ trait ImageStorageService {
               s3ContentType
             case Success(meta)
                 if meta.contentType != "" && meta.contentType != "binary/octet-stream" && ValidMimeTypes.contains(
-                  meta.contentType) =>
+                  meta.contentType
+                ) =>
               updateContentType(s3Object.getKey, meta.contentType) match {
                 case Failure(ex) =>
                   logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
@@ -64,7 +65,8 @@ trait ImageStorageService {
 
     def get(imageKey: String): Try[ImageStream] = {
       Try(amazonClient.getObject(new GetObjectRequest(StorageName, imageKey))).map(s3Object =>
-        NdlaImage(s3Object, imageKey)) match {
+        NdlaImage(s3Object, imageKey)
+      ) match {
         case Success(e) => Success(e)
         case Failure(_) => Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
       }

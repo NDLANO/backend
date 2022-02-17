@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
   override val converterService = new ConverterService
-  lazy val controller = new InternController
+  lazy val controller           = new InternController
   addServlet(controller, "/*")
   val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
@@ -36,14 +36,16 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     s"${ImageApiProperties.RawImageUrlBase}/test.jpg",
     0,
     "",
-    api.Copyright(api.License(BySa.license.toString, BySa.description, BySa.url),
-                  "",
-                  List(),
-                  List(),
-                  List(),
-                  None,
-                  None,
-                  None),
+    api.Copyright(
+      api.License(BySa.license.toString, BySa.description, BySa.url),
+      "",
+      List(),
+      List(),
+      List(),
+      None,
+      None,
+      None
+    ),
     ImageTag(Seq.empty, "nb"),
     ImageCaption("", "nb"),
     Seq(),
@@ -130,7 +132,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   }
 
   test(
-    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
+    "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless"
+  ) {
     when(imageIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2", "index3")))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
@@ -140,7 +143,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     delete("/index") {
       status should equal(500)
       body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully.")
+        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
+      )
     }
     verify(imageIndexService).deleteIndexWithName(Some("index1"))
     verify(imageIndexService).deleteIndexWithName(Some("index2"))

@@ -44,6 +44,9 @@ object AudioApiInfo {
 
 class AudioSwagger extends Swagger("2.0", "1.0", AudioApiInfo.apiInfo) {
   addAuthorization(
-    OAuth(List(AudioApiProperties.RoleWithWriteAccess),
-          List(ImplicitGrant(LoginEndpoint(AudioApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(
+      List(AudioApiProperties.RoleWithWriteAccess),
+      List(ImplicitGrant(LoginEndpoint(AudioApiProperties.Auth0LoginEndpoint), "access_token"))
+    )
+  )
 }

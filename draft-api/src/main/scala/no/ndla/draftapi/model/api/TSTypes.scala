@@ -11,10 +11,9 @@ import com.scalatsi.TypescriptType.TSNull
 import com.scalatsi._
 import no.ndla.draftapi.model.domain
 
-/**
-  * The `scala-tsi` plugin is not always able to derive the types that are used in `Seq` or other generic types.
-  * Therefore we need to explicitly load the case classes here.
-  * This is only necessary if the `sbt generateTypescript` script fails.
+/** The `scala-tsi` plugin is not always able to derive the types that are used in `Seq` or other generic types.
+  * Therefore we need to explicitly load the case classes here. This is only necessary if the `sbt generateTypescript`
+  * script fails.
   */
 object TSTypes {
   // This alias is required since scala-tsi doesn't understand that Null is `null`
@@ -25,9 +24,9 @@ object TSTypes {
   implicit val availability: TSType[domain.Availability.Value] =
     TSType.sameAs[domain.Availability.Value, domain.Availability.type]
 
-  implicit val author = TSType.fromCaseClass[Author]
-  implicit val requiredLibrary = TSType.fromCaseClass[RequiredLibrary]
-  implicit val editorNote = TSType.fromCaseClass[EditorNote]
-  implicit val relatedContentLink = TSType.fromCaseClass[RelatedContentLink]
+  implicit val author              = TSType.fromCaseClass[Author]
+  implicit val requiredLibrary     = TSType.fromCaseClass[RequiredLibrary]
+  implicit val editorNote          = TSType.fromCaseClass[EditorNote]
+  implicit val relatedContentLink  = TSType.fromCaseClass[RelatedContentLink]
   implicit val newArticleMetaImage = TSType.fromCaseClass[NewArticleMetaImage]
 }

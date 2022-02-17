@@ -146,17 +146,17 @@ trait BaseIndexService {
       }
     }
 
-    /**
-      * Deletes every index that is not in use by this indexService.
-      * Only indexes starting with indexName are deleted.
+    /** Deletes every index that is not in use by this indexService. Only indexes starting with indexName are deleted.
       *
-      * @param indexName Start of index names that is deleted if not aliased.
-      * @return Name of aliasTarget.
+      * @param indexName
+      *   Start of index names that is deleted if not aliased.
+      * @return
+      *   Name of aliasTarget.
       */
     def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
       e4sClient.execute(getAliases()) match {
         case Success(s) =>
-          val indexes = s.result.mappings.filter(_._1.name.startsWith(indexName))
+          val indexes             = s.result.mappings.filter(_._1.name.startsWith(indexName))
           val unreferencedIndexes = indexes.filter(_._2.isEmpty).map(_._1.name).toList
           val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
             case head :: tail =>
@@ -205,7 +205,7 @@ trait BaseIndexService {
     def deleteIndexAndAlias(): Try[_] = {
       for {
         indexToDelete <- deleteAlias()
-        _ <- deleteIndexWithName(indexToDelete)
+        _             <- deleteIndexWithName(indexToDelete)
       } yield ()
     }
 

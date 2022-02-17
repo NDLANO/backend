@@ -41,9 +41,11 @@ trait DraftConceptSearchService {
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
 
-    def getTagsWithSubjects(subjectIds: List[String],
-                            language: String,
-                            fallback: Boolean): Try[List[api.SubjectTags]] = {
+    def getTagsWithSubjects(
+        subjectIds: List[String],
+        language: String,
+        fallback: Boolean
+    ): Try[List[api.SubjectTags]] = {
       if (subjectIds.size <= 0) {
         Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
       } else {
@@ -54,8 +56,9 @@ trait DraftConceptSearchService {
       }
     }
 
-    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(
-        implicit executor: ExecutionContext): Future[Try[List[SubjectTags]]] =
+    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(implicit
+        executor: ExecutionContext
+    ): Future[Try[List[SubjectTags]]] =
       Future {
         val settings = DraftSearchSettings.empty.copy(
           subjects = Set(subjectId),
@@ -67,8 +70,8 @@ trait DraftConceptSearchService {
         searchUntilNoMoreResults(settings).map(searchResults => {
           val tagsInSubject = for {
             searchResult <- searchResults
-            searchHits <- searchResult.results
-            matchedTags <- searchHits.tags.toSeq
+            searchHits   <- searchResult.results
+            matchedTags  <- searchHits.tags.toSeq
           } yield matchedTags
 
           searchConverterService
@@ -92,7 +95,7 @@ trait DraftConceptSearchService {
       result match {
         case Failure(ex)                                                        => Failure(ex)
         case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
-        case Success(value)                                                     => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
+        case Success(value) => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
       }
     }
 
@@ -121,11 +124,11 @@ trait DraftConceptSearchService {
     }
 
     def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val statusFilter = boolStatusFilter(settings.statusFilter)
+      val idFilter      = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val statusFilter  = boolStatusFilter(settings.statusFilter)
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
-      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
-      val userFilter = orFilter(settings.userFilter, "updatedBy")
+      val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
+      val userFilter    = orFilter(settings.userFilter, "updatedBy")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | AllLanguages      => (None, "*")
@@ -153,7 +156,8 @@ trait DraftConceptSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ConceptApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
         val searchToExecute =
@@ -180,7 +184,8 @@ trait DraftConceptSearchService {
                 searchLanguage,
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -210,7 +215,8 @@ trait DraftConceptSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

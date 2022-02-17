@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val readService = new ReadService
+  override val readService      = new ReadService
   override val converterService = new ConverterService
 
   override def beforeEach() = {
@@ -34,8 +34,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That path to id conversion works as expected for id paths") {
-    val id = 1234
-    val imageUrl = "apekatt.jpg"
+    val id            = 1234
+    val imageUrl      = "apekatt.jpg"
     val expectedImage = TestData.bjorn.copy(id = Some(id), imageUrl = "/" + imageUrl)
 
     when(imageRepository.withId(id)).thenReturn(Some(expectedImage))
@@ -45,26 +45,31 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
 
     readService.getDomainImageMetaFromUrl("/image-api/raw/id/apekatt") should be(
-      Failure(InvalidUrlException("Could not extract id from id url.")))
+      Failure(InvalidUrlException("Could not extract id from id url."))
+    )
     readService.getDomainImageMetaFromUrl("/apepe/pawpda/pleps.jpg") should be(
-      Failure(InvalidUrlException("Could not extract id or path from url.")))
+      Failure(InvalidUrlException("Could not extract id or path from url."))
+    )
   }
 
   test("That withId returns with agreement license and authors") {
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(
-      Some(api.Copyright(
-        api.License("gnu", "gnuggert", Some("https://gnuli/")),
-        "http://www.scanpix.no",
-        List(api.Author("Forfatter", "Knutulf Knagsen")),
-        List(),
-        List(),
-        None,
-        None,
-        None
-      )))
+      Some(
+        api.Copyright(
+          api.License("gnu", "gnuggert", Some("https://gnuli/")),
+          "http://www.scanpix.no",
+          List(api.Author("Forfatter", "Knutulf Knagsen")),
+          List(),
+          List(),
+          None,
+          None,
+          None
+        )
+      )
+    )
     implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl = s"${ImageApiProperties.Domain}/image-api/v2/images/1"
-    val testRawUrl = s"${ImageApiProperties.Domain}/image-api/raw/Elg.jpg"
+    val testUrl                               = s"${ImageApiProperties.Domain}/image-api/v2/images/1"
+    val testRawUrl                            = s"${ImageApiProperties.Domain}/image-api/raw/Elg.jpg"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","title":{"title":"Elg i busk","language":"nb"},"alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -103,8 +108,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(None)
     implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl = s"${ImageApiProperties.Domain}/image-api/v2/images/1"
-    val testRawUrl = s"${ImageApiProperties.Domain}/image-api/raw/Elg.jpg"
+    val testUrl                               = s"${ImageApiProperties.Domain}/image-api/v2/images/1"
+    val testRawUrl                            = s"${ImageApiProperties.Domain}/image-api/raw/Elg.jpg"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -141,9 +146,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("That path to raw conversion works with non-ascii characters in paths") {
     reset(imageRepository)
-    val id = 1234
-    val imageUrl = "Jordbær.jpg"
-    val encodedPath = "Jordb%C3%A6r.jpg"
+    val id            = 1234
+    val imageUrl      = "Jordbær.jpg"
+    val encodedPath   = "Jordb%C3%A6r.jpg"
     val expectedImage = TestData.bjorn.copy(id = Some(id), imageUrl = imageUrl)
 
     doReturn(Some(expectedImage), Some(expectedImage))

@@ -14,9 +14,9 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
 }
 
 object UserInfo {
-  val UnauthorizedUser = UserInfo("unauthorized", Set.empty)
+  val UnauthorizedUser              = UserInfo("unauthorized", Set.empty)
   def apply(name: String): UserInfo = UserInfo(name, AuthUser.getRoles.flatMap(Role.valueOf).toSet)
-  def get: Option[UserInfo] = (AuthUser.get orElse AuthUser.getClientId).map(UserInfo.apply)
+  def get: Option[UserInfo]         = (AuthUser.get orElse AuthUser.getClientId).map(UserInfo.apply)
 }
 
 trait User {

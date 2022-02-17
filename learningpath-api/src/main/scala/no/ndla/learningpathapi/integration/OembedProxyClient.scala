@@ -26,7 +26,7 @@ trait OembedProxyClient {
   class OembedProxyClient extends LazyLogging {
     private val OembedProxyTimeout = 90 * 1000 // 90 seconds
     private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"
-    implicit val formats: Formats = org.json4s.DefaultFormats
+    implicit val formats: Formats  = org.json4s.DefaultFormats
 
     def getIframeUrl(url: String): Try[String] = {
       getOembed(url) match {
@@ -36,7 +36,7 @@ trait OembedProxyClient {
           val elem = Option(soup.selectFirst("iframe"))
           Option(elem.map(_.attr("src")).filterNot(_.isEmpty)).flatten match {
             case Some(url) => Success(url)
-            case None      => Failure(InvalidOembedResponse(s"Could not parse url in html from oembed-response for '$url'"))
+            case None => Failure(InvalidOembedResponse(s"Could not parse url in html from oembed-response for '$url'"))
           }
       }
     }

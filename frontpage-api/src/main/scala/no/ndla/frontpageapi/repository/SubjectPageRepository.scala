@@ -24,8 +24,9 @@ trait SubjectPageRepository {
   class SubjectPageRepository {
     val logger = getLogger
 
-    def newSubjectPage(subj: SubjectFrontPageData, externalId: String)(
-        implicit session: DBSession = AutoSession): Try[SubjectFrontPageData] = {
+    def newSubjectPage(subj: SubjectFrontPageData, externalId: String)(implicit
+        session: DBSession = AutoSession
+    ): Try[SubjectFrontPageData] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
@@ -39,8 +40,9 @@ trait SubjectPageRepository {
       })
     }
 
-    def updateSubjectPage(subj: SubjectFrontPageData)(
-        implicit session: DBSession = AutoSession): Try[SubjectFrontPageData] = {
+    def updateSubjectPage(
+        subj: SubjectFrontPageData
+    )(implicit session: DBSession = AutoSession): Try[SubjectFrontPageData] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
@@ -68,8 +70,9 @@ trait SubjectPageRepository {
       ).map(_.isDefined)
     }
 
-    private def subjectPageWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[SubjectFrontPageData] = {
+    private def subjectPageWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[SubjectFrontPageData] = {
       val su = SubjectFrontPageData.syntax("su")
 
       Try(

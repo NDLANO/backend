@@ -18,6 +18,8 @@ case class ArticleResult(
     @(ApiModelProperty @field)(description = "The unique id of this article") id: Long,
     @(ApiModelProperty @field)(description = "The title of the article") title: Title,
     @(ApiModelProperty @field)(description = "The introduction of the article") introduction: Option[
-      ArticleIntroduction],
+      ArticleIntroduction
+    ],
     @(ApiModelProperty @field)(description = "The type of the article") articleType: String,
-    @(ApiModelProperty @field)(description = "List of supported languages") supportedLanguages: Seq[String])
+    @(ApiModelProperty @field)(description = "List of supported languages") supportedLanguages: Seq[String]
+)

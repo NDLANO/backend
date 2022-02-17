@@ -21,17 +21,16 @@ object HtmlTagRules {
   case class HtmlThings(attrsForResource: Map[String, TagRules.TagAttributeRules])
 
   private[validation] lazy val attributeRules: Map[String, TagRules.TagAttributeRules] = tagRulesToJson
-  lazy val allHtmlTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap {
-    case (_, attrRules) => attrRules.all
+  lazy val allHtmlTagAttributes: Set[TagAttributes.Value] = attributeRules.flatMap { case (_, attrRules) =>
+    attrRules.all
   } toSet
 
   private def tagRulesToJson = {
     val attrs = TagRules
       .convertJsonStrToAttributeRules(Source.fromResource("html-rules.json").mkString)
 
-    attrs.map {
-      case (tagType, attrRules) =>
-        tagType -> attrRules
+    attrs.map { case (tagType, attrRules) =>
+      tagType -> attrRules
     }
   }
 
@@ -46,7 +45,7 @@ object HtmlTagRules {
   }
 
   object PermittedHTML {
-    val tags: Set[String] = readTags
+    val tags: Set[String]                         = readTags
     lazy val attributes: Map[String, Seq[String]] = readAttributes
 
     private def convertJsonStr(jsonStr: String): Map[String, Any] = {
@@ -59,10 +58,10 @@ object HtmlTagRules {
     private def mathMLRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
 
     private def readTags: Set[String] = {
-      val htmlJson: Map[String, Any] = htmlRulesJson
+      val htmlJson: Map[String, Any]   = htmlRulesJson
       val mathMlJson: Map[String, Any] = mathMLRulesJson
 
-      val htmlTags = htmlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
+      val htmlTags   = htmlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
       val mathMlTags = mathMlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
 
       htmlTags.getOrElse(Set.empty) ++ mathMlTags.getOrElse(Set.empty) ++ attributes.keys
@@ -71,11 +70,11 @@ object HtmlTagRules {
     private def readAttributes: Map[String, Seq[String]] = {
       val mathMlJson: Map[String, Any] = mathMLRulesJson
 
-      val htmlAttrs = HtmlTagRules.attributeRules.map {
-        case (tagType, attrs) => tagType -> attrs.all.map(_.toString).toSeq
+      val htmlAttrs = HtmlTagRules.attributeRules.map { case (tagType, attrs) =>
+        tagType -> attrs.all.map(_.toString).toSeq
       }
       val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
-      val embedAttrs = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
+      val embedAttrs  = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
       htmlAttrs ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(ResourceHtmlEmbedTag -> embedAttrs)
     }
   }

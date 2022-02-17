@@ -9,5 +9,5 @@ package no.ndla.searchapi.model.search
 
 case class SearchableGrepContext(
     code: String,
-    title: Option[String],
+    title: Option[String]
 )

@@ -76,17 +76,19 @@ class V4__add_language_to_about extends BaseJavaMigration {
   }
 }
 
-case class V4_SubjectFrontPageData(id: Option[Long],
-                                   name: String,
-                                   filters: Option[List[String]],
-                                   layout: String,
-                                   twitter: Option[String],
-                                   facebook: Option[String],
-                                   bannerImage: V2_BannerImage,
-                                   about: Seq[V4_AboutSubject],
-                                   topical: Option[String],
-                                   mostRead: List[String],
-                                   editorsChoices: List[String],
-                                   latestContent: Option[List[String]],
-                                   goTo: List[String])
+case class V4_SubjectFrontPageData(
+    id: Option[Long],
+    name: String,
+    filters: Option[List[String]],
+    layout: String,
+    twitter: Option[String],
+    facebook: Option[String],
+    bannerImage: V2_BannerImage,
+    about: Seq[V4_AboutSubject],
+    topical: Option[String],
+    mostRead: List[String],
+    editorsChoices: List[String],
+    latestContent: Option[List[String]],
+    goTo: List[String]
+)
 case class V4_AboutSubject(title: String, description: String, language: String, visualElement: V2_VisualElement)

@@ -51,36 +51,36 @@ trait TestEnvironment
   val searchController = mock[SearchController]
   val healthController = mock[HealthController]
   val internController = mock[InternController]
-  val resourcesApp = mock[ResourcesApp]
+  val resourcesApp     = mock[ResourcesApp]
 
-  val ndlaClient = mock[NdlaClient]
+  val ndlaClient               = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
 
   val taxonomyApiClient = mock[TaxonomyApiClient]
-  val grepApiClient = mock[GrepApiClient]
+  val grepApiClient     = mock[GrepApiClient]
 
-  val draftApiClient = mock[DraftApiClient]
+  val draftApiClient        = mock[DraftApiClient]
   val learningPathApiClient = mock[LearningPathApiClient]
-  val imageApiClient = mock[ImageApiClient]
-  val audioApiClient = mock[AudioApiClient]
-  val articleApiClient = mock[ArticleApiClient]
-  val feideApiClient = mock[FeideApiClient]
+  val imageApiClient        = mock[ImageApiClient]
+  val audioApiClient        = mock[AudioApiClient]
+  val articleApiClient      = mock[ArticleApiClient]
+  val feideApiClient        = mock[FeideApiClient]
 
   val SearchClients = Map[String, SearchApiClient](
-    "articles" -> draftApiClient,
+    "articles"      -> draftApiClient,
     "learningpaths" -> learningPathApiClient,
-    "images" -> imageApiClient,
-    "audios" -> audioApiClient
+    "images"        -> imageApiClient,
+    "audios"        -> audioApiClient
   )
 
-  val searchService = mock[ApiSearchService]
-  val converterService = mock[ConverterService]
-  val searchConverterService = mock[SearchConverterService]
-  val multiSearchService = mock[MultiSearchService]
-  val articleIndexService = mock[ArticleIndexService]
+  val searchService            = mock[ApiSearchService]
+  val converterService         = mock[ConverterService]
+  val searchConverterService   = mock[SearchConverterService]
+  val multiSearchService       = mock[MultiSearchService]
+  val articleIndexService      = mock[ArticleIndexService]
   val learningPathIndexService = mock[LearningPathIndexService]
-  val draftIndexService = mock[DraftIndexService]
-  val multiDraftSearchService = mock[MultiDraftSearchService]
+  val draftIndexService        = mock[DraftIndexService]
+  val multiDraftSearchService  = mock[MultiDraftSearchService]
 
   val user = mock[User]
 }

@@ -33,35 +33,41 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(Some("by-nc-sa"),
-                         Some("Gotham City"),
-                         List(Author("Forfatter", "DC Comics")),
-                         List(),
-                         List(),
-                         None,
-                         None,
-                         None)
+  val byNcSa = Copyright(
+    Some("by-nc-sa"),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val publicDomain = Copyright(Some("publicdomain"),
-                               Some("Metropolis"),
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               List(),
-                               List(),
-                               None,
-                               None,
-                               None)
+  val publicDomain = Copyright(
+    Some("publicdomain"),
+    Some("Metropolis"),
+    List(Author("Forfatter", "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val copyrighted = Copyright(Some("copyrighted"),
-                              Some("New York"),
-                              List(Author("Forfatter", "Clark Kent")),
-                              List(),
-                              List(),
-                              None,
-                              None,
-                              None)
+  val copyrighted = Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val today: DateTime = DateTime.now()
 
@@ -104,8 +110,11 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     id = Option(6),
     title = List(ConceptTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     content = List(
-      ConceptContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-                     "nb"))
+      ConceptContent(
+        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+        "nb"
+      )
+    )
   )
 
   val concept7: Concept = TestData.sampleConcept.copy(
@@ -145,7 +154,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     visualElement = List(
       VisualElement(
         """<embed data-resource="image" data-url="test.url" /><embed data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
-        "nb"))
+        "nb"
+      )
+    )
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(
@@ -174,7 +185,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     userFilter = Seq.empty,
     shouldScroll = false,
     embedResource = None,
-    embedId = None,
+    embedId = None
   )
 
   override def beforeAll(): Unit = {
@@ -206,18 +217,21 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     draftConceptSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
+    val page            = 123
     val expectedStartAt = (page - 1) * DefaultPageSize
     draftConceptSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That all returns all documents ordered by id ascending") {
@@ -352,8 +366,10 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     hits2.map(_.id) should equal(Seq(1))
 
     val Success(search3) =
-      draftConceptSearchService.matchingQuery("bil + bilde + -flaggermusmann",
-                                              searchSettings.copy(sort = Sort.ByTitleAsc))
+      draftConceptSearchService.matchingQuery(
+        "bil + bilde + -flaggermusmann",
+        searchSettings.copy(sort = Sort.ByTitleAsc)
+      )
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
@@ -414,7 +430,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("That searching with fallback parameter returns concept in language priority even if doesnt match on language") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true))
+        searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true)
+      )
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -442,7 +459,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
@@ -452,7 +469,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           searchLanguage = "*",
           fallback = true,
           shouldScroll = true
-        ))
+        )
+      )
 
     val Success(scroll1) = draftConceptSearchService.scroll(initialSearch.scrollId.get, "*")
     val Success(scroll2) = draftConceptSearchService.scroll(scroll1.scrollId.get, "*")
@@ -526,7 +544,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           tags = List("stor", "klovn"),
           language = "nb"
         )
-      ))
+      )
+    )
 
     tagSearch2 should be(
       List(
@@ -535,7 +554,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           tags = List("cageowl"),
           language = "en"
         )
-      ))
+      )
+    )
   }
 
   test("That tag search works as expected with fallback") {
@@ -556,7 +576,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           tags = List("stor", "klovn"),
           language = "nb"
         )
-      ))
+      )
+    )
 
     tagSearch2 should be(
       List(
@@ -569,8 +590,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
-        ),
-      ))
+        )
+      )
+    )
   }
 
   test("Filtering by statuses works as expected with OR filtering") {
@@ -593,10 +615,13 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search1) =
       draftConceptSearchService.matchingQuery(
         query = query,
-        searchSettings.copy(withIdIn = List(12), statusFilter = Set(ConceptStatus.ARCHIVED.toString)))
+        searchSettings.copy(withIdIn = List(12), statusFilter = Set(ConceptStatus.ARCHIVED.toString))
+      )
     val Success(search2) =
-      draftConceptSearchService.matchingQuery(query = query,
-                                              searchSettings.copy(withIdIn = List(12), statusFilter = Set.empty))
+      draftConceptSearchService.matchingQuery(
+        query = query,
+        searchSettings.copy(withIdIn = List(12), statusFilter = Set.empty)
+      )
 
     search1.results.map(_.id) should be(Seq(12))
     search2.results.map(_.id) should be(Seq.empty)
@@ -635,7 +660,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedId matches visual element") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedId = Some("test.url"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedId = Some("test.url"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
@@ -644,7 +670,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedResource matches visual element") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
@@ -653,7 +680,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedId matches meta image") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedId = Some("test.image"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedId = Some("test.image"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(9)
@@ -707,7 +735,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings
-          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages))
+          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(9)
@@ -732,7 +761,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

@@ -15,5 +15,5 @@ case class SeriesSearchSettings(
     page: Option[Int],
     pageSize: Option[Int],
     sort: Sort,
-    shouldScroll: Boolean,
+    shouldScroll: Boolean
 )

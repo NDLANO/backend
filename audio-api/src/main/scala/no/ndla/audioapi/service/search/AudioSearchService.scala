@@ -39,7 +39,7 @@ trait AudioSearchService {
 
     override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummary] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      val searchable = Serialization.read[SearchableAudioInformation](hitString)
+      val searchable                = Serialization.read[SearchableAudioInformation](hitString)
       searchConverterService.asAudioSummary(searchable, language)
     }
 
@@ -87,14 +87,15 @@ trait AudioSearchService {
         case None            => None
       }
 
-      val filters = List(licenseFilter, languageFilter, audioTypeFilter, seriesEpisodeFilter)
+      val filters        = List(licenseFilter, languageFilter, audioTypeFilter, seriesEpisodeFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
 
@@ -115,16 +116,16 @@ trait AudioSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, searchLanguage).map(
-              results =>
-                domain.SearchResult(
-                  response.result.totalHits,
-                  Some(settings.page.getOrElse(1)),
-                  numResults,
-                  searchLanguage,
-                  results,
-                  response.result.scrollId
-              ))
+            getHits(response.result, searchLanguage).map(results =>
+              domain.SearchResult(
+                response.result.totalHits,
+                Some(settings.page.getOrElse(1)),
+                numResults,
+                searchLanguage,
+                results,
+                response.result.scrollId
+              )
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -140,7 +141,8 @@ trait AudioSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

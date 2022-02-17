@@ -38,10 +38,12 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}",
-                request.getMethod,
-                request.getRequestURI,
-                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info(
+      "{} {}{}",
+      request.getMethod,
+      request.getRequestURI,
+      Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+    )
   }
 
   after() {
@@ -69,18 +71,17 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error.DatabaseUnavailableError)
     case NdlaSearchException(_, Some(rf), _)
-        if rf.error.rootCause.exists(x =>
-          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body = Error.GenericError)
   }
 
-  private val streamRenderer: RenderPipeline = {
-    case f: ImageStream =>
-      contentType = f.contentType
-      org.scalatra.util.io.copy(f.stream, response.getOutputStream)
+  private val streamRenderer: RenderPipeline = { case f: ImageStream =>
+    contentType = f.contentType
+    org.scalatra.util.io.copy(f.stream, response.getOutputStream)
   }
 
   override def renderPipeline = streamRenderer orElse super.renderPipeline
@@ -95,13 +96,15 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     val paramValue = params(paramName)
     if (!isInteger(paramValue))
       throw new ValidationException(
-        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+      )
 
     paramValue.toLong
   }
 
-  def extractDoubleOpt2(one: String, two: String)(
-      implicit request: HttpServletRequest): (Option[Double], Option[Double]) = {
+  def extractDoubleOpt2(one: String, two: String)(implicit
+      request: HttpServletRequest
+  ): (Option[Double], Option[Double]) = {
     (extractDoubleOpt(one), extractDoubleOpt(two))
   }
 
@@ -110,7 +113,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case Some(value) =>
         if (!isDouble(value))
           throw new ValidationException(
-            errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only numbers are allowed.")))
+            errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only numbers are allowed."))
+          )
 
         Some(value.toDouble)
       case _ => None
@@ -123,7 +127,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
         case Some(value) =>
           if (!isDouble(value))
             throw new ValidationException(
-              errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only numbers are allowed.")))
+              errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only numbers are allowed."))
+            )
 
           Some(value.toDouble)
         case _ => None
@@ -166,8 +171,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case Some(d) if d >= min(from, to) && d <= max(from, to) => Some(d)
       case Some(d) =>
         throw new ValidationException(
-          errors =
-            Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d")))
+          errors = Seq(
+            ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d")
+          )
+        )
       case None => None
     }
   }

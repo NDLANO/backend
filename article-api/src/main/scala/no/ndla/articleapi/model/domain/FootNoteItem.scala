@@ -8,9 +8,11 @@
 
 package no.ndla.articleapi.model.domain
 
-case class FootNoteItem(title: String,
-                        `type`: String,
-                        year: String,
-                        edition: String,
-                        publisher: String,
-                        authors: Seq[String])
+case class FootNoteItem(
+    title: String,
+    `type`: String,
+    year: String,
+    edition: String,
+    publisher: String,
+    authors: Seq[String]
+)

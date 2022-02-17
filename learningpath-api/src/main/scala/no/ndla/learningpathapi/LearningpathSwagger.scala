@@ -41,5 +41,6 @@ object LearningpathApiInfo {
 
 class LearningpathSwagger extends Swagger("2.0", "1.0", LearningpathApiInfo.apiInfo) {
   addAuthorization(
-    OAuth(List(), List(ImplicitGrant(LoginEndpoint(LearningpathApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(List(), List(ImplicitGrant(LoginEndpoint(LearningpathApiProperties.Auth0LoginEndpoint), "access_token")))
+  )
 }

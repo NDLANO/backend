@@ -20,8 +20,8 @@ class V11__AddCreatedField extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allAudios.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }
@@ -37,9 +37,9 @@ class V11__AddCreatedField extends BaseJavaMigration {
 
     val oldArticle = parse(document)
 
-    val updated = (oldArticle \ "updated").extract[String]
+    val updated       = (oldArticle \ "updated").extract[String]
     val objectToMerge = JObject(JField("created", JString(updated)))
-    val newArticle = oldArticle.merge(objectToMerge)
+    val newArticle    = oldArticle.merge(objectToMerge)
     compact(render(newArticle))
   }
 

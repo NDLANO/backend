@@ -28,7 +28,8 @@ object Main extends IOApp {
     logger.info(
       Source
         .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))
-        .mkString)
+        .mkString
+    )
 
     logger.info("Starting database migration")
     DBMigrator.migrate(ComponentRegistry.dataSource)
@@ -41,7 +42,7 @@ object Main extends IOApp {
       routes.map(r => r.mountPoint -> r.toRoutes): _*
     ).orNotFound
 
-    val executorService = Executors.newWorkStealingPool(NumThreads)
+    val executorService  = Executors.newWorkStealingPool(NumThreads)
     val executionContext = ExecutionContext.fromExecutor(executorService)
 
     BlazeServerBuilder[IO](executionContext)

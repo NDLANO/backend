@@ -41,22 +41,22 @@ class TagValidator {
       return Seq.empty
     }
 
-    val allAttributesOnTag = html.attributes().asScala.map(attr => attr.getKey -> attr.getValue).toMap
+    val allAttributesOnTag  = html.attributes().asScala.map(attr => attr.getKey -> attr.getValue).toMap
     val legalAttributesUsed = getLegalAttributesUsed(allAttributesOnTag, tagName)
-    val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag, tagName)
+    val validationErrors    = attributesAreLegal(fieldName, allAttributesOnTag, tagName)
 
     val legalAttributesForTag = HtmlTagRules.tagAttributesForTagType(html.tagName).getOrElse(TagAttributeRules.empty)
 
     val missingAttributes = getMissingAttributes(legalAttributesForTag.required, legalAttributesUsed.keys.toSet)
     val missingErrors = missingAttributes
-      .map(
-        missingAttributes =>
-          ValidationMessage(
-            fieldName,
-            s"$tagName must contain the following attributes: ${legalAttributesForTag.required.mkString(",")}. " +
-              s"Optional attributes are: ${legalAttributesForTag.optional.mkString(",")}. " +
-              s"Missing: ${missingAttributes.mkString(",")}"
-        ))
+      .map(missingAttributes =>
+        ValidationMessage(
+          fieldName,
+          s"$tagName must contain the following attributes: ${legalAttributesForTag.required.mkString(",")}. " +
+            s"Optional attributes are: ${legalAttributesForTag.optional.mkString(",")}. " +
+            s"Missing: ${missingAttributes.mkString(",")}"
+        )
+      )
       .toList
     val partialErrorMessage = s"A $tagName HTML tag"
 
@@ -75,7 +75,7 @@ class TagValidator {
       return Seq()
 
     val allAttributesOnTag = embed.attributes().asScala.map(attr => attr.getKey -> attr.getValue).toMap
-    val legalAttributes = getLegalAttributesUsed(allAttributesOnTag, ResourceHtmlEmbedTag)
+    val legalAttributes    = getLegalAttributesUsed(allAttributesOnTag, ResourceHtmlEmbedTag)
 
     val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag, ResourceHtmlEmbedTag) ++
       attributesContainsNoHtml(fieldName, legalAttributes) ++
@@ -86,9 +86,11 @@ class TagValidator {
     validationErrors
   }
 
-  private def verifyParent(fieldName: String,
-                           attributes: Map[TagAttributes.Value, String],
-                           embed: Element): Seq[ValidationMessage] = {
+  private def verifyParent(
+      fieldName: String,
+      attributes: Map[TagAttributes.Value, String],
+      embed: Element
+  ): Seq[ValidationMessage] = {
     attributes
       .get(TagAttributes.DataResource)
       .map(resourceTypeString => {
@@ -102,8 +104,8 @@ class TagValidator {
 
               if (parentEither.getOrElse(true)) {
                 val parent = embed.parent()
-                val expectedButMissingParentAttributes = parentRule.requiredAttr.filterNot {
-                  case (attrKey, attrVal) => parent.attr(attrKey) == attrVal
+                val expectedButMissingParentAttributes = parentRule.requiredAttr.filterNot { case (attrKey, attrVal) =>
+                  parent.attr(attrKey) == attrVal
                 }
 
                 if (parent.tagName() != parentRule.name || expectedButMissingParentAttributes.nonEmpty) {
@@ -129,11 +131,12 @@ class TagValidator {
     n.attr(TagAttributes.DataResource.toString) == embed.attr(TagAttributes.DataResource.toString)
   }
 
-  /**
-    * Counts number of siblings that are next to the embed, with the same type.
+  /** Counts number of siblings that are next to the embed, with the same type.
     *
-    * @param embed Embed tag to count direct siblings for
-    * @return Number of direct equal typed (data-resource) siblings
+    * @param embed
+    *   Embed tag to count direct siblings for
+    * @return
+    *   Number of direct equal typed (data-resource) siblings
     */
   private[validation] def numDirectEqualSiblings(embed: Element): Int = {
     // Every sibling that is not whitespace
@@ -148,24 +151,30 @@ class TagValidator {
       case (bs, as) => (bs.reverse, as.drop(1))
     }
 
-    val equalAfterSiblings = afterSiblings.takeWhile(isSameEmbedType(embed, _))
+    val equalAfterSiblings  = afterSiblings.takeWhile(isSameEmbedType(embed, _))
     val equalBeforeSiblings = beforeSiblings.takeWhile(isSameEmbedType(embed, _))
 
     1 + equalAfterSiblings.size + equalBeforeSiblings.size // Itself + Number of equal sibling nodes before + Number of equal sibling nodes after
   }
 
-  /**
-    * Checks whether parentConditions are met and returns an either with Right(true) if they are met and Right(false) if they are not.
-    * Either with Left suggests that the configuration for conditions were wrong.
+  /** Checks whether parentConditions are met and returns an either with Right(true) if they are met and Right(false) if
+    * they are not. Either with Left suggests that the configuration for conditions were wrong.
     *
-    * @param fieldName Name used in error message if check fails.
-    * @param condition Condition that needs to be satisfied to validate parent
-    * @param childCount Number of children the parent that is to be validated has
-    * @return Either with Left with list of error messages (if the condition is wrongly specified) or a Right with a Boolean stating whether the condition is satisfied or not
+    * @param fieldName
+    *   Name used in error message if check fails.
+    * @param condition
+    *   Condition that needs to be satisfied to validate parent
+    * @param childCount
+    *   Number of children the parent that is to be validated has
+    * @return
+    *   Either with Left with list of error messages (if the condition is wrongly specified) or a Right with a Boolean
+    *   stating whether the condition is satisfied or not
     */
-  private[validation] def checkParentConditions(fieldName: String,
-                                                condition: TagRules.Condition,
-                                                childCount: Int): Either[Seq[ValidationMessage], Boolean] = {
+  private[validation] def checkParentConditions(
+      fieldName: String,
+      condition: TagRules.Condition,
+      childCount: Int
+  ): Either[Seq[ValidationMessage], Boolean] = {
     val noSpace = condition.childCount.replace(" ", "")
     // Remove operator character and attempt to turn number to Int
     Try(noSpace.replaceFirst("[<>=]", "").toInt) match {
@@ -182,27 +191,34 @@ class TagValidator {
             ValidationMessage(
               fieldName,
               "Parent condition block is invalid. " +
-                "childCount must start with a supported operator (<, >, =) and consist of an integer (Ex: '> 1').")))
+                "childCount must start with a supported operator (<, >, =) and consist of an integer (Ex: '> 1')."
+            )
+          )
+        )
     }
   }
 
-  private def verifyRequiredOptional(fieldName: String,
-                                     attributes: Map[TagAttributes.Value, String],
-                                     embed: Element): Seq[ValidationMessage] = {
+  private def verifyRequiredOptional(
+      fieldName: String,
+      attributes: Map[TagAttributes.Value, String],
+      embed: Element
+  ): Seq[ValidationMessage] = {
     attributes
       .get(TagAttributes.DataResource)
       .map(resourceTypeString => {
         ResourceType.valueOf(resourceTypeString) match {
           case Some(resourceType) =>
-            val attributeRulesForTag = EmbedTagRules.attributesForResourceType(resourceType)
-            val legalOptionals = attributeRulesForTag.optional.flatten.toSet
+            val attributeRulesForTag        = EmbedTagRules.attributesForResourceType(resourceType)
+            val legalOptionals              = attributeRulesForTag.optional.flatten.toSet
             val legalOptionalAttributesUsed = attributes.keySet.intersect(legalOptionals)
 
             if (attributeRulesForTag.mustContainAtLeastOneOptionalAttribute && legalOptionalAttributesUsed.isEmpty) {
               List(
                 ValidationMessage(
                   fieldName,
-                  s"An Embed tag with data-resource '$resourceType' must contain at least one optional attribute"))
+                  s"An Embed tag with data-resource '$resourceType' must contain at least one optional attribute"
+                )
+              )
             } else {
               List.empty
             }
@@ -210,16 +226,23 @@ class TagValidator {
             Seq(ValidationMessage(fieldName, "Something went wrong when determining resourceType of embed"))
         }
       })
-      .getOrElse(Seq(
-        ValidationMessage(fieldName,
-                          s"Embed-tag did not contain any ${TagAttributes.DataResource.toString} attribute.")))
+      .getOrElse(
+        Seq(
+          ValidationMessage(
+            fieldName,
+            s"Embed-tag did not contain any ${TagAttributes.DataResource.toString} attribute."
+          )
+        )
+      )
   }
 
-  private def attributesAreLegal(fieldName: String,
-                                 attributes: Map[String, String],
-                                 tagName: String): List[ValidationMessage] = {
+  private def attributesAreLegal(
+      fieldName: String,
+      attributes: Map[String, String],
+      tagName: String
+  ): List[ValidationMessage] = {
 
-    val legalAttributeKeys = HtmlTagRules.legalAttributesForTag(tagName)
+    val legalAttributeKeys    = HtmlTagRules.legalAttributesForTag(tagName)
     val legalAttributesForTag = HtmlTagRules.tagAttributesForTagType(tagName).getOrElse(TagAttributeRules.empty)
 
     val illegalAttributesUsed: Set[String] = attributes.keySet.diff(legalAttributeKeys)
@@ -231,8 +254,9 @@ class TagValidator {
         ValidationMessage(
           fieldName,
           s"An HTML tag '$tagName' contains an illegal attribute(s) '${illegalAttributesUsed
-            .mkString(",")}'. Allowed attributes are ${legalAttributeKeys.mkString(",")}"
-        ))
+              .mkString(",")}'. Allowed attributes are ${legalAttributeKeys.mkString(",")}"
+        )
+      )
     } else {
       List.empty
     }
@@ -247,12 +271,13 @@ class TagValidator {
     illegalTagsError ++ mustContainAttributesError
   }
 
-  private def attributesContainsNoHtml(fieldName: String,
-                                       attributes: Map[TagAttributes.Value, String]): Option[ValidationMessage] = {
+  private def attributesContainsNoHtml(
+      fieldName: String,
+      attributes: Map[TagAttributes.Value, String]
+  ): Option[ValidationMessage] = {
     val attributesWithHtml = attributes.toList
-      .filter {
-        case (_, value) =>
-          new TextValidator(allowHtml = false).validate(fieldName, value).nonEmpty
+      .filter { case (_, value) =>
+        new TextValidator(allowHtml = false).validate(fieldName, value).nonEmpty
       }
       .toMap
       .keySet
@@ -261,20 +286,25 @@ class TagValidator {
       Some(
         ValidationMessage(
           fieldName,
-          s"HTML tag '$ResourceHtmlEmbedTag' contains attributes with HTML: ${attributesWithHtml.mkString(",")}"))
+          s"HTML tag '$ResourceHtmlEmbedTag' contains attributes with HTML: ${attributesWithHtml.mkString(",")}"
+        )
+      )
     } else {
       None
     }
   }
 
-  private def verifyAttributeResource(fieldName: String,
-                                      attributes: Map[TagAttributes.Value, String],
-                                      requiredToOptional: Map[String, Seq[String]]): Seq[ValidationMessage] = {
+  private def verifyAttributeResource(
+      fieldName: String,
+      attributes: Map[TagAttributes.Value, String],
+      requiredToOptional: Map[String, Seq[String]]
+  ): Seq[ValidationMessage] = {
     val attributeKeys = attributes.keySet
     if (!attributeKeys.contains(TagAttributes.DataResource)) {
       return ValidationMessage(
         fieldName,
-        s"$ResourceHtmlEmbedTag tags must contain a ${TagAttributes.DataResource} attribute") :: Nil
+        s"$ResourceHtmlEmbedTag tags must contain a ${TagAttributes.DataResource} attribute"
+      ) :: Nil
     }
 
     if (!ResourceType.all.contains(attributes(TagAttributes.DataResource))) {
@@ -282,7 +312,9 @@ class TagValidator {
         ValidationMessage(
           fieldName,
           s"The ${TagAttributes.DataResource} attribute can only contain one of the following values: ${ResourceType.all
-            .mkString(",")}"))
+              .mkString(",")}"
+        )
+      )
     }
 
     val resourceType = ResourceType.valueOf(attributes(TagAttributes.DataResource)).get
@@ -297,110 +329,130 @@ class TagValidator {
       verifySourceUrl(fieldName, attributeRulesForTag, attributes, resourceType)
   }
 
-  private def verifyEmbedTagBasedOnResourceType(fieldName: String,
-                                                attrRules: TagAttributeRules,
-                                                actualAttributes: Map[TagAttributes.Value, String],
-                                                resourceType: ResourceType.Value): Seq[ValidationMessage] = {
-    val requiredAttrs = attrRules.required ++ attrRules.requiredNonEmpty
+  private def verifyEmbedTagBasedOnResourceType(
+      fieldName: String,
+      attrRules: TagAttributeRules,
+      actualAttributes: Map[TagAttributes.Value, String],
+      resourceType: ResourceType.Value
+  ): Seq[ValidationMessage] = {
+    val requiredAttrs     = attrRules.required ++ attrRules.requiredNonEmpty
     val missingAttributes = getMissingAttributes(requiredAttrs, actualAttributes.keySet)
     val illegalAttributes = getMissingAttributes(actualAttributes.keySet, attrRules.all)
 
     val partialErrorMessage = s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType"
 
     val missingErrors = missingAttributes
-      .map(
-        missingAttributes =>
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage must contain the following attributes: ${requiredAttrs.mkString(",")}. " +
-              s"Optional attributes are: ${attrRules.optional.mkString(",")}. " +
-              s"Missing: ${missingAttributes.mkString(",")}"
-        ))
+      .map(missingAttributes =>
+        ValidationMessage(
+          fieldName,
+          s"$partialErrorMessage must contain the following attributes: ${requiredAttrs.mkString(",")}. " +
+            s"Optional attributes are: ${attrRules.optional.mkString(",")}. " +
+            s"Missing: ${missingAttributes.mkString(",")}"
+        )
+      )
       .toList
 
     val illegalErrors = illegalAttributes
       .map(illegalAttributes =>
         ValidationMessage(
           fieldName,
-          s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"))
+          s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"
+        )
+      )
 
-    val requiredNonEmptyErrors = actualAttributes.flatMap {
-      case (a, b) =>
-        if (attrRules.requiredNonEmpty.contains(a) && b.isEmpty) {
-          Some(
-            ValidationMessage(
-              fieldName,
-              s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.mkString(",")}."))
-        } else { None }
+    val requiredNonEmptyErrors = actualAttributes.flatMap { case (a, b) =>
+      if (attrRules.requiredNonEmpty.contains(a) && b.isEmpty) {
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.mkString(",")}."
+          )
+        )
+      } else { None }
     }.toList
 
     missingErrors ++ illegalErrors ++ requiredNonEmptyErrors
   }
 
-  private def verifyOptionals(fieldName: String,
-                              attrsRules: TagAttributeRules,
-                              actualAttributes: Set[TagAttributes.Value],
-                              partialErrorMessage: String): Seq[ValidationMessage] = {
+  private def verifyOptionals(
+      fieldName: String,
+      attrsRules: TagAttributeRules,
+      actualAttributes: Set[TagAttributes.Value],
+      partialErrorMessage: String
+  ): Seq[ValidationMessage] = {
 
     val usedOptionalAttr = actualAttributes.intersect(attrsRules.optional.flatten.toSet)
     val a = usedOptionalAttr
       .flatMap(attr => {
         val attrRuleGroup = attrsRules.optional.find(_.contains(attr))
         attrRuleGroup.map(attrRules =>
-          verifyUsedAttributesAgainstAttrRules(fieldName, attrRules, usedOptionalAttr, partialErrorMessage))
+          verifyUsedAttributesAgainstAttrRules(fieldName, attrRules, usedOptionalAttr, partialErrorMessage)
+        )
       })
       .toSeq
     a.flatten
   }
 
-  private def verifyUsedAttributesAgainstAttrRules(fieldName: String,
-                                                   attrRules: Set[TagAttributes.Value],
-                                                   usedOptionalAttrs: Set[TagAttributes.Value],
-                                                   partialErrorMessage: String): Seq[ValidationMessage] = {
+  private def verifyUsedAttributesAgainstAttrRules(
+      fieldName: String,
+      attrRules: Set[TagAttributes.Value],
+      usedOptionalAttrs: Set[TagAttributes.Value],
+      partialErrorMessage: String
+  ): Seq[ValidationMessage] = {
     val usedOptionalAttrsInCurrentGroup = usedOptionalAttrs.intersect(attrRules)
     usedOptionalAttrsInCurrentGroup.isEmpty match {
       case false if usedOptionalAttrsInCurrentGroup != attrRules =>
         val missingAttrs = attrRules.diff(usedOptionalAttrs).mkString(",")
-        Seq(ValidationMessage(
-          fieldName,
-          s"$partialErrorMessage must contain all or none of the optional attributes (${attrRules.mkString(",")}). Missing $missingAttrs"))
+        Seq(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage must contain all or none of the optional attributes (${attrRules.mkString(",")}). Missing $missingAttrs"
+          )
+        )
       case _ => Seq.empty
     }
   }
 
-  private def verifySourceUrl(fieldName: String,
-                              attrs: TagAttributeRules,
-                              usedAttributes: Map[TagAttributes.Value, String],
-                              resourceType: ResourceType.Value): Seq[ValidationMessage] = {
+  private def verifySourceUrl(
+      fieldName: String,
+      attrs: TagAttributeRules,
+      usedAttributes: Map[TagAttributes.Value, String],
+      resourceType: ResourceType.Value
+  ): Seq[ValidationMessage] = {
     usedAttributes.get(TagAttributes.DataUrl) match {
       case Some(url)
           if attrs.validSrcDomains.nonEmpty && !attrs.validSrcDomains.get.exists(
-            url.hostOption.getOrElse("").toString.matches) =>
+            url.hostOption.getOrElse("").toString.matches
+          ) =>
         Seq(
           ValidationMessage(
             fieldName,
             s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
-              .mkString(",")}"
-          ))
+                .mkString(",")}"
+          )
+        )
       case _ => Seq.empty
     }
   }
 
-  private def getMissingAttributes(requiredAttributes: Set[TagAttributes.Value],
-                                   attributeKeys: Set[TagAttributes.Value]) = {
+  private def getMissingAttributes(
+      requiredAttributes: Set[TagAttributes.Value],
+      attributeKeys: Set[TagAttributes.Value]
+  ) = {
     val missing = requiredAttributes diff attributeKeys
     missing.headOption.map(_ => missing)
   }
 
-  private def getLegalAttributesUsed(allAttributes: Map[String, String],
-                                     tagName: String): Map[TagAttributes.Value, String] = {
+  private def getLegalAttributesUsed(
+      allAttributes: Map[String, String],
+      tagName: String
+  ): Map[TagAttributes.Value, String] = {
     val legalAttributeKeys = HtmlTagRules.legalAttributesForTag(tagName)
 
     allAttributes
       .filter { case (key, _) => legalAttributeKeys.contains(key) }
-      .map {
-        case (key, value) =>
-          TagAttributes.valueOf(key).getOrElse(TagAttributes.getOrCreate(key)) -> value
+      .map { case (key, value) =>
+        TagAttributes.valueOf(key).getOrElse(TagAttributes.getOrCreate(key)) -> value
       }
   }
 

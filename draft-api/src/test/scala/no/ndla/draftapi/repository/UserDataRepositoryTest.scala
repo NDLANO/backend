@@ -17,7 +17,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
-  override val dataSource = testDataSource.get
+  override val dataSource            = testDataSource.get
   var repository: UserDataRepository = new UserDataRepository
 
   // Skip tests if no docker environment available
@@ -47,7 +47,7 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
 
   def serverIsListening: Boolean = {
     val server = DraftApiProperties.MetaServer
-    val port = DraftApiProperties.MetaPort
+    val port   = DraftApiProperties.MetaPort
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()
@@ -119,13 +119,17 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
     val inserted1 = repository.insert(initialUserData1)
     val inserted2 = repository.insert(initialUserData2)
 
-    val updatedUserData1 = inserted1.get.copy(savedSearches = Some(Seq("1", "2")),
-                                              latestEditedArticles = Some(Seq("3", "4")),
-                                              favoriteSubjects = Some(Seq("5", "6")))
+    val updatedUserData1 = inserted1.get.copy(
+      savedSearches = Some(Seq("1", "2")),
+      latestEditedArticles = Some(Seq("3", "4")),
+      favoriteSubjects = Some(Seq("5", "6"))
+    )
 
-    val updatedUserData2 = inserted2.get.copy(savedSearches = Some(Seq("a", "b")),
-                                              latestEditedArticles = None,
-                                              favoriteSubjects = Some(Seq.empty))
+    val updatedUserData2 = inserted2.get.copy(
+      savedSearches = Some(Seq("a", "b")),
+      latestEditedArticles = None,
+      favoriteSubjects = Some(Seq.empty)
+    )
 
     val res1 = repository.update(updatedUserData1)
     val res2 = repository.update(updatedUserData2)

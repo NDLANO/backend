@@ -31,14 +31,14 @@ trait SearchConverterService {
   class SearchConverterService extends LazyLogging {
 
     def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] =
-      domainModel.tags.flatMap(
-        tags =>
-          tags.tags.map(
-            tag =>
-              SearchableTag(
-                tag = tag,
-                language = tags.language
-            )))
+      domainModel.tags.flatMap(tags =>
+        tags.tags.map(tag =>
+          SearchableTag(
+            tag = tag,
+            language = tags.language
+          )
+        )
+      )
 
     def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
       val imageWithAgreement = converterService.withAgreementCopyright(image)
@@ -55,9 +55,11 @@ trait SearchConverterService {
         titles =
           SearchableLanguageValues(imageWithAgreement.titles.map(title => LanguageValue(title.language, title.title))),
         alttexts = SearchableLanguageValues(
-          imageWithAgreement.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))),
+          imageWithAgreement.alttexts.map(alttext => LanguageValue(alttext.language, alttext.alttext))
+        ),
         captions = SearchableLanguageValues(
-          imageWithAgreement.captions.map(caption => LanguageValue(caption.language, caption.caption))),
+          imageWithAgreement.captions.map(caption => LanguageValue(caption.language, caption.caption))
+        ),
         tags = SearchableLanguageList(imageWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         contributors = image.copyright.creators.map(c => c.name) ++ image.copyright.processors
           .map(p => p.name) ++ image.copyright.rightsholders.map(r => r.name),
@@ -112,7 +114,8 @@ trait SearchConverterService {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -122,7 +125,7 @@ trait SearchConverterService {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>

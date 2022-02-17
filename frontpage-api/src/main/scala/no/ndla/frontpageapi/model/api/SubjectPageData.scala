@@ -15,21 +15,23 @@ import io.circe.generic.semiauto._
 import io.circe.generic.auto._
 import io.circe._
 
-case class SubjectPageData(id: Long,
-                           name: String,
-                           filters: Option[List[String]],
-                           layout: String,
-                           twitter: Option[String],
-                           facebook: Option[String],
-                           banner: BannerImage,
-                           about: Option[AboutSubject],
-                           metaDescription: Option[String],
-                           topical: Option[String],
-                           mostRead: List[String],
-                           editorsChoices: List[String],
-                           latestContent: Option[List[String]],
-                           goTo: List[String],
-                           supportedLanguages: Seq[String])
+case class SubjectPageData(
+    id: Long,
+    name: String,
+    filters: Option[List[String]],
+    layout: String,
+    twitter: Option[String],
+    facebook: Option[String],
+    banner: BannerImage,
+    about: Option[AboutSubject],
+    metaDescription: Option[String],
+    topical: Option[String],
+    mostRead: List[String],
+    editorsChoices: List[String],
+    latestContent: Option[List[String]],
+    goTo: List[String],
+    supportedLanguages: Seq[String]
+)
 
 object SubjectPageData {
   val indentDropNull = Printer.spaces2.copy(dropNullValues = true)

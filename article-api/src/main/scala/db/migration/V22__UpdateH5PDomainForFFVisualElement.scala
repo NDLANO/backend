@@ -30,20 +30,20 @@ class V22__UpdateH5PDomainForFFVisualElement extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
-    val pageSize = 1000
+    var offset       = 0L
+    val pageSize     = 1000
     println(s"Running migration '${this.getClass.getSimpleName}' on $count rows in $numPagesLeft batches of $pageSize")
 
     while (numPagesLeft > 0) {
-      allArticles(offset * pageSize).map {
-        case (id, document) => updateArticle(convertArticleUpdate(document), id)
+      allArticles(offset * pageSize).map { case (id, document) =>
+        updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
       offset += 1
       println(s"'${this.getClass.getSimpleName}' processsed ${math.min(offset * pageSize, count)} rows, ${math
-        .max(count - (offset * pageSize), 0)} left...")
+          .max(count - (offset * pageSize), 0)} left...")
     }
   }
 

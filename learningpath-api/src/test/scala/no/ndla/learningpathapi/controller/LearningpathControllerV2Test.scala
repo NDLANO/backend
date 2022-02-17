@@ -60,15 +60,15 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That GET / will send all query-params to the search service") {
-    val query = "hoppetau"
-    val tag = "lek"
-    val language = "nb"
-    val page = 22
-    val pageSize = 111
-    val ids = "1,2"
+    val query              = "hoppetau"
+    val tag                = "lek"
+    val language           = "nb"
+    val page               = 22
+    val pageSize           = 111
+    val ids                = "1,2"
     val verificationStatus = "EXTERNAL"
 
-    val result = SearchResult(1, Some(1), 1, language, Seq(DefaultLearningPathSummary), None)
+    val result    = SearchResult(1, Some(1), 1, language, Seq(DefaultLearningPathSummary), None)
     val apiResult = SearchResultV2(1, Some(1), 1, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
@@ -88,13 +88,13 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     get(
       "/",
       Map(
-        "query" -> query,
-        "tag" -> tag,
-        "language" -> language,
-        "sort" -> "-duration",
-        "page-size" -> s"$pageSize",
-        "page" -> s"$page",
-        "ids" -> s"$ids",
+        "query"              -> query,
+        "tag"                -> tag,
+        "language"           -> language,
+        "sort"               -> "-duration",
+        "page-size"          -> s"$pageSize",
+        "page"               -> s"$page",
+        "ids"                -> s"$ids",
         "verificationStatus" -> s"$verificationStatus"
       )
     ) {
@@ -105,30 +105,32 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That GET / will handle all empty query-params as missing query params") {
-    val query = ""
-    val tag = ""
+    val query    = ""
+    val tag      = ""
     val language = ""
-    val page = ""
+    val page     = ""
     val pageSize = ""
     val duration = ""
-    val ids = "1,2"
+    val ids      = "1,2"
 
-    val result = SearchResult(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary), None)
+    val result    = SearchResult(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary), None)
     val apiResult = SearchResultV2(-1, Some(1), 1, "nb", Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
     when(searchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
 
-    get("/",
-        Map(
-          "query" -> query,
-          "tag" -> tag,
-          "language" -> language,
-          "sort" -> duration,
-          "page-size" -> s"$pageSize",
-          "page" -> s"$page",
-          "ids" -> s"$ids"
-        )) {
+    get(
+      "/",
+      Map(
+        "query"     -> query,
+        "tag"       -> tag,
+        "language"  -> language,
+        "sort"      -> duration,
+        "page-size" -> s"$pageSize",
+        "page"      -> s"$page",
+        "ids"       -> s"$ids"
+      )
+    ) {
       status should equal(200)
       val convertedBody = read[api.SearchResultV2](body)
       convertedBody.totalCount should be(-1)
@@ -137,13 +139,13 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That POST /search will send all query-params to the search service") {
-    val query = "hoppetau"
-    val tag = "lek"
+    val query    = "hoppetau"
+    val tag      = "lek"
     val language = "nb"
-    val page = 22
+    val page     = 22
     val pageSize = 111
 
-    val result = SearchResult(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary), None)
+    val result    = SearchResult(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary), None)
     val apiResult = SearchResultV2(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
@@ -154,7 +156,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       language = Some(language),
       sort = Sort.ByDurationDesc,
       page = Some(page),
-      pageSize = Some(pageSize),
+      pageSize = Some(pageSize)
     )
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
@@ -176,10 +178,12 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
       .map(l => api.License(l.license.toString, Option(l.description), l.url))
       .toSet
 
-    get("/licenses/",
-        Map(
-          "filter" -> "by"
-        )) {
+    get(
+      "/licenses/",
+      Map(
+        "filter" -> "by"
+      )
+    ) {
       status should equal(200)
       val convertedBody = read[Set[api.License]](body)
       convertedBody should equal(creativeCommonlicenses)
@@ -200,8 +204,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
   test("That paramAsListOfLong returns empty list when empty param") {
     implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
-    val paramName = "test"
-    val parameterMap = Map("someOther" -> Array(""))
+    val paramName                            = "test"
+    val parameterMap                         = Map("someOther" -> Array(""))
 
     when(request.getParameterMap).thenReturn(parameterMap.asJava)
     controller.paramAsListOfLong(paramName)(request) should equal(List())
@@ -209,9 +213,9 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
   test("That paramAsListOfLong returns List of longs for all ids specified in input") {
     implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
-    val expectedList = List(1, 2, 3, 5, 6, 7, 8)
-    val paramName = "test"
-    val parameterMap = Map(paramName -> Array(expectedList.mkString(" , ")))
+    val expectedList                         = List(1, 2, 3, 5, 6, 7, 8)
+    val paramName                            = "test"
+    val parameterMap                         = Map(paramName -> Array(expectedList.mkString(" , ")))
 
     when(request.getParameterMap).thenReturn(parameterMap.asJava)
     controller.paramAsListOfLong(paramName)(request) should equal(expectedList)
@@ -219,8 +223,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
 
   test("That paramAsListOfLong returns validation error when list of ids contains a string") {
     implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
-    val paramName = "test"
-    val parameterMap = Map(paramName -> Array("1,2,abc,3"))
+    val paramName                            = "test"
+    val parameterMap                         = Map(paramName -> Array("1,2,abc,3"))
 
     when(request.getParameterMap).thenReturn(parameterMap.asJava)
 
@@ -231,7 +235,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     validationException.errors.size should be(1)
     validationException.errors.head.field should equal(paramName)
     validationException.errors.head.message should equal(
-      s"Invalid value for $paramName. Only (list of) digits are allowed.")
+      s"Invalid value for $paramName. Only (list of) digits are allowed."
+    )
 
   }
 

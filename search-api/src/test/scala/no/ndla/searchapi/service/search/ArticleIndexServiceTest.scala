@@ -43,9 +43,9 @@ class ArticleIndexServiceTest
     override val indexShards = 1
   }
 
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis
+  implicit val formats                = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
     articleIndexService.cleanupIndexes()
@@ -61,7 +61,7 @@ class ArticleIndexServiceTest
       search(articleIndexService.searchIndex)
     }
 
-    val sources = response.result.hits.hits.map(_.sourceAsString)
+    val sources  = response.result.hits.hits.map(_.sourceAsString)
     val articles = sources.map(source => read[SearchableArticle](source))
 
     val Success(expectedArticle5) =

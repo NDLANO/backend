@@ -46,12 +46,14 @@ trait SearchService {
           )
         })
 
-    /**
-      * Returns hit as summary
+    /** Returns hit as summary
       *
-      * @param hit as json string
-      * @param language language as ISO639 code
-      * @return api-model summary of hit
+      * @param hit
+      *   as json string
+      * @param language
+      *   language as ISO639 code
+      * @return
+      *   api-model summary of hit
       */
     def hitToApiModel(hit: String, language: String): T
 
@@ -83,12 +85,12 @@ trait SearchService {
         case Sort.ByTitleAsc =>
           language match {
             case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
             case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-            case _            => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+            case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
@@ -112,7 +114,7 @@ trait SearchService {
 
     def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
       val numResults = max(pageSize.min(MaxPageSize), 0)
-      val startAt = (page - 1).max(0) * numResults
+      val startAt    = (page - 1).max(0) * numResults
 
       (startAt, numResults)
     }

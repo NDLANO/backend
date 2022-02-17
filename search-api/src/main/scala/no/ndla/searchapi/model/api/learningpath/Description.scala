@@ -16,8 +16,10 @@ import scala.annotation.meta.field
 @ApiModel(description = "The description of the learningpath")
 case class Description(
     @(ApiModelProperty @field)(description = "The description to the learningpath.") description: String,
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in introduction") language: String)
-    extends LanguageField[String] {
-  override def value: String = description
+    @(ApiModelProperty @field)(
+      description = "ISO 639-1 code that represents the language used in introduction"
+    ) language: String
+) extends LanguageField[String] {
+  override def value: String    = description
   override def isEmpty: Boolean = description.isEmpty
 }

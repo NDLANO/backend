@@ -31,7 +31,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
     val resource =
       Resource("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
@@ -62,8 +63,9 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
-    val id = article.id.get
+      )
+    )
+    val id    = article.id.get
     val topic = Topic("urn:topic:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
 
     // format: off
@@ -91,15 +93,18 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
     val resource1 =
       Resource("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
     val resource2 =
-      Resource("urn:resource:1:99551",
-               "Outdated other name",
-               Some(s"urn:article:$id"),
-               List(s"/subject:1/resource:1:$id"))
+      Resource(
+        "urn:resource:1:99551",
+        "Outdated other name",
+        Some(s"urn:article:$id"),
+        List(s"/subject:1/resource:1:$id")
+      )
 
     // format: off
     doAnswer((i: InvocationOnMock) => Success(i.getArgument[Resource](1))).when(taxonomyApiClient).putRaw(any[String], any[Resource], any[(String, String)])(any[Formats])
@@ -129,8 +134,9 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
-    val id = article.id.get
+      )
+    )
+    val id     = article.id.get
     val topic1 = Topic("urn:topic:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
     val topic2 =
       Topic("urn:topic:1:99551", "Outdated other name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
@@ -164,16 +170,21 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
-    val resource1 = Resource("urn:resource:1:12035",
-                             "Outdated res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/resource:1:$id"))
-    val resource2 = Resource("urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
-                             "Outdated other res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/topic:1:$id"))
+    val resource1 = Resource(
+      "urn:resource:1:12035",
+      "Outdated res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/resource:1:$id")
+    )
+    val resource2 = Resource(
+      "urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
+      "Outdated other res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/topic:1:$id")
+    )
     val topic1 =
       Topic("urn:topic:1:12312", "Outdated top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
     val topic2 =
@@ -216,16 +227,21 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
-    val resource1 = Resource("urn:resource:1:12035",
-                             "Outdated res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/resource:1:$id"))
-    val resource2 = Resource("urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
-                             "Outdated other res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/resource:1:$id"))
+    val resource1 = Resource(
+      "urn:resource:1:12035",
+      "Outdated res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/resource:1:$id")
+    )
+    val resource2 = Resource(
+      "urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
+      "Outdated other res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/resource:1:$id")
+    )
     val topic1 =
       Topic("urn:topic:1:12312", "Outdated top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
     val topic2 =
@@ -251,16 +267,21 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
-    val resource1 = Resource("urn:resource:1:12035",
-                             "Outdated res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/resource:1:$id"))
-    val resource2 = Resource("urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
-                             "Outdated other res name",
-                             Some(s"urn:article:$id"),
-                             List(s"/subject:1/resource:1:$id"))
+    val resource1 = Resource(
+      "urn:resource:1:12035",
+      "Outdated res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/resource:1:$id")
+    )
+    val resource2 = Resource(
+      "urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
+      "Outdated other res name",
+      Some(s"urn:article:$id"),
+      List(s"/subject:1/resource:1:$id")
+    )
 
     // format: off
     doReturn(Success(List(resource1, resource2)), Success(List.empty)).when(taxonomyApiClient).queryResource(id)
@@ -283,7 +304,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
     val topic1 =
       Topic("urn:topic:1:12312", "Outdated top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
@@ -309,7 +331,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
 
     // format: off
@@ -338,7 +361,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
       title = Seq(
         ArticleTitle("Norsk", "nb"),
         ArticleTitle("Engelsk", "en")
-      ))
+      )
+    )
     val id = article.id.get
     val resource =
       Resource("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))

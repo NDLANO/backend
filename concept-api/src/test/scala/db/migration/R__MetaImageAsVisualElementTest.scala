@@ -13,7 +13,7 @@ class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
   val migration = new R__MetaImageAsVisualElement
 
   test("Meta images without ids should not affect visual elements") {
-    val oldMetaImage = """{"imageId":"","altText":"","language":"nb"}"""
+    val oldMetaImage     = """{"imageId":"","altText":"","language":"nb"}"""
     val oldVisualElement = """"""
     val old =
       s"""{"metaImage":[$oldMetaImage],"visualElement":[$oldVisualElement]}"""
@@ -22,7 +22,7 @@ class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
   }
 
   test("Meta images with ids should become visual elements") {
-    val oldMetaImage = """{"imageId":"1","altText":"alt","language":"nb"}"""
+    val oldMetaImage     = """{"imageId":"1","altText":"alt","language":"nb"}"""
     val oldVisualElement = """"""
     val old =
       s"""{"metaImage":[$oldMetaImage],"visualElement":[$oldVisualElement]}"""

@@ -18,21 +18,23 @@ trait NdlaClient {
   val ndlaClient: NdlaClient
 
   class NdlaClient {
-    implicit val formats: Formats = org.json4s.DefaultFormats
+    implicit val formats: Formats                = org.json4s.DefaultFormats
     private val ResponseErrorBodyCharacterCutoff = 1000
 
     def fetch[A](request: HttpRequest)(implicit mf: Manifest[A]): Try[A] = {
       doFetch(addCorrelationId(request))
     }
 
-    def fetchWithBasicAuth[A](request: HttpRequest, user: String, password: String)(
-        implicit mf: Manifest[A],
-        formats: Formats = formats): Try[A] = {
+    def fetchWithBasicAuth[A](request: HttpRequest, user: String, password: String)(implicit
+        mf: Manifest[A],
+        formats: Formats = formats
+    ): Try[A] = {
       doFetch(addCorrelationId(addBasicAuth(request, user, password)))
     }
 
-    def fetchWithForwardedAuth[A](request: HttpRequest)(implicit mf: Manifest[A],
-                                                        formats: Formats = formats): Try[A] = {
+    def fetchWithForwardedAuth[A](
+        request: HttpRequest
+    )(implicit mf: Manifest[A], formats: Formats = formats): Try[A] = {
       doFetch(addCorrelationId(addForwardedAuth(request)))
     }
 
@@ -44,7 +46,7 @@ trait NdlaClient {
     private def doFetch[A](request: HttpRequest)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       for {
         httpResponse <- doRequest(request)
-        bodyObject <- parseResponse[A](httpResponse)(mf, formats)
+        bodyObject   <- parseResponse[A](httpResponse)(mf, formats)
       } yield bodyObject
     }
 
@@ -53,10 +55,12 @@ trait NdlaClient {
         response.isError match {
           case false => Success(response)
           case true => {
-            Failure(new HttpRequestException(
-              s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
-              Some(response)
-            ))
+            Failure(
+              new HttpRequestException(
+                s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
+                Some(response)
+              )
+            )
           }
         }
       })

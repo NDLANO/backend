@@ -24,7 +24,7 @@ case class DraftSearchSettings(
     userFilter: Seq[String],
     shouldScroll: Boolean,
     embedResource: Option[String],
-    embedId: Option[String],
+    embedId: Option[String]
 )
 
 object DraftSearchSettings {
@@ -43,7 +43,7 @@ object DraftSearchSettings {
       userFilter = Seq.empty,
       shouldScroll = false,
       embedResource = None,
-      embedId = None,
+      embedId = None
     )
   }
 }

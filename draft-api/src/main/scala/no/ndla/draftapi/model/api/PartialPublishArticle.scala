@@ -16,12 +16,12 @@ sealed trait PartialArticleFields extends EnumEntry
 object PartialArticleFields extends Enum[PartialArticleFields] {
   val values: IndexedSeq[PartialArticleFields] = findValues
 
-  case object availability extends PartialArticleFields
-  case object grepCodes extends PartialArticleFields
-  case object license extends PartialArticleFields
+  case object availability    extends PartialArticleFields
+  case object grepCodes       extends PartialArticleFields
+  case object license         extends PartialArticleFields
   case object metaDescription extends PartialArticleFields
-  case object relatedContent extends PartialArticleFields
-  case object tags extends PartialArticleFields
+  case object relatedContent  extends PartialArticleFields
+  case object tags            extends PartialArticleFields
 }
 
 // format: off

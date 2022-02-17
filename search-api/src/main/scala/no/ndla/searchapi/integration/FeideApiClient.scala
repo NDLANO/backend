@@ -33,7 +33,7 @@ case class FeideExtendedUserInfo(
     if (this.isTeacher) {
       List(
         Availability.everyone,
-        Availability.teacher,
+        Availability.teacher
       )
     } else {
       List.empty
@@ -61,7 +61,7 @@ trait FeideApiClient {
 
       for {
         response <- doRequest(request)
-        parsed <- parseResponse[FeideExtendedUserInfo](response)
+        parsed   <- parseResponse[FeideExtendedUserInfo](response)
       } yield parsed
     }
 
@@ -77,9 +77,12 @@ trait FeideApiClient {
     private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
       Try(request.asString).flatMap(response => {
         if (response.isError) {
-          Failure(new HttpRequestException(
-            s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
-            Some(response)))
+          Failure(
+            new HttpRequestException(
+              s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
+              Some(response)
+            )
+          )
         } else {
           Success(response)
         }

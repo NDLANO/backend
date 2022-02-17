@@ -11,8 +11,8 @@ import no.ndla.network.AuthUser
 
 case class UserInfo(id: String, roles: Set[Role.Value]) {
   def canPublish: Boolean = hasRoles(UserInfo.PublishRoles)
-  def canWrite: Boolean = hasRoles(UserInfo.WriteRoles)
-  def canRead: Boolean = hasRoles(UserInfo.ReadRoles)
+  def canWrite: Boolean   = hasRoles(UserInfo.WriteRoles)
+  def canRead: Boolean    = hasRoles(UserInfo.ReadRoles)
 
   def hasRoles(rolesToCheck: Set[Role.Value]): Boolean =
     rolesToCheck.subsetOf(roles)
@@ -20,11 +20,11 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
 
 object UserInfo {
   val UnauthorizedUser = UserInfo("unauthorized", Set.empty)
-  val SystemUser = UserInfo("system", Role.values.toSet)
+  val SystemUser       = UserInfo("system", Role.values.toSet)
 
   val PublishRoles = Set(Role.ADMIN)
-  val WriteRoles = Set(Role.WRITE)
-  val ReadRoles = Set(Role.WRITE)
+  val WriteRoles   = Set(Role.WRITE)
+  val ReadRoles    = Set(Role.WRITE)
 
   def apply(name: String): UserInfo =
     UserInfo(name, AuthUser.getRoles.flatMap(Role.valueOf).toSet)

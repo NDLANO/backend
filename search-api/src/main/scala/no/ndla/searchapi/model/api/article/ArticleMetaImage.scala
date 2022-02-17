@@ -16,9 +16,10 @@ import scala.annotation.meta.field
 case class ArticleMetaImage(
     @(ApiModelProperty @field)(description = "The meta image url") url: String,
     @(ApiModelProperty @field)(description = "The alt text for the meta image") alt: String,
-    @(ApiModelProperty @field)(description =
-      "The ISO 639-1 language code describing which article translation this meta description belongs to") language: String)
-    extends LanguageField[String] {
-  override def value: String = url
+    @(ApiModelProperty @field)(
+      description = "The ISO 639-1 language code describing which article translation this meta description belongs to"
+    ) language: String
+) extends LanguageField[String] {
+  override def value: String    = url
   override def isEmpty: Boolean = url.isEmpty || alt.isEmpty
 }

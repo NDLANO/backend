@@ -22,32 +22,33 @@ sealed trait Content {
   def id: Option[Long]
 }
 
-case class Article(id: Option[Long],
-                   revision: Option[Int],
-                   title: Seq[ArticleTitle],
-                   content: Seq[ArticleContent],
-                   copyright: Copyright,
-                   tags: Seq[ArticleTag],
-                   requiredLibraries: Seq[RequiredLibrary],
-                   visualElement: Seq[VisualElement],
-                   introduction: Seq[ArticleIntroduction],
-                   metaDescription: Seq[ArticleMetaDescription],
-                   metaImage: Seq[ArticleMetaImage],
-                   created: Date,
-                   updated: Date,
-                   updatedBy: String,
-                   published: Date,
-                   articleType: String,
-                   grepCodes: Seq[String],
-                   conceptIds: Seq[Long],
-                   availability: Availability.Value = Availability.everyone,
-                   relatedContent: Seq[RelatedContent])
-    extends Content
+case class Article(
+    id: Option[Long],
+    revision: Option[Int],
+    title: Seq[ArticleTitle],
+    content: Seq[ArticleContent],
+    copyright: Copyright,
+    tags: Seq[ArticleTag],
+    requiredLibraries: Seq[RequiredLibrary],
+    visualElement: Seq[VisualElement],
+    introduction: Seq[ArticleIntroduction],
+    metaDescription: Seq[ArticleMetaDescription],
+    metaImage: Seq[ArticleMetaImage],
+    created: Date,
+    updated: Date,
+    updatedBy: String,
+    published: Date,
+    articleType: String,
+    grepCodes: Seq[String],
+    conceptIds: Seq[Long],
+    availability: Availability.Value = Availability.everyone,
+    relatedContent: Seq[RelatedContent]
+) extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
 
-  val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability)
-  override val tableName = "contentdata"
+  val jsonEncoder: Formats                     = DefaultFormats.withLong + new EnumNameSerializer(Availability)
+  override val tableName                       = "contentdata"
   override lazy val schemaName: Option[String] = Some(ArticleApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
@@ -73,13 +74,18 @@ object Article extends SQLSyntaxSupport[Article] {
 }
 
 object ArticleType extends Enumeration {
-  val Standard: ArticleType.Value = Value("standard")
+  val Standard: ArticleType.Value     = Value("standard")
   val TopicArticle: ArticleType.Value = Value("topic-article")
 
-  def all: Seq[String] = ArticleType.values.map(_.toString).toSeq
+  def all: Seq[String]                              = ArticleType.values.map(_.toString).toSeq
   def valueOf(s: String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
 
   def valueOfOrError(s: String): ArticleType.Value =
-    valueOf(s).getOrElse(throw new ValidationException(errors = List(
-      ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
+    valueOf(s).getOrElse(
+      throw new ValidationException(
+        errors = List(
+          ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.")
+        )
+      )
+    )
 }

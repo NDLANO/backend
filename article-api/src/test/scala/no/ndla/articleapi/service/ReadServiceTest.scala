@@ -23,11 +23,11 @@ import scala.util.{Success, Try}
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val externalImageApiUrl: String = externalApiUrls("image")
-  val resourceIdAttr = s"${TagAttributes.DataResource_Id}"
-  val resourceAttr = s"${TagAttributes.DataResource}"
-  val imageType = s"${ResourceType.Image}"
-  val h5pType = s"${ResourceType.H5P}"
-  val urlAttr = s"${TagAttributes.DataUrl}"
+  val resourceIdAttr              = s"${TagAttributes.DataResource_Id}"
+  val resourceAttr                = s"${TagAttributes.DataResource}"
+  val imageType                   = s"${ResourceType.Image}"
+  val h5pType                     = s"${ResourceType.H5P}"
+  val urlAttr                     = s"${TagAttributes.DataUrl}"
 
   val content1 =
     s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType">"""
@@ -37,7 +37,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val articleContent1 = ArticleContent(content1, "und")
 
   val expectedArticleContent1: ArticleContent = articleContent1.copy(content =
-    s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">""")
+    s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">"""
+  )
 
   val articleContent2 = ArticleContent(content2, "und")
 
@@ -45,7 +46,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), "en")
   when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
 
-  override val readService = new ReadService
+  override val readService      = new ReadService
   override val converterService = new ConverterService
 
   test("withId adds urls and ids on embed resources") {
@@ -53,16 +54,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="">"""
     val visualElementAfter =
       s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-url="http://api-gateway.ndla-local/image-api/v2/images/1">"""
-    val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1),
-                                                        visualElement = Seq(VisualElement(visualElementBefore, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(
+      content = Seq(articleContent1),
+      visualElement = Seq(VisualElement(visualElementBefore, "nb"))
+    )
 
     when(articleRepository.withId(1)).thenReturn(Option(article))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult: Try[Cachable[api.ArticleV2]] = Cachable.yes(
-      converterService.toApiArticleV2(article.copy(content = Seq(expectedArticleContent1),
-                                                   visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
-                                      "nb"))
+      converterService.toApiArticleV2(
+        article
+          .copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
+        "nb"
+      )
+    )
     readService.withIdV2(1, "nb") should equal(expectedResult)
   }
 
@@ -72,7 +78,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("addIdAndUrlOnResource adds id but not url on embed resources without a data-resource_id attribute") {
     val articleContent3 = articleContent1.copy(
-      content = s"""<$ResourceHtmlEmbedTag $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org">""")
+      content = s"""<$ResourceHtmlEmbedTag $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org">"""
+    )
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
 
@@ -89,9 +96,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2))
     val article1ExpectedResult = articleContent1.copy(content =
-      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">""")
+      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">"""
+    )
     val article2ExpectedResult = articleContent1.copy(content =
-      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/321"><$ResourceHtmlEmbedTag $resourceIdAttr="4321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/4321">""")
+      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/321"><$ResourceHtmlEmbedTag $resourceIdAttr="4321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/4321">"""
+    )
 
     val result = readService.addUrlsOnEmbedResources(article)
     result should equal(article.copy(content = Seq(article1ExpectedResult, article2ExpectedResult)))
@@ -106,7 +115,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("MostFrequentOccurencesList.getNMostFrequent returns the N most frequent entries in a list") {
     val tagsList = Seq("tag", "tag", "tag", "junk", "lol", "17. Mai", "is", "brus", "17. Mai", "is", "is", "tag")
-    val occList = new readService.MostFrequentOccurencesList(tagsList)
+    val occList  = new readService.MostFrequentOccurencesList(tagsList)
 
     occList.getNMostFrequent(1) should equal(Seq("tag"))
     occList.getNMostFrequent(2) should equal(Seq("tag", "is"))

@@ -35,7 +35,7 @@ trait GrepCodesSearchService {
 
   class GrepCodesSearchService extends LazyLogging with BasicSearchService[String] {
     override val searchIndex: String = DraftApiProperties.DraftGrepCodesSearchIndex
-    implicit val formats: Formats = DefaultFormats
+    implicit val formats: Formats    = DefaultFormats
 
     def getHits(response: SearchResponse): Seq[String] = {
       response.hits.hits.toList.map(hit => read[SearchableGrepCode](hit.sourceAsString).grepCode)
@@ -63,13 +63,14 @@ trait GrepCodesSearchService {
     def executeSearch(
         page: Int,
         pageSize: Int,
-        queryBuilder: BoolQuery,
+        queryBuilder: BoolQuery
     ): Try[LanguagelessSearchResult[String]] = {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
         val searchToExecute = search(searchIndex)
@@ -80,7 +81,8 @@ trait GrepCodesSearchService {
           .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          if (startAt != 0) { searchToExecute }
+          else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
@@ -91,7 +93,8 @@ trait GrepCodesSearchService {
                 numResults,
                 getHits(response.result),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }
@@ -109,7 +112,8 @@ trait GrepCodesSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of grepCodes of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of grepCodes of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

@@ -35,10 +35,12 @@ trait IndexService {
     val apiClient: SearchApiClient
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
-    def createIndexRequest(domainModel: D,
-                           indexName: String,
-                           taxonomyBundle: TaxonomyBundle,
-                           grepBundle: Option[GrepBundle]): Try[IndexRequest]
+    def createIndexRequest(
+        domainModel: D,
+        indexName: String,
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: Option[GrepBundle]
+    ): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
       val taxonomyBundleT = taxonomyApiClient.getTaxonomyBundle()
@@ -47,7 +49,8 @@ trait IndexService {
         case Success(bundle) => Some(bundle)
         case Failure(_) =>
           logger.error(
-            s"GREP could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}")
+            s"GREP could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}"
+          )
           None
       }
 
@@ -55,7 +58,8 @@ trait IndexService {
         case Failure(ex) =>
           logger.error(
             s"Taxonomy could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}",
-            ex)
+            ex
+          )
           Failure(ex)
         case Success(taxonomyBundle) => indexDocument(imported, taxonomyBundle, grepBundle)
       }
@@ -63,7 +67,7 @@ trait IndexService {
 
     def indexDocument(imported: D, taxonomyBundle: TaxonomyBundle, grepBundle: Option[GrepBundle]): Try[D] = {
       for {
-        _ <- createIndexIfNotExists()
+        _       <- createIndexIfNotExists()
         request <- createIndexRequest(imported, searchIndex, taxonomyBundle, grepBundle)
         _ <- e4sClient.execute {
           request
@@ -74,7 +78,7 @@ trait IndexService {
     def indexDocuments()(implicit mf: Manifest[D]): Try[ReindexResult] = {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
-        grepBundle <- grepApiClient.getGrepBundle()
+        grepBundle     <- grepApiClient.getGrepBundle()
       } yield (taxonomyBundle, grepBundle)
       bundles match {
         case Failure(ex) =>
@@ -84,8 +88,9 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(
-        implicit mf: Manifest[D]): Try[ReindexResult] = {
+    def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(implicit
+        mf: Manifest[D]
+    ): Try[ReindexResult] = {
       val start = System.currentTimeMillis()
       createIndexWithGeneratedName.flatMap(indexName => {
         sendToElastic(indexName, taxonomyBundle, grepBundle) match {
@@ -101,14 +106,14 @@ trait IndexService {
               Failure(ElasticIndexingException(s"Indexing completed with $numErrors errors, will not replace index."))
             } else {
               val operations = getAliasTarget.flatMap(updateAliasTarget(_, indexName))
-              operations.map(
-                _ =>
-                  ReindexResult(
-                    documentType,
-                    numErrors,
-                    count,
-                    System.currentTimeMillis() - start
-                ))
+              operations.map(_ =>
+                ReindexResult(
+                  documentType,
+                  numErrors,
+                  count,
+                  System.currentTimeMillis() - start
+                )
+              )
             }
         }
       })
@@ -128,7 +133,8 @@ trait IndexService {
           case Failure(ex) => Future.successful(Failure(ex))
           case Success(c) =>
             indexDocuments(c, indexName, taxonomyBundle, grepBundle).map(numIndexed =>
-              Success((numIndexed.getOrElse(0), c.size)))
+              Success((numIndexed.getOrElse(0), c.size))
+            )
 
         })
         .toList
@@ -138,9 +144,8 @@ trait IndexService {
 
       chunks.collect { case Failure(ex) => Failure(ex) } match {
         case Nil =>
-          val successfulChunks = chunks.collect {
-            case Success((chunkIndexed, chunkSize)) =>
-              (chunkIndexed, chunkSize)
+          val successfulChunks = chunks.collect { case Success((chunkIndexed, chunkSize)) =>
+            (chunkIndexed, chunkSize)
           }
 
           val (count, totalCount) = successfulChunks.foldLeft((0, 0)) {
@@ -156,13 +161,14 @@ trait IndexService {
     }
 
     def indexDocuments(contents: Seq[D], indexName: String, taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(
-        implicit ec: ExecutionContext): Future[Try[Int]] = {
+        implicit ec: ExecutionContext
+    ): Future[Try[Int]] = {
       if (contents.isEmpty) {
         Future.successful { Success(0) }
       } else {
         val req = contents.map(content => createIndexRequest(content, indexName, taxonomyBundle, Some(grepBundle)))
-        val indexRequests = req.collect { case Success(indexRequest) => indexRequest }
-        val failedToCreateRequests = req.collect { case Failure(ex)  => Failure(ex) }
+        val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
+        val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
         Future {
           if (indexRequests.nonEmpty) {
@@ -217,13 +223,14 @@ trait IndexService {
         tokenFilters = List(hyphDecompounderTokenFilter) ++ SearchLanguage.NynorskTokenFilters
       )
 
-    /**
-      * Returns Sequence of FieldDefinitions for a given field.
+    /** Returns Sequence of FieldDefinitions for a given field.
       *
-      * @param fieldName Name of field in mapping.
-      * @param keepRaw   Whether to add a keywordField named raw.
-      *                  Usually used for sorting, aggregations or scripts.
-      * @return Sequence of FieldDefinitions for a field.
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of FieldDefinitions for a field.
       */
     protected def generateLanguageSupportedFieldList(
         fieldName: String,
@@ -247,16 +254,19 @@ trait IndexService {
       })
     }
 
-    /**
-      * Returns Sequence of DynamicTemplateRequest for a given field.
+    /** Returns Sequence of DynamicTemplateRequest for a given field.
       *
-      * @param fieldName Name of field in mapping.
-      * @param keepRaw   Whether to add a keywordField named raw.
-      *                  Usually used for sorting, aggregations or scripts.
-      * @return Sequence of DynamicTemplateRequest for a field.
+      * @param fieldName
+      *   Name of field in mapping.
+      * @param keepRaw
+      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+      * @return
+      *   Sequence of DynamicTemplateRequest for a field.
       */
-    protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
-                                                            keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
+    protected def generateLanguageSupportedDynamicTemplates(
+        fieldName: String,
+        keepRaw: Boolean = false
+    ): Seq[DynamicTemplateRequest] = {
       val dynamicFunc = (name: String, analyzer: String, subFields: List[ElasticField]) => {
         DynamicTemplateRequest(
           name = name,
@@ -276,19 +286,15 @@ trait IndexService {
       )
       val subFields = if (keepRaw) sf :+ keywordField("raw") else sf
 
-      val languageTemplates = SearchLanguage.languageAnalyzers.map(
-        languageAnalyzer => {
-          val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
-          dynamicFunc(name, languageAnalyzer.analyzer, subFields)
-        }
-      )
-      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(
-        languageAnalyzer => {
-          val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
-          dynamicFunc(name, languageAnalyzer.analyzer, subFields)
-        }
-      )
-      val catchAllTemplate = dynamicFunc(s"$fieldName.*", "standard", subFields)
+      val languageTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
+        val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
+      })
+      val languageSubTemplates = SearchLanguage.languageAnalyzers.map(languageAnalyzer => {
+        val name = s"*.$fieldName.${languageAnalyzer.languageTag.toString()}"
+        dynamicFunc(name, languageAnalyzer.analyzer, subFields)
+      })
+      val catchAllTemplate    = dynamicFunc(s"$fieldName.*", "standard", subFields)
       val catchAllSubTemplate = dynamicFunc(s"*.$fieldName.*", "standard", subFields)
       languageTemplates ++ languageSubTemplates ++ Seq(catchAllTemplate, catchAllSubTemplate)
     }

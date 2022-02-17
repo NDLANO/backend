@@ -23,7 +23,7 @@ trait DraftApiClient {
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
 
     def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
-      implicit val formats = org.json4s.DefaultFormats
+      implicit val formats     = org.json4s.DefaultFormats
       val request: HttpRequest = Http(s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString))
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright)

@@ -15,7 +15,7 @@ import org.jsoup.Jsoup
 object OEmbedConverterService {
 
   def addYoutubeTimestampIfdefinedInRequest(requestUrl: String, oembed: OEmbed): OEmbed = {
-    val paramTypesToTransfer = List("start", "time_continue", "t", "end", "rel")
+    val paramTypesToTransfer  = List("start", "time_continue", "t", "end", "rel")
     val queryParamsToTransfer = requestUrl.query.filterNames(pn => paramTypesToTransfer.contains(pn)).params
 
     queryParamsToTransfer match {

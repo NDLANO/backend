@@ -46,8 +46,10 @@ object JettyLauncher extends LazyLogging {
     AudioApiProperties.Environment match {
       case "local" => None
       case _ =>
-        monitoringFilter.setInitParameter(Parameter.CLOUDWATCH_NAMESPACE.getCode,
-                                          "NDLA/APP".replace("APP", AudioApiProperties.ApplicationName))
+        monitoringFilter.setInitParameter(
+          Parameter.CLOUDWATCH_NAMESPACE.getCode,
+          "NDLA/APP".replace("APP", AudioApiProperties.ApplicationName)
+        )
     }
     servletContext.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 

@@ -28,16 +28,16 @@ trait ArticleApiClient {
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient {
-    val baseUrl = s"http://${ConceptApiProperties.ArticleApiHost}/intern"
+    val baseUrl        = s"http://${ConceptApiProperties.ArticleApiHost}/intern"
     val dumpDomainPath = "dump/concepts"
 
     def getChunks: Iterator[Try[Seq[domain.Concept]]] = {
       getChunk(0, 0) match {
         case Success(initSearch) =>
-          val dbCount = initSearch.totalCount
+          val dbCount  = initSearch.totalCount
           val pageSize = ConceptApiProperties.IndexBulkSize
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
-          val pages = Seq.range(1, numPages + 1)
+          val pages    = Seq.range(1, numPages + 1)
 
           val iterator: Iterator[Try[Seq[domain.Concept]]] = pages.iterator.map(p => {
             getChunk(p, pageSize).map(_.results)
@@ -53,12 +53,13 @@ trait ArticleApiClient {
     def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
-        Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout))
+        Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout)
+      )
     }
 
     private def getChunk(page: Int, pageSize: Int): Try[ConceptDomainDumpResults] = {
       val params = Map(
-        "page" -> page.toString,
+        "page"      -> page.toString,
         "page-size" -> pageSize.toString
       )
 
@@ -68,7 +69,8 @@ trait ArticleApiClient {
           Success(result)
         case Failure(ex) =>
           logger.error(
-            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'")
+            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
+          )
           Failure(ex)
       }
     }

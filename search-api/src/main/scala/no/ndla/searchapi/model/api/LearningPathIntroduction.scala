@@ -14,5 +14,7 @@ import scala.annotation.meta.field
 @ApiModel(description = "Introduction of learningPath")
 case class LearningPathIntroduction(
     @(ApiModelProperty @field)(description = "The freetext introduction of the learningpath") introduction: String,
-    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in introduction") language: String)
-    extends WithLanguage
+    @(ApiModelProperty @field)(
+      description = "ISO 639-1 code that represents the language used in introduction"
+    ) language: String
+) extends WithLanguage

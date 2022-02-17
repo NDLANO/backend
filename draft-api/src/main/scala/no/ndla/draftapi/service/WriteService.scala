@@ -95,9 +95,11 @@ trait WriteService {
           for {
             newId <- draftRepository.newEmptyArticle()
             status = domain.Status(DRAFT, Set.empty)
-            notes <- converterService.newNotes(Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
-                                               userInfo,
-                                               status)
+            notes <- converterService.newNotes(
+              Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
+              userInfo,
+              status
+            )
             newTitles = if (usePostFix) article.title.map(t => t.copy(title = t.title + " (Kopi)")) else article.title
             newContents <- contentWithClonedFiles(article.content.toList)
             articleToInsert = article.copy(
@@ -122,7 +124,7 @@ trait WriteService {
 
     def contentWithClonedFiles(contents: List[domain.ArticleContent]): Try[List[domain.ArticleContent]] = {
       contents.toList.traverse(content => {
-        val doc = HtmlTagRules.stringToJsoupDocument(content.content)
+        val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
         val embeds = doc.select(s"embed[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
 
         embeds.toList.traverse(cloneEmbedAndUpdateElement) match {
@@ -145,8 +147,8 @@ trait WriteService {
     }
 
     def cloneFileAndGetNewPath(oldPath: String): Try[String] = {
-      val ext = getFileExtension(oldPath).getOrElse("")
-      val newFileName = randomFilename(ext)
+      val ext           = getFileExtension(oldPath).getOrElse("")
+      val newFileName   = randomFilename(ext)
       val withoutPrefix = Path.parse(oldPath).parts.dropWhile(_ == "files").mkString("/")
       fileStorage.copyResource(withoutPrefix, newFileName).map(f => s"/files/$f")
     }
@@ -173,9 +175,9 @@ trait WriteService {
             .getOrElse(Seq.empty)
 
           for {
-            _ <- contentValidator.validateAgreement(toUpdate, preExistingErrors = dateErrors)
+            _         <- contentValidator.validateAgreement(toUpdate, preExistingErrors = dateErrors)
             agreement <- agreementRepository.update(toUpdate)
-            _ <- agreementIndexService.indexDocument(agreement)
+            _         <- agreementIndexService.indexDocument(agreement)
           } yield converterService.toApiAgreement(agreement)
       }
     }
@@ -193,14 +195,16 @@ trait WriteService {
       }
     }
 
-    def newArticle(newArticle: api.NewArticle,
-                   externalIds: List[String],
-                   externalSubjectIds: Seq[String],
-                   user: UserInfo,
-                   oldNdlaCreatedDate: Option[Date],
-                   oldNdlaUpdatedDate: Option[Date],
-                   importId: Option[String]): Try[api.Article] = {
-      val newNotes = "Opprettet artikkel." +: newArticle.notes
+    def newArticle(
+        newArticle: api.NewArticle,
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        user: UserInfo,
+        oldNdlaCreatedDate: Option[Date],
+        oldNdlaUpdatedDate: Option[Date],
+        importId: Option[String]
+    ): Try[api.Article] = {
+      val newNotes      = "Opprettet artikkel." +: newArticle.notes
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
       val withNotes = newArticle.copy(
         notes = newNotes,
@@ -208,32 +212,34 @@ trait WriteService {
       )
       val updateFunction = externalIds match {
         case Nil =>
-          (a: domain.Article) =>
-            draftRepository.updateArticle(a, false)
+          (a: domain.Article) => draftRepository.updateArticle(a, false)
         case nids =>
-          (a: domain.Article) =>
-            draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
+          (a: domain.Article) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
       }
 
       for {
         newId <- draftRepository.newEmptyArticle()
-        domainArticle <- converterService.toDomainArticle(newId,
-                                                          withNotes,
-                                                          externalIds,
-                                                          user,
-                                                          oldNdlaCreatedDate,
-                                                          oldNdlaUpdatedDate)
-        _ <- contentValidator.validateArticle(domainArticle)
+        domainArticle <- converterService.toDomainArticle(
+          newId,
+          withNotes,
+          externalIds,
+          user,
+          oldNdlaCreatedDate,
+          oldNdlaUpdatedDate
+        )
+        _               <- contentValidator.validateArticle(domainArticle)
         insertedArticle <- updateFunction(domainArticle)
-        _ <- indexArticle(insertedArticle)
-        apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
+        _               <- indexArticle(insertedArticle)
+        apiArticle      <- converterService.toApiArticle(insertedArticle, newArticle.language)
       } yield apiArticle
     }
 
-    def updateArticleStatus(status: domain.ArticleStatus.Value,
-                            id: Long,
-                            user: UserInfo,
-                            isImported: Boolean): Try[api.Article] = {
+    def updateArticleStatus(
+        status: domain.ArticleStatus.Value,
+        id: Long,
+        user: UserInfo,
+        isImported: Boolean
+    ): Try[api.Article] = {
       draftRepository.withId(id) match {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
@@ -244,16 +250,16 @@ trait WriteService {
               .unsafeRunSync()
               .toTry
             convertedArticle <- convertedArticleT
-            updatedArticle <- updateArticleAndStoreAsNewIfPublished(convertedArticle, isImported)
-            _ <- indexArticle(updatedArticle)
-            apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
+            updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, isImported)
+            _                <- indexArticle(updatedArticle)
+            apiArticle       <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
           } yield apiArticle
       }
     }
 
     private def updateArticleAndStoreAsNewIfPublished(
         article: domain.Article,
-        isImported: Boolean,
+        isImported: Boolean
     ) = draftRepository.updateArticle(article, isImported) match {
       case Success(updated) if updated.status.current == PUBLISHED && !isImported =>
         draftRepository.storeArticleAsNewVersion(updated, None)
@@ -293,15 +299,17 @@ trait WriteService {
         }
       }
 
-    private def updateArticle(toUpdate: domain.Article,
-                              importId: Option[String],
-                              externalIds: List[String],
-                              externalSubjectIds: Seq[String],
-                              language: Option[String],
-                              isImported: Boolean,
-                              shouldAlwaysCopy: Boolean,
-                              oldArticle: Option[domain.Article],
-                              user: UserInfo): Try[domain.Article] = {
+    private def updateArticle(
+        toUpdate: domain.Article,
+        importId: Option[String],
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        language: Option[String],
+        isImported: Boolean,
+        shouldAlwaysCopy: Boolean,
+        oldArticle: Option[domain.Article],
+        user: UserInfo
+    ): Try[domain.Article] = {
       val articleToValidate = language match {
         case Some(language) => getArticleOnLanguage(toUpdate, language)
         case None           => toUpdate
@@ -315,16 +323,20 @@ trait WriteService {
 
       for {
         _ <- contentValidator.validateArticle(articleToValidate)
-        domainArticle <- performArticleUpdate(withPartialPublishNote,
-                                              externalIds,
-                                              externalSubjectIds,
-                                              isImported,
-                                              importId,
-                                              shouldAlwaysCopy,
-                                              user)
-        _ = partialPublishIfNeeded(domainArticle,
-                                   PartialArticleFields.values.toSeq,
-                                   language.getOrElse(Language.AllLanguages))
+        domainArticle <- performArticleUpdate(
+          withPartialPublishNote,
+          externalIds,
+          externalSubjectIds,
+          isImported,
+          importId,
+          shouldAlwaysCopy,
+          user
+        )
+        _ = partialPublishIfNeeded(
+          domainArticle,
+          PartialArticleFields.values.toSeq,
+          language.getOrElse(Language.AllLanguages)
+        )
         _ <- indexArticle(domainArticle)
         _ <- updateTaxonomyForArticle(domainArticle)
       } yield domainArticle
@@ -375,33 +387,38 @@ trait WriteService {
             introduction = article.introduction.sorted,
             metaImage = article.metaImage.sorted,
             title = article.title.sorted
-        )
+          )
 
-      val comparableNew = withComparableValues(changedArticle)
+      val comparableNew      = withComparableValues(changedArticle)
       val comparableExisting = withComparableValues(existingArticle)
       val shouldUpdateStatus = comparableNew != comparableExisting
       shouldUpdateStatus
     }
 
-    def compareField(field: PartialArticleFields,
-                     old: domain.Article,
-                     changed: domain.Article): Option[PartialArticleFields] = {
+    def compareField(
+        field: PartialArticleFields,
+        old: domain.Article,
+        changed: domain.Article
+    ): Option[PartialArticleFields] = {
       val shouldInclude = field match {
         case PartialArticleFields.availability    => old.availability != changed.availability
         case PartialArticleFields.grepCodes       => old.grepCodes != changed.grepCodes
         case PartialArticleFields.relatedContent  => old.relatedContent != changed.relatedContent
         case PartialArticleFields.tags            => old.tags.sorted != changed.tags.sorted
         case PartialArticleFields.metaDescription => old.metaDescription.sorted != changed.metaDescription.sorted
-        case PartialArticleFields.license         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
+        case PartialArticleFields.license => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
       }
 
       Option.when(shouldInclude)(field)
     }
 
-    /** Returns fields to partial publish _if_ we partial-publishing requirements are satisfied,
-      * otherwise returns an empty set. */
-    def shouldPartialPublish(existingArticle: Option[domain.Article],
-                             changedArticle: domain.Article): Set[PartialArticleFields] = {
+    /** Returns fields to partial publish _if_ we partial-publishing requirements are satisfied, otherwise returns an
+      * empty set.
+      */
+    def shouldPartialPublish(
+        existingArticle: Option[domain.Article],
+        changedArticle: domain.Article
+    ): Set[PartialArticleFields] = {
       val isPublished =
         changedArticle.status.current == ArticleStatus.PUBLISHED ||
           changedArticle.status.other.contains(ArticleStatus.PUBLISHED)
@@ -417,39 +434,42 @@ trait WriteService {
       }
     }
 
-    private def updateStatusIfNeeded(convertedArticle: domain.Article,
-                                     existingArticle: domain.Article,
-                                     updatedApiArticle: api.UpdatedArticle,
-                                     user: UserInfo): Try[domain.Article] = {
+    private def updateStatusIfNeeded(
+        convertedArticle: domain.Article,
+        existingArticle: domain.Article,
+        updatedApiArticle: api.UpdatedArticle,
+        user: UserInfo
+    ): Try[domain.Article] = {
       if (!shouldUpdateStatus(convertedArticle, existingArticle)) {
         Success(convertedArticle)
       } else {
-        val oldStatus = existingArticle.status.current
+        val oldStatus            = existingArticle.status.current
         val newStatusIfUndefined = if (oldStatus == PUBLISHED) PROPOSAL else oldStatus
 
         updatedApiArticle.status
           .map(ArticleStatus.valueOfOrError)
           .getOrElse(Success(newStatusIfUndefined))
-          .flatMap(
-            newStatus =>
-              converterService
-                .updateStatus(newStatus, convertedArticle, user, false)
-                .attempt
-                .unsafeRunSync()
-                .toTry
+          .flatMap(newStatus =>
+            converterService
+              .updateStatus(newStatus, convertedArticle, user, false)
+              .attempt
+              .unsafeRunSync()
+              .toTry
           )
           .flatten
       }
     }
 
-    def updateArticle(articleId: Long,
-                      updatedApiArticle: api.UpdatedArticle,
-                      externalIds: List[String],
-                      externalSubjectIds: Seq[String],
-                      user: UserInfo,
-                      oldNdlaCreatedDate: Option[Date],
-                      oldNdlaUpdatedDate: Option[Date],
-                      importId: Option[String]): Try[api.Article] =
+    def updateArticle(
+        articleId: Long,
+        updatedApiArticle: api.UpdatedArticle,
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        user: UserInfo,
+        oldNdlaCreatedDate: Option[Date],
+        oldNdlaUpdatedDate: Option[Date],
+        importId: Option[String]
+    ): Try[api.Article] =
       draftRepository.withId(articleId) match {
         case Some(existing) =>
           updateExistingArticle(
@@ -477,14 +497,16 @@ trait WriteService {
           Failure(NotFoundException(s"Article with id $articleId does not exist"))
       }
 
-    private def updateExistingArticle(existing: domain.Article,
-                                      updatedApiArticle: api.UpdatedArticle,
-                                      externalIds: List[String],
-                                      externalSubjectIds: Seq[String],
-                                      user: UserInfo,
-                                      oldNdlaCreatedDate: Option[Date],
-                                      oldNdlaUpdatedDate: Option[Date],
-                                      importId: Option[String]): Try[api.Article] = {
+    private def updateExistingArticle(
+        existing: domain.Article,
+        updatedApiArticle: api.UpdatedArticle,
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        user: UserInfo,
+        oldNdlaCreatedDate: Option[Date],
+        oldNdlaUpdatedDate: Option[Date],
+        importId: Option[String]
+    ): Try[api.Article] = {
 
       for {
         convertedArticle <- converterService.toDomainArticle(
@@ -507,20 +529,24 @@ trait WriteService {
           oldArticle = Some(existing),
           user = user
         )
-        apiArticle <- converterService.toApiArticle(readService.addUrlsOnEmbedResources(updatedArticle),
-                                                    updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-                                                    updatedApiArticle.language.isEmpty)
+        apiArticle <- converterService.toApiArticle(
+          readService.addUrlsOnEmbedResources(updatedArticle),
+          updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+          updatedApiArticle.language.isEmpty
+        )
       } yield apiArticle
     }
 
-    private def updateNullDocumentArticle(articleId: Long,
-                                          updatedApiArticle: api.UpdatedArticle,
-                                          externalIds: List[String],
-                                          externalSubjectIds: Seq[String],
-                                          user: UserInfo,
-                                          oldNdlaCreatedDate: Option[Date],
-                                          oldNdlaUpdatedDate: Option[Date],
-                                          importId: Option[String]): Try[Article] =
+    private def updateNullDocumentArticle(
+        articleId: Long,
+        updatedApiArticle: api.UpdatedArticle,
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        user: UserInfo,
+        oldNdlaCreatedDate: Option[Date],
+        oldNdlaUpdatedDate: Option[Date],
+        importId: Option[String]
+    ): Try[Article] =
       for {
         convertedArticle <- converterService.toDomainArticle(
           articleId,
@@ -547,8 +573,10 @@ trait WriteService {
           oldArticle = None,
           user = user
         )
-        apiArticle <- converterService.toApiArticle(readService.addUrlsOnEmbedResources(updatedArticle),
-                                                    updatedApiArticle.language.getOrElse(UnknownLanguage.toString))
+        apiArticle <- converterService.toApiArticle(
+          readService.addUrlsOnEmbedResources(updatedArticle),
+          updatedApiArticle.language.getOrElse(UnknownLanguage.toString)
+        )
       } yield apiArticle
 
     def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Article] = {
@@ -559,12 +587,12 @@ trait WriteService {
             case _ =>
               converterService
                 .deleteLanguage(article, language, userInfo)
-                .flatMap(
-                  newArticle =>
-                    updateArticleAndStoreAsNewIfPublished(newArticle, isImported = false)
-                      .flatMap(
-                        converterService.toApiArticle(_, Language.AllLanguages)
-                    ))
+                .flatMap(newArticle =>
+                  updateArticleAndStoreAsNewIfPublished(newArticle, isImported = false)
+                    .flatMap(
+                      converterService.toApiArticle(_, Language.AllLanguages)
+                    )
+                )
           }
         case None => Failure(NotFoundException("Article does not exist"))
       }
@@ -588,9 +616,13 @@ trait WriteService {
     private[service] def getFileExtension(fileName: String): Try[String] = {
       val badExtensionError =
         new ValidationException(
-          errors = Seq(ValidationMessage(
-            "file",
-            s"The file must have one of the supported file extensions: '${supportedUploadExtensions.mkString(", ")}'")))
+          errors = Seq(
+            ValidationMessage(
+              "file",
+              s"The file must have one of the supported file extensions: '${supportedUploadExtensions.mkString(", ")}'"
+            )
+          )
+        )
 
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 =>
@@ -642,11 +674,14 @@ trait WriteService {
     def newUserData(userId: String): Try[api.UserData] = {
       userDataRepository
         .insert(
-          domain.UserData(id = None,
-                          userId = userId,
-                          savedSearches = None,
-                          latestEditedArticles = None,
-                          favoriteSubjects = None))
+          domain.UserData(
+            id = None,
+            userId = userId,
+            savedSearches = None,
+            latestEditedArticles = None,
+            favoriteSubjects = None
+          )
+        )
         .map(converterService.toApiUserData)
     }
 
@@ -673,9 +708,11 @@ trait WriteService {
       }
     }
 
-    private[service] def partialArticleFieldsUpdate(articleToPartialPublish: domain.Article,
-                                                    articleFieldsToUpdate: Seq[PartialArticleFields],
-                                                    language: String): PartialPublishArticle = {
+    private[service] def partialArticleFieldsUpdate(
+        articleToPartialPublish: domain.Article,
+        articleFieldsToUpdate: Seq[PartialArticleFields],
+        language: String
+    ): PartialPublishArticle = {
 
       val initialPartial = PartialPublishArticle(None, None, None, None, None, None)
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partialPublishArticle, field) => {
@@ -690,28 +727,35 @@ trait WriteService {
             partialPublishArticle.copy(metaDescription = Some(articleToPartialPublish.metaDescription))
           case PartialArticleFields.metaDescription =>
             partialPublishArticle.copy(
-              metaDescription = Some(articleToPartialPublish.metaDescription.find(m => m.language == language).toSeq))
+              metaDescription = Some(articleToPartialPublish.metaDescription.find(m => m.language == language).toSeq)
+            )
           case PartialArticleFields.relatedContent =>
             partialPublishArticle.copy(relatedContent = Some(articleToPartialPublish.relatedContent))
           case PartialArticleFields.tags if (language == Language.AllLanguages) =>
             partialPublishArticle.copy(tags = Some(articleToPartialPublish.tags))
           case PartialArticleFields.tags =>
             partialPublishArticle.copy(
-              tags = Some(articleToPartialPublish.tags.find(t => t.language == language).toSeq))
+              tags = Some(articleToPartialPublish.tags.find(t => t.language == language).toSeq)
+            )
         }
       })
     }
 
-    def partialPublishAndConvertToApiArticle(id: Long,
-                                             fieldsToPublish: Seq[PartialArticleFields],
-                                             language: String,
-                                             fallback: Boolean): Try[api.Article] =
+    def partialPublishAndConvertToApiArticle(
+        id: Long,
+        fieldsToPublish: Seq[PartialArticleFields],
+        language: String,
+        fallback: Boolean
+    ): Try[api.Article] =
       partialPublish(id, fieldsToPublish, language)._2.flatMap(article =>
-        converterService.toApiArticle(article, language, fallback))
+        converterService.toApiArticle(article, language, fallback)
+      )
 
-    def partialPublish(id: Long,
-                       articleFieldsToUpdate: Seq[PartialArticleFields],
-                       language: String): (Long, Try[domain.Article]) =
+    def partialPublish(
+        id: Long,
+        articleFieldsToUpdate: Seq[PartialArticleFields],
+        language: String
+    ): (Long, Try[domain.Article]) =
       draftRepository.withId(id) match {
         case None => id -> Failure(NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
         case Some(article) =>
@@ -719,27 +763,32 @@ trait WriteService {
           id -> Success(article)
       }
 
-    private def partialPublishIfNeeded(article: domain.Article,
-                                       articleFieldsToUpdate: Seq[PartialArticleFields],
-                                       language: String): Future[Try[domain.Article]] = {
+    private def partialPublishIfNeeded(
+        article: domain.Article,
+        articleFieldsToUpdate: Seq[PartialArticleFields],
+        language: String
+    ): Future[Try[domain.Article]] = {
       if (articleFieldsToUpdate.nonEmpty)
         partialPublish(article, articleFieldsToUpdate, language)
       else
         Future.successful(Success(article))
     }
 
-    private def partialPublish(article: domain.Article,
-                               fieldsToPublish: Seq[PartialArticleFields],
-                               language: String): Future[Try[domain.Article]] = {
+    private def partialPublish(
+        article: domain.Article,
+        fieldsToPublish: Seq[PartialArticleFields],
+        language: String
+    ): Future[Try[domain.Article]] = {
       article.id match {
         case None =>
           Future.successful(
-            Failure(new IllegalStateException(s"Article to partial publish did not have id. This is a bug.")))
+            Failure(new IllegalStateException(s"Article to partial publish did not have id. This is a bug."))
+          )
         case Some(id) =>
           implicit val executionContext: ExecutionContextExecutorService =
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-          val fut = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
+          val fut            = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
 
           fut.onComplete {
             case Failure(ex) => logger.error(s"Failed to partial publish article with id '$id', with error", ex)
@@ -758,10 +807,11 @@ trait WriteService {
         Future {
           requestInfo.setRequestInfo()
           partialPublish(id, partialBulk.fields, language)
-      })
+        }
+      )
 
       val duration = partialBulk.articleIds.size.minutes // Max 1 minute PR article to partial publish for timeout
-      val future = Future.sequence(futures)
+      val future   = Future.sequence(futures)
       Try(Await.result(future, duration)) match {
 
         case Failure(ex) =>

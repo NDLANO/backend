@@ -54,7 +54,7 @@ trait ImageControllerV2 {
       with SwaggerSupport
       with FileUploadSupport {
     // Swagger-stuff
-    protected val applicationDescription = "Services for accessing images from NDLA"
+    protected val applicationDescription                 = "Services for accessing images from NDLA"
     protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
 
     // Additional models used in error responses
@@ -78,7 +78,7 @@ trait ImageControllerV2 {
     private val minSize =
       Param[Option[Int]]("minimum-size", "Return only images with full size larger than submitted value in bytes.")
     private val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-    private val license = Param[Option[String]]("license", "Return only images with provided license.")
+    private val license  = Param[Option[String]]("license", "Return only images with provided license.")
     private val includeCopyrighted =
       Param[Option[Boolean]]("includeCopyrighted", "Return copyrighted images. May be omitted.")
     private val sort = Param[Option[String]](
@@ -90,10 +90,11 @@ trait ImageControllerV2 {
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]](
       "page-size",
-      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
-    private val imageId = Param[String]("image_id", "Image_id of the image that needs to be fetched.")
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+    )
+    private val imageId      = Param[String]("image_id", "Image_id of the image that needs to be fetched.")
     private val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
-    private val externalId = Param[String]("external_id", "External node id of the image that needs to be fetched.")
+    private val externalId   = Param[String]("external_id", "External node id of the image that needs to be fetched.")
     private val metadata = Param[NewImageMetaInformationV2](
       "metadata",
       """The metadata for the image file to submit.""".stripMargin
@@ -108,7 +109,7 @@ trait ImageControllerV2 {
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-           .mkString("[", ",", "]")}.
+          .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -118,7 +119,7 @@ trait ImageControllerV2 {
     private val modelReleased = Param[Option[Seq[String]]](
       "model-released",
       s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
-        .mkString(",")}"
+          .mkString(",")}"
     )
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
@@ -129,7 +130,7 @@ trait ImageControllerV2 {
       pathParam[T](param.paramName).description(param.description)
     private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
       val className = manifest[T].runtimeClass.getSimpleName
-      val modelOpt = models.get(className)
+      val modelOpt  = models.get(className)
 
       modelOpt match {
         case Some(value) =>
@@ -140,19 +141,22 @@ trait ImageControllerV2 {
       }
     }
     private def asFileParam(param: Param[_]) =
-      Parameter(name = param.paramName,
-                `type` = ValueDataType("file"),
-                description = Some(param.description),
-                paramType = ParamType.Form)
+      Parameter(
+        name = param.paramName,
+        `type` = ValueDataType("file"),
+        description = Some(param.description),
+        paramType = ParamType.Form
+      )
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes)))
 
-    /**
-      * Does a scroll with [[ImageSearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[ImageSearchService]] If no scrollId is specified execute the function @orFunction in the
+      * second parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -241,14 +245,14 @@ trait ImageControllerV2 {
       val language = paramOrNone(this.language.paramName)
 
       scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
-        val minimumSize = intOrNone(this.minSize.paramName)
-        val query = paramOrNone(this.query.paramName)
-        val license = params.get(this.license.paramName)
-        val pageSize = intOrNone(this.pageSize.paramName)
-        val page = intOrNone(this.pageNo.paramName)
-        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+        val minimumSize        = intOrNone(this.minSize.paramName)
+        val query              = paramOrNone(this.query.paramName)
+        val license            = params.get(this.license.paramName)
+        val pageSize           = intOrNone(this.pageSize.paramName)
+        val page               = intOrNone(this.pageNo.paramName)
+        val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
         val includeCopyrighted = booleanOrDefault(this.includeCopyrighted.paramName, default = false)
-        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
         val modelReleasedStatus =
           paramAsListOfString(this.modelReleased.paramName).map(ModelReleasedStatus.valueOf).flatten
 
@@ -282,17 +286,17 @@ trait ImageControllerV2 {
       )
     ) {
       val searchParams = extract[SearchParams](request.body)
-      val language = searchParams.language
+      val language     = searchParams.language
 
       scrollSearchOr(searchParams.scrollId, language.getOrElse(Language.AllLanguages)) {
-        val minimumSize = searchParams.minimumSize
-        val query = searchParams.query
-        val license = searchParams.license
-        val pageSize = searchParams.pageSize
-        val page = searchParams.page
-        val sort = Sort.valueOf(searchParams.sort)
+        val minimumSize        = searchParams.minimumSize
+        val query              = searchParams.query
+        val license            = searchParams.license
+        val pageSize           = searchParams.pageSize
+        val page               = searchParams.page
+        val sort               = Sort.valueOf(searchParams.sort)
         val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
-        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+        val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
         val modelReleasedStatus =
           searchParams.modelReleased.getOrElse(Seq.empty).map(ModelReleasedStatus.valueOf).flatten
 
@@ -325,7 +329,7 @@ trait ImageControllerV2 {
           .responseMessages(response404, response500)
       )
     ) {
-      val imageId = long(this.imageId.paramName)
+      val imageId  = long(this.imageId.paramName)
       val language = paramOrNone(this.language.paramName)
 
       readService.withId(imageId, language) match {
@@ -350,7 +354,7 @@ trait ImageControllerV2 {
       )
     ) {
       val externalId = params(this.externalId.paramName)
-      val language = paramOrNone(this.language.paramName)
+      val language   = paramOrNone(this.language.paramName)
 
       imageRepository.withExternalId(externalId) match {
         case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
@@ -435,12 +439,13 @@ trait ImageControllerV2 {
             asPathParam(pathLanguage)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
 
-      val imageId = long(this.imageId.paramName)
+      val imageId  = long(this.imageId.paramName)
       val language = params(this.language.paramName)
 
       writeService.deleteImageLanguageVersion(imageId, language) match {
@@ -474,7 +479,7 @@ trait ImageControllerV2 {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
 
-      val imageId = long(this.imageId.paramName)
+      val imageId            = long(this.imageId.paramName)
       val imageMetaFromParam = params.get(this.updateMetadata.paramName)
 
       lazy val imageMetaFromFile =

@@ -57,7 +57,7 @@ trait ReadService {
         case Success(id) =>
           imageRepository.withId(id) match {
             case Some(image) => Success(image)
-            case None        => Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
+            case None => Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
           }
       }
 
@@ -79,9 +79,9 @@ trait ReadService {
     }
 
     def getDomainImageMetaFromUrl(url: String): Try[ImageMetaInformation] = {
-      val pathParts = url.path.parts.toList
+      val pathParts          = url.path.parts.toList
       val isRawControllerUrl = pathParts.slice(0, 2) == List("image-api", "raw")
-      val isIdUrl = pathParts.slice(0, 3) == List("image-api", "raw", "id")
+      val isIdUrl            = pathParts.slice(0, 3) == List("image-api", "raw", "id")
 
       if (isIdUrl) handleIdPathParts(pathParts)
       else if (isRawControllerUrl) handleRawPathParts(pathParts)
@@ -90,7 +90,7 @@ trait ReadService {
 
     def getMetaImageDomainDump(pageNo: Int, pageSize: Int): api.ImageMetaDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
-      val results = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
       api.ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
     }

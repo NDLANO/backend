@@ -46,7 +46,7 @@ trait SearchApiClient {
     }
 
     def indexLearningPathDocument(document: LearningPath): Future[Try[_]] = {
-      val idString = document.id.map(_.toString).getOrElse("<missing id>")
+      val idString    = document.id.map(_.toString).getOrElse("<missing id>")
       implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
       val future = Future {
         val body = write(document)
@@ -67,7 +67,8 @@ trait SearchApiClient {
               logger.error(s"Failed when calling search-api for indexing '$idString': '${ex.getMessage}'", ex)
             case Success(response) if response.isError =>
               logger.error(
-                s"Failed when calling search-api for indexing '$idString': '${response.code}' -> '${response.body}'")
+                s"Failed when calling search-api for indexing '$idString': '${response.code}' -> '${response.body}'"
+              )
             case Success(_) =>
               logger.info(s"Successfully called search-api for indexing '$idString'")
           }
@@ -86,7 +87,9 @@ trait SearchApiClient {
           else
             Failure(
               SearchException(
-                s"Got status code '${r.code}' when attempting to request search-api. Body was: '${r.body}'"))
+                s"Got status code '${r.code}' when attempting to request search-api. Body was: '${r.body}'"
+              )
+            )
         case Failure(ex) => Failure(ex)
 
       }

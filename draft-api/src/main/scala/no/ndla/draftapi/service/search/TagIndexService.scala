@@ -23,9 +23,9 @@ trait TagIndexService {
   val tagIndexService: TagIndexService
 
   class TagIndexService extends LazyLogging with IndexService[Article, SearchableTag] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = DraftApiProperties.DraftTagSearchDocument
-    override val searchIndex: String = DraftApiProperties.DraftTagSearchIndex
+    implicit val formats                         = SearchableLanguageFormats.JSonFormats
+    override val documentType: String            = DraftApiProperties.DraftTagSearchDocument
+    override val searchIndex: String             = DraftApiProperties.DraftTagSearchIndex
     override val repository: Repository[Article] = draftRepository
 
     override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {

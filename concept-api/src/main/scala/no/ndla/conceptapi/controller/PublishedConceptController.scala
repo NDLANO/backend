@@ -116,7 +116,8 @@ trait PublishedConceptController {
             asQueryParam(fallback)
           )
           .authorizations("oauth2")
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val conceptId = long(this.conceptId.paramName)
       val language =
@@ -152,24 +153,25 @@ trait PublishedConceptController {
             asQueryParam(embedId)
           )
           authorizations "oauth2"
-          responseMessages response500)
+          responseMessages response500
+      )
     ) {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
 
       scrollSearchOr(scrollId, language) {
-        val query = paramOrNone(this.query.paramName)
-        val sort = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
-        val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
-        val page = intOrDefault(this.pageNo.paramName, 1)
-        val idList = paramAsListOfLong(this.conceptIds.paramName)
-        val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-        val subjects = paramAsListOfString(this.subjects.paramName)
-        val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
+        val query           = paramOrNone(this.query.paramName)
+        val sort            = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
+        val pageSize        = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
+        val page            = intOrDefault(this.pageNo.paramName, 1)
+        val idList          = paramAsListOfLong(this.conceptIds.paramName)
+        val fallback        = booleanOrDefault(this.fallback.paramName, default = false)
+        val subjects        = paramAsListOfString(this.subjects.paramName)
+        val tagsToFilterBy  = paramAsListOfString(this.tagsToFilterBy.paramName)
         val exactTitleMatch = booleanOrDefault(this.exactTitleMatch.paramName, default = false)
-        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
-        val embedResource = paramOrNone(this.embedResource.paramName)
-        val embedId = paramOrNone(this.embedId.paramName)
+        val shouldScroll    = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val embedResource   = paramOrNone(this.embedResource.paramName)
+        val embedId         = paramOrNone(this.embedId.paramName)
 
         search(
           query,
@@ -201,28 +203,29 @@ trait PublishedConceptController {
             bodyParam[ConceptSearchParams]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
-      val body = extract[ConceptSearchParams](request.body)
+      val body     = extract[ConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
-      val lang = body.map(_.language).toOption.flatten
+      val lang     = body.map(_.language).toOption.flatten
 
       scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
         body match {
           case Success(searchParams) =>
-            val query = searchParams.query
-            val sort = searchParams.sort.flatMap(Sort.valueOf)
-            val language = searchParams.language.getOrElse(Language.AllLanguages)
-            val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
-            val page = searchParams.page.getOrElse(1)
-            val idList = searchParams.idList
-            val fallback = searchParams.fallback.getOrElse(false)
-            val subjects = searchParams.subjects
-            val tagsToFilterBy = searchParams.tags
+            val query           = searchParams.query
+            val sort            = searchParams.sort.flatMap(Sort.valueOf)
+            val language        = searchParams.language.getOrElse(Language.AllLanguages)
+            val pageSize        = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
+            val page            = searchParams.page.getOrElse(1)
+            val idList          = searchParams.idList
+            val fallback        = searchParams.fallback.getOrElse(false)
+            val subjects        = searchParams.subjects
+            val tagsToFilterBy  = searchParams.tags
             val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
-            val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-            val embedResource = searchParams.embedResource
-            val embedId = searchParams.embedId
+            val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val embedResource   = searchParams.embedResource
+            val embedId         = searchParams.embedId
 
             search(
               query,
@@ -254,7 +257,8 @@ trait PublishedConceptController {
             asHeaderParam(correlationId)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       readService.allSubjects() match {
         case Success(subjects) => Ok(subjects)
@@ -275,7 +279,8 @@ trait PublishedConceptController {
             asQueryParam(subjects)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val subjects = paramAsListOfString(this.subjects.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -284,8 +289,8 @@ trait PublishedConceptController {
       if (subjects.nonEmpty) {
         publishedConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)                  => errorHandler(ex)
+          case Success(res) => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex)  => errorHandler(ex)
         }
       } else {
         readService.allTagsFromConcepts(language, fallback)

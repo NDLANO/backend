@@ -46,8 +46,10 @@ object JettyLauncher extends LazyLogging {
     ArticleApiProperties.Environment match {
       case "local" => None
       case _ =>
-        monitoringFilter.setInitParameter(Parameter.CLOUDWATCH_NAMESPACE.getCode,
-                                          "NDLA/APP".replace("APP", ArticleApiProperties.ApplicationName))
+        monitoringFilter.setInitParameter(
+          Parameter.CLOUDWATCH_NAMESPACE.getCode,
+          "NDLA/APP".replace("APP", ArticleApiProperties.ApplicationName)
+        )
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 

@@ -28,8 +28,10 @@ trait SearchConverterServiceComponent {
 
   class SearchConverterService {
 
-    def asApiLearningPathSummaryV2(searchableLearningPath: SearchableLearningPath,
-                                   language: String): LearningPathSummaryV2 = {
+    def asApiLearningPathSummaryV2(
+        searchableLearningPath: SearchableLearningPath,
+        language: String
+    ): LearningPathSummaryV2 = {
       val titles = searchableLearningPath.titles.languageValues.map(lv => api.Title(lv.value, lv.language))
       val descriptions =
         searchableLearningPath.descriptions.languageValues.map(lv => api.Description(lv.value, lv.language))
@@ -98,7 +100,7 @@ trait SearchConverterServiceComponent {
         learningStep.embedUrl.map(_.url).toList,
         learningStep.status.entryName,
         SearchableLanguageValues(learningStep.title.map(title => LanguageValue(title.language, title.title))),
-        SearchableLanguageValues(learningStep.description.map(desc => LanguageValue(desc.language, desc.description))),
+        SearchableLanguageValues(learningStep.description.map(desc => LanguageValue(desc.language, desc.description)))
       )
     }
 
@@ -116,7 +118,8 @@ trait SearchConverterServiceComponent {
           key.split('.').toList match {
             case _ :: language :: _ => Some(language)
             case _                  => None
-        })
+          }
+        )
 
         keyLanguages
           .sortBy(lang => {
@@ -126,7 +129,7 @@ trait SearchConverterServiceComponent {
       }
 
       val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
-      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
+      val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>

@@ -11,6 +11,6 @@ package no.ndla.learningpathapi.model.domain
 import no.ndla.language.model.LanguageField
 
 case class Title(title: String, language: String) extends LanguageField[String] {
-  override def value: String = title
+  override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty
 }

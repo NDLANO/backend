@@ -53,19 +53,19 @@ trait StateTransitionRules {
     private[service] val checkIfArticleIsUsedInLearningStep: SideEffect = (article: domain.Article) =>
       doIfArticleIsUnusedByLearningpath(article.id.getOrElse(1)) {
         Success(article)
-    }
+      }
 
     private[service] val unpublishArticle: SideEffect = (article: domain.Article) =>
       doIfArticleIsUnusedByLearningpath(article.id.getOrElse(1)) {
         article.id match {
           case Some(id) =>
             val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false)
-            val articleUpdT = articleApiClient.unpublishArticle(article)
-            val failures = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
+            val articleUpdT  = articleApiClient.unpublishArticle(article)
+            val failures     = Seq(taxMetadataT, articleUpdT).collectFirst { case Failure(ex) => Failure(ex) }
             failures.getOrElse(articleUpdT)
           case _ => Failure(NotFoundException("This is a bug, article to unpublish has no id."))
         }
-    }
+      }
 
     private val validateArticleApiArticle: SideEffect = (article: domain.Article, isImported: Boolean) => {
       val articleApiArticle = converterService.toArticleApiArticle(article)
@@ -81,23 +81,23 @@ trait StateTransitionRules {
             val h5pPaths = converterService.getEmbeddedH5PPaths(article)
             h5pApiClient.publishH5Ps(h5pPaths)
 
-            val taxonomyT = taxonomyApiClient.updateTaxonomyIfExists(id, article)
+            val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article)
             val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation)
-            val failures = Seq(taxonomyT, articleUdpT).collectFirst {
-              case Failure(ex) => Failure(ex)
+            val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
+              Failure(ex)
             }
             failures.getOrElse(articleUdpT)
           case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
-      }
+        }
 
-    private val publishArticle = publishArticleSideEffect()
+    private val publishArticle            = publishArticleSideEffect()
     private val publishWithSoftValidation = publishArticleSideEffect(true)
 
     private val articleHasNotBeenPublished: Option[IgnoreFunction] = Some((maybeArticle, transition) => {
       maybeArticle match {
         case None => true
         case Some(art) =>
-          val hasBeenPublished = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
+          val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
           val isFromPublishedTransition = transition.from == PUBLISHED
           !(hasBeenPublished || isFromPublishedTransition)
       }
@@ -205,50 +205,60 @@ trait StateTransitionRules {
     )
     // format: on
 
-    private def getTransition(from: ArticleStatus.Value,
-                              to: ArticleStatus.Value,
-                              user: UserInfo,
-                              current: domain.Article): Option[StateTransition] = {
+    private def getTransition(
+        from: ArticleStatus.Value,
+        to: ArticleStatus.Value,
+        user: UserInfo,
+        current: domain.Article
+    ): Option[StateTransition] = {
       StateTransitions
         .find(transition => transition.from == from && transition.to == to)
         .filter(_.hasRequiredRoles(user, Some(current)))
     }
 
-    private[service] def doTransitionWithoutSideEffect(current: domain.Article,
-                                                       to: ArticleStatus.Value,
-                                                       user: UserInfo,
-                                                       isImported: Boolean): (Try[domain.Article], Seq[SideEffect]) = {
+    private[service] def doTransitionWithoutSideEffect(
+        current: domain.Article,
+        to: ArticleStatus.Value,
+        user: UserInfo,
+        isImported: Boolean
+    ): (Try[domain.Article], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user, current) match {
         case Some(t) =>
           val currentToOther = if (t.addCurrentStateToOthersOnTransition) Set(current.status.current) else Set()
           val containsIllegalStatuses = current.status.other.intersect(t.illegalStatuses)
           if (containsIllegalStatuses.nonEmpty) {
             val illegalStateTransition = IllegalStatusStateTransition(
-              s"Cannot go to $to when article contains $containsIllegalStatuses")
+              s"Cannot go to $to when article contains $containsIllegalStatuses"
+            )
             return (Failure(illegalStateTransition), Seq.empty)
           }
-          val other = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
+          val other     = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
           val newStatus = domain.Status(to, other)
           val newEditorNotes =
             if (current.status.current != to)
-              current.notes :+ domain.EditorNote("Status endret",
-                                                 if (isImported) "System" else user.id,
-                                                 newStatus,
-                                                 new Date())
+              current.notes :+ domain.EditorNote(
+                "Status endret",
+                if (isImported) "System" else user.id,
+                newStatus,
+                new Date()
+              )
             else current.notes
           val convertedArticle = current.copy(status = newStatus, notes = newEditorNotes)
           (Success(convertedArticle), t.sideEffects)
         case None =>
           val illegalStateTransition = IllegalStatusStateTransition(
-            s"Cannot go to $to when article is ${current.status.current}")
+            s"Cannot go to $to when article is ${current.status.current}"
+          )
           (Failure(illegalStateTransition), Seq.empty)
       }
     }
 
-    def doTransition(current: domain.Article,
-                     to: ArticleStatus.Value,
-                     user: UserInfo,
-                     isImported: Boolean): IO[Try[domain.Article]] = {
+    def doTransition(
+        current: domain.Article,
+        to: ArticleStatus.Value,
+        user: UserInfo,
+        isImported: Boolean
+    ): IO[Try[domain.Article]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       IO {
         convertedArticle.flatMap(articleBeforeSideEffect => {
@@ -262,7 +272,7 @@ trait StateTransitionRules {
 
     private[this] def learningPathsUsingArticle(articleId: Long): Seq[LearningPath] = {
       val resources = taxonomyApiClient.queryResource(articleId).getOrElse(List.empty).flatMap(_.paths)
-      val topics = taxonomyApiClient.queryTopic(articleId).getOrElse(List.empty).flatMap(_.paths)
+      val topics    = taxonomyApiClient.queryTopic(articleId).getOrElse(List.empty).flatMap(_.paths)
       val plainPaths = List(
         s"/article-iframe/*/$articleId",
         s"/article-iframe/*/$articleId/",
@@ -279,8 +289,9 @@ trait StateTransitionRules {
       }
     }
 
-    private def doIfArticleIsUnusedByLearningpath(articleId: Long)(
-        callback: => Try[domain.Article]): Try[domain.Article] = {
+    private def doIfArticleIsUnusedByLearningpath(
+        articleId: Long
+    )(callback: => Try[domain.Article]): Try[domain.Article] = {
       val pathsUsingArticle = learningPathsUsingArticle(articleId)
       if (pathsUsingArticle.isEmpty)
         callback
@@ -291,7 +302,11 @@ trait StateTransitionRules {
             errors = Seq(
               ValidationMessage(
                 "status.current",
-                s"Learningpath(s) with id(s) ${ids.mkString(",")} contains a learning step that uses this article"))))
+                s"Learningpath(s) with id(s) ${ids.mkString(",")} contains a learning step that uses this article"
+              )
+            )
+          )
+        )
       }
     }
 

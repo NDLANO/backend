@@ -68,11 +68,13 @@ class TitleValidatorTest extends UnitSuite with TestEnvironment {
     when(languageValidator.validate("title.language", "nb", false))
       .thenReturn(None)
     val validationErrors =
-      validator.validate(List(
-                           DefaultTitle.copy(title = "<h1>Invalid text</h1>"),
-                           DefaultTitle.copy(title = "<h1>Invalid text</h1>")
-                         ),
-                         false)
+      validator.validate(
+        List(
+          DefaultTitle.copy(title = "<h1>Invalid text</h1>"),
+          DefaultTitle.copy(title = "<h1>Invalid text</h1>")
+        ),
+        false
+      )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("title.title")
     validationErrors.last.field should equal("title.title")

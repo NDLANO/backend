@@ -55,7 +55,7 @@ trait AudioController {
       with FileUploadSupport
       with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
-    protected val applicationDescription = "Services for accessing audio."
+    protected val applicationDescription                 = "Services for accessing audio."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -77,7 +77,7 @@ trait AudioController {
     private val query =
       Param[Option[String]]("query", "Return only results with titles or tags matching the specified query.")
     private val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-    private val license = Param[Option[String]]("license", "Return only audio with provided license.")
+    private val license  = Param[Option[String]]("license", "Return only audio with provided license.")
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
@@ -87,8 +87,9 @@ trait AudioController {
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]](
       "page-size",
-      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
-    private val audioId = Param[String]("audio_id", "Id of audio.")
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+    )
+    private val audioId      = Param[String]("audio_id", "Id of audio.")
     private val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
     private val metadataNewAudio =
       Param[NewAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
@@ -99,7 +100,7 @@ trait AudioController {
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
-           .mkString("[", ",", "]")}.
+          .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
@@ -128,7 +129,7 @@ trait AudioController {
       pathParam[T](param.paramName).description(param.description)
     private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
       val className = manifest[T].runtimeClass.getSimpleName
-      val modelOpt = models.get(className)
+      val modelOpt  = models.get(className)
 
       modelOpt match {
         case Some(value) =>
@@ -139,17 +140,20 @@ trait AudioController {
       }
     }
     private def asFileParam(param: Param[_]) =
-      Parameter(name = param.paramName,
-                `type` = ValueDataType("file"),
-                description = Some(param.description),
-                paramType = ParamType.Form)
+      Parameter(
+        name = param.paramName,
+        `type` = ValueDataType("file"),
+        description = Some(param.description),
+        paramType = ParamType.Form
+      )
 
-    /**
-      * Does a scroll with [[AudioSearchService]]
-      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+    /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
+      * second parameter list.
       *
-      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
-      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      * @param orFunction
+      *   Function to execute if no scrollId in parameters (Usually searching)
+      * @return
+      *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -181,19 +185,20 @@ trait AudioController {
             asQueryParam(audioType),
             asQueryParam(seriesFilter)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
       val language = paramOrNone("language")
       val scrollId = paramOrNone(this.scrollId.paramName)
 
       scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
-        val query = paramOrNone("query")
-        val license = paramOrNone("license")
-        val sort = paramOrNone("sort")
-        val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
-        val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+        val query        = paramOrNone("query")
+        val license      = paramOrNone("license")
+        val sort         = paramOrNone("sort")
+        val pageSize     = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+        val page         = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
         val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
-        val atype = paramOrNone(audioType.paramName)
+        val atype        = paramOrNone(audioType.paramName)
         val seriesFilter = booleanOrNone(this.seriesFilter.paramName)
 
         search(
@@ -221,7 +226,8 @@ trait AudioController {
             bodyParam[SearchParams],
             asQueryParam(scrollId)
           )
-          .responseMessages(response400, response500))
+          .responseMessages(response400, response500)
+      )
     ) {
       val searchParams = extract[SearchParams](request.body)
       scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
@@ -241,15 +247,17 @@ trait AudioController {
       }
     }
 
-    private def search(query: Option[String],
-                       language: Option[String],
-                       license: Option[String],
-                       sort: Option[String],
-                       pageSize: Option[Int],
-                       page: Option[Int],
-                       shouldScroll: Boolean,
-                       audioType: Option[String],
-                       seriesFilter: Option[Boolean]) = {
+    private def search(
+        query: Option[String],
+        language: Option[String],
+        license: Option[String],
+        sort: Option[String],
+        pageSize: Option[Int],
+        page: Option[Int],
+        shouldScroll: Boolean,
+        audioType: Option[String],
+        seriesFilter: Option[Boolean]
+    ) = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -297,9 +305,10 @@ trait AudioController {
             asPathParam(audioId),
             asQueryParam(language)
           )
-          .responseMessages(response404, response500))
+          .responseMessages(response404, response500)
+      )
     ) {
-      val id = long(this.audioId.paramName)
+      val id       = long(this.audioId.paramName)
       val language = paramOrNone(this.language.paramName)
 
       readService.withId(id, language) match {
@@ -343,12 +352,13 @@ trait AudioController {
             asPathParam(pathLanguage)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
 
-      val audioId = long(this.audioId.paramName)
+      val audioId  = long(this.audioId.paramName)
       val language = params(this.pathLanguage.paramName)
 
       writeService.deleteAudioLanguageVersion(audioId, language) match {
@@ -371,7 +381,8 @@ trait AudioController {
             asFileParam(file)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -379,8 +390,11 @@ trait AudioController {
       val newAudio = params
         .get(this.metadataNewAudio.paramName)
         .map(extract[NewAudioMetaInformation])
-        .getOrElse(throw new ValidationException(
-          errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata."))))
+        .getOrElse(
+          throw new ValidationException(
+            errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata."))
+          )
+        )
 
       fileParams.get(this.file.paramName) match {
         case Some(file) =>
@@ -390,7 +404,8 @@ trait AudioController {
           }
         case None =>
           errorHandler(
-            new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file."))))
+            new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain one file.")))
+          )
       }
     }
 
@@ -408,18 +423,22 @@ trait AudioController {
             asFileParam(file)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
-      val id = long(this.audioId.paramName)
+      val id      = long(this.audioId.paramName)
       val fileOpt = fileParams.get(this.file.paramName)
 
       val updatedAudio = params
         .get(this.metadataUpdatedAudio.paramName)
         .map(extract[UpdatedAudioMetaInformation])
-        .getOrElse(throw new ValidationException(
-          errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata"))))
+        .getOrElse(
+          throw new ValidationException(
+            errors = Seq(ValidationMessage("metadata", "The request must contain audio metadata"))
+          )
+        )
 
       writeService.updateAudio(id, updatedAudio, fileOpt) match {
         case Success(audioMeta) => audioMeta
@@ -442,7 +461,8 @@ trait AudioController {
             asQueryParam(language)
           )
           .responseMessages(response403, response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
       val query = paramOrDefault(this.query.paramName, "")
       val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {

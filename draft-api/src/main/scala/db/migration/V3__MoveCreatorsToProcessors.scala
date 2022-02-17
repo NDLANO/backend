@@ -31,13 +31,13 @@ class V3__MoveCreatorsToProcessors extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertArticleUpdate(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -57,8 +57,8 @@ class V3__MoveCreatorsToProcessors extends BaseJavaMigration {
   }
 
   private def convertCopyright(copyright: V3_Copyright): JValue = {
-    val editorials = copyright.creators.filter(_.`type` == "Editorial")
-    val newCreators = copyright.creators.toSet -- editorials.toSet
+    val editorials    = copyright.creators.filter(_.`type` == "Editorial")
+    val newCreators   = copyright.creators.toSet -- editorials.toSet
     val newProcessors = copyright.processors ++ editorials
 
     val newCopyright = copyright.copy(creators = newCreators.toSeq, processors = newProcessors)
@@ -85,12 +85,14 @@ class V3__MoveCreatorsToProcessors extends BaseJavaMigration {
   }
 
   case class V3_Author(`type`: String, name: String)
-  case class V3_Copyright(license: Option[String],
-                          origin: Option[String],
-                          creators: Seq[V3_Author],
-                          processors: Seq[V3_Author],
-                          rightsholders: Seq[V3_Author],
-                          agreementId: Option[Long],
-                          validFrom: Option[Date],
-                          validTo: Option[Date])
+  case class V3_Copyright(
+      license: Option[String],
+      origin: Option[String],
+      creators: Seq[V3_Author],
+      processors: Seq[V3_Author],
+      rightsholders: Seq[V3_Author],
+      agreementId: Option[Long],
+      validFrom: Option[Date],
+      validTo: Option[Date]
+  )
 }

@@ -23,7 +23,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val full = Image("/123.png", 200, "image/png")
+  val full    = Image("/123.png", 200, "image/png")
   val wanting = Image("123.png", 200, "image/png")
 
   val DefaultImageMetaInformation = ImageMetaInformation(
@@ -120,9 +120,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test(
-    "That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links even if language is not supported") {
-    val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation,
-                                                                                  Some("RandomLangauge"))
+    "That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links even if language is not supported"
+  ) {
+    val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(
+      DefaultImageMetaInformation,
+      Some("RandomLangauge")
+    )
 
     apiImage.metaUrl should equal(s"${ImageApiProperties.Domain}/v2/images/1")
     apiImage.imageUrl should equal(s"${ImageApiProperties.Domain}/raw/123.png")
@@ -137,7 +140,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asApiImageMetaInformationWithApplicationUrlV2 returns with agreement copyright features") {
     val from = DateTime.now().minusDays(5).toDate()
-    val to = DateTime.now().plusDays(10).toDate()
+    val to   = DateTime.now().plusDays(10).toDate()
     val agreementCopyright = api.Copyright(
       api.License("gnu", "gpl", None),
       "http://tjohei.com/",
@@ -155,7 +158,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           processors = List(Author("Idea", "Kaptein Snabelfant")),
           rightsholders = List(Author("Publisher", "KjeksOgKakerAS")),
           agreementId = Some(1)
-        )),
+        )
+      ),
       None
     )
 

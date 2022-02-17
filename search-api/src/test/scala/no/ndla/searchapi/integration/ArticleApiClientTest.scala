@@ -43,8 +43,8 @@ class ArticleApiClientTest extends UnitSuite with TestEnvironment {
       new EnumNameSerializer(Availability) ++
       org.json4s.ext.JodaTimeSerializers.all
 
-  override val ndlaClient = new NdlaClient
-  override val converterService = new ConverterService
+  override val ndlaClient             = new NdlaClient
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   // Pact CDC imports
@@ -117,12 +117,11 @@ class ArticleApiClientTest extends UnitSuite with TestEnvironment {
           AuthUser.setHeader(s"Bearer $exampleToken")
           val articleApiClient = new ArticleApiClient(mockConfig.baseUrl)
 
-          implicit val ec = ExecutionContext.global
-          val chunks = articleApiClient.getChunks[domain.article.Article].toList
+          implicit val ec    = ExecutionContext.global
+          val chunks         = articleApiClient.getChunks[domain.article.Article].toList
           val fetchedArticle = Await.result(chunks.head, Duration.Inf).get.head
-          val searchable = searchConverterService.asSearchableArticle(fetchedArticle,
-                                                                      TestData.taxonomyTestBundle,
-                                                                      TestData.emptyGrepBundle)
+          val searchable = searchConverterService
+            .asSearchableArticle(fetchedArticle, TestData.taxonomyTestBundle, TestData.emptyGrepBundle)
 
           searchable.isSuccess should be(true)
           searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
-  override val dataSource = testDataSource.get
+  override val dataSource                    = testDataSource.get
   var repository: PublishedConceptRepository = _
 
   // Skip tests if no docker environment available
@@ -185,7 +185,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
           domain.ConceptTags(Seq("konge", "bror"), "nb"),
           domain.ConceptTags(Seq("konge", "brur"), "nn"),
           domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
         ),
         List(
           domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),

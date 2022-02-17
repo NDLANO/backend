@@ -39,23 +39,25 @@ trait SearchService {
     val searchIndex: List[String]
     val indexServices: List[IndexService[_]]
 
-    /**
-      * Returns hit as summary
+    /** Returns hit as summary
       *
-      * @param hit as json string
-      * @param language language as ISO639 code
-      * @return api-model summary of hit
+      * @param hit
+      *   as json string
+      * @param language
+      *   language as ISO639 code
+      * @return
+      *   api-model summary of hit
       */
     def hitToApiModel(hit: SearchHit, language: String): Try[MultiSearchSummary] = {
-      val articleType = SearchApiProperties.SearchIndexes(SearchType.Articles)
-      val draftType = SearchApiProperties.SearchIndexes(SearchType.Drafts)
+      val articleType      = SearchApiProperties.SearchIndexes(SearchType.Articles)
+      val draftType        = SearchApiProperties.SearchIndexes(SearchType.Drafts)
       val learningPathType = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
 
       hit.index.split("_").headOption match {
         case Some(`articleType`)      => Success(searchConverterService.articleHitAsMultiSummary(hit, language))
         case Some(`draftType`)        => Success(searchConverterService.draftHitAsMultiSummary(hit, language))
         case Some(`learningPathType`) => Success(searchConverterService.learningpathHitAsMultiSummary(hit, language))
-        case _                        => Failure(NdlaSearchException("Index type was bad when determining search result type."))
+        case _ => Failure(NdlaSearchException("Index type was bad when determining search result type."))
       }
     }
 
@@ -93,7 +95,7 @@ trait SearchService {
         fallback: Boolean
     ): List[Query] = {
       val resourceQueries = boolQuery().should(resource.map(q => termQuery(s"$path.resource", q)))
-      val idQuery = id.map(q => termQuery(s"$path.id", q))
+      val idQuery         = id.map(q => termQuery(s"$path.id", q))
 
       val queries = idQuery.toList :+ resourceQueries
       if (queries.isEmpty || language == Language.AllLanguages || fallback) queries
@@ -112,7 +114,8 @@ trait SearchService {
         Some(
           nestedQuery(
             "embedResourcesAndIds",
-            boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)))
+            boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback))
+          )
         )
       }
     }
@@ -156,16 +159,15 @@ trait SearchService {
     }
 
     protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestion] = {
-      response.suggestions.map {
-        case (key, value) =>
-          MultiSearchSuggestion(name = key, suggestions = getSuggestion(value))
+      response.suggestions.map { case (key, value) =>
+        MultiSearchSuggestion(name = key, suggestions = getSuggestion(value))
       }.toSeq
     }
 
     protected[search] def buildTermsAggregation(paths: Seq[String]): Seq[Aggregation] = {
       val rootFields = indexServices.flatMap(_.getMapping.properties)
 
-      val aggregationTrees = paths.flatMap(p => buildAggregationTreeFromPath(p, rootFields).toSeq)
+      val aggregationTrees        = paths.flatMap(p => buildAggregationTreeFromPath(p, rootFields).toSeq)
       val initialFakeAggregations = aggregationTrees.flatMap(FakeAgg.seqAggsToSubAggs(_).toSeq)
 
       /** This fancy block basically merges all the [[FakeAgg]]'s that can be merged together */
@@ -173,7 +175,7 @@ trait SearchService {
         val (hasBeenMerged, merged) = acc.foldLeft((false, Seq.empty[FakeAgg]))((acc, toMerge) => {
           val (curHasBeenMerged, aggs) = acc
           fakeAgg.merge(toMerge) match {
-            case Some(merged) => true -> (aggs :+ merged)
+            case Some(merged) => true             -> (aggs :+ merged)
             case None         => curHasBeenMerged -> (aggs :+ toMerge)
           }
         })
@@ -185,11 +187,13 @@ trait SearchService {
 
     private def buildAggregationTreeFromPath(path: String, fieldsInIndex: Seq[ElasticField]): Option[Seq[FakeAgg]] = {
       @tailrec
-      def _buildAggregationRecursive(parts: Seq[String],
-                                     fullPath: String,
-                                     fieldsInIndex: Seq[ElasticField],
-                                     remainder: Seq[String],
-                                     parentAgg: Seq[FakeAgg]): Option[(Seq[FakeAgg], Seq[String])] = {
+      def _buildAggregationRecursive(
+          parts: Seq[String],
+          fullPath: String,
+          fieldsInIndex: Seq[ElasticField],
+          remainder: Seq[String],
+          parentAgg: Seq[FakeAgg]
+      ): Option[(Seq[FakeAgg], Seq[String])] = {
         if (parts.isEmpty) {
           None
         } else {
@@ -198,8 +202,8 @@ trait SearchService {
               val (newPath, restOfPath) = parts.splitAt(math.max(parts.size - 1, 1))
               _buildAggregationRecursive(newPath, fullPath, fieldsInIndex, restOfPath ++ remainder, parentAgg)
             case fieldsFound =>
-              val fieldTypes = fieldsFound.map(_.`type`).distinct
-              val pathSoFar = parts.mkString(".")
+              val fieldTypes    = fieldsFound.map(_.`type`).distinct
+              val pathSoFar     = parts.mkString(".")
               val fullPathSoFar = fullPath.split("\\.").reverse.dropWhile(_ != parts.last).reverse.mkString(".")
 
               val newParent = fieldTypes match {
@@ -245,7 +249,7 @@ trait SearchService {
       buckets
         .flatMap(bucket => {
           Try {
-            val key = bucket("key").asInstanceOf[String]
+            val key      = bucket("key").asInstanceOf[String]
             val docCount = bucket("doc_count").asInstanceOf[Int]
             Bucket(key, docCount)
           }.toOption
@@ -254,9 +258,9 @@ trait SearchService {
 
     private def handleBucketResult(resMap: Map[String, Any], field: Seq[String]): Seq[TermAggregation] = {
       Try {
-        val sumOtherDocCount = resMap("sum_other_doc_count").asInstanceOf[Int]
+        val sumOtherDocCount        = resMap("sum_other_doc_count").asInstanceOf[Int]
         val docCountErrorUpperBound = resMap("doc_count_error_upper_bound").asInstanceOf[Int]
-        val buckets = resMap("buckets").asInstanceOf[Seq[Map[String, Any]]]
+        val buckets                 = resMap("buckets").asInstanceOf[Seq[Map[String, Any]]]
 
         TermAggregation(
           field,
@@ -279,9 +283,11 @@ trait SearchService {
             Map.empty[String, Any]
           }
 
-          if (newMap.contains("buckets") &&
-              newMap.contains("sum_other_doc_count") &&
-              newMap.contains("doc_count_error_upper_bound")) {
+          if (
+            newMap.contains("buckets") &&
+            newMap.contains("sum_other_doc_count") &&
+            newMap.contains("doc_count_error_upper_bound")
+          ) {
             handleBucketResult(newMap, fields :+ key)
           } else {
             getTermsAggregationResults(newMap, fields :+ key, foundBuckets)
@@ -292,16 +298,18 @@ trait SearchService {
     }
 
     def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestion] = {
-      results.map(
-        result =>
-          SearchSuggestion(text = result.text,
-                           offset = result.offset,
-                           length = result.length,
-                           options = result.options.map(mapToSuggestOption)))
+      results.map(result =>
+        SearchSuggestion(
+          text = result.text,
+          offset = result.offset,
+          length = result.length,
+          options = result.options.map(mapToSuggestOption)
+        )
+      )
     }
 
     def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOption = {
-      val text = optionsMap.getOrElse("text", "")
+      val text  = optionsMap.getOrElse("text", "")
       val score = optionsMap.getOrElse("score", 1)
       SuggestOption(
         text.asInstanceOf[String],
@@ -316,7 +324,7 @@ trait SearchService {
         }
         .flatMap(response => {
           getHits(response.result, language).map(hits => {
-            val suggestions = getSuggestions(response.result)
+            val suggestions  = getSuggestions(response.result)
             val aggregations = getAggregationsFromResult(response.result)
             SearchResult(
               totalCount = response.result.totalHits,
@@ -364,26 +372,30 @@ trait SearchService {
 
     def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
       val numResults = max(pageSize.min(MaxPageSize), 0)
-      val startAt = (page - 1).max(0) * numResults
+      val startAt    = (page - 1).max(0) * numResults
 
       (startAt, numResults)
     }
 
     protected def scheduleIndexDocuments(): Unit
 
-    /**
-      * Takes care of logging reindexResults, used in subclasses overriding [[scheduleIndexDocuments]]
+    /** Takes care of logging reindexResults, used in subclasses overriding [[scheduleIndexDocuments]]
       *
-      * @param indexName Name of index to use for logging
-      * @param reindexFuture Reindexing future to handle
-      * @param executor Execution context for the future
+      * @param indexName
+      *   Name of index to use for logging
+      * @param reindexFuture
+      *   Reindexing future to handle
+      * @param executor
+      *   Execution context for the future
       */
-    protected def handleScheduledIndexResults(indexName: String, reindexFuture: Future[Try[ReindexResult]])(
-        implicit executor: ExecutionContext): Unit = {
+    protected def handleScheduledIndexResults(indexName: String, reindexFuture: Future[Try[ReindexResult]])(implicit
+        executor: ExecutionContext
+    ): Unit = {
       reindexFuture.onComplete {
         case Success(Success(reindexResult: ReindexResult)) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} $indexName in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} $indexName in ${reindexResult.millisUsed} ms."
+          )
         case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
         case Failure(ex)          => logger.warn(s"Unable to create index '$indexName': " + ex.getMessage, ex)
       }
@@ -401,7 +413,8 @@ trait SearchService {
             case _ =>
               logger.error(e.getMessage)
               Failure(
-                NdlaSearchException(s"Unable to execute search in ${e.rf.flatMap(_.error.index).getOrElse("")}", e))
+                NdlaSearchException(s"Unable to execute search in ${e.rf.flatMap(_.error.index).getOrElse("")}", e)
+              )
           }
         case t: Throwable => Failure(t)
       }

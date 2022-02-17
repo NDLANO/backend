@@ -42,8 +42,8 @@ class SearchServiceTest
   }
   override val searchService: SearchService = new SearchService
 
-  val paul: Author = Author("author", "Truly Weird Rand Paul")
-  val license = "publicdomain"
+  val paul: Author         = Author("author", "Truly Weird Rand Paul")
+  val license              = "publicdomain"
   val copyright: Copyright = Copyright(license, List(paul))
 
   val DefaultLearningPath: LearningPath = LearningPath(
@@ -77,12 +77,12 @@ class SearchServiceTest
     status = StepStatus.ACTIVE
   )
 
-  val PenguinId = 1
-  val BatmanId = 2
-  val DonaldId = 3
+  val PenguinId   = 1
+  val BatmanId    = 2
+  val DonaldId    = 3
   val UnrelatedId = 4
-  val EnglandoId = 5
-  val BrumleId = 6
+  val EnglandoId  = 5
+  val BrumleId    = 6
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -91,9 +91,9 @@ class SearchServiceTest
 
       doReturn(api.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
 
-      val today = new DateTime().toDate
-      val yesterday = new DateTime().minusDays(1).toDate
-      val tomorrow = new DateTime().plusDays(1).toDate
+      val today      = new DateTime().toDate
+      val yesterday  = new DateTime().minusDays(1).toDate
+      val tomorrow   = new DateTime().plusDays(1).toDate
       val tomorrowp1 = new DateTime().plusDays(2).toDate
       val tomorrowp2 = new DateTime().plusDays(3).toDate
 
@@ -188,8 +188,9 @@ class SearchServiceTest
         language = Some("hurr durr I'm a language"),
         page = Some(1),
         fallback = true,
-        sort = Sort.ByIdDesc,
-      ))
+        sort = Sort.ByIdDesc
+      )
+    )
     res.results.length should be(res.totalCount)
     res.totalCount should be(5)
   }
@@ -200,8 +201,9 @@ class SearchServiceTest
         language = Some("hurr durr I'm a language"),
         page = Some(1),
         fallback = false,
-        sort = Sort.ByIdDesc,
-      ))
+        sort = Sort.ByIdDesc
+      )
+    )
     res.results.length should be(res.totalCount)
     res.totalCount should be(0)
   }
@@ -215,15 +217,16 @@ class SearchServiceTest
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 100
-    val pageSize = 10
+    val page            = 100
+    val pageSize        = 10
     val expectedStartAt = (page - 1) * pageSize
     searchService.getStartAtAndNumResults(Some(page), Some(pageSize)) should equal((expectedStartAt, pageSize))
   }
@@ -231,8 +234,9 @@ class SearchServiceTest
   test("That all learningpaths are returned ordered by title descending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByTitleDesc,
-      ))
+        sort = Sort.ByTitleDesc
+      )
+    )
     val hits = searchResult.results
     searchResult.totalCount should be(4)
 
@@ -246,8 +250,9 @@ class SearchServiceTest
   test("That all learningpaths are returned ordered by title ascending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByTitleAsc,
-      ))
+        sort = Sort.ByTitleAsc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -260,8 +265,9 @@ class SearchServiceTest
   test("That all learningpaths are returned ordered by id descending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByIdDesc,
-      ))
+        sort = Sort.ByIdDesc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -276,7 +282,8 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some("*")
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(5)
@@ -290,8 +297,9 @@ class SearchServiceTest
   test("That order by durationDesc orders search result by duration descending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByDurationDesc,
-      ))
+        sort = Sort.ByDurationDesc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -301,8 +309,9 @@ class SearchServiceTest
   test("That order ByDurationAsc orders search result by duration ascending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByDurationAsc,
-      ))
+        sort = Sort.ByDurationAsc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -312,8 +321,9 @@ class SearchServiceTest
   test("That order ByLastUpdatedDesc orders search result by last updated date descending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByLastUpdatedDesc,
-      ))
+        sort = Sort.ByLastUpdatedDesc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -324,8 +334,9 @@ class SearchServiceTest
   test("That order ByLastUpdatedAsc orders search result by last updated date ascending") {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
-        sort = Sort.ByLastUpdatedAsc,
-      ))
+        sort = Sort.ByLastUpdatedAsc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -339,7 +350,8 @@ class SearchServiceTest
         withIdIn = List(1, 2),
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -354,7 +366,8 @@ class SearchServiceTest
         sort = Sort.ByTitleAsc,
         language = Some("en"),
         fallback = true
-      ))
+      )
+    )
 
     searchResult.totalCount should be(1)
   }
@@ -366,7 +379,8 @@ class SearchServiceTest
         sort = Sort.ByTitleAsc,
         language = Some("en"),
         fallback = false
-      ))
+      )
+    )
 
     searchResult.totalCount should be(0)
   }
@@ -375,8 +389,9 @@ class SearchServiceTest
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("heltene"),
-        sort = Sort.ByTitleAsc,
-      ))
+        sort = Sort.ByTitleAsc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -390,7 +405,8 @@ class SearchServiceTest
         query = Some("morsom"),
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -403,7 +419,8 @@ class SearchServiceTest
         query = Some("guy"),
         sort = Sort.ByTitleAsc,
         language = Some("en")
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -416,7 +433,8 @@ class SearchServiceTest
         query = Some("djinba"),
         sort = Sort.ByTitleAsc,
         language = Some("djb")
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -428,7 +446,8 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByTitleAsc,
         language = Some("kra")
-      ))
+      )
+    )
 
     searchResult.totalCount should be(0)
   }
@@ -439,7 +458,8 @@ class SearchServiceTest
         sort = Sort.ByTitleAsc,
         taggedWith = Some("superhelt"),
         language = Some("nb")
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -448,13 +468,15 @@ class SearchServiceTest
   }
 
   test(
-    "That filtering on tag combined with search only returns documents where the tag is present and the search matches the query") {
+    "That filtering on tag combined with search only returns documents where the tag is present and the search matches the query"
+  ) {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("heltene"),
         taggedWith = Some("kanfly"),
-        sort = Sort.ByTitleAsc,
-      ))
+        sort = Sort.ByTitleAsc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -465,8 +487,9 @@ class SearchServiceTest
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("tøff rar"),
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -475,12 +498,14 @@ class SearchServiceTest
   }
 
   test(
-    "That searching and ordering by relevance is returning Donald before Batman and the penguin when searching for duck, bat and bird") {
+    "That searching and ordering by relevance is returning Donald before Batman and the penguin when searching for duck, bat and bird"
+  ) {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("and flaggermus fugl"),
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(3)
@@ -490,13 +515,15 @@ class SearchServiceTest
   }
 
   test(
-    "That searching and ordering by relevance is not returning Penguin when searching for duck, bat and bird, but filtering on kanfly") {
+    "That searching and ordering by relevance is not returning Penguin when searching for duck, bat and bird, but filtering on kanfly"
+  ) {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("and flaggermus fugl"),
         taggedWith = Some("kanfly"),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -509,7 +536,8 @@ class SearchServiceTest
       searchSettings.copy(
         query = Some("and flaggremsu"),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -521,14 +549,16 @@ class SearchServiceTest
       searchSettings.copy(
         query = Some("kjeltring + batman"),
         sort = Sort.ByRelevanceAsc
-      ))
+      )
+    )
     searchResult1.totalCount should be(0)
 
     val Success(searchResult2) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("tøff + morsom + -and"),
         sort = Sort.ByRelevanceAsc
-      ))
+      )
+    )
     val hits2 = searchResult2.results
 
     searchResult2.totalCount should be(1)
@@ -538,7 +568,8 @@ class SearchServiceTest
       searchSettings.copy(
         query = Some("tøff | morsom | kjeltring"),
         sort = Sort.ByIdAsc
-      ))
+      )
+    )
     val hits3 = searchResult3.results
 
     searchResult3.totalCount should be(3)
@@ -551,13 +582,15 @@ class SearchServiceTest
         query = Some("Urelatert"),
         language = Some(Language.AllLanguages),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val Success(searchEn) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("Unrelated"),
         language = Some(Language.AllLanguages),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
 
     searchEn.totalCount should be(1)
     searchEn.results.head.id should be(UnrelatedId)
@@ -579,7 +612,8 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
-      ))
+      )
+    )
 
     search.totalCount should be(5)
     search.results.head.id should be(BatmanId)
@@ -597,7 +631,8 @@ class SearchServiceTest
         query = Some("Batman"),
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
-      ))
+      )
+    )
     search.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
@@ -606,7 +641,8 @@ class SearchServiceTest
       searchSettings.copy(
         language = Some("en"),
         fallback = true
-      ))
+      )
+    )
 
     search.totalCount should be(5)
     search.results.head.id should be(PenguinId)
@@ -620,7 +656,7 @@ class SearchServiceTest
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(1, 2, 3, 4, 5).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = searchService.matchingQuery(
@@ -629,7 +665,8 @@ class SearchServiceTest
         pageSize = Some(pageSize),
         fallback = true,
         shouldScroll = true
-      ))
+      )
+    )
 
     val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all")
     val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all")
@@ -642,14 +679,16 @@ class SearchServiceTest
   }
 
   test(
-    "That search combined with filter by verification status only returns documents matching the query with the given verification status") {
+    "That search combined with filter by verification status only returns documents matching the query with the given verification status"
+  ) {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("flaggermus"),
         language = Some(Language.AllLanguages),
         verificationStatus = Some("EXTERNAL"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -657,13 +696,15 @@ class SearchServiceTest
   }
 
   test(
-    "That search combined with filter by verification status only returns documents with the given verification status") {
+    "That search combined with filter by verification status only returns documents with the given verification status"
+  ) {
     val Success(searchResult) = searchService.matchingQuery(
       searchSettings.copy(
         language = Some(Language.AllLanguages),
         verificationStatus = Some("CREATED_BY_NDLA"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -675,7 +716,8 @@ class SearchServiceTest
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages)
-      ))
+      )
+    )
 
     searchResult.totalCount should be(5)
     searchResult.results.map(_.id) should be(Seq(1, 2, 3, 4, 5))
@@ -687,7 +729,8 @@ class SearchServiceTest
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
         status = List(domain.LearningPathStatus.PUBLISHED, domain.LearningPathStatus.UNLISTED)
-      ))
+      )
+    )
 
     searchResult.totalCount should be(6)
     searchResult.results.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
@@ -697,7 +740,8 @@ class SearchServiceTest
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
         status = List(domain.LearningPathStatus.UNLISTED)
-      ))
+      )
+    )
 
     searchResult2.totalCount should be(1)
     searchResult2.results.map(_.id) should be(Seq(6))
@@ -709,7 +753,8 @@ class SearchServiceTest
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
         withPaths = List("https://ndla.no/article/1", "https://ndla.no/article/2")
-      ))
+      )
+    )
 
     searchResult.totalCount should be(2)
     searchResult.results.map(_.id) should be(Seq(1, 2))
@@ -719,14 +764,15 @@ class SearchServiceTest
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
         withPaths = List("https://ndla.no/article/2")
-      ))
+      )
+    )
 
     searchResult2.totalCount should be(0)
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

@@ -12,5 +12,5 @@ import no.ndla.language.model.LanguageField
 
 case class ArticleMetaDescription(content: String, language: String) extends LanguageField[String] {
   override def isEmpty: Boolean = content.isEmpty
-  override def value: String = content
+  override def value: String    = content
 }

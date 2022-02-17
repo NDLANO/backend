@@ -25,7 +25,7 @@ class V2__AddUpdatedColoumsTest extends UnitSuite with TestEnvironment {
 
     when(migration.timeService.nowAsString()).thenReturn("2017-05-08T11:35:13Z")
 
-    val audio = V2_DBAudioMetaInformation(1, before)
+    val audio     = V2_DBAudioMetaInformation(1, before)
     val converted = migration.convertAudioUpdate(audio)
 
     converted.document should equal(expectedAfter)

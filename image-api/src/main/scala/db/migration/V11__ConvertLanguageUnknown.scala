@@ -15,15 +15,15 @@ import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 
 class V11__ConvertLanguageUnknown extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  val timeService = new TimeService()
+  val timeService                           = new TimeService()
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      imagesToUpdate.map {
-        case (id, document) => update(convertImageUpdate(document), id)
+      imagesToUpdate.map { case (id, document) =>
+        update(convertImageUpdate(document), id)
       }
     }
   }
@@ -37,7 +37,7 @@ class V11__ConvertLanguageUnknown extends BaseJavaMigration {
   }
 
   def convertImageUpdate(imageMeta: String): String = {
-    val oldImage = parse(imageMeta)
+    val oldImage       = parse(imageMeta)
     val extractedAudio = oldImage.extract[V11_ImageMetaInformation]
     val tags = extractedAudio.tags.map(t => {
       if (t.language == "unknown")
@@ -87,6 +87,6 @@ class V11__ConvertLanguageUnknown extends BaseJavaMigration {
       titles: Seq[V11_ImageTitle],
       alttexts: Seq[V11_ImageAltText],
       tags: Seq[V11_ImageTag],
-      captions: Seq[V11_ImageCaption],
+      captions: Seq[V11_ImageCaption]
   )
 }

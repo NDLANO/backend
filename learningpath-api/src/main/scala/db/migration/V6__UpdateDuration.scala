@@ -21,13 +21,11 @@ class V6__UpdateDuration extends BaseJavaMigration {
 
     db.withinTx { implicit session =>
       allLearningPaths
-        .map {
-          case (id, document) =>
-            (id, updateDuration(document))
+        .map { case (id, document) =>
+          (id, updateDuration(document))
         }
-        .foreach {
-          case (id, document) =>
-            update(id, document)
+        .foreach { case (id, document) =>
+          update(id, document)
         }
     }
   }

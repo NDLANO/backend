@@ -43,11 +43,13 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def withIdV2(id: Long,
-                 language: String,
-                 fallback: Boolean = false,
-                 revision: Option[Int] = None,
-                 feideAccessToken: Option[String] = None): Try[Cachable[api.ArticleV2]] = {
+    def withIdV2(
+        id: Long,
+        language: String,
+        fallback: Boolean = false,
+        revision: Option[Int] = None,
+        feideAccessToken: Option[String] = None
+    ): Try[Cachable[api.ArticleV2]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
@@ -63,15 +65,18 @@ trait ReadService {
           feideAccessToken match {
             case None =>
               Failure(
-                AccessDeniedException("User is missing required role(s) to perform this operation",
-                                      unauthorized = true))
+                AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
+              )
             case Some(accessToken) =>
               feideApiClient.getUser(accessToken) match {
                 case Failure(ex: HttpRequestException) =>
                   val code = ex.httpResponse.map(_.code)
                   if (code.contains(403) || code.contains(401)) {
-                    Failure(AccessDeniedException(
-                      "User could not be authenticated with feide and such is missing required role(s) to perform this operation"))
+                    Failure(
+                      AccessDeniedException(
+                        "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
+                      )
+                    )
                   } else Failure(ex)
                 case Failure(ex) => Failure(ex)
                 case Success(feideUser) =>
@@ -95,7 +100,7 @@ trait ReadService {
     }
 
     def getNMostUsedTags(n: Int, language: String): Option[api.ArticleTag] = {
-      val tagUsageMap = getTagUsageMap()
+      val tagUsageMap    = getTagUsageMap()
       val searchLanguage = languageOrUnknown(Some(language))
 
       tagUsageMap
@@ -144,7 +149,7 @@ trait ReadService {
         case resourceType
             if resourceType == ResourceType.File.toString
               || resourceType == ResourceType.H5P.toString
-                && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
+              && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
           val path = embedTag.attr(TagAttributes.DataPath.toString)
           Some((resourceType, path))
 
@@ -157,7 +162,7 @@ trait ReadService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl = Url.parse(externalApiUrls(resourceType))
+          val baseUrl   = Url.parse(externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(
@@ -257,7 +262,7 @@ trait ReadService {
           )
       }
 
-      val result = articleSearchService.matchingQuery(settings)
+      val result       = articleSearchService.matchingQuery(settings)
       val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
       if (isRestricted)
         Cachable.no(result)

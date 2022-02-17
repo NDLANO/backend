@@ -29,13 +29,13 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
   }
 
   def migrateLearningSteps(implicit session: DBSession): Unit = {
-    val count = countAllLearningSteps.get
+    val count        = countAllLearningSteps.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allLearingSteps(offset * 1000).map {
-        case (id, document) => updateLearningStep(migrateLearningPathDocument(document), id)
+      allLearingSteps(offset * 1000).map { case (id, document) =>
+        updateLearningStep(migrateLearningPathDocument(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -66,7 +66,7 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
   }
 
   def updateNdlaUrl(oldUrl: String): String = {
-    val parsed = Url.parse(oldUrl)
+    val parsed     = Url.parse(oldUrl)
     val isNDLAHost = parsed.hostOption.exists(_.toString.contains("ndla.no"))
 
     if (isNDLAHost) parsed.toRelativeUrl.toString
@@ -95,7 +95,7 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
 
 object V11_EmbedType extends Enumeration {
   val OEmbed = Value("oembed")
-  val LTI = Value("lti")
+  val LTI    = Value("lti")
 }
 case class V11_LearningStep(embedUrl: Seq[V11_EmbedUrl])
 case class V11_EmbedUrl(url: String, language: String, embedType: V11_EmbedType.Value)

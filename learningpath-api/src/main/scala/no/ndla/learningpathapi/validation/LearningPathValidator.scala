@@ -25,7 +25,7 @@ trait LearningPathValidator {
       "The url to the coverPhoto must point to an image in NDLA Image API."
 
     val noHtmlTextValidator = new TextValidator(allowHtml = false)
-    val durationValidator = new DurationValidator
+    val durationValidator   = new DurationValidator
 
     def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): LearningPath = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {
@@ -43,8 +43,10 @@ trait LearningPathValidator {
       }
     }
 
-    private[validation] def validateLearningPath(newLearningPath: LearningPath,
-                                                 allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private[validation] def validateLearningPath(
+        newLearningPath: LearningPath,
+        allowUnknownLanguage: Boolean
+    ): Seq[ValidationMessage] = {
       titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
         validateDescription(newLearningPath.description, allowUnknownLanguage) ++
         validateDuration(newLearningPath.duration).toList ++
@@ -52,8 +54,10 @@ trait LearningPathValidator {
         validateCopyright(newLearningPath.copyright)
     }
 
-    private def validateDescription(descriptions: Seq[Description],
-                                    allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateDescription(
+        descriptions: Seq[Description],
+        allowUnknownLanguage: Boolean
+    ): Seq[ValidationMessage] = {
       (descriptionRequired, descriptions.isEmpty) match {
         case (false, true) => List()
         case (true, true) =>
@@ -64,8 +68,8 @@ trait LearningPathValidator {
               .validate("description.description", description.description)
               .toList :::
               languageValidator
-              .validate("description.language", description.language, allowUnknownLanguage)
-              .toList
+                .validate("description.language", description.language, allowUnknownLanguage)
+                .toList
           })
       }
     }
@@ -79,7 +83,7 @@ trait LearningPathValidator {
 
     def validateCoverPhoto(coverPhotoMetaUrl: String): Option[ValidationMessage] = {
       val parsedUrl = Url.parse(coverPhotoMetaUrl)
-      val host = parsedUrl.hostOption.map(_.toString)
+      val host      = parsedUrl.hostOption.map(_.toString)
 
       val hostCorrect = host.getOrElse("").endsWith("ndla.no")
       val pathCorrect = parsedUrl.path.toString.startsWith("/image-api/v")
@@ -97,13 +101,13 @@ trait LearningPathValidator {
           .flatMap(noHtmlTextValidator.validate("tags.tags", _))
           .toList :::
           languageValidator
-          .validate("tags.language", tagList.language, allowUnknownLanguage)
-          .toList
+            .validate("tags.language", tagList.language, allowUnknownLanguage)
+            .toList
       })
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
-      val licenseMessage = validateLicense(copyright.license)
+      val licenseMessage       = validateLicense(copyright.license)
       val contributorsMessages = copyright.contributors.flatMap(validateAuthor)
 
       licenseMessage ++ contributorsMessages

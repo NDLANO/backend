@@ -16,9 +16,9 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
 class ImageConverterTest extends UnitSuite with TestEnvironment {
-  val service = new ImageConverter
+  val service                   = new ImageConverter
   val (imageWidth, imageHeight) = (1000, 1000)
-  val image: BufferedImage = mock[BufferedImage]
+  val image: BufferedImage      = mock[BufferedImage]
 
   override def beforeEach() = {
     when(image.getWidth).thenReturn(imageWidth)
@@ -27,13 +27,17 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("transformCoordinates returns a CoordOptions object with correctly transformed coordinates") {
     service.transformCoordinates(image, PercentPoint(10, 5), PercentPoint(1, 20)) should equal(
-      (PixelPoint(10, 50), PixelPoint(100, 200)))
+      (PixelPoint(10, 50), PixelPoint(100, 200))
+    )
     service.transformCoordinates(image, PercentPoint(10, 20), PercentPoint(1, 5)) should equal(
-      (PixelPoint(10, 50), PixelPoint(100, 200)))
+      (PixelPoint(10, 50), PixelPoint(100, 200))
+    )
     service.transformCoordinates(image, PercentPoint(1, 5), PercentPoint(10, 20)) should equal(
-      (PixelPoint(10, 50), PixelPoint(100, 200)))
+      (PixelPoint(10, 50), PixelPoint(100, 200))
+    )
     service.transformCoordinates(image, PercentPoint(1, 20), PercentPoint(10, 5)) should equal(
-      (PixelPoint(10, 50), PixelPoint(100, 200)))
+      (PixelPoint(10, 50), PixelPoint(100, 200))
+    )
   }
 
   test("getWidthHeight returns the width and height of a segment to crop") {
@@ -42,12 +46,13 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("getWidthHeight returns max values if one coordinate is outside of image") {
     service.getWidthHeight(PixelPoint(10, 200), PixelPoint(imageWidth + 1, imageHeight + 1), image) should equal(
-      (990, 800))
+      (990, 800)
+    )
   }
 
   test("toConvertedImage converts a BufferedImage to an ImageStream") {
     val bufferedImage = new BufferedImage(200, 100, BufferedImage.TYPE_INT_RGB)
-    val origImage = mock[ImageStream]
+    val origImage     = mock[ImageStream]
 
     when(origImage.fileName).thenReturn("full/image.jpg")
     when(origImage.contentType).thenReturn("image/jpg")
@@ -111,7 +116,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("dynamic cropping should work as expected") {
     val croppedImage = service.dynamicCrop(NdlaLogoImage, PercentPoint(0, 0), Some(10), Some(30), None)
-    val image = ImageIO.read(croppedImage.get.stream)
+    val image        = ImageIO.read(croppedImage.get.stream)
     image.getWidth should equal(10)
     image.getHeight should equal(30)
   }
@@ -139,16 +144,17 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test(
-    "minimalCropSizesToPreserveRatio calculates image sizes with (about) correct aspect ratio for lots of ratios and image sizes") {
+    "minimalCropSizesToPreserveRatio calculates image sizes with (about) correct aspect ratio for lots of ratios and image sizes"
+  ) {
     def testRatio(ratio: Double, width: Int, height: Int) = {
       implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.1)
-      val (newWidth, newHeight) = service.minimalCropSizesToPreserveRatio(width, height, ratio)
-      val calculatedRatio = newWidth.toDouble / newHeight.toDouble
+      val (newWidth, newHeight)   = service.minimalCropSizesToPreserveRatio(width, height, ratio)
+      val calculatedRatio         = newWidth.toDouble / newHeight.toDouble
       calculatedRatio should equal(ratio)
     }
     for {
-      ratio <- Seq(0.1, 0.2, 0.81, 1, 1.1, 1.5, 2, 5, 10)
-      width <- LazyList.range(10, 1000, 10)
+      ratio  <- Seq(0.1, 0.2, 0.81, 1, 1.1, 1.5, 2, 5, 10)
+      width  <- LazyList.range(10, 1000, 10)
       height <- LazyList.range(10, 1000, 10)
     } yield testRatio(ratio, width, height)
   }
@@ -165,7 +171,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
       implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(0.01)
       val croppedImage =
         service.dynamicCrop(TestData.ChildrensImage, PercentPoint(focalX, focalY), Some(100), Some(100), Some(ratio))
-      val image = ImageIO.read(croppedImage.get.stream)
+      val image           = ImageIO.read(croppedImage.get.stream)
       val calculatedRatio = image.getWidth.toDouble / image.getHeight.toDouble
       image.getWidth should equal(expectedWidth)
       image.getHeight should equal(expectedHeight)

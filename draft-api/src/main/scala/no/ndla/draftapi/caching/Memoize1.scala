@@ -11,11 +11,12 @@ import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import no.ndla.draftapi.DraftApiProperties.ApiClientsCacheAgeInMs
 
-private[caching] class Memoize[R](maxCacheAgeMs: Long,
-                                  f: () => R,
-                                  autoRefreshCache: Boolean,
-                                  shouldCacheResult: R => Boolean)
-    extends (() => Option[R]) {
+private[caching] class Memoize[R](
+    maxCacheAgeMs: Long,
+    f: () => R,
+    autoRefreshCache: Boolean,
+    shouldCacheResult: R => Boolean
+) extends (() => Option[R]) {
   case class CacheValue(value: R, lastUpdated: Long) {
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }

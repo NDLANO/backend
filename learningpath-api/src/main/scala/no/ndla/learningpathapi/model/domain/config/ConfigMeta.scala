@@ -33,7 +33,8 @@ case class ConfigMeta(
           case Failure(_) =>
             val validationMessage = ValidationMessage(
               "value",
-              s"Value of '${ConfigKey.IsWriteRestricted.entryName}' must be a boolean string ('true' or 'false')")
+              s"Value of '${ConfigKey.IsWriteRestricted.entryName}' must be a boolean string ('true' or 'false')"
+            )
             Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
         }
       // Add case here for validation for new ConfigKeys
@@ -46,7 +47,7 @@ object ConfigMeta extends SQLSyntaxSupport[ConfigMeta] {
     Json4s.serializer(ConfigKey) ++
     org.json4s.ext.JodaTimeSerializers.all
 
-  override val tableName = "configtable"
+  override val tableName  = "configtable"
   override val schemaName = Some(LearningpathApiProperties.MetaSchema)
 
   def apply(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): ConfigMeta = apply(c.resultName)(rs)

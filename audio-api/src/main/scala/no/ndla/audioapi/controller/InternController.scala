@@ -80,7 +80,7 @@ trait InternController {
     }
 
     get("/dump/audio/") {
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       readService.getMetaAudioDomainDump(pageNo, pageSize)
     }

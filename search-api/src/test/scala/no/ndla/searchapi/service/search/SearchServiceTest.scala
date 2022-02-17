@@ -22,7 +22,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val service: SearchService = new SearchService {
     override val searchIndex = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices: List[IndexService[_]] = List(draftIndexService, learningPathIndexService)
+    override val indexServices: List[IndexService[_]]     = List(draftIndexService, learningPathIndexService)
     override protected def scheduleIndexDocuments(): Unit = {}
   }
 
@@ -32,7 +32,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
       Seq(
         termsAgg("draftStatus.current", "draftStatus.current")
           .size(50)
-      ))
+      )
+    )
   }
 
   test("That building nested termsAggregation works as expected") {
@@ -41,7 +42,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
       Seq(
         nestedAggregation("contexts", "contexts").subAggregations(
           termsAgg("contextType", "contexts.contextType").size(50)
-        )))
+        )
+      )
+    )
   }
 
   test("That building nested multiple layers termsAggregation works as expected") {
@@ -70,9 +73,10 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
               .subAggregations(
                 termsAgg("id", "contexts.resourceTypes.id").size(50)
               ),
-            termsAgg("contextType", "contexts.contextType").size(50),
+            termsAgg("contextType", "contexts.contextType").size(50)
           )
-      ))
+      )
+    )
   }
 
   test("That building multiple termsAggregation works as expected") {
@@ -89,9 +93,10 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
               .subAggregations(
                 termsAgg("id", "contexts.resourceTypes.id").size(50)
               ),
-            termsAgg("contextType", "contexts.contextType").size(50),
+            termsAgg("contextType", "contexts.contextType").size(50)
           )
-      ))
+      )
+    )
   }
 
   test("that passing in an empty list does not crash even though it shouldnt happen") {

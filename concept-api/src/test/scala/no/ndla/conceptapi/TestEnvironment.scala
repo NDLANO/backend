@@ -65,32 +65,32 @@ trait TestEnvironment
     with Clock
     with User {
 
-  val draftConceptRepository = mock[DraftConceptRepository]
+  val draftConceptRepository     = mock[DraftConceptRepository]
   val publishedConceptRepository = mock[PublishedConceptRepository]
 
-  val draftConceptController = mock[DraftConceptController]
+  val draftConceptController     = mock[DraftConceptController]
   val publishedConceptController = mock[PublishedConceptController]
 
-  val searchConverterService = mock[SearchConverterService]
-  val draftConceptIndexService = mock[DraftConceptIndexService]
-  val draftConceptSearchService = mock[DraftConceptSearchService]
-  val publishedConceptIndexService = mock[PublishedConceptIndexService]
+  val searchConverterService        = mock[SearchConverterService]
+  val draftConceptIndexService      = mock[DraftConceptIndexService]
+  val draftConceptSearchService     = mock[DraftConceptSearchService]
+  val publishedConceptIndexService  = mock[PublishedConceptIndexService]
   val publishedConceptSearchService = mock[PublishedConceptSearchService]
 
-  var e4sClient = mock[NdlaE4sClient]
-  val lazyLogging = mock[LazyLogging]
-  val mockitoSugar = mock[MockitoSugar]
-  val dataSource = mock[HikariDataSource]
-  val writeService = mock[WriteService]
-  val readService = mock[ReadService]
+  var e4sClient        = mock[NdlaE4sClient]
+  val lazyLogging      = mock[LazyLogging]
+  val mockitoSugar     = mock[MockitoSugar]
+  val dataSource       = mock[HikariDataSource]
+  val writeService     = mock[WriteService]
+  val readService      = mock[ReadService]
   val converterService = mock[ConverterService]
   val contentValidator = mock[ContentValidator]
-  val clock = mock[SystemClock]
-  val user = mock[User]
-  val importService = mock[ImportService]
+  val clock            = mock[SystemClock]
+  val user             = mock[User]
+  val importService    = mock[ImportService]
 
-  val ndlaClient = mock[NdlaClient]
+  val ndlaClient       = mock[NdlaClient]
   val articleApiClient = mock[ArticleApiClient]
-  val imageApiClient = mock[ImageApiClient]
+  val imageApiClient   = mock[ImageApiClient]
 
 }

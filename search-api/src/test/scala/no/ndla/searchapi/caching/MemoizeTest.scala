@@ -22,7 +22,7 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That an uncached value will do an actual call") {
-    val targetMock = mock[Target]
+    val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](10000, targetMock.targetMethod _)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
@@ -31,7 +31,7 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That a cached value will not forward the call to the target") {
-    val targetMock = mock[Target]
+    val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](10000, targetMock.targetMethod _)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
@@ -43,8 +43,8 @@ class MemoizeTest extends UnitSuite {
 
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 500
-    val targetMock = mock[Target]
-    val memoizedTarget = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _)
+    val targetMock      = mock[Target]
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -58,7 +58,7 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That calling slow function twice will wait for first to finish and only call target once") {
-    val targetMock = mock[Target]
+    val targetMock     = mock[Target]
     val memoizedTarged = new Memoize[String](10000, targetMock.slowTargetMethod _)
 
     when(targetMock.slowTargetMethod()).thenCallRealMethod()

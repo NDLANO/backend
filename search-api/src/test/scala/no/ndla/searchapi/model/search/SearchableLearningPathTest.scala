@@ -28,12 +28,14 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
         LanguageValue("en", "I'm in my mums car wroomwroom")
-      ))
+      )
+    )
 
     val tags = SearchableLanguageList(
       Seq(
         LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      ))
+      )
+    )
 
     val learningsteps = List(
       SearchableLearningStep(
@@ -67,8 +69,10 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       tags = tags,
       learningsteps = learningsteps,
-      copyright = Copyright(License("by-sa", Some("bysasaa"), None),
-                            Seq(Author("Supplier", "Jonas"), Author("Originator", "Kakemonsteret"))),
+      copyright = Copyright(
+        License("by-sa", Some("bysasaa"), None),
+        Seq(Author("Supplier", "Jonas"), Author("Originator", "Kakemonsteret"))
+      ),
       isBasedOn = Some(1001),
       supportedLanguages = List("nb", "en", "nn"),
       authors = List("Yap"),
@@ -77,7 +81,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       license = "by-sa"
     )
 
-    val json = write(original)
+    val json         = write(original)
     val deserialized = read[SearchableLearningPath](json)
 
     deserialized should be(original)

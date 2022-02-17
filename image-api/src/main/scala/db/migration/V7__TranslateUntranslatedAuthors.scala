@@ -36,13 +36,15 @@ class V7__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
   }
 
   def toNewAuthorType(author: V5_Author): V5_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+    val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+    val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (
+      creatorMap(author.`type`.toLowerCase),
+      processorMap(author.`type`.toLowerCase),
+      rightsholderMap(author.`type`.toLowerCase)
+    ) match {
       case (t: String, _, _) => V5_Author(t.capitalize, author.name)
       case (_, t: String, _) => V5_Author(t.capitalize, author.name)
       case (_, _, t: String) => V5_Author(t.capitalize, author.name)
@@ -53,13 +55,14 @@ class V7__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLoggin
   def updateAuthorFormat(id: Long, metaString: String): V6_ImageMetaInformation = {
     val meta = read[V6_ImageMetaInformation](metaString)
 
-    val creators = meta.copyright.creators.map(toNewAuthorType)
-    val processors = meta.copyright.processors.map(toNewAuthorType)
+    val creators      = meta.copyright.creators.map(toNewAuthorType)
+    val processors    = meta.copyright.processors.map(toNewAuthorType)
     val rightsholders = meta.copyright.rightsholders.map(toNewAuthorType)
 
-    meta.copy(Some(id),
-              copyright =
-                meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders))
+    meta.copy(
+      Some(id),
+      copyright = meta.copyright.copy(creators = creators, processors = processors, rightsholders = rightsholders)
+    )
   }
 
   def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession) = {

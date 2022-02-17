@@ -13,8 +13,8 @@ import scala.util.{Failure, Success, Try}
 case class Layout(`type`: LayoutType.Value)
 
 object LayoutType extends Enumeration {
-  val Single: LayoutType.Value = Value("single")
-  val Double: LayoutType.Value = Value("double")
+  val Single: LayoutType.Value  = Value("single")
+  val Double: LayoutType.Value  = Value("double")
   val Stacked: LayoutType.Value = Value("stacked")
 
   def fromString(string: String): Try[LayoutType.Value] =

@@ -193,9 +193,11 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   test("That fetching feide user does happen token is supplied") {
     reset(multiSearchService)
-    val teacheruser = FeideExtendedUserInfo(displayName = "Johnny Bravo",
-                                            eduPersonAffiliation = Seq("employee", "staff"),
-                                            eduPersonPrimaryAffiliation = "employee")
+    val teacheruser = FeideExtendedUserInfo(
+      displayName = "Johnny Bravo",
+      eduPersonAffiliation = Seq("employee", "staff"),
+      eduPersonPrimaryAffiliation = "employee"
+    )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(feideApiClient.getUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
@@ -208,7 +210,8 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
         availability = List(
           Availability.everyone,
           Availability.teacher
-        ))
+        )
+      )
       status should be(200)
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     }

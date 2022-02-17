@@ -22,4 +22,5 @@ case class Copyright(
     @(ApiModelProperty @field)(description = "List of rightsholders") rightsholders: Seq[Author],
     @(ApiModelProperty @field)(description = "Reference to agreement id") agreementId: Option[Long],
     @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[Date],
-    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[Date])
+    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[Date]
+)

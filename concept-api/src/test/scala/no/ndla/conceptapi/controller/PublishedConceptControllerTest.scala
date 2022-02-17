@@ -17,12 +17,12 @@ import scala.util.{Failure, Success}
 
 class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  implicit val swagger = new ConceptSwagger
-  lazy val controller = new PublishedConceptController
+  implicit val swagger                      = new ConceptSwagger
+  lazy val controller                       = new PublishedConceptController
   addServlet(controller, "/test")
 
   val conceptId = 1
-  val lang = "nb"
+  val lang      = "nb"
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 

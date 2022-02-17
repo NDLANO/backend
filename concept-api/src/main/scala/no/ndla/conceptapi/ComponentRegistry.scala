@@ -52,33 +52,33 @@ object ComponentRegistry
     with ImageApiClient
     with NdlaClient {
 
-  lazy val draftConceptController = new DraftConceptController
+  lazy val draftConceptController     = new DraftConceptController
   lazy val publishedConceptController = new PublishedConceptController
-  lazy val healthController = new HealthController
-  lazy val internController = new InternController
+  lazy val healthController           = new HealthController
+  lazy val internController           = new InternController
 
-  lazy val draftConceptRepository = new DraftConceptRepository
+  lazy val draftConceptRepository     = new DraftConceptRepository
   lazy val publishedConceptRepository = new PublishedConceptRepository
 
-  lazy val draftConceptSearchService = new DraftConceptSearchService
-  lazy val searchConverterService = new SearchConverterService
-  lazy val draftConceptIndexService = new DraftConceptIndexService
-  lazy val publishedConceptIndexService = new PublishedConceptIndexService
+  lazy val draftConceptSearchService     = new DraftConceptSearchService
+  lazy val searchConverterService        = new SearchConverterService
+  lazy val draftConceptIndexService      = new DraftConceptIndexService
+  lazy val publishedConceptIndexService  = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
 
-  lazy val ndlaClient = new NdlaClient
+  lazy val ndlaClient       = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient
-  lazy val imageApiClient = new ImageApiClient
+  lazy val imageApiClient   = new ImageApiClient
 
   lazy val importService = new ImportService
 
-  lazy val writeService = new WriteService
-  lazy val readService = new ReadService
+  lazy val writeService     = new WriteService
+  lazy val readService      = new ReadService
   lazy val converterService = new ConverterService
-  lazy val user = new User
-  lazy val clock = new SystemClock
+  lazy val user             = new User
+  lazy val clock            = new SystemClock
   lazy val contentValidator = new ContentValidator
 
   def connectToDatabase(): Unit =

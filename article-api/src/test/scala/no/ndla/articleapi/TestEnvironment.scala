@@ -50,29 +50,29 @@ trait TestEnvironment
     with Role {
 
   val articleSearchService = mock[ArticleSearchService]
-  val articleIndexService = mock[ArticleIndexService]
+  val articleIndexService  = mock[ArticleIndexService]
 
-  val internController = mock[InternController]
+  val internController    = mock[InternController]
   val articleControllerV2 = mock[ArticleControllerV2]
 
   val healthController = mock[HealthController]
 
-  val dataSource = mock[HikariDataSource]
+  val dataSource        = mock[HikariDataSource]
   val articleRepository = mock[ArticleRepository]
 
   val converterService = mock[ConverterService]
-  val readService = mock[ReadService]
-  val writeService = mock[WriteService]
+  val readService      = mock[ReadService]
+  val writeService     = mock[WriteService]
   val contentValidator = mock[ContentValidator]
 
-  val ndlaClient = mock[NdlaClient]
+  val ndlaClient             = mock[NdlaClient]
   val searchConverterService = mock[SearchConverterService]
-  var e4sClient = mock[NdlaE4sClient]
-  val draftApiClient = mock[DraftApiClient]
-  val searchApiClient = mock[SearchApiClient]
-  val feideApiClient = mock[FeideApiClient]
+  var e4sClient              = mock[NdlaE4sClient]
+  val draftApiClient         = mock[DraftApiClient]
+  val searchApiClient        = mock[SearchApiClient]
+  val feideApiClient         = mock[FeideApiClient]
 
-  val clock = mock[SystemClock]
+  val clock    = mock[SystemClock]
   val authUser = mock[AuthUser]
   val authRole = new AuthRole
 }

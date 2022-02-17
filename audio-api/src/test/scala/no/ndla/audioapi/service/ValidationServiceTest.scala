@@ -23,8 +23,8 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   }
 
   val audioType: AudioType.Value = AudioType.Podcast
-  val enCoverPhoto: CoverPhoto = CoverPhoto("1", "alt")
-  val nbCoverPhoto: CoverPhoto = CoverPhoto("2", "alt")
+  val enCoverPhoto: CoverPhoto   = CoverPhoto("1", "alt")
+  val nbCoverPhoto: CoverPhoto   = CoverPhoto("2", "alt")
   val meta = Seq(PodcastMeta("intro", enCoverPhoto, "en"), PodcastMeta("intro", nbCoverPhoto, "nb"))
 
   test("validatePodcastMeta is empty when cover photo is squared") {
@@ -60,8 +60,8 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateLanguage approves all kinds of languages") {
-    val nbTag = Tag(Seq("Tag1", "Tag2"), "nb")
-    val nnTag = Tag(Seq("Tag1", "Tag2"), "nn")
+    val nbTag  = Tag(Seq("Tag1", "Tag2"), "nb")
+    val nnTag  = Tag(Seq("Tag1", "Tag2"), "nn")
     val undTag = Tag(Seq("Tag1", "Tag2"), "und")
     val result = validationService.validateTags(Seq(nbTag, nnTag, undTag), Seq.empty)
 
@@ -91,10 +91,15 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
 
   test("validateCopyright should fail if no copyright holders are provided") {
     val copyright = Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, None)
-    val result = validationService.validateCopyright(copyright)
+    val result    = validationService.validateCopyright(copyright)
     result.length should be(1)
     result should be(
-      Seq(ValidationMessage("license.license",
-                            s"At least one copyright holder is required when license is ${CC_BY.toString}")))
+      Seq(
+        ValidationMessage(
+          "license.license",
+          s"At least one copyright holder is required when license is ${CC_BY.toString}"
+        )
+      )
+    )
   }
 }

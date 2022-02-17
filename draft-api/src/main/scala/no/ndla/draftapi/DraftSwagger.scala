@@ -41,12 +41,15 @@ object DraftApiInfo {
 class DraftSwagger extends Swagger("2.0", "1.0", DraftApiInfo.apiInfo) {
 
   private def writeRolesInTest: List[String] = {
-    val writeRoles = List(DraftApiProperties.DraftRoleWithWriteAccess,
-                          DraftApiProperties.DraftRoleWithPublishAccess,
-                          DraftApiProperties.ArticleRoleWithPublishAccess)
+    val writeRoles = List(
+      DraftApiProperties.DraftRoleWithWriteAccess,
+      DraftApiProperties.DraftRoleWithPublishAccess,
+      DraftApiProperties.ArticleRoleWithPublishAccess
+    )
     writeRoles.map(_.replace(":", "-test:"))
   }
 
   addAuthorization(
-    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(DraftApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(DraftApiProperties.Auth0LoginEndpoint), "access_token")))
+  )
 }

@@ -7,8 +7,10 @@
 
 package no.ndla.draftapi.model.domain
 
-case class LanguagelessSearchResult[T](totalCount: Long,
-                                       page: Option[Int],
-                                       pageSize: Int,
-                                       results: Seq[T],
-                                       scrollId: Option[String])
+case class LanguagelessSearchResult[T](
+    totalCount: Long,
+    page: Option[Int],
+    pageSize: Int,
+    results: Seq[T],
+    scrollId: Option[String]
+)

@@ -10,10 +10,9 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
 import com.sksamuel.elastic4s.ElasticDsl._
 
-/**
-  * [[FakeAgg]] and inheriting classes are an abstraction to easier work with Elastic4s' Aggregations
-  * They are usually used by calling `convertToReal()` which returns the real Elasitc4s [[Aggregation]]
-  * And then passing them to an aggregating search.
+/** [[FakeAgg]] and inheriting classes are an abstraction to easier work with Elastic4s' Aggregations They are usually
+  * used by calling `convertToReal()` which returns the real Elasitc4s [[Aggregation]] And then passing them to an
+  * aggregating search.
   */
 sealed trait FakeAgg {
   val name: String
@@ -23,7 +22,8 @@ sealed trait FakeAgg {
   def convertToReal(): Aggregation
 
   /** Attempts to merge `toMerge` into `this` [[FakeAgg]].
-    * @return Some(FakeAgg) if merge was successful, None if not.
+    * @return
+    *   Some(FakeAgg) if merge was successful, None if not.
     */
   def merge(toMerge: FakeAgg): Option[FakeAgg] = {
     if (toMerge.name == this.name && toMerge.getClass == this.getClass) {
@@ -41,7 +41,7 @@ sealed trait FakeAgg {
             .collectFirst { case (Some(mergedAgg), idx) => (mergedAgg, idx) }
 
           val newMergedLSubs = mergedIdxes ++ merged.map(_._2).toSeq
-          val mergedAggs = result :+ merged.map(_._1).getOrElse(thisSub)
+          val mergedAggs     = result :+ merged.map(_._1).getOrElse(thisSub)
 
           newMergedLSubs -> mergedAggs
         })
@@ -56,16 +56,10 @@ sealed trait FakeAgg {
 
 object FakeAgg {
 
-  /**
-    * Converts sequence of aggregations into one aggregation with subaggregations
-    * @example    `Seq(FakeNestedAgg("a"), FakeNestedAgg("b"), "FakeTermAgg("c"))` will become:
-    *             Some(
-    *               FakeNestedAgg("a", subAggregations = Seq(
-    *                 FakeNestedAgg("b", subAggregations = Seq(
-    *                   FakeTermAgg("c")
-    *                 ))
-    *               ))
-    *             )
+  /** Converts sequence of aggregations into one aggregation with subaggregations
+    * @example
+    *   `Seq(FakeNestedAgg("a"), FakeNestedAgg("b"), "FakeTermAgg("c"))` will become: Some( FakeNestedAgg("a",
+    *   subAggregations = Seq( FakeNestedAgg("b", subAggregations = Seq( FakeTermAgg("c") )) )) )
     */
   def seqAggsToSubAggs(aggs: Seq[FakeAgg]): Option[FakeAgg] =
     aggs.reverse.foldLeft(None: Option[FakeAgg])((acc, cur) => {

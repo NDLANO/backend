@@ -70,8 +70,9 @@ trait UserDataRepository {
       userDataWhere(sqls"ud.user_id=$userId")
   }
 
-  private def userDataWhere(whereClause: SQLSyntax)(
-      implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
+  private def userDataWhere(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
     val ud = UserData.syntax("ud")
     sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause"
       .map(UserData.fromResultSet(ud))

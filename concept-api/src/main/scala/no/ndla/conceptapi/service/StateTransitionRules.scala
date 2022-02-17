@@ -94,16 +94,18 @@ trait StateTransitionRules {
           val containsIllegalStatuses = current.status.other.intersect(t.illegalStatuses)
           if (containsIllegalStatuses.nonEmpty) {
             val illegalStateTransition = IllegalStatusStateTransition(
-              s"Cannot go to $to when concept contains $containsIllegalStatuses")
+              s"Cannot go to $to when concept contains $containsIllegalStatuses"
+            )
             return (Failure(illegalStateTransition), SideEffect.fromOutput(Failure(illegalStateTransition)))
           }
-          val other = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
-          val newStatus = domain.Status(to, other)
+          val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
+          val newStatus        = domain.Status(to, other)
           val convertedArticle = current.copy(status = newStatus)
           (Success(convertedArticle), t.sideEffect)
         case None =>
           val illegalStateTransition = IllegalStatusStateTransition(
-            s"Cannot go to $to when concept is ${current.status.current}")
+            s"Cannot go to $to when concept is ${current.status.current}"
+          )
           (Failure(illegalStateTransition), SideEffect.fromOutput(Failure(illegalStateTransition)))
       }
     }

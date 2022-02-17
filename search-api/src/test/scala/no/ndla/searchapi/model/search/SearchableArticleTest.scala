@@ -28,30 +28,35 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
         LanguageValue("en", "I'm in my mums car wroomwroom")
-      ))
+      )
+    )
 
     val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
 
     val introductions = SearchableLanguageValues(
       Seq(
         LanguageValue("en", "Wroom wroom")
-      ))
+      )
+    )
 
     val metaDescriptions = SearchableLanguageValues(
       Seq(
         LanguageValue("nb", "Mammas bil")
-      ))
+      )
+    )
 
     val tags = SearchableLanguageList(
       Seq(
         LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      ))
+      )
+    )
 
     val embedAttrs = SearchableLanguageList(
       Seq(
         LanguageValue("nb", Seq("En norsk", "To norsk")),
         LanguageValue("en", Seq("One english"))
-      ))
+      )
+    )
 
     val embedResourcesAndIds =
       List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
@@ -81,14 +86,15 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone"
     )
-    val json = write(original)
+    val json         = write(original)
     val deserialized = read[SearchableArticle](json)
 
     deserialized should be(original)
   }
 
   test(
-    "That serializing a SearchableArticle with null values to json and deserializing back does not throw an exception") {
+    "That serializing a SearchableArticle with null values to json and deserializing back does not throw an exception"
+  ) {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val titles =
@@ -99,30 +105,35 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
         LanguageValue("en", "I'm in my mums car wroomwroom")
-      ))
+      )
+    )
 
     val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
 
     val introductions = SearchableLanguageValues(
       Seq(
         LanguageValue("en", "Wroom wroom")
-      ))
+      )
+    )
 
     val metaDescriptions = SearchableLanguageValues(
       Seq(
         LanguageValue("nb", "Mammas bil")
-      ))
+      )
+    )
 
     val tags = SearchableLanguageList(
       Seq(
         LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      ))
+      )
+    )
 
     val embedAttrs = SearchableLanguageList(
       Seq(
         LanguageValue("nb", Seq("En norsk", "To norsk")),
         LanguageValue("en", Seq("One english"))
-      ))
+      )
+    )
 
     val embedResourcesAndIds =
       List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
@@ -153,7 +164,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone"
     )
 
-    val json = write(original)
+    val json         = write(original)
     val deserialized = read[SearchableArticle](json)
 
     val expected = original.copy(

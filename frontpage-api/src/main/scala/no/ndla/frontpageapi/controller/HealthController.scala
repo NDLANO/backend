@@ -14,7 +14,7 @@ import org.http4s.dsl.io._
 
 object HealthController {
 
-  def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root => Ok("Health check succeeded")
+  def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+    Ok("Health check succeeded")
   }
 }

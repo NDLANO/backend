@@ -34,9 +34,9 @@ case class TaxonomyBundle(
   val subjectTopicConnectionsByTopicId: Map[String, List[SubjectTopicConnection]] =
     subjectTopicConnections.groupBy(_.topicid)
 
-  val topicById: Map[String, Topic] = Map.from(topics.map(t => t.id -> t))
-  val resourceById: Map[String, Resource] = Map.from(resources.map(r => r.id -> r))
-  val subjectsById: Map[String, TaxSubject] = Map.from(subjects.map(s => s.id -> s))
+  val topicById: Map[String, Topic]          = Map.from(topics.map(t => t.id -> t))
+  val resourceById: Map[String, Resource]    = Map.from(resources.map(r => r.id -> r))
+  val subjectsById: Map[String, TaxSubject]  = Map.from(subjects.map(s => s.id -> s))
   val relevancesById: Map[String, Relevance] = Map.from(relevances.map(r => r.id -> r))
 
   val topicsByContentUri: Map[String, List[Topic]] = {
@@ -49,11 +49,12 @@ case class TaxonomyBundle(
     contentUriToResources.groupMap(_._1)(_._2)
   }
 
-  /**
-    * Returns a flattened list of resourceType with its subtypes
+  /** Returns a flattened list of resourceType with its subtypes
     *
-    * @param resourceType A resource with subtypes
-    * @return Flattened list of resourceType with subtypes.
+    * @param resourceType
+    *   A resource with subtypes
+    * @return
+    *   Flattened list of resourceType with subtypes.
     */
   private def getTypeAndSubtypes(resourceType: ResourceType): List[ResourceType] = {
     def getTypeAndSubtypesWithParent(resourceType: ResourceType, parents: List[ResourceType]): List[ResourceType] = {
@@ -66,15 +67,18 @@ case class TaxonomyBundle(
     getTypeAndSubtypesWithParent(resourceType, List.empty)
   }
 
-  /**
-    * Returns every parent of resourceType.
+  /** Returns every parent of resourceType.
     *
-    * @param resourceType ResourceType to derive parents for.
-    * @return List of parents including resourceType.
+    * @param resourceType
+    *   ResourceType to derive parents for.
+    * @return
+    *   List of parents including resourceType.
     */
   def getResourceTypeParents(resourceType: ResourceType): List[ResourceType] = {
-    def allTypesWithParents(allTypes: List[ResourceType],
-                            parents: List[ResourceType]): List[(ResourceType, List[ResourceType])] = {
+    def allTypesWithParents(
+        allTypes: List[ResourceType],
+        parents: List[ResourceType]
+    ): List[(ResourceType, List[ResourceType])] = {
       allTypes.flatMap(resourceType => {
         val thisLevelWithParents = allTypes.map(resourceType => (resourceType, parents))
 
@@ -88,7 +92,7 @@ case class TaxonomyBundle(
     allTypesWithParents(resourceTypes, List.empty).filter(x => x._1 == resourceType).flatMap(_._2).distinct
   }
 
-  val allResourceTypes: List[ResourceType] = resourceTypes.flatMap(rt => getTypeAndSubtypes(rt))
+  val allResourceTypes: List[ResourceType]            = resourceTypes.flatMap(rt => getTypeAndSubtypes(rt))
   val allResourceTypesById: Map[String, ResourceType] = Map.from(allResourceTypes.map(rt => rt.id -> rt))
 
   val resourceTypeParentsByResourceTypeId: Map[String, List[ResourceType]] = {

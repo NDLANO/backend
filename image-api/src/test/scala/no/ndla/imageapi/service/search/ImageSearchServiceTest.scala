@@ -38,7 +38,7 @@ class ImageSearchServiceTest
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val searchConverterService = new SearchConverterService
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val imageIndexService: ImageIndexService = new ImageIndexService {
     override val indexShards = 1
   }
@@ -49,33 +49,39 @@ class ImageSearchServiceTest
   val largeImage = Image("large-full-url", 10000, "jpg")
   val smallImage = Image("small-full-url", 100, "jpg")
 
-  val byNcSa = Copyright(CC_BY_NC_SA.toString,
-                         "Gotham City",
-                         List(Author("Forfatter", "DC Comics")),
-                         List(),
-                         List(),
-                         None,
-                         None,
-                         None)
+  val byNcSa = Copyright(
+    CC_BY_NC_SA.toString,
+    "Gotham City",
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val publicDomain = Copyright(PublicDomain.toString,
-                               "Metropolis",
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               List(),
-                               List(),
-                               None,
-                               None,
-                               None)
+  val publicDomain = Copyright(
+    PublicDomain.toString,
+    "Metropolis",
+    List(Author("Forfatter", "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val agreement1Copyright = api.Copyright(api.License("gnu", "gnustuff", Some("http://gnugnusen")),
-                                          "Simsalabim",
-                                          List(),
-                                          List(),
-                                          List(),
-                                          None,
-                                          None,
-                                          None)
+  val agreement1Copyright = api.Copyright(
+    api.License("gnu", "gnustuff", Some("http://gnugnusen")),
+    "Simsalabim",
+    List(),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val image1 = ImageMetaInformation(
     Some(1),
@@ -151,9 +157,11 @@ class ImageSearchServiceTest
 
   val image5 = ImageMetaInformation(
     Some(5),
-    List(ImageTitle("Dette er et urelatert bilde", "und"),
-         ImageTitle("This is a unrelated photo", "en"),
-         ImageTitle("Nynoreg", "nn")),
+    List(
+      ImageTitle("Dette er et urelatert bilde", "und"),
+      ImageTitle("This is a unrelated photo", "en"),
+      ImageTitle("Nynoreg", "nn")
+    ),
     Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
     smallImage.fileName,
     smallImage.size,
@@ -205,19 +213,22 @@ class ImageSearchServiceTest
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     imageSearchService invokePrivate getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
-    val pageSize = 43
+    val page            = 123
+    val pageSize        = 43
     val expectedStartAt = (page - 1) * pageSize
     imageSearchService invokePrivate getStartAtAndNumResults(Some(page), Some(pageSize)) should equal(
-      (expectedStartAt, pageSize))
+      (expectedStartAt, pageSize)
+    )
   }
 
   test("That all returns all documents ordered by id ascending") {
@@ -268,14 +279,15 @@ class ImageSearchServiceTest
   test("That both minimum-size and license filters are applied.") {
     val Success(searchResult) =
       imageSearchService.matchingQuery(
-        searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString)))
+        searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString))
+      )
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
   }
 
   test("That search matches title and alttext ordered by relevance") {
-    val res = imageSearchService.matchingQuery(searchSettings.copy(query = Some("bil")))
+    val res                   = imageSearchService.matchingQuery(searchSettings.copy(query = Some("bil")))
     val Success(searchResult) = res
     searchResult.totalCount should be(2)
     searchResult.results.size should be(2)
@@ -339,7 +351,8 @@ class ImageSearchServiceTest
           language = Some("nb"),
           page = Some(1),
           pageSize = Some(10)
-        ))
+        )
+      )
     search1.results.map(_.id) should equal(Seq("1", "3"))
 
     val Success(search2) = imageSearchService.matchingQuery(
@@ -348,7 +361,8 @@ class ImageSearchServiceTest
         language = Some("nb"),
         page = Some(1),
         pageSize = Some(10)
-      ))
+      )
+    )
     search2.results.map(_.id) should equal(Seq("1", "2"))
 
     val Success(search3) = imageSearchService.matchingQuery(
@@ -357,7 +371,8 @@ class ImageSearchServiceTest
         language = Some("nb"),
         page = Some(1),
         pageSize = Some(10)
-      ))
+      )
+    )
     search3.results.map(_.id) should equal(Seq("2", "3"))
 
     val Success(search4) = imageSearchService.matchingQuery(
@@ -366,7 +381,8 @@ class ImageSearchServiceTest
         language = Some("nb"),
         page = Some(1),
         pageSize = Some(10)
-      ))
+      )
+    )
     search4.results.map(_.id) should equal(Seq("1"))
   }
 
@@ -384,7 +400,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         query = Some("urelatert"),
         language = Some("*")
-      ))
+      )
+    )
     searchResult1.totalCount should be(1)
     searchResult1.results.size should be(1)
     searchResult1.results.head.id should be("5")
@@ -396,7 +413,8 @@ class ImageSearchServiceTest
         query = Some("unrelated"),
         language = Some("*"),
         sort = Sort.ByTitleDesc
-      ))
+      )
+    )
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -407,8 +425,9 @@ class ImageSearchServiceTest
   test("Searching for unused languages should returned nothing") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("ait") //Arikem
-      ))
+        language = Some("ait") // Arikem
+      )
+    )
     searchResult1.totalCount should be(0)
   }
 
@@ -416,8 +435,9 @@ class ImageSearchServiceTest
     val Success(searchResult) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("unrelated"),
-        language = Some("en"),
-      ))
+        language = Some("en")
+      )
+    )
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("5")
@@ -427,8 +447,9 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("nynoreg"),
-        language = Some("nn"),
-      ))
+        language = Some("nn")
+      )
+    )
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -440,8 +461,9 @@ class ImageSearchServiceTest
     val Success(result) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("nynoreg"),
-        language = Some("nn"),
-      ))
+        language = Some("nn")
+      )
+    )
     result.totalCount should be(1)
     result.results.size should be(1)
 
@@ -449,14 +471,15 @@ class ImageSearchServiceTest
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List("1", "2", "3", "4", "5").sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQuery(
       searchSettings.copy(
         pageSize = Some(pageSize),
         shouldScroll = true
-      ))
+      )
+    )
 
     val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
     val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
@@ -473,7 +496,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("nb"),
         sort = Sort.ByTitleDesc
-      ))
+      )
+    )
 
     searchResult1.results.map(_.id) should be(Seq("2", "3", "1"))
   }
@@ -483,8 +507,9 @@ class ImageSearchServiceTest
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("lillehjelper"),
-        language = Some("*"),
-      ))
+        language = Some("*")
+      )
+    )
 
     searchResult1.results.map(_.id) should be(Seq())
 
@@ -492,8 +517,9 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("lillehjelper"),
-        language = Some("*"),
-      ))
+        language = Some("*")
+      )
+    )
 
     searchResult2.results.map(_.id) should be(Seq("2"))
   }
@@ -504,7 +530,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("*"),
         modelReleased = Seq(NO)
-      ))
+      )
+    )
 
     searchResult1.results.map(_.id) should be(Seq("1"))
 
@@ -512,7 +539,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("*"),
         modelReleased = Seq(NOT_APPLICABLE)
-      ))
+      )
+    )
 
     searchResult2.results.map(_.id) should be(Seq("2"))
 
@@ -520,7 +548,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("*"),
         modelReleased = Seq(YES)
-      ))
+      )
+    )
 
     searchResult3.results.map(_.id) should be(Seq("3", "4", "5"))
 
@@ -528,7 +557,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("*"),
         modelReleased = Seq.empty
-      ))
+      )
+    )
 
     searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5"))
 
@@ -536,7 +566,8 @@ class ImageSearchServiceTest
       searchSettings.copy(
         language = Some("*"),
         modelReleased = Seq(NO, NOT_APPLICABLE)
-      ))
+      )
+    )
 
     searchResult5.results.map(_.id) should be(Seq("1", "2"))
 
@@ -553,7 +584,7 @@ class ImageSearchServiceTest
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

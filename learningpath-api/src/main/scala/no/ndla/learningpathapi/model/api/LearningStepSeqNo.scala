@@ -14,4 +14,5 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Information about the sequence number for a step")
 case class LearningStepSeqNo(
-    @(ApiModelProperty @field)(description = "The sequence number for the learningstep") seqNo: Int)
+    @(ApiModelProperty @field)(description = "The sequence number for the learningstep") seqNo: Int
+)

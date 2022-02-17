@@ -17,26 +17,28 @@ import scalikejdbc.{WrappedResultSet, _}
 
 import scala.util.Try
 
-case class SubjectFrontPageData(id: Option[Long],
-                                name: String,
-                                filters: Option[List[String]],
-                                layout: LayoutType.Value,
-                                twitter: Option[String],
-                                facebook: Option[String],
-                                bannerImage: BannerImage,
-                                about: Seq[AboutSubject],
-                                metaDescription: Seq[MetaDescription],
-                                topical: Option[String],
-                                mostRead: List[String],
-                                editorsChoices: List[String],
-                                latestContent: Option[List[String]],
-                                goTo: List[String]) {
+case class SubjectFrontPageData(
+    id: Option[Long],
+    name: String,
+    filters: Option[List[String]],
+    layout: LayoutType.Value,
+    twitter: Option[String],
+    facebook: Option[String],
+    bannerImage: BannerImage,
+    about: Seq[AboutSubject],
+    metaDescription: Seq[MetaDescription],
+    topical: Option[String],
+    mostRead: List[String],
+    editorsChoices: List[String],
+    latestContent: Option[List[String]],
+    goTo: List[String]
+) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)
 }
 
 object SubjectFrontPageData extends SQLSyntaxSupport[SubjectFrontPageData] {
-  override val tableName = "subjectpage"
+  override val tableName                  = "subjectpage"
   override val schemaName: Option[String] = FrontpageApiProperties.MetaSchema.some
 
   implicit val layoutDecoder: Decoder[LayoutType.Value] = Decoder.decodeEnumeration(LayoutType)
@@ -50,7 +52,7 @@ object SubjectFrontPageData extends SQLSyntaxSupport[SubjectFrontPageData] {
     fromDb(lp.resultName)(rs)
 
   private def fromDb(lp: ResultName[SubjectFrontPageData])(rs: WrappedResultSet): Try[SubjectFrontPageData] = {
-    val id = rs.long(lp.c("id"))
+    val id       = rs.long(lp.c("id"))
     val document = rs.string(lp.c("document"))
 
     decodeJson(document, id)

@@ -61,7 +61,7 @@ class DraftApiProviderCDCTest
   }
 
   var server: Option[Server] = None
-  val serverPort: Int = findFreePort
+  val serverPort: Int        = findFreePort
 
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
@@ -91,7 +91,8 @@ class DraftApiProviderCDCTest
             updated = new DateTime(0).toDate,
             created = new DateTime(0).toDate,
             published = new DateTime(0).toDate
-          ))
+          )
+        )
       })
 
   private def setupAgreements() =
@@ -115,7 +116,7 @@ class DraftApiProviderCDCTest
     } yield s"$shortCommit$dirtyness"
 
   test("That pacts from broker are working.", PactProviderTest) {
-    val isCI = envOrElse("CI", "false").toBoolean
+    val isCI          = envOrElse("CI", "false").toBoolean
     val isPullRequest = envOrElse("GITHUB_EVENT_NAME", "false") == "pull_request"
     val publishResults = if (isCI && !isPullRequest) {
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
@@ -127,14 +128,16 @@ class DraftApiProviderCDCTest
     )
 
     val broker = for {
-      url <- envOrNone("PACT_BROKER_URL")
+      url      <- envOrNone("PACT_BROKER_URL")
       username <- envOrNone("PACT_BROKER_USERNAME")
       password <- envOrNone("PACT_BROKER_PASSWORD")
-      broker <- pactBrokerWithTags(url,
-                                   "draft-api",
-                                   publishResults,
-                                   consumersToVerify,
-                                   Some(BasicAuthenticationCredentials(username, password)))
+      broker <- pactBrokerWithTags(
+        url,
+        "draft-api",
+        publishResults,
+        consumersToVerify,
+        Some(BasicAuthenticationCredentials(username, password))
+      )
     } yield broker
 
     withFrozenTime(new DateTime(0)) {

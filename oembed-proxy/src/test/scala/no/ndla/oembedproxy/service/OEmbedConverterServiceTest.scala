@@ -39,16 +39,21 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       Some(
-        """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+        """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+      )
     )
     val expectedResultTimeContinue = Some(
-      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&time_continue=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&time_continue=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+    )
     val expectedResultStart = Some(
-      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&start=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&start=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+    )
     val expectedResultT = Some(
-      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&t=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&t=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+    )
     val expectedResultStartEnd = Some(
-      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&start=43&end=58" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&start=43&end=58" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+    )
 
     OEmbedConverterService
       .addYoutubeTimestampIfdefinedInRequest(requestUrlWIthTimeContinue, oembed)
@@ -87,40 +92,49 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       Some(
-        """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+        """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+      )
     )
     val expectedResult = Some(
-      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&rel=0&time_continue=5" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>""")
+      """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&rel=0&time_continue=5" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
+    )
 
     OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrl, oembed).html should be(expectedResult)
   }
 
   test("handleYoutubeRequestUrl should strip all query params except 'v'") {
     OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/watch?start=1&v=123asdf") should equal(
-      "http://youtube.com/watch?v=123asdf")
+      "http://youtube.com/watch?v=123asdf"
+    )
     OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/watch?v=123asdf") should equal(
-      "http://youtube.com/watch?v=123asdf")
-    OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/watch?v=123asdf&;amptime_continue=43") should equal(
-      "http://youtube.com/watch?v=123asdf")
+      "http://youtube.com/watch?v=123asdf"
+    )
+    OEmbedConverterService.handleYoutubeRequestUrl(
+      "http://youtube.com/watch?v=123asdf&;amptime_continue=43"
+    ) should equal("http://youtube.com/watch?v=123asdf")
     OEmbedConverterService.handleYoutubeRequestUrl("notanurl") should equal("notanurl")
   }
 
   test("handleYoutubeRequestUrl should convert /embed and /v urls to youtu.be") {
     OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/embed/123asdf") should equal(
-      "https://youtu.be/123asdf")
+      "https://youtu.be/123asdf"
+    )
     OEmbedConverterService.handleYoutubeRequestUrl("http://youtube.com/v/123asdf") should equal(
-      "https://youtu.be/123asdf")
+      "https://youtu.be/123asdf"
+    )
   }
 
   test("removeQueryString should remove the query string from an url") {
     OEmbedConverterService.removeQueryString("https://google.com?search=hoho#firsthit") should equal(
-      "https://google.com#firsthit")
+      "https://google.com#firsthit"
+    )
     OEmbedConverterService.removeQueryString("notanurl") should equal("notanurl")
   }
 
   test("removeQueryStringAndFragment should remove the query string and fragment from an url") {
     OEmbedConverterService.removeQueryStringAndFragment("https://google.com?search=hoho#firsthit") should equal(
-      "https://google.com")
+      "https://google.com"
+    )
     OEmbedConverterService.removeQueryStringAndFragment("notanurl") should equal("notanurl")
   }
 

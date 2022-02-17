@@ -37,7 +37,7 @@ trait InternController {
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
-    protected val applicationDescription = "API for accessing internal functionality in draft API"
+    protected val applicationDescription                 = "API for accessing internal functionality in draft API"
     protected implicit override val jsonFormats: Formats = Concept.jsonEncoder
 
     post("/index") {
@@ -45,7 +45,7 @@ trait InternController {
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
       val aggregateFuture = for {
-        draftFuture <- Future(draftConceptIndexService.indexDocuments)
+        draftFuture     <- Future(draftConceptIndexService.indexDocuments)
         publishedFuture <- Future(publishedConceptIndexService.indexDocuments)
       } yield (draftFuture, publishedFuture)
 
@@ -73,7 +73,7 @@ trait InternController {
           logger.error("Could not find indexes to delete.")
           Failure(ex)
         case Success(indexesToDelete) =>
-          val deleted = indexesToDelete.map(index => indexService.deleteIndexWithName(Some(index)))
+          val deleted             = indexesToDelete.map(index => indexService.deleteIndexWithName(Some(index)))
           val (successes, errors) = deleted.partition(_.isSuccess)
           if (errors.nonEmpty) {
             val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
@@ -110,7 +110,7 @@ trait InternController {
     }
 
     get("/dump/draft-concept/") {
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getDraftConceptDomainDump(pageNo, pageSize)
@@ -125,7 +125,7 @@ trait InternController {
     }
 
     get("/dump/concept/") {
-      val pageNo = intOrDefault("page", 1)
+      val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getPublishedConceptDomainDump(pageNo, pageSize)
@@ -150,7 +150,7 @@ trait InternController {
     post("/import/concept") {
       UserInfo.get match {
         case Some(user) if user.canWrite =>
-          val start = System.currentTimeMillis
+          val start       = System.currentTimeMillis
           val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 
           importService.importConcepts(forceUpdate) match {

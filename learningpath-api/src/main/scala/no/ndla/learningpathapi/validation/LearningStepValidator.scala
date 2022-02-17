@@ -18,9 +18,9 @@ trait LearningStepValidator {
   val learningStepValidator: LearningStepValidator
 
   class LearningStepValidator {
-    val noHtmlTextValidator = new TextValidator(allowHtml = false)
+    val noHtmlTextValidator    = new TextValidator(allowHtml = false)
     val basicHtmlTextValidator = new TextValidator(allowHtml = true)
-    val urlValidator = new UrlValidator()
+    val urlValidator           = new UrlValidator()
 
     val MISSING_DESCRIPTION_OR_EMBED_URL =
       "A learningstep is required to have either a description, embedUrl or both."
@@ -49,8 +49,8 @@ trait LearningStepValidator {
               .validate("description", description.description)
               .toList :::
               languageValidator
-              .validate("language", description.language, allowUnknownLanguage)
-              .toList
+                .validate("language", description.language, allowUnknownLanguage)
+                .toList
           })
       }
     }
@@ -59,8 +59,8 @@ trait LearningStepValidator {
       embedUrls.flatMap(embedUrl => {
         urlValidator.validate("embedUrl.url", embedUrl.url).toList :::
           languageValidator
-          .validate("language", embedUrl.language, allowUnknownLanguage)
-          .toList
+            .validate("language", embedUrl.language, allowUnknownLanguage)
+            .toList
       })
     }
 

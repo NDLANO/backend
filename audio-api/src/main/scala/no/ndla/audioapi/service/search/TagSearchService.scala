@@ -37,7 +37,7 @@ trait TagSearchService {
 
   class TagSearchService extends LazyLogging with SearchService[String] {
     override val searchIndex: String = AudioTagSearchIndex
-    implicit val formats: Formats = DefaultFormats
+    implicit val formats: Formats    = DefaultFormats
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
       Try(read[SearchableTag](hit)).map(_.tag)
@@ -64,7 +64,7 @@ trait TagSearchService {
         language: String,
         page: Int,
         pageSize: Int,
-        queryBuilder: BoolQuery,
+        queryBuilder: BoolQuery
     ): Try[SearchResult[String]] = {
 
       val languageFilter =
@@ -74,14 +74,15 @@ trait TagSearchService {
             termQuery("language", language)
           )
 
-      val filters = List(languageFilter)
+      val filters        = List(languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(Some(page), Some(pageSize))
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException())
       } else {
         val searchToExecute = search(searchIndex)
@@ -92,20 +93,21 @@ trait TagSearchService {
           .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          if (startAt != 0) { searchToExecute }
+          else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, language).map(
-              hits =>
-                SearchResult(
-                  totalCount = response.result.totalHits,
-                  page = Some(page),
-                  pageSize = numResults,
-                  language = language,
-                  results = hits,
-                  scrollId = response.result.scrollId
-              ))
+            getHits(response.result, language).map(hits =>
+              SearchResult(
+                totalCount = response.result.totalHits,
+                page = Some(page),
+                pageSize = numResults,
+                language = language,
+                results = hits,
+                scrollId = response.result.scrollId
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }
@@ -123,7 +125,8 @@ trait TagSearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of tags of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of tags of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

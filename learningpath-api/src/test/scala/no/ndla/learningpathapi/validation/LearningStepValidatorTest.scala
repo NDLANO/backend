@@ -51,8 +51,10 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error message when description contains illegal html") {
     validMock()
     val validationErrors =
-      validator.validateLearningStep(ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
-                                     false)
+      validator.validateLearningStep(
+        ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
+        false
+      )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description")
   }
@@ -65,7 +67,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<strong>Gyldig beskrivelse</strong>", "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("language")
   }
@@ -78,7 +81,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "bergensk"))),
-      false)
+      false
+    )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("description")
     validationErrors.last.field should equal("language")
@@ -92,7 +96,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
           Description("<strong>Gyldig</strong>", "nb"),
           Description("<h1>Ugyldig</h1>", "nb"),
           Description("<h2>Også ugyldig</h2>", "nb")
-        )),
+        )
+      ),
       false
     )
 
@@ -105,7 +110,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     validMock()
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<strong>ikke gyldig</strong>", "nb", EmbedType.OEmbed))),
-      false)
+      false
+    )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("embedUrl.url")
     validationMessages.head.message.contains("contains illegal html") should be(true)
@@ -119,7 +125,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
       .thenReturn(Some(ValidationMessage("language", "Error")))
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed))),
-      false)
+      false
+    )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("language")
   }
@@ -133,7 +140,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<h1>Ugyldig</h1>", "bergensk", EmbedType.OEmbed))),
-      false)
+      false
+    )
     validationMessages.size should be(2)
     validationMessages.head.field should equal("embedUrl.url")
     validationMessages.last.field should equal("language")
@@ -152,7 +160,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
         embedUrl = List(
           EmbedUrl("<h1>Ugyldig</h1>", "nb", EmbedType.OEmbed),
           EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed)
-        )),
+        )
+      ),
       false
     )
     validationMessages.size should be(2)
@@ -168,14 +177,16 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(
         embedUrl =
-          List(EmbedUrl("/subjects/subject:9/topic:1:179373/topic:1:170165/resource:1:16145", "nb", EmbedType.OEmbed))),
-      false)
+          List(EmbedUrl("/subjects/subject:9/topic:1:179373/topic:1:170165/resource:1:16145", "nb", EmbedType.OEmbed))
+      ),
+      false
+    )
     validationMessages.size should be(0)
   }
 
   test("That html-code in license returns an error") {
     validMock()
-    val license = "<strong>ugyldig</strong>"
+    val license            = "<strong>ugyldig</strong>"
     val validationMessages = validator.validateLearningStep(ValidLearningStep.copy(license = Some(license)), false)
     validationMessages.size should be(1)
     validationMessages.head.field should equal("license")
@@ -193,7 +204,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description|embedUrl")
     validationErrors.head.message should equal(
-      "A learningstep is required to have either a description, embedUrl or both.")
+      "A learningstep is required to have either a description, embedUrl or both."
+    )
   }
 
   test("That no error is returned when a description is present, but no embedUrls") {

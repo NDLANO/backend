@@ -16,25 +16,26 @@ object learningpathapi extends Module {
       jodaTime,
       enumeratum,
       enumeratumJson4s,
-      "org.eclipse.jetty" % "jetty-webapp" % JettyV % "container;compile",
-      "org.eclipse.jetty" % "jetty-plus" % JettyV % "container",
-      "javax.servlet" % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "org.json4s" %% "json4s-native" % Json4SV,
-      "org.json4s" %% "json4s-ast" % Json4SV,
-      "org.json4s" %% "json4s-core" % Json4SV,
-      "org.json4s" %% "json4s-ext" % Json4SV,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalaj" %% "scalaj-http" % "2.4.2",
-      "org.typelevel" %% "cats-effect" % CatsEffectV,
-      "org.jsoup" % "jsoup" % "1.11.3",
-      "net.bull.javamelody" % "javamelody-core" % "1.74.0",
-      "org.jrobin" % "jrobin" % "1.5.9",
-      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkV,
-      "org.scalatest" %% "scalatest" % ScalaTestV % "test",
-      "org.mockito" %% "mockito-scala" % MockitoV % "test",
-      "org.mockito" %% "mockito-scala-scalatest" % MockitoV % "test",
-      "org.flywaydb" % "flyway-core" % FlywayV
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies)
+      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
+      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
+      "javax.servlet"       % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
+      "org.json4s"         %% "json4s-native"                   % Json4SV,
+      "org.json4s"         %% "json4s-ast"                      % Json4SV,
+      "org.json4s"         %% "json4s-core"                     % Json4SV,
+      "org.json4s"         %% "json4s-ext"                      % Json4SV,
+      "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
+      "org.scalaj"         %% "scalaj-http"                     % "2.4.2",
+      "org.typelevel"      %% "cats-effect"                     % CatsEffectV,
+      "org.jsoup"           % "jsoup"                           % "1.11.3",
+      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "org.jrobin"          % "jrobin"                          % "1.5.9",
+      "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
+      "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
+      "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
+      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
+      "org.flywaydb"        % "flyway-core"                     % FlywayV
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+  )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq("no.ndla.learningpathapi.model.api._"),
@@ -64,8 +65,7 @@ object learningpathapi extends Module {
     commonSettings ++
     assemblySettings() ++
     dockerSettings() ++
-    tsSettings ++
-    fmtSettings
+    tsSettings
 
   override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
     PactTestConfig

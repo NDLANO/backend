@@ -7,7 +7,9 @@
 
 package no.ndla.frontpageapi.model.api
 
-case class FilmFrontPageData(name: String,
-                             about: Seq[AboutFilmSubject],
-                             movieThemes: Seq[MovieTheme],
-                             slideShow: Seq[String])
+case class FilmFrontPageData(
+    name: String,
+    about: Seq[AboutFilmSubject],
+    movieThemes: Seq[MovieTheme],
+    slideShow: Seq[String]
+)

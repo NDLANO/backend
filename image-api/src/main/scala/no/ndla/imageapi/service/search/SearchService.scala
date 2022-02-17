@@ -116,7 +116,8 @@ trait SearchService {
               logger.error(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
               Failure(
-                IndexNotFoundException(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex"))
+                IndexNotFoundException(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex")
+              )
             case _ =>
               logger.error(e.getMessage)
               Failure(NdlaSearchException(s"Unable to execute search in ${ImageApiProperties.SearchIndex}", e))
@@ -132,7 +133,8 @@ trait SearchService {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents ($searchIndex) in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} documents ($searchIndex) in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

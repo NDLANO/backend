@@ -34,35 +34,41 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(Some("by-nc-sa"),
-                         Some("Gotham City"),
-                         List(Author("Forfatter", "DC Comics")),
-                         List(),
-                         List(),
-                         None,
-                         None,
-                         None)
+  val byNcSa = Copyright(
+    Some("by-nc-sa"),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val publicDomain = Copyright(Some("publicdomain"),
-                               Some("Metropolis"),
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               List(),
-                               List(),
-                               None,
-                               None,
-                               None)
+  val publicDomain = Copyright(
+    Some("publicdomain"),
+    Some("Metropolis"),
+    List(Author("Forfatter", "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val copyrighted = Copyright(Some("copyrighted"),
-                              Some("New York"),
-                              List(Author("Forfatter", "Clark Kent")),
-                              List(),
-                              List(),
-                              None,
-                              None,
-                              None)
+  val copyrighted = Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val today: DateTime = DateTime.now()
 
@@ -71,7 +77,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     title = List(ArticleTitle("Batmen er på vift med en bil", "nb")),
     introduction = List(ArticleIntroduction("Batmen", "nb")),
     content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")),
+      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+    ),
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.minusDays(3).toDate
@@ -130,8 +137,11 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     title = List(ArticleTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
     content = List(
-      ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-                     "nb")),
+      ArticleContent(
+        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+        "nb"
+      )
+    ),
     tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), "nb")),
     created = today.minusDays(30).toDate,
     updated = today.minusDays(25).toDate
@@ -183,9 +193,11 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article11: Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(11),
     title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en"), ArticleTitle("Baloi", "biz")),
-    introduction = List(ArticleIntroduction("Katter er store", "nb"),
-                        ArticleIntroduction("Cats are big", "en"),
-                        ArticleIntroduction("Cats are biz", "biz")),
+    introduction = List(
+      ArticleIntroduction("Katter er store", "nb"),
+      ArticleIntroduction("Cats are big", "en"),
+      ArticleIntroduction("Cats are biz", "biz")
+    ),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(ArticleTag(List("katt"), "nb"), ArticleTag(List("cat"), "en")),
     created = today.minusDays(10).toDate,
@@ -216,14 +228,15 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
+    val page            = 123
     val expectedStartAt = (page - 1) * DefaultPageSize
     articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
   }
@@ -232,7 +245,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         articleTypes = Seq(ArticleType.TopicArticle.entryName)
-      ))
+      )
+    )
     results.totalCount should be(3)
     results.results.map(_.id) should be(Seq(8, 9, 11))
 
@@ -240,7 +254,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         searchLanguage = DefaultLanguage,
         articleTypes = ArticleType.all
-      ))
+      )
+    )
     results2.totalCount should be(9)
   }
 
@@ -248,7 +263,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByIdAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(1)
@@ -266,7 +282,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByIdDesc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(11)
@@ -277,7 +294,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(8)
@@ -295,7 +313,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByTitleDesc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(7)
@@ -313,7 +332,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByLastUpdatedDesc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(3)
@@ -324,7 +344,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         sort = Sort.ByLastUpdatedAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(9)
     hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 1, 2, 3))
@@ -335,7 +356,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         license = Some("publicdomain"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(8)
     hits.map(_.id) should be(Seq(8, 9, 3, 5, 11, 6, 2, 7))
@@ -345,7 +367,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         withIdIn = List(1, 3)
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
@@ -358,7 +381,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         page = 1,
         pageSize = 2,
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits1 = page1.results
     page1.totalCount should be(9)
     page1.page.get should be(1)
@@ -371,7 +395,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         page = 2,
         pageSize = 2,
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
 
     val hits2 = page2.results
     page2.totalCount should be(9)
@@ -387,7 +412,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
         articleTypes = Seq(ArticleType.TopicArticle.entryName)
-      ))
+      )
+    )
     results.totalCount should be(0)
 
     val Success(results2) = articleSearchService.matchingQuery(
@@ -395,7 +421,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
         articleTypes = Seq(ArticleType.Standard.entryName)
-      ))
+      )
+    )
 
     results2.totalCount should be(3)
   }
@@ -404,8 +431,9 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(results) = articleSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("bil"),
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
 
     val hits = results.results
     results.totalCount should be(3)
@@ -417,8 +445,9 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bil"),
         withIdIn = List(3),
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -429,7 +458,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("Pingvinen"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
@@ -440,7 +470,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("and"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -451,7 +482,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("supermann"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     results.totalCount should be(0)
   }
 
@@ -461,7 +493,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         query = Some("supermann"),
         license = Some("copyrighted"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(4)
@@ -472,7 +505,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bilde + bil"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
@@ -480,7 +514,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("batmen + bil"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
@@ -488,7 +523,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bil + bilde - flaggermusmann"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(1, 3, 5))
 
@@ -496,7 +532,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("bil - hulken"),
         sort = Sort.ByTitleAsc
-      ))
+      )
+    )
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3, 5))
   }
@@ -506,7 +543,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("mareritt + ragnarok"),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
@@ -516,7 +554,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("kakemonster"),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
     search.totalCount should be(1)
     search.results.head.id should be(5)
   }
@@ -527,7 +566,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         searchLanguage = Language.AllLanguages,
         sort = Sort.ByIdAsc,
         pageSize = 100
-      ))
+      )
+    )
     val hits = search.results
 
     search.totalCount should equal(10)
@@ -552,7 +592,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         license = Some("copyrighted"),
         sort = Sort.ByTitleAsc,
         pageSize = 100
-      ))
+      )
+    )
     val hits = search.results
 
     search.totalCount should equal(1)
@@ -564,14 +605,16 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("Big"),
         searchLanguage = Language.AllLanguages,
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
     val Success(searchNb) = articleSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("Store"),
         searchLanguage = Language.AllLanguages,
-        sort = Sort.ByRelevanceDesc,
-      ))
+        sort = Sort.ByRelevanceDesc
+      )
+    )
 
     searchEn.totalCount should equal(1)
     searchEn.results.head.id should equal(11)
@@ -590,7 +633,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         withIdIn = List(9, 10, 11),
         searchLanguage = "en",
         fallback = true
-      ))
+      )
+    )
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -622,7 +666,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = articleSearchService.matchingQuery(
@@ -631,7 +675,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         fallback = true,
         pageSize = pageSize,
         shouldScroll = true
-      ))
+      )
+    )
 
     val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
     val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*")
@@ -655,7 +700,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         fallback = true,
         pageSize = 1,
         shouldScroll = true
-      ))
+      )
+    )
     val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
 
     initialSearch.results.size should be(1)
@@ -672,7 +718,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       searchSettings.copy(
         query = Some("kyllingkanon"),
         sort = Sort.ByRelevanceDesc
-      ))
+      )
+    )
 
     search.totalCount should be(1)
     search.results.head.id should be(5)
@@ -685,7 +732,8 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         searchLanguage = "nb",
         sort = Sort.ByRelevanceDesc,
         fallback = true
-      ))
+      )
+    )
 
     search.results.map(_.id) should be(Seq(10))
   }
@@ -697,14 +745,15 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
         sort = Sort.ByRelevanceDesc,
         fallback = true,
         grepCodes = Seq("KM1234")
-      ))
+      )
+    )
     search.totalCount should be(1)
     search.results.head.id should be(5)
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

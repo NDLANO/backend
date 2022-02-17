@@ -24,10 +24,10 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val writeService = new WriteService
+  override val writeService     = new WriteService
   override val converterService = new ConverterService
-  val newFileName = "AbCdeF.mp3"
-  val fileMock1: FileItem = mock[FileItem]
+  val newFileName               = "AbCdeF.mp3"
+  val fileMock1: FileItem       = mock[FileItem]
 
   val newImageMeta = NewImageMetaInformationV2(
     "title",
@@ -208,8 +208,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages should append a new language if language not already exists") {
-    val date = new Date()
-    val user = "ndla124"
+    val date     = new Date()
+    val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate = UpdateImageMetaInformation(
       "en",
@@ -234,8 +234,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages overwrite a languages if specified language already exist in cover") {
-    val date = new Date()
-    val user = "ndla124"
+    val date     = new Date()
+    val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate = UpdateImageMetaInformation(
       "nb",
@@ -260,22 +260,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages updates optional values if specified") {
-    val date = new Date()
-    val user = "ndla124"
+    val date     = new Date()
+    val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
     val toUpdate = UpdateImageMetaInformation(
       "nb",
       Some("Title"),
       Some("AltText"),
       Some(
-        Copyright(License("testLic", "License for testing", None),
-                  "test",
-                  List(Author("Opphavsmann", "Testerud")),
-                  List(),
-                  List(),
-                  None,
-                  None,
-                  None)),
+        Copyright(
+          License("testLic", "License for testing", None),
+          "test",
+          List(Author("Opphavsmann", "Testerud")),
+          List(),
+          List(),
+          None,
+          None,
+          None
+        )
+      ),
       Some(List("a", "b", "c")),
       Some("Caption"),
       Some(ModelReleasedStatus.NO.toString)
@@ -284,14 +287,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
-      copyright = domain.Copyright("testLic",
-                                   "test",
-                                   List(domain.Author("Opphavsmann", "Testerud")),
-                                   List(),
-                                   List(),
-                                   None,
-                                   None,
-                                   None),
+      copyright = domain
+        .Copyright("testLic", "test", List(domain.Author("Opphavsmann", "Testerud")), List(), List(), None, None, None),
       tags = List(domain.ImageTag(List("a", "b", "c"), "nb")),
       captions = List(domain.ImageCaption("Caption", "nb")),
       modelReleased = ModelReleasedStatus.NO,
@@ -316,7 +313,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.delete(eqTo(imageId))(any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument[Long](0)))
+      Success(i.getArgument[Long](0))
+    )
     when(tagIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Long](0)))
 
     writeService.deleteImageAndFiles(imageId)
@@ -340,7 +338,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(date)
 
     val imageId = 5555.toLong
-    val image = multiLangImage.copy(id = Some(imageId))
+    val image   = multiLangImage.copy(id = Some(imageId))
     val expectedImage =
       image.copy(
         titles = List(domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
@@ -349,7 +347,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
     when(imageRepository.update(any[domain.ImageMetaInformation], eqTo(imageId))).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[domain.ImageMetaInformation](0))
+      i.getArgument[domain.ImageMetaInformation](0)
+    )
     when(validationService.validate(any[domain.ImageMetaInformation], any[Option[domain.ImageMetaInformation]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.ImageMetaInformation](0)))
     when(imageIndexService.indexDocument(any[domain.ImageMetaInformation]))
@@ -381,7 +380,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.delete(eqTo(imageId))(any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument[Long](0)))
+      Success(i.getArgument[Long](0))
+    )
     when(tagIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Long](0)))
 
     writeService.deleteImageLanguageVersion(imageId, "en")

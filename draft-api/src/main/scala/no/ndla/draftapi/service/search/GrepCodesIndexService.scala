@@ -24,9 +24,9 @@ trait GrepCodesIndexService {
   val grepCodesIndexService: GrepCodesIndexService
 
   class GrepCodesIndexService extends LazyLogging with IndexService[Article, SearchableGrepCode] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-    override val documentType: String = DraftApiProperties.DraftGrepCodesSearchDocument
-    override val searchIndex: String = DraftApiProperties.DraftGrepCodesSearchIndex
+    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
+    override val documentType: String            = DraftApiProperties.DraftGrepCodesSearchDocument
+    override val searchIndex: String             = DraftApiProperties.DraftGrepCodesSearchIndex
     override val repository: Repository[Article] = draftRepository
 
     override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {

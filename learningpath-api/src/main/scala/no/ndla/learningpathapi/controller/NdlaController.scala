@@ -36,10 +36,12 @@ abstract class NdlaController
     contentType = formats("json")
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}",
-                request.getMethod,
-                request.getRequestURI,
-                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info(
+      "{} {}{}",
+      request.getMethod,
+      request.getRequestURI,
+      Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+    )
   }
 
   after() {
@@ -73,8 +75,8 @@ abstract class NdlaController
     case mse: InvalidStatusException =>
       BadRequest(Error(Error.MISSING_STATUS, mse.getMessage))
     case NdlaSearchException(_, Some(rf), _)
-        if rf.error.rootCause.exists(x =>
-          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+        if rf.error.rootCause
+          .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>
       t.printStackTrace()
@@ -108,7 +110,8 @@ abstract class NdlaController
       case true => paramValue.toLong
       case false =>
         throw new ValidationException(
-          errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+          errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+        )
     }
   }
 
@@ -150,8 +153,10 @@ abstract class NdlaController
         val paramAsListOfStrings = param.split(",").toList.map(_.trim)
         if (!paramAsListOfStrings.forall(entry => entry.forall(_.isDigit))) {
           throw new ValidationException(
-            errors =
-              List(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+            errors = List(
+              ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
+            )
+          )
         }
         paramAsListOfStrings.map(_.toLong)
 

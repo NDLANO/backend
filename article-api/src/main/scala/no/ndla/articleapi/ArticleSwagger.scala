@@ -50,7 +50,7 @@ class ArticleSwagger extends Swagger("2.0", "1.0", ArticleApiInfo.apiInfo) {
   }
 
   addAuthorization(
-    OAuth(writeRolesInTest,
-          List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token")))
+  )
 
 }

@@ -14,10 +14,10 @@ import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuit
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
-  val ImageStorageName = ImageApiProperties.StorageName
-  val ImageWithNoThumb = TestData.nonexistingWithoutThumb
-  val Content = "content"
-  val ContentType = "image/jpeg"
+  val ImageStorageName      = ImageApiProperties.StorageName
+  val ImageWithNoThumb      = TestData.nonexistingWithoutThumb
+  val Content               = "content"
+  val ContentType           = "image/jpeg"
   override val imageStorage = new AmazonImageStorageService
 
   override def beforeEach() = {

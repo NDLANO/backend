@@ -12,5 +12,5 @@ import no.ndla.language.model.LanguageField
 
 case class VisualElement(resource: String, language: String) extends LanguageField[String] {
   override def isEmpty: Boolean = resource.isEmpty
-  override def value: String = resource
+  override def value: String    = resource
 }

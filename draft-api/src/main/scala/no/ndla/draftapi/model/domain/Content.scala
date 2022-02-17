@@ -68,14 +68,14 @@ object Article extends SQLSyntaxSupport[Article] {
         ignore("revision")
     )
 
-  override val tableName = "articledata"
+  override val tableName       = "articledata"
   override lazy val schemaName = Some(DraftApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
     implicit val formats = jsonEncoder
-    val meta = read[Article](rs.string(lp.c("document")))
+    val meta             = read[Article](rs.string(lp.c("document")))
     meta.copy(
       id = Some(rs.long(lp.c("article_id"))),
       revision = Some(rs.int(lp.c("revision")))
@@ -90,8 +90,8 @@ object ArticleStatusAction extends Enumeration {
 object ArticleStatus extends Enumeration {
 
   val IMPORTED, DRAFT, PUBLISHED, PROPOSAL, QUEUED_FOR_PUBLISHING, USER_TEST, AWAITING_QUALITY_ASSURANCE,
-  QUEUED_FOR_LANGUAGE, TRANSLATED, QUALITY_ASSURED, QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED,
-  AWAITING_UNPUBLISHING, UNPUBLISHED, AWAITING_ARCHIVING, ARCHIVED = Value
+      QUEUED_FOR_LANGUAGE, TRANSLATED, QUALITY_ASSURED, QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED,
+      AWAITING_UNPUBLISHING, UNPUBLISHED, AWAITING_ARCHIVING, ARCHIVED = Value
 
   def valueOfOrError(s: String): Try[ArticleStatus.Value] =
     valueOf(s) match {
@@ -101,7 +101,9 @@ object ArticleStatus extends Enumeration {
         Failure(
           new ValidationException(
             errors =
-              Seq(ValidationMessage("status", s"'$s' is not a valid article status. Must be one of $validStatuses"))))
+              Seq(ValidationMessage("status", s"'$s' is not a valid article status. Must be one of $validStatuses"))
+          )
+        )
     }
 
   def valueOf(s: String): Option[ArticleStatus.Value] = values.find(_.toString == s.toUpperCase)
@@ -112,17 +114,22 @@ sealed abstract class ArticleType(override val entryName: String) extends EnumEn
 }
 
 object ArticleType extends Enum[ArticleType] {
-  case object Standard extends ArticleType("standard")
+  case object Standard     extends ArticleType("standard")
   case object TopicArticle extends ArticleType("topic-article")
 
   val values: IndexedSeq[ArticleType] = findValues
 
-  def all: Seq[String] = ArticleType.values.map(_.entryName)
+  def all: Seq[String]                        = ArticleType.values.map(_.entryName)
   def valueOf(s: String): Option[ArticleType] = ArticleType.withNameOption(s)
 
   def valueOfOrError(s: String): ArticleType =
-    valueOf(s).getOrElse(throw new ValidationException(errors = List(
-      ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
+    valueOf(s).getOrElse(
+      throw new ValidationException(
+        errors = List(
+          ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.")
+        )
+      )
+    )
 }
 
 case class Agreement(
@@ -136,8 +143,8 @@ case class Agreement(
 ) extends Content
 
 object Agreement extends SQLSyntaxSupport[Agreement] {
-  implicit val formats = org.json4s.DefaultFormats
-  override val tableName = "agreementdata"
+  implicit val formats    = org.json4s.DefaultFormats
+  override val tableName  = "agreementdata"
   override val schemaName = Some(DraftApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
@@ -170,8 +177,8 @@ case class UserData(
 )
 
 object UserData extends SQLSyntaxSupport[UserData] {
-  implicit val formats = org.json4s.DefaultFormats
-  override val tableName = "userdata"
+  implicit val formats         = org.json4s.DefaultFormats
+  override val tableName       = "userdata"
   lazy override val schemaName = Some(DraftApiProperties.MetaSchema)
 
   val JSonSerializer = FieldSerializer[UserData](
@@ -184,7 +191,7 @@ object UserData extends SQLSyntaxSupport[UserData] {
   def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
     val userData = read[UserData](rs.string(lp.c("document")))
     userData.copy(
-      id = Some(rs.long(lp.c("id"))),
+      id = Some(rs.long(lp.c("id")))
     )
   }
 }

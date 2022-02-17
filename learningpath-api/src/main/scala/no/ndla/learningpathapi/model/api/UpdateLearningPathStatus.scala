@@ -12,8 +12,12 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Status information about a learningpath")
 case class UpdateLearningPathStatus(
-    @(ApiModelProperty @field)(description = "The publishing status of the learningpath",
-                               allowableValues = "PUBLISHED,PRIVATE,DELETED,UNLISTED,SUBMITTED") status: String,
-    @(ApiModelProperty @field)(description =
-      "Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath") message: Option[
-      String])
+    @(ApiModelProperty @field)(
+      description = "The publishing status of the learningpath",
+      allowableValues = "PUBLISHED,PRIVATE,DELETED,UNLISTED,SUBMITTED"
+    ) status: String,
+    @(ApiModelProperty @field)(
+      description =
+        "Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath"
+    ) message: Option[String]
+)

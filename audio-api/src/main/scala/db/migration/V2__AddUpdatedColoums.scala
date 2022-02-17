@@ -16,7 +16,7 @@ import scalikejdbc._
 class V2__AddUpdatedColoums extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats
-  val timeService = new TimeService()
+  val timeService      = new TimeService()
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)

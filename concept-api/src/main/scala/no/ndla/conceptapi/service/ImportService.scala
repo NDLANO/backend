@@ -29,14 +29,14 @@ trait ImportService {
   class ImportService extends LazyLogging {
 
     def importConcepts(forceUpdate: Boolean): Try[ConceptImportResults] = {
-      val start = System.currentTimeMillis()
+      val start      = System.currentTimeMillis()
       val pageStream = articleApiClient.getChunks
       pageStream
         .map(page => {
           page.map(successfulPage => {
-            val saved = writeService.saveImportedConcepts(successfulPage, forceUpdate)
+            val saved                = writeService.saveImportedConcepts(successfulPage, forceUpdate)
             val numSuccessfullySaved = saved.count(_.isSuccess)
-            val warnings = saved.collect { case Failure(ex) => ex.getMessage }
+            val warnings             = saved.collect { case Failure(ex) => ex.getMessage }
             (numSuccessfullySaved, successfulPage.size, warnings)
           })
         })

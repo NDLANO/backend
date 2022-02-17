@@ -20,13 +20,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: ReadService = _
 
   val PUBLISHED_ID = 1
-  val PRIVATE_ID = 2
+  val PRIVATE_ID   = 2
 
   val PUBLISHED_OWNER = UserInfo("published_owner", Set.empty)
-  val PRIVATE_OWNER = UserInfo("private_owner", Set.empty)
-  val cruz = Author("author", "Lyin' Ted")
-  val license = "publicdomain"
-  val copyright = Copyright(license, List(cruz))
+  val PRIVATE_OWNER   = UserInfo("private_owner", Set.empty)
+  val cruz            = Author("author", "Lyin' Ted")
+  val license         = "publicdomain"
+  val copyright       = Copyright(license, List(cruz))
 
   val PUBLISHED_LEARNINGPATH = LearningPath(
     Some(PUBLISHED_ID),
@@ -62,44 +62,50 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright
   )
 
-  val STEP1 = LearningStep(Some(1),
-                           Some(1),
-                           None,
-                           None,
-                           1,
-                           List(Title("Tittel", "nb")),
-                           List(),
-                           List(),
-                           StepType.TEXT,
-                           None,
-                           showTitle = true,
-                           StepStatus.ACTIVE)
+  val STEP1 = LearningStep(
+    Some(1),
+    Some(1),
+    None,
+    None,
+    1,
+    List(Title("Tittel", "nb")),
+    List(),
+    List(),
+    StepType.TEXT,
+    None,
+    showTitle = true,
+    StepStatus.ACTIVE
+  )
 
-  val STEP2 = LearningStep(Some(2),
-                           Some(1),
-                           None,
-                           None,
-                           2,
-                           List(Title("Tittel", "nb")),
-                           List(),
-                           List(),
-                           StepType.TEXT,
-                           None,
-                           showTitle = false,
-                           StepStatus.ACTIVE)
+  val STEP2 = LearningStep(
+    Some(2),
+    Some(1),
+    None,
+    None,
+    2,
+    List(Title("Tittel", "nb")),
+    List(),
+    List(),
+    StepType.TEXT,
+    None,
+    showTitle = false,
+    StepStatus.ACTIVE
+  )
 
-  val STEP3 = LearningStep(Some(3),
-                           Some(1),
-                           None,
-                           None,
-                           3,
-                           List(Title("Tittel", "nb")),
-                           List(),
-                           List(),
-                           StepType.TEXT,
-                           None,
-                           showTitle = false,
-                           StepStatus.ACTIVE)
+  val STEP3 = LearningStep(
+    Some(3),
+    Some(1),
+    None,
+    None,
+    3,
+    List(Title("Tittel", "nb")),
+    List(),
+    List(),
+    StepType.TEXT,
+    None,
+    showTitle = false,
+    StepStatus.ACTIVE
+  )
 
   override def beforeEach() = {
     service = new ReadService
@@ -243,7 +249,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test(
-    "That learningstepsFor returns all learningsteps for a learningpath when the status is PRIVATE and the user is the owner") {
+    "That learningstepsFor returns all learningsteps for a learningpath when the status is PRIVATE and the user is the owner"
+  ) {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepsFor(eqTo(PRIVATE_ID))(any[DBSession]))

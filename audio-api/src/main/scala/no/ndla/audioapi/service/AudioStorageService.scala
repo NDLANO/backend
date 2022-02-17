@@ -22,10 +22,12 @@ trait AudioStorageService {
 
   class AudioStorage {
 
-    def storeAudio(audioStream: InputStream,
-                   contentType: String,
-                   size: Long,
-                   destinationPath: String): Try[ObjectMetadata] = {
+    def storeAudio(
+        audioStream: InputStream,
+        contentType: String,
+        size: Long,
+        destinationPath: String
+    ): Try[ObjectMetadata] = {
       val metadata = new ObjectMetadata()
       metadata.setContentType(contentType)
 

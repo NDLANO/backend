@@ -57,8 +57,8 @@ trait WriteService {
     def deleteImageAndFiles(imageId: Long) = {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
-          val metaDeleted = imageRepository.delete(imageId)
-          val fileDeleted = imageStorage.deleteObject(toDelete.imageUrl)
+          val metaDeleted  = imageRepository.delete(imageId)
+          val fileDeleted  = imageStorage.deleteObject(toDelete.imageUrl)
           val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
           if (metaDeleted < 1) {
@@ -83,7 +83,8 @@ trait WriteService {
       }
 
       val domainImage = uploadImage(file).flatMap(uploadedImage =>
-        converterService.asDomainImageMetaInformationV2(newImage, uploadedImage)) match {
+        converterService.asDomainImageMetaInformationV2(newImage, uploadedImage)
+      ) match {
         case Failure(e)     => return Failure(e)
         case Success(image) => image
       }
@@ -126,34 +127,40 @@ trait WriteService {
         i.copy(
           updated = new Date(0),
           updatedBy = ""
-      )
+        )
 
       withoutMetas(lhs) != withoutMetas(rhs)
     }
 
-    private[service] def mergeImages(existing: ImageMetaInformation,
-                                     toMerge: UpdateImageMetaInformation): domain.ImageMetaInformation = {
-      val now = clock.now()
+    private[service] def mergeImages(
+        existing: ImageMetaInformation,
+        toMerge: UpdateImageMetaInformation
+    ): domain.ImageMetaInformation = {
+      val now    = clock.now()
       val userId = authUser.userOrClientid()
 
       val newImageMeta = existing.copy(
-        titles = mergeLanguageFields(existing.titles,
-                                     toMerge.title.toSeq.map(t => converterService.asDomainTitle(t, toMerge.language))),
-        alttexts =
-          mergeLanguageFields(existing.alttexts,
-                              toMerge.alttext.toSeq.map(a => converterService.asDomainAltText(a, toMerge.language))),
+        titles = mergeLanguageFields(
+          existing.titles,
+          toMerge.title.toSeq.map(t => converterService.asDomainTitle(t, toMerge.language))
+        ),
+        alttexts = mergeLanguageFields(
+          existing.alttexts,
+          toMerge.alttext.toSeq.map(a => converterService.asDomainAltText(a, toMerge.language))
+        ),
         copyright = toMerge.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
         tags = mergeTags(existing.tags, toMerge.tags.toSeq.map(t => converterService.toDomainTag(t, toMerge.language))),
-        captions =
-          mergeLanguageFields(existing.captions,
-                              toMerge.caption.toSeq.map(c => converterService.toDomainCaption(c, toMerge.language))),
+        captions = mergeLanguageFields(
+          existing.captions,
+          toMerge.caption.toSeq.map(c => converterService.toDomainCaption(c, toMerge.language))
+        ),
         updated = now,
         updatedBy = userId,
-        modelReleased = toMerge.modelReleased.flatMap(ModelReleasedStatus.valueOf).getOrElse(existing.modelReleased),
+        modelReleased = toMerge.modelReleased.flatMap(ModelReleasedStatus.valueOf).getOrElse(existing.modelReleased)
       )
 
       val existingLanguages = converterService.getSupportedLanguages(existing)
-      val isNewLanguage = !existingLanguages.contains(toMerge.language)
+      val isNewLanguage     = !existingLanguages.contains(toMerge.language)
       val newEditorNotes = {
         if (isNewLanguage)
           existing.editorNotes :+ domain.EditorNote(now, userId, s"Added new language '${toMerge.language}'.")
@@ -170,32 +177,38 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def updateImage(imageId: Long,
-                            image: domain.ImageMetaInformation,
-                            oldImage: Option[domain.ImageMetaInformation],
-                            language: Option[String]) = {
+    private def updateImage(
+        imageId: Long,
+        image: domain.ImageMetaInformation,
+        oldImage: Option[domain.ImageMetaInformation],
+        language: Option[String]
+    ) = {
       for {
         validated <- validationService.validate(image, oldImage)
         updated = imageRepository.update(validated, imageId)
-        indexed <- imageIndexService.indexDocument(updated)
+        indexed       <- imageIndexService.indexDocument(updated)
         indexedByTags <- tagIndexService.indexDocument(indexed)
-      } yield
-        converterService.asApiImageMetaInformationWithDomainUrlV2(
-          indexedByTags,
-          Some(language.getOrElse(DefaultLanguage))
-        )
+      } yield converterService.asApiImageMetaInformationWithDomainUrlV2(
+        indexedByTags,
+        Some(language.getOrElse(DefaultLanguage))
+      )
     }
 
     private def overwriteImage(newFile: FileItem, oldImage: ImageMetaInformation): Try[ImageMetaInformation] = {
       for {
         uploaded <- uploadImage(newFile)
-        _ <- imageStorage.cloneObject(uploaded.fileName, oldImage.imageUrl) // Overwrite old image with new one to make sure direct-urls are updated
+        _ <- imageStorage.cloneObject(
+          uploaded.fileName,
+          oldImage.imageUrl
+        ) // Overwrite old image with new one to make sure direct-urls are updated
       } yield converterService.withNewImage(oldImage, uploaded)
     }
 
-    def updateImage(imageId: Long,
-                    updateMeta: UpdateImageMetaInformation,
-                    newFile: Option[FileItem]): Try[ImageMetaInformationV2] = {
+    def updateImage(
+        imageId: Long,
+        updateMeta: UpdateImageMetaInformation,
+        newFile: Option[FileItem]
+    ): Try[ImageMetaInformationV2] = {
       imageRepository.withId(imageId) match {
         case None => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
         case Some(oldImage) =>
@@ -238,13 +251,13 @@ trait WriteService {
 
     private[service] def uploadImage(file: FileItem): Try[Image] = {
       val extension = getFileExtension(file.name).getOrElse("")
-      val fileName = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
+      val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
       uploadImageWithName(file, fileName)
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {
       val extensionWithDot = if (extension.head == '.') extension else s".$extension"
-      val randomString = Random.alphanumeric.take(max(length - extensionWithDot.length, 1)).mkString
+      val randomString     = Random.alphanumeric.take(max(length - extensionWithDot.length, 1)).mkString
       s"$randomString$extensionWithDot"
     }
 

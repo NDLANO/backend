@@ -10,6 +10,6 @@ package no.ndla.conceptapi.model.domain
 import no.ndla.language.model.LanguageField
 
 case class ConceptTitle(title: String, language: String) extends LanguageField[String] {
-  override def value: String = title
+  override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty
 }

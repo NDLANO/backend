@@ -21,8 +21,8 @@ class V13__AddSeriesDescriptionField extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allSeries.map {
-        case (id: Long, document: String) => update(convertDocument(document), id)
+      allSeries.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
       }
     }
   }
@@ -42,7 +42,7 @@ class V13__AddSeriesDescriptionField extends BaseJavaMigration {
     }
 
     val objectToMerge = JObject(JField("description", descriptions))
-    val newSeries = oldSeries.merge(objectToMerge)
+    val newSeries     = oldSeries.merge(objectToMerge)
     compact(render(newSeries))
   }
 

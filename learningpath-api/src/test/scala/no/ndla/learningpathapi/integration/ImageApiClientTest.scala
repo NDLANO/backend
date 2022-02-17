@@ -23,8 +23,11 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
 
   test("That some metaInfo is returned when images is found") {
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(any[Manifest[ImageMetaInformation]],
-                                                                                any[Formats]))
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+        any[Manifest[ImageMetaInformation]],
+        any[Formats]
+      )
+    )
       .thenReturn(Success(DefaultImage))
 
     val imageMeta = imageApiClient.imageMetaWithExternalId("abc")
@@ -37,8 +40,11 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(true)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(any[Manifest[ImageMetaInformation]],
-                                                                                any[Formats]))
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+        any[Manifest[ImageMetaInformation]],
+        any[Formats]
+      )
+    )
       .thenReturn(Failure(exception))
 
     imageApiClient.imageMetaOnUrl("abc") should be(None)
@@ -48,8 +54,11 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(false)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(any[Manifest[ImageMetaInformation]],
-                                                                                any[Formats]))
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+        any[Manifest[ImageMetaInformation]],
+        any[Formats]
+      )
+    )
       .thenReturn(Failure(exception))
 
     intercept[HttpRequestException] {
@@ -63,8 +72,11 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
   test("That exception is returned for a randomly chosen exception") {
     val exception = mock[NoSuchElementException]
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(any[Manifest[ImageMetaInformation]],
-                                                                                any[Formats]))
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+        any[Manifest[ImageMetaInformation]],
+        any[Formats]
+      )
+    )
       .thenReturn(Failure(exception))
 
     intercept[NoSuchElementException] {

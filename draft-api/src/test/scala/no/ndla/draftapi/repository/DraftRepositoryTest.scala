@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
-  var repository: ArticleRepository = new ArticleRepository
+  var repository: ArticleRepository         = new ArticleRepository
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -53,7 +53,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   def serverIsListening: Boolean = {
     val server = DraftApiProperties.MetaServer
-    val port = DraftApiProperties.MetaPort
+    val port   = DraftApiProperties.MetaPort
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()
@@ -80,8 +80,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("Fetching external ids works as expected") {
-    val externalIds = List("1", "2", "3")
-    val idWithExternals = 1
+    val externalIds        = List("1", "2", "3")
+    val idWithExternals    = 1
     val idWithoutExternals = 2
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(idWithExternals)), externalIds, List.empty, None)
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(idWithoutExternals)), List.empty, List.empty, None)
@@ -95,7 +95,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("withId also returns archieved articles") {
     repository.insert(sampleArticle.copy(id = Some(1), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)))
     repository.insert(
-      sampleArticle.copy(id = Some(2), status = domain.Status(domain.ArticleStatus.ARCHIVED, Set.empty)))
+      sampleArticle.copy(id = Some(2), status = domain.Status(domain.ArticleStatus.ARCHIVED, Set.empty))
+    )
 
     repository.withId(1).isDefined should be(true)
     repository.withId(2).isDefined should be(true)
@@ -103,9 +104,9 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("that importIdOfArticle works correctly") {
     val externalIds = List("1", "2", "3")
-    val uuid = "d4e84cd3-ab94-46d5-9839-47ec682d27c2"
-    val id1 = 1
-    val id2 = 2
+    val uuid        = "d4e84cd3-ab94-46d5-9839-47ec682d27c2"
+    val id1         = 1
+    val id2         = 2
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(id1)), externalIds, List.empty, Some(uuid))
     repository.insertWithExternalIds(sampleArticle.copy(id = Some(id2)), List.empty, List.empty, Some(uuid))
 
@@ -150,8 +151,10 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("That storing an article an retrieving it returns the original article") {
     val art1 = sampleArticle.copy(id = Some(1), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
     val art2 = sampleArticle.copy(id = Some(2), status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
-    val art3 = sampleArticle.copy(id = Some(3),
-                                  status = domain.Status(domain.ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty))
+    val art3 = sampleArticle.copy(
+      id = Some(3),
+      status = domain.Status(domain.ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty)
+    )
     val art4 = sampleArticle.copy(id = Some(4), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
 
     repository.insert(art1)
@@ -170,7 +173,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     repository.insertWithExternalIds(art1, List("1234", "5678"), List.empty, None)
 
     val updatedContent = Seq(ArticleContent("This is updated with external ids yo", "en"))
-    val updatedArt = art1.copy(content = updatedContent)
+    val updatedArt     = art1.copy(content = updatedContent)
     repository.updateWithExternalIds(updatedArt, List("1234", "5678"), List.empty, None)
     repository.withId(art1.id.get).get should be(updatedArt)
   }
@@ -191,8 +194,9 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
         domain.ArticleIds(art1.id.get, List.empty),
         domain.ArticleIds(art2.id.get, List("1234", "5678")),
         domain.ArticleIds(art3.id.get, List.empty),
-        domain.ArticleIds(art4.id.get, List.empty),
-      ))
+        domain.ArticleIds(art4.id.get, List.empty)
+      )
+    )
   }
 
   test("that getIdFromExternalId returns id of article correctly") {
@@ -220,28 +224,35 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     repository.insert(sampleArticle.copy(id = Some(1), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)))
     repository.insert(sampleArticle.copy(id = Some(2), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)))
     repository.insert(
-      sampleArticle.copy(id = Some(3), status = domain.Status(domain.ArticleStatus.PROPOSAL, Set.empty)))
+      sampleArticle.copy(id = Some(3), status = domain.Status(domain.ArticleStatus.PROPOSAL, Set.empty))
+    )
     repository.insert(sampleArticle.copy(id = Some(4), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)))
     repository.insertWithExternalIds(
       sampleArticle.copy(id = Some(5), status = domain.Status(domain.ArticleStatus.PROPOSAL, Set.empty)),
       List("1234"),
       List.empty,
-      None)
+      None
+    )
     repository.insert(
-      sampleArticle.copy(id = Some(6), status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty)))
+      sampleArticle.copy(id = Some(6), status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
+    )
     repository.insert(
-      sampleArticle.copy(id = Some(7), status = domain.Status(domain.ArticleStatus.QUEUED_FOR_PUBLISHING, Set.empty)))
+      sampleArticle.copy(id = Some(7), status = domain.Status(domain.ArticleStatus.QUEUED_FOR_PUBLISHING, Set.empty))
+    )
     repository.insertWithExternalIds(
       sampleArticle.copy(id = Some(8), status = domain.Status(domain.ArticleStatus.PROPOSAL, Set.empty)),
       List("5678", "1111"),
       List.empty,
-      None)
+      None
+    )
 
     repository.idsWithStatus(ArticleStatus.DRAFT) should be(
-      Success(List(ArticleIds(1, List.empty), ArticleIds(2, List.empty), ArticleIds(4, List.empty))))
+      Success(List(ArticleIds(1, List.empty), ArticleIds(2, List.empty), ArticleIds(4, List.empty)))
+    )
 
     repository.idsWithStatus(ArticleStatus.PROPOSAL) should be(
-      Success(List(ArticleIds(3, List.empty), ArticleIds(5, List("1234")), ArticleIds(8, List("5678", "1111")))))
+      Success(List(ArticleIds(3, List.empty), ArticleIds(5, List("1234")), ArticleIds(8, List("5678", "1111"))))
+    )
 
     repository.idsWithStatus(ArticleStatus.PUBLISHED) should be(Success(List(ArticleIds(6, List.empty))))
 
@@ -250,9 +261,11 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("That getArticlesByPage returns all latest articles") {
     val art1 = sampleArticle.copy(id = Some(1), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
-    val art2 = sampleArticle.copy(id = Some(1),
-                                  revision = Some(2),
-                                  status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
+    val art2 = sampleArticle.copy(
+      id = Some(1),
+      revision = Some(2),
+      status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)
+    )
     val art3 = sampleArticle.copy(id = Some(2), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
     val art4 = sampleArticle.copy(id = Some(3), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
     val art5 = sampleArticle.copy(id = Some(4), status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty))
@@ -271,20 +284,24 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
         art3,
         art4,
         art5
-      ))
+      )
+    )
     repository.getArticlesByPage(pageSize, pageSize * 1) should be(
       Seq(
         art6
-      ))
+      )
+    )
   }
 
   test("published, then copied article creates new db version and bumps revision by two") {
-    val article = TestData.sampleDomainArticle.copy(status = domain.Status(domain.ArticleStatus.UNPUBLISHED, Set.empty),
-                                                    revision = Some(3))
+    val article = TestData.sampleDomainArticle.copy(
+      status = domain.Status(domain.ArticleStatus.UNPUBLISHED, Set.empty),
+      revision = Some(3)
+    )
     repository.insert(article)
-    val oldCount = repository.articlesWithId(article.id.get).size
-    val publishedArticle = article.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
-    val updatedArticle = repository.updateArticle(publishedArticle).get
+    val oldCount                = repository.articlesWithId(article.id.get).size
+    val publishedArticle        = article.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
+    val updatedArticle          = repository.updateArticle(publishedArticle).get
     val updatedAndCopiedArticle = repository.storeArticleAsNewVersion(updatedArticle, None).get
 
     updatedAndCopiedArticle.revision should be(Some(5))
@@ -298,12 +315,14 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("published article keeps revison on import") {
-    val article = TestData.sampleDomainArticle.copy(status = domain.Status(domain.ArticleStatus.IMPORTED, Set.empty),
-                                                    revision = Some(1))
+    val article = TestData.sampleDomainArticle.copy(
+      status = domain.Status(domain.ArticleStatus.IMPORTED, Set.empty),
+      revision = Some(1)
+    )
     repository.insert(article)
-    val oldCount = repository.articlesWithId(article.id.get).size
+    val oldCount         = repository.articlesWithId(article.id.get).size
     val publishedArticle = article.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
-    val updatedArticle = repository.updateArticle(publishedArticle, isImported = true).get
+    val updatedArticle   = repository.updateArticle(publishedArticle, isImported = true).get
     updatedArticle.revision should be(Some(1))
 
     updatedArticle.notes.length should be(0)
@@ -338,11 +357,11 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
       )
 
       val inserted = repository.insert(draftArticle1)
-      val fetched = repository.withId(inserted.id.get).get
+      val fetched  = repository.withId(inserted.id.get).get
       fetched.notes should be(prevNotes1)
       fetched.previousVersionsNotes should be(Seq.empty)
 
-      val toPublish1 = inserted.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
+      val toPublish1      = inserted.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
       val updatedArticle1 = repository.updateArticle(toPublish1).get
 
       updatedArticle1.notes should be(prevNotes1)

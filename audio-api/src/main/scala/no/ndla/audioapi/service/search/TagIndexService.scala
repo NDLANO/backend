@@ -23,8 +23,8 @@ trait TagIndexService {
   val tagIndexService: TagIndexService
 
   class TagIndexService extends LazyLogging with IndexService[AudioMetaInformation, SearchableTag] {
-    override val documentType: String = AudioTagSearchDocument
-    override val searchIndex: String = AudioTagSearchIndex
+    override val documentType: String                         = AudioTagSearchDocument
+    override val searchIndex: String                          = AudioTagSearchIndex
     override val repository: Repository[AudioMetaInformation] = audioRepository
 
     override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {

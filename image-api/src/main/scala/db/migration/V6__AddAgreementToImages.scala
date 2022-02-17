@@ -34,13 +34,15 @@ class V6__AddAgreementToImages extends BaseJavaMigration with LazyLogging {
   }
 
   def toNewAuthorType(author: V5_Author): V5_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+    val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+    val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (
+      creatorMap(author.`type`.toLowerCase),
+      processorMap(author.`type`.toLowerCase),
+      rightsholderMap(author.`type`.toLowerCase)
+    ) match {
       case (t: String, None, None) => V5_Author(t.capitalize, author.name)
       case (None, t: String, None) => V5_Author(t.capitalize, author.name)
       case (None, None, t: String) => V5_Author(t.capitalize, author.name)
@@ -49,16 +51,18 @@ class V6__AddAgreementToImages extends BaseJavaMigration with LazyLogging {
   }
 
   def updateAuthorFormat(id: Long, metaString: String): V6_ImageMetaInformation = {
-    val meta = read[V5_ImageMetaInformation](metaString)
+    val meta   = read[V5_ImageMetaInformation](metaString)
     val metaV6 = read[V6_ImageMetaInformation](metaString)
 
     // If entry contains V6 features -> Don't update.
-    if (metaV6.copyright.creators.nonEmpty ||
-        metaV6.copyright.processors.nonEmpty ||
-        metaV6.copyright.rightsholders.nonEmpty ||
-        metaV6.copyright.agreementId.nonEmpty ||
-        metaV6.copyright.validFrom.nonEmpty ||
-        metaV6.copyright.validTo.nonEmpty) {
+    if (
+      metaV6.copyright.creators.nonEmpty ||
+      metaV6.copyright.processors.nonEmpty ||
+      metaV6.copyright.rightsholders.nonEmpty ||
+      metaV6.copyright.agreementId.nonEmpty ||
+      metaV6.copyright.validFrom.nonEmpty ||
+      metaV6.copyright.validTo.nonEmpty
+    ) {
       metaV6.copy(id = None)
     } else {
       val creators =
@@ -78,14 +82,16 @@ class V6__AddAgreementToImages extends BaseJavaMigration with LazyLogging {
         meta.imageUrl,
         meta.size,
         meta.contentType,
-        V6_Copyright(meta.copyright.license,
-                     meta.copyright.origin,
-                     creators,
-                     processors,
-                     rightsholders,
-                     None,
-                     None,
-                     None),
+        V6_Copyright(
+          meta.copyright.license,
+          meta.copyright.origin,
+          creators,
+          processors,
+          rightsholders,
+          None,
+          None,
+          None
+        ),
         meta.tags,
         meta.captions,
         meta.updatedBy,
@@ -104,22 +110,26 @@ class V6__AddAgreementToImages extends BaseJavaMigration with LazyLogging {
 
 }
 
-case class V6_Copyright(license: V5_License,
-                        origin: String,
-                        creators: Seq[V5_Author],
-                        processors: Seq[V5_Author],
-                        rightsholders: Seq[V5_Author],
-                        agreementId: Option[Long],
-                        validFrom: Option[Date],
-                        validTo: Option[Date])
-case class V6_ImageMetaInformation(id: Option[Long],
-                                   titles: Seq[V5_ImageTitle],
-                                   alttexts: Seq[V5_ImageAltText],
-                                   imageUrl: String,
-                                   size: Long,
-                                   contentType: String,
-                                   copyright: V6_Copyright,
-                                   tags: Seq[V5_ImageTag],
-                                   captions: Seq[V5_ImageCaption],
-                                   updatedBy: String,
-                                   updated: Date)
+case class V6_Copyright(
+    license: V5_License,
+    origin: String,
+    creators: Seq[V5_Author],
+    processors: Seq[V5_Author],
+    rightsholders: Seq[V5_Author],
+    agreementId: Option[Long],
+    validFrom: Option[Date],
+    validTo: Option[Date]
+)
+case class V6_ImageMetaInformation(
+    id: Option[Long],
+    titles: Seq[V5_ImageTitle],
+    alttexts: Seq[V5_ImageAltText],
+    imageUrl: String,
+    size: Long,
+    contentType: String,
+    copyright: V6_Copyright,
+    tags: Seq[V5_ImageTag],
+    captions: Seq[V5_ImageCaption],
+    updatedBy: String,
+    updated: Date
+)

@@ -27,7 +27,8 @@ trait ReadService {
         case Success(None) =>
           Failure(
             new NotFoundException(
-              s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found.")
+              s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found."
+            )
           )
         case Success(Some(series)) => converterService.toApiSeries(series, language)
       }
@@ -54,7 +55,7 @@ trait ReadService {
 
     def getMetaAudioDomainDump(pageNo: Int, pageSize: Int): api.AudioMetaDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
-      val results = audioRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results                    = audioRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
       api.AudioMetaDomainDump(audioRepository.audioCount, pageNo, pageSize, results)
     }

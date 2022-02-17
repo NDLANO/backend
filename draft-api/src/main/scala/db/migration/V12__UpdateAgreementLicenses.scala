@@ -27,13 +27,13 @@ class V12__UpdateAgreementLicenses extends BaseJavaMigration {
   }
 
   def migrateAgreements(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateAgreement(convertAgreement(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateAgreement(convertAgreement(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -56,21 +56,21 @@ class V12__UpdateAgreementLicenses extends BaseJavaMigration {
 
   def updateLicense(license: String): String = {
     val mapping = Map(
-      "by" -> "CC-BY-4.0",
-      "by-sa" -> "CC-BY-SA-4.0",
-      "by-nc" -> "CC-BY-NC-4.0",
-      "by-nd" -> "CC-BY-ND-4.0",
-      "by-nc-sa" -> "CC-BY-NC-SA-4.0",
-      "by-nc-nd" -> "CC-BY-NC-ND-4.0",
-      "by-3.0" -> "CC-BY-4.0",
-      "by-sa-3.0" -> "CC-BY-SA-4.0",
-      "by-nc-3.0" -> "CC-BY-NC-4.0",
-      "by-nd-3.0" -> "CC-BY-ND-4.0",
+      "by"           -> "CC-BY-4.0",
+      "by-sa"        -> "CC-BY-SA-4.0",
+      "by-nc"        -> "CC-BY-NC-4.0",
+      "by-nd"        -> "CC-BY-ND-4.0",
+      "by-nc-sa"     -> "CC-BY-NC-SA-4.0",
+      "by-nc-nd"     -> "CC-BY-NC-ND-4.0",
+      "by-3.0"       -> "CC-BY-4.0",
+      "by-sa-3.0"    -> "CC-BY-SA-4.0",
+      "by-nc-3.0"    -> "CC-BY-NC-4.0",
+      "by-nd-3.0"    -> "CC-BY-ND-4.0",
       "by-nc-sa-3.0" -> "CC-BY-NC-SA-4.0",
       "by-nc-nd-3.0" -> "CC-BY-NC-ND-4.0",
-      "cc0" -> "CC0-1.0",
-      "pd" -> "PD",
-      "copyrighted" -> "COPYRIGHTED"
+      "cc0"          -> "CC0-1.0",
+      "pd"           -> "PD",
+      "copyrighted"  -> "COPYRIGHTED"
     )
 
     mapping.getOrElse(license, license)

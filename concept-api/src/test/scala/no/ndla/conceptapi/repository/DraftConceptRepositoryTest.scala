@@ -25,7 +25,7 @@ class DraftConceptRepositoryTest
     with UnitSuite
     with TestEnvironment {
 
-  override val dataSource = testDataSource.get
+  override val dataSource                = testDataSource.get
   var repository: DraftConceptRepository = _
 
   // Skip tests if no docker environment available
@@ -173,7 +173,7 @@ class DraftConceptRepositoryTest
           domain.ConceptTags(Seq("konge", "bror"), "nb"),
           domain.ConceptTags(Seq("konge", "brur"), "nn"),
           domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
         ),
         List(
           domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
@@ -187,12 +187,15 @@ class DraftConceptRepositoryTest
 
   test("getTags returns non-duplicate tags and correct number of them") {
     val sampleArticle1 = TestData.domainConcept.copy(
-      tags = Seq(domain.ConceptTags(Seq("abc", "bcd", "ddd"), "nb"), domain.ConceptTags(Seq("abc", "bcd"), "nn")))
+      tags = Seq(domain.ConceptTags(Seq("abc", "bcd", "ddd"), "nb"), domain.ConceptTags(Seq("abc", "bcd"), "nn"))
+    )
     val sampleArticle2 = TestData.domainConcept.copy(
-      tags = Seq(domain.ConceptTags(Seq("bcd", "cde"), "nb"), domain.ConceptTags(Seq("bcd", "cde"), "nn")))
+      tags = Seq(domain.ConceptTags(Seq("bcd", "cde"), "nb"), domain.ConceptTags(Seq("bcd", "cde"), "nn"))
+    )
     val sampleArticle3 =
       TestData.domainConcept.copy(
-        tags = Seq(domain.ConceptTags(Seq("def"), "nb"), domain.ConceptTags(Seq("d", "def", "asd"), "nn")))
+        tags = Seq(domain.ConceptTags(Seq("def"), "nb"), domain.ConceptTags(Seq("d", "def", "asd"), "nn"))
+      )
     val sampleArticle4 = TestData.domainConcept.copy(tags = Seq.empty)
 
     repository.insert(sampleArticle1)
@@ -255,12 +258,12 @@ class DraftConceptRepositoryTest
     )
 
     val insertedConcept = repository.insert(art1)
-    val insertedId = insertedConcept.id.get
+    val insertedId      = insertedConcept.id.get
 
     repository.withId(insertedId).get.revision should be(Some(1))
 
     val updatedContent = Seq(domain.ConceptContent("Updatedpls", "nb"))
-    val updatedArt1 = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
+    val updatedArt1    = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
 
     val updateResult1 = repository.update(updatedArt1)
     updateResult1 should be(Failure(new OptimisticLockException))
@@ -268,7 +271,7 @@ class DraftConceptRepositoryTest
     val fetched1 = repository.withId(insertedId).get
     fetched1 should be(insertedConcept)
 
-    val updatedArt2 = fetched1.copy(content = updatedContent)
+    val updatedArt2   = fetched1.copy(content = updatedContent)
     val updateResult2 = repository.update(updatedArt2)
     updateResult2 should be(Success(updatedArt2.copy(revision = Some(2))))
 
@@ -286,7 +289,7 @@ class DraftConceptRepositoryTest
     val con2 = domainConcept.copy(
       content = Seq(domain.ConceptContent("På", "nb")),
       updated = new Date(0),
-      created = new Date(0),
+      created = new Date(0)
     )
     val con3 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Deg", "nb")),

@@ -66,10 +66,12 @@ trait OEmbedProxyController {
     before() {
       contentType = formats("json")
       ApplicationUrl.set(request)
-      logger.info("{} {}{}",
-                  request.getMethod,
-                  request.getRequestURI,
-                  Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+      logger.info(
+        "{} {}{}",
+        request.getMethod,
+        request.getRequestURI,
+        Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+      )
     }
 
     after() {
@@ -86,7 +88,8 @@ trait OEmbedProxyController {
         NotFound(Error(Error.REMOTE_ERROR, hre.getMessage))
       case hre: HttpRequestException =>
         val msg = hre.httpResponse.map(response =>
-          s": Received '${response.code}' '${response.statusLine}'. Body was '${response.body}'")
+          s": Received '${response.code}' '${response.statusLine}'. Body was '${response.body}'"
+        )
         logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
         BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
       case t: Throwable => {
@@ -111,7 +114,7 @@ trait OEmbedProxyController {
           .responseMessages(response400, response401, response500, response501, response502)
       )
     ) {
-      val maxWidth = params.get(this.maxWidth.paramName)
+      val maxWidth  = params.get(this.maxWidth.paramName)
       val maxHeight = params.get(this.maxHeight.paramName)
 
       params.get(urlParam.paramName) match {

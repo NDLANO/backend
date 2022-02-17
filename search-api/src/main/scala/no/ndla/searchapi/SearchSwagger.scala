@@ -46,5 +46,6 @@ object SearchApiInfo {
 
 class SearchSwagger extends Swagger("2.0", "0.8", SearchApiInfo.apiInfo) {
   addAuthorization(
-    OAuth(List(), List(ImplicitGrant(LoginEndpoint(SearchApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(List(), List(ImplicitGrant(LoginEndpoint(SearchApiProperties.Auth0LoginEndpoint), "access_token")))
+  )
 }

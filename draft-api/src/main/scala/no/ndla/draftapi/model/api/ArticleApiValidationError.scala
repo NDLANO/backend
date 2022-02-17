@@ -9,6 +9,8 @@ package no.ndla.draftapi.model.api
 
 import no.ndla.validation.ValidationMessage
 
-case class ArticleApiValidationError(code: String = Error.VALIDATION,
-                                     description: String = Error.VALIDATION_DESCRIPTION,
-                                     messages: Seq[ValidationMessage])
+case class ArticleApiValidationError(
+    code: String = Error.VALIDATION,
+    description: String = Error.VALIDATION_DESCRIPTION,
+    messages: Seq[ValidationMessage]
+)

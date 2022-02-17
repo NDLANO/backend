@@ -12,5 +12,5 @@ import no.ndla.language.model.LanguageField
 
 case class ArticleTitle(title: String, language: String) extends LanguageField[String] {
   override def isEmpty: Boolean = title.isEmpty
-  override def value: String = title
+  override def value: String    = title
 }

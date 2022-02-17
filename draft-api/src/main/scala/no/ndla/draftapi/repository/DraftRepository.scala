@@ -29,7 +29,7 @@ trait DraftRepository {
 
     def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
       val startRevision = article.revision.getOrElse(1)
-      val dataObject = new PGobject()
+      val dataObject    = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
@@ -42,12 +42,14 @@ trait DraftRepository {
       article.copy(revision = Some(startRevision))
     }
 
-    def insertWithExternalIds(article: Article,
-                              externalIds: List[String],
-                              externalSubjectIds: Seq[String],
-                              importId: Option[String])(implicit session: DBSession = AutoSession): Article = {
+    def insertWithExternalIds(
+        article: Article,
+        externalIds: List[String],
+        externalSubjectIds: Seq[String],
+        importId: Option[String]
+    )(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
-      val dataObject = new PGobject()
+      val dataObject    = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
@@ -68,8 +70,9 @@ trait DraftRepository {
       article.copy(revision = Some(startRevision))
     }
 
-    def storeArticleAsNewVersion(article: Article, user: Option[UserInfo])(
-        implicit session: DBSession = AutoSession): Try[Article] = {
+    def storeArticleAsNewVersion(article: Article, user: Option[UserInfo])(implicit
+        session: DBSession = AutoSession
+    ): Try[Article] = {
       article.id match {
         case None => Failure(ArticleVersioningException("Duplication of article failed."))
         case Some(articleId) =>
@@ -79,10 +82,10 @@ trait DraftRepository {
             logger.info(message)
             Failure(new OptimisticLockException)
           } else {
-            val externalIds: List[String] = getExternalIdsFromId(articleId)
+            val externalIds: List[String]       = getExternalIdsFromId(articleId)
             val externalSubjectIds: Seq[String] = getExternalSubjectIdsFromId(articleId)
-            val importId: Option[String] = getImportIdFromId(articleId)
-            val articleRevision = article.revision.getOrElse(0) + 1
+            val importId: Option[String]        = getImportIdFromId(articleId)
+            val articleRevision                 = article.revision.getOrElse(0) + 1
             val copiedArticle = article.copy(
               notes = user
                 .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, new Date()))
@@ -169,14 +172,16 @@ trait DraftRepository {
           .where
           .eq(a.c("article_id"), article.id)
           .and
-          .notIn(a.id,
-                 select(a.id)
-                   .from(Article as a)
-                   .where
-                   .eq(a.c("article_id"), article.id)
-                   .orderBy(a.revision)
-                   .desc
-                   .limit(1))
+          .notIn(
+            a.id,
+            select(a.id)
+              .from(Article as a)
+              .where
+              .eq(a.c("article_id"), article.id)
+              .orderBy(a.revision)
+              .desc
+              .limit(1)
+          )
       }.update()
     }
 
@@ -190,7 +195,7 @@ trait DraftRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
+      val uuid        = Try(importId.map(UUID.fromString)).toOption.flatten
       val newRevision = article.revision.getOrElse(0) + 1
 
       val deleteCount = deletePreviousRevisions(article)
@@ -228,7 +233,7 @@ trait DraftRepository {
       val ar = Article.syntax("ar")
       Try(
         sql"select article_id, external_id from ${Article
-          .as(ar)} where ar.document is not NULL and ar.document#>>'{status,current}' = ${status.toString}"
+            .as(ar)} where ar.document is not NULL and ar.document#>>'{status,current}' = ${status.toString}"
           .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
           .list()
       )
@@ -294,12 +299,12 @@ trait DraftRepository {
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
       sql"select article_id, max(external_id) as external_id from ${Article.table} group by article_id order by article_id asc"
-        .map(
-          rs =>
-            ArticleIds(
-              rs.long("article_id"),
-              externalIdsFromResultSet(rs)
-          ))
+        .map(rs =>
+          ArticleIds(
+            rs.long("article_id"),
+            externalIdsFromResultSet(rs)
+          )
+        )
         .list()
     }
 
@@ -336,9 +341,8 @@ trait DraftRepository {
       allTags
         .flatMap(tag => parse(tag).extract[List[ArticleTag]])
         .groupBy(_.language)
-        .map {
-          case (language, tags) =>
-            ArticleTag(tags.flatMap(_.tags), language)
+        .map { case (language, tags) =>
+          ArticleTag(tags.flatMap(_.tags), language)
         }
         .toList
     }
@@ -356,10 +360,12 @@ trait DraftRepository {
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
       articlesWhere(
-        sqls"ar.id between $min and $max and ar.document#>>'{status,current}' <> ${ArticleStatus.ARCHIVED.toString}").toList
+        sqls"ar.id between $min and $max and ar.document#>>'{status,current}' <> ${ArticleStatus.ARCHIVED.toString}"
+      ).toList
 
-    private def articleWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
+    private def articleWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")
       sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
         .map(Article.fromResultSet(ar))
@@ -369,8 +375,9 @@ trait DraftRepository {
     def articlesWithId(articleId: Long): List[Article] =
       articlesWhere(sqls"ar.article_id = $articleId").toList
 
-    private def articlesWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
+    private def articlesWhere(
+        whereClause: SQLSyntax
+    )(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
       sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
         .map(Article.fromResultSet(ar))

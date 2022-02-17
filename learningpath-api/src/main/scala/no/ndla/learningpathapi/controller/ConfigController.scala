@@ -52,8 +52,10 @@ trait ConfigController {
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
     private val configKeyPathParam =
-      Param[String]("config_key", s"""Key of configuration value. Can only be one of '${ConfigKey.values.mkString(
-                                       "', '")}'""".stripMargin)
+      Param[String](
+        "config_key",
+        s"""Key of configuration value. Can only be one of '${ConfigKey.values.mkString("', '")}'""".stripMargin
+      )
 
     case class Param[T](paramName: String, description: String)
 
@@ -86,7 +88,7 @@ trait ConfigController {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo = UserInfo(requireUserId)
+      val userInfo        = UserInfo(requireUserId)
       val configKeyString = params("config_key")
       ConfigKey.valueOf(configKeyString) match {
         case None =>

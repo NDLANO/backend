@@ -17,13 +17,15 @@ import scalikejdbc.{WrappedResultSet, _}
 
 import scala.util.Try
 
-case class FilmFrontPageData(name: String,
-                             about: Seq[AboutSubject],
-                             movieThemes: Seq[MovieTheme],
-                             slideShow: Seq[String])
+case class FilmFrontPageData(
+    name: String,
+    about: Seq[AboutSubject],
+    movieThemes: Seq[MovieTheme],
+    slideShow: Seq[String]
+)
 
 object FilmFrontPageData extends SQLSyntaxSupport[FilmFrontPageData] {
-  override val tableName = "filmfrontpage"
+  override val tableName  = "filmfrontpage"
   override val schemaName = FrontpageApiProperties.MetaSchema.some
 
   implicit val decoder: Decoder[FilmFrontPageData] = deriveDecoder

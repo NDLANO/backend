@@ -18,12 +18,13 @@ trait LearningPathApiClient {
   val learningPathApiClient: LearningPathApiClient
 
   class LearningPathApiClient(val baseUrl: String) extends SearchApiClient {
-    override val searchPath = "learningpath-api/v2/learningpaths"
-    override val name = "learningpaths"
+    override val searchPath     = "learningpath-api/v2/learningpaths"
+    override val name           = "learningpaths"
     override val dumpDomainPath = "intern/dump/learningpath"
 
-    def search(searchParams: SearchParams)(
-        implicit executionContext: ExecutionContext): Future[Try[LearningpathApiSearchResults]] =
+    def search(searchParams: SearchParams)(implicit
+        executionContext: ExecutionContext
+    ): Future[Try[LearningpathApiSearchResults]] =
       search[LearningpathApiSearchResults](searchParams)
   }
 }

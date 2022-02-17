@@ -47,10 +47,12 @@ trait SearchService {
           })
         })
 
-    protected def languageSpecificSearch(searchField: String,
-                                         language: Option[String],
-                                         query: String,
-                                         boost: Float): Query = {
+    protected def languageSpecificSearch(
+        searchField: String,
+        language: Option[String],
+        query: String,
+        boost: Float
+    ): Query = {
       language match {
         case Some(lang) if Iso639.get(lang).isSuccess =>
           simpleStringQuery(query).field(s"$searchField.$lang", boost)
@@ -90,12 +92,12 @@ trait SearchService {
         case Sort.ByTitleAsc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case _ => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
-            case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+            case _ => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
@@ -108,11 +110,11 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort): FieldSort = {
       sort match {
-        case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
-        case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
-        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+        case Sort.ByTitleAsc       => fieldSort("title.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+        case Sort.ByTitleDesc      => fieldSort("title.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+        case Sort.ByRelevanceAsc   => fieldSort("_score").order(SortOrder.Asc)
+        case Sort.ByRelevanceDesc  => fieldSort("_score").order(SortOrder.Desc)
+        case Sort.ByLastUpdatedAsc => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
         case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
         case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
         case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")

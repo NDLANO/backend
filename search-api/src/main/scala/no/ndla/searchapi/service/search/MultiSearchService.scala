@@ -39,7 +39,7 @@ trait MultiSearchService {
   val multiSearchService: MultiSearchService
 
   class MultiSearchService extends LazyLogging with SearchService with TaxonomyFiltering {
-    override val searchIndex = List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
+    override val searchIndex   = List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))
     override val indexServices = List(articleIndexService, learningPathIndexService)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
@@ -53,7 +53,7 @@ trait MultiSearchService {
             settings.language,
             settings.fallback,
             searchDecompounded = true
-        )
+          )
         boolQuery().must(
           boolQuery().should(
             List(
@@ -69,11 +69,12 @@ trait MultiSearchService {
             ) ++
               buildNestedEmbedField(List(q), None, settings.language, settings.fallback) ++
               buildNestedEmbedField(List.empty, Some(q), settings.language, settings.fallback)
-          ))
+          )
+        )
       })
 
       val boolQueries: List[BoolQuery] = List(contentSearch).flatten
-      val fullQuery = boolQuery().must(boolQueries)
+      val fullQuery                    = boolQuery().must(boolQueries)
 
       executeSearch(settings, fullQuery)
     }
@@ -90,7 +91,8 @@ trait MultiSearchService {
       val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(ResultWindowTooLargeException())
       } else {
 
@@ -131,11 +133,12 @@ trait MultiSearchService {
       }
     }
 
-    /**
-      * Returns a list of QueryDefinitions of different search filters depending on settings.
+    /** Returns a list of QueryDefinitions of different search filters depending on settings.
       *
-      * @param settings SearchSettings object.
-      * @return List of QueryDefinitions.
+      * @param settings
+      *   SearchSettings object.
+      * @return
+      *   List of QueryDefinitions.
       */
     private def getSearchFilters(settings: SearchSettings): List[Query] = {
       val languageFilter = settings.language match {
@@ -159,10 +162,10 @@ trait MultiSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
-      val taxonomyContextTypeFilter = contextTypeFilter(settings.learningResourceTypes)
+      val taxonomyContextTypeFilter   = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
-      val taxonomySubjectFilter = subjectFilter(settings.subjects)
-      val taxonomyRelevanceFilter = relevanceFilter(settings.relevanceIds, settings.subjects)
+      val taxonomySubjectFilter       = subjectFilter(settings.subjects)
+      val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
 
       val supportedLanguageFilter =
         if (settings.supportedLanguages.isEmpty) None

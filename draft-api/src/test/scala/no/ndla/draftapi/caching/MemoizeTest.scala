@@ -14,11 +14,11 @@ class MemoizeTest extends UnitSuite {
   class Target {
     def targetMethod(): String = "Hei"
   }
-  def shouldCacheResult(r: String) = true
+  def shouldCacheResult(r: String)    = true
   def shouldNotCacheResult(r: String) = false
 
   test("That an uncached value will do an actual call") {
-    val targetMock = mock[Target]
+    val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](Long.MaxValue, targetMock.targetMethod _, false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
@@ -27,7 +27,7 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That a cached value will not forward the call to the target") {
-    val targetMock = mock[Target]
+    val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](Long.MaxValue, targetMock.targetMethod _, false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
@@ -39,8 +39,8 @@ class MemoizeTest extends UnitSuite {
 
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 20
-    val targetMock = mock[Target]
-    val memoizedTarget = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldCacheResult)
+    val targetMock      = mock[Target]
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -55,8 +55,8 @@ class MemoizeTest extends UnitSuite {
 
   test("The cache should only be renewed if shouldCacheResult returns true") {
     val cacheMaxAgeInMs = 20
-    val targetMock = mock[Target]
-    val memoizedTarget = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldNotCacheResult)
+    val targetMock      = mock[Target]
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldNotCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 

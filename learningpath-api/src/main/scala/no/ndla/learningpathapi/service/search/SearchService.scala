@@ -120,12 +120,12 @@ trait SearchService extends LazyLogging {
         case Some(query) =>
           val language =
             if (settings.fallback) "*" else searchLanguage
-          val titleSearch = languageSpecificSearch("titles", language, query, 2)
-          val descSearch = languageSpecificSearch("descriptions", language, query, 2)
+          val titleSearch     = languageSpecificSearch("titles", language, query, 2)
+          val descSearch      = languageSpecificSearch("descriptions", language, query, 2)
           val stepTitleSearch = languageSpecificSearch("titles", language, query, 1)
-          val stepDescSearch = languageSpecificSearch("descriptions", language, query, 1)
-          val tagSearch = languageSpecificSearch("tags", language, query, 2)
-          val authorSearch = simpleStringQuery(query).field("author", 1)
+          val stepDescSearch  = languageSpecificSearch("descriptions", language, query, 1)
+          val tagSearch       = languageSpecificSearch("tags", language, query, 2)
+          val authorSearch    = simpleStringQuery(query).field("author", 1)
           boolQuery()
             .must(
               boolQuery()
@@ -141,7 +141,7 @@ trait SearchService extends LazyLogging {
         case None if searchLanguage == "*" => boolQuery()
         case _ =>
           val titleSearch = existsQuery(s"titles.$searchLanguage")
-          val descSearch = existsQuery(s"descriptions.$searchLanguage")
+          val descSearch  = existsQuery(s"descriptions.$searchLanguage")
           boolQuery()
             .should(
               titleSearch,
@@ -164,11 +164,9 @@ trait SearchService extends LazyLogging {
         case _                                 => (None, "*")
       }
 
-      val tagFilter: Option[Query] = settings.taggedWith.map(
-        tag => termQuery(s"tags.${searchLanguage}.raw", tag)
-      )
-      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val pathFilter = pathsFilterQuery(settings.withPaths)
+      val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.${searchLanguage}.raw", tag))
+      val idFilter                 = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val pathFilter               = pathsFilterQuery(settings.withPaths)
 
       val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
@@ -189,7 +187,8 @@ trait SearchService extends LazyLogging {
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+        )
         Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
       } else {
         val searchToExecute = search(LearningpathApiProperties.SearchIndex)
@@ -216,7 +215,8 @@ trait SearchService extends LazyLogging {
                 searchLanguage,
                 getHitsV2(response.result, searchLanguage),
                 response.result.scrollId
-              ))
+              )
+            )
           case Failure(ex) =>
             errorHandler(ex)
         }
@@ -316,13 +316,16 @@ trait SearchService extends LazyLogging {
           logger.error(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex.")
           scheduleIndexDocuments()
           Failure(
-            IndexNotFoundException(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex"))
+            IndexNotFoundException(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex")
+          )
         case e: NdlaSearchException =>
           logger.error(e.getMessage)
           Failure(
             NdlaSearchException(
               s"Unable to execute search in ${LearningpathApiProperties.SearchIndex}: ${e.getMessage}",
-              e))
+              e
+            )
+          )
         case t => Failure(t)
       }
     }
@@ -338,18 +341,21 @@ trait SearchService extends LazyLogging {
       f.foreach {
         case Success(reindexResult) =>
           logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+          )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }
 
     def readToApiCopyright(copyright: Copyright): Copyright = {
-      Copyright(License(
-                  copyright.license.license,
-                  copyright.license.description,
-                  copyright.license.url
-                ),
-                copyright.contributors)
+      Copyright(
+        License(
+          copyright.license.license,
+          copyright.license.description,
+          copyright.license.url
+        ),
+        copyright.contributors
+      )
     }
   }
 

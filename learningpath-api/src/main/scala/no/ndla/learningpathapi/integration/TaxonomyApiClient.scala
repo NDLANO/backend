@@ -24,13 +24,15 @@ trait TaxonomyApiClient {
   val taxononyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends LazyLogging {
-    implicit val formats = org.json4s.DefaultFormats
-    private val taxonomyTimeout = 20 * 1000 // 20 Seconds
-    private val TaxonomyApiEndpoint = s"http://$ApiGatewayHost/taxonomy/v1"
+    implicit val formats                   = org.json4s.DefaultFormats
+    private val taxonomyTimeout            = 20 * 1000 // 20 Seconds
+    private val TaxonomyApiEndpoint        = s"http://$ApiGatewayHost/taxonomy/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
 
-    def updateTaxonomyForLearningPath(learningPath: LearningPath,
-                                      createResourceIfMissing: Boolean): Try[LearningPath] = {
+    def updateTaxonomyForLearningPath(
+        learningPath: LearningPath,
+        createResourceIfMissing: Boolean
+    ): Try[LearningPath] = {
       val result = learningPath.id match {
         case None =>
           Failure(TaxonomyUpdateException("Can't update taxonomy resource when learningpath is missing id."))
@@ -74,7 +76,8 @@ trait TaxonomyApiClient {
                 path = None
               )
               addLearningPathResourceType(resourceId).flatMap(_ =>
-                updateExistingResources(List(newResource), contentUri, learningPath.title, mainTitle))
+                updateExistingResources(List(newResource), contentUri, learningPath.title, mainTitle)
+              )
           }
       }
     }
@@ -107,7 +110,7 @@ trait TaxonomyApiClient {
         case Success(resp) =>
           resp.header("location") match {
             case Some(locationHeader) if locationHeader.nonEmpty => Success(locationHeader)
-            case _                                               => Failure(new TaxonomyUpdateException("Could not get location after inserting resource"))
+            case _ => Failure(new TaxonomyUpdateException("Could not get location after inserting resource"))
           }
 
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.is2xx) =>
@@ -119,10 +122,12 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def updateExistingResources(existingResources: List[TaxonomyResource],
-                                        contentUri: String,
-                                        titles: Seq[Title],
-                                        mainTitle: Title) = {
+    private def updateExistingResources(
+        existingResources: List[TaxonomyResource],
+        contentUri: String,
+        titles: Seq[Title],
+        mainTitle: Title
+    ) = {
       existingResources
         .traverse(r => {
           val resourceToPut = NewOrUpdateTaxonomyResource(
@@ -154,7 +159,8 @@ trait TaxonomyApiClient {
             existingTranslations.find(titleIsEqualToTranslation(title, _)) match {
               case Some(existingTranslation) => Success(existingTranslation)
               case None                      => updateResourceTranslation(resourceId, title.language, title.title)
-          })
+            }
+          )
 
           deleted.collectFirst { case Failure(ex) => Failure(ex) } match {
             case Some(failedDelete) => failedDelete
@@ -216,9 +222,10 @@ trait TaxonomyApiClient {
       ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(taxonomyTimeout, taxonomyTimeout).params(params))
     }
 
-    private def put[A, B <: AnyRef](url: String, data: B, params: (String, String)*)(
-        implicit mf: Manifest[A],
-        format: org.json4s.Formats): Try[A] = {
+    private def put[A, B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
+        mf: Manifest[A],
+        format: org.json4s.Formats
+    ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         Http(url)
           .timeout(taxonomyTimeout, taxonomyTimeout)
@@ -229,8 +236,9 @@ trait TaxonomyApiClient {
       )
     }
 
-    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(
-        implicit formats: org.json4s.Formats): Try[B] = {
+    private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
+        formats: org.json4s.Formats
+    ): Try[B] = {
       logger.info(s"Doing call to $url")
       ndlaClient.fetchRawWithForwardedAuth(
         Http(url)
@@ -244,9 +252,11 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def postRaw[B <: AnyRef](endpointUrl: String,
-                                     data: B,
-                                     params: (String, String)*): Try[HttpResponse[String]] = {
+    private def postRaw[B <: AnyRef](
+        endpointUrl: String,
+        data: B,
+        params: (String, String)*
+    ): Try[HttpResponse[String]] = {
       ndlaClient.fetchRawWithForwardedAuth(
         Http(endpointUrl)
           .postData(write(data))
@@ -261,7 +271,8 @@ trait TaxonomyApiClient {
 
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)) match {
+        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
+      ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())
       }
@@ -280,7 +291,7 @@ case class TaxonomyResource(
     id: String,
     name: String,
     contentUri: Option[String],
-    path: Option[String],
+    path: Option[String]
 )
 
 case class ResourceResourceType(

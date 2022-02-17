@@ -35,35 +35,41 @@ class PublishedConceptSearchServiceTest
   override val publishedConceptIndexService: PublishedConceptIndexService = new PublishedConceptIndexService {
     override val indexShards = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(Some("by-nc-sa"),
-                         Some("Gotham City"),
-                         List(Author("Forfatter", "DC Comics")),
-                         List(),
-                         List(),
-                         None,
-                         None,
-                         None)
+  val byNcSa = Copyright(
+    Some("by-nc-sa"),
+    Some("Gotham City"),
+    List(Author("Forfatter", "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val publicDomain = Copyright(Some("publicdomain"),
-                               Some("Metropolis"),
-                               List(Author("Forfatter", "Bruce Wayne")),
-                               List(),
-                               List(),
-                               None,
-                               None,
-                               None)
+  val publicDomain = Copyright(
+    Some("publicdomain"),
+    Some("Metropolis"),
+    List(Author("Forfatter", "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
-  val copyrighted = Copyright(Some("copyrighted"),
-                              Some("New York"),
-                              List(Author("Forfatter", "Clark Kent")),
-                              List(),
-                              List(),
-                              None,
-                              None,
-                              None)
+  val copyrighted = Copyright(
+    Some("copyrighted"),
+    Some("New York"),
+    List(Author("Forfatter", "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    None
+  )
 
   val today: DateTime = DateTime.now()
 
@@ -103,8 +109,11 @@ class PublishedConceptSearchServiceTest
     id = Option(6),
     title = List(ConceptTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     content = List(
-      ConceptContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-                     "nb"))
+      ConceptContent(
+        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+        "nb"
+      )
+    )
   )
 
   val concept7: Concept = TestData.sampleConcept.copy(
@@ -139,12 +148,16 @@ class PublishedConceptSearchServiceTest
     visualElement = List(
       VisualElement(
         """<embed data-resource="image" data-url="test.url" /><embed data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
-        "nb"))
+        "nb"
+      )
+    )
   )
 
-  val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
-                                                       title = List(ConceptTitle("\"englando\"", "en")),
-                                                       content = List(ConceptContent("englandocontent", "en")))
+  val concept11: Concept = TestData.sampleConcept.copy(
+    id = Option(11),
+    title = List(ConceptTitle("\"englando\"", "en")),
+    content = List(ConceptContent("englandocontent", "en"))
+  )
 
   val searchSettings = SearchSettings(
     withIdIn = List.empty,
@@ -186,18 +199,21 @@ class PublishedConceptSearchServiceTest
   }
 
   test(
-    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
-    val page = 74
+    "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
+  ) {
+    val page            = 74
     val expectedStartAt = (page - 1) * DefaultPageSize
     publishedConceptSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
-    val page = 123
+    val page            = 123
     val expectedStartAt = (page - 1) * DefaultPageSize
     publishedConceptSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal(
-      (expectedStartAt, DefaultPageSize))
+      (expectedStartAt, DefaultPageSize)
+    )
   }
 
   test("That all returns all documents ordered by id ascending") {
@@ -324,20 +340,26 @@ class PublishedConceptSearchServiceTest
 
   test("That search for title with exact parameter matches correct number of concepts") {
     val Success(results) =
-      publishedConceptSearchService.matchingQuery("baldur har mareritt",
-                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "baldur har mareritt",
+        searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
+      )
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(8)
 
     val Success(results2) =
-      publishedConceptSearchService.matchingQuery("Pingvinen",
-                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "Pingvinen",
+        searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
+      )
     results2.totalCount should be(0)
 
     val Success(results3) =
-      publishedConceptSearchService.matchingQuery("baldur har MARERITT",
-                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "baldur har MARERITT",
+        searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
+      )
     val hits3 = results3.results
     results3.totalCount should be(1)
     hits3.head.id should be(8)
@@ -355,8 +377,10 @@ class PublishedConceptSearchServiceTest
     hits2.map(_.id) should equal(Seq(1))
 
     val Success(search3) =
-      publishedConceptSearchService.matchingQuery("bil + bilde + -flaggermusmann",
-                                                  searchSettings.copy(sort = Sort.ByTitleAsc))
+      publishedConceptSearchService.matchingQuery(
+        "bil + bilde + -flaggermusmann",
+        searchSettings.copy(sort = Sort.ByTitleAsc)
+      )
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
@@ -368,8 +392,10 @@ class PublishedConceptSearchServiceTest
 
   test("search in content should be ranked lower than title") {
     val Success(search) =
-      publishedConceptSearchService.matchingQuery("mareritt + ragnarok",
-                                                  searchSettings.copy(sort = Sort.ByRelevanceDesc))
+      publishedConceptSearchService.matchingQuery(
+        "mareritt + ragnarok",
+        searchSettings.copy(sort = Sort.ByRelevanceDesc)
+      )
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
@@ -418,7 +444,8 @@ class PublishedConceptSearchServiceTest
   test("That searching with fallback parameter returns concept in language priority even if doesnt match on language") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true))
+        searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true)
+      )
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -430,7 +457,7 @@ class PublishedConceptSearchServiceTest
   }
 
   test("That scrolling works as expected") {
-    val pageSize = 2
+    val pageSize    = 2
     val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
@@ -440,7 +467,8 @@ class PublishedConceptSearchServiceTest
           searchLanguage = "*",
           fallback = true,
           shouldScroll = true
-        ))
+        )
+      )
 
     val Success(scroll1) = publishedConceptSearchService.scroll(initialSearch.scrollId.get, "*")
     val Success(scroll2) = publishedConceptSearchService.scroll(scroll1.scrollId.get, "*")
@@ -482,7 +510,8 @@ class PublishedConceptSearchServiceTest
 
     val Success(search3) =
       publishedConceptSearchService.all(
-        searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "en", fallback = true))
+        searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "en", fallback = true)
+      )
     search3.totalCount should be(1)
     search3.results.map(_.id) should be(Seq(10))
   }
@@ -505,7 +534,8 @@ class PublishedConceptSearchServiceTest
           tags = List("stor", "klovn"),
           language = "nb"
         )
-      ))
+      )
+    )
 
     tagSearch2 should be(
       List(
@@ -514,7 +544,8 @@ class PublishedConceptSearchServiceTest
           tags = List("cageowl"),
           language = "en"
         )
-      ))
+      )
+    )
   }
 
   test("That tag search works as expected with fallback") {
@@ -535,7 +566,8 @@ class PublishedConceptSearchServiceTest
           tags = List("stor", "klovn"),
           language = "nb"
         )
-      ))
+      )
+    )
 
     tagSearch2 should be(
       List(
@@ -548,14 +580,16 @@ class PublishedConceptSearchServiceTest
           subjectId = "urn:subject:100",
           tags = List("stor", "klovn"),
           language = "nb"
-        ),
-      ))
+        )
+      )
+    )
   }
 
   test("that search on embedId matches visual element") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(embedId = Some("test.url"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedId = Some("test.url"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
@@ -564,7 +598,8 @@ class PublishedConceptSearchServiceTest
   test("that search on embedResource matches visual element") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedResource = Some("brightcove"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
@@ -573,7 +608,8 @@ class PublishedConceptSearchServiceTest
   test("that search on embedId matches meta image") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(embedId = Some("test.image"), searchLanguage = Language.AllLanguages))
+        searchSettings.copy(embedId = Some("test.image"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(9)
@@ -627,7 +663,8 @@ class PublishedConceptSearchServiceTest
     val Success(search) =
       publishedConceptSearchService.all(
         searchSettings
-          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages))
+          .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages)
+      )
 
     search.totalCount should be(1)
     search.results.head.id should be(9)
@@ -652,37 +689,47 @@ class PublishedConceptSearchServiceTest
 
   test("That search on exactTitleMatch only matches exact") {
     val Success(search1) =
-      publishedConceptSearchService.matchingQuery("\"urelatert noe noe\"",
-                                                  searchSettings.copy(fallback = true, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "\"urelatert noe noe\"",
+        searchSettings.copy(fallback = true, exactTitleMatch = true)
+      )
     search1.totalCount should be(0)
 
     val Success(search2) =
-      publishedConceptSearchService.matchingQuery("et urelatert noe noe",
-                                                  searchSettings.copy(fallback = true, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "et urelatert noe noe",
+        searchSettings.copy(fallback = true, exactTitleMatch = true)
+      )
     search2.totalCount should be(0)
 
     val Success(search3) =
-      publishedConceptSearchService.matchingQuery("\"englando\"",
-                                                  searchSettings.copy(fallback = true, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "\"englando\"",
+        searchSettings.copy(fallback = true, exactTitleMatch = true)
+      )
     search3.totalCount should be(1)
     search3.results.head.id should be(11)
 
     val Success(search4) =
-      publishedConceptSearchService.matchingQuery("unrelated",
-                                                  searchSettings.copy(fallback = true, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "unrelated",
+        searchSettings.copy(fallback = true, exactTitleMatch = true)
+      )
     search4.totalCount should be(1)
     search4.results.head.id should be(10)
 
     val Success(search5) =
-      publishedConceptSearchService.matchingQuery("batmen",
-                                                  searchSettings.copy(fallback = true, exactTitleMatch = true))
+      publishedConceptSearchService.matchingQuery(
+        "batmen",
+        searchSettings.copy(fallback = true, exactTitleMatch = true)
+      )
     search5.totalCount should be(0)
 
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

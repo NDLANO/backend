@@ -52,7 +52,7 @@ object ComponentRegistry
     with User
     with Role
     with Clock {
-  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+  def connectToDatabase(): Unit      = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   implicit val swagger: AudioSwagger = new AudioSwagger
 
   lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
@@ -68,35 +68,35 @@ object ComponentRegistry
 
   lazy val storageName: String = AudioApiProperties.StorageName
 
-  lazy val audioRepository = new AudioRepository
+  lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
-  lazy val audioStorage = new AudioStorage
+  lazy val audioStorage     = new AudioStorage
 
-  lazy val ndlaClient = new NdlaClient
+  lazy val ndlaClient     = new NdlaClient
   lazy val draftApiClient = new DraftApiClient
 
-  lazy val readService = new ReadService
-  lazy val writeService = new WriteService
+  lazy val readService       = new ReadService
+  lazy val writeService      = new WriteService
   lazy val validationService = new ValidationService
-  lazy val converterService = new ConverterService
+  lazy val converterService  = new ConverterService
 
-  lazy val internController = new InternController
-  lazy val resourcesApp = new ResourcesApp
+  lazy val internController   = new InternController
+  lazy val resourcesApp       = new ResourcesApp
   lazy val audioApiController = new AudioController
-  lazy val seriesController = new SeriesController
-  lazy val healthController = new HealthController
+  lazy val seriesController   = new SeriesController
+  lazy val healthController   = new HealthController
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(SearchServer)
   lazy val searchConverterService = new SearchConverterService
-  lazy val audioIndexService = new AudioIndexService
-  lazy val audioSearchService = new AudioSearchService
-  lazy val seriesIndexService = new SeriesIndexService
-  lazy val seriesSearchService = new SeriesSearchService
-  lazy val tagIndexService = new TagIndexService
-  lazy val tagSearchService = new TagSearchService
+  lazy val audioIndexService      = new AudioIndexService
+  lazy val audioSearchService     = new AudioSearchService
+  lazy val seriesIndexService     = new SeriesIndexService
+  lazy val seriesSearchService    = new SeriesSearchService
+  lazy val tagIndexService        = new TagIndexService
+  lazy val tagSearchService       = new TagSearchService
 
   lazy val authRole = new AuthRole
   lazy val authUser = new AuthUser
-  lazy val clock = new SystemClock
+  lazy val clock    = new SystemClock
 
 }

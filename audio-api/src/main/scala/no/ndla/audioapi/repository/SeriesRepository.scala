@@ -28,14 +28,14 @@ trait SeriesRepository {
   class SeriesRepository extends LazyLogging with Repository[Series] {
     val formats: Formats = domain.Series.repositorySerializer
 
-    /**
-      * Method to fetch single series from database
-      * @param id Id of series
-      * @param includeEpisodes Whether to fetch episodes connected to the series.
-      *                        This is slightly more expensive, but usually what we want.
-      * @return Try which decides whether the fetch was successful or not,
-      *         containing an Option with the series if it was found,
-      *         or `None` if it was not.
+    /** Method to fetch single series from database
+      * @param id
+      *   Id of series
+      * @param includeEpisodes
+      *   Whether to fetch episodes connected to the series. This is slightly more expensive, but usually what we want.
+      * @return
+      *   Try which decides whether the fetch was successful or not, containing an Option with the series if it was
+      *   found, or `None` if it was not.
       */
     def withId(id: Long, includeEpisodes: Boolean = true): Try[Option[Series]] = {
       if (includeEpisodes)
@@ -83,7 +83,7 @@ trait SeriesRepository {
 
     def insert(newSeries: domain.SeriesWithoutId)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
       val startRevision = 1
-      val dataObject = new PGobject()
+      val dataObject    = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(newSeries)(formats))
 
@@ -113,8 +113,8 @@ trait SeriesRepository {
       seriesWhere(sqls"se.id between $min and $max")
     }
 
-    private def serieWhereNoEpisodes(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession
+    private def serieWhereNoEpisodes(whereClause: SQLSyntax)(implicit
+        session: DBSession = ReadOnlyAutoSession
     ): Try[Option[Series]] = {
       val se = Series.syntax("se")
 
@@ -129,8 +129,8 @@ trait SeriesRepository {
       ).flatMap(_.sequence)
     }
 
-    private def serieWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession
+    private def serieWhere(whereClause: SQLSyntax)(implicit
+        session: DBSession = ReadOnlyAutoSession
     ): Try[Option[Series]] = {
       val se = Series.syntax("se")
       val au = AudioMetaInformation.syntax("au")
@@ -151,8 +151,8 @@ trait SeriesRepository {
       ).flatMap(_.sequence)
     }
 
-    private def seriesWhere(whereClause: SQLSyntax)(
-        implicit session: DBSession = ReadOnlyAutoSession
+    private def seriesWhere(whereClause: SQLSyntax)(implicit
+        session: DBSession = ReadOnlyAutoSession
     ): Try[List[Series]] = {
       val se = Series.syntax("se")
       val au = AudioMetaInformation.syntax("au")

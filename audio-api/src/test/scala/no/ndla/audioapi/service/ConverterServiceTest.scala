@@ -84,7 +84,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.Title("", "nb"))
 
     val audioWithNoTitles = audioMeta.copy(titles = Seq.empty)
-    val randomLanguage = "norsk"
+    val randomLanguage    = "norsk"
 
     service.toApiAudioMetaInformation(audioMeta, Some(randomLanguage)) should equal(Success(expectedDefaultLanguage))
     service.toApiAudioMetaInformation(audioWithNoTitles, Some(randomLanguage)) should equal(Success(expectedNoTitles))
@@ -92,9 +92,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense converts to an api.License") {
     val licenseAbbr = CC_BY_SA.toString
-    val license = api.License(licenseAbbr,
-                              Some("Creative Commons Attribution-ShareAlike 4.0 International"),
-                              Some("https://creativecommons.org/licenses/by-sa/4.0/"))
+    val license = api.License(
+      licenseAbbr,
+      Some("Creative Commons Attribution-ShareAlike 4.0 International"),
+      Some("https://creativecommons.org/licenses/by-sa/4.0/")
+    )
 
     service.toApiLicence(licenseAbbr) should equal(license)
   }
@@ -107,7 +109,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That withAgreementCopyright returns with copyright") {
     val meta = audioMeta.copy(
-      copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+      copyright = audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test")))
+    )
     val today = new DateTime().toDate()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
@@ -131,14 +134,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That withAgreementCopyright doesnt change anything if no agreement found") {
     val meta = audioMeta.copy(
-      copyright = audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+      copyright = audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test")))
+    )
     val result = service.withAgreementCopyright(meta)
     result should equal(meta)
   }
 
   test("That api version of withAgreementCopyright returns with copyright") {
     val copyright = service.toApiCopyright(
-      audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test"))))
+      audioMeta.copyright.copy(agreementId = Some(1), processors = Seq(Author("Linguistic", "Tommy Test")))
+    )
     val today = new DateTime().toDate()
     val agreementCopyright = api.Copyright(
       license = api.License("gnu", None, None),
@@ -162,7 +167,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That api version of withAgreementCopyright doesnt change anything if no agreement found") {
     val copyright = service.toApiCopyright(
-      audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test"))))
+      audioMeta.copyright.copy(agreementId = None, processors = Seq(Author("Linguistic", "Tommy Test")))
+    )
     val result = service.withAgreementCopyright(copyright)
     result should equal(copyright)
   }
@@ -170,11 +176,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That mergeLanguageField merges language fields as expected") {
     val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
 
-    val res1 = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
+    val res1      = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
     val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
     res1 should be(expected1)
 
-    val res2 = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
+    val res2      = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
     val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
     res2 should be(expected2)
   }
@@ -182,15 +188,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That mergeLanguageField deletes language fields as expected") {
     val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
 
-    val res1 = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
+    val res1      = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
     val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
     res1 should be(expected1)
 
-    val res2 = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
+    val res2      = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
     val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
     res2 should be(expected2)
 
-    val res3 = service.mergeLanguageField(existingTitles, None, "en")
+    val res3      = service.mergeLanguageField(existingTitles, None, "en")
     val expected3 = Seq(domain.Title("Tittel", "nb"))
     res3 should be(expected3)
   }

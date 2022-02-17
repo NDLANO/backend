@@ -16,7 +16,7 @@ import java.util.Date
 
 object TestData {
 
-  val today: DateTime = new DateTime().minusDays(1)
+  val today: DateTime     = new DateTime().minusDays(1)
   val yesterday: DateTime = new DateTime()
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -67,7 +67,7 @@ object TestData {
     description = Seq(domain.Description("SERIE DESCRIPTION", "nb")),
     coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
     updated = today,
-    created = yesterday,
+    created = yesterday
   )
 
   val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(

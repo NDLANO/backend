@@ -13,7 +13,8 @@ class V24__RemoveDomainFromH5PUrlTest extends UnitSuite with TestEnvironment {
   val migration = new V24__RemoveDomainFromH5PUrl
 
   test(
-    "migration should rename data-url to data-path and remove domain url from H5P-urls, and convert data-resource to h5p in LearningResource") {
+    "migration should rename data-url to data-path and remove domain url from H5P-urls, and convert data-resource to h5p in LearningResource"
+  ) {
     /*
     Article data before: The word "external" written in every <p> tag, should not be affected
                          data-resource="external" (the only occurrence of "external" that should be affected)
@@ -44,7 +45,8 @@ class V24__RemoveDomainFromH5PUrlTest extends UnitSuite with TestEnvironment {
   }
 
   test(
-    "migration rename data-url to data-path and remove domain url from H5P-urls, and convert data-resource to h5p in TopicArticle") {
+    "migration rename data-url to data-path and remove domain url from H5P-urls, and convert data-resource to h5p in TopicArticle"
+  ) {
     /*
     Article data before: The word "external" written in every <p> tag, should not be affected
                          data-resource="external" (the only occurrence of "external" that should be affected)

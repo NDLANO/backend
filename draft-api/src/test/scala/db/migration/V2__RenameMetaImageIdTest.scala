@@ -13,7 +13,7 @@ class V2__RenameMetaImageIdTest extends UnitSuite with TestEnvironment {
   val migration = new V2__RenameMetaImageId
 
   test("migration should remove the metaImageId field and add an metaImage array of one object") {
-    val before = """{"metaImageId":"123","title":[{"title":"tittel","language":"nb"}]}"""
+    val before   = """{"metaImageId":"123","title":[{"title":"tittel","language":"nb"}]}"""
     val expected = """{"metaImage":[{"imageId":"123","language":"nb"}],"title":[{"title":"tittel","language":"nb"}]}"""
 
     migration.convertArticleUpdate(before) should equal(expected)

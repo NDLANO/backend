@@ -17,18 +17,21 @@ class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =
     s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HtmlTagRules.allLegalTags.mkString(",")}"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
-  private val FieldEmpty = "Required field is empty"
-  private val TagValidator = new TagValidator
+  private val FieldEmpty                = "Required field is empty"
+  private val TagValidator              = new TagValidator
 
-  /**
-    * Validates text
-    * Will validate legal html tags if html is allowed.
+  /** Validates text Will validate legal html tags if html is allowed.
     *
-    * @param fieldPath Path to return in the [[ValidationMessage]]'s if there are any
-    * @param text Text to validate
-    * @param requiredToOptional Map from resource-type to Seq of embed tag attributes to treat as optional rather than required for this validation.
-    *                           Example Map("image" -> Seq("data-caption")) to make data-caption optional for "image" on this validation.
-    * @return Seq of [[ValidationMessage]]'s describing issues with validation
+    * @param fieldPath
+    *   Path to return in the [[ValidationMessage]]'s if there are any
+    * @param text
+    *   Text to validate
+    * @param requiredToOptional
+    *   Map from resource-type to Seq of embed tag attributes to treat as optional rather than required for this
+    *   validation. Example Map("image" -> Seq("data-caption")) to make data-caption optional for "image" on this
+    *   validation.
+    * @return
+    *   Seq of [[ValidationMessage]]'s describing issues with validation
     */
   def validate(
       fieldPath: String,
@@ -49,7 +52,7 @@ class TextValidator(allowHtml: Boolean) {
 
     val errorWith = (msg: String) => Seq(ValidationMessage(fieldPath, msg))
 
-    val body = HtmlTagRules.stringToJsoupDocument(text)
+    val body     = HtmlTagRules.stringToJsoupDocument(text)
     val elemList = body.children().iterator().asScala.toList
 
     elemList match {
@@ -64,9 +67,11 @@ class TextValidator(allowHtml: Boolean) {
     }
   }
 
-  private def validateOnlyBasicHtmlTags(fieldPath: String,
-                                        text: String,
-                                        requiredToOptional: Map[String, Seq[String]]): Seq[ValidationMessage] = {
+  private def validateOnlyBasicHtmlTags(
+      fieldPath: String,
+      text: String,
+      requiredToOptional: Map[String, Seq[String]]
+  ): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
     HtmlTagRules.allLegalTags

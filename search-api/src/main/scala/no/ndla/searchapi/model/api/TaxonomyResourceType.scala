@@ -15,5 +15,7 @@ import scala.annotation.meta.field
 case class TaxonomyResourceType(
     @(ApiModelProperty @field)(description = "Id of the taoxonomy resource type") id: String,
     @(ApiModelProperty @field)(description = "Name of the subject this context is in") name: String,
-    @(ApiModelProperty @field)(description =
-      "The ISO 639-1 language code describing which article translation this visual element belongs to") language: String)
+    @(ApiModelProperty @field)(
+      description = "The ISO 639-1 language code describing which article translation this visual element belongs to"
+    ) language: String
+)

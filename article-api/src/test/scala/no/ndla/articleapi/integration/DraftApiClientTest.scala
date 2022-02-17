@@ -15,7 +15,7 @@ import org.json4s.native.Serialization.write
 
 class DraftApiClientTest extends UnitSuite with TestEnvironment {
   implicit val formats: DefaultFormats = DefaultFormats
-  override val ndlaClient = new NdlaClient
+  override val ndlaClient              = new NdlaClient
 
   // Pact CDC imports
   import com.itv.scalapact.ScalaPactForger._
@@ -24,9 +24,11 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
 
   test("should be able to fetch agreements' copyright") {
     val expectedCopyright = api.Copyright(
-      api.License("CC-BY-SA-4.0",
-                  Some("Creative Commons Attribution-ShareAlike 4.0 International"),
-                  Some("https://creativecommons.org/licenses/by-sa/4.0/")),
+      api.License(
+        "CC-BY-SA-4.0",
+        Some("Creative Commons Attribution-ShareAlike 4.0 International"),
+        Some("https://creativecommons.org/licenses/by-sa/4.0/")
+      ),
       "Origin",
       Seq.empty,
       Seq.empty,
@@ -63,7 +65,7 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
       .runConsumerTest { mockConfig =>
         AuthUser.setHeader(s"Bearer $exampleToken")
         val draftApiClient = new DraftApiClient(mockConfig.baseUrl)
-        val copyright = draftApiClient.getAgreementCopyright(1)
+        val copyright      = draftApiClient.getAgreementCopyright(1)
         copyright.get should be(expectedCopyright)
       }
   }

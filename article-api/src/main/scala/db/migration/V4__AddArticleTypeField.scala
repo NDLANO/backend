@@ -23,9 +23,9 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      val count = countAllArticles.get
+      val count        = countAllArticles.get
       var numPagesLeft = (count / 1000) + 1
-      var offset = 0L
+      var offset       = 0L
 
       while (numPagesLeft > 0) {
         allArticles(offset * 1000).map(convertArticleUpdate).foreach(update)

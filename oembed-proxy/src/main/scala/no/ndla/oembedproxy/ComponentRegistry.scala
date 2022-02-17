@@ -20,10 +20,10 @@ object ComponentRegistry
     with HealthController {
   implicit val swagger: OEmbedSwagger = new OEmbedSwagger
 
-  lazy val providerService = new ProviderService
-  lazy val oEmbedService = new OEmbedService
-  lazy val ndlaClient = new NdlaClient
+  lazy val providerService       = new ProviderService
+  lazy val oEmbedService         = new OEmbedService
+  lazy val ndlaClient            = new NdlaClient
   lazy val oEmbedProxyController = new OEmbedProxyController
-  lazy val resourcesApp = new ResourcesApp
-  lazy val healthController = new HealthController
+  lazy val resourcesApp          = new ResourcesApp
+  lazy val healthController      = new HealthController
 }

@@ -21,39 +21,41 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {
-  override def value: String = title
+  override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty
 }
 case class ImageAltText(alttext: String, language: String) extends LanguageField[String] {
-  override def value: String = alttext
+  override def value: String    = alttext
   override def isEmpty: Boolean = alttext.isEmpty
 }
 case class ImageCaption(caption: String, language: String) extends LanguageField[String] {
-  override def value: String = caption
+  override def value: String    = caption
   override def isEmpty: Boolean = caption.isEmpty
 }
 case class ImageTag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
   override def value: Seq[String] = tags
-  override def isEmpty: Boolean = tags.isEmpty
+  override def isEmpty: Boolean   = tags.isEmpty
 }
 case class Image(fileName: String, size: Long, contentType: String)
-case class Copyright(license: String,
-                     origin: String,
-                     creators: Seq[Author],
-                     processors: Seq[Author],
-                     rightsholders: Seq[Author],
-                     agreementId: Option[Long],
-                     validFrom: Option[Date],
-                     validTo: Option[Date])
+case class Copyright(
+    license: String,
+    origin: String,
+    creators: Seq[Author],
+    processors: Seq[Author],
+    rightsholders: Seq[Author],
+    agreementId: Option[Long],
+    validFrom: Option[Date],
+    validTo: Option[Date]
+)
 case class License(license: String, description: String, url: Option[String])
 case class Author(`type`: String, name: String)
 case class EditorNote(timeStamp: Date, updatedBy: String, note: String)
 
 object ModelReleasedStatus extends Enumeration {
-  val YES = Value("yes")
-  val NO = Value("no")
+  val YES            = Value("yes")
+  val NO             = Value("no")
   val NOT_APPLICABLE = Value("not-applicable")
-  val NOT_SET = Value("not-set")
+  val NOT_SET        = Value("not-set")
 
   def valueOfOrError(s: String): Try[this.Value] =
     valueOf(s) match {
@@ -63,8 +65,13 @@ object ModelReleasedStatus extends Enumeration {
         Failure(
           new ValidationException(
             errors = Seq(
-              ValidationMessage("modelReleased",
-                                s"'$s' is not a valid model released status. Must be one of $validStatuses"))))
+              ValidationMessage(
+                "modelReleased",
+                s"'$s' is not a valid model released status. Must be one of $validStatuses"
+              )
+            )
+          )
+        )
     }
 
   def valueOf(s: String): Option[this.Value] = values.find(_.toString == s)
@@ -89,8 +96,8 @@ case class ImageMetaInformation(
 )
 
 object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
-  override val tableName = "imagemetadata"
-  override val schemaName = Some(ImageApiProperties.MetaSchema)
+  override val tableName   = "imagemetadata"
+  override val schemaName  = Some(ImageApiProperties.MetaSchema)
   val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ModelReleasedStatus)
   val repositorySerializer = jsonEncoder + FieldSerializer[ImageMetaInformation](ignore("id"))
 
@@ -99,9 +106,9 @@ object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
 
   def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
     implicit val formats = this.jsonEncoder
-    val id = rs.long(im.c("id"))
-    val jsonString = rs.string(im.c("metadata"))
-    val meta = read[ImageMetaInformation](jsonString)
+    val id               = rs.long(im.c("id"))
+    val jsonString       = rs.string(im.c("metadata"))
+    val meta             = read[ImageMetaInformation](jsonString)
     ImageMetaInformation(
       Some(id),
       meta.titles,

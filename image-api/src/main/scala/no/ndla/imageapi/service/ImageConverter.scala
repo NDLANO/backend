@@ -29,7 +29,9 @@ trait ImageConverter {
     if (!inRange(x) || !inRange(y))
       throw new ValidationException(
         errors = Seq(
-          ValidationMessage("PercentPoint", s"Invalid value for a PixelPoint. Must be in range $MinValue-$MaxValue")))
+          ValidationMessage("PercentPoint", s"Invalid value for a PixelPoint. Must be in range $MinValue-$MaxValue")
+        )
+      )
 
     lazy val normalizedX: Double = normalise(x)
     lazy val normalizedY: Double = normalise(y)
@@ -39,17 +41,18 @@ trait ImageConverter {
     val MinValue: Int = 0
     val MaxValue: Int = 100
 
-    private def inRange(n: Double): Boolean = n >= MinValue && n <= MaxValue
+    private def inRange(n: Double): Boolean   = n >= MinValue && n <= MaxValue
     private def normalise(coord: Int): Double = coord.toDouble / MaxValue.toDouble
   }
 
-  /** This method adds a white background to a [[BufferedImage]], useful for removing transparent pixels
-    *  for image types that doesn't support transparency */
+  /** This method adds a white background to a [[BufferedImage]], useful for removing transparent pixels for image types
+    * that doesn't support transparency
+    */
   def fillTransparentPixels(image: BufferedImage): BufferedImage = {
-    val width = image.getWidth();
-    val height = image.getHeight();
+    val width    = image.getWidth();
+    val height   = image.getHeight();
     val newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    val g = newImage.createGraphics();
+    val g        = newImage.createGraphics();
     g.setColor(Color.WHITE);
     g.fillRect(0, 0, width, height);
     g.drawRenderedImage(image, null);
@@ -59,9 +62,9 @@ trait ImageConverter {
 
   class ImageConverter extends LazyLogging {
     private[service] def toImageStream(bufferedImage: BufferedImage, originalImage: ImageStream): ImageStream = {
-      val outputStream = new ByteArrayOutputStream()
+      val outputStream      = new ByteArrayOutputStream()
       val imageOutputStream = ImageIO.createImageOutputStream(outputStream)
-      val writerIter = ImageIO.getImageWritersByMIMEType(originalImage.contentType)
+      val writerIter        = ImageIO.getImageWritersByMIMEType(originalImage.contentType)
 
       val onlyOpaqueTypes = Seq("image/jpeg", "image/jpg")
       val shouldRemoveTransparency = onlyOpaqueTypes.contains(originalImage.contentType) &&
@@ -75,24 +78,27 @@ trait ImageConverter {
         writer.write(newImage)
       } else {
         logger.warn(
-          s"Writer for content-type ${originalImage.contentType} not found, using ${originalImage.format} as format")
+          s"Writer for content-type ${originalImage.contentType} not found, using ${originalImage.format} as format"
+        )
         ImageIO.write(newImage, originalImage.format, imageOutputStream)
       }
 
       new ImageStream {
-        override def stream = new ByteArrayInputStream(outputStream.toByteArray)
+        override def stream              = new ByteArrayInputStream(outputStream.toByteArray)
         override def contentType: String = originalImage.contentType
-        override def fileName: String = originalImage.fileName
-        override lazy val sourceImage = ImageIO.read(stream)
+        override def fileName: String    = originalImage.fileName
+        override lazy val sourceImage    = ImageIO.read(stream)
       }
     }
 
     def resize(originalImage: ImageStream, targetWidth: Int, targetHeight: Int): Try[ImageStream] = {
       val sourceImage = originalImage.sourceImage
-      val minWidth = min(targetWidth, sourceImage.getWidth)
-      val minHeight = min(targetHeight, sourceImage.getHeight)
+      val minWidth    = min(targetWidth, sourceImage.getWidth)
+      val minHeight   = min(targetHeight, sourceImage.getHeight)
       val method =
-        if (minWidth >= ImageApiProperties.ImageScalingUltraMinSize && minWidth <= ImageApiProperties.ImageScalingUltraMaxSize)
+        if (
+          minWidth >= ImageApiProperties.ImageScalingUltraMinSize && minWidth <= ImageApiProperties.ImageScalingUltraMaxSize
+        )
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
       Try(Scalr.resize(sourceImage, method, minWidth, minHeight))
@@ -102,7 +108,9 @@ trait ImageConverter {
     private def resize(originalImage: ImageStream, mode: Mode, targetSize: Int): Try[ImageStream] = {
       val sourceImage = originalImage.sourceImage
       val method =
-        if (targetSize >= ImageApiProperties.ImageScalingUltraMinSize && targetSize <= ImageApiProperties.ImageScalingUltraMaxSize)
+        if (
+          targetSize >= ImageApiProperties.ImageScalingUltraMinSize && targetSize <= ImageApiProperties.ImageScalingUltraMaxSize
+        )
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
       Try(Scalr.resize(sourceImage, method, mode, targetSize)).map(resized => toImageStream(resized, originalImage))
@@ -114,10 +122,12 @@ trait ImageConverter {
     def resizeHeight(originalImage: ImageStream, size: Int): Try[ImageStream] =
       resize(originalImage, Mode.FIT_TO_HEIGHT, Math.min(size, originalImage.sourceImage.getHeight))
 
-    private def crop(image: ImageStream,
-                     sourceImage: BufferedImage,
-                     topLeft: PixelPoint,
-                     bottomRight: PixelPoint): Try[ImageStream] = {
+    private def crop(
+        image: ImageStream,
+        sourceImage: BufferedImage,
+        topLeft: PixelPoint,
+        bottomRight: PixelPoint
+    ): Try[ImageStream] = {
       val (width, height) = getWidthHeight(topLeft, bottomRight, sourceImage)
 
       Try(Scalr.crop(sourceImage, topLeft.x, topLeft.y, width, height))
@@ -125,26 +135,28 @@ trait ImageConverter {
     }
 
     def crop(originalImage: ImageStream, start: PercentPoint, end: PercentPoint): Try[ImageStream] = {
-      val sourceImage = originalImage.sourceImage
+      val sourceImage            = originalImage.sourceImage
       val (topLeft, bottomRight) = transformCoordinates(sourceImage, start, end)
       crop(originalImage, sourceImage, topLeft, bottomRight)
     }
 
     private def getStartEndCoords(focalPoint: Int, targetDimensionSize: Int, originalDimensionSize: Int): (Int, Int) = {
-      val ts = min(targetDimensionSize.toDouble, originalDimensionSize.toDouble) / 2.0
-      val (start, end) = (focalPoint - ts.floor.toInt, focalPoint + ts.round.toInt)
+      val ts                 = min(targetDimensionSize.toDouble, originalDimensionSize.toDouble) / 2.0
+      val (start, end)       = (focalPoint - ts.floor.toInt, focalPoint + ts.round.toInt)
       val (startRem, endRem) = (abs(min(start, 0)), max(end - originalDimensionSize, 0))
 
       (max(start - endRem, 0), min(end + startRem, originalDimensionSize))
     }
 
-    def dynamicCrop(image: ImageStream,
-                    percentFocalPoint: PercentPoint,
-                    targetWidthOpt: Option[Int],
-                    targetHeightOpt: Option[Int],
-                    ratioOpt: Option[Double]): Try[ImageStream] = {
-      val sourceImage = image.sourceImage
-      val focalPoint = toPixelPoint(percentFocalPoint, sourceImage)
+    def dynamicCrop(
+        image: ImageStream,
+        percentFocalPoint: PercentPoint,
+        targetWidthOpt: Option[Int],
+        targetHeightOpt: Option[Int],
+        ratioOpt: Option[Double]
+    ): Try[ImageStream] = {
+      val sourceImage               = image.sourceImage
+      val focalPoint                = toPixelPoint(percentFocalPoint, sourceImage)
       val (imageWidth, imageHeight) = (sourceImage.getWidth, sourceImage.getHeight)
 
       val (targetWidth: Int, targetHeight: Int) = (targetWidthOpt, targetHeightOpt, ratioOpt) match {
@@ -152,11 +164,11 @@ trait ImageConverter {
         case (None, None, _)       => return Success(image)
         case (Some(w), Some(h), _) => (min(w, imageWidth), min(h, imageHeight))
         case (Some(w), None, _) =>
-          val actualTargetWidth = min(imageWidth, w)
+          val actualTargetWidth             = min(imageWidth, w)
           val widthReductionPercent: Double = actualTargetWidth.toDouble / imageWidth.toDouble
           (w, (imageHeight * widthReductionPercent).toInt)
         case (None, Some(h), _) =>
-          val actualTargetHeight = min(imageHeight, h)
+          val actualTargetHeight             = min(imageHeight, h)
           val heightReductionPercent: Double = actualTargetHeight.toDouble / imageHeight.toDouble
           ((imageWidth * heightReductionPercent).toInt, actualTargetHeight)
       }
@@ -169,16 +181,18 @@ trait ImageConverter {
 
     def minimalCropSizesToPreserveRatio(imageWidth: Int, imageHeight: Int, ratio: Double): (Int, Int) = {
       val newHeight = Math.min(imageWidth / ratio, imageHeight).toInt
-      val newWidth = Math.min(newHeight * ratio, imageWidth).toInt
+      val newWidth  = Math.min(newHeight * ratio, imageWidth).toInt
       (newWidth, newHeight.toInt)
     }
 
     // Given two sets of coordinates; reorganize them so that the first coordinate is the top-left,
     // and the other coordinate is the bottom-right
-    private[service] def transformCoordinates(image: BufferedImage,
-                                              start: PercentPoint,
-                                              end: PercentPoint): (PixelPoint, PixelPoint) = {
-      val topLeft = PercentPoint(min(start.x, end.x), min(start.y, end.y))
+    private[service] def transformCoordinates(
+        image: BufferedImage,
+        start: PercentPoint,
+        end: PercentPoint
+    ): (PixelPoint, PixelPoint) = {
+      val topLeft     = PercentPoint(min(start.x, end.x), min(start.y, end.y))
       val bottomRight = PercentPoint(max(start.x, end.x), max(start.y, end.y))
 
       (toPixelPoint(topLeft, image), toPixelPoint(bottomRight, image))
@@ -190,7 +204,7 @@ trait ImageConverter {
     }
 
     private[service] def getWidthHeight(start: PixelPoint, end: PixelPoint, image: BufferedImage): (Int, Int) = {
-      val width = abs(start.x - end.x)
+      val width  = abs(start.x - end.x)
       val height = abs(start.y - end.y)
       (min(width, image.getWidth - start.x), min(height, image.getHeight - start.y))
     }

@@ -16,7 +16,7 @@ import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
-  val sampleArticle = TestData.sampleArticleWithPublicDomain.copy()
+  val sampleArticle                   = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles = List(
     ArticleTitle("Bokmål tittel", "nb"),
@@ -49,19 +49,19 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   test("That asSearchableArticle converts titles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles)
+    val article           = TestData.sampleArticleWithByNcSa.copy(title = titles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTitles(searchableArticle)
   }
 
   test("That asSearchable converts articles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = articles)
+    val article           = TestData.sampleArticleWithByNcSa.copy(content = articles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyArticles(searchableArticle)
   }
 
   test("That asSearchable converts tags with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
+    val article           = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTags(searchableArticle)
   }

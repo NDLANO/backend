@@ -17,16 +17,16 @@ import org.log4s.getLogger
 
 object NdlaMiddleware {
   private val CorrelationIdHeader = CaseInsensitiveString("X-Correlation-ID")
-  private val CorrelationIdKey = "correlationID"
-  private val logger = getLogger
+  private val CorrelationIdKey    = "correlationID"
+  private val logger              = getLogger
 
-  def asNdlaHttpRequest[F[+ _]: Effect](req: Request[F]): NdlaHttpRequest = {
+  def asNdlaHttpRequest[F[+_]: Effect](req: Request[F]): NdlaHttpRequest = {
     new NdlaHttpRequest {
-      override def serverPort: Int = req.serverPort
+      override def serverPort: Int                         = req.serverPort
       override def getHeader(name: String): Option[String] = req.headers.get(CaseInsensitiveString(name)).map(_.value)
-      override def getScheme: String = req.uri.scheme.map(_.value).getOrElse("http")
-      override def serverName: String = req.serverAddr
-      override def servletPath: String = req.uri.path
+      override def getScheme: String                       = req.uri.scheme.map(_.value).getOrElse("http")
+      override def serverName: String                      = req.serverAddr
+      override def servletPath: String                     = req.uri.path
     }
   }
 

@@ -74,29 +74,29 @@ object ComponentRegistry
       .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
       .build()
 
-  lazy val imageIndexService = new ImageIndexService
-  lazy val imageSearchService = new ImageSearchService
-  lazy val tagIndexService = new TagIndexService
-  lazy val tagSearchService = new TagSearchService
-  lazy val imageRepository = new ImageRepository
-  lazy val readService = new ReadService
-  lazy val writeService = new WriteService
-  lazy val validationService = new ValidationService
-  lazy val imageStorage = new AmazonImageStorageService
-  lazy val ndlaClient = new NdlaClient
-  lazy val draftApiClient = new DraftApiClient
-  lazy val imageControllerV2 = new ImageControllerV2
-  lazy val rawController = new RawController
-  lazy val internController = new InternController
-  lazy val healthController = new HealthController
-  lazy val resourcesApp = new ResourcesApp
-  lazy val converterService = new ConverterService
-  lazy val tagsService = new TagsService
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  lazy val imageIndexService      = new ImageIndexService
+  lazy val imageSearchService     = new ImageSearchService
+  lazy val tagIndexService        = new TagIndexService
+  lazy val tagSearchService       = new TagSearchService
+  lazy val imageRepository        = new ImageRepository
+  lazy val readService            = new ReadService
+  lazy val writeService           = new WriteService
+  lazy val validationService      = new ValidationService
+  lazy val imageStorage           = new AmazonImageStorageService
+  lazy val ndlaClient             = new NdlaClient
+  lazy val draftApiClient         = new DraftApiClient
+  lazy val imageControllerV2      = new ImageControllerV2
+  lazy val rawController          = new RawController
+  lazy val internController       = new InternController
+  lazy val healthController       = new HealthController
+  lazy val resourcesApp           = new ResourcesApp
+  lazy val converterService       = new ConverterService
+  lazy val tagsService            = new TagsService
+  var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(SearchServer)
   lazy val searchConverterService = new SearchConverterService
 
   lazy val imageConverter = new ImageConverter
-  lazy val authUser = new AuthUser
-  lazy val authRole = new AuthRole
-  lazy val clock = new SystemClock
+  lazy val authUser       = new AuthUser
+  lazy val authRole       = new AuthRole
+  lazy val clock          = new SystemClock
 }

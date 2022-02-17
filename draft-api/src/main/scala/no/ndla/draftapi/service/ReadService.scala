@@ -71,7 +71,7 @@ trait ReadService {
     }
 
     def getNMostUsedTags(n: Int, language: String): Option[api.ArticleTag] = {
-      val tagUsageMap = getTagUsageMap()
+      val tagUsageMap    = getTagUsageMap()
       val searchLanguage = languageOrUnknown(Some(language))
 
       tagUsageMap
@@ -89,7 +89,7 @@ trait ReadService {
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results                    = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
       api.ArticleDomainDump(draftRepository.articleCount, pageNo, pageSize, results)
     }
@@ -130,7 +130,7 @@ trait ReadService {
         case resourceType
             if resourceType == ResourceType.File.toString
               || resourceType == ResourceType.H5P.toString
-                && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
+              && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
           val path = embedTag.attr(TagAttributes.DataPath.toString)
           Some((resourceType, path))
 
@@ -143,7 +143,7 @@ trait ReadService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl = Url.parse(externalApiUrls(resourceType))
+          val baseUrl   = Url.parse(externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(

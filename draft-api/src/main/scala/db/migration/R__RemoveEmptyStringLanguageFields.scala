@@ -28,13 +28,13 @@ class R__RemoveEmptyStringLanguageFields extends BaseJavaMigration {
   }
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map {
-        case (id, document) => updateArticle(convertArticle(document), id)
+      allArticles(offset * 1000).map { case (id, document) =>
+        updateArticle(convertArticle(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -70,7 +70,7 @@ class R__RemoveEmptyStringLanguageFields extends BaseJavaMigration {
       metaImage = oldArticle.metaImage.filterNot(_.isEmpty),
       tags = oldArticle.tags.filterNot(_.isEmpty),
       title = oldArticle.title.filterNot(_.isEmpty),
-      visualElement = oldArticle.visualElement.filterNot(_.isEmpty),
+      visualElement = oldArticle.visualElement.filterNot(_.isEmpty)
     )
     compact(render(decompose(newArticle)))
   }

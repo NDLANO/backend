@@ -10,7 +10,7 @@ package db.migration
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V6__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration = new V6__TranslateUntranslatedAuthors
+  val migration        = new V6__TranslateUntranslatedAuthors
   implicit val formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
@@ -19,7 +19,8 @@ class V6__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironmen
     val result = migration.updateAuthorFormat(5, 2, metaString)
 
     result.copyright.creators should equal(
-      List(V4_Author("Writer", "A"), V4_Author("Editorial", "B"), V4_Author("Originator", "C")))
+      List(V4_Author("Writer", "A"), V4_Author("Editorial", "B"), V4_Author("Originator", "C"))
+    )
     result.copyright.processors should equal(List.empty)
     result.copyright.rightsholders should equal(List.empty)
 

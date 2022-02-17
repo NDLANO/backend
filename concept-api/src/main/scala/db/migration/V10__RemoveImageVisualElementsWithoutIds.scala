@@ -31,13 +31,13 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
   }
 
   def migratePublishedConcepts()(implicit session: DBSession): Unit = {
-    val count = countAllPublishedConcepts.get
+    val count        = countAllPublishedConcepts.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allPublishedConcepts(offset * 1000).map {
-        case (id, document) => updatePublishedConcept(convertToNewConcept(document, id), id)
+      allPublishedConcepts(offset * 1000).map { case (id, document) =>
+        updatePublishedConcept(convertToNewConcept(document, id), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -45,13 +45,13 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
   }
 
   def migrateConcepts()(implicit session: DBSession): Unit = {
-    val count = countAllConcepts.get
+    val count        = countAllConcepts.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allConcepts(offset * 1000).map {
-        case (id, document) => updateConcept(convertToNewConcept(document, id), id)
+      allConcepts(offset * 1000).map { case (id, document) =>
+        updateConcept(convertToNewConcept(document, id), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -112,15 +112,16 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
 
   def convertVisualElement(oldVisualElement: NewVisualElement, id: Long): Option[NewVisualElement] = {
     if (oldVisualElement.visualElement.nonEmpty) {
-      val x = stringToJsoupDocument(oldVisualElement.visualElement)
+      val x     = stringToJsoupDocument(oldVisualElement.visualElement)
       val embed = Option(x.select("embed").first())
       embed match {
         case Some(oldEmbed) =>
           val resourceType = oldEmbed.attr("data-resource")
-          val imageId = oldEmbed.attr("data-resource_id")
+          val imageId      = oldEmbed.attr("data-resource_id")
           if (resourceType == "image" && imageId.isEmpty) {
             println(
-              s"Concept '$id' had empty-id visualelement image in language '${oldVisualElement.language}', removing...")
+              s"Concept '$id' had empty-id visualelement image in language '${oldVisualElement.language}', removing..."
+            )
             None
           } else {
             Some(oldVisualElement)
@@ -138,7 +139,7 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
     val newConcept = concept
       .mapField {
         case ("visualElement", visualElement: JArray) =>
-          val visualElements = visualElement.extract[Seq[NewVisualElement]]
+          val visualElements    = visualElement.extract[Seq[NewVisualElement]]
           val newVisualElements = visualElements.flatMap(ve => convertVisualElement(ve, id))
           "visualElement" -> Extraction.decompose(newVisualElements)
         case x => x

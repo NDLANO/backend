@@ -25,10 +25,13 @@ object TestData {
     Some("NDLAsamfunnsfag"),
     domain.BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject("Om Samfunnsfag",
-                          "Dette er samfunnsfag",
-                          "nb",
-                          domain.VisualElement(VisualElementType.Image, "123", Some("alt text")))),
+      domain.AboutSubject(
+        "Om Samfunnsfag",
+        "Dette er samfunnsfag",
+        "nb",
+        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+      )
+    ),
     Seq(domain.MetaDescription("meta", "nb")),
     Some("urn:resource:1:170252"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -47,10 +50,13 @@ object TestData {
     Some("NDLAsamfunnsfag"),
     domain.BannerImage(Some(29668), 29668),
     Seq(
-      domain.AboutSubject("Om Samfunnsfag",
-                          "Dette er oppdatert om samfunnsfag",
-                          "nb",
-                          domain.VisualElement(VisualElementType.Image, "123", Some("alt text")))),
+      domain.AboutSubject(
+        "Om Samfunnsfag",
+        "Dette er oppdatert om samfunnsfag",
+        "nb",
+        domain.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+      )
+    ),
     Seq(
       domain.MetaDescription("meta", "nb")
     ),
@@ -68,15 +74,19 @@ object TestData {
     "single",
     Some("@ndla_samfunn"),
     Some("NDLAsamfunnsfag"),
-    api.BannerImage(Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
-                    Some(29668),
-                    "http://api-gateway.ndla-local/image-api/raw/id/29668",
-                    29668),
+    api.BannerImage(
+      Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
+      Some(29668),
+      "http://api-gateway.ndla-local/image-api/raw/id/29668",
+      29668
+    ),
     Some(
       api.AboutSubject(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
-        api.VisualElement("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text")))),
+        api.VisualElement("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
+      )
+    ),
     Some("meta"),
     Some("urn:resource:1:170252"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
@@ -95,10 +105,13 @@ object TestData {
     Some("NDLAsamfunnsfag"),
     api.NewOrUpdateBannerImage(Some(29668), 29668),
     Seq(
-      api.NewOrUpdatedAboutSubject("Om Samfunnsfag",
-                                   "Dette er samfunnsfag",
-                                   "nb",
-                                   api.NewOrUpdatedVisualElement("image", "123", Some("alt text")))),
+      api.NewOrUpdatedAboutSubject(
+        "Om Samfunnsfag",
+        "Dette er samfunnsfag",
+        "nb",
+        api.NewOrUpdatedVisualElement("image", "123", Some("alt text"))
+      )
+    ),
     Seq(api.NewOrUpdatedMetaDescription("meta", "nb")),
     Some("urn:resource:1:170252"),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
@@ -117,10 +130,14 @@ object TestData {
     Some(api.NewOrUpdateBannerImage(Some(29668), 29668)),
     Some(
       List(
-        api.NewOrUpdatedAboutSubject("Om Samfunnsfag",
-                                     "Dette er oppdatert om samfunnsfag",
-                                     "nb",
-                                     api.NewOrUpdatedVisualElement("image", "123", Some("alt text"))))),
+        api.NewOrUpdatedAboutSubject(
+          "Om Samfunnsfag",
+          "Dette er oppdatert om samfunnsfag",
+          "nb",
+          api.NewOrUpdatedVisualElement("image", "123", Some("alt text"))
+        )
+      )
+    ),
     Some(List(api.NewOrUpdatedMetaDescription("meta", "nb"))),
     Some("urn:resource:1:170252"),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),

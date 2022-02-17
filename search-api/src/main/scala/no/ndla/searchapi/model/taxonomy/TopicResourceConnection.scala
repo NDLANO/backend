@@ -7,9 +7,11 @@
 
 package no.ndla.searchapi.model.taxonomy
 
-case class TopicResourceConnection(topicid: String,
-                                   resourceId: String,
-                                   id: String,
-                                   primary: Boolean,
-                                   rank: Int,
-                                   relevanceId: Option[String])
+case class TopicResourceConnection(
+    topicid: String,
+    resourceId: String,
+    id: String,
+    primary: Boolean,
+    rank: Int,
+    relevanceId: Option[String]
+)

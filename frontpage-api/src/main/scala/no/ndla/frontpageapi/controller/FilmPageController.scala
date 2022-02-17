@@ -21,19 +21,19 @@ trait FilmPageController {
   this: ReadService with WriteService =>
   val filmPageController: FilmPageController[IO]
 
-  class FilmPageController[F[+ _]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
+  class FilmPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
 
     import swaggerSyntax._
 
     "Get data to display on the film front page" **
       GET +? param[Option[String]]("language") |>> { language: Option[String] =>
-      {
-        readService.filmFrontPage(language) match {
-          case Some(s) => Ok(s)
-          case None    => NotFound(Error.notFound)
+        {
+          readService.filmFrontPage(language) match {
+            case Some(s) => Ok(s)
+            case None    => NotFound(Error.notFound)
+          }
         }
       }
-    }
 
     AuthOptions.^^("Update film front page" ** POST) >>> Auth.auth ^ NewOrUpdatedFilmFrontPageData.decoder |>> {
       (user: Option[UserInfo], filmFrontPage: NewOrUpdatedFilmFrontPageData) =>

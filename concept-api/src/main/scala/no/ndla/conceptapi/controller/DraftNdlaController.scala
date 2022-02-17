@@ -38,7 +38,8 @@ trait DraftNdlaController {
             asQueryParam(language)
           )
           .responseMessages(response500)
-          .authorizations("oauth2"))
+          .authorizations("oauth2")
+      )
     ) {
 
       val query = paramOrDefault(this.query.paramName, "")
@@ -66,7 +67,8 @@ trait DraftNdlaController {
             bodyParam[NewConcept]
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response500))
+          .responseMessages(response400, response403, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -90,11 +92,12 @@ trait DraftNdlaController {
             asPathParam(conceptId)
           )
           .authorizations("oauth2")
-          .responseMessages(response400, response403, response404, response500))
+          .responseMessages(response400, response403, response404, response500)
+      )
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val body = extract[UpdatedConcept](request.body)
+        val body      = extract[UpdatedConcept](request.body)
         val conceptId = long(this.conceptId.paramName)
         body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
           case Success(c)  => Ok(c)

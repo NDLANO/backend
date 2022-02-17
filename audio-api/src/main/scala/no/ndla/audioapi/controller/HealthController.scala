@@ -47,7 +47,7 @@ trait HealthController {
       audioRepository
         .getRandomAudio()
         .map(audio => {
-          val id = audio.id.get
+          val id         = audio.id.get
           val previewUrl = s"http://$host:$port${AudioApiProperties.AudioControllerPath}$id"
           getReturnCode(getApiResponse(previewUrl))
         })

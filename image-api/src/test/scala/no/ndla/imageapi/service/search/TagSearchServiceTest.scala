@@ -33,7 +33,7 @@ class TagSearchServiceTest
   override val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards: Int = 1
   }
-  override val converterService = new ConverterService
+  override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   val image1 = TestData.elg.copy(
@@ -87,8 +87,8 @@ class TagSearchServiceTest
       x
     })
 
-    val allTagsToIndex = imagesToIndex.flatMap(_.tags)
-    val groupedByLanguage = allTagsToIndex.groupBy(_.language)
+    val allTagsToIndex         = imagesToIndex.flatMap(_.tags)
+    val groupedByLanguage      = allTagsToIndex.groupBy(_.language)
     val tagsDistinctByLanguage = groupedByLanguage.values.flatMap(x => x.flatMap(_.tags).toSet)
 
     blockUntil(() => tagSearchService.countDocuments() == tagsDistinctByLanguage.size)
@@ -96,7 +96,7 @@ class TagSearchServiceTest
 
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
-    var done = false
+    var done    = false
 
     while (backoff <= 16 && !done) {
       if (backoff > 0) Thread.sleep(200 * backoff)

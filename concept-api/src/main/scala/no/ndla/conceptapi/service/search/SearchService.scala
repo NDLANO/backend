@@ -125,10 +125,12 @@ trait SearchService {
           )
         )
 
-    protected def languageOrFilter(seq: Iterable[Any],
-                                   fieldName: String,
-                                   language: String,
-                                   fallback: Boolean): Option[BoolQuery] = {
+    protected def languageOrFilter(
+        seq: Iterable[Any],
+        fieldName: String,
+        language: String,
+        fallback: Boolean
+    ): Option[BoolQuery] = {
       if (language == AllLanguages || language == "*" || fallback) {
         val fields = ISO639.languagePriority.map(l => s"$fieldName.$l.raw")
         orFilter(seq, fields: _*)
@@ -145,7 +147,7 @@ trait SearchService {
         case Sort.ByTitleAsc =>
           language match {
             case "*" | AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-            case _                  => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Asc).missing("_last").unmappedType("long")
+            case _ => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
@@ -188,7 +190,7 @@ trait SearchService {
 
     def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
       val numResults = max(pageSize.min(MaxPageSize), 0)
-      val startAt = (page - 1).max(0) * numResults
+      val startAt    = (page - 1).max(0) * numResults
 
       (startAt, numResults)
     }

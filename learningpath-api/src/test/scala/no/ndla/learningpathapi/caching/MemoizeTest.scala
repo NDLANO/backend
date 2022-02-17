@@ -17,8 +17,8 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That an uncached value will do an actual call") {
-    val targetMock = mock[Target]
-    val name = "Rune Rudberg"
+    val targetMock     = mock[Target]
+    val name           = "Rune Rudberg"
     val memoizedTarget = Memoize[String, String](targetMock.targetMethod)
 
     when(targetMock.targetMethod(name)).thenReturn("Hello from mock")
@@ -27,8 +27,8 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That a cached value will not forward the call to the target") {
-    val targetMock = mock[Target]
-    val name = "Rune Rudberg"
+    val targetMock     = mock[Target]
+    val name           = "Rune Rudberg"
     val memoizedTarget = Memoize[String, String](targetMock.targetMethod)
 
     when(targetMock.targetMethod(name)).thenReturn("Hello from mock")
@@ -40,8 +40,8 @@ class MemoizeTest extends UnitSuite {
 
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 20
-    val name = "Rune Rudberg"
-    val targetMock = mock[Target]
+    val name            = "Rune Rudberg"
+    val targetMock      = mock[Target]
     val memoizedTarget =
       Memoize[String, String](targetMock.targetMethod, cacheMaxAgeInMs)
 

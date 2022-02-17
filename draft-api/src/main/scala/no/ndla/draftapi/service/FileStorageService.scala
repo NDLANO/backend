@@ -23,10 +23,12 @@ trait FileStorageService {
   class FileStorageService extends LazyLogging {
     private val resourceDirectory = "resources"
 
-    def uploadResourceFromStream(stream: InputStream,
-                                 storageKey: String,
-                                 contentType: String,
-                                 size: Long): Try[String] = {
+    def uploadResourceFromStream(
+        stream: InputStream,
+        storageKey: String,
+        contentType: String,
+        size: Long
+    ): Try[String] = {
       val metadata = new ObjectMetadata()
       metadata.setContentType(contentType)
       metadata.setContentLength(size)
@@ -50,7 +52,8 @@ trait FileStorageService {
           existingStorageKey,
           AttachmentStorageName,
           uploadPath
-        ))
+        )
+      )
         .map(_ => uploadPath)
     }
 

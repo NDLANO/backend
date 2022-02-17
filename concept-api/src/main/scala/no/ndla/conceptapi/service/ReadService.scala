@@ -82,7 +82,7 @@ trait ReadService {
 
     def getDraftConceptDomainDump(pageNo: Int, pageSize: Int): api.ConceptDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
-      val results = draftConceptRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results                    = draftConceptRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
       api.ConceptDomainDump(draftConceptRepository.conceptCount, pageNo, pageSize, results)
     }

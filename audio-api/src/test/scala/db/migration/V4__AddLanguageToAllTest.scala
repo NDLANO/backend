@@ -16,9 +16,9 @@ class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
   val migration = new V4__AddLanguageToAll
 
   test("add language to stuff with missing language") {
-    val tags = Seq(V4_Tag(Seq(), Some("en")), V4_Tag(Seq(), Some("")))
+    val tags      = Seq(V4_Tag(Seq(), Some("en")), V4_Tag(Seq(), Some("")))
     val filePaths = Seq(V4_Audio("", "", 0, Some("")), V4_Audio("", "", 0, Some("nb")))
-    val titles = Seq(V4_Title("En tittel", None), V4_Title("abc", Some("nb")))
+    val titles    = Seq(V4_Title("En tittel", None), V4_Title("abc", Some("nb")))
 
     val before =
       V4_AudioMetaInformation(Some(1), Some(1), titles, filePaths, V4_Copyright("", None, Seq()), tags, "", new Date())

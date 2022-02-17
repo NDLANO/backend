@@ -40,9 +40,9 @@ class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLoggin
 
   def migrateLearningSteps(implicit session: DBSession): Unit = {
 
-    val count = countAllLearningSteps.get
+    val count        = countAllLearningSteps.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(3))
 
@@ -94,7 +94,7 @@ class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLoggin
   }
 
   def updateNdlaUrl(oldUrl: String): String = {
-    val parsed = Url.parse(oldUrl)
+    val parsed     = Url.parse(oldUrl)
     val isNDLAHost = parsed.hostOption.exists(_.toString.contains("ndla.no"))
 
     if (isNDLAHost) parsed.toRelativeUrl.toString
@@ -133,9 +133,10 @@ class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLoggin
     val newObjects = embedUrlObjects.arr.map(embedUrlObject => {
       (embedUrlObject \ "url").extractOpt[String] match {
         case Some(url) if url.nonEmpty =>
-          val parsed = Url.parse(url)
+          val parsed        = Url.parse(url)
           val isRelativeUrl = parsed.hostOption.isEmpty
-          if (!isRelativeUrl) { embedUrlObject } else {
+          if (!isRelativeUrl) { embedUrlObject }
+          else {
             val h = s"$NdlaFrontendProtocol://$NdlaFrontendHost$url"
             getNewUrl(h) match {
               case Failure(_) => embedUrlObject

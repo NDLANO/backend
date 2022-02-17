@@ -55,7 +55,7 @@ class JWTExtractorTest extends UnitSuite {
       when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $token"))
 
       val jwtExtractor = new JWTExtractor(request)
-      val roles = jwtExtractor.extractUserRoles()
+      val roles        = jwtExtractor.extractUserRoles()
       roles.size should be(2)
       roles.contains("listing:write") should be(true)
       roles.contains("drafts:write") should be(true)
@@ -85,7 +85,7 @@ class JWTExtractorTest extends UnitSuite {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $token"))
 
-    val jw = new JWTExtractor(request)
+    val jw  = new JWTExtractor(request)
     val res = jw.extractUserRoles()
     res should be(
       List(
@@ -102,6 +102,7 @@ class JWTExtractorTest extends UnitSuite {
         "learningpath:write",
         "taxonomy:admin",
         "taxonomy:write"
-      ))
+      )
+    )
   }
 }

@@ -19,10 +19,11 @@ trait ImageApiClient {
 
   class ImageApiClient(val baseUrl: String) extends SearchApiClient {
     override val searchPath = "image-api/v2/images"
-    override val name = "images"
+    override val name       = "images"
 
-    def search(searchParams: SearchParams)(
-        implicit executionContext: ExecutionContext): Future[Try[ImageApiSearchResults]] =
+    def search(searchParams: SearchParams)(implicit
+        executionContext: ExecutionContext
+    ): Future[Try[ImageApiSearchResults]] =
       search[ImageApiSearchResults](searchParams)
   }
 }

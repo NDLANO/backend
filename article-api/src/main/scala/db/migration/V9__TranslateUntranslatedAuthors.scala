@@ -33,9 +33,9 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
   //
 
   def migrateArticles(implicit session: DBSession): Unit = {
-    val count = countAllArticles.get
+    val count        = countAllArticles.get
     var numPagesLeft = (count / 1000) + 1
-    var offset = 0L
+    var offset       = 0L
 
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map(t => convertArticleUpdate(t._1, t._2, t._3)).foreach(updateArticle)
@@ -57,13 +57,15 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
   }
 
   def toNewAuthorType(author: V8_Author): V8_Author = {
-    val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
-    val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+    val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+    val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase),
-     processorMap(author.`type`.toLowerCase),
-     rightsholderMap(author.`type`.toLowerCase)) match {
+    (
+      creatorMap(author.`type`.toLowerCase),
+      processorMap(author.`type`.toLowerCase),
+      rightsholderMap(author.`type`.toLowerCase)
+    ) match {
       case (t: String, _, _) => V8_Author(t.capitalize, author.name)
       case (_, t: String, _) => V8_Author(t.capitalize, author.name)
       case (_, _, t: String) => V8_Author(t.capitalize, author.name)
@@ -74,8 +76,8 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
   def convertArticleUpdate(id: Long, revision: Int, document: String): V7_Article = {
     val articlev8 = read[V7_Article](document)
 
-    val creators = articlev8.copyright.creators.map(toNewAuthorType)
-    val processors = articlev8.copyright.processors.map(toNewAuthorType)
+    val creators      = articlev8.copyright.creators.map(toNewAuthorType)
+    val processors    = articlev8.copyright.processors.map(toNewAuthorType)
     val rightsholders = articlev8.copyright.rightsholders.map(toNewAuthorType)
     articlev8.copy(
       id = Some(id),
