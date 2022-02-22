@@ -12,6 +12,20 @@ export interface IAgreement {
   updatedBy: string
 }
 
+export interface IAgreementSearchResult {
+  totalCount: number
+  page?: number
+  pageSize: number
+  language: string
+  results: IAgreementSummary[]
+}
+
+export interface IAgreementSummary {
+  id: number
+  title: string
+  license: string
+}
+
 export interface IArticle {
   id: number
   oldNdlaUrl?: string
@@ -61,6 +75,21 @@ export interface IArticleMetaImage {
   language: string
 }
 
+export interface IArticleSummary {
+  id: number
+  title: IArticleTitle
+  visualElement?: IVisualElement
+  introduction?: IArticleIntroduction
+  url: string
+  license: string
+  articleType: string
+  supportedLanguages: string[]
+  tags?: IArticleTag
+  notes: string[]
+  users: string[]
+  grepCodes: string[]
+}
+
 export interface IArticleTag {
   tags: string[]
   language: string
@@ -92,6 +121,13 @@ export interface IEditorNote {
   user: string
   status: IStatus
   timestamp: string
+}
+
+export interface IGrepCodesSearchResult {
+  totalCount: number
+  page: number
+  pageSize: number
+  results: string[]
 }
 
 export interface ILicense {
@@ -148,9 +184,25 @@ export interface IRequiredLibrary {
   url: string
 }
 
+export interface ISearchResult {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: IArticleSummary[]
+}
+
 export interface IStatus {
   current: string
   other: string[]
+}
+
+export interface ITagsSearchResult {
+  totalCount: number
+  page: number
+  pageSize: number
+  language: string
+  results: string[]
 }
 
 export interface IUpdatedAgreement {
