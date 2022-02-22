@@ -45,10 +45,14 @@ object draftapi extends Module {
     exports = Seq(
       "Agreement",
       "Article",
+      "Availability.type",
       "NewArticle",
+      "SearchResult",
+      "GrepCodesSearchResult",
+      "TagsSearchResult",
+      "AgreementSearchResult",
       "UpdatedAgreement",
       "UpdatedArticle",
-      "Availability.type",
       "UpdatedUserData",
       "UserData"
     )
