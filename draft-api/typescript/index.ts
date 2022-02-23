@@ -136,6 +136,12 @@ export interface ILicense {
   url?: string
 }
 
+export interface INewAgreement {
+  title: string
+  content: string
+  copyright: INewAgreementCopyright
+}
+
 export interface INewAgreementCopyright {
   license?: ILicense
   origin?: string
