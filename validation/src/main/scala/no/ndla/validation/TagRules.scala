@@ -77,6 +77,8 @@ object TagAttributes extends Enumeration {
   val DataFormat      = Value("data-code-format")
   val DataContent     = Value("data-code-content")
   val DataDisplay     = Value("data-display")
+  val DataRecursive   = Value("data-recursive")
+  val DataTag         = Value("data-tag")
 
   val DataUpperLeftY  = Value("data-upper-left-y")
   val DataUpperLeftX  = Value("data-upper-left-x")

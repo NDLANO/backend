@@ -103,6 +103,15 @@
         "data-type"
       ]
     },
+    "concept-list": {
+      "required": [
+        "data-resource"
+      ],
+      "optional": [
+        [ "data-tag", "data-title" ],
+        [ "data-resource_id", "data-recursive" ]
+      ]
+    },
     "iframe": {
       "required": [
         "data-resource",
