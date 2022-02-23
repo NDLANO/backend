@@ -280,8 +280,8 @@ class EmbedTagValidatorTest extends UnitSuite {
 
     val tag2 = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource  -> ResourceType.ConceptList.toString,
-        TagAttributes.DataResource_Id     -> "1",
+        TagAttributes.DataResource    -> ResourceType.ConceptList.toString,
+        TagAttributes.DataResource_Id -> "1"
       )
     )
     val res2 = embedTagValidator.validate("content", tag2)
