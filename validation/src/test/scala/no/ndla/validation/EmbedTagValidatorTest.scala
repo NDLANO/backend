@@ -264,20 +264,24 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test(
-    "validate should return validation error if embed tag does not contain required attributes for data-resource=concept-list"
+    "validate should return validation error if embed tag does not contain all required attributes for data-resource=concept-list"
   ) {
-    val tag = generateTagWithAttrs(Map(TagAttributes.DataResource -> ResourceType.ConceptList.toString))
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
+        TagAttributes.DataTag      -> "Liste::"
+      )
+    )
     val res = embedTagValidator.validate("content", tag)
     findErrorByMessage(
       res,
-      s"data-resource=${ResourceType.ConceptList} must contain the following attributes:"
+      s"data-resource=${ResourceType.ConceptList} must contain all or none of the optional attributes"
     ).size should be(1)
 
     val tag2 = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource  -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle     -> "Liste",
-        TagAttributes.DataRecursive -> "true"
+        TagAttributes.DataResource_Id     -> "1",
       )
     )
     val res2 = embedTagValidator.validate("content", tag2)
@@ -301,7 +305,6 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag2 = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource    -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle       -> "Liste",
         TagAttributes.DataResource_Id -> "1",
         TagAttributes.DataRecursive   -> "false"
       )

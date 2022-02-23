@@ -105,11 +105,10 @@
     },
     "concept-list": {
       "required": [
-        "data-resource",
-        "data-title"
+        "data-resource"
       ],
       "optional": [
-        [ "data-tag" ],
+        [ "data-tag", "data-title" ],
         [ "data-resource_id", "data-recursive" ]
       ]
     },
