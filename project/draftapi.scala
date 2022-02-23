@@ -46,6 +46,7 @@ object draftapi extends Module {
       "Agreement",
       "Article",
       "Availability.type",
+      "NewAgreement",
       "NewArticle",
       "SearchResult",
       "GrepCodesSearchResult",
@@ -54,6 +55,7 @@ object draftapi extends Module {
       "UpdatedAgreement",
       "UpdatedArticle",
       "UpdatedUserData",
+      "UploadedFile",
       "UserData"
     )
   )

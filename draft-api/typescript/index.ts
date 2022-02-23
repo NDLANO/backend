@@ -136,6 +136,12 @@ export interface ILicense {
   url?: string
 }
 
+export interface INewAgreement {
+  title: string
+  content: string
+  copyright: INewAgreementCopyright
+}
+
 export interface INewAgreementCopyright {
   license?: ILicense
   origin?: string
@@ -239,6 +245,13 @@ export interface IUpdatedUserData {
   savedSearches?: string[]
   latestEditedArticles?: string[]
   favoriteSubjects?: string[]
+}
+
+export interface IUploadedFile {
+  filename: string
+  mime: string
+  extension: string
+  path: string
 }
 
 export interface IUserData {
