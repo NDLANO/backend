@@ -200,7 +200,7 @@ trait ConverterService {
     def getEmbeddedConceptIds(article: domain.Article): Seq[Long] = {
       val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
-        val conceptSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.ConceptLink}]"
+        val conceptSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.Concept}]"
         elem.select(conceptSelector).asScala.toSeq
       })
 
