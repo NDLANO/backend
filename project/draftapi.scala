@@ -55,6 +55,7 @@ object draftapi extends Module {
       "UpdatedAgreement",
       "UpdatedArticle",
       "UpdatedUserData",
+      "UploadedFile",
       "UserData"
     )
   )

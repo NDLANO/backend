@@ -247,6 +247,13 @@ export interface IUpdatedUserData {
   favoriteSubjects?: string[]
 }
 
+export interface IUploadedFile {
+  filename: string
+  mime: string
+  extension: string
+  path: string
+}
+
 export interface IUserData {
   userId: string
   savedSearches?: string[]
