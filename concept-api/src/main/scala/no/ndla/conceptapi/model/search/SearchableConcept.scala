@@ -23,6 +23,7 @@ case class SearchableConcept(
     status: Status,
     updatedBy: Seq[String],
     license: Option[String],
+    copyright: Option[SearchableCopyright],
     embedResourcesAndIds: List[EmbedValues],
     visualElement: SearchableLanguageValues
 )

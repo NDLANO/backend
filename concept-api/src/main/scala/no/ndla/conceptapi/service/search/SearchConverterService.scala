@@ -10,9 +10,9 @@ package no.ndla.conceptapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.{api, domain}
-import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, Copyright, SearchResult}
 import no.ndla.conceptapi.model.search._
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -120,6 +120,17 @@ trait SearchConverterService {
 
     }
 
+    def asSearchableCopyright(maybeCopyright: Option[Copyright]): Option[SearchableCopyright] = {
+      maybeCopyright.map(c => {
+        SearchableCopyright(
+          origin = c.origin,
+          creators = c.creators,
+          rightsholders = c.rightsholders,
+          processors = c.processors
+        )
+      })
+    }
+
     def asSearchableConcept(c: Concept): SearchableConcept = {
       val defaultTitle = c.title
         .sortBy(title => {
@@ -128,6 +139,7 @@ trait SearchConverterService {
         })
         .lastOption
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
+      val copyright            = asSearchableCopyright(c.copyright);
 
       SearchableConcept(
         id = c.id.get,
@@ -141,6 +153,7 @@ trait SearchConverterService {
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
+        copyright = copyright,
         embedResourcesAndIds = embedResourcesAndIds,
         visualElement = SearchableLanguageValues(
           c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
@@ -172,6 +185,19 @@ trait SearchConverterService {
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
+      val license    = searchableConcept.license.map(converterService.toApiLicense)
+      val copyright = searchableConcept.copyright.map(c => {
+        api.Copyright(
+          license = license,
+          origin = c.origin,
+          creators = c.creators.map(converterService.toApiAuthor),
+          processors = c.processors.map(converterService.toApiAuthor),
+          rightsholders = c.rightsholders.map(converterService.toApiAuthor),
+          agreementId = None,
+          validFrom = None,
+          validTo = None
+        )
+      })
 
       api.ConceptSummary(
         id = searchableConcept.id,
@@ -185,6 +211,7 @@ trait SearchConverterService {
         status = toApiStatus(searchableConcept.status),
         updatedBy = searchableConcept.updatedBy,
         license = searchableConcept.license,
+        copyright = copyright,
         visualElement = visualElement
       )
     }

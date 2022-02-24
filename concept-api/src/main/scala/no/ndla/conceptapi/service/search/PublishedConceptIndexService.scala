@@ -55,6 +55,21 @@ trait PublishedConceptIndexService {
         ),
         dateField("lastUpdated"),
         keywordField("license"),
+        keywordField("origin"),
+        nestedField("copyright").fields(
+          nestedField("creators").fields(
+            keywordField("type"),
+            keywordField("name")
+          ),
+          nestedField("processors").fields(
+            keywordField("type"),
+            keywordField("name")
+          ),
+          nestedField("rightsholders").fields(
+            keywordField("type"),
+            keywordField("name")
+          )
+        ),
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
           keywordField("id"),

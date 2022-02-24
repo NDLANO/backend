@@ -38,7 +38,7 @@ class PublishedConceptSearchServiceTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(
+  val byNcSa: Copyright = Copyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
@@ -49,7 +49,7 @@ class PublishedConceptSearchServiceTest
     None
   )
 
-  val publicDomain = Copyright(
+  val publicDomain: Copyright = Copyright(
     Some("publicdomain"),
     Some("Metropolis"),
     List(Author("Forfatter", "Bruce Wayne")),
@@ -60,7 +60,7 @@ class PublishedConceptSearchServiceTest
     None
   )
 
-  val copyrighted = Copyright(
+  val copyrighted: Copyright = Copyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
@@ -75,6 +75,7 @@ class PublishedConceptSearchServiceTest
 
   val concept1: Concept = TestData.sampleConcept.copy(
     id = Option(1),
+    copyright = Some(publicDomain),
     title = List(ConceptTitle("Batmen er på vift med en bil", "nb")),
     content =
       List(ConceptContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb"))
@@ -82,18 +83,21 @@ class PublishedConceptSearchServiceTest
 
   val concept2: Concept = TestData.sampleConcept.copy(
     id = Option(2),
+    copyright = Some(publicDomain),
     title = List(ConceptTitle("pingvinen er ute og går", "nb")),
     content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb"))
   )
 
   val concept3: Concept = TestData.sampleConcept.copy(
     id = Option(3),
+    copyright = Some(copyrighted),
     title = List(ConceptTitle("Donald Duck kjører bil", "nb")),
     content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb"))
   )
 
   val concept4: Concept = TestData.sampleConcept.copy(
     id = Option(4),
+    copyright = Some(copyrighted),
     title = List(ConceptTitle("Superman er ute og flyr", "nb")),
     content =
       List(ConceptContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb"))
@@ -101,12 +105,14 @@ class PublishedConceptSearchServiceTest
 
   val concept5: Concept = TestData.sampleConcept.copy(
     id = Option(5),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("Hulken løfter biler", "nb")),
     content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb"))
   )
 
   val concept6: Concept = TestData.sampleConcept.copy(
     id = Option(6),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     content = List(
       ConceptContent(
@@ -118,12 +124,14 @@ class PublishedConceptSearchServiceTest
 
   val concept7: Concept = TestData.sampleConcept.copy(
     id = Option(7),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("Yggdrasil livets tre", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb"))
   )
 
   val concept8: Concept = TestData.sampleConcept.copy(
     id = Option(8),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     subjectIds = Set("urn:subject:10")
@@ -131,6 +139,7 @@ class PublishedConceptSearchServiceTest
 
   val concept9: Concept = TestData.sampleConcept.copy(
     id = Option(9),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = Seq(ConceptTags(Seq("stor", "klovn"), "nb")),
@@ -140,6 +149,7 @@ class PublishedConceptSearchServiceTest
 
   val concept10: Concept = TestData.sampleConcept.copy(
     id = Option(10),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
@@ -155,11 +165,12 @@ class PublishedConceptSearchServiceTest
 
   val concept11: Concept = TestData.sampleConcept.copy(
     id = Option(11),
+    copyright = Some(byNcSa),
     title = List(ConceptTitle("\"englando\"", "en")),
     content = List(ConceptContent("englandocontent", "en"))
   )
 
-  val searchSettings = SearchSettings(
+  val searchSettings: SearchSettings = SearchSettings(
     withIdIn = List.empty,
     searchLanguage = DefaultLanguage,
     page = 1,
@@ -725,6 +736,15 @@ class PublishedConceptSearchServiceTest
       )
     search5.totalCount should be(0)
 
+  }
+
+  test("search results should return copyright info") {
+    val Success(search) =
+      publishedConceptSearchService.matchingQuery("hulk", searchSettings.copy(sort = Sort.ByRelevanceDesc))
+    val hits = search.results
+    hits.map(_.id) should equal(Seq(5))
+    hits.head.copyright.head.origin should be(Some("Gotham City"))
+    hits.head.copyright.head.creators.length should be(1)
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
