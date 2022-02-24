@@ -744,6 +744,7 @@ class PublishedConceptSearchServiceTest
     val hits = search.results
     hits.map(_.id) should equal(Seq(5))
     hits.head.copyright.head.origin should be(Some("Gotham City"))
+    hits.head.copyright.head.creators.length should be(1)
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
