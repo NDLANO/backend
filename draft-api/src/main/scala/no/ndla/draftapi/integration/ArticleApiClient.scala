@@ -24,12 +24,12 @@ import scala.util.{Failure, Try}
 
 case class ArticleApiId(id: Long)
 case class PartialPublishArticle(
-    availability: Option[domain.Availability.Value],
+    availability: Option[api.Availability.Value],
     grepCodes: Option[Seq[String]],
     license: Option[String],
-    metaDescription: Option[Seq[domain.ArticleMetaDescription]],
-    relatedContent: Option[Seq[domain.RelatedContent]],
-    tags: Option[Seq[domain.ArticleTag]]
+    metaDescription: Option[Seq[api.ArticleMetaDescription]],
+    relatedContent: Option[Seq[api.RelatedContent]],
+    tags: Option[Seq[api.ArticleTag]]
 )
 
 trait ArticleApiClient {
