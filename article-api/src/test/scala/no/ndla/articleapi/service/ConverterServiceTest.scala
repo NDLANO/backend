@@ -231,10 +231,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val partialArticle =
       api.PartialPublishArticle(
-        availability = Some(Availability.teacher),
+        availability = Some(api.Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
-        metaDescription = Some(Seq(ArticleMetaDescription("nyDesc", "nb"))),
+        metaDescription = Some(Seq(api.ArticleMetaDescription("nyDesc", "nb"))),
         relatedContent = Some(
           Seq(
             Left(api.RelatedContentLink("New Title", "New Url")),
@@ -242,7 +242,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             Right(42L)
           )
         ),
-        tags = Some(Seq(ArticleTag(Seq("nye", "Tags"), "nb")))
+        tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb")))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -273,22 +273,22 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val partialArticle =
       api.PartialPublishArticle(
-        availability = Some(Availability.teacher),
+        availability = Some(api.Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(
           Seq(
-            ArticleMetaDescription("nyDesc", "nb"),
-            ArticleMetaDescription("newDesc", "en"),
-            ArticleMetaDescription("neuDesc", "de")
+            api.ArticleMetaDescription("nyDesc", "nb"),
+            api.ArticleMetaDescription("newDesc", "en"),
+            api.ArticleMetaDescription("neuDesc", "de")
           )
         ),
         relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
         tags = Some(
           Seq(
-            ArticleTag(Seq("nye", "Tags"), "nb"),
-            ArticleTag(Seq("new", "Tagss"), "en"),
-            ArticleTag(Seq("Guten", "Tag"), "de")
+            api.ArticleTag(Seq("nye", "Tags"), "nb"),
+            api.ArticleTag(Seq("new", "Tagss"), "en"),
+            api.ArticleTag(Seq("Guten", "Tag"), "de")
           )
         )
       )

@@ -21,11 +21,6 @@ export interface IArticleIntroduction {
 }
 
 export interface IArticleMetaDescription {
-  content: string
-  language: string
-}
-
-export interface IArticleMetaDescription {
   metaDescription: string
   language: string
 }
