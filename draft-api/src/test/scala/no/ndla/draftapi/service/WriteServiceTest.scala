@@ -974,39 +974,39 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val expectedPartialPublishFields = integration.PartialPublishArticle(
-      availability = Some(Availability.everyone),
+      availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
-      metaDescription = Some(Seq(ArticleMetaDescription("oldDesc", "nb"))),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
-      tags = Some(Seq(ArticleTag(Seq("old", "tag"), "nb")))
+      metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
+      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb")))
     )
     val expectedPartialPublishFieldsLangEN = integration.PartialPublishArticle(
-      availability = Some(Availability.everyone),
+      availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq.empty),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty)
     )
     val expectedPartialPublishFieldsLangALL = integration.PartialPublishArticle(
-      availability = Some(Availability.everyone),
+      availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(
         Seq(
-          ArticleMetaDescription("oldDesc", "nb"),
-          ArticleMetaDescription("oldDescc", "es"),
-          ArticleMetaDescription("oldDesccc", "ru"),
-          ArticleMetaDescription("oldDescccc", "nn")
+          api.ArticleMetaDescription("oldDesc", "nb"),
+          api.ArticleMetaDescription("oldDescc", "es"),
+          api.ArticleMetaDescription("oldDesccc", "ru"),
+          api.ArticleMetaDescription("oldDescccc", "nn")
         )
       ),
-      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(
         Seq(
-          ArticleTag(Seq("old", "tag"), "nb"),
-          ArticleTag(Seq("guten", "tag"), "de"),
-          ArticleTag(Seq("oldd", "tagg"), "es")
+          api.ArticleTag(Seq("old", "tag"), "nb"),
+          api.ArticleTag(Seq("guten", "tag"), "de"),
+          api.ArticleTag(Seq("oldd", "tagg"), "es")
         )
       )
     )

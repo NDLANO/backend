@@ -375,7 +375,7 @@ trait WriteService {
             created = new Date(0),
             updated = new Date(0),
             updatedBy = "",
-            availability = Availability.everyone,
+            availability = domain.Availability.everyone,
             grepCodes = Seq.empty,
             copyright = article.copyright.map(e => e.copy(license = None)),
             metaDescription = Seq.empty,
@@ -718,24 +718,42 @@ trait WriteService {
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partialPublishArticle, field) => {
         field match {
           case PartialArticleFields.availability =>
-            partialPublishArticle.copy(availability = Some(articleToPartialPublish.availability))
+            partialPublishArticle.copy(availability =
+              Some(converterService.toApiAvailability(articleToPartialPublish.availability))
+            )
           case PartialArticleFields.grepCodes =>
             partialPublishArticle.copy(grepCodes = Some(articleToPartialPublish.grepCodes))
           case PartialArticleFields.license =>
             partialPublishArticle.copy(license = articleToPartialPublish.copyright.flatMap(c => c.license))
           case PartialArticleFields.metaDescription if (language == Language.AllLanguages) =>
-            partialPublishArticle.copy(metaDescription = Some(articleToPartialPublish.metaDescription))
+            partialPublishArticle.copy(metaDescription =
+              Some(articleToPartialPublish.metaDescription.map(m => api.ArticleMetaDescription(m.content, m.language)))
+            )
           case PartialArticleFields.metaDescription =>
             partialPublishArticle.copy(
-              metaDescription = Some(articleToPartialPublish.metaDescription.find(m => m.language == language).toSeq)
+              metaDescription = Some(
+                articleToPartialPublish.metaDescription
+                  .find(m => m.language == language)
+                  .toSeq
+                  .map(m => api.ArticleMetaDescription(m.content, m.language))
+              )
             )
           case PartialArticleFields.relatedContent =>
-            partialPublishArticle.copy(relatedContent = Some(articleToPartialPublish.relatedContent))
+            partialPublishArticle.copy(relatedContent =
+              Some(articleToPartialPublish.relatedContent.map(converterService.toApiRelatedContent))
+            )
           case PartialArticleFields.tags if (language == Language.AllLanguages) =>
-            partialPublishArticle.copy(tags = Some(articleToPartialPublish.tags))
+            partialPublishArticle.copy(tags =
+              Some(articleToPartialPublish.tags.map(t => api.ArticleTag(t.tags, t.language)))
+            )
           case PartialArticleFields.tags =>
             partialPublishArticle.copy(
-              tags = Some(articleToPartialPublish.tags.find(t => t.language == language).toSeq)
+              tags = Some(
+                articleToPartialPublish.tags
+                  .find(t => t.language == language)
+                  .toSeq
+                  .map(t => api.ArticleTag(t.tags, t.language))
+              )
             )
         }
       })
@@ -788,7 +806,8 @@ trait WriteService {
           implicit val executionContext: ExecutionContextExecutorService =
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-          val fut            = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
+//          val converted = asdasd
+          val fut = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
 
           fut.onComplete {
             case Failure(ex) => logger.error(s"Failed to partial publish article with id '$id', with error", ex)

@@ -693,6 +693,14 @@ trait ConverterService {
       }
     }
 
+    def toApiAvailability(availability: domain.Availability.Value): api.Availability.Value = {
+      availability match {
+        case domain.Availability.everyone => api.Availability.everyone
+        case domain.Availability.teacher  => api.Availability.teacher
+        case _                            => api.Availability.everyone
+      }
+    }
+
     private[service] def _stateTransitionsToApi(user: UserInfo, article: Option[Article]): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to

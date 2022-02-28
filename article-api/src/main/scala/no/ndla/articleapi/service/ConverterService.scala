@@ -172,20 +172,25 @@ trait ConverterService {
     }
 
     def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
-      val newAvailability = partialArticle.availability.getOrElse(existingArticle.availability)
-      val newGrepCodes    = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
-      val newLicense      = partialArticle.license.getOrElse(existingArticle.copyright.license)
+      val newAvailability =
+        partialArticle.availability.map(toDomainAvailability).getOrElse(existingArticle.availability)
+      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+      val newLicense   = partialArticle.license.getOrElse(existingArticle.copyright.license)
 
       val newMeta = partialArticle.metaDescription match {
         case Some(metaDesc) =>
-          updateExistingMetaDescriptionField(existingArticle.metaDescription, metaDesc)
+          updateExistingMetaDescriptionField(
+            existingArticle.metaDescription,
+            metaDesc.map(m => domain.ArticleMetaDescription(m.metaDescription, m.language))
+          )
         case None => existingArticle.metaDescription
       }
       val newRelatedContent =
         partialArticle.relatedContent.map(toDomainRelatedContent).getOrElse(existingArticle.relatedContent)
       val newTags = partialArticle.tags match {
-        case Some(tags) => updateExistingTagsField(existingArticle.tags, tags)
-        case None       => existingArticle.tags
+        case Some(tags) =>
+          updateExistingTagsField(existingArticle.tags, tags.map(t => domain.ArticleTag(t.tags, t.language)))
+        case None => existingArticle.tags
       }
       existingArticle.copy(
         availability = newAvailability,
@@ -195,6 +200,22 @@ trait ConverterService {
         relatedContent = newRelatedContent,
         tags = newTags
       )
+    }
+
+    def toApiAvailability(availability: domain.Availability.Value): api.Availability.Value = {
+      availability match {
+        case domain.Availability.everyone => api.Availability.everyone
+        case domain.Availability.teacher  => api.Availability.teacher
+        case _                            => api.Availability.everyone
+      }
+    }
+
+    private def toDomainAvailability(availability: api.Availability.Value): domain.Availability.Value = {
+      availability match {
+        case api.Availability.everyone => domain.Availability.everyone
+        case api.Availability.teacher  => domain.Availability.teacher
+        case _                         => domain.Availability.everyone
+      }
     }
 
     private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {

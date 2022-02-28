@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.ext.EnumNameSerializer
@@ -39,7 +38,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
-  implicit val formats: Formats        = DefaultFormats + new EnumNameSerializer(Availability)
+  implicit val formats: Formats        = DefaultFormats + new EnumNameSerializer(api.Availability)
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
   lazy val controller = new ArticleControllerV2
@@ -51,7 +50,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val articleId       = 1
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Success(Cachable.yes(TestData.sampleArticleV2)))
+    when(readService.withIdV2(articleId, lang)).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -59,7 +58,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Failure(NotFoundException("Not found")))
+    when(readService.withIdV2(articleId, lang)).thenReturn(Failure(api.NotFoundException("Not found")))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(404)
@@ -75,16 +74,16 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2],
       Some(scrollId)
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(Cachable.yes(searchResponse)))
+      .thenReturn(Success(domain.Cachable.yes(searchResponse)))
 
     get(s"/test/") {
       status should be(200)
@@ -97,12 +96,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     reset(articleSearchService, readService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2],
       Some(scrollId)
     )
 
@@ -112,7 +111,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       status should be(200)
     }
 
-    verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
+    verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
     verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any, any)
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
@@ -121,12 +120,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     reset(articleSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[ArticleSummaryV2](
+    val searchResponse = SearchResult[api.ArticleSummaryV2](
       0,
       Some(1),
       10,
       "nb",
-      Seq.empty[ArticleSummaryV2],
+      Seq.empty[api.ArticleSummaryV2],
       Some(scrollId)
     )
 
@@ -136,7 +135,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       status should be(200)
     }
 
-    verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
+    verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
@@ -164,7 +163,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   test("That initial search-context doesn't scroll") {
     reset(articleSearchService, readService)
 
-    val result = SearchResult[ArticleSummaryV2](
+    val result = SearchResult[api.ArticleSummaryV2](
       totalCount = 0,
       page = None,
       pageSize = 10,
@@ -173,7 +172,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       scrollId = Some("heiheihei")
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(Cachable.yes(result)))
+      .thenReturn(Success(domain.Cachable.yes(result)))
 
     get("/test/?search-context=initial") {
       status should be(200)

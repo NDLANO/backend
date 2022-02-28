@@ -36,8 +36,7 @@ object articleapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq(
       "no.ndla.articleapi.model.api._",
-      "no.ndla.articleapi.model.api.TSTypes._",
-      "no.ndla.articleapi.model.domain.Availability"
+      "no.ndla.articleapi.model.api.TSTypes._"
     ),
     exports = Seq(
       "ArticleV2",
