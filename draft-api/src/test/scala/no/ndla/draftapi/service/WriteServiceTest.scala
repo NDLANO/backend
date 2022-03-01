@@ -973,7 +973,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       api.PartialArticleFields.tags
     )
 
-    val expectedPartialPublishFields = integration.PartialPublishArticle(
+    val expectedPartialPublishFields = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
@@ -981,7 +981,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb")))
     )
-    val expectedPartialPublishFieldsLangEN = integration.PartialPublishArticle(
+    val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
@@ -989,7 +989,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty)
     )
-    val expectedPartialPublishFieldsLangALL = integration.PartialPublishArticle(
+    val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),

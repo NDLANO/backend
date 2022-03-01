@@ -16,7 +16,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.integration.{ArticleApiClient, PartialPublishArticle, SearchApiClient, TaxonomyApiClient}
+import no.ndla.draftapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.draftapi.model.api.{Article, PartialArticleFields, _}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._
@@ -412,9 +412,7 @@ trait WriteService {
       Option.when(shouldInclude)(field)
     }
 
-    /** Returns fields to partial publish _if_ we partial-publishing requirements are satisfied, otherwise returns an
-      * empty set.
-      */
+    /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
     def shouldPartialPublish(
         existingArticle: Option[domain.Article],
         changedArticle: domain.Article
@@ -709,52 +707,24 @@ trait WriteService {
     }
 
     private[service] def partialArticleFieldsUpdate(
-        articleToPartialPublish: domain.Article,
+        article: domain.Article,
         articleFieldsToUpdate: Seq[PartialArticleFields],
         language: String
     ): PartialPublishArticle = {
-
+      val isAllLanguage  = language == Language.AllLanguages
       val initialPartial = PartialPublishArticle(None, None, None, None, None, None)
-      articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partialPublishArticle, field) => {
+
+      import PartialArticleFields._
+      articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partial, field) => {
         field match {
-          case PartialArticleFields.availability =>
-            partialPublishArticle.copy(availability =
-              Some(converterService.toApiAvailability(articleToPartialPublish.availability))
-            )
-          case PartialArticleFields.grepCodes =>
-            partialPublishArticle.copy(grepCodes = Some(articleToPartialPublish.grepCodes))
-          case PartialArticleFields.license =>
-            partialPublishArticle.copy(license = articleToPartialPublish.copyright.flatMap(c => c.license))
-          case PartialArticleFields.metaDescription if (language == Language.AllLanguages) =>
-            partialPublishArticle.copy(metaDescription =
-              Some(articleToPartialPublish.metaDescription.map(m => api.ArticleMetaDescription(m.content, m.language)))
-            )
-          case PartialArticleFields.metaDescription =>
-            partialPublishArticle.copy(
-              metaDescription = Some(
-                articleToPartialPublish.metaDescription
-                  .find(m => m.language == language)
-                  .toSeq
-                  .map(m => api.ArticleMetaDescription(m.content, m.language))
-              )
-            )
-          case PartialArticleFields.relatedContent =>
-            partialPublishArticle.copy(relatedContent =
-              Some(articleToPartialPublish.relatedContent.map(converterService.toApiRelatedContent))
-            )
-          case PartialArticleFields.tags if (language == Language.AllLanguages) =>
-            partialPublishArticle.copy(tags =
-              Some(articleToPartialPublish.tags.map(t => api.ArticleTag(t.tags, t.language)))
-            )
-          case PartialArticleFields.tags =>
-            partialPublishArticle.copy(
-              tags = Some(
-                articleToPartialPublish.tags
-                  .find(t => t.language == language)
-                  .toSeq
-                  .map(t => api.ArticleTag(t.tags, t.language))
-              )
-            )
+          case `availability`                     => partial.withAvailability(article.availability)
+          case `grepCodes`                        => partial.withGrepCodes(article.grepCodes)
+          case `license`                          => partial.withLicense(article.copyright.flatMap(_.license))
+          case `metaDescription` if isAllLanguage => partial.withMetaDescription(article.metaDescription)
+          case `metaDescription`                  => partial.withMetaDescription(article.metaDescription, language)
+          case `relatedContent`                   => partial.withRelatedContent(article.relatedContent)
+          case `tags` if isAllLanguage            => partial.withTags(article.tags)
+          case `tags`                             => partial.withTags(article.tags, language)
         }
       })
     }
