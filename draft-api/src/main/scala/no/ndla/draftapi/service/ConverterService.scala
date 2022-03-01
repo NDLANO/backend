@@ -545,6 +545,9 @@ trait ConverterService {
       }
 
       val updatedAvailability = Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
+      val updatedRequiredLibraries = article.requiredLibraries
+        .map(_.map(toDomainRequiredLibraries))
+        .getOrElse(toMergeInto.requiredLibraries)
 
       // Cloning files if they exist in other languages when adding new language
       val contentWithClonedFiles = if (isNewLanguage) {
@@ -563,10 +566,7 @@ trait ConverterService {
               val partiallyConverted = toMergeInto.copy(
                 revision = Option(updatedWithClonedFiles.revision),
                 copyright = updatedWithClonedFiles.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
-                requiredLibraries = updatedWithClonedFiles.requiredLibraries
-                  .map(y => y.map(x => toDomainRequiredLibraries(x)))
-                  .toSeq
-                  .flatten,
+                requiredLibraries = updatedRequiredLibraries,
                 created = createdDate,
                 updated = updatedDate,
                 published = publishedDate,
