@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import java.util.Date
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.Availability
+import no.ndla.draftapi.model.domain.{Availability, RevisionMeta}
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -66,7 +66,8 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
     availability = Availability.everyone,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionMeta = RevisionMeta.default
   )
 
   val exampleToken =

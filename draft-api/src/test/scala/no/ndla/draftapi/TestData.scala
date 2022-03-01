@@ -124,6 +124,7 @@ object TestData {
     None,
     None,
     None,
+    None,
     None
   )
 
@@ -276,7 +277,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     Availability.everyone,
-    Seq.empty
+    Seq.empty,
+    RevisionMeta.default
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -303,7 +305,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     Availability.everyone,
-    Seq.empty
+    Seq.empty,
+    RevisionMeta.default
   )
 
   val sampleDomainArticle: Article = Article(
@@ -330,7 +333,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     Availability.everyone,
-    Seq.empty
+    Seq.empty,
+    RevisionMeta.default
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -357,7 +361,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     Availability.everyone,
-    Seq.empty
+    Seq.empty,
+    RevisionMeta.default
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -389,7 +394,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     availability = None,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
@@ -428,7 +434,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     Availability.everyone,
-    Seq.empty
+    Seq.empty,
+    RevisionMeta.default
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
