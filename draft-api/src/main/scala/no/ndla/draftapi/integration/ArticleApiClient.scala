@@ -19,18 +19,9 @@ import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
+import cats.implicits._
 
 import scala.util.{Failure, Try}
-
-case class ArticleApiId(id: Long)
-case class PartialPublishArticle(
-    availability: Option[api.Availability.Value],
-    grepCodes: Option[Seq[String]],
-    license: Option[String],
-    metaDescription: Option[Seq[api.ArticleMetaDescription]],
-    relatedContent: Option[Seq[api.RelatedContent]],
-    tags: Option[Seq[api.ArticleTag]]
-)
 
 trait ArticleApiClient {
   this: NdlaClient with ConverterService =>
@@ -139,5 +130,42 @@ trait ArticleApiClient {
           .header("content-type", "application/json")
       )
     }
+  }
+
+  case class ArticleApiId(id: Long)
+  case class PartialPublishArticle(
+      availability: Option[api.Availability.Value],
+      grepCodes: Option[Seq[String]],
+      license: Option[String],
+      metaDescription: Option[Seq[api.ArticleMetaDescription]],
+      relatedContent: Option[Seq[api.RelatedContent]],
+      tags: Option[Seq[api.ArticleTag]]
+  ) {
+    def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
+    def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
+    def withTags(tags: Seq[domain.ArticleTag], language: String): PartialPublishArticle =
+      copy(tags =
+        tags
+          .find(t => t.language == language)
+          .toSeq
+          .map(t => api.ArticleTag(t.tags, t.language))
+          .some
+      )
+    def withTags(tags: Seq[domain.ArticleTag]): PartialPublishArticle =
+      copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
+    def withRelatedContent(relatedContent: Seq[domain.RelatedContent]): PartialPublishArticle =
+      copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)
+    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription], language: String): PartialPublishArticle =
+      copy(metaDescription =
+        meta
+          .find(m => m.language == language)
+          .map(m => api.ArticleMetaDescription(m.content, m.language))
+          .toSeq
+          .some
+      )
+    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription]): PartialPublishArticle =
+      copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
+    def withAvailability(availability: domain.Availability.Value): PartialPublishArticle =
+      copy(availability = converterService.toApiAvailability(availability).some)
   }
 }
