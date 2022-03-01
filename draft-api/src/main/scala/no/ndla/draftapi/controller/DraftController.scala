@@ -26,6 +26,7 @@ import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success, Try}
 import enumeratum.Json4s
+import org.json4s.ext.JavaTimeSerializers
 
 trait DraftController {
   this: ReadService
@@ -39,7 +40,7 @@ trait DraftController {
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
     protected implicit override val jsonFormats: Formats =
-      DefaultFormats.withLong + Json4s.serializer(PartialArticleFields)
+      DefaultFormats.withLong + Json4s.serializer(PartialArticleFields) ++ JavaTimeSerializers.all
     protected val applicationDescription = "API for accessing draft articles."
 
     // Additional models used in error responses
@@ -401,7 +402,7 @@ trait DraftController {
     get(
       "/:article_id/history",
       operation(
-        apiOperation[Article]("getArticleById")
+        apiOperation[Article]("getHistoricArticleById")
           .summary("Get all saved articles with a specified Id, latest revision first")
           .description(
             "Retrieves all current and previously published articles with the specified id, latest revision first."

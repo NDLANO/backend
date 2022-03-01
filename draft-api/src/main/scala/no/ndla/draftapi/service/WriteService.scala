@@ -17,7 +17,7 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
-import no.ndla.draftapi.model.api.{Article, PartialArticleFields, _}
+import no.ndla.draftapi.model.api.{PartialArticleFields, _}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
@@ -244,41 +244,50 @@ trait WriteService {
         case None => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
-            convertedArticleT <- converterService
+            convertedArticle <- converterService
               .updateStatus(status, draft, user, isImported)
               .attempt
               .unsafeRunSync()
               .toTry
-            convertedArticle <- convertedArticleT
-            updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, isImported)
-            _                <- indexArticle(updatedArticle)
-            apiArticle       <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
+              .flatten
+            updatedArticle <- updateArticleAndStoreAsNewIfPublished(
+              convertedArticle,
+              isImported,
+              statusWasUpdated = true
+            )
+            _          <- indexArticle(updatedArticle)
+            apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
           } yield apiArticle
       }
     }
 
     private def updateArticleAndStoreAsNewIfPublished(
         article: domain.Article,
-        isImported: Boolean
-    ) = draftRepository.updateArticle(article, isImported) match {
-      case Success(updated) if updated.status.current == PUBLISHED && !isImported =>
-        draftRepository.storeArticleAsNewVersion(updated, None)
-      case Success(updated) => Success(updated)
-      case Failure(ex)      => Failure(ex)
+        isImported: Boolean,
+        statusWasUpdated: Boolean
+    ): Try[domain.Article] = {
+      val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED && !isImported
+      draftRepository.updateArticle(article, isImported) match {
+        case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
+        case Success(updated)                      => Success(updated)
+        case Failure(ex)                           => Failure(ex)
+      }
     }
 
     private def updateArticleWithExternalAndStoreAsNewIfPublished(
         article: domain.Article,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
-        importId: Option[String]
-    ): Try[domain.Article] =
+        importId: Option[String],
+        statusWasUpdated: Boolean
+    ): Try[domain.Article] = {
+      val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
       draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
-        case Success(updated) if updated.status.current == PUBLISHED =>
-          draftRepository.storeArticleAsNewVersion(updated, None)
-        case Success(updated) => Success(updated)
-        case Failure(ex)      => Failure(ex)
+        case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
+        case Success(updated)                      => Success(updated)
+        case Failure(ex)                           => Failure(ex)
       }
+    }
 
     /** Determines which repository function(s) should be called and calls them */
     private def performArticleUpdate(
@@ -288,14 +297,22 @@ trait WriteService {
         isImported: Boolean,
         importId: Option[String],
         shouldOnlyCopy: Boolean,
-        user: UserInfo
+        user: UserInfo,
+        statusWasUpdated: Boolean
     ): Try[domain.Article] =
       if (shouldOnlyCopy) {
         draftRepository.storeArticleAsNewVersion(article, Some(user))
       } else {
         externalIds match {
-          case Nil  => updateArticleAndStoreAsNewIfPublished(article, isImported)
-          case nids => updateArticleWithExternalAndStoreAsNewIfPublished(article, nids, externalSubjectIds, importId)
+          case Nil => updateArticleAndStoreAsNewIfPublished(article, isImported, statusWasUpdated)
+          case nids =>
+            updateArticleWithExternalAndStoreAsNewIfPublished(
+              article,
+              nids,
+              externalSubjectIds,
+              importId,
+              statusWasUpdated
+            )
         }
       }
 
@@ -308,7 +325,8 @@ trait WriteService {
         isImported: Boolean,
         shouldAlwaysCopy: Boolean,
         oldArticle: Option[domain.Article],
-        user: UserInfo
+        user: UserInfo,
+        statusWasUpdated: Boolean
     ): Try[domain.Article] = {
       val articleToValidate = language match {
         case Some(language) => getArticleOnLanguage(toUpdate, language)
@@ -330,11 +348,12 @@ trait WriteService {
           isImported,
           importId,
           shouldAlwaysCopy,
-          user
+          user,
+          statusWasUpdated
         )
         _ = partialPublishIfNeeded(
           domainArticle,
-          PartialArticleFields.values.toSeq,
+          PartialArticleFields.values,
           language.getOrElse(Language.AllLanguages)
         )
         _ <- indexArticle(domainArticle)
@@ -517,6 +536,7 @@ trait WriteService {
           oldNdlaUpdatedDate
         )
         articleWithStatus <- updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user)
+        didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
         updatedArticle <- updateArticle(
           articleWithStatus,
           importId,
@@ -526,7 +546,8 @@ trait WriteService {
           isImported = externalIds.nonEmpty,
           shouldAlwaysCopy = updatedApiArticle.createNewVersion.getOrElse(false),
           oldArticle = Some(existing),
-          user = user
+          user = user,
+          statusWasUpdated = didUpdateStatus
         )
         apiArticle <- converterService.toApiArticle(
           readService.addUrlsOnEmbedResources(updatedArticle),
@@ -570,7 +591,8 @@ trait WriteService {
           isImported = false,
           shouldAlwaysCopy = updatedApiArticle.createNewVersion.getOrElse(false),
           oldArticle = None,
-          user = user
+          user = user,
+          statusWasUpdated = false
         )
         apiArticle <- converterService.toApiArticle(
           readService.addUrlsOnEmbedResources(updatedArticle),
@@ -587,7 +609,7 @@ trait WriteService {
               converterService
                 .deleteLanguage(article, language, userInfo)
                 .flatMap(newArticle =>
-                  updateArticleAndStoreAsNewIfPublished(newArticle, isImported = false)
+                  updateArticleAndStoreAsNewIfPublished(newArticle, isImported = false, statusWasUpdated = true)
                     .flatMap(
                       converterService.toApiArticle(_, Language.AllLanguages)
                     )

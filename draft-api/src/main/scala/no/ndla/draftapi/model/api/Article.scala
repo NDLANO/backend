@@ -4,16 +4,14 @@
  *
  * See LICENSE
  */
-// format: off
 
 package no.ndla.draftapi.model.api
 
 import java.util.Date
-
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
 import scala.annotation.meta.field
 
+// format: off
 @ApiModel(description = "Information about the article")
 case class Article(
     @(ApiModelProperty @field)(description = "The unique id of the article") id: Long,
@@ -40,5 +38,6 @@ case class Article(
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
-    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent]
-                  )
+    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
+    @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta]
+)
