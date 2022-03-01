@@ -806,8 +806,7 @@ trait WriteService {
           implicit val executionContext: ExecutionContextExecutorService =
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-//          val converted = asdasd
-          val fut = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
+          val fut            = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
 
           fut.onComplete {
             case Failure(ex) => logger.error(s"Failed to partial publish article with id '$id', with error", ex)
