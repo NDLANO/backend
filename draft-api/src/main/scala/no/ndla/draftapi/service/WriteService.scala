@@ -400,13 +400,14 @@ trait WriteService {
         old: domain.Article,
         changed: domain.Article
     ): Option[PartialArticleFields] = {
+      import PartialArticleFields._
       val shouldInclude = field match {
-        case PartialArticleFields.availability    => old.availability != changed.availability
-        case PartialArticleFields.grepCodes       => old.grepCodes != changed.grepCodes
-        case PartialArticleFields.relatedContent  => old.relatedContent != changed.relatedContent
-        case PartialArticleFields.tags            => old.tags.sorted != changed.tags.sorted
-        case PartialArticleFields.metaDescription => old.metaDescription.sorted != changed.metaDescription.sorted
-        case PartialArticleFields.license => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
+        case `availability`    => old.availability != changed.availability
+        case `grepCodes`       => old.grepCodes != changed.grepCodes
+        case `relatedContent`  => old.relatedContent != changed.relatedContent
+        case `tags`            => old.tags.sorted != changed.tags.sorted
+        case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
+        case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
       }
 
       Option.when(shouldInclude)(field)
