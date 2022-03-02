@@ -566,7 +566,7 @@ trait WriteService {
         oldNdlaCreatedDate: Option[Date],
         oldNdlaUpdatedDate: Option[Date],
         importId: Option[String]
-    ): Try[Article] =
+    ): Try[api.Article] =
       for {
         convertedArticle <- converterService.toDomainArticle(
           articleId,
@@ -576,12 +576,12 @@ trait WriteService {
           oldNdlaCreatedDate,
           oldNdlaUpdatedDate
         )
-        articleWithStatusT <- converterService
-          .updateStatus(DRAFT, convertedArticle, user, false)
+        articleWithStatus <- converterService
+          .updateStatus(DRAFT, convertedArticle, user, isImported = false)
           .attempt
           .unsafeRunSync()
           .toTry
-        articleWithStatus <- articleWithStatusT
+          .flatten
         updatedArticle <- updateArticle(
           toUpdate = articleWithStatus,
           importId = importId,
@@ -596,7 +596,8 @@ trait WriteService {
         )
         apiArticle <- converterService.toApiArticle(
           readService.addUrlsOnEmbedResources(updatedArticle),
-          updatedApiArticle.language.getOrElse(UnknownLanguage.toString)
+          updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+          updatedApiArticle.language.isEmpty
         )
       } yield apiArticle
 
