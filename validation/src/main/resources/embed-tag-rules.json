@@ -99,8 +99,10 @@
       "required": [
         "data-resource",
         "data-content-id",
-        "data-link-text",
-        "data-type"
+        "data-type",
+      ],
+      "optional": [
+        ["data-link-text"]
       ]
     },
     "concept-list": {
