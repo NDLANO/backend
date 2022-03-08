@@ -49,7 +49,7 @@ case class Article(
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionMeta: RevisionMeta
+    revisionMeta: Seq[RevisionMeta]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =

@@ -57,7 +57,7 @@ trait ConverterService {
       val oldCreatedDate  = oldNdlaCreatedDate.map(date => new DateTime(date).toDate)
       val oldUpdatedDate  = oldNdlaUpdatedDate.map(date => new DateTime(date).toDate)
       val newAvailability = Availability.valueOf(newArticle.availability).getOrElse(Availability.everyone)
-      val revisionMeta    = newArticle.revisionMeta.map(toDomainRevisionMeta).getOrElse(RevisionMeta.default)
+      val revisionMeta    = newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(RevisionMeta.default)
 
       newNotes(newArticle.notes, user, status).map(notes =>
         domain.Article(
@@ -103,7 +103,8 @@ trait ConverterService {
     private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): domain.RevisionMeta = {
       domain.RevisionMeta(
         revisionDate = revisionMeta.revisionDate,
-        notes = revisionMeta.notes
+        notes = revisionMeta.notes,
+        status = RevisionStatus.fromStringDefault(revisionMeta.status)
       )
     }
 
@@ -552,10 +553,12 @@ trait ConverterService {
         if (isNewLanguage) Seq(s"Ny språkvariant '${article.language.getOrElse("und")}' ble lagt til.")
         else Seq.empty
 
-      article.notes match {
+      val addedNotes = article.notes match {
         case Some(n) => newNotes(n ++ newLanguageEditorNote, user, toMergeInto.status)
         case None    => newNotes(newLanguageEditorNote, user, toMergeInto.status)
       }
+
+      addedNotes.map(n => toMergeInto.notes ++ n)
     }
 
     def toDomainArticle(
@@ -571,7 +574,9 @@ trait ConverterService {
       val updatedDate   = if (isImported) oldNdlaUpdatedDate.getOrElse(clock.now()) else clock.now()
       val publishedDate = article.published.getOrElse(toMergeInto.published)
       val updatedAvailability = Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
-      val updatedRevisionMeta = article.revisionMeta.map(toDomainRevisionMeta).getOrElse(toMergeInto.revisionMeta)
+      val updatedRevisionMeta =
+        article.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(toMergeInto.revisionMeta)
+
       val updatedRequiredLibraries = article.requiredLibraries
         .map(_.map(toDomainRequiredLibraries))
         .getOrElse(toMergeInto.requiredLibraries)
@@ -681,7 +686,7 @@ trait ConverterService {
           }
 
           val updatedAvailability = Availability.valueOf(article.availability).getOrElse(Availability.everyone)
-          val updatedRevisionMeta = article.revisionMeta.map(toDomainRevisionMeta).getOrElse(RevisionMeta.default)
+          val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
           mergedNotes.map(notes =>
             domain.Article(

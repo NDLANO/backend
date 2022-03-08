@@ -1,16 +1,38 @@
 package no.ndla.draftapi.model.domain
 
-import java.time.{LocalDateTime, ZoneOffset}
+import enumeratum._
+
+import java.time.LocalDateTime
 
 case class RevisionMeta(
     revisionDate: LocalDateTime,
-    notes: Seq[String]
-)
+    notes: Seq[String],
+    status: RevisionStatus
+) {
+  def toRevised: RevisionMeta = this.copy(status = RevisionStatus.Revised)
+}
 
 object RevisionMeta {
-  def default: RevisionMeta =
-    RevisionMeta(
-      revisionDate = LocalDateTime.now(ZoneOffset.UTC),
-      notes = Seq.empty
-    )
+  def default: Seq[RevisionMeta] = Seq.empty
+}
+
+sealed abstract class RevisionStatus(override val entryName: String) extends EnumEntry
+
+object RevisionStatus extends Enum[RevisionStatus] {
+  override def values: IndexedSeq[RevisionStatus] = findValues
+
+  case object Revised       extends RevisionStatus("revised")
+  case object NeedsRevision extends RevisionStatus("needs-revision")
+
+  def fromStringOpt(s: String): Option[RevisionStatus] = {
+    values.find(_.entryName.toLowerCase == s)
+  }
+
+  def fromString(s: String, fallback: RevisionStatus): RevisionStatus = {
+    fromStringOpt(s).getOrElse(fallback)
+  }
+
+  def fromStringDefault(s: String): RevisionStatus = {
+    fromString(s, NeedsRevision)
+  }
 }

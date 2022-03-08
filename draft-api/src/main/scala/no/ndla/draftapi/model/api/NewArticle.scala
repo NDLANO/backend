@@ -32,5 +32,5 @@ case class NewArticle(
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[String],
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
-    @(ApiModelProperty @field)(description = "An object describing a future revision") revisionMeta: Option[RevisionMeta]
+    @(ApiModelProperty @field)(description = "An object describing a future revision") revisionMeta: Option[Seq[RevisionMeta]]
 )

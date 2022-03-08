@@ -12,7 +12,7 @@ import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite, integration}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{HtmlTagRules, ValidationMessage}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
