@@ -25,5 +25,7 @@ case class SearchableConcept(
     license: Option[String],
     copyright: Option[SearchableCopyright],
     embedResourcesAndIds: List[EmbedValues],
-    visualElement: SearchableLanguageValues
+    visualElement: SearchableLanguageValues,
+    articleIds: Seq[Long],
+    created: DateTime
 )

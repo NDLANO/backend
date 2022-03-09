@@ -23,9 +23,12 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[Set[String]],
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date,
+    @(ApiModelProperty @field)(description = "When the concept was created") created: Date,
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,
     @(ApiModelProperty @field)(description = "List of people that edited the concept") updatedBy: Seq[String],
     @(ApiModelProperty @field)(description = "Describes the license of the concept") license: Option[String],
     @(ApiModelProperty @field)(description = "Describes the copyright of the concept") copyright: Option[Copyright],
-    @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement])
+    @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement],
+    @(ApiModelProperty @field)(description = "Article ids to which the concept is connected to") articleIds: Seq[Long]
+)
 // format: on

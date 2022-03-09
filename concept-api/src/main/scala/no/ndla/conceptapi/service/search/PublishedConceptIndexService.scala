@@ -54,6 +54,8 @@ trait PublishedConceptIndexService {
           keywordField("language")
         ),
         dateField("lastUpdated"),
+        dateField("created"),
+        longField("articleIds"),
         keywordField("license"),
         keywordField("origin"),
         nestedField("copyright").fields(
