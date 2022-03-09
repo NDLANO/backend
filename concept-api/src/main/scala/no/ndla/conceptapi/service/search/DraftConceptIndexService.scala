@@ -56,6 +56,8 @@ trait DraftConceptIndexService {
           keywordField("language")
         ),
         dateField("lastUpdated"),
+        dateField("created"),
+        longField("articleIds"),
         keywordField("status.current"),
         keywordField("status.other"),
         keywordField("updatedBy"),

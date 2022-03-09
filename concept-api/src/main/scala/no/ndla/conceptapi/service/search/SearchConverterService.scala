@@ -157,7 +157,9 @@ trait SearchConverterService {
         embedResourcesAndIds = embedResourcesAndIds,
         visualElement = SearchableLanguageValues(
           c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
-        )
+        ),
+        articleIds = c.articleIds,
+        created = new DateTime(c.created)
       )
     }
 
@@ -175,7 +177,7 @@ trait SearchConverterService {
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiConceptTitle)
         .getOrElse(api.ConceptTitle("", UnknownLanguage.toString()))
-      val concept = findByLanguageOrBestEffort(contents, language)
+      val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", UnknownLanguage.toString()))
       val metaImage = findByLanguageOrBestEffort(searchableConcept.metaImage, language)
@@ -202,7 +204,7 @@ trait SearchConverterService {
       api.ConceptSummary(
         id = searchableConcept.id,
         title = title,
-        content = concept,
+        content = content,
         metaImage = metaImage,
         tags = tag,
         subjectIds = subjectIds,
@@ -212,7 +214,9 @@ trait SearchConverterService {
         updatedBy = searchableConcept.updatedBy,
         license = searchableConcept.license,
         copyright = copyright,
-        visualElement = visualElement
+        visualElement = visualElement,
+        articleIds = searchableConcept.articleIds,
+        created = searchableConcept.created.toDate
       )
     }
 
