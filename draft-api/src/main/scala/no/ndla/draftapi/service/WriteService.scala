@@ -400,6 +400,7 @@ trait WriteService {
             metaDescription = Seq.empty,
             relatedContent = Seq.empty,
             tags = Seq.empty,
+            revisionMeta = Seq.empty,
             // LanguageField ordering shouldn't matter:
             visualElement = article.visualElement.sorted,
             content = article.content.sorted,
@@ -469,7 +470,7 @@ trait WriteService {
           .getOrElse(Success(newStatusIfUndefined))
           .flatMap(newStatus =>
             converterService
-              .updateStatus(newStatus, convertedArticle, user, false)
+              .updateStatus(newStatus, convertedArticle, user, isImported = false)
               .attempt
               .unsafeRunSync()
               .toTry
