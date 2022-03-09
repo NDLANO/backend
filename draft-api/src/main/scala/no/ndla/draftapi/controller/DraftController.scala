@@ -47,11 +47,10 @@ trait DraftController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val converterService = new ConverterService
-    val response400      = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403      = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404      = ResponseMessage(404, "Not found", Some("Error"))
-    val response500      = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404 = ResponseMessage(404, "Not found", Some("Error"))
+    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val query =
       Param[Option[String]]("query", "Return only articles with content matching the specified query.")
