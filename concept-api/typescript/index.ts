@@ -68,11 +68,13 @@ export interface IConceptSummary {
   subjectIds?: string[]
   supportedLanguages: string[]
   lastUpdated: string
+  created: string
   status: IStatus
   updatedBy: string[]
   license?: string
   copyright?: ICopyright
   visualElement?: IVisualElement
+  articleIds: number[]
 }
 
 export interface IConceptTags {
