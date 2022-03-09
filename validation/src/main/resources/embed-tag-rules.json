@@ -117,9 +117,20 @@
     "iframe": {
       "required": [
         "data-resource",
-        "data-url",
-        "data-width",
-        "data-height"
+        "data-url"
+      ],
+      "optional": [
+        [
+          "data-width",
+          "data-height"
+        ],
+        [
+          "data-type",
+          "data-title",
+          "data-caption",
+          "data-imageid",
+          "data-license"
+        ]
       ],
       "validSrcDomains": [
         ".*.ndla.no",
