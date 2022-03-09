@@ -128,8 +128,7 @@
           "data-type",
           "data-title",
           "data-caption",
-          "data-imageid",
-          "data-license"
+          "data-imageid"
         ]
       ],
       "validSrcDomains": [
