@@ -83,7 +83,7 @@ class V35__AddDataTypeToIframeEmbed extends BaseJavaMigration {
       .select("embed")
       .forEach(embed => {
         val dataResource = embed.attr("data-resource")
-        val isIframe      = dataResource == "iframe"
+        val isIframe     = dataResource == "iframe"
         val hasType      = embed.hasAttr("data-type")
 
         if (isIframe && !hasType) {
