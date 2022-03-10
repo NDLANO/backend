@@ -117,7 +117,8 @@
     "iframe": {
       "required": [
         "data-resource",
-        "data-url"
+        "data-url",
+        "data-type"
       ],
       "optional": [
         [
@@ -125,7 +126,6 @@
           "data-height"
         ],
         [
-          "data-type",
           "data-title",
           "data-caption",
           "data-imageid"
