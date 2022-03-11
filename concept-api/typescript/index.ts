@@ -75,6 +75,7 @@ export interface IConceptSummary {
   copyright?: ICopyright
   visualElement?: IVisualElement
   articleIds: number[]
+  source?: string
 }
 
 export interface IConceptTags {
