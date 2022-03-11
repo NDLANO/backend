@@ -159,7 +159,8 @@ trait SearchConverterService {
           c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
         ),
         articleIds = c.articleIds,
-        created = new DateTime(c.created)
+        created = new DateTime(c.created),
+        source = c.source
       )
     }
 
@@ -216,7 +217,8 @@ trait SearchConverterService {
         copyright = copyright,
         visualElement = visualElement,
         articleIds = searchableConcept.articleIds,
-        created = searchableConcept.created.toDate
+        created = searchableConcept.created.toDate,
+        source = searchableConcept.source
       )
     }
 

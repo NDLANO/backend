@@ -27,5 +27,6 @@ case class SearchableConcept(
     embedResourcesAndIds: List[EmbedValues],
     visualElement: SearchableLanguageValues,
     articleIds: Seq[Long],
-    created: DateTime
+    created: DateTime,
+    source: Option[String]
 )

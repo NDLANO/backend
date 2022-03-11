@@ -62,6 +62,7 @@ trait DraftConceptIndexService {
         keywordField("status.other"),
         keywordField("updatedBy"),
         keywordField("license"),
+        keywordField("source"),
         keywordField("origin"),
         nestedField("copyright").fields(
           nestedField("creators").fields(
