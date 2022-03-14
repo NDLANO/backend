@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 case class RevisionMeta(
     revisionDate: LocalDateTime,
-    notes: Seq[String],
+    note: String,
     status: RevisionStatus
 ) {
   def toRevised: RevisionMeta = this.copy(status = RevisionStatus.Revised)

@@ -103,7 +103,7 @@ trait ConverterService {
     private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): domain.RevisionMeta = {
       domain.RevisionMeta(
         revisionDate = revisionMeta.revisionDate,
-        notes = revisionMeta.notes,
+        note = revisionMeta.note,
         status = RevisionStatus.fromStringDefault(revisionMeta.status)
       )
     }
@@ -111,7 +111,7 @@ trait ConverterService {
     private def toApiRevisionMeta(revisionMeta: domain.RevisionMeta): api.RevisionMeta = {
       api.RevisionMeta(
         revisionDate = revisionMeta.revisionDate,
-        notes = revisionMeta.notes,
+        note = revisionMeta.note,
         status = revisionMeta.status.entryName
       )
     }
