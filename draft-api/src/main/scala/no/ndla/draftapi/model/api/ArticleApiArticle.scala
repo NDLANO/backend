@@ -8,6 +8,7 @@
 package no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.domain.Availability
 
+import java.time.LocalDateTime
 import java.util.Date
 
 case class ArticleApiArticle(
@@ -29,7 +30,8 @@ case class ArticleApiArticle(
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value,
-    relatedContent: Seq[RelatedContent]
+    relatedContent: Seq[RelatedContent],
+    revisionDate: Option[LocalDateTime]
 )
 case class ArticleApiTitle(title: String, language: String)
 case class ArticleApiContent(content: String, language: String)

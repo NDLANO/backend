@@ -20,7 +20,9 @@ import org.json4s.native.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
 import cats.implicits._
+import no.ndla.draftapi.model.domain.{RevisionMeta, RevisionStatus}
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
@@ -139,7 +141,8 @@ trait ArticleApiClient {
       license: Option[String],
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
       relatedContent: Option[Seq[api.RelatedContent]],
-      tags: Option[Seq[api.ArticleTag]]
+      tags: Option[Seq[api.ArticleTag]],
+      revisionDate: Option[LocalDateTime]
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
@@ -167,5 +170,14 @@ trait ArticleApiClient {
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
     def withAvailability(availability: domain.Availability.Value): PartialPublishArticle =
       copy(availability = converterService.toApiAvailability(availability).some)
+
+    def withEarliestRevisionDate(revisionMeta: Seq[RevisionMeta]): PartialPublishArticle = {
+      val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
+      copy(revisionDate = earliestRevisionDate)
+    }
+  }
+
+  object PartialPublishArticle {
+    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, None)
   }
 }

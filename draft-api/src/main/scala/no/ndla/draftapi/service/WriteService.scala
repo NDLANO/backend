@@ -415,7 +415,14 @@ trait WriteService {
       shouldUpdateStatus
     }
 
-    def compareField(
+    /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
+      * article-api cares about.
+      */
+    private def compareRevisionDates(oldArticle: domain.Article, newArticle: domain.Article): Boolean = {
+      converterService.getNextRevision(oldArticle) != converterService.getNextRevision(newArticle)
+    }
+
+    private def compareField(
         field: PartialArticleFields,
         old: domain.Article,
         changed: domain.Article
@@ -428,13 +435,14 @@ trait WriteService {
         case `tags`            => old.tags.sorted != changed.tags.sorted
         case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
         case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
+        case `revisionDate`    => compareRevisionDates(old, changed)
       }
 
       Option.when(shouldInclude)(field)
     }
 
     /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
-    def shouldPartialPublish(
+    private[service] def shouldPartialPublish(
         existingArticle: Option[domain.Article],
         changedArticle: domain.Article
     ): Set[PartialArticleFields] = {
@@ -737,7 +745,7 @@ trait WriteService {
         language: String
     ): PartialPublishArticle = {
       val isAllLanguage  = language == Language.AllLanguages
-      val initialPartial = PartialPublishArticle(None, None, None, None, None, None)
+      val initialPartial = PartialPublishArticle.empty()
 
       import PartialArticleFields._
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partial, field) => {
@@ -750,6 +758,7 @@ trait WriteService {
           case `relatedContent`                   => partial.withRelatedContent(article.relatedContent)
           case `tags` if isAllLanguage            => partial.withTags(article.tags)
           case `tags`                             => partial.withTags(article.tags, language)
+          case `revisionDate`                     => partial.withEarliestRevisionDate(article.revisionMeta)
         }
       })
     }

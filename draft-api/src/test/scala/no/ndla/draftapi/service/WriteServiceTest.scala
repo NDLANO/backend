@@ -22,6 +22,7 @@ import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
 import java.io.ByteArrayInputStream
+import java.time.LocalDateTime
 import java.util.Date
 import scala.util.{Failure, Success, Try}
 
@@ -946,6 +947,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That partialArticleFieldsUpdate updates fields correctly based on language") {
+    val today         = LocalDateTime.now()
+    val yesterday     = today.minusDays(1)
+    val tomorrow      = today.plusDays(1)
+    val afterTomorrow = today.plusDays(2)
+
     val existingArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.everyone,
       grepCodes = Seq("A", "B"),
@@ -961,6 +967,28 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         ArticleTag(Seq("old", "tag"), "nb"),
         ArticleTag(Seq("guten", "tag"), "de"),
         ArticleTag(Seq("oldd", "tagg"), "es")
+      ),
+      revisionMeta = Seq(
+        RevisionMeta(
+          yesterday,
+          "Test1",
+          RevisionStatus.Revised
+        ),
+        RevisionMeta(
+          tomorrow,
+          "Test2",
+          RevisionStatus.Revised
+        ),
+        RevisionMeta(
+          tomorrow,
+          "Test3",
+          RevisionStatus.NeedsRevision
+        ),
+        RevisionMeta(
+          afterTomorrow,
+          "Test4",
+          RevisionStatus.NeedsRevision
+        )
       )
     )
 
@@ -970,7 +998,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       api.PartialArticleFields.license,
       api.PartialArticleFields.metaDescription,
       api.PartialArticleFields.relatedContent,
-      api.PartialArticleFields.tags
+      api.PartialArticleFields.tags,
+      api.PartialArticleFields.revisionDate
     )
 
     val expectedPartialPublishFields = PartialPublishArticle(
@@ -979,7 +1008,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
-      tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb")))
+      tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb"))),
+      revisionDate = Some(tomorrow)
     )
     val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
@@ -987,7 +1017,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq.empty),
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
-      tags = Some(Seq.empty)
+      tags = Some(Seq.empty),
+      revisionDate = Some(tomorrow)
     )
     val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
@@ -1008,7 +1039,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           api.ArticleTag(Seq("guten", "tag"), "de"),
           api.ArticleTag(Seq("oldd", "tagg"), "es")
         )
-      )
+      ),
+      revisionDate = Some(tomorrow)
     )
 
     service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(

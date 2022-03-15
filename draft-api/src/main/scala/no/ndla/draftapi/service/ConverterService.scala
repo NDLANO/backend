@@ -474,6 +474,10 @@ trait ConverterService {
       }
     }
 
+    def getNextRevision(article: domain.Article): Option[domain.RevisionMeta] = getNextRevision(article.revisionMeta)
+    def getNextRevision(revisions: Seq[domain.RevisionMeta]): Option[domain.RevisionMeta] =
+      revisions.filterNot(_.status == RevisionStatus.Revised).sortBy(_.revisionDate).headOption
+
     def toArticleApiArticle(article: domain.Article): api.ArticleApiArticle = {
       api.ArticleApiArticle(
         revision = article.revision,
@@ -495,7 +499,8 @@ trait ConverterService {
         grepCodes = article.grepCodes,
         conceptIds = article.conceptIds,
         availability = article.availability,
-        relatedContent = article.relatedContent.map(toApiRelatedContent)
+        relatedContent = article.relatedContent.map(toApiRelatedContent),
+        revisionDate = getNextRevision(article.revisionMeta).map(_.revisionDate)
       )
     }
 
