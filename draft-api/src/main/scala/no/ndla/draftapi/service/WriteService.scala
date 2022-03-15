@@ -31,6 +31,7 @@ import no.ndla.draftapi.service.search.{
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
+import no.ndla.network.model.RequestInfo
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
@@ -810,11 +811,19 @@ trait WriteService {
           implicit val executionContext: ExecutionContextExecutorService =
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-          val fut            = Future { articleApiClient.partialPublishArticle(id, partialArticle) }
+          val requestInfo    = RequestInfo()
+          val fut = Future {
+            requestInfo.setRequestInfo()
+            articleApiClient.partialPublishArticle(id, partialArticle)
+          }
+
+          val logError = (ex: Throwable) =>
+            logger.error(s"Failed to partial publish article with id '$id', with error", ex)
 
           fut.onComplete {
-            case Failure(ex) => logger.error(s"Failed to partial publish article with id '$id', with error", ex)
-            case _           => logger.info(s"Successfully partial published article with id '$id'")
+            case Failure(ex)          => logError(ex)
+            case Success(Failure(ex)) => logError(ex)
+            case _                    => logger.info(s"Successfully partial published article with id '$id'")
           }
 
           fut.map(_.map(_ => article))

@@ -16,7 +16,7 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.ValidationException
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
@@ -30,10 +30,11 @@ trait ArticleApiClient {
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(ArticleBaseUrl: String = s"http://$ArticleApiHost") {
-    private val InternalEndpoint         = s"$ArticleBaseUrl/intern"
-    private val deleteTimeout            = 1000 * 10 // 10 seconds
-    private val timeout                  = 1000 * 15
-    private implicit val format: Formats = DefaultFormats.withLong + new EnumNameSerializer(domain.Availability)
+    private val InternalEndpoint = s"$ArticleBaseUrl/intern"
+    private val deleteTimeout    = 1000 * 10 // 10 seconds
+    private val timeout          = 1000 * 15
+    private implicit val format: Formats =
+      DefaultFormats.withLong + new EnumNameSerializer(domain.Availability) ++ JavaTimeSerializers.all
 
     def partialPublishArticle(
         id: Long,

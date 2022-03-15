@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.DraftApiProperties.H5PAddress
 import no.ndla.draftapi.model.api.H5PException
-import no.ndla.draftapi.model.domain.RequestInfo
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.RequestInfo
 import org.json4s.DefaultFormats
 import scalaj.http.Http
 
