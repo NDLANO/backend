@@ -387,6 +387,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
         TagAttributes.DataUrl      -> "https://prezi.com",
         TagAttributes.DataWidth    -> "1",
         TagAttributes.DataHeight   -> "1"
@@ -397,6 +398,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag2 = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
         TagAttributes.DataUrl      -> "https://statisk.test.ndla.no",
         TagAttributes.DataWidth    -> "1",
         TagAttributes.DataHeight   -> "1"
@@ -409,6 +411,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
         TagAttributes.DataUrl      -> "https://evilprezi.com",
         TagAttributes.DataWidth    -> "1",
         TagAttributes.DataHeight   -> "1"
@@ -425,6 +428,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType     -> ResourceType.IframeContent.toString,
         TagAttributes.DataUrl      -> "https://thisisatest.khanacademy.org",
         TagAttributes.DataWidth    -> "1",
         TagAttributes.DataHeight   -> "1"

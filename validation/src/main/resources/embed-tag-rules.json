@@ -118,8 +118,18 @@
       "required": [
         "data-resource",
         "data-url",
-        "data-width",
-        "data-height"
+        "data-type"
+      ],
+      "optional": [
+        [
+          "data-width",
+          "data-height"
+        ],
+        [
+          "data-title",
+          "data-caption",
+          "data-imageid"
+        ]
       ],
       "validSrcDomains": [
         ".*.ndla.no",
