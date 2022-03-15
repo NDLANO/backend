@@ -21,7 +21,7 @@ trait Role {
 
     def assertHasRoles(roles: String*): Unit = {
       if (!hasRoles(roles.toSet))
-        throw new AccessDeniedException("User is missing required role(s) to perform this operation")
+        throw AccessDeniedException("User is missing required role(s) to perform this operation")
     }
 
     def assertHasWritePermission(): Unit      = assertHasRoles(ArticleApiProperties.RoleWithWriteAccess)

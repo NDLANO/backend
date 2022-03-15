@@ -18,6 +18,7 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.language.Language.AllLanguages
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
@@ -39,7 +40,7 @@ trait ArticleControllerV2 {
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
+    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "Services for accessing articles from NDLA."
 
     // Additional models used in error responses

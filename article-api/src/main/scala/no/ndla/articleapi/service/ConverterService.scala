@@ -192,13 +192,17 @@ trait ConverterService {
           updateExistingTagsField(existingArticle.tags, tags.map(t => domain.ArticleTag(t.tags, t.language)))
         case None => existingArticle.tags
       }
+
+      val newRevisionDate = partialArticle.revisionDate.orElse(existingArticle.revisionDate)
+
       existingArticle.copy(
         availability = newAvailability,
         grepCodes = newGrepCodes,
         copyright = existingArticle.copyright.copy(license = newLicense),
         metaDescription = newMeta,
         relatedContent = newRelatedContent,
-        tags = newTags
+        tags = newTags,
+        revisionDate = newRevisionDate
       )
     }
 
@@ -419,7 +423,8 @@ trait ConverterService {
             article.grepCodes,
             article.conceptIds,
             availability = article.availability.toString,
-            article.relatedContent.map(toApiRelatedContent)
+            article.relatedContent.map(toApiRelatedContent),
+            article.revisionDate
           )
         )
       } else {
