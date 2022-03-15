@@ -33,11 +33,7 @@ class V35__Add2030RevisionForExistingArticles extends BaseJavaMigration {
 
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
-        val converted = convertArticleUpdate(document)
-        converted match {
-          case Some(value) => updateArticle(value, id)
-          case None        =>
-        }
+        updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -71,31 +67,22 @@ class V35__Add2030RevisionForExistingArticles extends BaseJavaMigration {
   private implicit val formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
   private val revDate          = Extraction.decompose(revisionDate)
 
-  private[migration] def convertArticleUpdate(document: String): Option[String] = {
+  private[migration] def convertArticleUpdate(document: String): String = {
     val oldArticle = parse(document)
 
-    val statusObject  = oldArticle \ "status"
-    val currentStatus = (statusObject \ "current").extractOrElse[String]("")
-    val otherStatus   = (statusObject \ "other").extractOrElse[Seq[String]](Seq.empty)
-    val isPublished   = currentStatus == "PUBLISHED" || otherStatus.contains("PUBLISHED")
-
-    if (isPublished) {
-      val note = JString("Automatisk revisjonsdato satt av systemet.")
-      val mergeObject = JObject(
-        "revisionMeta" -> JArray(
-          List(
-            JObject(
-              JField("revisionDate", revDate),
-              JField("note", note),
-              JField("status", JString("needs-revision"))
-            )
+    val note = JString("Automatisk revisjonsdato satt av systemet.")
+    val mergeObject = JObject(
+      "revisionMeta" -> JArray(
+        List(
+          JObject(
+            JField("revisionDate", revDate),
+            JField("note", note),
+            JField("status", JString("needs-revision"))
           )
         )
       )
-      val updated = oldArticle.merge(mergeObject)
-      Some(compact(render(updated)))
-    } else {
-      None
-    }
+    )
+    val updated = oldArticle.merge(mergeObject)
+    compact(render(updated))
   }
 }

@@ -7,8 +7,10 @@
 
 package no.ndla.draftapi.integration
 
+import cats.implicits._
 import no.ndla.draftapi.DraftApiProperties.ArticleApiHost
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
+import no.ndla.draftapi.model.domain.RevisionMeta
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -19,8 +21,6 @@ import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
-import cats.implicits._
-import no.ndla.draftapi.model.domain.{RevisionMeta, RevisionStatus}
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Try}
