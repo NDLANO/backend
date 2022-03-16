@@ -8,7 +8,9 @@
 package no.ndla.search.model
 
 import org.json4s.JsonAST.{JField, JObject, JString}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JArray, JNothing, MappingException}
+
 import java.util.TimeZone
 
 class SearchableLanguageValuesSerializer
@@ -74,11 +76,13 @@ object SearchableLanguageFormats {
     defaultFormats(false) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      org.json4s.ext.JodaTimeSerializers.all
+      org.json4s.ext.JodaTimeSerializers.all ++
+      JavaTimeSerializers.all
 
   val JSonFormatsWithMillis: Formats =
     defaultFormats(true) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      org.json4s.ext.JodaTimeSerializers.all
+      org.json4s.ext.JodaTimeSerializers.all ++
+      JavaTimeSerializers.all
 }

@@ -26,7 +26,7 @@ import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.read
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
@@ -44,7 +44,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      org.json4s.ext.JodaTimeSerializers.all ++
+      JavaTimeSerializers.all
 
   private val currentTimeBeforeRequest = new ThreadLocal[Long]
 
@@ -72,7 +73,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       Option(request.getQueryString).map(s => s"?$s").getOrElse(""),
       Option(currentTimeBeforeRequest.get())
         .map(ct => System.currentTimeMillis() - ct)
-        .map(s => s" in ${s}ms")
+        .map(s => s"${s}ms")
         .getOrElse(""),
       response.getStatus
     )

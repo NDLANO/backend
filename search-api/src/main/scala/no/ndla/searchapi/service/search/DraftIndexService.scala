@@ -75,7 +75,13 @@ trait DraftIndexService {
           keywordField("imageId"),
           keywordField("altText"),
           keywordField("language")
-        )
+        ),
+        nestedField("revisionMeta").fields(
+          dateField("revisionDate"),
+          keywordField("note"),
+          keywordField("status")
+        ),
+        dateField("nextRevision.revisionDate")
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("metaDescription") ++

@@ -11,9 +11,11 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, Searchabl
 import no.ndla.searchapi.model.domain.article.{ArticleMetaImage, LearningResourceType}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
+import no.ndla.searchapi.model.domain.draft.{ArticleStatus, RevisionMeta}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
+
+import java.time.LocalDateTime
 
 class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
@@ -63,6 +65,22 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
     val embedResourcesAndIds =
       List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
 
+    val today   = LocalDateTime.now().withNano(0)
+    val olddate = today.minusDays(5)
+
+    val revisionMeta = List(
+      RevisionMeta(
+        revisionDate = today,
+        note = "some note",
+        status = "needs-revision"
+      ),
+      RevisionMeta(
+        revisionDate = olddate,
+        note = "some other note",
+        status = "needs-revision"
+      )
+    )
+
     val original = SearchableDraft(
       id = 100,
       draftStatus = Status(ArticleStatus.DRAFT.toString, Seq(ArticleStatus.PROPOSAL.toString)),
@@ -87,8 +105,11 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
         List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
       traits = List.empty,
       embedAttributes = embedAttrs,
-      embedResourcesAndIds = embedResourcesAndIds
+      embedResourcesAndIds = embedResourcesAndIds,
+      revisionMeta = revisionMeta,
+      nextRevision = revisionMeta.lastOption
     )
+
     val json         = write(original)
     val deserialized = read[SearchableDraft](json)
 

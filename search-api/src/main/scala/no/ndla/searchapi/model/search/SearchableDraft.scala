@@ -9,6 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.article.ArticleMetaImage
+import no.ndla.searchapi.model.domain.draft.RevisionMeta
 import org.joda.time.DateTime
 
 case class SearchableDraft(
@@ -34,5 +35,7 @@ case class SearchableDraft(
     grepContexts: List[SearchableGrepContext],
     traits: List[String],
     embedAttributes: SearchableLanguageList,
-    embedResourcesAndIds: List[EmbedValues]
+    embedResourcesAndIds: List[EmbedValues],
+    revisionMeta: List[RevisionMeta],
+    nextRevision: Option[RevisionMeta]
 )

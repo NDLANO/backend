@@ -506,7 +506,8 @@ object TestData {
     articleType = LearningResourceType.Article,
     notes = List.empty,
     previousVersionsNotes = List.empty,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
+    Seq.empty
   )
 
   val draftStatus         = draft.Status(draft.ArticleStatus.DRAFT, Set.empty)
@@ -557,6 +558,7 @@ object TestData {
     LearningResourceType.Article,
     List.empty,
     List.empty,
+    Seq.empty,
     Seq.empty
   )
 

@@ -10,10 +10,13 @@ package no.ndla.searchapi.service.search
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article._
+import no.ndla.searchapi.model.domain.draft.RevisionMeta
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class MultiDraftSearchServiceAtomicTest
@@ -104,7 +107,78 @@ class MultiDraftSearchServiceAtomicTest
 
     search2.totalCount should be(2)
     search2.results.map(_.id) should be(List(1, 2))
-
   }
 
+  test("That sorting by revision date sorts by the earliest 'needs-revision'") {
+    val today     = LocalDateTime.now().withNano(0)
+    val yesterday = today.minusDays(1)
+    val tomorrow  = today.plusDays(1)
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      revisionMeta = Seq(
+        RevisionMeta(
+          today,
+          note = "note",
+          status = "needs-revision"
+        ),
+        RevisionMeta(
+          tomorrow,
+          note = "note",
+          status = "needs-revision"
+        ),
+        RevisionMeta(
+          yesterday,
+          note = "note",
+          status = "revised"
+        )
+      )
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      revisionMeta = Seq(
+        RevisionMeta(
+          yesterday.minusDays(10),
+          note = "note",
+          status = "revised"
+        )
+      )
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      revisionMeta = Seq(
+        RevisionMeta(
+          yesterday,
+          note = "note",
+          status = "needs-revision"
+        )
+      )
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      revisionMeta = Seq()
+    )
+    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    val Success(search1) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)
+      )
+
+    search1.totalCount should be(4)
+    search1.results.map(_.id) should be(List(3, 1, 2, 4))
+
+    val Success(search2) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)
+      )
+
+    search2.totalCount should be(4)
+    search2.results.map(_.id) should be(List(1, 3, 2, 4))
+  }
 }

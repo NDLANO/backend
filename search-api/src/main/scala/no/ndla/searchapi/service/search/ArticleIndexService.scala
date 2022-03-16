@@ -71,7 +71,8 @@ trait ArticleIndexService {
           keywordField("imageId"),
           keywordField("altText"),
           keywordField("language")
-        )
+        ),
+        dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for articles
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("metaDescription") ++

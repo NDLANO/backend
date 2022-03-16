@@ -322,6 +322,7 @@ trait SearchConverterService {
       val notes: List[String] = draft.notes.map(_.note)
       val users: List[String] =
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
+      val nextRevision = draft.revisionMeta.filter(_.status == "needs-revision").sortBy(_.revisionDate).headOption
 
       Success(
         SearchableDraft(
@@ -357,7 +358,9 @@ trait SearchConverterService {
           grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
-          embedResourcesAndIds = embedResourcesAndIds
+          embedResourcesAndIds = embedResourcesAndIds,
+          revisionMeta = draft.revisionMeta.toList,
+          nextRevision = nextRevision
         )
       )
 

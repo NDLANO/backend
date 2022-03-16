@@ -89,7 +89,8 @@ trait LearningPathIndexService {
           keywordField("resource"),
           keywordField("id"),
           keywordField("language")
-        )
+        ),
+        dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for learningpaths
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("content") ++
