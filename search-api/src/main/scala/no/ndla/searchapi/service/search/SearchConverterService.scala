@@ -603,7 +603,8 @@ trait SearchConverterService {
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableArticle.contexts),
         lastUpdated = searchableArticle.lastUpdated.toDate,
-        license = Some(searchableArticle.license)
+        license = Some(searchableArticle.license),
+        revisions = Seq.empty
       )
     }
 
@@ -630,11 +631,10 @@ trait SearchConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         api.MetaDescription("", UnknownLanguage.toString)
       )
-      val metaImage = findByLanguageOrBestEffort(metaImages, language)
-
+      val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
-
-      val url = s"${SearchApiProperties.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
+      val url                = s"${SearchApiProperties.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
+      val revisions          = searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status))
 
       MultiSearchSummary(
         id = searchableDraft.id,
@@ -651,7 +651,8 @@ trait SearchConverterService {
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableDraft.contexts),
         lastUpdated = searchableDraft.lastUpdated.toDate,
-        license = searchableDraft.license
+        license = searchableDraft.license,
+        revisions = revisions
       )
     }
 
@@ -699,7 +700,8 @@ trait SearchConverterService {
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableLearningPath.contexts),
         lastUpdated = searchableLearningPath.lastUpdated.toDate,
-        license = Some(searchableLearningPath.license)
+        license = Some(searchableLearningPath.license),
+        revisions = Seq.empty
       )
     }
 
