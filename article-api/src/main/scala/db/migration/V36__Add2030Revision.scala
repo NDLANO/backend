@@ -16,7 +16,7 @@ import scalikejdbc.{DB, DBSession, _}
 
 import java.time.{LocalDateTime, Month}
 
-class V35__Add2030Revision extends BaseJavaMigration {
+class V36__Add2030Revision extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
