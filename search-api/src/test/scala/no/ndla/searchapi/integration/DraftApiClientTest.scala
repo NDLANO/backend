@@ -12,7 +12,7 @@ import no.ndla.network.AuthUser
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.DomainDumpResults
-import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
+import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.{ArticleStatus, Copyright}
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}

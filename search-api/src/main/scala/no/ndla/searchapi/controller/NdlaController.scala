@@ -31,6 +31,8 @@ import org.json4s.native.Serialization.read
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
@@ -110,13 +112,31 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] =
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
 
+  private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  def paramAsDateOrNone(paramName: String)(implicit request: HttpServletRequest): Option[LocalDateTime] = {
+    paramOrNone(paramName).map(dateString => {
+      Try(LocalDateTime.parse(dateString, dateFormatter)) match {
+        case Success(date) => date
+        case Failure(_) =>
+          throw new ValidationException(
+            errors = Seq(
+              ValidationMessage(
+                paramName,
+                s"Invalid date passed. Expected format is \"${LocalDateTime.now().format(dateFormatter)}\""
+              )
+            )
+          )
+      }
+    })
+  }
+
   def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String =
     paramOrNone(paramName).getOrElse(default)
 
   def intOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Int] =
     paramOrNone(paramName).flatMap(i => Try(i.toInt).toOption)
 
-  def intOrDefault(paramName: String, default: Int): Int =
+  def intOrDefault(paramName: String, default: Int)(implicit request: HttpServletRequest): Int =
     intOrNone(paramName).getOrElse(default)
 
   def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
