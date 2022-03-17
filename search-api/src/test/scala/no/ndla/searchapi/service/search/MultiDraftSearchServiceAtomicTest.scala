@@ -181,4 +181,13 @@ class MultiDraftSearchServiceAtomicTest
     search2.totalCount should be(4)
     search2.results.map(_.id) should be(List(1, 3, 2, 4))
   }
+
+  // TODO: Implement these tests (and functionality)
+  test("Test that searching for note in revision meta works as expected") {
+    ???
+  }
+
+  test("Test that filtering revision dates works as expected") {
+    ???
+  }
 }
