@@ -70,7 +70,8 @@ trait MultiDraftSearchService {
             simpleStringQuery(queryString).field("notes", 1),
             simpleStringQuery(queryString).field("previousVersionsNotes", 1),
             simpleStringQuery(queryString).field("grepContexts.title", 1),
-            idsQuery(queryString)
+            idsQuery(queryString),
+            nestedQuery("revisionMeta", simpleStringQuery(queryString).field("revisionMeta.note"))
           ) ++
             buildNestedEmbedField(List(queryString), None, settings.language, settings.fallback) ++
             buildNestedEmbedField(List.empty, Some(queryString), settings.language, settings.fallback)

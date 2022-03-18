@@ -182,11 +182,72 @@ class MultiDraftSearchServiceAtomicTest
     search2.results.map(_.id) should be(List(1, 3, 2, 4))
   }
 
-  // TODO: Implement these tests (and functionality)
   test("Test that searching for note in revision meta works as expected") {
-    ???
+    val today     = LocalDateTime.now().withNano(0)
+    val yesterday = today.minusDays(1)
+    val tomorrow  = today.plusDays(1)
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      revisionMeta = Seq(
+        RevisionMeta(
+          today,
+          note = "apekatt",
+          status = "needs-revision"
+        ),
+        RevisionMeta(
+          tomorrow,
+          note = "note",
+          status = "needs-revision"
+        ),
+        RevisionMeta(
+          yesterday,
+          note = "note",
+          status = "revised"
+        )
+      )
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      revisionMeta = Seq(
+        RevisionMeta(
+          yesterday.minusDays(10),
+          note = "kinakål",
+          status = "revised"
+        )
+      )
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      revisionMeta = Seq(
+        RevisionMeta(
+          yesterday,
+          note = "trylleformel",
+          status = "needs-revision"
+        )
+      )
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      revisionMeta = Seq()
+    )
+    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    val Success(search1) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(query = Some("trylleformel"))
+      )
+
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(List(3))
   }
 
+  // TODO: Implement these tests (and functionality)
   test("Test that filtering revision dates works as expected") {
     ???
   }
