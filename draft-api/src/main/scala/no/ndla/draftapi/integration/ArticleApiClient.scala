@@ -143,7 +143,7 @@ trait ArticleApiClient {
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
       relatedContent: Option[Seq[api.RelatedContent]],
       tags: Option[Seq[api.ArticleTag]],
-      revisionDate: Option[LocalDateTime]
+      revisionDate: Either[Null, Option[LocalDateTime]] // Left means `null` which deletes `revisionDate`
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
@@ -174,11 +174,15 @@ trait ArticleApiClient {
 
     def withEarliestRevisionDate(revisionMeta: Seq[RevisionMeta]): PartialPublishArticle = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
-      copy(revisionDate = earliestRevisionDate)
+      val newRev = earliestRevisionDate match {
+        case Some(value) => Right(Some(value))
+        case None        => Left(null)
+      }
+      copy(revisionDate = newRev)
     }
   }
 
   object PartialPublishArticle {
-    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, None)
+    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Right(None))
   }
 }

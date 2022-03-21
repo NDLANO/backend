@@ -94,6 +94,7 @@ export interface IArticleV2 {
   conceptIds: number[]
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
+  revisionDate?: string
 }
 
 export interface IAuthor {
@@ -125,6 +126,7 @@ export interface IPartialPublishArticle {
   metaDescription?: IArticleMetaDescription[]
   relatedContent?: (IRelatedContentLink | number)[]
   tags?: IArticleTag[]
+  revisionDate?: (NullAlias | string)
 }
 
 export interface IRelatedContentLink {
@@ -170,3 +172,5 @@ export interface IVisualElement {
   visualElement: string
   language: string
 }
+
+export type NullAlias = null

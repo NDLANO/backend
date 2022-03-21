@@ -1009,7 +1009,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb"))),
-      revisionDate = Some(tomorrow)
+      revisionDate = Right(Some(tomorrow))
     )
     val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
@@ -1018,7 +1018,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Some(Seq.empty),
       relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty),
-      revisionDate = Some(tomorrow)
+      revisionDate = Right(Some(tomorrow))
     )
     val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
       availability = Some(api.Availability.everyone),
@@ -1040,7 +1040,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           api.ArticleTag(Seq("oldd", "tagg"), "es")
         )
       ),
-      revisionDate = Some(tomorrow)
+      revisionDate = Right(Some(tomorrow))
     )
 
     service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(

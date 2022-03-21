@@ -22,5 +22,5 @@ case class PartialPublishArticle(
     @(ApiModelProperty @field)(description = "A list of meta description objects") metaDescription: Option[Seq[ArticleMetaDescription]],
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
     @(ApiModelProperty @field)(description = "A list of tag objects") tags: Option[Seq[ArticleTag]],
-    @(ApiModelProperty @field)(description = "A revision date to specify expected earliest revision date of the article") revisionDate: Option[LocalDateTime],
+    @(ApiModelProperty @field)(description = "A revision date to specify expected earliest revision date of the article") revisionDate:  Either[Null, Option[LocalDateTime]],
 )

@@ -247,7 +247,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           )
         ),
         tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb"))),
-        revisionDate = Some(revisionDate)
+        revisionDate = Right(Some(revisionDate))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -299,7 +299,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             api.ArticleTag(Seq("Guten", "Tag"), "de")
           )
         ),
-        revisionDate = Some(revisionDate)
+        revisionDate = Right(Some(revisionDate))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,

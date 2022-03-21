@@ -193,7 +193,11 @@ trait ConverterService {
         case None => existingArticle.tags
       }
 
-      val newRevisionDate = partialArticle.revisionDate.orElse(existingArticle.revisionDate)
+      val newRevisionDate = partialArticle.revisionDate match {
+        case Left(_)           => None
+        case Right(None)       => existingArticle.revisionDate
+        case Right(Some(date)) => Some(date)
+      }
 
       existingArticle.copy(
         availability = newAvailability,
