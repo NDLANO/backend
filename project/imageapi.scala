@@ -57,7 +57,7 @@ object imageapi extends Module {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
-    dockerSettings("-Xmx4G") ++
+    dockerSettings("-Xmx6G") ++
     assemblySettings()
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
