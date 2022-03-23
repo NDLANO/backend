@@ -54,10 +54,10 @@ trait ConverterService {
         case _   => domain.Status(DRAFT, Set(IMPORTED))
       }
 
-      val oldCreatedDate = oldNdlaCreatedDate.map(date => new DateTime(date).toDate)
-      val oldUpdatedDate = oldNdlaUpdatedDate.map(date => new DateTime(date).toDate)
-
+      val oldCreatedDate  = oldNdlaCreatedDate.map(date => new DateTime(date).toDate)
+      val oldUpdatedDate  = oldNdlaUpdatedDate.map(date => new DateTime(date).toDate)
       val newAvailability = Availability.valueOf(newArticle.availability).getOrElse(Availability.everyone)
+      val revisionMeta    = newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(RevisionMeta.default)
 
       newNotes(newArticle.notes, user, status).map(notes =>
         domain.Article(
@@ -94,8 +94,25 @@ trait ConverterService {
           grepCodes = newArticle.grepCodes,
           conceptIds = newArticle.conceptIds,
           availability = newAvailability,
-          relatedContent = toDomainRelatedContent(newArticle.relatedContent)
+          relatedContent = toDomainRelatedContent(newArticle.relatedContent),
+          revisionMeta = revisionMeta
         )
+      )
+    }
+
+    private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): domain.RevisionMeta = {
+      domain.RevisionMeta(
+        revisionDate = revisionMeta.revisionDate,
+        note = revisionMeta.note,
+        status = RevisionStatus.fromStringDefault(revisionMeta.status)
+      )
+    }
+
+    private def toApiRevisionMeta(revisionMeta: domain.RevisionMeta): api.RevisionMeta = {
+      api.RevisionMeta(
+        revisionDate = revisionMeta.revisionDate,
+        note = revisionMeta.note,
+        status = revisionMeta.status.entryName
       )
     }
 
@@ -270,8 +287,7 @@ trait ConverterService {
         article: domain.Article,
         user: UserInfo,
         isImported: Boolean
-    ): IO[Try[domain.Article]] =
-      StateTransitionRules.doTransition(article, status, user, isImported)
+    ): IO[Try[domain.Article]] = StateTransitionRules.doTransition(article, status, user, isImported)
 
     def toApiArticle(article: domain.Article, language: String, fallback: Boolean = false): Try[api.Article] = {
       val isLanguageNeutral =
@@ -286,34 +302,36 @@ trait ConverterService {
         val visualElement  = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent)
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
+        val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
 
         Success(
           api.Article(
-            article.id.get,
-            article.id.flatMap(getLinkToOldNdla),
-            article.revision.get,
-            toApiStatus(article.status),
-            title,
-            articleContent,
-            article.copyright.map(toApiCopyright),
-            tags,
-            article.requiredLibraries.map(toApiRequiredLibrary),
-            visualElement,
-            introduction,
-            metaDescription,
-            metaImage,
-            article.created,
-            article.updated,
-            article.updatedBy,
-            article.published,
-            article.articleType.entryName,
-            article.supportedLanguages,
-            article.notes.map(toApiEditorNote),
-            article.editorLabels,
-            article.grepCodes,
-            article.conceptIds,
+            id = article.id.get,
+            oldNdlaUrl = article.id.flatMap(getLinkToOldNdla),
+            revision = article.revision.get,
+            status = toApiStatus(article.status),
+            title = title,
+            content = articleContent,
+            copyright = article.copyright.map(toApiCopyright),
+            tags = tags,
+            requiredLibraries = article.requiredLibraries.map(toApiRequiredLibrary),
+            visualElement = visualElement,
+            introduction = introduction,
+            metaDescription = metaDescription,
+            metaImage = metaImage,
+            created = article.created,
+            updated = article.updated,
+            updatedBy = article.updatedBy,
+            published = article.published,
+            articleType = article.articleType.entryName,
+            supportedLanguages = article.supportedLanguages,
+            notes = article.notes.map(toApiEditorNote),
+            editorLabels = article.editorLabels,
+            grepCodes = article.grepCodes,
+            conceptIds = article.conceptIds,
             availability = article.availability.toString,
-            article.relatedContent.map(toApiRelatedContent)
+            relatedContent = article.relatedContent.map(toApiRelatedContent),
+            revisions = revisionMetas
           )
         )
       } else {
@@ -430,7 +448,7 @@ trait ConverterService {
       )
     }
 
-    def deleteLanguage(article: domain.Article, language: String, userInfo: UserInfo) = {
+    def deleteLanguage(article: domain.Article, language: String, userInfo: UserInfo): Try[Article] = {
       val title               = article.title.filter(_.language != language)
       val content             = article.content.filter(_.language != language)
       val articleIntroduction = article.introduction.filter(_.language != language)
@@ -456,6 +474,10 @@ trait ConverterService {
       }
     }
 
+    def getNextRevision(article: domain.Article): Option[domain.RevisionMeta] = getNextRevision(article.revisionMeta)
+    def getNextRevision(revisions: Seq[domain.RevisionMeta]): Option[domain.RevisionMeta] =
+      revisions.filterNot(_.status == RevisionStatus.Revised).sortBy(_.revisionDate).headOption
+
     def toArticleApiArticle(article: domain.Article): api.ArticleApiArticle = {
       api.ArticleApiArticle(
         revision = article.revision,
@@ -477,7 +499,8 @@ trait ConverterService {
         grepCodes = article.grepCodes,
         conceptIds = article.conceptIds,
         availability = article.availability,
-        relatedContent = article.relatedContent.map(toApiRelatedContent)
+        relatedContent = article.relatedContent.map(toApiRelatedContent),
+        revisionDate = getNextRevision(article.revisionMeta).map(_.revisionDate)
       )
     }
 
@@ -521,6 +544,37 @@ trait ConverterService {
       }
     }
 
+    private def cloneFilesForOtherLanguages(
+        content: Option[String],
+        oldContent: Seq[domain.ArticleContent],
+        isNewLanguage: Boolean
+    ): Try[Option[String]] = {
+      // Cloning files if they exist in other languages when adding new language
+      if (isNewLanguage) {
+        content.traverse(updContent => {
+          cloneFilesIfExists(oldContent.map(_.content), updContent)
+        })
+      } else Success(content)
+    }
+
+    private def getNewEditorialNotes(
+        isNewLanguage: Boolean,
+        user: UserInfo,
+        article: api.UpdatedArticle,
+        toMergeInto: domain.Article
+    ): Try[Seq[EditorNote]] = {
+      val newLanguageEditorNote =
+        if (isNewLanguage) Seq(s"Ny språkvariant '${article.language.getOrElse("und")}' ble lagt til.")
+        else Seq.empty
+
+      val addedNotes = article.notes match {
+        case Some(n) => newNotes(n ++ newLanguageEditorNote, user, toMergeInto.status)
+        case None    => newNotes(newLanguageEditorNote, user, toMergeInto.status)
+      }
+
+      addedNotes.map(n => toMergeInto.notes ++ n)
+    }
+
     def toDomainArticle(
         toMergeInto: domain.Article,
         article: api.UpdatedArticle,
@@ -529,72 +583,57 @@ trait ConverterService {
         oldNdlaCreatedDate: Option[Date],
         oldNdlaUpdatedDate: Option[Date]
     ): Try[domain.Article] = {
-
+      val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
       val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
       val updatedDate   = if (isImported) oldNdlaUpdatedDate.getOrElse(clock.now()) else clock.now()
       val publishedDate = article.published.getOrElse(toMergeInto.published)
-
-      val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
-      val newLanguageEditorNote =
-        if (isNewLanguage) Seq(s"Ny språkvariant '${article.language.getOrElse("und")}' ble lagt til.")
-        else Seq.empty
-
-      val newEditorialNotes = article.notes match {
-        case Some(n) => newNotes(n ++ newLanguageEditorNote, user, toMergeInto.status)
-        case None    => newNotes(newLanguageEditorNote, user, toMergeInto.status)
-      }
-
       val updatedAvailability = Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
+      val updatedRevisionMeta =
+        article.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(toMergeInto.revisionMeta)
 
-      // Cloning files if they exist in other languages when adding new language
-      val contentWithClonedFiles = if (isNewLanguage) {
-        article.content.traverse(updContent => {
-          cloneFilesIfExists(toMergeInto.content.map(_.content), updContent)
-        })
-      } else Success(article.content)
+      val updatedRequiredLibraries = article.requiredLibraries
+        .map(_.map(toDomainRequiredLibraries))
+        .getOrElse(toMergeInto.requiredLibraries)
 
-      contentWithClonedFiles match {
+      val updatedRelatedContent = article.relatedContent
+        .map(toDomainRelatedContent)
+        .getOrElse(toMergeInto.relatedContent)
+
+      val failableFields = for {
+        newNotes   <- getNewEditorialNotes(isNewLanguage, user, article, toMergeInto)
+        newContent <- cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage)
+      } yield (newNotes, newContent)
+
+      failableFields match {
         case Failure(ex) => Failure(ex)
-        case Success(newContent) =>
-          val updatedWithClonedFiles = article.copy(content = newContent)
-          newEditorialNotes.map(notes => toMergeInto.notes ++ notes) match {
-            case Failure(ex) => Failure(ex)
-            case Success(allNotes) =>
-              val partiallyConverted = toMergeInto.copy(
-                revision = Option(updatedWithClonedFiles.revision),
-                copyright = updatedWithClonedFiles.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
-                requiredLibraries = updatedWithClonedFiles.requiredLibraries
-                  .map(y => y.map(x => toDomainRequiredLibraries(x)))
-                  .toSeq
-                  .flatten,
-                created = createdDate,
-                updated = updatedDate,
-                published = publishedDate,
-                updatedBy = user.id,
-                articleType =
-                  updatedWithClonedFiles.articleType.map(ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
-                notes = allNotes,
-                editorLabels = updatedWithClonedFiles.editorLabels.getOrElse(toMergeInto.editorLabels),
-                grepCodes = updatedWithClonedFiles.grepCodes.getOrElse(toMergeInto.grepCodes),
-                conceptIds = updatedWithClonedFiles.conceptIds.getOrElse(toMergeInto.conceptIds),
-                availability = updatedAvailability,
-                relatedContent = updatedWithClonedFiles.relatedContent
-                  .map(toDomainRelatedContent)
-                  .getOrElse(toMergeInto.relatedContent)
-              )
+        case Success((allNotes, newContent)) =>
+          val partiallyConverted = toMergeInto.copy(
+            revision = Option(article.revision),
+            copyright = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+            requiredLibraries = updatedRequiredLibraries,
+            created = createdDate,
+            updated = updatedDate,
+            published = publishedDate,
+            updatedBy = user.id,
+            articleType = article.articleType.map(ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
+            notes = allNotes,
+            editorLabels = article.editorLabels.getOrElse(toMergeInto.editorLabels),
+            grepCodes = article.grepCodes.getOrElse(toMergeInto.grepCodes),
+            conceptIds = article.conceptIds.getOrElse(toMergeInto.conceptIds),
+            availability = updatedAvailability,
+            relatedContent = updatedRelatedContent,
+            revisionMeta = updatedRevisionMeta
+          )
 
-              updatedWithClonedFiles.language match {
-                case None if languageFieldIsDefined(updatedWithClonedFiles) =>
-                  val error =
-                    ValidationMessage("language", "This field must be specified when updating language fields")
-                  Failure(new ValidationException(errors = Seq(error)))
-                case None => Success(partiallyConverted)
-                case Some(lang) =>
-                  Success(mergeArticleLanguageFields(partiallyConverted, updatedWithClonedFiles, lang))
-              }
+          val articleWithNewContent = article.copy(content = newContent)
+          articleWithNewContent.language match {
+            case None if languageFieldIsDefined(articleWithNewContent) =>
+              val error = ValidationMessage("language", "This field must be specified when updating language fields")
+              Failure(new ValidationException(errors = Seq(error)))
+            case None       => Success(partiallyConverted)
+            case Some(lang) => Success(mergeArticleLanguageFields(partiallyConverted, articleWithNewContent, lang))
           }
       }
-
     }
 
     private[service] def mergeArticleLanguageFields(
@@ -661,6 +700,7 @@ trait ConverterService {
           }
 
           val updatedAvailability = Availability.valueOf(article.availability).getOrElse(Availability.everyone)
+          val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
           mergedNotes.map(notes =>
             domain.Article(
@@ -687,7 +727,8 @@ trait ConverterService {
               grepCodes = article.grepCodes.getOrElse(Seq.empty),
               conceptIds = article.conceptIds.getOrElse(Seq.empty),
               availability = updatedAvailability,
-              relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty)
+              relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty),
+              revisionMeta = updatedRevisionMeta
             )
           )
       }

@@ -9,14 +9,15 @@
 package no.ndla.articleapi.model.domain
 
 import java.util.Date
-
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
 import scalikejdbc._
+
+import java.time.LocalDateTime
 
 sealed trait Content {
   def id: Option[Long]
@@ -42,13 +43,14 @@ case class Article(
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
-    relatedContent: Seq[RelatedContent]
+    relatedContent: Seq[RelatedContent],
+    revisionDate: Option[LocalDateTime]
 ) extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
 
-  val jsonEncoder: Formats                     = DefaultFormats.withLong + new EnumNameSerializer(Availability)
-  override val tableName                       = "contentdata"
+  val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
+  override val tableName   = "contentdata"
   override lazy val schemaName: Option[String] = Some(ArticleApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =

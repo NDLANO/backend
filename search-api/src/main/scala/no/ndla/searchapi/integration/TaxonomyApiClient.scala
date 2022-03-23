@@ -8,13 +8,12 @@
 package no.ndla.searchapi.integration
 
 import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.SearchApiProperties.ApiGatewayUrl
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
-import no.ndla.searchapi.model.domain.RequestInfo
 import no.ndla.searchapi.model.taxonomy._
 import org.json4s.DefaultFormats
 import scalaj.http.Http

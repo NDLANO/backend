@@ -1,14 +1,13 @@
 /*
- * Part of NDLA draft-api
- * Copyright (C) 2020 NDLA
+ * Part of NDLA search-api.
+ * Copyright (C) 2018 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.draftapi.model.domain
+package no.ndla.network.model
 
 import no.ndla.network.{AuthUser, CorrelationID}
-import no.ndla.draftapi.DraftApiProperties.CorrelationIdKey
 import org.apache.logging.log4j.ThreadContext
 
 /** Helper class to help keep Thread specific request information in futures. */
@@ -20,9 +19,8 @@ case class RequestInfo(
     Name: Option[String],
     ClientId: Option[String]
 ) {
-
   def setRequestInfo(): Unit = {
-    ThreadContext.put(CorrelationIdKey, CorrelationId.getOrElse(""))
+    ThreadContext.put(RequestInfo.CorrelationIdKey, CorrelationId.getOrElse(""))
     CorrelationID.set(CorrelationId)
     AuthUser.setHeader(AuthHeader.getOrElse(""))
     UserId.foreach(AuthUser.setId)
@@ -33,6 +31,7 @@ case class RequestInfo(
 }
 
 object RequestInfo {
+  val CorrelationIdKey = "correlationID"
 
   def apply(): RequestInfo = {
     val correlationId = CorrelationID.get

@@ -23,6 +23,7 @@ import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -33,7 +34,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
-  protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
+  protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
 
   before() {
     contentType = formats("json")

@@ -22,6 +22,7 @@ object PartialArticleFields extends Enum[PartialArticleFields] {
   case object metaDescription extends PartialArticleFields
   case object relatedContent  extends PartialArticleFields
   case object tags            extends PartialArticleFields
+  case object revisionDate    extends PartialArticleFields
 }
 
 // format: off

@@ -10,12 +10,13 @@ package no.ndla.searchapi.integration
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.SearchApiProperties
 import no.ndla.searchapi.model.api.ApiSearchException
 import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, RequestInfo, SearchParams}
+import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, SearchParams}
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import scalaj.http.Http

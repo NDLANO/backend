@@ -11,6 +11,7 @@ package no.ndla.articleapi.model.api
 import java.util.Date
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
@@ -37,6 +38,7 @@ case class ArticleV2(
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
-    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent]
+    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
+    @(ApiModelProperty @field)(description = "The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime]
 )
 // format: on

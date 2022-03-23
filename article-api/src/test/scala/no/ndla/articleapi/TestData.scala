@@ -75,7 +75,8 @@ object TestData {
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
     availability = Availability.everyone.toString,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val apiArticleV2 = api.ArticleV2(
@@ -113,7 +114,8 @@ object TestData {
     Seq("COMPCODE1"),
     Seq(1),
     availability = Availability.everyone.toString,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val sampleArticleWithPublicDomain = Article(
@@ -136,7 +138,8 @@ object TestData {
     Seq("COMPCODE1"),
     Seq(1),
     availability = Availability.everyone,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val sampleDomainArticle = Article(
@@ -159,7 +162,8 @@ object TestData {
     Seq("COMPCODE1"),
     Seq(1),
     availability = Availability.everyone,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val sampleDomainArticle2 = Article(
@@ -182,7 +186,8 @@ object TestData {
     Seq("COMPCODE1"),
     Seq(1),
     availability = Availability.everyone,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -217,7 +222,8 @@ object TestData {
     Seq(),
     Seq(),
     availability = Availability.everyone,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -249,7 +255,8 @@ object TestData {
     Seq.empty,
     Seq.empty,
     availability = Availability.everyone.toString,
-    relatedContent = Seq.empty
+    relatedContent = Seq.empty,
+    revisionDate = None
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -281,7 +288,8 @@ object TestData {
       Seq(),
       Seq(),
       availability = Availability.everyone,
-      relatedContent = Seq.empty
+      relatedContent = Seq.empty,
+      revisionDate = None
     )
   }
 

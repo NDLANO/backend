@@ -8,16 +8,16 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
-import java.util.Date
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 sealed trait Content {
@@ -48,7 +48,8 @@ case class Article(
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
-    relatedContent: Seq[RelatedContent]
+    relatedContent: Seq[RelatedContent],
+    revisionMeta: Seq[RevisionMeta]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
@@ -60,7 +61,9 @@ object Article extends SQLSyntaxSupport[Article] {
   val jsonEncoder: Formats = DefaultFormats.withLong +
     new EnumNameSerializer(ArticleStatus) +
     Json4s.serializer(ArticleType) +
-    new EnumNameSerializer(Availability)
+    Json4s.serializer(RevisionStatus) +
+    new EnumNameSerializer(Availability) ++
+    JavaTimeSerializers.all
 
   val repositorySerializer = jsonEncoder +
     FieldSerializer[Article](

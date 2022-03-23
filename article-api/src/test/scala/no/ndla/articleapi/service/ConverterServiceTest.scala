@@ -14,6 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 
+import java.time.LocalDateTime
 import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -229,6 +230,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
     )
+
+    val revisionDate = LocalDateTime.now()
+
     val partialArticle =
       api.PartialPublishArticle(
         availability = Some(api.Availability.teacher),
@@ -242,7 +246,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             Right(42L)
           )
         ),
-        tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb")))
+        tags = Some(Seq(api.ArticleTag(Seq("nye", "Tags"), "nb"))),
+        revisionDate = Right(Some(revisionDate))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -254,7 +259,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Left(RelatedContentLink("Newer Title", "Newer Url")),
         Right(42L)
       ),
-      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb"))
+      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb")),
+      revisionDate = Some(revisionDate)
     )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
@@ -271,6 +277,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
       tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
     )
+
+    val revisionDate = LocalDateTime.now()
     val partialArticle =
       api.PartialPublishArticle(
         availability = Some(api.Availability.teacher),
@@ -290,7 +298,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             api.ArticleTag(Seq("new", "Tagss"), "en"),
             api.ArticleTag(Seq("Guten", "Tag"), "de")
           )
-        )
+        ),
+        revisionDate = Right(Some(revisionDate))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
       availability = Availability.teacher,
@@ -298,7 +307,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
-      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de"))
+      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de")),
+      revisionDate = Some(revisionDate)
     )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)

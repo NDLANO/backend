@@ -18,6 +18,7 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.language.Language.AllLanguages
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
@@ -39,18 +40,17 @@ trait ArticleControllerV2 {
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
+    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "Services for accessing articles from NDLA."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val converterService = new ConverterService
-    val response400      = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403      = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404      = ResponseMessage(404, "Not found", Some("Error"))
-    val response500      = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404 = ResponseMessage(404, "Not found", Some("Error"))
+    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")

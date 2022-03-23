@@ -7,40 +7,34 @@
 
 package no.ndla.draftapi.integration
 
+import cats.implicits._
 import no.ndla.draftapi.DraftApiProperties.ArticleApiHost
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
+import no.ndla.draftapi.model.domain.RevisionMeta
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.ValidationException
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Try}
-
-case class ArticleApiId(id: Long)
-case class PartialPublishArticle(
-    availability: Option[api.Availability.Value],
-    grepCodes: Option[Seq[String]],
-    license: Option[String],
-    metaDescription: Option[Seq[api.ArticleMetaDescription]],
-    relatedContent: Option[Seq[api.RelatedContent]],
-    tags: Option[Seq[api.ArticleTag]]
-)
 
 trait ArticleApiClient {
   this: NdlaClient with ConverterService =>
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(ArticleBaseUrl: String = s"http://$ArticleApiHost") {
-    private val InternalEndpoint         = s"$ArticleBaseUrl/intern"
-    private val deleteTimeout            = 1000 * 10 // 10 seconds
-    private val timeout                  = 1000 * 15
-    private implicit val format: Formats = DefaultFormats.withLong + new EnumNameSerializer(domain.Availability)
+    private val InternalEndpoint = s"$ArticleBaseUrl/intern"
+    private val deleteTimeout    = 1000 * 10 // 10 seconds
+    private val timeout          = 1000 * 15
+    private implicit val format: Formats =
+      DefaultFormats.withLong + new EnumNameSerializer(domain.Availability) ++ JavaTimeSerializers.all
 
     def partialPublishArticle(
         id: Long,
@@ -139,5 +133,56 @@ trait ArticleApiClient {
           .header("content-type", "application/json")
       )
     }
+  }
+
+  case class ArticleApiId(id: Long)
+  case class PartialPublishArticle(
+      availability: Option[api.Availability.Value],
+      grepCodes: Option[Seq[String]],
+      license: Option[String],
+      metaDescription: Option[Seq[api.ArticleMetaDescription]],
+      relatedContent: Option[Seq[api.RelatedContent]],
+      tags: Option[Seq[api.ArticleTag]],
+      revisionDate: Either[Null, Option[LocalDateTime]] // Left means `null` which deletes `revisionDate`
+  ) {
+    def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
+    def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
+    def withTags(tags: Seq[domain.ArticleTag], language: String): PartialPublishArticle =
+      copy(tags =
+        tags
+          .find(t => t.language == language)
+          .toSeq
+          .map(t => api.ArticleTag(t.tags, t.language))
+          .some
+      )
+    def withTags(tags: Seq[domain.ArticleTag]): PartialPublishArticle =
+      copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
+    def withRelatedContent(relatedContent: Seq[domain.RelatedContent]): PartialPublishArticle =
+      copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)
+    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription], language: String): PartialPublishArticle =
+      copy(metaDescription =
+        meta
+          .find(m => m.language == language)
+          .map(m => api.ArticleMetaDescription(m.content, m.language))
+          .toSeq
+          .some
+      )
+    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription]): PartialPublishArticle =
+      copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
+    def withAvailability(availability: domain.Availability.Value): PartialPublishArticle =
+      copy(availability = converterService.toApiAvailability(availability).some)
+
+    def withEarliestRevisionDate(revisionMeta: Seq[RevisionMeta]): PartialPublishArticle = {
+      val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
+      val newRev = earliestRevisionDate match {
+        case Some(value) => Right(Some(value))
+        case None        => Left(null)
+      }
+      copy(revisionDate = newRev)
+    }
+  }
+
+  object PartialPublishArticle {
+    def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Right(None))
   }
 }
