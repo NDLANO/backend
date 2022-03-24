@@ -84,6 +84,7 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
         domain.article.LearningResourceType.Article,
         List.empty,
         List.empty,
+        Seq.empty,
         Seq.empty
       )
 

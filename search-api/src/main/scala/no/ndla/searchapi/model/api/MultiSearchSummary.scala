@@ -36,5 +36,6 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "The taxonomy paths for the resource") paths: List[String],
     @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: Date,
     @(ApiModelProperty @field)(description = "Describes the license of the resource") license: Option[String],
+    @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta]
 )
 // format: on

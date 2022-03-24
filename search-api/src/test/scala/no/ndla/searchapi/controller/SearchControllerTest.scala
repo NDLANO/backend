@@ -17,6 +17,8 @@ import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, Search
 import no.ndla.searchapi.{SearchSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
+import java.time.{LocalDateTime, Month}
+import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
 class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -217,6 +219,19 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     }
 
     verify(feideApiClient, times(1)).getUser(eqTo(teacherToken))
+  }
+
+  test("That retrieving datetime strings from request works") {
+    val requestMock = mock[HttpServletRequest](withSettings.lenient())
+
+    val expectedDate = LocalDateTime.of(2025, Month.JANUARY, 2, 13, 39, 5)
+
+    when(requestMock.getQueryString).thenReturn(
+      "revision-date-from=2025-01-02T13:39:05Z&revision-date-to=2025-01-02T13:39:05Z"
+    )
+    val settings = controller.getDraftSearchSettingsFromRequest(requestMock)
+    settings.revisionDateFilterFrom should be(Some(expectedDate))
+    settings.revisionDateFilterTo should be(Some(expectedDate))
   }
 
 }

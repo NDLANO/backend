@@ -9,7 +9,7 @@ package no.ndla.searchapi.service.search
 
 import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
-import com.sksamuel.elastic4s.requests.searches.queries.Query
+import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language.AllLanguages
@@ -28,6 +28,7 @@ import no.ndla.searchapi.model.domain.{SearchResult, draft}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
+import java.time.{LocalDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -70,7 +71,8 @@ trait MultiDraftSearchService {
             simpleStringQuery(queryString).field("notes", 1),
             simpleStringQuery(queryString).field("previousVersionsNotes", 1),
             simpleStringQuery(queryString).field("grepContexts.title", 1),
-            idsQuery(queryString)
+            idsQuery(queryString),
+            nestedQuery("revisionMeta", simpleStringQuery(queryString).field("revisionMeta.note")).ignoreUnmapped(true)
           ) ++
             buildNestedEmbedField(List(queryString), None, settings.language, settings.fallback) ++
             buildNestedEmbedField(List.empty, Some(queryString), settings.language, settings.fallback)
@@ -155,10 +157,9 @@ trait MultiDraftSearchService {
       */
     private def getSearchFilters(settings: MultiDraftSearchSettings): List[Query] = {
       val languageFilter = settings.language match {
-        case "" | AllLanguages =>
-          None
-        case lang =>
-          if (settings.fallback) None else Some(existsQuery(s"title.$lang"))
+        case "" | AllLanguages         => None
+        case lang if settings.fallback => None
+        case lang                      => Some(existsQuery(s"title.$lang"))
       }
 
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
@@ -176,6 +177,7 @@ trait MultiDraftSearchService {
 
       val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
       val usersFilter  = boolUsersFilter(settings.userFilter)
+      val dateFilter   = revisionDateFilter(settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
 
       val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
@@ -205,8 +207,23 @@ trait MultiDraftSearchService {
         statusFilter,
         usersFilter,
         grepCodesFilter,
-        embedResourceAndIdFilter
+        embedResourceAndIdFilter,
+        dateFilter
       ).flatten
+    }
+
+    private def dateToEs(date: LocalDateTime): Long = date.toEpochSecond(ZoneOffset.UTC) * 1000
+    private def revisionDateFilter(from: Option[LocalDateTime], to: Option[LocalDateTime]): Option[RangeQuery] = {
+      val fromDate = from.map(dateToEs)
+      val toDate   = to.map(dateToEs)
+
+      Option.when(fromDate.nonEmpty || toDate.nonEmpty)(
+        RangeQuery(
+          field = "nextRevision.revisionDate",
+          gte = fromDate,
+          lte = toDate
+        )
+      )
     }
 
     private def draftStatusFilter(statuses: Seq[draft.ArticleStatus.Value], includeOthers: Boolean): Some[BoolQuery] = {

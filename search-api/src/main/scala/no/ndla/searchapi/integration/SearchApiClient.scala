@@ -18,7 +18,7 @@ import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, SearchParams}
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import scalaj.http.Http
 
 import scala.concurrent.Await
@@ -95,7 +95,8 @@ trait SearchApiClient {
           new EnumNameSerializer(EmbedType) +
           new EnumNameSerializer(LearningResourceType) +
           new EnumNameSerializer(Availability) ++
-          org.json4s.ext.JodaTimeSerializers.all
+          org.json4s.ext.JodaTimeSerializers.all ++
+          JavaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
     }
 

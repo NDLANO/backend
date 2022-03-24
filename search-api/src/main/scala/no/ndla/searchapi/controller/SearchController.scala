@@ -32,11 +32,13 @@ import no.ndla.searchapi.service.search.{
   SearchService
 }
 import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
+import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 import javax.servlet.http.HttpServletRequest
@@ -58,7 +60,7 @@ trait SearchController {
   val searchController: SearchController
 
   class SearchController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription = "API for searching across NDLA APIs"
 
@@ -198,6 +200,17 @@ trait SearchController {
       Param[Option[String]](
         "embed-id",
         "Return only results with embed data-resource_id, data-videoid or data-url with the specified id."
+      )
+
+    private val revisionDateFilterFrom =
+      Param[Option[LocalDateTime]](
+        "revision-date-from",
+        "Return only results having next revision after this date."
+      )
+    private val revisionDateFilterTo =
+      Param[Option[LocalDateTime]](
+        "revision-date-to",
+        "Return only results having next revision before this date."
       )
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
@@ -440,7 +453,7 @@ trait SearchController {
       )
     }
 
-    private def getDraftSearchSettingsFromRequest = {
+    private[controller] def getDraftSearchSettingsFromRequest(implicit request: HttpServletRequest) = {
       val page                     = intOrDefault(this.pageNo.paramName, 1)
       val pageSize                 = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
@@ -464,6 +477,8 @@ trait SearchController {
       val embedResource            = paramAsListOfString(this.embedResource.paramName)
       val embedId                  = paramOrNone(this.embedId.paramName)
       val includeOtherStatuses     = booleanOrDefault(this.includeOtherStatuses.paramName, default = false)
+      val revisionDateFrom         = paramAsDateOrNone(this.revisionDateFilterFrom.paramName)
+      val revisionDateTo           = paramAsDateOrNone(this.revisionDateFilterTo.paramName)
 
       MultiDraftSearchSettings(
         query = query,
@@ -489,7 +504,9 @@ trait SearchController {
         aggregatePaths = aggregatePaths,
         embedResource = embedResource,
         embedId = embedId,
-        includeOtherStatuses = includeOtherStatuses
+        includeOtherStatuses = includeOtherStatuses,
+        revisionDateFilterFrom = revisionDateFrom,
+        revisionDateFilterTo = revisionDateTo
       )
     }
 
@@ -603,7 +620,9 @@ trait SearchController {
             asQueryParam(aggregatePaths),
             asQueryParam(embedResource),
             asQueryParam(embedId),
-            asQueryParam(includeOtherStatuses)
+            asQueryParam(includeOtherStatuses),
+            asQueryParam(revisionDateFilterFrom),
+            asQueryParam(revisionDateFilterTo)
           )
           .authorizations("oauth2")
           .responseMessages(response500)

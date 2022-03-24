@@ -11,6 +11,8 @@ import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 
+import java.time.LocalDateTime
+
 case class MultiDraftSearchSettings(
     query: Option[String],
     noteQuery: Option[String],
@@ -35,5 +37,7 @@ case class MultiDraftSearchSettings(
     aggregatePaths: List[String],
     embedResource: List[String],
     embedId: Option[String],
-    includeOtherStatuses: Boolean
+    includeOtherStatuses: Boolean,
+    revisionDateFilterFrom: Option[LocalDateTime],
+    revisionDateFilterTo: Option[LocalDateTime]
 )
