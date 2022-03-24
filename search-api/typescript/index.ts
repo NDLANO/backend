@@ -153,6 +153,7 @@ export interface IMultiSearchSummary {
   paths: string[]
   lastUpdated: string
   license?: string
+  revisions: IRevisionMeta[]
 }
 
 export interface IMultiSearchTermsAggregation {
@@ -160,6 +161,12 @@ export interface IMultiSearchTermsAggregation {
   sumOtherDocCount: number
   docCountErrorUpperBound: number
   values: ITermValue[]
+}
+
+export interface IRevisionMeta {
+  revisionDate: string
+  note: string
+  status: string
 }
 
 export interface ISearchError {
