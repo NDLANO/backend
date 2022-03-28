@@ -21,6 +21,7 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.DateTime
 import org.json4s._
+import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
@@ -30,7 +31,7 @@ trait SearchConverterService {
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
 
     def asSearchableArticle(ai: Article): SearchableArticle = {
 
@@ -64,7 +65,8 @@ trait SearchConverterService {
         defaultTitle = defaultTitle.map(_.title),
         users = ai.updatedBy +: ai.notes.map(_.user),
         previousNotes = ai.previousVersionsNotes.map(_.note),
-        grepCodes = ai.grepCodes
+        grepCodes = ai.grepCodes,
+        status = SearchableStatus(ai.status.current, ai.status.other)
       )
     }
 
@@ -89,6 +91,8 @@ trait SearchConverterService {
       val introduction =
         findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiArticleTag)
+      val status =
+        api.Status(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
 
       api.ArticleSummary(
         id = searchableArticle.id,
@@ -102,7 +106,8 @@ trait SearchConverterService {
         tags = tag,
         notes = notes,
         users = users,
-        grepCodes = searchableArticle.grepCodes
+        grepCodes = searchableArticle.grepCodes,
+        status = status
       )
     }
 
