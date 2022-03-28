@@ -91,7 +91,8 @@ trait SearchConverterService {
       val introduction =
         findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
       val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiArticleTag)
-      val status = api.Status(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
+      val status =
+        api.Status(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
 
       api.ArticleSummary(
         id = searchableArticle.id,

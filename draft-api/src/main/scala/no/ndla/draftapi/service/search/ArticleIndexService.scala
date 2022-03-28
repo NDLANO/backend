@@ -26,9 +26,9 @@ trait ArticleIndexService {
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends LazyLogging with IndexService[Article, SearchableArticle] {
-    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
-    override val documentType: String            = DraftApiProperties.DraftSearchDocument
-    override val searchIndex: String             = DraftApiProperties.DraftSearchIndex
+    implicit val formats: Formats     = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
+    override val documentType: String = DraftApiProperties.DraftSearchDocument
+    override val searchIndex: String  = DraftApiProperties.DraftSearchIndex
     override val repository: Repository[Article] = draftRepository
 
     override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {

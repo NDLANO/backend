@@ -26,5 +26,5 @@ case class SearchableArticle(
     users: Seq[String],
     previousNotes: Seq[String],
     grepCodes: Seq[String],
-    status: SearchableStatus,
+    status: SearchableStatus
 )
