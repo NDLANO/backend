@@ -89,6 +89,7 @@ export interface IArticleSummary {
   notes: string[]
   users: string[]
   grepCodes: string[]
+  status: IStatus
 }
 
 export interface IArticleTag {
