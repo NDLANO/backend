@@ -52,6 +52,7 @@ export interface IArticle {
   conceptIds: number[]
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
+  revisions: IRevisionMeta[]
 }
 
 export interface IArticleContent {
@@ -172,6 +173,7 @@ export interface INewArticle {
   conceptIds: number[]
   availability?: string
   relatedContent: (IRelatedContentLink | number)[]
+  revisionMeta?: IRevisionMeta[]
 }
 
 export interface INewArticleMetaImage {
@@ -188,6 +190,12 @@ export interface IRequiredLibrary {
   mediaType: string
   name: string
   url: string
+}
+
+export interface IRevisionMeta {
+  revisionDate: string
+  note: string
+  status: string
 }
 
 export interface ISearchResult {
@@ -239,6 +247,7 @@ export interface IUpdatedArticle {
   createNewVersion?: boolean
   availability?: string
   relatedContent?: (IRelatedContentLink | number)[]
+  revisionMeta?: IRevisionMeta[]
 }
 
 export interface IUpdatedUserData {
