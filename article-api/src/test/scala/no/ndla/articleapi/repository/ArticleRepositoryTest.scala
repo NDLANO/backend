@@ -15,6 +15,7 @@ import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
+import cats.implicits._
 
 import scala.util.{Success, Try}
 
@@ -250,7 +251,24 @@ class ArticleRepositoryTest
 
     val Right(relatedId) = repository.withId(1).get.relatedContent.head
     relatedId.toLong should be(2L)
+  }
 
+  test("Dumping articles should ignore unpublished ones") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val articleId = 110
+    val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
+
+    repository.updateArticleFromDraftApi(article.copy(revision = 1.some), List.empty).get
+    repository.updateArticleFromDraftApi(article.copy(revision = 2.some), List.empty).get
+    repository.updateArticleFromDraftApi(article.copy(revision = 3.some), List.empty).get
+
+    val resultBefore = repository.getArticlesByPage(10, 0)
+    resultBefore.size should be(1)
+
+    repository.unpublishMaxRevision(articleId).get
+
+    val resultAfter = repository.getArticlesByPage(10, 0)
+    resultAfter.size should be(0)
   }
 
 }

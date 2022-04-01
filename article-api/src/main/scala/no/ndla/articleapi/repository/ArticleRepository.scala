@@ -214,8 +214,7 @@ trait ArticleRepository {
                    ${ar.result.*},
                    ${ar.revision} as revision,
                    max(revision) over (partition by article_id) as max_revision
-                 from ${Article.as(ar)}
-                 where document is not NULL) _
+                 from ${Article.as(ar)}) _
            where revision = max_revision
            offset $offset
            limit $pageSize
