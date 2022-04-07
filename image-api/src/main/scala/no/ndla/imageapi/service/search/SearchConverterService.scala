@@ -50,6 +50,8 @@ trait SearchConverterService {
         })
         .lastOption
 
+      val dimensions = image.imageDimensions.map(d => (d.width, d.height))
+
       SearchableImage(
         id = imageWithAgreement.id.get,
         titles =
@@ -69,7 +71,10 @@ trait SearchConverterService {
         lastUpdated = imageWithAgreement.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
-        editorNotes = image.editorNotes.map(_.note)
+        editorNotes = image.editorNotes.map(_.note),
+        fileSize = image.size,
+        contentType = image.contentType,
+        imageDimensions = dimensions
       )
     }
 
@@ -104,7 +109,12 @@ trait SearchConverterService {
         supportedLanguages = supportedLanguages,
         modelRelease = searchableImage.modelReleased,
         editorNotes = editorNotes,
-        lastUpdated = searchableImage.lastUpdated
+        lastUpdated = searchableImage.lastUpdated,
+        fileSize = searchableImage.fileSize,
+        contentType = searchableImage.contentType,
+        imageDimensions = searchableImage.imageDimensions.map { case (width, height) =>
+          api.ImageDimensions(width, height)
+        }
       )
     }
 

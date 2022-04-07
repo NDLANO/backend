@@ -24,5 +24,8 @@ case class SearchableImage(
     lastUpdated: Date,
     defaultTitle: Option[String],
     modelReleased: Option[String],
-    editorNotes: Seq[String]
+    editorNotes: Seq[String],
+    fileSize: Long,
+    contentType: String,
+    imageDimensions: Option[(Int, Int)]
 )

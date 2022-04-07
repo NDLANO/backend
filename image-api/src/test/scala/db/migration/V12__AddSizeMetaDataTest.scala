@@ -19,12 +19,12 @@ import scala.util.{Failure, Success}
 class V12__AddSizeMetaDataTest extends UnitSuite with TestEnvironment {
   val migration = spy(new V12__AddSizeMetaData)
 
-  val testUrl = "http://test.test/1"
-  val imageStreamMock = mock[ImageStream]
+  val testUrl           = "http://test.test/1"
+  val imageStreamMock   = mock[ImageStream]
   val bufferedImageMock = mock[BufferedImage]
 
   test("migration not do anything if the document already has new status format") {
-    when(migration.get(testUrl)).thenReturn(Success(Some(100, 200)))
+    when(migration.get(testUrl)).thenReturn(Success(Some((100, 200))))
     val original =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId":1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"],"imageDimensions":{"width":100,"height":200}}"""
 
@@ -44,7 +44,7 @@ class V12__AddSizeMetaDataTest extends UnitSuite with TestEnvironment {
   }
 
   test("That svg's doesn't get a size") {
-    val s3Mock = mock[S3Object]
+    val s3Mock      = mock[S3Object]
     val requestMock = mock[HttpRequestBase]
 
     val svgImage = new S3ObjectInputStream(CCLogoSvgImage.stream, requestMock)
@@ -59,9 +59,9 @@ class V12__AddSizeMetaDataTest extends UnitSuite with TestEnvironment {
   }
 
   test("That real image gets its size") {
-    val s3Mock = mock[S3Object]
+    val s3Mock      = mock[S3Object]
     val requestMock = mock[HttpRequestBase]
-    val image = new S3ObjectInputStream(NdlaLogoImage.stream, requestMock)
+    val image       = new S3ObjectInputStream(NdlaLogoImage.stream, requestMock)
     when(s3Mock.getObjectContent).thenReturn(image)
     when(migration.getS3Object("some.jpg")).thenReturn(Success(s3Mock))
 

@@ -97,7 +97,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       TestData.updated(),
       "ndla124",
       ModelReleasedStatus.YES,
-      Seq.empty
+      Seq.empty,
+      None
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
@@ -137,7 +138,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       TestData.updated(),
       "ndla124",
       ModelReleasedStatus.YES,
-      Seq.empty
+      Seq.empty,
+      None
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
