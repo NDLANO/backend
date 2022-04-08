@@ -8,7 +8,7 @@
 package no.ndla.imageapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
@@ -44,7 +44,14 @@ trait ImageIndexService {
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
         keywordField("modelReleased"),
-        textField("editorNotes")
+        textField("editorNotes"),
+        ObjectField(
+          "imageDimensions",
+          properties = Seq(
+            intField("width"),
+            intField("height")
+          )
+        )
       )
 
       val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("titles", keepRaw = true) ++

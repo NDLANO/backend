@@ -8,7 +8,7 @@
 package db.migration
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.s3.model.{GetObjectRequest, S3Object}
+import com.amazonaws.services.s3.model.{AmazonS3Exception, GetObjectRequest, S3Object}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Uri
@@ -22,7 +22,9 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 import java.io.ByteArrayInputStream
+import java.util.concurrent.Executors
 import javax.imageio.ImageIO
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
 class V12__AddSizeMetaData extends BaseJavaMigration with LazyLogging {
@@ -33,9 +35,28 @@ class V12__AddSizeMetaData extends BaseJavaMigration with LazyLogging {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
+    val NumThreads                                          = 10
+    val executorService                                     = Executors.newWorkStealingPool(NumThreads)
+    implicit val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(executorService)
+
     db.withinTx { implicit session =>
-      imagesToUpdate.map { case (id, document) =>
-        update(convertImageUpdate(document), id)
+      val toUpdate      = imagesToUpdate(session)
+      val totalToUpdate = toUpdate.size
+      val futs = toUpdate.zipWithIndex.map { case ((id, document), idx) =>
+        val f = Future { convertImageUpdate(document) }
+
+        f.onComplete {
+          case Success(converted) =>
+            update(converted, id)
+            println(s"Completed convertion of: ${idx + 1}/$totalToUpdate")
+          case Failure(ex) => println(("NO", ex))
+        }
+
+        f
+      }
+      val mergedFuture = Future.sequence(futs)
+      while (!mergedFuture.isCompleted) {
+        Thread.sleep(1000)
       }
     }
   }
@@ -105,7 +126,13 @@ class V12__AddSizeMetaData extends BaseJavaMigration with LazyLogging {
       case Success(None) =>
         oldDocument
       case Failure(ex) =>
-        logger.warn(s"Something went wrong when fetching $imageKey", ex)
+        ex match {
+          case aex: AmazonS3Exception if aex.getStatusCode == 404 =>
+            logger.warn(s"$imageKey was not found on s3.")
+          case ex =>
+            logger.warn(s"Something went wrong when fetching $imageKey", ex)
+        }
+
         val toMerge = JObject(JField("imageDimensions", JObject(JField("width", JInt(0)), JField("height", JInt(0)))))
         oldDocument.merge(toMerge)
     }

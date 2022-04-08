@@ -50,8 +50,6 @@ trait SearchConverterService {
         })
         .lastOption
 
-      val dimensions = image.imageDimensions.map(d => (d.width, d.height))
-
       SearchableImage(
         id = imageWithAgreement.id.get,
         titles =
@@ -74,7 +72,7 @@ trait SearchConverterService {
         editorNotes = image.editorNotes.map(_.note),
         fileSize = image.size,
         contentType = image.contentType,
-        imageDimensions = dimensions
+        imageDimensions = image.imageDimensions
       )
     }
 
@@ -112,7 +110,7 @@ trait SearchConverterService {
         lastUpdated = searchableImage.lastUpdated,
         fileSize = searchableImage.fileSize,
         contentType = searchableImage.contentType,
-        imageDimensions = searchableImage.imageDimensions.map { case (width, height) =>
+        imageDimensions = searchableImage.imageDimensions.map { case domain.ImageDimensions(width, height) =>
           api.ImageDimensions(width, height)
         }
       )
