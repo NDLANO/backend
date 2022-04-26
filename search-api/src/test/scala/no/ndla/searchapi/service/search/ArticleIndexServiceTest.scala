@@ -14,6 +14,7 @@ import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.search.SearchableArticle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import org.json4s.Formats
 import org.json4s.native.Serialization.read
 import org.scalatest.Outcome
 
@@ -45,7 +46,7 @@ class ArticleIndexServiceTest
 
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats                = SearchableLanguageFormats.JSonFormatsWithMillis
+  implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
     articleIndexService.cleanupIndexes()
