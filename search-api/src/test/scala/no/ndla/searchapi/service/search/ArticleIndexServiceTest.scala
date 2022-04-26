@@ -46,7 +46,7 @@ class ArticleIndexServiceTest
 
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
-  implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
+  implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
     articleIndexService.cleanupIndexes()
