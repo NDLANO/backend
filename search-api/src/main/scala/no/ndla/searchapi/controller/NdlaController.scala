@@ -21,7 +21,7 @@ import no.ndla.searchapi.model.api.{
   ValidationException,
   ValidationMessage
 }
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
@@ -45,7 +45,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType) ++
+      new EnumNameSerializer(LearningResourceType) +
+      new EnumNameSerializer(Availability) ++
       org.json4s.ext.JodaTimeSerializers.all ++
       JavaTimeSerializers.all
 

@@ -9,11 +9,11 @@ package no.ndla.articleapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.SearchHost
-import no.ndla.articleapi.model.domain.{Article, ArticleType}
+import no.ndla.articleapi.model.domain.{Article, ArticleType, Availability}
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.write
 import scalaj.http.Http
 
@@ -33,7 +33,9 @@ trait SearchApiClient {
     def indexArticle(article: Article): Article = {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
-          new EnumNameSerializer(ArticleType)
+          new EnumNameSerializer(ArticleType) +
+          new EnumNameSerializer(Availability) ++
+          JavaTimeSerializers.all
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
