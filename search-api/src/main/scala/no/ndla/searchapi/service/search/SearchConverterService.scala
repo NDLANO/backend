@@ -933,7 +933,7 @@ trait SearchConverterService {
         connectedResourceTypes
           .flatMap(rt => bundle.resourceTypeParentsByResourceTypeId.getOrElse(rt.id, List.empty))
           .filterNot(connectedResourceTypes.contains)
-      (connectedResourceTypes ++ subParents).distinct
+      (connectedResourceTypes ++ subParents).distinct.sortWith((l, _) => l.subtypes.isDefined)
     }
 
     private def getTopicTaxonomyContexts(
