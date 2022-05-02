@@ -52,9 +52,9 @@ class TagValidator {
       .map(missingAttributes =>
         ValidationMessage(
           fieldName,
-          s"$tagName must contain the following attributes: ${legalAttributesForTag.required.mkString(",")}. " +
-            s"Optional attributes are: ${legalAttributesForTag.optional.mkString(",")}. " +
-            s"Missing: ${missingAttributes.mkString(",")}"
+          s"$tagName must contain the following attributes: ${legalAttributesForTag.required.mkString(", ")}. " +
+            s"Optional attributes are: ${legalAttributesForTag.optional.mkString(", ")}. " +
+            s"Missing: ${missingAttributes.mkString(", ")}"
         )
       )
       .toList
@@ -254,7 +254,7 @@ class TagValidator {
         ValidationMessage(
           fieldName,
           s"An HTML tag '$tagName' contains an illegal attribute(s) '${illegalAttributesUsed
-              .mkString(",")}'. Allowed attributes are ${legalAttributeKeys.mkString(",")}"
+              .mkString(", ")}'. Allowed attributes are ${legalAttributeKeys.mkString(", ")}"
         )
       )
     } else {
@@ -286,7 +286,7 @@ class TagValidator {
       Some(
         ValidationMessage(
           fieldName,
-          s"HTML tag '$ResourceHtmlEmbedTag' contains attributes with HTML: ${attributesWithHtml.mkString(",")}"
+          s"HTML tag '$ResourceHtmlEmbedTag' contains attributes with HTML: ${attributesWithHtml.mkString(", ")}"
         )
       )
     } else {
@@ -312,7 +312,7 @@ class TagValidator {
         ValidationMessage(
           fieldName,
           s"The ${TagAttributes.DataResource} attribute can only contain one of the following values: ${ResourceType.all
-              .mkString(",")}"
+              .mkString(", ")}"
         )
       )
     }
@@ -345,9 +345,9 @@ class TagValidator {
       .map(missingAttributes =>
         ValidationMessage(
           fieldName,
-          s"$partialErrorMessage must contain the following attributes: ${requiredAttrs.mkString(",")}. " +
-            s"Optional attributes are: ${attrRules.optional.mkString(",")}. " +
-            s"Missing: ${missingAttributes.mkString(",")}"
+          s"$partialErrorMessage must contain the following attributes: ${requiredAttrs.mkString(", ")}. " +
+            s"Optional attributes are: ${attrRules.optional.mkString(", ")}. " +
+            s"Missing: ${missingAttributes.mkString(", ")}"
         )
       )
       .toList
@@ -356,7 +356,7 @@ class TagValidator {
       .map(illegalAttributes =>
         ValidationMessage(
           fieldName,
-          s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"
+          s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(", ")}"
         )
       )
 
@@ -365,7 +365,7 @@ class TagValidator {
         Some(
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.mkString(",")}."
+            s"$partialErrorMessage must contain non-empty attributes: ${attrRules.requiredNonEmpty.mkString(", ")}."
           )
         )
       } else { None }
@@ -402,11 +402,11 @@ class TagValidator {
     val usedOptionalAttrsInCurrentGroup = usedOptionalAttrs.intersect(attrRules)
     usedOptionalAttrsInCurrentGroup.isEmpty match {
       case false if usedOptionalAttrsInCurrentGroup != attrRules =>
-        val missingAttrs = attrRules.diff(usedOptionalAttrs).mkString(",")
+        val missingAttrs = attrRules.diff(usedOptionalAttrs).mkString(", ")
         Seq(
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage must contain all or none of the optional attributes (${attrRules.mkString(",")}). Missing $missingAttrs"
+            s"$partialErrorMessage must contain all or none of the optional attributes (${attrRules.mkString(", ")}). Missing $missingAttrs"
           )
         )
       case _ => Seq.empty
@@ -428,7 +428,7 @@ class TagValidator {
           ValidationMessage(
             fieldName,
             s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
-                .mkString(",")}"
+                .mkString(", ")}"
           )
         )
       case _ => Seq.empty
