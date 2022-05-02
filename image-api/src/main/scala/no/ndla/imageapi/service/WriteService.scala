@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformationV2, UpdateImageMetaInformation}
-import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{Image, ImageDimensions, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
@@ -22,6 +22,7 @@ import org.scalatra.servlet.FileItem
 import java.io.ByteArrayInputStream
 import java.lang.Math.max
 import java.util.Date
+import javax.imageio.ImageIO
 import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
@@ -242,10 +243,28 @@ trait WriteService {
 
     private def uploadImageWithName(file: FileItem, fileName: String): Try[Image] = {
       val contentType = file.getContentType.getOrElse("")
+      val bytes       = file.get()
+      val image       = Try(Option(ImageIO.read(new ByteArrayInputStream(bytes))))
+
+      val dimensions = image match {
+        case Failure(ex) =>
+          logger.error("Something went wrong when getting imageDimensions", ex)
+          Some(ImageDimensions(0, 0))
+        case Success(Some(image)) => Some(ImageDimensions(image.getWidth, image.getHeight))
+        case Success(None) =>
+          val isSVG = new String(bytes).toLowerCase.contains("<svg")
+          // Since SVG are vector-images size doesn't make sense
+          if (isSVG) None
+          else {
+            logger.error("Something _weird_ went wrong when getting imageDimensions")
+            Some(ImageDimensions(0, 0))
+          }
+      }
+
       imageStorage
-        .uploadFromStream(new ByteArrayInputStream(file.get()), fileName, contentType, file.size)
+        .uploadFromStream(new ByteArrayInputStream(bytes), fileName, contentType, file.size)
         .map(filePath => {
-          Image(filePath, file.size, contentType)
+          Image(filePath, file.size, contentType, dimensions)
         })
     }
 

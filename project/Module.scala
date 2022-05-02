@@ -74,12 +74,14 @@ trait Module {
   ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    Seq(
-      fork := true,
-      envVars ++= {
-        parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
-      }
-    )
+    if (sys.env.get("DISABLE_SUB_DOTENV").contains("true")) Seq.empty
+    else
+      Seq(
+        fork := true,
+        envVars ++= {
+          parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
+        }
+      )
   }
 
   def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {

@@ -36,7 +36,7 @@ case class ImageTag(tags: Seq[String], language: String) extends LanguageField[S
   override def value: Seq[String] = tags
   override def isEmpty: Boolean   = tags.isEmpty
 }
-case class Image(fileName: String, size: Long, contentType: String)
+case class Image(fileName: String, size: Long, contentType: String, dimensions: Option[ImageDimensions])
 case class Copyright(
     license: String,
     origin: String,
@@ -50,6 +50,7 @@ case class Copyright(
 case class License(license: String, description: String, url: Option[String])
 case class Author(`type`: String, name: String)
 case class EditorNote(timeStamp: Date, updatedBy: String, note: String)
+case class ImageDimensions(width: Int, height: Int)
 
 object ModelReleasedStatus extends Enumeration {
   val YES            = Value("yes")
@@ -92,7 +93,8 @@ case class ImageMetaInformation(
     created: Date,
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
-    editorNotes: Seq[EditorNote]
+    editorNotes: Seq[EditorNote],
+    imageDimensions: Option[ImageDimensions]
 )
 
 object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
@@ -124,7 +126,8 @@ object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
       meta.created,
       meta.createdBy,
       meta.modelReleased,
-      meta.editorNotes
+      meta.editorNotes,
+      meta.imageDimensions
     )
   }
 }

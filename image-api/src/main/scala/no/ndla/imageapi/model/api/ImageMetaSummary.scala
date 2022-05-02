@@ -26,5 +26,8 @@ case class ImageMetaSummary(
     @(ApiModelProperty @field)(description = "List of supported languages in priority") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "Describes if the model has released use of the image", allowableValues = "not-set,yes,no,not-applicable") modelRelease: Option[String],
     @(ApiModelProperty @field)(description = "Describes the changes made to the image, only visible to editors") editorNotes: Option[Seq[String]],
-    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: Date
+    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: Date,
+    @(ApiModelProperty @field)(description = "The size of the image in bytes") fileSize: Long,
+    @(ApiModelProperty @field)(description = "The mimetype of the image") contentType: String,
+    @(ApiModelProperty @field)(description = "Dimensions of the image") imageDimensions: Option[ImageDimensions]
 )

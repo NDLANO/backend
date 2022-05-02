@@ -121,10 +121,13 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Seq("nb"),
       Some("yes"),
       None,
-      date.toDate
+      date.toDate,
+      123,
+      "image/jpg",
+      None
     )
     val expectedBody =
-      """{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"2021-04-01T12:34:56Z"}]}"""
+      """{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"2021-04-01T12:34:56Z","fileSize":123,"contentType":"image/jpg"}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResult(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(domainSearchResult))
@@ -223,7 +226,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       new Date(),
       "createdBy",
       ModelReleasedStatus.YES,
-      Seq.empty
+      Seq.empty,
+      None
     )
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem])).thenReturn(Success(sampleImageMeta))

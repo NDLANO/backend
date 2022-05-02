@@ -101,24 +101,26 @@ trait ConverterService {
 
       val apiUrl = asApiUrl(imageMeta.imageUrl, rawBaseUrl)
 
-      val editorNotes = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+      val editorNotes     = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+      val imageDimensions = imageMeta.imageDimensions.map(d => api.ImageDimensions(d.width, d.height))
 
       api.ImageMetaInformationV2(
-        imageMeta.id.get.toString,
-        baseUrl + imageMeta.id.get,
-        title,
-        alttext,
-        apiUrl,
-        imageMeta.size,
-        imageMeta.contentType,
-        withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
-        tags,
-        caption,
-        getSupportedLanguages(imageMeta),
-        imageMeta.created,
-        imageMeta.createdBy,
-        imageMeta.modelReleased.toString,
-        editorNotes
+        id = imageMeta.id.get.toString,
+        metaUrl = baseUrl + imageMeta.id.get,
+        title = title,
+        alttext = alttext,
+        imageUrl = apiUrl,
+        size = imageMeta.size,
+        contentType = imageMeta.contentType,
+        copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+        tags = tags,
+        caption = caption,
+        supportedLanguages = getSupportedLanguages(imageMeta),
+        created = imageMeta.created,
+        createdBy = imageMeta.createdBy,
+        modelRelease = imageMeta.modelReleased.toString,
+        editorNotes = editorNotes,
+        imageDimensions = imageDimensions
       )
     }
 
@@ -214,7 +216,8 @@ trait ConverterService {
           created = now,
           updated = now,
           modelReleased = modelStatus,
-          editorNotes = Seq(domain.EditorNote(now, user, "Image created."))
+          editorNotes = Seq(domain.EditorNote(now, user, "Image created.")),
+          imageDimensions = image.dimensions
         )
       })
     }
