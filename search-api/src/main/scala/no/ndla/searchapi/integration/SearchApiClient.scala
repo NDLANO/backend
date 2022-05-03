@@ -45,7 +45,7 @@ trait SearchApiClient {
           val dbCount  = initSearch.totalCount
           val pageSize = SearchApiProperties.IndexBulkSize
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
-          val pages    = Seq.range(1, numPages + 1)
+          val pages    = Seq.range(1, numPages * 2)
 
           val iterator: Iterator[Future[Try[Seq[T]]]] = pages.iterator.map(p => {
             getChunk[T](p, pageSize).map(_.map(_.results))
