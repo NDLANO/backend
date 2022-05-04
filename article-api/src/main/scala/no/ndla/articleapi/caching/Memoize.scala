@@ -8,9 +8,9 @@
 
 package no.ndla.articleapi.caching
 
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+import no.ndla.articleapi.Props
 
-import no.ndla.articleapi.ArticleApiProperties.ApiClientsCacheAgeInMs
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) extends (() => R) {
   case class CacheValue(value: R, lastUpdated: Long) {
@@ -43,10 +43,15 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
 
 }
 
-object Memoize {
-  def apply[R](f: () => R) = new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = false)
-}
+trait MemoizeHelpers {
+  this: Props =>
 
-object MemoizeAutoRenew {
-  def apply[R](f: () => R) = new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = true)
+  object Memoize {
+    def apply[R](f: () => R) = new Memoize(props.ApiClientsCacheAgeInMs, f, autoRefreshCache = false)
+  }
+
+  object MemoizeAutoRenew {
+    def apply[R](f: () => R) = new Memoize(props.ApiClientsCacheAgeInMs, f, autoRefreshCache = true)
+  }
+
 }

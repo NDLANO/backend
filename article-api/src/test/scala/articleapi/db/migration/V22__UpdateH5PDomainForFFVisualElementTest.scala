@@ -8,7 +8,7 @@
 
 package articleapi.db.migration
 
-import articleapi.db.migration.V22__UpdateH5PDomainForFFVisualElement
+import articleapi.db.migrationwithdependencies.V22__UpdateH5PDomainForFFVisualElement
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V22__UpdateH5PDomainForFFVisualElementTest extends UnitSuite with TestEnvironment {

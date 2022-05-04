@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.ArticleApiProperties.Domain
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
@@ -19,10 +19,10 @@ import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.Try
 
-class R__SetArticleTypeFromTaxonomy extends BaseJavaMigration {
+class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val TaxonomyApiEndpoint           = s"$Domain/taxonomy/v1"
+  private val TaxonomyApiEndpoint           = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
 
   case class TaxonomyResource(contentUri: Option[String])

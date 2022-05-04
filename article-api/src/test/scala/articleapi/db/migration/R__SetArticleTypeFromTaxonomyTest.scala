@@ -6,7 +6,7 @@
  */
 package articleapi.db.migration
 
-import articleapi.db.migration.R__SetArticleTypeFromTaxonomy
+import articleapi.db.migrationwithdependencies.R__SetArticleTypeFromTaxonomy
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class R__SetArticleTypeFromTaxonomyTest extends UnitSuite with TestEnvironment {

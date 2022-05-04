@@ -7,7 +7,7 @@
 
 package articleapi.db.migration
 
-import articleapi.db.migration.V33__ConvertLanguageUnknown
+import articleapi.db.migrationwithdependencies.V33__ConvertLanguageUnknown
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V33__ConvertLanguageUnknownTest extends UnitSuite with TestEnvironment {

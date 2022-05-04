@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.ArticleApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
@@ -15,7 +15,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
+class V9__TranslateUntranslatedAuthors(props: ArticleApiProperties) extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
@@ -57,6 +57,7 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
   }
 
   def toNewAuthorType(author: V8_Author): V8_Author = {
+    import props._
     val creatorMap      = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
     val processorMap    = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)

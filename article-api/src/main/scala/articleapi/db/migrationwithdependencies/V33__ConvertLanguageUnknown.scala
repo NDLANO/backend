@@ -5,17 +5,22 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.model.domain.Article
+import no.ndla.articleapi.model.domain.{Article, DBArticle}
+import no.ndla.articleapi.{ArticleApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 
-class V33__ConvertLanguageUnknown extends BaseJavaMigration {
-  implicit val formats: Formats = Article.jsonEncoder
+class V33__ConvertLanguageUnknown(properties: ArticleApiProperties)
+    extends BaseJavaMigration
+    with Props
+    with DBArticle {
+  override val props: ArticleApiProperties = properties
+  implicit val formats: Formats            = Article.jsonEncoder
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

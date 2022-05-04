@@ -8,10 +8,10 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
-import no.ndla.articleapi.model.domain.Article
+import no.ndla.articleapi.model.domain.{Article, DBArticle}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
@@ -34,7 +34,10 @@ trait InternController {
     with ArticleIndexService
     with User
     with Role
-    with ContentValidator =>
+    with ContentValidator
+    with Props
+    with DBArticle
+    with NdlaController =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -60,7 +63,7 @@ trait InternController {
       implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
-      val articleIndex = Future { articleIndexService.findAllIndexes(ArticleApiProperties.ArticleSearchIndex) }
+      val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
 
       val deleteResults: Seq[Try[_]] = Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
         case (Failure(articleFail)) => halt(status = 500, body = articleFail.getMessage)

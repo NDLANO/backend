@@ -7,7 +7,7 @@
 
 package articleapi.db.migration
 
-import articleapi.db.migration.V20__UpdateH5PDomainForFF
+import articleapi.db.migrationwithdependencies.V20__UpdateH5PDomainForFF
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V20__UpdateH5PDomainForFFTest extends UnitSuite with TestEnvironment {

@@ -11,7 +11,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
+import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag, DBArticle}
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
@@ -21,7 +21,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
-  this: DataSource =>
+  this: DataSource with DBArticle =>
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging with Repository[Article] {

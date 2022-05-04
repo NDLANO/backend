@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.ArticleApiProperties.Domain
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -19,13 +19,17 @@ import org.postgresql.util.PGobject
 import scalaj.http.Http
 import scalikejdbc.{DB, DBSession, _}
 
-import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
+import scala.util.{Failure, Success, Try}
 
-class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
+class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
+    extends BaseJavaMigration
+    with Props
+    with DBArticle {
+  override val props: ArticleApiProperties = properties
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val TaxonomyApiEndpoint           = s"$Domain/taxonomy/v1"
+  private val TaxonomyApiEndpoint           = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
 
   case class TaxonomyResource(contentUri: Option[String], id: Option[String])

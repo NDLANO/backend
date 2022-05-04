@@ -79,7 +79,7 @@ class ArticleApiProviderCDCTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+    server = Some(MainClass.startServer(serverPort))
   }
 
   override def afterAll(): Unit = {

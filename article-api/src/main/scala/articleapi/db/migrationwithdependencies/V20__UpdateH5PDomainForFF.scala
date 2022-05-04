@@ -4,7 +4,7 @@
  *
  * See LICENSE
  */
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.ArticleApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -14,14 +14,14 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V20__UpdateH5PDomainForFF extends BaseJavaMigration {
+class V20__UpdateH5PDomainForFF(props: ArticleApiProperties) extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
-    if (ArticleApiProperties.Environment == "ff") {
+    if (props.Environment == "ff") {
       db.withinTx { implicit session =>
         migrateArticles
       }

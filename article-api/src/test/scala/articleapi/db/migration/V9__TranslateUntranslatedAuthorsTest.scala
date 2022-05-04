@@ -7,7 +7,7 @@
 
 package articleapi.db.migration
 
-import articleapi.db.migration.{V8_Author, V9__TranslateUntranslatedAuthors}
+import articleapi.db.migrationwithdependencies.{V8_Author, V9__TranslateUntranslatedAuthors}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V9__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {

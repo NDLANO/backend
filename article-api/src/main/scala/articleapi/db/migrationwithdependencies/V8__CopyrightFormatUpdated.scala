@@ -5,11 +5,10 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import java.util.Date
-
-import no.ndla.articleapi.ArticleApiProperties._
+import articleapi.db.migration.{V6_Article, V6_Author}
+import no.ndla.articleapi.ArticleApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
@@ -17,7 +16,10 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V8__CopyrightFormatUpdated extends BaseJavaMigration {
+import java.util.Date
+
+class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMigration {
+  import props._
 
   implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
