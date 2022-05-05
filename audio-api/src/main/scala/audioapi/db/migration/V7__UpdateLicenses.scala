@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JString

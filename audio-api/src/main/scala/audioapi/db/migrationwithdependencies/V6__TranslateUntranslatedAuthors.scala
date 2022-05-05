@@ -5,16 +5,18 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migrationwithdependencies
 
+import audioapi.db.migration.V4_Author
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.AudioApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V6__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLogging {
+class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
+  import props._
   // Translates authors that wasn't translated in V5
   implicit val formats = org.json4s.DefaultFormats
 

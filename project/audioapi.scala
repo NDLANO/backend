@@ -7,7 +7,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object audioapi extends Module {
-  override val MainClass: Option[String] = Some("no.ndla.audioapi.JettyLauncher")
+  override val MainClass: Option[String] = Some("no.ndla.audioapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,

@@ -5,12 +5,13 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migrationwithdependencies
 
+import audioapi.db.migration.V4_Author
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V6__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration        = new V6__TranslateUntranslatedAuthors
+  val migration        = new V6__TranslateUntranslatedAuthors(props)
   implicit val formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {

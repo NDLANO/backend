@@ -9,10 +9,10 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import no.ndla.audioapi.model.api
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.SearchableAudioInformation
-import no.ndla.search.model.{SearchableLanguageValues, SearchableLanguageList}
+import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 
@@ -64,8 +64,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("the", "words"), "unknown")
   )
 
-  val sampleAudio: AudioMetaInformation =
-    AudioMetaInformation(
+  val sampleAudio: domain.AudioMetaInformation =
+    domain.AudioMetaInformation(
       Some(1),
       Some(1),
       domainTitles,

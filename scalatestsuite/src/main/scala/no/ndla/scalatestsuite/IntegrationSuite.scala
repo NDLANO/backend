@@ -64,7 +64,7 @@ abstract class IntegrationSuite(
       dataSourceConfig.setUsername(pgc.getUsername)
       dataSourceConfig.setPassword(pgc.getPassword)
       dataSourceConfig.setJdbcUrl(
-        s"jdbc:postgresql://${pgc.getContainerIpAddress}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}"
+        s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}"
       )
       dataSourceConfig.setSchema(schemaName)
       dataSourceConfig.setMaximumPoolSize(10)
@@ -89,7 +89,7 @@ abstract class IntegrationSuite(
         PropertyKeys.MetaUserNameKey -> container.getUsername,
         PropertyKeys.MetaPasswordKey -> container.getPassword,
         PropertyKeys.MetaResourceKey -> container.getDatabaseName,
-        PropertyKeys.MetaServerKey   -> container.getContainerIpAddress,
+        PropertyKeys.MetaServerKey   -> container.getHost,
         PropertyKeys.MetaPortKey     -> container.getMappedPort(5432).toString,
         PropertyKeys.MetaSchemaKey   -> schemaName
       )

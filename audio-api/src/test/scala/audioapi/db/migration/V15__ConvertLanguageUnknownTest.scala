@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
+import audioapi.db.migration.V15__ConvertLanguageUnknown
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V15__ConvertLanguageUnknownTest extends UnitSuite with TestEnvironment {

@@ -11,8 +11,16 @@ package no.ndla.audioapi
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
+import no.ndla.audioapi.controller.{
+  AudioController,
+  HealthController,
+  InternController,
+  NdlaController,
+  SeriesController
+}
 import no.ndla.audioapi.integration._
+import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
@@ -22,6 +30,8 @@ import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends DataSource
+    with DBAudioMetaInformation
+    with DBSeries
     with AudioRepository
     with SeriesRepository
     with NdlaClient
@@ -32,6 +42,7 @@ trait TestEnvironment
     with ValidationService
     with ConverterService
     with AudioStorageService
+    with NdlaController
     with InternController
     with HealthController
     with AudioController
@@ -50,9 +61,14 @@ trait TestEnvironment
     with MockitoSugar
     with User
     with Role
-    with Clock {
+    with Clock
+    with Props
+    with AudioApiInfo
+    with ErrorHelpers {
+  override val props: AudioApiProperties = new AudioApiProperties
+
   val dataSource: HikariDataSource       = mock[HikariDataSource]
-  val storageName: String                = AudioApiProperties.StorageName
+  val storageName: String                = props.StorageName
   val audioStorage: AudioStorage         = mock[AudioStorage]
   val audioRepository: AudioRepository   = mock[AudioRepository]
   val seriesRepository: SeriesRepository = mock[SeriesRepository]

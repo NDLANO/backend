@@ -15,7 +15,11 @@ import no.ndla.network.secrets.PropertyKeys
 
 import scala.util.Properties._
 
-object AudioApiProperties extends LazyLogging {
+trait Props {
+  val props: AudioApiProperties
+}
+
+class AudioApiProperties extends LazyLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")

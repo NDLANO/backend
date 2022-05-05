@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.model.domain
 
-import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.{AudioApiProperties, Props}
 import no.ndla.language.Language.getSupportedLanguages
 import org.joda.time.DateTime
 import org.json4s.FieldSerializer.ignore
@@ -44,46 +44,50 @@ case class Series(
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
 }
 
-object Series extends SQLSyntaxSupport[Series] {
-  val jsonEncoder: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+trait DBSeries {
+  this: Props =>
 
-  val repositorySerializer: Formats = jsonEncoder +
-    FieldSerializer[Series](
-      ignore("id") orElse
-        ignore("revision") orElse
-        ignore("episodes")
-    )
+  object Series extends SQLSyntaxSupport[Series] {
+    val jsonEncoder: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
-  override val tableName                  = "seriesdata"
-  override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
-
-  def fromId(id: Long, revision: Int, series: SeriesWithoutId): Series = {
-    Series(
-      id = id,
-      revision = revision,
-      episodes = None,
-      title = series.title,
-      coverPhoto = series.coverPhoto,
-      updated = series.updated,
-      created = series.created,
-      description = series.description
-    )
-  }
-
-  def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] =
-    fromResultSet(s.resultName)(rs)
-
-  def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
-    implicit val formats: Formats = jsonEncoder
-    val jsonStr                   = rs.string(s.c("document"))
-    val meta                      = Try(Serialization.read[SeriesWithoutId](jsonStr))
-
-    meta.map(m =>
-      fromId(
-        id = rs.long(s.c("id")),
-        revision = rs.int(s.c("revision")),
-        series = m
+    val repositorySerializer: Formats = jsonEncoder +
+      FieldSerializer[Series](
+        ignore("id") orElse
+          ignore("revision") orElse
+          ignore("episodes")
       )
-    )
+
+    override val tableName                  = "seriesdata"
+    override val schemaName: Option[String] = Some(props.MetaSchema)
+
+    def fromId(id: Long, revision: Int, series: SeriesWithoutId): Series = {
+      new Series(
+        id = id,
+        revision = revision,
+        episodes = None,
+        title = series.title,
+        coverPhoto = series.coverPhoto,
+        updated = series.updated,
+        created = series.created,
+        description = series.description
+      )
+    }
+
+    def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] =
+      fromResultSet(s.resultName)(rs)
+
+    def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
+      implicit val formats: Formats = jsonEncoder
+      val jsonStr                   = rs.string(s.c("document"))
+      val meta                      = Try(Serialization.read[SeriesWithoutId](jsonStr))
+
+      meta.map(m =>
+        fromId(
+          id = rs.long(s.c("id")),
+          revision = rs.int(s.c("revision")),
+          series = m
+        )
+      )
+    }
   }
 }

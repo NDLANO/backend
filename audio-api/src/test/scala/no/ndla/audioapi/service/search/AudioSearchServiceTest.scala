@@ -25,6 +25,8 @@ class AudioSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
+  import props._
+
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val audioSearchService = new AudioSearchService
@@ -62,7 +64,7 @@ class AudioSearchServiceTest
   val updated7: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
   val created: Date  = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val podcastSeries1: Series = Series(
+  val podcastSeries1: domain.Series = domain.Series(
     id = 1,
     revision = 1,
     episodes = None,
@@ -73,7 +75,7 @@ class AudioSearchServiceTest
     created = TestData.yesterday
   )
 
-  val audio1: AudioMetaInformation = AudioMetaInformation(
+  val audio1: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     List(Title("Batmen er på vift med en bil", "nb")),
@@ -90,7 +92,7 @@ class AudioSearchServiceTest
     None
   )
 
-  val audio2: AudioMetaInformation = AudioMetaInformation(
+  val audio2: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(2),
     Some(1),
     List(Title("Pingvinen er ute og går", "nb")),
@@ -107,7 +109,7 @@ class AudioSearchServiceTest
     None
   )
 
-  val audio3: AudioMetaInformation = AudioMetaInformation(
+  val audio3: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(3),
     Some(1),
     List(Title("Superman er ute og flyr", "nb")),
@@ -124,7 +126,7 @@ class AudioSearchServiceTest
     None
   )
 
-  val audio4: AudioMetaInformation = AudioMetaInformation(
+  val audio4: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(4),
     Some(1),
     List(
@@ -145,7 +147,7 @@ class AudioSearchServiceTest
     None
   )
 
-  val audio5: AudioMetaInformation = AudioMetaInformation(
+  val audio5: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(5),
     Some(1),
     List(Title("Synge sangen", "nb")),
@@ -162,7 +164,7 @@ class AudioSearchServiceTest
     None
   )
 
-  val audio6: AudioMetaInformation = AudioMetaInformation(
+  val audio6: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(6),
     Some(1),
     List(Title("Urelatert", "nb"), Title("Unrelated", "en")),
@@ -185,7 +187,7 @@ class AudioSearchServiceTest
     Some(podcastSeries1)
   )
 
-  val audio7: AudioMetaInformation = AudioMetaInformation(
+  val audio7: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(7),
     Some(1),
     List(Title("Não relacionado", "pt-br"), Title("Dogosé", "dos")),
@@ -233,7 +235,7 @@ class AudioSearchServiceTest
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
 
     if (elasticSearchContainer.isSuccess) {
-      audioIndexService.createIndexWithName(AudioApiProperties.SearchIndex)
+      audioIndexService.createIndexWithName(SearchIndex)
       audioIndexService.indexDocument(audio1)
       audioIndexService.indexDocument(audio2)
       audioIndexService.indexDocument(audio3)
@@ -247,28 +249,28 @@ class AudioSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    audioSearchService.getStartAtAndNumResults(None, None) should equal((0, AudioApiProperties.DefaultPageSize))
+    audioSearchService.getStartAtAndNumResults(None, None) should equal((0, DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    audioSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, AudioApiProperties.MaxPageSize))
+    audioSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * AudioApiProperties.DefaultPageSize
+    val expectedStartAt = (page - 1) * DefaultPageSize
     audioSearchService.getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, AudioApiProperties.DefaultPageSize)
+      (expectedStartAt, DefaultPageSize)
     )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page            = 123
-    val expectedStartAt = (page - 1) * AudioApiProperties.MaxPageSize
-    audioSearchService.getStartAtAndNumResults(Some(page), Some(AudioApiProperties.MaxPageSize)) should equal(
-      (expectedStartAt, AudioApiProperties.MaxPageSize)
+    val expectedStartAt = (page - 1) * MaxPageSize
+    audioSearchService.getStartAtAndNumResults(Some(page), Some(MaxPageSize)) should equal(
+      (expectedStartAt, MaxPageSize)
     )
   }
 

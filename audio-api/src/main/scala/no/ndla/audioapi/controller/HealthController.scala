@@ -8,15 +8,14 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.{AudioApiProperties, Props}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.ApplicationUrl
 import org.scalatra.{ActionResult, InternalServerError, Ok, ScalatraServlet}
-
 import scalaj.http.{Http, HttpResponse}
 
 trait HealthController {
-  this: AudioRepository =>
+  this: AudioRepository with Props =>
   val healthController: HealthController
 
   class HealthController extends ScalatraServlet {
@@ -42,13 +41,13 @@ trait HealthController {
 
     get("/") {
       val host = "localhost"
-      val port = AudioApiProperties.ApplicationPort
+      val port = props.ApplicationPort
 
       audioRepository
         .getRandomAudio()
         .map(audio => {
           val id         = audio.id.get
-          val previewUrl = s"http://$host:$port${AudioApiProperties.AudioControllerPath}$id"
+          val previewUrl = s"http://$host:$port${props.AudioControllerPath}$id"
           getReturnCode(getApiResponse(previewUrl))
         })
         .getOrElse(Ok())

@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
+import audioapi.db.migration.V8__MoveManuscriptFromPodcastToAudio
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V8__MoveManuscriptFromPodcastToAudioTest extends UnitSuite with TestEnvironment {

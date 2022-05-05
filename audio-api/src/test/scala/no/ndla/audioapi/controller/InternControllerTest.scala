@@ -86,7 +86,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       status should equal(200)
       body should equal("Deleted 3 indexes")
     }
-    verify(audioIndexService).findAllIndexes(AudioApiProperties.SearchIndex)
+    verify(audioIndexService).findAllIndexes(props.SearchIndex)
     verify(audioIndexService).deleteIndexWithName(Some("index1"))
     verify(audioIndexService).deleteIndexWithName(Some("index2"))
     verify(audioIndexService).deleteIndexWithName(Some("index3"))
@@ -97,7 +97,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     reset(audioIndexService)
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(audioIndexService)
-      .findAllIndexes(AudioApiProperties.SearchIndex)
+      .findAllIndexes(props.SearchIndex)
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))

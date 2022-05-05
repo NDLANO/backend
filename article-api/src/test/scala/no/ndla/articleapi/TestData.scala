@@ -104,7 +104,7 @@ trait TestData {
       api.ArticleTag(Seq("tag"), "nb"),
       Seq(),
       None,
-      Some(api.ArticleMetaImage(s"${props.externalApiUrls("raw-image")}/11", "alt", "nb")),
+      Some(api.ArticleMetaImage(s"http://api-gateway.ndla-local/image-api/raw/id/11", "alt", "nb")),
       None,
       api.ArticleMetaDescription("meta description", "nb"),
       today,

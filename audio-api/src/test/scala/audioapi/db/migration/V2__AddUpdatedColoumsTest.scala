@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
+import audioapi.db.migration.{TimeService, V2_DBAudioMetaInformation, V2__AddUpdatedColoums}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V2__AddUpdatedColoumsTest extends UnitSuite with TestEnvironment {

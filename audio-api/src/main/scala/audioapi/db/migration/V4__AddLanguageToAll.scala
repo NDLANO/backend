@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
 import no.ndla.language.Language.languageOrUnknown
 

@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.{AudioApiProperties, Props}
 import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
@@ -24,13 +24,14 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait SeriesIndexService {
-  this: Elastic4sClient with SearchConverterService with IndexService with SeriesRepository =>
+  this: Elastic4sClient with SearchConverterService with IndexService with SeriesRepository with Props =>
 
   val seriesIndexService: SeriesIndexService
 
   class SeriesIndexService extends LazyLogging with IndexService[Series, SearchableSeries] {
-    override val documentType: String         = AudioApiProperties.SeriesSearchDocument
-    override val searchIndex: String          = AudioApiProperties.SeriesSearchIndex
+    import props._
+    override val documentType: String         = SeriesSearchDocument
+    override val searchIndex: String          = SeriesSearchIndex
     override val repository: SeriesRepository = seriesRepository
 
     override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {

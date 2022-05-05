@@ -26,7 +26,7 @@ object Dependencies {
     val RhoV                  = "0.21.0"
     val CirceV                = "0.13.0"
     val ScalikeJDBCV          = "4.0.0-RC2"
-    val TestContainersV       = "1.15.1"
+    val TestContainersV       = "1.17.1"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
     lazy val jodaTime = "joda-time"     % "joda-time" % "2.10"

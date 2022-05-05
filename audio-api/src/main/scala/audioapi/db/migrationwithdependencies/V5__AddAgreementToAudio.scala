@@ -5,20 +5,22 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migrationwithdependencies
 
-import java.util.Date
-
+import audioapi.db.migration._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.AudioApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V5__AddAgreementToAudio extends BaseJavaMigration with LazyLogging {
+import java.util.Date
+
+class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
   implicit val formats = org.json4s.DefaultFormats
+  import props._
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
 
+import audioapi.db.migration.V14__CreateMissingFilePaths
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V14__CreateMissingFilePathsTest extends UnitSuite with TestEnvironment {

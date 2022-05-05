@@ -11,12 +11,8 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties.{
-  AudioTagSearchIndex,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
-}
-import no.ndla.audioapi.model.api.ResultWindowTooLargeException
+import no.ndla.audioapi.Props
+import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
@@ -32,10 +28,14 @@ trait TagSearchService {
     with SearchConverterService
     with SearchService
     with TagIndexService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers =>
   val tagSearchService: TagSearchService
 
   class TagSearchService extends LazyLogging with SearchService[String] {
+    import props._
+
     override val searchIndex: String = AudioTagSearchIndex
     implicit val formats: Formats    = DefaultFormats
 

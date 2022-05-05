@@ -26,7 +26,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val audioMeta = AudioMetaInformation(
+  val audioMeta = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     Seq(Title("Batmen er på vift med en bil", "nb")),

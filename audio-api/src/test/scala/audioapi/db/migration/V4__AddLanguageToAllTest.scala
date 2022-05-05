@@ -5,10 +5,11 @@
  * See LICENSE
  */
 
-package db.migration
+package audioapi.db.migration
+
+import audioapi.db.migration.{V4_Audio, V4_AudioMetaInformation, V4_Copyright, V4_Tag, V4_Title, V4__AddLanguageToAll}
 
 import java.util.Date
-
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
