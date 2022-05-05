@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.conceptapi.ConceptApiProperties._
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.{api, domain}
@@ -27,10 +27,11 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftConceptRepository with StateTransitionRules =>
+  this: Clock with DraftConceptRepository with StateTransitionRules with Props =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    import props.externalApiUrls
 
     def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
       val isLanguageNeutral =
@@ -328,7 +329,8 @@ trait ConverterService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl   = Url.parse(externalApiUrls(resourceType))
+          val x         = props
+          val baseUrl   = Url.parse(x.externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(

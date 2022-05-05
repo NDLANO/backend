@@ -12,11 +12,11 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.SimpleQueryStringFlag
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
+import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
 import no.ndla.conceptapi.model.domain.SearchResult
-import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
@@ -34,11 +34,15 @@ trait PublishedConceptSearchService {
     with SearchService
     with PublishedConceptIndexService
     with ConverterService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers
+    with SearchSettingsHelper =>
   val publishedConceptSearchService: PublishedConceptSearchService
 
   class PublishedConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
-    override val searchIndex: String = ConceptApiProperties.PublishedConceptSearchIndex
+    import props._
+    override val searchIndex: String = PublishedConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
@@ -157,9 +161,9 @@ trait PublishedConceptSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ConceptApiProperties.ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -174,7 +178,7 @@ trait PublishedConceptSearchService {
 
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ConceptApiProperties.ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

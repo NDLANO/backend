@@ -8,7 +8,7 @@ import sbtassembly.AssemblyPlugin
 import sbtdocker.DockerPlugin
 
 object conceptapi extends Module {
-  override val MainClass: Option[String] = Some("no.ndla.conceptapi.JettyLauncher")
+  override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,

@@ -1,21 +1,20 @@
 /*
  * Part of NDLA concept-api
- * Copyright (C) 2021 NDLA
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
 
-package db.migration
+package conceptapi.db.migration
 
-import no.ndla.conceptapi.model.api.{ConceptContent, ConceptTags}
-import no.ndla.conceptapi.model.domain.{ConceptMetaImage, ConceptTitle, VisualElement}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
+import scalikejdbc.{DB, DBSession, _}
 
-class V9__LanguageUnknownToUnd extends BaseJavaMigration {
+class V11__RemoveEmptyStringMetaImages extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -104,54 +103,16 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
 
   def convertToNewConcept(document: String): String = {
     val concept = parse(document)
-    val titles = (concept \ "title")
-      .extract[Seq[ConceptTitle]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
-    val content = (concept \ "content")
-      .extract[Seq[ConceptContent]]
-      .map(c => {
-        if (c.language == "unknown")
-          c.copy(language = "und")
-        else
-          c
-      })
-    val tags = (concept \ "tags")
-      .extract[Seq[ConceptTags]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
-    val metaImage = (concept \ "metaImage")
-      .extract[Seq[ConceptMetaImage]]
-      .map(m => {
-        if (m.language == "unknown")
-          m.copy(language = "und")
-        else
-          m
-      })
-    val visualElement = (concept \ "visualElement")
-      .extract[Seq[VisualElement]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
-
     val newConcept = concept
-      .replace(List("title"), Extraction.decompose(titles))
-      .replace(List("content"), Extraction.decompose(content))
-      .replace(List("tags"), Extraction.decompose(tags))
-      .replace(List("metaImage"), Extraction.decompose(metaImage))
-      .replace(List("visualElement"), Extraction.decompose(visualElement))
-
+      .mapField {
+        case ("metaImage", metaImage: JArray) =>
+          val metaImages    = metaImage.extract[Seq[OldMetaImage]]
+          val newMetaImages = metaImages.filter(_.imageId.nonEmpty)
+          "metaImage" -> Extraction.decompose(newMetaImages)
+        case x => x
+      }
     compact(render(newConcept))
   }
+
+  case class OldMetaImage(imageId: String, altText: String, language: String)
 }

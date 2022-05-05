@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package conceptapi.db.migration
 
+import conceptapi.db.migration.V5__MigrateStatusToQualityAssured
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V5__MigrateStatusToQualityAssuredTest extends UnitSuite with TestEnvironment {

@@ -66,7 +66,7 @@ abstract class UnitTestSuite
       return port;
     } catch {
       case e: IOException =>
-        System.err.println("Failed to open socket", e);
+        System.err.println(("Failed to open socket", e));
     } finally {
       if (socket != null) {
         closeQuietly(socket)

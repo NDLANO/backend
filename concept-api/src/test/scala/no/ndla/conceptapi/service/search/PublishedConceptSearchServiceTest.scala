@@ -7,10 +7,9 @@
 
 package no.ndla.conceptapi.service.search
 
-import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, DefaultPageSize}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
-import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -23,6 +22,7 @@ import scala.util.Success
 class PublishedConceptSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with TestEnvironment {
+  import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
@@ -170,7 +170,7 @@ class PublishedConceptSearchServiceTest
     content = List(ConceptContent("englandocontent", "en"))
   )
 
-  val searchSettings: SearchSettings = SearchSettings(
+  val searchSettings: search.SearchSettings = search.SearchSettings(
     withIdIn = List.empty,
     searchLanguage = DefaultLanguage,
     page = 1,
@@ -186,7 +186,7 @@ class PublishedConceptSearchServiceTest
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    publishedConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
+    publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
     publishedConceptIndexService.indexDocument(concept1)
     publishedConceptIndexService.indexDocument(concept2)
@@ -206,7 +206,7 @@ class PublishedConceptSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    publishedConceptSearchService.getStartAtAndNumResults(0, 20001) should equal((0, ConceptApiProperties.MaxPageSize))
+    publishedConceptSearchService.getStartAtAndNumResults(0, 20001) should equal((0, props.MaxPageSize))
   }
 
   test(

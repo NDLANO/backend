@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{Concept, NewConcept, TagsSearchResult, UpdatedConcept}
 import no.ndla.conceptapi.service.search.DraftConceptSearchService
@@ -22,7 +22,7 @@ This is just to share endpoints between controllers while frontend migration is 
 TODO: Move the endpoints to [[DraftConceptController]] and delete this file when frontend starts using [[DraftConceptController]] instead of [[PublishedConceptController]] for creating and updating
  */
 trait DraftNdlaController {
-  this: ReadService with WriteService with User with DraftConceptSearchService =>
+  this: ReadService with WriteService with User with DraftConceptSearchService with NdlaController with Props =>
   abstract class DraftNdlaControllerClass() extends NdlaController {
     get(
       "/tag-search/",
@@ -43,8 +43,8 @@ trait DraftNdlaController {
     ) {
 
       val query = paramOrDefault(this.query.paramName, "")
-      val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => ConceptApiProperties.DefaultPageSize
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
         case x                        => x
       }
       val pageNo = intOrDefault(this.pageNo.paramName, 1) match {

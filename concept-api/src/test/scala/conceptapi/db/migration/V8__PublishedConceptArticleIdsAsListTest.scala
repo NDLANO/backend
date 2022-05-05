@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package conceptapi.db.migration
 
+import conceptapi.db.migration.V8__PublishedConceptArticleIdsAsList
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V8__PublishedConceptArticleIdsAsListTest extends UnitSuite with TestEnvironment {

@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package conceptapi.db.migration
 
+import conceptapi.db.migration.V9__LanguageUnknownToUnd
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V9__LanguageUnknownToUndTest extends UnitSuite with TestEnvironment {

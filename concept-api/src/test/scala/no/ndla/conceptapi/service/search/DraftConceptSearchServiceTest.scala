@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.service.search
 
-import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, DefaultPageSize}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
@@ -21,6 +20,7 @@ import org.scalatest.Outcome
 import scala.util.Success
 
 class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+  import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
@@ -203,7 +203,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      draftConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
+      draftConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
       draftConceptIndexService.indexDocument(concept1)
       draftConceptIndexService.indexDocument(concept2)
@@ -225,7 +225,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    draftConceptSearchService.getStartAtAndNumResults(0, 20001) should equal((0, ConceptApiProperties.MaxPageSize))
+    draftConceptSearchService.getStartAtAndNumResults(0, 20001) should equal((0, props.MaxPageSize))
   }
 
   test(

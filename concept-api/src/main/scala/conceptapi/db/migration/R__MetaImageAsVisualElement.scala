@@ -5,17 +5,19 @@
  * See LICENSE
  */
 
-package db.migration
+package conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.JArray
+import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V11__RemoveEmptyStringMetaImages extends BaseJavaMigration {
+class R__MetaImageAsVisualElement extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
+
+  override def getChecksum: Integer = 0 // Increment this number to re-run
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -101,18 +103,37 @@ class V11__RemoveEmptyStringMetaImages extends BaseJavaMigration {
       .update()
   }
 
+  private def mergeFields(
+      lessImportant: Seq[NewVisualElement],
+      moreImportant: Seq[NewVisualElement]
+  ): Seq[NewVisualElement] = {
+    val toKeep = lessImportant.filterNot(item => moreImportant.map(_.language).contains(item.language))
+    (toKeep ++ moreImportant).filterNot(_.visualElement.isEmpty)
+  }
+
+  def convertMetaImageToVisualElement(image: OldMetaImage): Option[NewVisualElement] = {
+    if (image.imageId.isEmpty) None
+    else {
+      val embedString =
+        s"""<embed data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
+      Some(NewVisualElement(embedString, image.language))
+    }
+  }
+
   def convertToNewConcept(document: String): String = {
-    val concept = parse(document)
-    val newConcept = concept
-      .mapField {
-        case ("metaImage", metaImage: JArray) =>
-          val metaImages    = metaImage.extract[Seq[OldMetaImage]]
-          val newMetaImages = metaImages.filter(_.imageId.nonEmpty)
-          "metaImage" -> Extraction.decompose(newMetaImages)
-        case x => x
-      }
+    val concept                 = parse(document)
+    val metaImages              = (concept \ "metaImage").extract[Seq[OldMetaImage]]
+    val visualElements          = (concept \ "visualElement").extract[Seq[NewVisualElement]]
+    val convertedVisualElements = metaImages.flatMap(convertMetaImageToVisualElement)
+
+    // Existing visualElements are deemed more important than the ones gotten from metaImages so they will always "win"
+    val newVisualElements = mergeFields(convertedVisualElements, visualElements)
+
+    val newConcept = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
+
     compact(render(newConcept))
   }
 
   case class OldMetaImage(imageId: String, altText: String, language: String)
+  case class NewVisualElement(visualElement: String, language: String)
 }

@@ -9,7 +9,7 @@ package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import scalaj.http.Http
@@ -20,11 +20,11 @@ case class ImageAltText(alttext: String, language: String)
 case class DomainImageMeta(id: Long, alttexts: Seq[ImageAltText])
 
 trait ImageApiClient {
-  this: NdlaClient with LazyLogging =>
+  this: NdlaClient with LazyLogging with Props =>
   val imageApiClient: ImageApiClient
 
   class ImageApiClient {
-    val baseUrl = s"http://${ConceptApiProperties.ImageApiHost}"
+    val baseUrl = s"http://${props.ImageApiHost}"
 
     def getImage(urlToImage: String): Try[DomainImageMeta] = {
       get[DomainImageMeta]("intern/domain_image_from_url/", params = Map("url" -> urlToImage), 5000)

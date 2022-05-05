@@ -7,20 +7,22 @@
 
 package no.ndla.conceptapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
+
 import java.net.Socket
 import java.util.Date
 import no.ndla.conceptapi._
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
+import scalikejdbc.{DB, _}
 
 import scala.util.{Failure, Success, Try}
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
-  override val dataSource                    = testDataSource.get
+  override val dataSource: HikariDataSource  = testDataSource.get
+  override val migrator                      = new DBMigrator
   var repository: PublishedConceptRepository = _
 
   // Skip tests if no docker environment available
@@ -55,14 +57,14 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     super.beforeAll()
     Try {
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-        DBMigrator.migrate(dataSource)
+        DataSource.connectToDatabase()
+        migrator.migrate()
       }
     }
   }
 
   def serverIsListening: Boolean = {
-    Try(new Socket(ConceptApiProperties.MetaServer, ConceptApiProperties.MetaPort)) match {
+    Try(new Socket(props.MetaServer, props.MetaPort)) match {
       case Success(c) =>
         c.close()
         true

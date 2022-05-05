@@ -8,10 +8,10 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptTags}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, DBConcept}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -20,7 +20,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptRepository {
-  this: DataSource =>
+  this: DataSource with DBConcept with Props with ErrorHelpers =>
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends LazyLogging with Repository[Concept] {
@@ -239,7 +239,7 @@ trait DraftConceptRepository {
     def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Int = {
       val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
       val sequenceName = SQLSyntax.createUnsafely(
-        s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq"
+        s"${Concept.schemaName.getOrElse(props.MetaSchema)}.${Concept.tableName}_id_seq"
       )
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()

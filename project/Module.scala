@@ -59,7 +59,7 @@ trait Module {
       "-unchecked",
       "-deprecation",
       "-feature",
-      "-Xfatal-warnings",
+//      "-Xfatal-warnings",
       "-Xlint:-strict-unsealed-patmat",
       "-Wconf:src=src_managed/.*:silent",
       "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
@@ -74,7 +74,7 @@ trait Module {
   ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    if (sys.env.get("DISABLE_SUB_DOTENV").contains("true")) Seq.empty
+    if (true) Seq.empty
     else
       Seq(
         fork := true,
