@@ -21,30 +21,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment {
 
-  def findFreePort: Int = {
-    def closeQuietly(socket: ServerSocket): Unit = {
-      try {
-        socket.close()
-      } catch { case _: Throwable => }
-    }
-    var socket: ServerSocket = null
-    try {
-      socket = new ServerSocket(0)
-      socket.setReuseAddress(true)
-      val port = socket.getLocalPort
-      closeQuietly(socket)
-      return port;
-    } catch {
-      case e: IOException =>
-        println("Failed to open socket")
-    } finally {
-      if (socket != null) {
-        closeQuietly(socket)
-      }
-    }
-    throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
-  }
-
   val serverPort: Int               = findFreePort
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
   implicit val timer: Timer[IO]     = IO.timer(global)
