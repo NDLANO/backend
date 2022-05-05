@@ -5,13 +5,12 @@
  * See LICENSE
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import articleapi.db.migrationwithdependencies.{V8_Author, V9__TranslateUntranslatedAuthors}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V9__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
-  val migration        = new V9__TranslateUntranslatedAuthors
+  val migration        = new V9__TranslateUntranslatedAuthors(props)
   implicit val formats = org.json4s.DefaultFormats
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {

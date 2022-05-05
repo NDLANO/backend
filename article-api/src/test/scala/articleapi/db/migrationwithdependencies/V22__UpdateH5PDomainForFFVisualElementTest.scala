@@ -6,13 +6,12 @@
  *
  */
 
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import articleapi.db.migrationwithdependencies.V22__UpdateH5PDomainForFFVisualElement
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V22__UpdateH5PDomainForFFVisualElementTest extends UnitSuite with TestEnvironment {
-  val migration = new V22__UpdateH5PDomainForFFVisualElement
+  val migration = new V22__UpdateH5PDomainForFFVisualElement(props)
 
   test("article should get new h5p domains, and only that") {
 

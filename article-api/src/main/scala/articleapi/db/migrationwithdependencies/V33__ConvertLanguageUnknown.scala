@@ -68,7 +68,7 @@ class V33__ConvertLanguageUnknown(properties: ArticleApiProperties)
       .update()
   }
 
-  private[migration] def convertArticleUpdate(document: String): String = {
+  def convertArticleUpdate(document: String): String = {
     val oldArticle       = parse(document)
     val extractedArticle = oldArticle.extract[Article]
     val title = extractedArticle.title.map(t => {

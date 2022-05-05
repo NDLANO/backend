@@ -76,7 +76,7 @@ class V20__UpdateH5PDomainForFF(props: ArticleApiProperties) extends BaseJavaMig
     html.replaceAll(oldDomain, newDomain)
   }
 
-  private[migration] def convertArticleUpdate(document: String): String = {
+  def convertArticleUpdate(document: String): String = {
     val oldArticle = parse(document)
 
     val newArticle = oldArticle.mapField {

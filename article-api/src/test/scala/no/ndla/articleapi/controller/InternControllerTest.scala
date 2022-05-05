@@ -53,7 +53,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       status should equal(200)
       body should equal("Deleted 2 indexes")
     }
-    verify(articleIndexService).findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
+    verify(articleIndexService).findAllIndexes(props.ArticleSearchIndex)
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verifyNoMoreInteractions(articleIndexService)
@@ -64,7 +64,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(articleIndexService)
-      .findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
+      .findAllIndexes(props.ArticleSearchIndex)
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     delete("/index") {

@@ -4,13 +4,12 @@
  *
  * See LICENSE
  */
-package articleapi.db.migration
+package articleapi.db.migrationwithdependencies
 
-import articleapi.db.migrationwithdependencies.R__SetArticleTypeFromTaxonomy
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class R__SetArticleTypeFromTaxonomyTest extends UnitSuite with TestEnvironment {
-  val migration = new R__SetArticleTypeFromTaxonomy
+  val migration = new R__SetArticleTypeFromTaxonomy(props)
 
   test("Articles that are 'topic's in taxonomy will be migrated to 'topic-article's") {
     val standard = """{"id":1,"articleType":"standard"}"""

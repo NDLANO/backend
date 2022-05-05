@@ -77,7 +77,7 @@ class V22__UpdateH5PDomainForFFVisualElement(props: ArticleApiProperties) extend
     html.replaceAll(oldDomain, newDomain)
   }
 
-  private[migration] def convertArticleUpdate(document: String): String = {
+  def convertArticleUpdate(document: String): String = {
     val oldArticle = parse(document)
 
     val newArticle = oldArticle.mapField {

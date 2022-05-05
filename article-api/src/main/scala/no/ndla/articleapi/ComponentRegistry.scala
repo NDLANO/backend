@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import articleapi.db.migrationwithdependencies.{R__SetArticleLanguageFromTaxonomy, V37__ViLagerEnTest}
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
@@ -24,7 +23,6 @@ import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends Props
