@@ -75,6 +75,7 @@ trait SearchIndexService {
 
           e4sClient
             .execute {
+              deleteById(searchIndex, learningPath.id.get.toString)
               indexInto(searchIndex)
                 .doc(source)
                 .id(learningPath.id.get.toString)
