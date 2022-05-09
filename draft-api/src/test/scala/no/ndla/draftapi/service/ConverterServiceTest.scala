@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NewArticleMetaImage}
+import no.ndla.draftapi.model.api.NewArticleMetaImage
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}

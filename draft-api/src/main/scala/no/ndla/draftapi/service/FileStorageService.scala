@@ -8,19 +8,20 @@
 package no.ndla.draftapi.service
 
 import java.io.InputStream
-
 import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.AttachmentStorageName
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.AmazonClient
 
 import scala.util.Try
 
 trait FileStorageService {
-  this: AmazonClient =>
+  this: AmazonClient with Props =>
   val fileStorage: FileStorageService
 
   class FileStorageService extends LazyLogging {
+    import props.AttachmentStorageName
+
     private val resourceDirectory = "resources"
 
     def uploadResourceFromStream(

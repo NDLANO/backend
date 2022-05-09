@@ -10,9 +10,11 @@ package no.ndla.scalatestsuite
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import no.ndla.network.secrets.PropertyKeys
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.elasticsearch.ElasticsearchContainer
 import org.testcontainers.utility.DockerImageName
 
+import java.time.Duration
 import scala.util.{Failure, Success, Try}
 
 abstract class IntegrationSuite(
@@ -30,9 +32,12 @@ abstract class IntegrationSuite(
       .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")
 
     Try {
-      val container = new ElasticsearchContainer(searchEngineImage)
+      val container = new ElasticsearchContainer(searchEngineImage) {
+        this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+      }
       container.addEnv("xpack.security.enabled", "false")
       container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
+      container.addEnv("discovery.type", "single-node")
       container.start()
       container
     }
@@ -45,11 +50,13 @@ abstract class IntegrationSuite(
   })
 
   val postgresContainer: Try[PostgreSQLContainer[Nothing]] = if (EnablePostgresContainer) {
-    val username         = "postgres"
+    val username: String = "postgres"
     val password: String = "hemmelig"
     val resource: String = "postgres"
 
-    val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion")
+    val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
+      this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+    }
     c.withDatabaseName(resource)
     c.withUsername(username)
     c.withPassword(password)
@@ -58,7 +65,7 @@ abstract class IntegrationSuite(
     Success(c)
   } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }
 
-  val testDataSource: Try[HikariDataSource] = postgresContainer.flatMap(pgc =>
+  def testDataSource: Try[HikariDataSource] = postgresContainer.flatMap(pgc =>
     Try {
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setUsername(pgc.getUsername)

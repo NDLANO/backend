@@ -9,7 +9,7 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
-import no.ndla.draftapi.DraftApiProperties.SearchApiHost
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -23,10 +23,10 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://$SearchApiHost") extends LazyLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends LazyLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 1000 * 60

@@ -13,7 +13,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 trait RuleController {
-  this: User =>
+  this: User with NdlaController =>
   val ruleController: RuleController
 
   class RuleController(implicit val swagger: Swagger) extends NdlaController {

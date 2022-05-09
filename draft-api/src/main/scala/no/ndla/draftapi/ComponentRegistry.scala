@@ -11,21 +11,23 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.draftapi.DraftApiProperties.SearchServer
 import no.ndla.draftapi.auth.User
+import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
+import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.domain.DBArticle
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
+class ComponentRegistry(properties: DraftApiProperties)
     extends DataSource
     with InternController
+    with DBArticle
     with ConverterService
     with StateTransitionRules
     with LearningpathApiClient
@@ -33,6 +35,8 @@ object ComponentRegistry
     with DraftController
     with AgreementController
     with HealthController
+    with NdlaController
+    with MemoizeHelpers
     with DraftRepository
     with AgreementRepository
     with UserDataRepository
@@ -65,14 +69,18 @@ object ComponentRegistry
     with ConceptApiClient
     with H5PApiClient
     with RuleController
-    with UserDataController {
+    with UserDataController
+    with Props
+    with DBMigrator
+    with ErrorHelpers
+    with DraftApiInfo {
+  override val props: DraftApiProperties = properties
 
-  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+  override val migrator                     = new DBMigrator
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
   implicit val swagger: DraftSwagger = new DraftSwagger
-
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  connectToDatabase()
 
   lazy val internController    = new InternController
   lazy val draftController     = new DraftController
@@ -115,7 +123,7 @@ object ComponentRegistry
       .withRegion(currentRegion.getOrElse(Regions.EU_WEST_1))
       .build()
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
   lazy val clock = new SystemClock
 

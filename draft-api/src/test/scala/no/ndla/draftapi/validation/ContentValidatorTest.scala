@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.validation
 
-import no.ndla.draftapi.DraftApiProperties.H5PResizerScriptUrl
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ValidationException, ValidationMessage}
@@ -158,7 +157,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with a legal required library") {
-    val illegalRequiredLib = RequiredLibrary("text/javascript", "h5p", H5PResizerScriptUrl)
+    val illegalRequiredLib = RequiredLibrary("text/javascript", "h5p", props.H5PResizerScriptUrl)
     val article            = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }

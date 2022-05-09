@@ -7,12 +7,10 @@
 
 package no.ndla.draftapi.consumerdrivencontracts
 
-import java.io.IOException
-import java.net.ServerSocket
-
 import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.draftapi._
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
@@ -31,7 +29,8 @@ class DraftApiProviderCDCTest
     extends IntegrationSuite(EnablePostgresContainer = true)
     with UnitSuite
     with TestEnvironment {
-  override val dataSource = testDataSource.get
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
 
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
@@ -39,29 +38,42 @@ class DraftApiProviderCDCTest
   var server: Option[Server] = None
   val serverPort: Int        = findFreePort
 
+  override val props: DraftApiProperties = new DraftApiProperties {
+    val pgc                           = postgresContainer.get
+    override def ApplicationPort: Int = serverPort
+
+    override def MetaUserName: String = pgc.getUsername
+    override def MetaPassword: String = pgc.getPassword
+    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaPort: Int        = pgc.getMappedPort(5432)
+    override def MetaResource: String = pgc.getDatabaseName
+    override def MetaSchema: String   = "testschema"
+  }
+  val mainClass = new MainClass(props)
+
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
-    DBMigrator.migrate(dataSource)
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    migrator.migrate()
+    DataSource.connectToDatabase()
     DB autoCommit (implicit session => {
       val schemaSqlName = SQLSyntax.createUnsafely(dataSource.getSchema)
       sql"drop schema if exists $schemaSqlName cascade;"
         .execute()
     })
-    DBMigrator.migrate(dataSource)
+    migrator.migrate()
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+    server = Some(mainClass.startServer())
   }
 
   private def setupArticles() =
     (1 to 10)
       .map(id => {
-        ComponentRegistry.draftRepository.insert(
+        mainClass.componentRegistry.draftRepository.insert(
           TestData.sampleDomainArticle.copy(
             id = Some(id),
             updated = new DateTime(0).toDate,
@@ -74,7 +86,7 @@ class DraftApiProviderCDCTest
   private def setupAgreements() =
     (1 to 10)
       .map(id => {
-        ComponentRegistry.agreementRepository.insert(TestData.sampleBySaDomainAgreement.copy(id = Some(id)))
+        mainClass.componentRegistry.agreementRepository.insert(TestData.sampleBySaDomainAgreement.copy(id = Some(id)))
       })
 
   override def afterAll(): Unit = {

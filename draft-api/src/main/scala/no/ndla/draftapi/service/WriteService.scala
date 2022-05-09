@@ -14,7 +14,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.draftapi.model.api.{PartialArticleFields, _}
@@ -57,7 +57,8 @@ trait WriteService {
     with ArticleApiClient
     with SearchApiClient
     with FileStorageService
-    with TaxonomyApiClient =>
+    with TaxonomyApiClient
+    with Props =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
@@ -651,14 +652,14 @@ trait WriteService {
           errors = Seq(
             ValidationMessage(
               "file",
-              s"The file must have one of the supported file extensions: '${supportedUploadExtensions.mkString(", ")}'"
+              s"The file must have one of the supported file extensions: '${props.supportedUploadExtensions.mkString(", ")}'"
             )
           )
         )
 
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 =>
-          supportedUploadExtensions.find(_ == fileName.substring(index).toLowerCase) match {
+          props.supportedUploadExtensions.find(_ == fileName.substring(index).toLowerCase) match {
             case Some(e) => Success(e)
             case _       => Failure(badExtensionError)
           }

@@ -385,7 +385,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
 
     verify(taxonomyApiClient, times(0)).updateTopic(any[Topic])(any[Formats])
     verify(taxonomyApiClient, times(0)).updateTopicTranslation(anyString, anyString, anyString)
-    verify(taxonomyApiClient, times(1)).delete(eqTo(s"${DraftApiProperties.Domain}/taxonomy/v1/resources/urn:resource:1:12312/translations/nn"), any[(String, String)])
+    verify(taxonomyApiClient, times(1)).delete(eqTo(s"${props.Domain}/taxonomy/v1/resources/urn:resource:1:12312/translations/nn"), any[(String, String)])
     // format: on
   }
 }
