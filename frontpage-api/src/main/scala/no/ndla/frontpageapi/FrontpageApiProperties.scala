@@ -13,7 +13,11 @@ import no.ndla.network.secrets.PropertyKeys
 
 import scala.util.Properties._
 
-object FrontpageApiProperties {
+trait Props {
+  val props: FrontpageApiProperties
+}
+
+class FrontpageApiProperties {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
   val Environment: String   = propOrElse("NDLA_ENVIRONMENT", "local")
 

@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.repository
 
 import io.circe.syntax._
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.model.domain.FilmFrontPageData
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, FilmFrontPageData}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 import FilmFrontPageData._
@@ -17,10 +17,11 @@ import FilmFrontPageData._
 import scala.util.{Failure, Success, Try}
 
 trait FilmFrontPageRepository {
-  this: DataSource =>
+  this: DataSource with DBFilmFrontPageData =>
   val filmFrontPageRepository: FilmFrontPageRepository
 
   class FilmFrontPageRepository {
+    import FilmFrontPageData._
 
     def newFilmFrontPage(page: FilmFrontPageData)(implicit session: DBSession = AutoSession): Try[FilmFrontPageData] = {
       val dataObject = new PGobject()
@@ -28,24 +29,24 @@ trait FilmFrontPageRepository {
       dataObject.setValue(page.asJson.noSpacesDropNull)
 
       Try(
-        sql"insert into ${FilmFrontPageData.table} (document) values (${dataObject})"
+        sql"insert into ${DBFilmFrontPageData.table} (document) values (${dataObject})"
           .updateAndReturnGeneratedKey()
       ).map(deleteAllBut).map(_ => page)
     }
 
     private def deleteAllBut(id: Long)(implicit session: DBSession) = {
       Try(
-        sql"delete from ${FilmFrontPageData.table} where id<>${id} "
+        sql"delete from ${DBFilmFrontPageData.table} where id<>${id} "
           .update()
       ).map(_ => id)
     }
 
     def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPageData] = {
-      val fr = FilmFrontPageData.syntax("fr")
+      val fr = DBFilmFrontPageData.syntax("fr")
 
       Try(
-        sql"select ${fr.result.*} from ${FilmFrontPageData.as(fr)} order by fr.id desc limit 1"
-          .map(FilmFrontPageData.fromDb(fr))
+        sql"select ${fr.result.*} from ${DBFilmFrontPageData.as(fr)} order by fr.id desc limit 1"
+          .map(DBFilmFrontPageData.fromDb(fr))
           .single()
       ) match {
         case Success(Some(Success(s))) => Some(s)

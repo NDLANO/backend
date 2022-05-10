@@ -14,7 +14,7 @@ import org.http4s.rho.RhoRoutes
 import org.http4s.rho.swagger.SwaggerSyntax
 
 trait FrontPageController {
-  this: ReadService with WriteService =>
+  this: ReadService with WriteService with ErrorHelpers =>
   val frontPageController: FrontPageController[IO]
 
   class FrontPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
@@ -26,7 +26,7 @@ trait FrontPageController {
         {
           readService.frontPage match {
             case Some(s) => Ok(s)
-            case None    => NotFound(Error.notFound)
+            case None    => NotFound(ErrorHelpers.notFound)
           }
         }
       }

@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package frontpageapi.db.migration
 
 import io.circe.generic.auto._
 import io.circe.generic.semiauto._

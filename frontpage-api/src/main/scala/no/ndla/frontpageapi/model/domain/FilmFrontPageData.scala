@@ -12,7 +12,7 @@ import io.circe.generic.auto._
 import io.circe.generic.semiauto._
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
-import no.ndla.frontpageapi.FrontpageApiProperties
+import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
 import scalikejdbc.{WrappedResultSet, _}
 
 import scala.util.Try
@@ -24,23 +24,29 @@ case class FilmFrontPageData(
     slideShow: Seq[String]
 )
 
-object FilmFrontPageData extends SQLSyntaxSupport[FilmFrontPageData] {
-  override val tableName  = "filmfrontpage"
-  override val schemaName = FrontpageApiProperties.MetaSchema.some
-
+object FilmFrontPageData {
   implicit val decoder: Decoder[FilmFrontPageData] = deriveDecoder
   implicit val encoder: Encoder[FilmFrontPageData] = deriveEncoder
 
   private[domain] def decodeJson(json: String): Try[FilmFrontPageData] = {
     parse(json).flatMap(_.as[FilmFrontPageData]).toTry
   }
+}
 
-  def fromDb(lp: SyntaxProvider[FilmFrontPageData])(rs: WrappedResultSet): Try[FilmFrontPageData] =
-    fromDb(lp.resultName)(rs)
+trait DBFilmFrontPageData {
+  this: Props =>
 
-  private def fromDb(lp: ResultName[FilmFrontPageData])(rs: WrappedResultSet): Try[FilmFrontPageData] = {
-    val document = rs.string(lp.c("document"))
-    decodeJson(document)
+  object DBFilmFrontPageData extends SQLSyntaxSupport[FilmFrontPageData] {
+    override val tableName                  = "filmfrontpage"
+    override val schemaName: Option[String] = props.MetaSchema.some
+
+    def fromDb(lp: SyntaxProvider[FilmFrontPageData])(rs: WrappedResultSet): Try[FilmFrontPageData] =
+      fromDb(lp.resultName)(rs)
+
+    private def fromDb(lp: ResultName[FilmFrontPageData])(rs: WrappedResultSet): Try[FilmFrontPageData] = {
+      val document = rs.string(lp.c("document"))
+      FilmFrontPageData.decodeJson(document)
+    }
+
   }
-
 }

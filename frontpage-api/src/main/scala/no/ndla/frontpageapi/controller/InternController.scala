@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.controller
 
 import cats.effect.{Effect, IO}
-import no.ndla.frontpageapi.FrontpageApiProperties
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
@@ -18,7 +18,7 @@ import org.http4s.rho.swagger.SwaggerSyntax
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService with WriteService =>
+  this: ReadService with WriteService with Props with ErrorHelpers =>
   val internController: InternController[IO]
 
   class InternController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
@@ -29,8 +29,8 @@ trait InternController {
         {
           readService.getIdFromExternalId(nid) match {
             case Success(Some(id)) => Ok(id)
-            case Success(None)     => NotFound(Error.notFound)
-            case Failure(_)        => InternalServerError(Error.generic)
+            case Success(None)     => NotFound(ErrorHelpers.notFound)
+            case Failure(_)        => InternalServerError(ErrorHelpers.generic)
           }
         }
       }
@@ -40,8 +40,8 @@ trait InternController {
         {
           writeService.newSubjectPage(subjectPage) match {
             case Success(s)                       => Ok(s)
-            case Failure(ex: ValidationException) => BadRequest(Error.badRequest(ex.getMessage))
-            case Failure(_)                       => InternalServerError(Error.generic)
+            case Failure(ex: ValidationException) => BadRequest(ErrorHelpers.badRequest(ex.getMessage))
+            case Failure(_)                       => InternalServerError(ErrorHelpers.generic)
           }
         }
       }
@@ -50,11 +50,11 @@ trait InternController {
       PUT / "subjectpage" / pathVar[Long]("subject-id", "The subject id") ^ NewSubjectFrontPageData.decoder |>> {
         (id: Long, subjectPage: NewSubjectFrontPageData) =>
           {
-            writeService.updateSubjectPage(id, subjectPage, FrontpageApiProperties.DefaultLanguage) match {
+            writeService.updateSubjectPage(id, subjectPage, props.DefaultLanguage) match {
               case Success(s)                       => Ok(s)
-              case Failure(_: NotFoundException)    => NotFound(Error.notFound)
-              case Failure(ex: ValidationException) => BadRequest(Error.badRequest(ex.getMessage))
-              case Failure(_)                       => InternalServerError(Error.generic)
+              case Failure(_: NotFoundException)    => NotFound(ErrorHelpers.notFound)
+              case Failure(ex: ValidationException) => BadRequest(ErrorHelpers.badRequest(ex.getMessage))
+              case Failure(_)                       => InternalServerError(ErrorHelpers.generic)
             }
           }
       }
@@ -64,7 +64,7 @@ trait InternController {
         {
           writeService.updateFrontPage(frontPage) match {
             case Success(s) => Ok(s)
-            case Failure(_) => InternalServerError(Error.generic)
+            case Failure(_) => InternalServerError(ErrorHelpers.generic)
           }
         }
       }
