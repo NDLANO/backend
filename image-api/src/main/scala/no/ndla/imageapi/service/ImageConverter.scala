@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.lang.Math.{abs, max, min}
 import javax.imageio.ImageIO
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.{ImageApiProperties, Props}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import org.imgscalr.Scalr
@@ -22,6 +22,7 @@ import java.awt.{Color, Transparency}
 import scala.util.{Success, Try}
 
 trait ImageConverter {
+  this: Props =>
   val imageConverter: ImageConverter
   case class PixelPoint(x: Int, y: Int) // A point given with pixles
   case class PercentPoint(x: Int, y: Int) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
@@ -96,9 +97,7 @@ trait ImageConverter {
       val minWidth    = min(targetWidth, sourceImage.getWidth)
       val minHeight   = min(targetHeight, sourceImage.getHeight)
       val method =
-        if (
-          minWidth >= ImageApiProperties.ImageScalingUltraMinSize && minWidth <= ImageApiProperties.ImageScalingUltraMaxSize
-        )
+        if (minWidth >= props.ImageScalingUltraMinSize && minWidth <= props.ImageScalingUltraMaxSize)
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
       Try(Scalr.resize(sourceImage, method, minWidth, minHeight))
@@ -108,9 +107,7 @@ trait ImageConverter {
     private def resize(originalImage: ImageStream, mode: Mode, targetSize: Int): Try[ImageStream] = {
       val sourceImage = originalImage.sourceImage
       val method =
-        if (
-          targetSize >= ImageApiProperties.ImageScalingUltraMinSize && targetSize <= ImageApiProperties.ImageScalingUltraMaxSize
-        )
+        if (targetSize >= props.ImageScalingUltraMinSize && targetSize <= props.ImageScalingUltraMaxSize)
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
       Try(Scalr.resize(sourceImage, method, mode, targetSize)).map(resized => toImageStream(resized, originalImage))

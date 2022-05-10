@@ -5,17 +5,17 @@
  * See LICENSE
  */
 
-package db.migration
+package imageapi.db.migration
 
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.{JField, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, JObject}
+import org.json4s.{DefaultFormats, JArray, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V10__DefaultModelReleasedToNotSet extends BaseJavaMigration {
+class V9__AddEditorNotesToImages extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   val timeService                           = new TimeService()
@@ -40,10 +40,15 @@ class V10__DefaultModelReleasedToNotSet extends BaseJavaMigration {
   }
 
   def convertImageUpdate(imageMeta: String): String = {
-    val oldDocument = parse(imageMeta)
+    val oldDocument     = parse(imageMeta)
+    val updatedByString = (oldDocument \ "updatedBy").extract[String]
+    val updatedString   = (oldDocument \ "updated").extract[String]
 
     val mergeObject = JObject(
-      JField("modelReleased", JString(ModelReleasedStatus.NOT_SET.toString))
+      JField("createdBy", JString(updatedByString)),
+      JField("created", JString(updatedString)),
+      JField("modelReleased", JString(ModelReleasedStatus.NO.toString)),
+      JField("editorNotes", JArray(List.empty))
     )
 
     val mergedDoc = oldDocument.merge(mergeObject)

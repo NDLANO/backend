@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.imageapi.ImageApiProperties.{DefaultPageSize, MaxPageSize}
 import no.ndla.imageapi.TestData.searchSettings
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
@@ -28,6 +27,7 @@ class ImageSearchServiceTest
     with UnitSuite
     with TestEnvironment
     with PrivateMethodTester {
+  import props.{DefaultPageSize, MaxPageSize}
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {

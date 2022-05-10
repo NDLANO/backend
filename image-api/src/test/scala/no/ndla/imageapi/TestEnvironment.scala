@@ -11,8 +11,16 @@ package no.ndla.imageapi
 import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
-import no.ndla.imageapi.controller.{HealthController, ImageControllerV2, InternController, RawController}
+import no.ndla.imageapi.controller.{
+  HealthController,
+  ImageControllerV2,
+  InternController,
+  NdlaController,
+  RawController
+}
 import no.ndla.imageapi.integration._
+import no.ndla.imageapi.model.api.ErrorHelpers
+import no.ndla.imageapi.model.domain.DBImageMetaInformation
 import no.ndla.imageapi.repository._
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -57,7 +65,16 @@ trait TestEnvironment
     with MockitoSugar
     with User
     with Role
-    with Clock {
+    with Clock
+    with Props
+    with DBImageMetaInformation
+    with ErrorHelpers
+    with DBMigrator
+    with NdlaController
+    with ImagesApiInfo {
+  val props = new ImageApiProperties
+
+  val migrator     = mock[DBMigrator]
   val amazonClient = mock[AmazonS3]
 
   val dataSource         = mock[HikariDataSource]

@@ -8,9 +8,10 @@
 package no.ndla.imageapi.controller
 
 import io.lemonlabs.uri.Uri
+import no.ndla.imageapi.Props
+
 import javax.servlet.http.HttpServletRequest
-import no.ndla.imageapi.ImageApiProperties.ValidMimeTypes
-import no.ndla.imageapi.model.api.Error
+import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService}
@@ -21,10 +22,11 @@ import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger, SwaggerSupport
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
-  this: ImageStorageService with ImageConverter with ImageRepository =>
+  this: ImageStorageService with ImageConverter with ImageRepository with ErrorHelpers with NdlaController with Props =>
   val rawController: RawController
 
   class RawController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+    import props.ValidMimeTypes
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription                 = "API for accessing image files from ndla.no."
 
@@ -112,7 +114,7 @@ trait RawController {
             case Failure(ex)  => errorHandler(ex)
             case Success(img) => Ok(img)
           }
-        case None => halt(status = 404, body = Error(Error.NOT_FOUND, s"Image with id $imageId not found"))
+        case None => halt(status = 404, body = Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId not found"))
       }
     }
 

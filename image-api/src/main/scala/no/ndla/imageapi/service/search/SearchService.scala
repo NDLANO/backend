@@ -11,8 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.ElasticSearchScrollKeepAlive
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -22,7 +21,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with IndexService with SearchConverterService =>
+  this: Elastic4sClient with IndexService with SearchConverterService with Props =>
 
   trait SearchService[T] extends LazyLogging {
     val searchIndex: String
@@ -33,7 +32,7 @@ trait SearchService {
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
       e4sClient
         .execute {
-          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+          searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
         .map(response => {
           val hits = getHits(response.result, language)
@@ -96,8 +95,8 @@ trait SearchService {
     protected def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
       val numResults = pageSize match {
         case Some(num) =>
-          if (num > 0) num.min(ImageApiProperties.MaxPageSize) else ImageApiProperties.DefaultPageSize
-        case None => ImageApiProperties.DefaultPageSize
+          if (num > 0) num.min(props.MaxPageSize) else props.DefaultPageSize
+        case None => props.DefaultPageSize
       }
 
       val startAt = page match {
@@ -113,14 +112,14 @@ trait SearchService {
         case e: NdlaSearchException =>
           e.rf.map(_.status).getOrElse(0) match {
             case notFound: Int if notFound == 404 =>
-              logger.error(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex.")
+              logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")
               scheduleIndexDocuments()
               Failure(
-                IndexNotFoundException(s"Index ${ImageApiProperties.SearchIndex} not found. Scheduling a reindex")
+                IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex")
               )
             case _ =>
               logger.error(e.getMessage)
-              Failure(NdlaSearchException(s"Unable to execute search in ${ImageApiProperties.SearchIndex}", e))
+              Failure(NdlaSearchException(s"Unable to execute search in ${props.SearchIndex}", e))
           }
         case t => Failure(t)
       }

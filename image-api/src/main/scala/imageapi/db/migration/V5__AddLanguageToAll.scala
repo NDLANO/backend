@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package imageapi.db.migration
 
 import no.ndla.language.Language
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

@@ -6,7 +6,7 @@
  *
  */
 
-package db.migration
+package imageapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

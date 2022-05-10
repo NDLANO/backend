@@ -9,7 +9,7 @@ package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.{ImageSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.io.ByteArrayInputStream

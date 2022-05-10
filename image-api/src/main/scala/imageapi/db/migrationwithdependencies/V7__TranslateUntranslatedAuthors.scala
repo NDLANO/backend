@@ -5,18 +5,28 @@
  * See LICENSE
  */
 
-package db.migration
+package imageapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties._
+import imageapi.db.migration.V5_Author
+import no.ndla.imageapi.ImageApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V7__TranslateUntranslatedAuthors extends BaseJavaMigration with LazyLogging {
+class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
   // Some contributors were not translated V6
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  import props.{
+    oldCreatorTypes,
+    creatorTypes,
+    oldProcessorTypes,
+    processorTypes,
+    oldRightsholderTypes,
+    rightsholderTypes
+  }
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

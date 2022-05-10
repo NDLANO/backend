@@ -19,13 +19,14 @@ import scalikejdbc._
 
 class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with UnitSuite with TestEnvironment {
   override val dataSource         = testDataSource.get
+  override val migrator           = new DBMigrator
   var repository: ImageRepository = _
 
   this.setDatabaseEnvironment()
 
   def serverIsListening: Boolean = {
-    val server = ImageApiProperties.MetaServer
-    val port   = ImageApiProperties.MetaPort
+    val server = props.MetaServer
+    val port   = props.MetaPort
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()
@@ -47,9 +48,9 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   override def beforeAll(): Unit = {
     super.beforeAll()
     Try {
-      ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+      DataSource.connectToDatabase()
       if (serverIsListening) {
-        DBMigrator.migrate(dataSource)
+        migrator.migrate()
       }
     }
   }

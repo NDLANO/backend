@@ -5,9 +5,10 @@
  * See LICENSE
  */
 
-package db.migration
+package db.migrationwithdependencies
 
 import com.amazonaws.services.s3.model.{S3Object, S3ObjectInputStream}
+import imageapi.db.migrationwithdependencies.V12__AddSizeMetaData
 import no.ndla.imageapi.TestData.{CCLogoSvgImage, NdlaLogoImage}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -17,7 +18,7 @@ import java.awt.image.BufferedImage
 import scala.util.{Failure, Success}
 
 class V12__AddSizeMetaDataTest extends UnitSuite with TestEnvironment {
-  val migration = spy(new V12__AddSizeMetaData)
+  val migration = spy(new V12__AddSizeMetaData(props))
 
   val testUrl           = "http://test.test/1"
   val imageStreamMock   = mock[ImageStream]

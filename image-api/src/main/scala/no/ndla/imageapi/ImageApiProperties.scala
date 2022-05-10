@@ -15,7 +15,11 @@ import no.ndla.network.secrets.PropertyKeys
 
 import scala.util.Properties._
 
-object ImageApiProperties extends LazyLogging {
+trait Props {
+  val props: ImageApiProperties
+}
+
+class ImageApiProperties extends LazyLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
@@ -88,8 +92,7 @@ object ImageApiProperties extends LazyLogging {
   val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
   val rightsholderTypes    = List("rightsholder", "publisher", "distributor", "supplier")
 
-  val allowedAuthors: Seq[String] =
-    ImageApiProperties.creatorTypes ++ ImageApiProperties.processorTypes ++ ImageApiProperties.rightsholderTypes
+  val allowedAuthors: Seq[String] = creatorTypes ++ processorTypes ++ rightsholderTypes
 
   val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching

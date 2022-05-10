@@ -5,14 +5,14 @@
  * See LICENSE
  */
 
-package db.migration
+package imageapi.db.migrationwithdependencies
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.model.{AmazonS3Exception, GetObjectRequest, S3Object}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Uri
-import no.ndla.imageapi.ImageApiProperties.StorageName
+import no.ndla.imageapi.ImageApiProperties
 import org.apache.commons.io.IOUtils
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.{JField, JInt}
@@ -27,7 +27,7 @@ import javax.imageio.ImageIO
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
-class V12__AddSizeMetaData extends BaseJavaMigration with LazyLogging {
+class V12__AddSizeMetaData(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
@@ -78,7 +78,7 @@ class V12__AddSizeMetaData extends BaseJavaMigration with LazyLogging {
       .build()
 
   def getS3Object(imageKey: String): Try[S3Object] = {
-    Try(amazonClient.getObject(new GetObjectRequest(StorageName, imageKey)))
+    Try(amazonClient.getObject(new GetObjectRequest(props.StorageName, imageKey)))
   }
 
   def get(imageKey: String): Try[Option[(Int, Int)]] = {

@@ -5,18 +5,27 @@
  * See LICENSE
  */
 
-package db.migration
-
-import java.util.Date
+package imageapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties._
+import imageapi.db.migration._
+import no.ndla.imageapi.ImageApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V6__AddAgreementToImages extends BaseJavaMigration with LazyLogging {
+import java.util.Date
+
+class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
+  import props.{
+    oldCreatorTypes,
+    creatorTypes,
+    oldProcessorTypes,
+    processorTypes,
+    oldRightsholderTypes,
+    rightsholderTypes
+  }
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
   implicit val formats = org.json4s.DefaultFormats
 

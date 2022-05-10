@@ -11,8 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.{Uri, UrlPath}
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
@@ -25,10 +24,11 @@ import no.ndla.network.ApplicationUrl
 import scala.util.{Success, Try}
 
 trait ConverterService {
-  this: User with Role with Clock with DraftApiClient =>
+  this: User with Role with Clock with DraftApiClient with Props =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    import props.DefaultLanguage
 
     def asApiAuthor(domainAuthor: domain.Author): api.Author = {
       api.Author(domainAuthor.`type`, domainAuthor.name)
@@ -71,8 +71,8 @@ trait ConverterService {
       asImageMetaInformationV2(
         domainImageMetaInformation,
         language,
-        ImageApiProperties.ImageApiUrlBase,
-        Some(ImageApiProperties.RawImageUrlBase)
+        props.ImageApiUrlBase,
+        Some(props.RawImageUrlBase)
       )
     }
 
