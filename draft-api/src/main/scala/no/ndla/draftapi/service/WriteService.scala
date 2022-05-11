@@ -869,7 +869,7 @@ trait WriteService {
       }
     }
 
-    private def getRevisionMetaForUrn(topic: Topic): Seq[RevisionMeta] = {
+    private def getRevisionMetaForUrn(topic: Topic): Seq[domain.RevisionMeta] = {
       topic.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -906,9 +906,9 @@ trait WriteService {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
             case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
-            case _                       => Success()
+            case _                       => Success(())
           }
-        case _ => Success()
+        case _ => Success(())
       }
 
       updateResult.map(_ => {
