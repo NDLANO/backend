@@ -10,13 +10,12 @@ package no.ndla.searchapi.service.search
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import no.ndla.searchapi.SearchApiProperties.DefaultPageSize
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.{SearchApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
 
 import java.util.Date
@@ -26,6 +25,8 @@ class MultiSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
+  import props.DefaultPageSize
+
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   // Skip tests if no docker environment available
@@ -111,7 +112,7 @@ class MultiSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    multiSearchService.getStartAtAndNumResults(0, 10001) should equal((0, SearchApiProperties.MaxPageSize))
+    multiSearchService.getStartAtAndNumResults(0, 10001) should equal((0, props.MaxPageSize))
   }
 
   test(

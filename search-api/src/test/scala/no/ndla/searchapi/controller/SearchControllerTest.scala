@@ -14,7 +14,7 @@ import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.SearchParams
 import no.ndla.searchapi.model.domain.article.Availability
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.{SearchSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.{LocalDateTime, Month}

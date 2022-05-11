@@ -8,7 +8,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object searchapi extends Module {
-  override val MainClass: Option[String] = Some("no.ndla.searchapi.JettyLauncher")
+  override val MainClass: Option[String] = Some("no.ndla.searchapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,

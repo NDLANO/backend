@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
-import no.ndla.searchapi.SearchApiProperties.GrepApiUrl
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.GrepException
 import no.ndla.searchapi.model.grep._
@@ -23,10 +23,11 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Futu
 import scala.util.{Failure, Success, Try}
 
 trait GrepApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val grepApiClient: GrepApiClient
 
   class GrepApiClient extends LazyLogging {
+    import props.GrepApiUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val GrepApiEndpoint               = s"$GrepApiUrl/kl06/v201906"
 

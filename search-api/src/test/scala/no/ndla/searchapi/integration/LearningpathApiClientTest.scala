@@ -16,7 +16,6 @@ import no.ndla.searchapi.model.domain.DomainDumpResults
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.SearchApiProperties.DefaultLanguage
 import org.joda.time.DateTime
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
@@ -26,6 +25,7 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
 
 class LearningpathApiClientTest extends UnitSuite with TestEnvironment {
+  import props.DefaultLanguage
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
       new EnumNameSerializer(ArticleStatus) +

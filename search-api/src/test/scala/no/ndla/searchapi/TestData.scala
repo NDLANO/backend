@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi
 
+import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.SearchApiProperties.DefaultLanguage
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.article._

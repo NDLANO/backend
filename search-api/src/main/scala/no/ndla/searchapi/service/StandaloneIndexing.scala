@@ -24,7 +24,7 @@ import java.time.Instant
 /** This part of search-api is used for indexing in a separate instance. If enabled, this will also send a slack message
   * if the indexing fails for any reason.
   */
-object StandaloneIndexing extends LazyLogging {
+class StandaloneIndexing(props: SearchApiProperties, componentRegistry: ComponentRegistry) extends LazyLogging {
   case class SlackAttachment(
       title: String,
       color: String,
@@ -48,7 +48,7 @@ object StandaloneIndexing extends LazyLogging {
     }
 
     implicit val formats: Formats = DefaultFormats
-    val errorTitle                = s"search-api ${SearchApiProperties.Environment}"
+    val errorTitle                = s"search-api ${props.Environment}"
     val errorBody                 = s"Standalone indexing failed with:\n${errors.mkString("\n")}"
 
     val errorAttachment = SlackAttachment(
@@ -75,8 +75,8 @@ object StandaloneIndexing extends LazyLogging {
 
   def doStandaloneIndexing(): Nothing = {
     val bundles = for {
-      taxonomyBundle <- ComponentRegistry.taxonomyApiClient.getTaxonomyBundle()
-      grepBundle     <- ComponentRegistry.grepApiClient.getGrepBundle()
+      taxonomyBundle <- componentRegistry.taxonomyApiClient.getTaxonomyBundle()
+      grepBundle     <- componentRegistry.grepApiClient.getGrepBundle()
     } yield (taxonomyBundle, grepBundle)
 
     val start = System.currentTimeMillis()
@@ -85,10 +85,10 @@ object StandaloneIndexing extends LazyLogging {
       case Failure(ex) => Seq(Failure(ex))
       case Success((taxonomyBundle, grepBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
-          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchApiProperties.SearchIndexes.size))
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
         def reindexWithIndexService[C <: Content](
-            indexService: ComponentRegistry.IndexService[C]
+            indexService: componentRegistry.IndexService[C]
         )(implicit mf: Manifest[C]): Future[Try[ReindexResult]] = {
           val reindexFuture = Future {
             indexService.indexDocuments(taxonomyBundle, grepBundle)
@@ -109,9 +109,9 @@ object StandaloneIndexing extends LazyLogging {
         Await.result(
           Future.sequence(
             Seq(
-              reindexWithIndexService(ComponentRegistry.learningPathIndexService),
-              reindexWithIndexService(ComponentRegistry.articleIndexService),
-              reindexWithIndexService(ComponentRegistry.draftIndexService)
+              reindexWithIndexService(componentRegistry.learningPathIndexService),
+              reindexWithIndexService(componentRegistry.articleIndexService),
+              reindexWithIndexService(componentRegistry.draftIndexService)
             )
           ),
           Duration.Inf

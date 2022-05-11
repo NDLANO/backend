@@ -19,23 +19,23 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
-import no.ndla.searchapi.SearchApiProperties
-import no.ndla.searchapi.SearchApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
 import no.ndla.searchapi.model.domain._
 import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.search.SearchType
-
 import cats.implicits._
+
 import java.lang.Math.max
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with IndexService with SearchConverterService with LazyLogging =>
+  this: Elastic4sClient with IndexService with SearchConverterService with LazyLogging with Props =>
 
   trait SearchService {
+    import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
     val searchIndex: List[String]
     val indexServices: List[IndexService[_]]
 
@@ -49,9 +49,9 @@ trait SearchService {
       *   api-model summary of hit
       */
     def hitToApiModel(hit: SearchHit, language: String): Try[MultiSearchSummary] = {
-      val articleType      = SearchApiProperties.SearchIndexes(SearchType.Articles)
-      val draftType        = SearchApiProperties.SearchIndexes(SearchType.Drafts)
-      val learningPathType = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
+      val articleType      = props.SearchIndexes(SearchType.Articles)
+      val draftType        = props.SearchIndexes(SearchType.Drafts)
+      val learningPathType = props.SearchIndexes(SearchType.LearningPaths)
 
       hit.index.split("_").headOption match {
         case Some(`articleType`)      => Success(searchConverterService.articleHitAsMultiSummary(hit, language))

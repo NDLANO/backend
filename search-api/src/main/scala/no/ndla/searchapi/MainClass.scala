@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
-import no.ndla.common.Environment.{booleanPropOrFalse, setPropsFromEnv}
+import no.ndla.common.Environment.booleanPropOrFalse
 import no.ndla.searchapi.service.StandaloneIndexing
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
@@ -20,26 +20,16 @@ import java.util
 import javax.servlet.DispatcherType
 import scala.io.Source
 
-object JettyLauncher extends LazyLogging {
+class MainClass(props: SearchApiProperties) extends LazyLogging {
+  val componentRegistry = new ComponentRegistry(props)
 
-  def main(args: Array[String]): Unit = {
+  def startServer(): Server = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
-
-    setPropsFromEnv()
-
-    if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
-      StandaloneIndexing.doStandaloneIndexing()
-    } else {
-      val server = startServer(SearchApiProperties.ApplicationPort)
-      server.join()
-    }
-  }
-
-  def startServer(port: Int): Server = {
     val startMillis = System.currentTimeMillis()
 
     val context = new ServletContextHandler()
     context setContextPath "/"
+    context.setInitParameter("org.scalatra.LifeCycle", "no.ndla.searchapi.ScalatraBootstrap")
     context.addEventListener(new ScalatraListener)
     context.addServlet(classOf[DefaultServlet], "/")
     context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
@@ -47,25 +37,36 @@ object JettyLauncher extends LazyLogging {
     context.addServlet(classOf[ReportServlet], "/monitoring")
     context.addEventListener(new SessionListener)
     val monitoringFilter = new FilterHolder(new MonitoringFilter())
-    monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, SearchApiProperties.ApplicationName)
-    SearchApiProperties.Environment match {
+    monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, props.ApplicationName)
+    props.Environment match {
       case "local" =>
       case _ =>
         monitoringFilter.setInitParameter(
           Parameter.CLOUDWATCH_NAMESPACE.getCode,
-          "NDLA/APP".replace("APP", SearchApiProperties.ApplicationName)
+          "NDLA/APP".replace("APP", props.ApplicationName)
         )
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    val server = new Server(port)
+    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
+    context.setAttribute("ComponentRegistry", componentRegistry)
+
+    val server = new Server(props.ApplicationPort)
     server.setHandler(context)
     server.start()
 
     val startTime = System.currentTimeMillis() - startMillis
-    logger.info(s"Started at port $port in $startTime ms.")
+    logger.info(s"Started at port ${props.ApplicationPort} in $startTime ms.")
 
     server
   }
 
+  def start(): Unit = {
+    if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
+      new StandaloneIndexing(props, componentRegistry).doStandaloneIndexing()
+    } else {
+      val server = startServer()
+      server.join()
+    }
+  }
 }
