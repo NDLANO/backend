@@ -869,66 +869,67 @@ trait WriteService {
       }
     }
 
-    def copyRevisionDates(publicId: String): Try[Boolean] = {
-      taxonomyApiClient.getNode(publicId) match {
-        case Failure(_)     => Failure(NotFoundException(s"No topics with id ${publicId}"))
-        case Success(topic) =>
-          // These revisions should be put on all children
-          val revisionMeta = topic.contentUri match {
-            case Some(contentUri) =>
-              parseArticleIdAndRevision(contentUri) match {
-                case (Success(articleId), _) =>
-                  draftRepository.withId(articleId) match {
-                    case Some(article) => article.revisionMeta
-                    case _             => Seq.empty
-                  }
-                case _ => Seq.empty
+    private def getRevisionMetaForUrn(topic: Topic): Seq[RevisionMeta] = {
+      topic.contentUri match {
+        case Some(contentUri) =>
+          parseArticleIdAndRevision(contentUri) match {
+            case (Success(articleId), _) =>
+              draftRepository.withId(articleId) match {
+                case Some(article) => article.revisionMeta
+                case _             => Seq.empty
               }
             case _ => Seq.empty
           }
-          if (revisionMeta.nonEmpty) {
-            val children  = taxonomyApiClient.getChildNodes(publicId)
-            val resources = taxonomyApiClient.getChildResources(publicId)
-            children match {
-              case Success(topics) => topics.foreach(setRevisions(_, revisionMeta))
-              case _               =>
-            }
-            resources match {
-              case Success(resources) => resources.foreach(setRevisions(_, revisionMeta))
-              case _                  =>
-            }
-          }
-          Success(true)
+        case _ => Seq.empty
       }
     }
 
-    def setRevisions(entity: Taxonomy[_], revisions: Seq[domain.RevisionMeta]): Unit = {
-      entity.contentUri match {
+    def copyRevisionDates(publicId: String): Try[Unit] = {
+      taxonomyApiClient.getNode(publicId) match {
+        case Failure(_) => Failure(NotFoundException(s"No topics with id ${publicId}"))
+        case Success(topic) =>
+          val revisionMeta = getRevisionMetaForUrn(topic)
+
+          if (revisionMeta.nonEmpty) {
+            for {
+              topics    <- taxonomyApiClient.getChildNodes(publicId)
+              resources <- taxonomyApiClient.getChildResources(publicId)
+              _         <- topics.traverse(setRevisions(_, revisionMeta))
+              _         <- resources.traverse(setRevisions(_, revisionMeta))
+            } yield ()
+          } else Success(())
+      }
+    }
+
+    def setRevisions(entity: Taxonomy[_], revisions: Seq[domain.RevisionMeta]): Try[_] = {
+      val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
             case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
-            case _                       =>
+            case _                       => Success()
           }
-        case _ =>
+        case _ => Success()
       }
-      if (classOf[Topic].isInstance(entity)) {
-        val resources = taxonomyApiClient.getChildResources(entity.id)
-        resources match {
-          case Success(resources) => resources.foreach(setRevisions(_, revisions))
-          case _                  =>
+
+      updateResult.map(_ => {
+        entity match {
+          case Topic(id, _, _, _) =>
+            taxonomyApiClient
+              .getChildResources(id)
+              .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
+          case _ => Success(())
         }
-      }
+      })
     }
 
-    def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Unit = {
-      val existing = draftRepository.withId(articleId)
-      val updated = existing match {
-        case Some(article) =>
+    def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Try[_] = {
+      draftRepository
+        .withId(articleId)
+        .traverse(article => {
           val revisionMeta = article.revisionMeta ++ revisions
-          Some(article.copy(revisionMeta = revisionMeta.distinct))
-        case None => None
-      }
-      updated.map(draftRepository.updateArticle(_))
+          val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
+          draftRepository.updateArticle(toUpdate)
+        })
     }
   }
 }

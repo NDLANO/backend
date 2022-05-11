@@ -773,7 +773,7 @@ trait DraftController {
     post(
       "/copyRevisionDates/:node_id",
       operation(
-        apiOperation[Boolean]("copyRevisionDates")
+        apiOperation[Unit]("copyRevisionDates")
           .summary("Copy revision dates from the node with this id to _all_ children in taxonomy")
           .description("Copy revision dates from the node with this id to _all_ children in taxonomy")
           .parameters(
@@ -792,7 +792,7 @@ trait DraftController {
           case None => NotFound(body = Error(Error.NOT_FOUND, s"No nodeid supplied"))
           case Some(publicId) =>
             writeService.copyRevisionDates(publicId) match {
-              case Success(bool) => bool
+              case Success(_) => Ok()
               case Failure(ex)   => errorHandler(ex)
             }
         }
