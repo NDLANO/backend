@@ -17,7 +17,7 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, TaxonomyApiClient, Topic}
+import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
 import no.ndla.draftapi.model.api.{PartialArticleFields, _}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._
@@ -384,6 +384,7 @@ trait WriteService {
     }
 
     /** Article status should not be updated if notes and/or editorLabels are the only changes */
+
     /** Update 2021: Nor should the status be updated if only any of PartialArticleFields.Value has changed */
     def shouldUpdateStatus(changedArticle: domain.Article, existingArticle: domain.Article): Boolean = {
       // Function that sets values we don't want to include when comparing articles to check if we should update status
@@ -870,9 +871,8 @@ trait WriteService {
 
     def copyRevisionDates(publicId: String): Try[Boolean] = {
       taxonomyApiClient.getNode(publicId) match {
-        case Failure(_) => Failure(NotFoundException(s"No topics with id ${publicId}"))
+        case Failure(_)     => Failure(NotFoundException(s"No topics with id ${publicId}"))
         case Success(topic) =>
-          val children = taxonomyApiClient.getChildNodes(publicId)
           // These revisions should be put on all children
           val revisionMeta = topic.contentUri match {
             case Some(contentUri) =>
@@ -880,56 +880,55 @@ trait WriteService {
                 case (Success(articleId), _) =>
                   draftRepository.withId(articleId) match {
                     case Some(article) => article.revisionMeta
-                    case _ => Seq.empty
+                    case _             => Seq.empty
                   }
                 case _ => Seq.empty
               }
             case _ => Seq.empty
           }
-          children match {
-            case Success(topics) => topics.foreach(setTopicRevisions(_, revisionMeta))
-            case _ =>
+          if (revisionMeta.nonEmpty) {
+            val children  = taxonomyApiClient.getChildNodes(publicId)
+            val resources = taxonomyApiClient.getChildResources(publicId)
+            children match {
+              case Success(topics) => topics.foreach(setRevisions(_, revisionMeta))
+              case _               =>
+            }
+            resources match {
+              case Success(resources) => resources.foreach(setRevisions(_, revisionMeta))
+              case _                  =>
+            }
           }
           Success(true)
       }
     }
 
-    def setTopicRevisions(topic: Topic, revisions: Seq[domain.RevisionMeta]): Unit = {
-      topic.contentUri match {
+    def setRevisions(entity: Taxonomy[_], revisions: Seq[domain.RevisionMeta]): Unit = {
+      entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
             case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
-            case _ =>
+            case _                       =>
           }
         case _ =>
       }
-      val resources = taxonomyApiClient.getChildResources(topic.id)
-      resources match {
-        case Success(resources) => resources.foreach(setResourceRevisions(_, revisions))
-        case _ =>
+      if (classOf[Topic].isInstance(entity)) {
+        val resources = taxonomyApiClient.getChildResources(entity.id)
+        resources match {
+          case Success(resources) => resources.foreach(setRevisions(_, revisions))
+          case _                  =>
+        }
       }
     }
-  }
 
-  def setResourceRevisions(resource: Resource, revisions: Seq[domain.RevisionMeta]): Unit = {
-    resource.contentUri match {
-      case Some(contentUri) =>
-        parseArticleIdAndRevision(contentUri) match {
-          case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
-          case _ =>
-        }
-      case _ =>
+    def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Unit = {
+      val existing = draftRepository.withId(articleId)
+      val updated = existing match {
+        case Some(article) =>
+          val revisionMeta = article.revisionMeta ++ revisions
+          Some(article.copy(revisionMeta = revisionMeta.distinct))
+        case None => None
+      }
+      updated.map(draftRepository.updateArticle(_))
     }
-  }
-
-  def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Unit = {
-    val existing = draftRepository.withId(articleId)
-    val updated = existing match {
-      case Some(article) =>
-        val revisionMeta = article.revisionMeta ++ revisions
-        Some(article.copy(revisionMeta = revisionMeta.distinct))
-      case None => None
-    }
-    updated.map(draftRepository.updateArticle(_))
   }
 }

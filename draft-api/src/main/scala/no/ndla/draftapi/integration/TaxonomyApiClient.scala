@@ -253,6 +253,7 @@ trait TaxonomyApiClient {
 trait Taxonomy[E <: Taxonomy[E]] {
   val id: String
   def name: String
+  def contentUri: Option[String]
   def withName(name: String): E
 }
 case class Resource(id: String, name: String, contentUri: Option[String], paths: List[String])
