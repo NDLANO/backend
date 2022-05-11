@@ -16,15 +16,14 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.io.Source
 
-object JettyLauncher extends LazyLogging {
+class MainClass(props: OEmbedProxyProperties) extends LazyLogging {
+  val componentRegistry = new ComponentRegistry(props)
 
-  def fetchProviderList = {
-    ComponentRegistry.providerService.loadProviders()
+  private def fetchProviderList() = {
+    componentRegistry.providerService.loadProviders()
   }
 
-  def main(args: Array[String]): Unit = {
-    setPropsFromEnv()
-
+  def startServer(): Server = {
     logger.info(
       Source
         .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))
@@ -32,15 +31,19 @@ object JettyLauncher extends LazyLogging {
     )
 
     val startMillis = System.currentTimeMillis
-    val port        = OEmbedProxyProperties.ApplicationPort
+    val port        = props.ApplicationPort
 
     val servletContext = new ServletContextHandler
     servletContext.setContextPath("/")
+    servletContext.setInitParameter("org.scalatra.LifeCycle", "no.ndla.oembedproxy.ScalatraBootstrap")
     servletContext.addEventListener(new ScalatraListener)
     servletContext.addServlet(classOf[DefaultServlet], "/")
     servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
 
-    fetchProviderList
+    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
+    servletContext.setAttribute("ComponentRegistry", componentRegistry)
+
+    fetchProviderList()
 
     val server = new Server(port)
     server.setHandler(servletContext)
@@ -49,6 +52,11 @@ object JettyLauncher extends LazyLogging {
     val startTime = System.currentTimeMillis - startMillis
     logger.info(s"Started at port $port in $startTime ms.")
 
+    server
+  }
+
+  def start(): Unit = {
+    val server = startServer()
     server.join()
   }
 }
