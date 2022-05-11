@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import enumeratum.Json4s
-import no.ndla.learningpathapi.LearningpathApiProperties
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
@@ -28,7 +28,9 @@ trait InternController {
     with SearchService
     with LearningPathRepositoryComponent
     with ReadService
-    with UpdateService =>
+    with UpdateService
+    with NdlaController
+    with Props =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -45,7 +47,7 @@ trait InternController {
         case Some(clientId) => clientId
         case None => {
           logger.warn(s"Request made to ${request.getRequestURI} without clientId")
-          throw new AccessDeniedException("You do not have access to the requested resource.")
+          throw AccessDeniedException("You do not have access to the requested resource.")
         }
       }
     }
@@ -73,7 +75,7 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      val deleteResults = searchIndexService.findAllIndexes(LearningpathApiProperties.SearchIndex) match {
+      val deleteResults = searchIndexService.findAllIndexes(props.SearchIndex) match {
         case Failure(f) => halt(status = 500, body = f.getMessage)
         case Success(indexes) =>
           indexes.map(index => {

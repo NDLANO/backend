@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{config, _}
@@ -32,7 +32,8 @@ trait UpdateService {
     with LearningStepValidator
     with LearningPathValidator
     with TaxonomyApiClient
-    with SearchApiClient =>
+    with SearchApiClient
+    with Props =>
   val updateService: UpdateService
 
   class UpdateService {
@@ -340,7 +341,7 @@ trait UpdateService {
                   converterService.asApiLearningStepV2(
                     updatedStep,
                     updatedPath,
-                    DefaultLanguage,
+                    props.DefaultLanguage,
                     fallback = true,
                     owner
                   )

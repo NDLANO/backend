@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migration
 
 import io.lemonlabs.uri.Url
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

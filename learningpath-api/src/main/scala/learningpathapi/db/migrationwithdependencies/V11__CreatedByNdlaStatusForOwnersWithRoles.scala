@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
@@ -23,9 +23,11 @@ import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.{Failure, Success, Try}
 
-class V11__CreatedByNdlaStatusForOwnersWithRoles extends BaseJavaMigration with LazyLogging {
+class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiProperties)
+    extends BaseJavaMigration
+    with LazyLogging {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  private val auth0Host                     = AuthUser.getAuth0HostForEnv(LearningpathApiProperties.Environment)
+  private val auth0Host                     = AuthUser.getAuth0HostForEnv(props.Environment)
 
   case class UserMetaDataObject(ndla_id: String)
   case class UserResponseObject(app_metadata: UserMetaDataObject)

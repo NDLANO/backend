@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migration
 
+import learningpathapi.db.migration.{V3_DBLearningPath, V3__ConvertCoverPhotoUrlToID}
 import no.ndla.learningpathapi.UnitSuite
 
 class V3__ConvertCoverPhotoUrlToIDTest extends UnitSuite {

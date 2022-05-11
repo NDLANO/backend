@@ -8,22 +8,39 @@
 
 package no.ndla.learningpathapi
 
-import com.zaxxer.hikari.HikariDataSource
+import learningpathapi.db.migrationwithdependencies.{
+  V11__CreatedByNdlaStatusForOwnersWithRoles,
+  V13__StoreNDLAStepsAsIframeTypes,
+  V14__ConvertLanguageUnknown,
+  V15__MergeDuplicateLanguageFields
+}
+import no.ndla.learningpathapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 
-object DBMigrator {
+trait DBMigrator {
+  this: Props with DataSource =>
+  val migrator: DBMigrator
 
-  def migrate(datasource: HikariDataSource): MigrateResult = {
-    val flyway = Flyway
-      .configure()
-      .table("schema_version") // Flyway's default table name changed, so we specify the old one.
-      .dataSource(datasource)
-      // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
-      // Therefore we simply override it with dataSource.getScheme.
-      // https://github.com/flyway/flyway/issues/2182
-      .schemas(datasource.getSchema)
-      .load()
-    flyway.migrate()
+  class DBMigrator {
+    def migrate(): MigrateResult = {
+      val flyway = Flyway
+        .configure()
+        .table("schema_version")
+        .javaMigrations(
+          new V11__CreatedByNdlaStatusForOwnersWithRoles(props),
+          new V13__StoreNDLAStepsAsIframeTypes(props),
+          new V14__ConvertLanguageUnknown(props),
+          new V15__MergeDuplicateLanguageFields(props)
+        )
+        .locations("learningpathapi/db/migration")
+        .dataSource(dataSource)
+        // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
+        // Therefore we simply override it with dataSource.getScheme.
+        // https://github.com/flyway/flyway/issues/2182
+        .schemas(dataSource.getSchema)
+        .load()
+      flyway.migrate()
+    }
   }
 }

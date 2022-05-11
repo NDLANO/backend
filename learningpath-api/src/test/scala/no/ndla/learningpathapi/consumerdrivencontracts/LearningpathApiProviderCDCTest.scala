@@ -33,6 +33,7 @@ class LearningpathApiProviderCDCTest
     with TestEnvironment {
 
   override val dataSource = testDataSource.get
+  override val migrator   = new DBMigrator
 
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
@@ -40,29 +41,43 @@ class LearningpathApiProviderCDCTest
   var server: Option[Server] = None
   val serverPort: Int        = findFreePort
 
+  override val props = new LearningpathApiProperties {
+    val pgc                           = postgresContainer.get
+    override def ApplicationPort: Int = serverPort
+
+    override def MetaUserName: String = pgc.getUsername
+    override def MetaPassword: String = pgc.getPassword
+    override def MetaServer: String   = pgc.getHost
+    override def MetaPort: Int        = pgc.getMappedPort(5432)
+    override def MetaResource: String = pgc.getDatabaseName
+    override def MetaSchema: String   = "testschema"
+  }
+
+  val mainClass = new MainClass(props)
+
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
-    DBMigrator.migrate(dataSource)
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    mainClass.componentRegistry.migrator.migrate()
+    DataSource.connectToDatabase()
     DB autoCommit (implicit session => {
       val schemaSqlName = SQLSyntax.createUnsafely(dataSource.getSchema)
       sql"drop schema if exists $schemaSqlName cascade;"
         .execute()
     })
-    DBMigrator.migrate(dataSource)
+    mainClass.componentRegistry.migrator.migrate()
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+    println(s"Running CDC tests with component on localhost:${props.ApplicationPort}")
+    server = Some(mainClass.startServer())
   }
 
   private def setupLearningPaths() = {
     (1 to 10)
       .map(id => {
-        ComponentRegistry.learningPathRepository.insert(
+        mainClass.componentRegistry.learningPathRepository.insert(
           TestData.sampleDomainLearningPath.copy(id = Some(id), lastUpdated = new DateTime(0).toDate)
         )
       })

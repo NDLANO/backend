@@ -8,9 +8,9 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
-class UrlValidatorTest extends UnitSuite {
+class UrlValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: UrlValidator = _
 

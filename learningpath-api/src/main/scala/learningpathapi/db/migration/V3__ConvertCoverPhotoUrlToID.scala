@@ -6,7 +6,7 @@
  *
  */
 
-package db.migration
+package learningpathapi.db.migration
 
 import io.lemonlabs.uri.typesafe.dsl._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

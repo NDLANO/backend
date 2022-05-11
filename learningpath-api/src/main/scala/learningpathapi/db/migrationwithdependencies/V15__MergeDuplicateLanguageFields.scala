@@ -5,9 +5,10 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
-import no.ndla.learningpathapi.model.domain.LearningStep
+import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
+import no.ndla.learningpathapi.model.domain.{DBLearningStep, LearningStep}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
 import org.json4s.JsonAST._
@@ -15,8 +16,12 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V15__MergeDuplicateLanguageFields extends BaseJavaMigration {
-  implicit val formats: Formats = LearningStep.jsonEncoder
+class V15__MergeDuplicateLanguageFields(properties: LearningpathApiProperties)
+    extends BaseJavaMigration
+    with Props
+    with DBLearningStep {
+  override val props            = properties
+  implicit val formats: Formats = DBLearningStep.jsonEncoder
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

@@ -11,11 +11,16 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.controller.{
   ConfigController,
+  CorrelationIdSupport,
   HealthController,
   InternController,
-  LearningpathControllerV2
+  LearningpathControllerV2,
+  NdlaController
 }
 import no.ndla.learningpathapi.integration._
+import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
+import no.ndla.learningpathapi.model.domain.{DBLearningPath, DBLearningStep}
 import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -50,8 +55,21 @@ trait TestEnvironment
     with LearningPathValidator
     with LearningStepValidator
     with TitleValidator
-    with InternController {
+    with TextValidator
+    with UrlValidator
+    with DBLearningPath
+    with DBLearningStep
+    with DBConfigMeta
+    with NdlaController
+    with CorrelationIdSupport
+    with ErrorHelpers
+    with Props
+    with InternController
+    with DBMigrator
+    with LearningpathApiInfo {
+  val props = new LearningpathApiProperties
 
+  val migrator: DBMigrator         = mock[DBMigrator]
   val dataSource: HikariDataSource = mock[HikariDataSource]
 
   val learningPathRepository: LearningPathRepository                   = mock[LearningPathRepository]

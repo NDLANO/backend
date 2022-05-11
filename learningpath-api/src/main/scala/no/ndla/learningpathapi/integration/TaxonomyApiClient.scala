@@ -8,7 +8,6 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.LearningpathApiProperties.{ApiGatewayHost, DefaultLanguage}
 import no.ndla.learningpathapi.model.domain.{LearningPath, TaxonomyUpdateException, Title}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -16,14 +15,16 @@ import org.json4s.native.Serialization.write
 import scalaj.http.{Http, HttpResponse}
 import cats.implicits._
 import no.ndla.language.Language
+import no.ndla.learningpathapi.Props
 
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val taxononyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends LazyLogging {
+    import props.{ApiGatewayHost, DefaultLanguage}
     implicit val formats                   = org.json4s.DefaultFormats
     private val taxonomyTimeout            = 20 * 1000 // 20 Seconds
     private val TaxonomyApiEndpoint        = s"http://$ApiGatewayHost/taxonomy/v1"

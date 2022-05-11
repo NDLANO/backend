@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migration
 
+import learningpathapi.db.migration.V12__UpdateNdlaFrontendDomainForFF
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V12__UpdateNdlaFrontendDomainForFFTest extends UnitSuite with TestEnvironment {

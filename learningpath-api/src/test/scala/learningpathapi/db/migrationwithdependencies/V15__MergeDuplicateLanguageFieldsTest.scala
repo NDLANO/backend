@@ -5,12 +5,12 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V15__MergeDuplicateLanguageFieldsTest extends UnitSuite with TestEnvironment {
-  val migration = new V15__MergeDuplicateLanguageFields
+  val migration = new V15__MergeDuplicateLanguageFields(props)
 
   test("Duplicate language fields are removed if same content") {
     val original =

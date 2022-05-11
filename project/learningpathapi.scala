@@ -8,7 +8,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object learningpathapi extends Module {
-  override val MainClass: Option[String] = Some("no.ndla.learningpathapi.JettyLauncher")
+  override val MainClass: Option[String] = Some("no.ndla.learningpathapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,

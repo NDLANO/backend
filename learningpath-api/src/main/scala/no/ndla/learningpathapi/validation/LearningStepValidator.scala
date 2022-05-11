@@ -14,7 +14,7 @@ import no.ndla.learningpathapi.model.domain._
 import scala.util.{Failure, Success, Try}
 
 trait LearningStepValidator {
-  this: TitleValidator with LanguageValidator =>
+  this: TitleValidator with LanguageValidator with TextValidator with UrlValidator =>
   val learningStepValidator: LearningStepValidator
 
   class LearningStepValidator {

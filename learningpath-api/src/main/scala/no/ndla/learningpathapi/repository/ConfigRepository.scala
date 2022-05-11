@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta, DBConfigMeta}
 import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
@@ -19,11 +19,11 @@ import sqls.count
 import scala.util.{Success, Try}
 
 trait ConfigRepository {
-  this: DataSource =>
+  this: DataSource with DBConfigMeta =>
   val configRepository: ConfigRepository
 
   class ConfigRepository extends LazyLogging {
-    implicit val formats: Formats = ConfigMeta.formats
+    implicit val formats: Formats = DBConfigMeta.formats
     implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
       ParameterBinderFactory[ConfigMeta] { value => (stmt, idx) =>
         {
@@ -35,26 +35,26 @@ trait ConfigRepository {
       }
 
     def configCount(implicit session: DBSession = ReadOnlyAutoSession): Int = {
-      val c = ConfigMeta.syntax("c")
+      val c = DBConfigMeta.syntax("c")
       withSQL {
-        select(count(c.column("configkey"))).from(ConfigMeta as c)
+        select(count(c.column("configkey"))).from(DBConfigMeta as c)
       }.map(_.int(1)).single().getOrElse(0)
     }
 
     def updateConfigParam(config: ConfigMeta)(implicit session: DBSession = AutoSession): Try[ConfigMeta] = {
       val updatedCount = withSQL {
-        update(ConfigMeta)
-          .set(ConfigMeta.column.column("value") -> config)
+        update(DBConfigMeta)
+          .set(DBConfigMeta.column.column("value") -> config)
           .where
-          .eq(ConfigMeta.column.column("configkey"), config.key.entryName)
+          .eq(DBConfigMeta.column.column("configkey"), config.key.entryName)
       }.update()
 
       if (updatedCount != 1) {
         logger.info(s"No existing value for ${config.key}, inserting the value.")
         withSQL {
-          insertInto(ConfigMeta).namedValues(
-            ConfigMeta.column.c("configkey") -> config.key.entryName,
-            ConfigMeta.column.c("value")     -> config
+          insertInto(DBConfigMeta).namedValues(
+            DBConfigMeta.column.c("configkey") -> config.key.entryName,
+            DBConfigMeta.column.c("value")     -> config
           )
         }.update()
         Success(config)
@@ -66,13 +66,13 @@ trait ConfigRepository {
 
     def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Option[ConfigMeta] = {
       val keyName = key.entryName
-      val c       = ConfigMeta.syntax("c")
+      val c       = DBConfigMeta.syntax("c")
       sql"""
            select ${c.result.*}
-           from ${ConfigMeta.as(c)}
+           from ${DBConfigMeta.as(c)}
            where configkey = $keyName;
         """
-        .map(ConfigMeta(c))
+        .map(DBConfigMeta.fromResultSet(c))
         .single()
     }
   }

@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.LearningpathApiProperties.ApiGatewayHost
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -20,10 +20,11 @@ import scala.util.{Failure, Success, Try}
 case class OembedResponse(html: String)
 
 trait OembedProxyClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val oembedProxyClient: OembedProxyClient
 
   class OembedProxyClient extends LazyLogging {
+    import props.ApiGatewayHost
     private val OembedProxyTimeout = 90 * 1000 // 90 seconds
     private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"
     implicit val formats: Formats  = org.json4s.DefaultFormats

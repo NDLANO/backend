@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.ImageApiClientComponent
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.{Author, LearningPathSummaryV2, SearchResultV2}
@@ -23,10 +23,11 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterServiceComponent {
-  this: ConverterService with ImageApiClientComponent =>
+  this: ConverterService with ImageApiClientComponent with Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService {
+    import props.DefaultLanguage
 
     def asApiLearningPathSummaryV2(
         searchableLearningPath: SearchableLearningPath,

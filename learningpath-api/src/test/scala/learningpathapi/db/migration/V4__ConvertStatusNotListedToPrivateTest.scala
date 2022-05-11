@@ -6,8 +6,9 @@
  *
  */
 
-package db.migration
+package learningpathapi.db.migration
 
+import learningpathapi.db.migration.{V4_DBLearningPath, V4__ConvertStatusNotListedToPrivate}
 import no.ndla.learningpathapi.UnitSuite
 
 class V4__ConvertStatusNotListedToPrivateTest extends UnitSuite {

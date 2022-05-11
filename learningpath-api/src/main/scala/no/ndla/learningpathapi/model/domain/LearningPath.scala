@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.model.domain
 
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.learningpathapi.LearningpathApiProperties
+import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.validation.DurationValidator
 import org.json4s.FieldSerializer._
@@ -152,32 +152,37 @@ object LearningPathVerificationStatus extends Enumeration {
   }
 }
 
-object LearningPath extends SQLSyntaxSupport[LearningPath] {
+trait DBLearningPath {
+  this: Props =>
 
-  val jsonSerializer: List[Serializer[_]] = List(
-    new EnumNameSerializer(LearningPathStatus),
-    new EnumNameSerializer(LearningPathVerificationStatus)
-  )
+  object DBLearningPath extends SQLSyntaxSupport[LearningPath] {
 
-  val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
-    ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
-  )
-
-  val jsonEncoder = DefaultFormats ++ jsonSerializer
-
-  override val tableName  = "learningpaths"
-  override val schemaName = Some(LearningpathApiProperties.MetaSchema)
-
-  def apply(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath = apply(lp.resultName)(rs)
-
-  def apply(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
-    implicit val formats = jsonEncoder
-    val meta             = read[LearningPath](rs.string(lp.c("document")))
-    meta.copy(
-      id = Some(rs.long(lp.c("id"))),
-      revision = Some(rs.int(lp.c("revision"))),
-      externalId = rs.stringOpt(lp.c("external_id"))
+    val jsonSerializer: List[Serializer[_]] = List(
+      new EnumNameSerializer(LearningPathStatus),
+      new EnumNameSerializer(LearningPathVerificationStatus)
     )
-  }
 
+    val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
+      ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
+    )
+
+    val jsonEncoder = DefaultFormats ++ jsonSerializer
+
+    override val tableName  = "learningpaths"
+    override val schemaName = Some(props.MetaSchema)
+
+    def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
+      fromResultSet(lp.resultName)(rs)
+
+    def fromResultSet(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
+      implicit val formats = jsonEncoder
+      val meta             = read[LearningPath](rs.string(lp.c("document")))
+      meta.copy(
+        id = Some(rs.long(lp.c("id"))),
+        revision = Some(rs.int(lp.c("revision"))),
+        externalId = rs.stringOpt(lp.c("external_id"))
+      )
+    }
+
+  }
 }

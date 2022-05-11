@@ -5,17 +5,22 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
-import no.ndla.learningpathapi.model.domain.{EmbedType, LearningStep}
+import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
+import no.ndla.learningpathapi.model.domain.{DBLearningStep, EmbedType, LearningStep}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V14__ConvertLanguageUnknown extends BaseJavaMigration {
-  implicit val formats: Formats = LearningStep.jsonEncoder
+class V14__ConvertLanguageUnknown(properties: LearningpathApiProperties)
+    extends BaseJavaMigration
+    with Props
+    with DBLearningStep {
+  override val props            = properties
+  implicit val formats: Formats = DBLearningStep.jsonEncoder
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

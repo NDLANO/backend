@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.{DBMigrator, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -22,8 +23,8 @@ class ConfigRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
     with UnitSuite
     with TestEnvironment {
-
-  override val dataSource = testDataSource.get
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
 
   var repository: ConfigRepository = _
 
@@ -56,8 +57,8 @@ class ConfigRepositoryTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try(ConnectionPool.singleton(new DataSourceConnectionPool(dataSource)))
-    Try(DBMigrator.migrate(dataSource))
+    DataSource.connectToDatabase()
+    migrator.migrate()
   }
 
   override def beforeEach(): Unit = {

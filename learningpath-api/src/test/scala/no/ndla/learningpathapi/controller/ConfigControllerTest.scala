@@ -11,7 +11,7 @@ import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
 import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
-import no.ndla.learningpathapi.{LearningpathSwagger, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 

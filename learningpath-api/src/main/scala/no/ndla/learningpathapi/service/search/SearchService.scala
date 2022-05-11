@@ -17,13 +17,8 @@ import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
-import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.learningpathapi.LearningpathApiProperties.{
-  DefaultLanguage,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
-}
-import no.ndla.learningpathapi.model.api.{Copyright, Error, LearningPathSummaryV2, License}
+import no.ndla.learningpathapi.Props
+import no.ndla.learningpathapi.model.api.{Copyright, ErrorHelpers, LearningPathSummaryV2, License}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.model.SearchableLanguageFormats
@@ -36,10 +31,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 trait SearchService extends LazyLogging {
-  this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent =>
+  this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent with Props with ErrorHelpers =>
   val searchService: SearchService
 
   class SearchService {
+    import props.{DefaultLanguage, ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 
     def scroll(scrollId: String, language: String): Try[SearchResult] =
       e4sClient
@@ -189,9 +185,9 @@ trait SearchService extends LazyLogging {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
+        Failure(new ResultWindowTooLargeException(ErrorHelpers.WindowTooLargeError.description))
       } else {
-        val searchToExecute = search(LearningpathApiProperties.SearchIndex)
+        val searchToExecute = search(props.SearchIndex)
           .size(numResults)
           .from(startAt)
           .trackTotalHits(true)
@@ -241,7 +237,7 @@ trait SearchService extends LazyLogging {
 
     def countDocuments(): Long = {
       val response = e4sClient.execute {
-        catCount(LearningpathApiProperties.SearchIndex)
+        catCount(props.SearchIndex)
       }
 
       response match {
@@ -297,9 +293,9 @@ trait SearchService extends LazyLogging {
     def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
       val numResults = pageSize match {
         case Some(num) =>
-          if (num > 0) num.min(LearningpathApiProperties.MaxPageSize)
-          else LearningpathApiProperties.DefaultPageSize
-        case None => LearningpathApiProperties.DefaultPageSize
+          if (num > 0) num.min(props.MaxPageSize)
+          else props.DefaultPageSize
+        case None => props.DefaultPageSize
       }
 
       val startAt = page match {
@@ -313,16 +309,16 @@ trait SearchService extends LazyLogging {
     private def errorHandler[T](exception: Throwable): Failure[T] = {
       exception match {
         case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _) if status == 404 =>
-          logger.error(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex.")
+          logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")
           scheduleIndexDocuments()
           Failure(
-            IndexNotFoundException(s"Index ${LearningpathApiProperties.SearchIndex} not found. Scheduling a reindex")
+            IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex")
           )
         case e: NdlaSearchException =>
           logger.error(e.getMessage)
           Failure(
             NdlaSearchException(
-              s"Unable to execute search in ${LearningpathApiProperties.SearchIndex}: ${e.getMessage}",
+              s"Unable to execute search in ${props.SearchIndex}: ${e.getMessage}",
               e
             )
           )

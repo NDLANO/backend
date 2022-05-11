@@ -4,11 +4,11 @@
  *
  * See LICENSE
  */
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Url
-import no.ndla.learningpathapi.LearningpathApiProperties.{ApiGatewayHost, NdlaFrontendHost, NdlaFrontendProtocol}
+import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.InvalidOembedResponse
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
@@ -26,7 +26,8 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLogging {
+class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends BaseJavaMigration with LazyLogging {
+  import props.{ApiGatewayHost, NdlaFrontendHost, NdlaFrontendProtocol}
   implicit val formats: Formats = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -126,7 +127,7 @@ class V13__StoreNDLAStepsAsIframeTypes extends BaseJavaMigration with LazyLoggin
     }
   }
 
-  private[migration] def migrateLearningStepDocument(document: String): String = {
+  private[migrationwithdependencies] def migrateLearningStepDocument(document: String): String = {
     val oldLs = parse(document)
 
     val embedUrlObjects = (oldLs \ "embedUrl").extract[JArray]

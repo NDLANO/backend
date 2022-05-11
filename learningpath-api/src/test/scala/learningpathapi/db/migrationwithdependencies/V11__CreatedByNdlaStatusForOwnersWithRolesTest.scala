@@ -5,12 +5,12 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V11__CreatedByNdlaStatusForOwnersWithRolesTest extends UnitSuite with TestEnvironment {
-  val migration = new V11__CreatedByNdlaStatusForOwnersWithRoles
+  val migration = new V11__CreatedByNdlaStatusForOwnersWithRoles(props)
 
   test("That migration changes verificationStatus correctly") {
     val old =

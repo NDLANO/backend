@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migration
 
+import learningpathapi.db.migration.V6__UpdateDuration
 import no.ndla.learningpathapi.UnitSuite
 
 class V6__UpdateDurationTest extends UnitSuite {

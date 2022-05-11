@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migration
 
+import learningpathapi.db.migration.V7__MovePublishedExternToUnlisted
 import no.ndla.learningpathapi.UnitSuite
 
 class V7__MovePublishedExternToUnlistedTest extends UnitSuite {

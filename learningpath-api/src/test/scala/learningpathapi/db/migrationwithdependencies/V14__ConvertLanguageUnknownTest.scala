@@ -5,12 +5,12 @@
  * See LICENSE
  */
 
-package db.migration
+package learningpathapi.db.migrationwithdependencies
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V14__ConvertLanguageUnknownTest extends UnitSuite with TestEnvironment {
-  val migration = new V14__ConvertLanguageUnknown
+  val migration = new V14__ConvertLanguageUnknown(props)
 
   test("Language unknown is replaced with und for learningpath") {
     val original =

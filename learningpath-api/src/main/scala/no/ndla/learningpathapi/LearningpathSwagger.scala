@@ -17,30 +17,34 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
   }
 }
 
-object LearningpathApiInfo {
+trait LearningpathApiInfo {
+  this: Props =>
 
-  val contactInfo: ContactInfo = ContactInfo(
-    LearningpathApiProperties.ContactName,
-    LearningpathApiProperties.ContactUrl,
-    LearningpathApiProperties.ContactEmail
-  )
+  object LearningpathApiInfo {
 
-  val licenseInfo: LicenseInfo = LicenseInfo(
-    "GPL v3.0",
-    "http://www.gnu.org/licenses/gpl-3.0.en.html"
-  )
+    val contactInfo: ContactInfo = ContactInfo(
+      props.ContactName,
+      props.ContactUrl,
+      props.ContactEmail
+    )
 
-  val apiInfo: ApiInfo = ApiInfo(
-    "Learningpath API",
-    "Services for accessing learningpaths",
-    LearningpathApiProperties.TermsUrl,
-    contactInfo,
-    licenseInfo
-  )
-}
+    val licenseInfo: LicenseInfo = LicenseInfo(
+      "GPL v3.0",
+      "http://www.gnu.org/licenses/gpl-3.0.en.html"
+    )
 
-class LearningpathSwagger extends Swagger("2.0", "1.0", LearningpathApiInfo.apiInfo) {
-  addAuthorization(
-    OAuth(List(), List(ImplicitGrant(LoginEndpoint(LearningpathApiProperties.Auth0LoginEndpoint), "access_token")))
-  )
+    val apiInfo: ApiInfo = ApiInfo(
+      "Learningpath API",
+      "Services for accessing learningpaths",
+      props.TermsUrl,
+      contactInfo,
+      licenseInfo
+    )
+  }
+
+  class LearningpathSwagger extends Swagger("2.0", "1.0", LearningpathApiInfo.apiInfo) {
+    addAuthorization(
+      OAuth(List(), List(ImplicitGrant(LoginEndpoint(props.Auth0LoginEndpoint), "access_token")))
+    )
+  }
 }
