@@ -18,7 +18,7 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
-import no.ndla.draftapi.model.api.{PartialArticleFields, _}
+import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
@@ -889,7 +889,6 @@ trait WriteService {
         case Failure(_) => Failure(NotFoundException(s"No topics with id ${publicId}"))
         case Success(topic) =>
           val revisionMeta = getRevisionMetaForUrn(topic)
-
           if (revisionMeta.nonEmpty) {
             for {
               topics    <- taxonomyApiClient.getChildNodes(publicId)
@@ -910,13 +909,15 @@ trait WriteService {
           }
         case _ => Success(())
       }
-
       updateResult.map(_ => {
         entity match {
           case Topic(id, _, _, _) =>
-            taxonomyApiClient
-              .getChildResources(id)
-              .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
+            for {
+              topics    <- taxonomyApiClient.getChildNodes(id)
+              resources <- taxonomyApiClient.getChildResources(id)
+              _         <- topics.traverse(setRevisions(_, revisions))
+              _         <- resources.traverse(setRevisions(_, revisions))
+            } yield ()
           case _ => Success(())
         }
       })

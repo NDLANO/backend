@@ -792,8 +792,8 @@ trait DraftController {
           case None => NotFound(body = Error(Error.NOT_FOUND, s"No nodeid supplied"))
           case Some(publicId) =>
             writeService.copyRevisionDates(publicId) match {
-              case Success(_) => Ok()
-              case Failure(ex)   => errorHandler(ex)
+              case Success(_)  => Ok()
+              case Failure(ex) => errorHandler(ex)
             }
         }
       }
