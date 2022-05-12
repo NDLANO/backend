@@ -13,7 +13,7 @@ lazy val `learningpath-api` = Module.setup(project in file("./learningpath-api/"
 lazy val `oembed-proxy`     = Module.setup(project in file("./oembed-proxy/"),     oembedproxy,       deps = Seq(network,                                                         common))
 lazy val `search-api`       = Module.setup(project in file("./search-api/"),       searchapi,         deps = Seq(network, mapping, language,             scalatestsuite % "test", common, search))
 
-lazy val common             = Module.setup(project in file("./common/"),           commonlib)
+lazy val common             = Module.setup(project in file("./common/"),           commonlib,         deps = Seq(                                        scalatestsuite % "test"))
 lazy val scalatestsuite     = Module.setup(project in file("./scalatestsuite/"),   scalatestsuitelib, deps = Seq(network))
 lazy val network            = Module.setup(project in file("./network/"),          networklib)
 lazy val language           = Module.setup(project in file("./language/"),         languagelib)
