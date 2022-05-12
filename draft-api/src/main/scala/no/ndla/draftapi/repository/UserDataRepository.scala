@@ -8,8 +8,9 @@
 package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
-import no.ndla.draftapi.model.domain.UserData
+import no.ndla.draftapi.model.domain.{DBArticle, UserData}
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -19,11 +20,11 @@ import scalikejdbc.interpolation.SQLSyntax
 import scala.util.{Success, Try}
 
 trait UserDataRepository {
-  this: DataSource =>
+  this: DataSource with DBArticle =>
   val userDataRepository: UserDataRepository
 
   class UserDataRepository extends LazyLogging {
-    implicit val formats: Formats = org.json4s.DefaultFormats + UserData.JSonSerializer
+    implicit val formats: Formats = org.json4s.DefaultFormats + DBUserData.JSonSerializer
 
     def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
       Try {
@@ -33,7 +34,7 @@ trait UserDataRepository {
 
         val userDataId: Long =
           sql"""
-        insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
+        insert into ${DBUserData.table} (user_id, document) values (${userData.userId}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new user data: $userDataId")
@@ -47,7 +48,7 @@ trait UserDataRepository {
       dataObject.setValue(write(userData))
 
       sql"""
-          update ${UserData.table}
+          update ${DBUserData.table}
           set document=$dataObject
           where user_id=${userData.userId}
       """.update()
@@ -57,7 +58,7 @@ trait UserDataRepository {
     }
 
     def userDataCount(implicit session: DBSession = AutoSession): Long = {
-      sql"select count(distinct user_id) from ${UserData.table} where document is not NULL"
+      sql"select count(distinct user_id) from ${DBUserData.table} where document is not NULL"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
@@ -73,9 +74,9 @@ trait UserDataRepository {
   private def userDataWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
-    val ud = UserData.syntax("ud")
-    sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause"
-      .map(UserData.fromResultSet(ud))
+    val ud = DBUserData.syntax("ud")
+    sql"select ${ud.result.*} from ${DBUserData.as(ud)} where $whereClause"
+      .map(DBUserData.fromResultSet(ud))
       .single()
   }
 

@@ -11,8 +11,11 @@ import com.amazonaws.services.s3.AmazonS3
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.draftapi.auth.User
+import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
 import no.ndla.draftapi.integration._
+import no.ndla.draftapi.model.api.ErrorHelpers
+import no.ndla.draftapi.model.domain.DBArticle
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -63,7 +66,17 @@ trait TestEnvironment
     with Clock
     with User
     with ArticleApiClient
-    with SearchApiClient {
+    with SearchApiClient
+    with DBArticle
+    with ErrorHelpers
+    with MemoizeHelpers
+    with NdlaController
+    with DBMigrator
+    with Props
+    with DraftApiInfo {
+  val props: DraftApiProperties = new DraftApiProperties
+  val migrator: DBMigrator      = mock[DBMigrator]
+
   val articleSearchService   = mock[ArticleSearchService]
   val articleIndexService    = mock[ArticleIndexService]
   val tagSearchService       = mock[TagSearchService]

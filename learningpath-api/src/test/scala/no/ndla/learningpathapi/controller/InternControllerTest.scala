@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.{LearningpathApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
 
@@ -39,7 +39,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       status should equal(200)
       body should equal("Deleted 3 indexes")
     }
-    verify(searchIndexService).findAllIndexes(LearningpathApiProperties.SearchIndex)
+    verify(searchIndexService).findAllIndexes(props.SearchIndex)
     verify(searchIndexService).deleteIndexWithName(Some("index1"))
     verify(searchIndexService).deleteIndexWithName(Some("index2"))
     verify(searchIndexService).deleteIndexWithName(Some("index3"))
@@ -50,7 +50,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     reset(searchIndexService)
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(searchIndexService)
-      .findAllIndexes(LearningpathApiProperties.SearchIndex)
+      .findAllIndexes(props.SearchIndex)
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(searchIndexService).deleteIndexWithName(Some("index3"))

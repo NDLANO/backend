@@ -10,14 +10,14 @@ package no.ndla.oembedproxy.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
-import no.ndla.oembedproxy.OEmbedProxyProperties
-import no.ndla.oembedproxy.caching.Memoize
+import no.ndla.oembedproxy.{OEmbedProxyProperties, Props}
+import no.ndla.oembedproxy.caching.{Memoize, MemoizeHelpers}
 import no.ndla.oembedproxy.model.{DoNotUpdateMemoizeException, OEmbedEndpoint, OEmbedProvider}
 import no.ndla.oembedproxy.service.OEmbedConverterService.{
   addYoutubeTimestampIfdefinedInRequest,
+  handleYoutubeRequestUrl,
   removeQueryString,
-  removeQueryStringAndFragment,
-  handleYoutubeRequestUrl
+  removeQueryStringAndFragment
 }
 import org.json4s.DefaultFormats
 
@@ -25,7 +25,7 @@ import scala.util.{Failure, Success}
 import scalaj.http.{Http, HttpRequest}
 
 trait ProviderService {
-  this: NdlaClient =>
+  this: NdlaClient with Props with MemoizeHelpers =>
   val providerService: ProviderService
 
   class ProviderService extends LazyLogging {
@@ -33,16 +33,16 @@ trait ProviderService {
 
     val NdlaFrontendEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
-        Some(OEmbedProxyProperties.NdlaApprovedUrl),
-        Some(OEmbedProxyProperties.NdlaFrontendOembedServiceUrl),
+        Some(props.NdlaApprovedUrl),
+        Some(props.NdlaFrontendOembedServiceUrl),
         None,
         None
       )
 
     val ListingFrontendEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(
-        Some(OEmbedProxyProperties.ListingFrontendApprovedUrls),
-        Some(OEmbedProxyProperties.ListingFrontendOembedServiceUrl),
+        Some(props.ListingFrontendApprovedUrls),
+        Some(props.ListingFrontendOembedServiceUrl),
         None,
         None
       )
@@ -50,7 +50,7 @@ trait ProviderService {
     val NdlaApiProvider: OEmbedProvider =
       OEmbedProvider(
         "NDLA Api",
-        OEmbedProxyProperties.NdlaApiOembedProvider,
+        props.NdlaApiOembedProvider,
         List(NdlaFrontendEndpoint, ListingFrontendEndpoint)
       )
 
@@ -69,13 +69,13 @@ trait ProviderService {
       addYoutubeTimestampIfdefinedInRequest
     )
 
-    val H5PApprovedUrls = List(OEmbedProxyProperties.NdlaH5PApprovedUrl)
+    val H5PApprovedUrls = List(props.NdlaH5PApprovedUrl)
 
     val H5PEndpoint: OEmbedEndpoint =
-      OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${OEmbedProxyProperties.NdlaH5POembedProvider}/oembed"), None, None)
+      OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${props.NdlaH5POembedProvider}/oembed"), None, None)
 
     val H5PProvider: OEmbedProvider =
-      OEmbedProvider("H5P", OEmbedProxyProperties.NdlaH5POembedProvider, List(H5PEndpoint))
+      OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
 
     val TedApprovedUrls = List(
       "https://www.ted.com/talks/*",
@@ -111,7 +111,7 @@ trait ProviderService {
 
     def _loadProviders(): List[OEmbedProvider] = {
       NdlaApiProvider :: TedProvider :: H5PProvider :: YoutubeProvider :: IssuuProvider :: loadProvidersFromRequest(
-        Http(OEmbedProxyProperties.JSonProviderUrl)
+        Http(props.JSonProviderUrl)
       )
     }
 

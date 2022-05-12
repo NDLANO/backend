@@ -11,18 +11,19 @@ import cats.effect.IO
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.frontpageapi.FrontpageApiProperties._
+import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.frontpageapi.controller.{
   FilmPageController,
   FrontPageController,
   InternController,
   SubjectPageController
 }
+import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 import org.http4s.rho.swagger.syntax.{io => ioSwagger}
 
-object ComponentRegistry
+class ComponentRegistry(properties: FrontpageApiProperties)
     extends DataSource
     with SubjectPageRepository
     with FrontPageRepository
@@ -32,16 +33,18 @@ object ComponentRegistry
     with WriteService
     with SubjectPageController
     with FrontPageController
-    with FilmPageController {
-
-  val dataSourceConfig = new HikariConfig()
-  dataSourceConfig.setUsername(MetaUserName)
-  dataSourceConfig.setPassword(MetaPassword)
-  dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://$MetaServer:$MetaPort/$MetaResource")
-  dataSourceConfig.setSchema(MetaSchema)
-  dataSourceConfig.setMaximumPoolSize(MetaMaxConnections)
-  override val dataSource = new HikariDataSource(dataSourceConfig)
-  ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    with FilmPageController
+    with DBFilmFrontPageData
+    with DBSubjectFrontPageData
+    with DBFrontPageData
+    with ErrorHelpers
+    with Props
+    with DBMigrator
+    with ConverterService {
+  override val props: FrontpageApiProperties = properties
+  override val migrator                      = new DBMigrator
+  override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
   override val subjectPageRepository   = new SubjectPageRepository
   override val frontPageRepository     = new FrontPageRepository

@@ -11,21 +11,22 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain.Agreement
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{AgreementRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 trait AgreementIndexService {
-  this: SearchConverterService with IndexService with AgreementRepository =>
+  this: SearchConverterService with IndexService with AgreementRepository with Props =>
   val agreementIndexService: AgreementIndexService
 
   class AgreementIndexService extends LazyLogging with IndexService[Agreement, SearchableArticle] {
-    implicit val formats                           = SearchableLanguageFormats.JSonFormats
-    override val documentType: String              = DraftApiProperties.AgreementSearchDocument
-    override val searchIndex: String               = DraftApiProperties.AgreementSearchIndex
+    implicit val formats: Formats                  = SearchableLanguageFormats.JSonFormats
+    override val documentType: String              = props.AgreementSearchDocument
+    override val searchIndex: String               = props.AgreementSearchIndex
     override val repository: Repository[Agreement] = agreementRepository
 
     override def createIndexRequests(domainModel: Agreement, indexName: String): Seq[IndexRequest] = {

@@ -8,13 +8,13 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties._
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.model.api.{
   Error,
+  ErrorHelpers,
   ImageMetaInformationV2,
   NewImageMetaInformationV2,
   SearchParams,
@@ -23,7 +23,7 @@ import no.ndla.imageapi.model.api.{
   UpdateImageMetaInformation,
   ValidationError
 }
-import no.ndla.imageapi.model.domain.{ImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
@@ -46,16 +46,23 @@ trait ImageControllerV2 {
     with DraftApiClient
     with SearchConverterService
     with Role
-    with User =>
+    with User
+    with NdlaController
+    with DBImageMetaInformation
+    with Props
+    with ErrorHelpers =>
   val imageControllerV2: ImageControllerV2
 
   class ImageControllerV2(implicit val swagger: Swagger)
       extends NdlaController
       with SwaggerSupport
       with FileUploadSupport {
+
+    import props._
+
     // Swagger-stuff
     protected val applicationDescription                 = "Services for accessing images from NDLA"
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
+    protected implicit override val jsonFormats: Formats = DBImageMetaInformation.jsonEncoder
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -335,7 +342,10 @@ trait ImageControllerV2 {
       readService.withId(imageId, language) match {
         case Some(image) => image
         case None =>
-          halt(status = 404, body = Error(Error.NOT_FOUND, s"Image with id $imageId and language $language not found"))
+          halt(
+            status = 404,
+            body = Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found")
+          )
       }
     }
 
@@ -358,7 +368,7 @@ trait ImageControllerV2 {
 
       imageRepository.withExternalId(externalId) match {
         case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
-        case None        => NotFound(Error(Error.NOT_FOUND, s"Image with external id $externalId not found"))
+        case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
     }
 
@@ -519,8 +529,8 @@ trait ImageControllerV2 {
       )
     ) {
       val query = paramOrDefault(this.query.paramName, "")
-      val pageSize = intOrDefault(this.pageSize.paramName, ImageApiProperties.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => ImageApiProperties.DefaultPageSize
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
         case x                        => x
       }
       val pageNo = intOrDefault(this.pageNo.paramName, 1) match {

@@ -10,10 +10,9 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.ResultWindowTooLargeException
+import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
@@ -27,13 +26,17 @@ trait ArticleSearchService {
     with SearchConverterService
     with SearchService
     with ArticleIndexService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummary] {
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+
     private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
 
-    override val searchIndex: String = DraftApiProperties.DraftSearchIndex
+    override val searchIndex: String = props.DraftSearchIndex
 
     override def hitToApiModel(hit: String, language: String): api.ArticleSummary =
       searchConverterService.hitAsArticleSummary(hit, language)

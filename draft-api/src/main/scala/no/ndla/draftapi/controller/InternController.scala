@@ -7,13 +7,12 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.Article.jsonEncoder
-import no.ndla.draftapi.model.domain.{ArticleStatus, ReindexResult}
+import no.ndla.draftapi.model.domain.{ArticleStatus, DBArticle, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -39,12 +38,17 @@ trait InternController {
     with GrepCodesIndexService
     with AgreementIndexService
     with User
-    with ArticleApiClient =>
+    with ArticleApiClient
+    with NdlaController
+    with DBArticle
+    with Props =>
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
+    import props.{DraftSearchIndex, AgreementSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
+
     protected val applicationDescription                 = "API for accessing internal functionality in draft API"
-    protected implicit override val jsonFormats: Formats = jsonEncoder
+    protected implicit override val jsonFormats: Formats = DBArticle.jsonEncoder
 
     def createIndexFuture(
         indexService: IndexService[_, _]
@@ -109,10 +113,10 @@ trait InternController {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
       val indexes = for {
-        articleIndex   <- Future { articleIndexService.findAllIndexes(DraftApiProperties.DraftSearchIndex) }
-        agreementIndex <- Future { agreementIndexService.findAllIndexes(DraftApiProperties.AgreementSearchIndex) }
-        tagIndex       <- Future { tagIndexService.findAllIndexes(DraftApiProperties.DraftTagSearchIndex) }
-        grepIndex      <- Future { grepCodesIndexService.findAllIndexes(DraftApiProperties.DraftGrepCodesSearchIndex) }
+        articleIndex   <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
+        agreementIndex <- Future { agreementIndexService.findAllIndexes(AgreementSearchIndex) }
+        tagIndex       <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
+        grepIndex      <- Future { grepCodesIndexService.findAllIndexes(DraftGrepCodesSearchIndex) }
       } yield (articleIndex, agreementIndex, tagIndex, grepIndex)
 
       val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {

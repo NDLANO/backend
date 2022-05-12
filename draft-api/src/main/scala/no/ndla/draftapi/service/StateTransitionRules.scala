@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 import java.util.Date
 import cats.effect.IO
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NotFoundException}
+import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
 import no.ndla.draftapi.integration.{
@@ -43,7 +43,8 @@ trait StateTransitionRules {
     with H5PApiClient
     with ConverterService
     with ContentValidator
-    with ArticleIndexService =>
+    with ArticleIndexService
+    with ErrorHelpers =>
 
   object StateTransitionRules {
 

@@ -7,21 +7,28 @@
 
 package no.ndla.conceptapi
 
-import com.zaxxer.hikari.HikariDataSource
+import no.ndla.conceptapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 
-object DBMigrator {
+trait DBMigrator {
+  this: Props with DataSource =>
+  val migrator: DBMigrator
 
-  def migrate(datasource: HikariDataSource): MigrateResult = {
-    val flyway = Flyway
-      .configure()
-      .dataSource(datasource)
-      // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
-      // Therefore we simply override it with dataSource.getScheme.
-      // https://github.com/flyway/flyway/issues/2182
-      .schemas(datasource.getSchema)
-      .load()
-    flyway.migrate()
+  class DBMigrator {
+    def migrate(): MigrateResult = {
+      val flyway = Flyway
+        .configure()
+        .javaMigrations(
+        )
+        .locations("conceptapi/db/migration")
+        .dataSource(dataSource)
+        // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
+        // Therefore we simply override it with dataSource.getScheme.
+        // https://github.com/flyway/flyway/issues/2182
+        .schemas(dataSource.getSchema)
+        .load()
+      flyway.migrate()
+    }
   }
 }

@@ -15,36 +15,42 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
     renderSwagger2(swagger.docs.toList)
   }
 }
+trait ConceptApiInfo {
+  this: Props =>
 
-object ConceptApiInfo {
+  object ConceptApiInfo {
 
-  val contactInfo: ContactInfo = ContactInfo(
-    ConceptApiProperties.ContactName,
-    ConceptApiProperties.ContactUrl,
-    ConceptApiProperties.ContactEmail
-  )
+    val contactInfo: ContactInfo = ContactInfo(
+      props.ContactName,
+      props.ContactUrl,
+      props.ContactEmail
+    )
 
-  val licenseInfo: LicenseInfo = LicenseInfo(
-    "GPL v3.0",
-    "http://www.gnu.org/licenses/gpl-3.0.en.html"
-  )
+    val licenseInfo: LicenseInfo = LicenseInfo(
+      "GPL v3.0",
+      "http://www.gnu.org/licenses/gpl-3.0.en.html"
+    )
 
-  val apiInfo: ApiInfo = ApiInfo(
-    "Concept API",
-    "Services for accessing concepts",
-    ConceptApiProperties.TermsUrl,
-    contactInfo,
-    licenseInfo
-  )
-}
-
-class ConceptSwagger extends Swagger("2.0", "1.0", ConceptApiInfo.apiInfo) {
-
-  private def writeRolesInTest: List[String] = {
-    List(ConceptApiProperties.ConceptRoleWithWriteAccess)
+    val apiInfo: ApiInfo = ApiInfo(
+      "Concept API",
+      "Services for accessing concepts",
+      props.TermsUrl,
+      contactInfo,
+      licenseInfo
+    )
   }
 
-  addAuthorization(
-    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ConceptApiProperties.Auth0LoginEndpoint), "access_token")))
-  )
+  class ConceptSwagger extends Swagger("2.0", "1.0", ConceptApiInfo.apiInfo) {
+
+    private def writeRolesInTest: List[String] = {
+      List(props.ConceptRoleWithWriteAccess)
+    }
+
+    addAuthorization(
+      OAuth(
+        writeRolesInTest,
+        List(ImplicitGrant(LoginEndpoint(props.Auth0LoginEndpoint), "access_token"))
+      )
+    )
+  }
 }

@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import cats.Traverse
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.{ApiGatewayHost, DefaultLanguage}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain.{Article, ArticleTitle}
 import no.ndla.language.Language
 import no.ndla.network.NdlaClient
@@ -21,8 +21,9 @@ import scalaj.http.Http
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
+  import props.{ApiGatewayHost, DefaultLanguage}
 
   class TaxonomyApiClient extends LazyLogging {
     private val TaxonomyApiEndpoint           = s"http://$ApiGatewayHost/taxonomy/v1"

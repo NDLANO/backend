@@ -7,17 +7,16 @@
 
 package no.ndla.imageapi.auth
 
-import no.ndla.imageapi.ImageApiProperties.RoleWithWriteAccess
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait Role {
-
+  this: Props =>
   val authRole: AuthRole
 
   class AuthRole {
-
-    def userHasWriteRole(): Boolean = AuthUser.hasRole(RoleWithWriteAccess)
+    def userHasWriteRole(): Boolean = AuthUser.hasRole(props.RoleWithWriteAccess)
 
     def assertHasRole(role: String): Unit = {
       if (!AuthUser.hasRole(role))

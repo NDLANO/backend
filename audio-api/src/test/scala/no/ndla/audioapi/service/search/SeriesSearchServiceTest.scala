@@ -65,7 +65,7 @@ class SeriesSearchServiceTest
     super.beforeAll()
 
     if (elasticSearchContainer.isSuccess) {
-      seriesIndexService.createIndexWithName(AudioApiProperties.SeriesSearchIndex)
+      seriesIndexService.createIndexWithName(props.SeriesSearchIndex)
       seriesToIndex.map(s => seriesIndexService.indexDocument(s).get)
 
       blockUntil(() => seriesSearchService.countDocuments == seriesToIndex.size)

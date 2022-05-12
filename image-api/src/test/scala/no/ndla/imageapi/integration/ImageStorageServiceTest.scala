@@ -14,7 +14,7 @@ import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuit
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
-  val ImageStorageName      = ImageApiProperties.StorageName
+  val ImageStorageName      = props.StorageName
   val ImageWithNoThumb      = TestData.nonexistingWithoutThumb
   val Content               = "content"
   val ContentType           = "image/jpeg"

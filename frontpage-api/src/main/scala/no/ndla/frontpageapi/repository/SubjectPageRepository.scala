@@ -8,21 +8,23 @@
 package no.ndla.frontpageapi.repository
 
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.model.domain.SubjectFrontPageData
+import no.ndla.frontpageapi.model.domain.{DBSubjectFrontPageData, SubjectFrontPageData}
 import org.log4s.getLogger
 import org.postgresql.util.PGobject
 import scalikejdbc._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import SubjectFrontPageData._
+
 import scala.util.{Failure, Success, Try}
 
 trait SubjectPageRepository {
-  this: DataSource =>
+  this: DataSource with DBSubjectFrontPageData =>
   val subjectPageRepository: SubjectPageRepository
 
   class SubjectPageRepository {
     val logger = getLogger
+    import SubjectFrontPageData._
 
     def newSubjectPage(subj: SubjectFrontPageData, externalId: String)(implicit
         session: DBSession = AutoSession
@@ -32,7 +34,7 @@ trait SubjectPageRepository {
       dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
 
       Try(
-        sql"insert into ${SubjectFrontPageData.table} (document, external_id) values (${dataObject}, ${externalId})"
+        sql"insert into ${DBSubjectFrontPageData.table} (document, external_id) values (${dataObject}, ${externalId})"
           .updateAndReturnGeneratedKey()
       ).map(id => {
         logger.info(s"Inserted new subject page: $id")
@@ -47,7 +49,7 @@ trait SubjectPageRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
 
-      Try(sql"update ${SubjectFrontPageData.table} set document=${dataObject} where id=${subj.id}".update())
+      Try(sql"update ${DBSubjectFrontPageData.table} set document=${dataObject} where id=${subj.id}".update())
         .map(_ => subj)
     }
 
@@ -56,7 +58,7 @@ trait SubjectPageRepository {
 
     def getIdFromExternalId(externalId: String)(implicit sesstion: DBSession = AutoSession): Try[Option[Long]] = {
       Try(
-        sql"select id from ${SubjectFrontPageData.table} where external_id=${externalId}"
+        sql"select id from ${DBSubjectFrontPageData.table} where external_id=${externalId}"
           .map(rs => rs.long("id"))
           .single()
       )
@@ -64,7 +66,7 @@ trait SubjectPageRepository {
 
     def exists(subjectId: Long)(implicit sesstion: DBSession = AutoSession): Try[Boolean] = {
       Try(
-        sql"select id from ${SubjectFrontPageData.table} where id=${subjectId}"
+        sql"select id from ${DBSubjectFrontPageData.table} where id=${subjectId}"
           .map(rs => rs.long("id"))
           .single()
       ).map(_.isDefined)
@@ -73,11 +75,11 @@ trait SubjectPageRepository {
     private def subjectPageWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[SubjectFrontPageData] = {
-      val su = SubjectFrontPageData.syntax("su")
+      val su = DBSubjectFrontPageData.syntax("su")
 
       Try(
-        sql"select ${su.result.*} from ${SubjectFrontPageData.as(su)} where su.document is not NULL and $whereClause"
-          .map(SubjectFrontPageData.fromDb(su))
+        sql"select ${su.result.*} from ${DBSubjectFrontPageData.as(su)} where su.document is not NULL and $whereClause"
+          .map(DBSubjectFrontPageData.fromDb(su))
           .single()
       ) match {
         case Success(Some(Success(s))) => Some(s)

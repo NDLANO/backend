@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._
 import org.json4s.native.JsonMethods._
@@ -21,7 +22,7 @@ import java.util.UUID
 import scala.util.Try
 
 trait LearningPathRepositoryComponent extends LazyLogging {
-  this: DataSource =>
+  this: DataSource with DBLearningPath with DBLearningStep with Props =>
   val learningPathRepository: LearningPathRepository
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
@@ -38,8 +39,8 @@ trait LearningPathRepositoryComponent extends LazyLogging {
   class LearningPathRepository {
     implicit val formats: Formats =
       DefaultFormats ++
-        LearningPath.jsonSerializer ++
-        LearningStep.jsonSerializer ++
+        DBLearningPath.jsonSerializer ++
+        DBLearningStep.jsonSerializer ++
         org.json4s.ext.JodaTimeSerializers.all
 
     def withId(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
@@ -71,18 +72,18 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     }
 
     def learningStepsFor(learningPathId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[LearningStep] = {
-      val ls = LearningStep.syntax("ls")
-      sql"select ${ls.result.*} from ${LearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId"
-        .map(LearningStep(ls.resultName))
+      val ls = DBLearningStep.syntax("ls")
+      sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId"
+        .map(DBLearningStep.fromResultSet(ls.resultName))
         .list()
     }
 
     def learningStepWithId(learningPathId: Long, learningStepId: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Option[LearningStep] = {
-      val ls = LearningStep.syntax("ls")
-      sql"select ${ls.result.*} from ${LearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId and ${ls.id} = $learningStepId"
-        .map(LearningStep(ls.resultName))
+      val ls = DBLearningStep.syntax("ls")
+      sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId and ${ls.id} = $learningStepId"
+        .map(DBLearningStep.fromResultSet(ls.resultName))
         .single()
     }
 
@@ -92,9 +93,9 @@ trait LearningPathRepositoryComponent extends LazyLogging {
       externalId.isEmpty || learningPathId.isEmpty match {
         case true => None
         case false => {
-          val ls = LearningStep.syntax("ls")
-          sql"select ${ls.result.*} from ${LearningStep.as(ls)} where ${ls.externalId} = ${externalId.get} and ${ls.learningPathId} = ${learningPathId.get}"
-            .map(LearningStep(ls.resultName))
+          val ls = DBLearningStep.syntax("ls")
+          sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.externalId} = ${externalId.get} and ${ls.learningPathId} = ${learningPathId.get}"
+            .map(DBLearningStep.fromResultSet(ls.resultName))
             .single()
         }
       }
@@ -145,9 +146,9 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     def idAndimportIdOfLearningpath(
         externalId: String
     )(implicit session: DBSession = AutoSession): Option[(Long, Option[String])] = {
-      val lp = LearningPath.syntax("lp")
+      val lp = DBLearningPath.syntax("lp")
       sql"""select id, import_id
-            from ${LearningPath.as(lp)}
+            from ${DBLearningPath.as(lp)}
             where lp.document is not NULL and lp.external_id = $externalId"""
         .map(rs => (rs.long("id"), rs.stringOpt("import_id")))
         .single()
@@ -254,16 +255,16 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     def learningPathsWithIdBetween(min: Long, max: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): List[LearningPath] = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       val status   = LearningPathStatus.PUBLISHED.toString
 
       sql"""select ${lp.result.*}, ${ls.result.*}
-               from ${LearningPath.as(lp)}
-               left join ${LearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId}
+               from ${DBLearningPath.as(lp)}
+               left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId}
                where lp.document->>'status' = $status
                and lp.id between $min and $max"""
-        .one(LearningPath(lp.resultName))
-        .toMany(LearningStep.opt(ls.resultName))
+        .one(DBLearningPath.fromResultSet(lp.resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
           learningpath.copy(learningsteps = Some(learningsteps.toSeq))
         }
@@ -318,11 +319,11 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     private def learningPathsWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
-      sql"select ${lp.result.*}, ${ls.result.*} from ${LearningPath.as(lp)} left join ${LearningStep
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      sql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep
           .as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
-        .one(LearningPath(lp.resultName))
-        .toMany(LearningStep.opt(ls.resultName))
+        .one(DBLearningPath.fromResultSet(lp.resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
           learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
         }
@@ -332,11 +333,11 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     private def learningPathWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
-      sql"select ${lp.result.*}, ${ls.result.*} from ${LearningPath.as(lp)} left join ${LearningStep
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      sql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep
           .as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
-        .one(LearningPath(lp.resultName))
-        .toMany(LearningStep.opt(ls.resultName))
+        .one(DBLearningPath.fromResultSet(lp.resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
           learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
         }
@@ -346,17 +347,17 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): List[LearningPath] = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       val lps      = SubQuery.syntax("lps").include(lp)
       sql"""
             select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
-                                                           from ${LearningPath.as(lp)}
+                                                           from ${DBLearningPath.as(lp)}
                                                            limit $pageSize
                                                            offset $offset) lps
-            left join ${LearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
       """
-        .one(LearningPath(lps(lp).resultName))
-        .toMany(LearningStep.opt(ls.resultName))
+        .one(DBLearningPath.fromResultSet(lps(lp).resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
           learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
         }
@@ -366,18 +367,18 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): List[LearningPath] = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       val lps      = SubQuery.syntax("lps").include(lp)
       sql"""
             select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
-                                                           from ${LearningPath.as(lp)}
+                                                           from ${DBLearningPath.as(lp)}
                                                            where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
                                                            limit $pageSize
                                                            offset $offset) lps
-            left join ${LearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
       """
-        .one(LearningPath(lps(lp).resultName))
-        .toMany(LearningStep.opt(ls.resultName))
+        .one(DBLearningPath.fromResultSet(lps(lp).resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
           learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
         }
@@ -391,16 +392,16 @@ trait LearningPathRepositoryComponent extends LazyLogging {
     }
 
     def publishedLearningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
-      sql"select count(*) from ${LearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      sql"select count(*) from ${DBLearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
     }
 
     def learningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      val (lp, ls) = (LearningPath.syntax("lp"), LearningStep.syntax("ls"))
-      sql"select count(*) from ${LearningPath.as(lp)}"
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      sql"select count(*) from ${DBLearningPath.as(lp)}"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)

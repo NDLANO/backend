@@ -7,8 +7,6 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.DraftApiProperties.DefaultLanguage
-
 import java.util.Date
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
@@ -16,7 +14,7 @@ import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
 import no.ndla.draftapi.model.domain.{ArticleType, SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.{read, write}
@@ -100,7 +98,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
       verify(articleSearchService, times(1)).matchingQuery(
         TestData.searchSettings.copy(
           withIdIn = List(1, 2, 3, 4),
-          searchLanguage = DefaultLanguage,
+          searchLanguage = props.DefaultLanguage,
           page = 1,
           pageSize = 4,
           sort = Sort.ByTitleAsc,

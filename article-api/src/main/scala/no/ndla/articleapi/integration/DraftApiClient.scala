@@ -8,16 +8,16 @@
 
 package no.ndla.articleapi.integration
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest}
 
 trait DraftApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val draftApiClient: DraftApiClient
 
-  class DraftApiClient(DraftBaseUrl: String = s"http://${ArticleApiProperties.DraftHost}") {
+  class DraftApiClient(DraftBaseUrl: String = s"http://${props.DraftHost}") {
     private val draftApiGetAgreementEndpoint = s"$DraftBaseUrl/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty

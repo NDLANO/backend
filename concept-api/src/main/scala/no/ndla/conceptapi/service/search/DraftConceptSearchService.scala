@@ -11,11 +11,11 @@ import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
+import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult}
-import no.ndla.conceptapi.model.search.DraftSearchSettings
+import no.ndla.conceptapi.model.search.{DraftSearchSettings, DraftSearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
 import no.ndla.search.Elastic4sClient
@@ -32,11 +32,15 @@ trait DraftConceptSearchService {
     with SearchService
     with DraftConceptIndexService
     with ConverterService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers
+    with DraftSearchSettingsHelper =>
   val draftConceptSearchService: DraftConceptSearchService
 
   class DraftConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
-    override val searchIndex: String = ConceptApiProperties.DraftConceptSearchIndex
+    import props._
+    override val searchIndex: String = DraftConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
@@ -60,7 +64,7 @@ trait DraftConceptSearchService {
         executor: ExecutionContext
     ): Future[Try[List[SubjectTags]]] =
       Future {
-        val settings = DraftSearchSettings.empty.copy(
+        val settings = draftSearchSettings.empty.copy(
           subjects = Set(subjectId),
           searchLanguage = language,
           fallback = fallback,
@@ -154,9 +158,9 @@ trait DraftConceptSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ConceptApiProperties.ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+          s"Max supported results are ${ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -171,7 +175,7 @@ trait DraftConceptSearchService {
 
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ConceptApiProperties.ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

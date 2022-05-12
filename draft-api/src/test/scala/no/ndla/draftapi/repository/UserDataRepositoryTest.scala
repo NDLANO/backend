@@ -7,8 +7,10 @@
 
 package no.ndla.draftapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
+
 import java.net.Socket
-import no.ndla.draftapi.{DBMigrator, DraftApiProperties, TestData, TestEnvironment}
+import no.ndla.draftapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.postgresql.util.PSQLException
 import org.scalatest.Outcome
@@ -17,8 +19,9 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
-  override val dataSource            = testDataSource.get
-  var repository: UserDataRepository = new UserDataRepository
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator: DBMigrator         = new DBMigrator
+  var repository: UserDataRepository        = _
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -46,8 +49,8 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   }
 
   def serverIsListening: Boolean = {
-    val server = DraftApiProperties.MetaServer
-    val port   = DraftApiProperties.MetaPort
+    val server = props.MetaServer
+    val port   = props.MetaPort
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()
@@ -67,9 +70,9 @@ class UserDataRepositoryTest extends IntegrationSuite(EnablePostgresContainer = 
   override def beforeAll(): Unit = {
     super.beforeAll()
     Try {
+      DataSource.connectToDatabase()
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-        DBMigrator.migrate(dataSource)
+        migrator.migrate()
       }
     }
   }

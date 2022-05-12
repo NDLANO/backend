@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
-import no.ndla.oembedproxy.{OEmbedProxyProperties, OEmbedSwagger, TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.anyString
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val swagger = new OEmbedSwagger
   lazy val controller  = new OEmbedProxyController
-  addServlet(controller, OEmbedProxyProperties.OembedProxyControllerMountPoint)
+  addServlet(controller, props.OembedProxyControllerMountPoint)
 
   val oembed = OEmbed(
     `type` = "rich",

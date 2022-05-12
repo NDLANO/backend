@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
+
 import java.util.Date
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
@@ -25,7 +27,8 @@ class LearningPathRepositoryComponentIntegrationTest
     with UnitSuite
     with TestEnvironment {
 
-  override val dataSource = testDataSource.get
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
 
   var repository: LearningPathRepository = _
 
@@ -82,8 +85,8 @@ class LearningPathRepositoryComponentIntegrationTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    Try(ConnectionPool.singleton(new DataSourceConnectionPool(dataSource)))
-    Try(DBMigrator.migrate(dataSource))
+    DataSource.connectToDatabase()
+    migrator.migrate()
   }
 
   def databaseIsAvailable: Boolean = {

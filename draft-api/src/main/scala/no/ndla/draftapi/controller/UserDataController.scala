@@ -16,7 +16,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger}
 import scala.util.{Failure, Success}
 
 trait UserDataController {
-  this: ReadService with WriteService with User =>
+  this: ReadService with WriteService with User with NdlaController =>
   val userDataController: UserDataController
 
   class UserDataController(implicit val swagger: Swagger) extends NdlaController {

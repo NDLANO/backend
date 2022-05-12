@@ -75,7 +75,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   val articlesToIndex = Seq(article1, article2, article3, article4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexWithName(DraftApiProperties.DraftTagSearchIndex)
+    tagIndexService.createIndexWithName(props.DraftTagSearchIndex)
 
     articlesToIndex.foreach(a => tagIndexService.indexDocument(a))
 

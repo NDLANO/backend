@@ -13,6 +13,8 @@ import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.io.IOException
+import java.net.ServerSocket
 import scala.util.Properties.{propOrNone, setProp}
 
 abstract class UnitTestSuite
@@ -47,5 +49,29 @@ abstract class UnitTestSuite
     DateTimeUtils.setCurrentMillisFixed(time.getMillis)
     toExecute
     DateTimeUtils.setCurrentMillisSystem()
+  }
+
+  def findFreePort: Int = {
+    def closeQuietly(socket: ServerSocket): Unit = {
+      try {
+        socket.close()
+      } catch { case _: Throwable => }
+    }
+    var socket: ServerSocket = null
+    try {
+      socket = new ServerSocket(0)
+      socket.setReuseAddress(true)
+      val port = socket.getLocalPort
+      closeQuietly(socket)
+      return port;
+    } catch {
+      case e: IOException =>
+        System.err.println(("Failed to open socket", e));
+    } finally {
+      if (socket != null) {
+        closeQuietly(socket)
+      }
+    }
+    throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
   }
 }

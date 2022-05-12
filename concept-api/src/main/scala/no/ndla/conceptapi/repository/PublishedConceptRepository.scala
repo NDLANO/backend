@@ -10,7 +10,7 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, PublishedConcept}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, DBConcept}
 import org.json4s.Formats
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -19,7 +19,7 @@ import org.json4s.native.Serialization.{read, write}
 import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptRepository {
-  this: DataSource =>
+  this: DataSource with DBConcept =>
   val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends LazyLogging with Repository[Concept] {

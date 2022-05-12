@@ -12,7 +12,7 @@ import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain.Title
 
 trait TitleValidator {
-  this: LanguageValidator =>
+  this: LanguageValidator with TextValidator =>
   val titleValidator: TitleValidator
 
   class TitleValidator(titleRequired: Boolean = true) {

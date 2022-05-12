@@ -8,8 +8,7 @@
 package no.ndla.draftapi.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-
-import no.ndla.draftapi.DraftApiProperties.ApiClientsCacheAgeInMs
+import no.ndla.draftapi.Props
 
 private[caching] class Memoize[R](
     maxCacheAgeMs: Long,
@@ -33,7 +32,7 @@ private[caching] class Memoize[R](
   if (autoRefreshCache) {
     val ex = new ScheduledThreadPoolExecutor(1)
     val task = new Runnable {
-      def run() = renewCache()
+      def run(): Unit = renewCache()
     }
     ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS)
   }
@@ -49,15 +48,19 @@ private[caching] class Memoize[R](
   }
 
 }
+trait MemoizeHelpers {
+  this: Props =>
+  import props.ApiClientsCacheAgeInMs
 
-object Memoize {
+  object Memoize {
 
-  def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
-    new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = false, shouldCacheResult)
-}
+    def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
+      new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = false, shouldCacheResult)
+  }
 
-object MemoizeAutoRenew {
+  object MemoizeAutoRenew {
 
-  def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
-    new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = true, shouldCacheResult)
+    def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
+      new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = true, shouldCacheResult)
+  }
 }

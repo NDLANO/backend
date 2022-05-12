@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.model.SearchableLanguageFormats
-import no.ndla.searchapi.SearchApiProperties
+import no.ndla.searchapi.{Props, SearchApiProperties}
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.grep.GrepBundle
@@ -25,13 +25,13 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait LearningPathIndexService {
-  this: SearchConverterService with IndexService with LearningPathApiClient =>
+  this: SearchConverterService with IndexService with LearningPathApiClient with Props =>
   val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends LazyLogging with IndexService[LearningPath] {
     implicit val formats: Formats                 = SearchableLanguageFormats.JSonFormatsWithMillis
-    override val documentType: String             = SearchApiProperties.SearchDocuments(SearchType.LearningPaths)
-    override val searchIndex: String              = SearchApiProperties.SearchIndexes(SearchType.LearningPaths)
+    override val documentType: String             = props.SearchDocuments(SearchType.LearningPaths)
+    override val searchIndex: String              = props.SearchIndexes(SearchType.LearningPaths)
     override val apiClient: LearningPathApiClient = learningPathApiClient
 
     override def createIndexRequest(

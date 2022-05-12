@@ -11,7 +11,11 @@ package no.ndla.oembedproxy
 import no.ndla.network.{AuthUser, Domains}
 import scala.util.Properties.propOrElse
 
-object OEmbedProxyProperties {
+trait Props {
+  val props: OEmbedProxyProperties
+}
+
+class OEmbedProxyProperties {
 
   val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
 

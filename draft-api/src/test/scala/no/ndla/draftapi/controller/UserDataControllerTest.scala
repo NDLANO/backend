@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.UpdatedUserData
-import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatra.test.scalatest.ScalatraFunSuite

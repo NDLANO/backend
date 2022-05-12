@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import no.ndla.draftapi.DraftApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -17,6 +16,7 @@ import scalikejdbc.DBSession
 import scala.util.Success
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
+  import props.{externalApiUrls, resourceHtmlEmbedTag}
 
   val externalImageApiUrl = externalApiUrls("image")
   val resourceIdAttr      = s"${TagAttributes.DataResource_Id}"

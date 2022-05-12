@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.{
@@ -44,13 +44,16 @@ trait SeriesController {
     with User
     with Clock
     with SearchConverterService
-    with ConverterService =>
+    with ConverterService
+    with Props
+    with NdlaController =>
   val seriesController: SeriesController
 
   class SeriesController(implicit val swagger: Swagger)
       extends NdlaController
       with FileUploadSupport
       with SwaggerSupport {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription                 = "Services for accessing audio."
 

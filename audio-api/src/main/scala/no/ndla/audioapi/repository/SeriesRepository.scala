@@ -10,23 +10,24 @@ package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.integration.DataSource
-import no.ndla.audioapi.model.api.OptimisticLockException
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
+import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries, Series}
 import no.ndla.audioapi.model.domain
 import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 import cats.implicits._
+import no.ndla.audioapi.Props
+import no.ndla.audioapi.model.api.ErrorHelpers
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesRepository {
-  this: DataSource =>
+  this: DataSource with Props with DBSeries with DBAudioMetaInformation with ErrorHelpers =>
   val seriesRepository: SeriesRepository
 
   class SeriesRepository extends LazyLogging with Repository[Series] {
-    val formats: Formats = domain.Series.repositorySerializer
+    val formats: Formats = Series.repositorySerializer
 
     /** Method to fetch single series from database
       * @param id

@@ -18,7 +18,7 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Information about validation errors")
 case class ValidationError(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String = Error.VALIDATION,
+    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String = "Validation error",
     @(ApiModelProperty @field)(description = "List of validation messages") messages: Seq[ValidationMessage],
     @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: Date = new Date()

@@ -46,12 +46,12 @@ class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer 
   }
 
   test("That indexing does not fail if no tags are present") {
-    tagIndexService.createIndexWithName(AudioApiProperties.AudioTagSearchIndex)
+    tagIndexService.createIndexWithName(props.AudioTagSearchIndex)
 
     val audio = TestData.sampleAudio.copy(tags = Seq.empty)
     tagIndexService.indexDocument(audio).isSuccess should be(true)
 
-    tagIndexService.deleteIndexWithName(Some(AudioApiProperties.AudioTagSearchIndex))
+    tagIndexService.deleteIndexWithName(Some(props.AudioTagSearchIndex))
   }
 
 }

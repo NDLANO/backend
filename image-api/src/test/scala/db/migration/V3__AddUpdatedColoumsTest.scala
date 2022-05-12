@@ -7,6 +7,7 @@
 
 package db.migration
 
+import imageapi.db.migration.{TimeService, V3__AddUpdatedColoums, V3__DBImageMetaInformation}
 import no.ndla.imageapi.UnitSuite
 
 class V3__AddUpdatedColoumsTest extends UnitSuite {

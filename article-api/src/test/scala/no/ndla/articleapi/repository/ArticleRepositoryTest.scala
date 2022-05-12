@@ -24,12 +24,13 @@ class ArticleRepositoryTest
     with UnitSuite
     with TestEnvironment {
   override val dataSource           = testDataSource.get
+  override val migrator             = new DBMigrator
   var repository: ArticleRepository = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
   def serverIsListening: Boolean = {
-    Try(new Socket(ArticleApiProperties.MetaServer, ArticleApiProperties.MetaPort)) match {
+    Try(new Socket(props.MetaServer, props.MetaPort)) match {
       case Success(c) =>
         c.close()
         true
@@ -44,7 +45,7 @@ class ArticleRepositoryTest
     Try {
       ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
       if (serverIsListening) {
-        DBMigrator.migrate(dataSource)
+        migrator.migrate()
       }
     }
   }

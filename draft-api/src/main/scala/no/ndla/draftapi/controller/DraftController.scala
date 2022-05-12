@@ -8,8 +8,7 @@
 package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.InitialScrollContextKeywords
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain
@@ -35,10 +34,15 @@ trait DraftController {
     with SearchConverterService
     with ConverterService
     with ContentValidator
-    with User =>
+    with User
+    with NdlaController
+    with Props
+    with ErrorHelpers =>
   val draftController: DraftController
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
+    import props.{InitialScrollContextKeywords, DefaultPageSize}
+
     protected implicit override val jsonFormats: Formats =
       DefaultFormats.withLong + Json4s.serializer(PartialArticleFields) ++ JavaTimeSerializers.all
     protected val applicationDescription = "API for accessing draft articles."
@@ -126,7 +130,7 @@ trait DraftController {
         }
         val tags = readService.getNMostUsedTags(size, language)
         if (tags.isEmpty) {
-          NotFound(body = Error(Error.NOT_FOUND, s"No tags with language $language was found"))
+          NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No tags with language $language was found"))
         } else {
           tags
         }
@@ -153,8 +157,8 @@ trait DraftController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val query = paramOrDefault(this.query.paramName, "")
-        val pageSize = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize) match {
-          case tooSmall if tooSmall < 1 => DraftApiProperties.DefaultPageSize
+        val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
+          case tooSmall if tooSmall < 1 => DefaultPageSize
           case x                        => x
         }
         val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
@@ -242,8 +246,8 @@ trait DraftController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val query = paramOrDefault(this.query.paramName, "")
-        val pageSize = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize) match {
-          case tooSmall if tooSmall < 1 => DraftApiProperties.DefaultPageSize
+        val pageSize = intOrDefault(this.pageSize.paramName, DefaultPageSize) match {
+          case tooSmall if tooSmall < 1 => DefaultPageSize
           case x                        => x
         }
         val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
@@ -288,7 +292,7 @@ trait DraftController {
           val query              = paramOrNone(this.query.paramName)
           val sort               = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
           val license            = paramOrNone(this.license.paramName)
-          val pageSize           = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
+          val pageSize           = intOrDefault(this.pageSize.paramName, DefaultPageSize)
           val page               = intOrDefault(this.pageNo.paramName, 1)
           val idList             = paramAsListOfLong(this.articleIds.paramName)
           val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
@@ -338,7 +342,7 @@ trait DraftController {
               val query              = searchParams.query
               val sort               = Sort.valueOf(searchParams.sort.getOrElse(""))
               val license            = searchParams.license
-              val pageSize           = searchParams.pageSize.getOrElse(DraftApiProperties.DefaultPageSize)
+              val pageSize           = searchParams.pageSize.getOrElse(DefaultPageSize)
               val page               = searchParams.page.getOrElse(1)
               val idList             = searchParams.idList
               val articleTypesFilter = searchParams.articleTypes
@@ -446,7 +450,7 @@ trait DraftController {
         val externalId = long(this.deprecatedNodeId.paramName)
         readService.getInternalArticleIdByExternalId(externalId) match {
           case Some(id) => id
-          case None     => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
+          case None     => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No article with id $externalId"))
         }
       }
     }
@@ -789,7 +793,7 @@ trait DraftController {
 
       doOrAccessDenied(userInfo.canWrite) {
         nodeId match {
-          case None => NotFound(body = Error(Error.NOT_FOUND, s"No nodeid supplied"))
+          case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No nodeid supplied"))
           case Some(publicId) =>
             writeService.copyRevisionDates(publicId) match {
               case Success(_)  => Ok()

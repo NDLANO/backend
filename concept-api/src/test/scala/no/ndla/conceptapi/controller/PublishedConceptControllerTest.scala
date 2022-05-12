@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 import no.ndla.conceptapi.model.api.{ConceptSummary, NotFoundException}
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 

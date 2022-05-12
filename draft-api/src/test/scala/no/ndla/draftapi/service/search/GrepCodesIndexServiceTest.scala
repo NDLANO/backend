@@ -46,12 +46,12 @@ class GrepCodesIndexServiceTest extends IntegrationSuite(EnableElasticsearchCont
   }
 
   test("That indexing does not fail if no grepCodes are present") {
-    tagIndexService.createIndexWithName(DraftApiProperties.DraftGrepCodesSearchIndex)
+    tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
 
     val article = TestData.sampleDomainArticle.copy(grepCodes = Seq.empty)
     grepCodesIndexService.indexDocument(article).isSuccess should be(true)
 
-    grepCodesIndexService.deleteIndexWithName(Some(DraftApiProperties.DraftGrepCodesSearchIndex))
+    grepCodesIndexService.deleteIndexWithName(Some(props.DraftGrepCodesSearchIndex))
   }
 
 }

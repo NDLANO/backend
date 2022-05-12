@@ -7,13 +7,14 @@
 
 package no.ndla.conceptapi.repository
 
+import com.zaxxer.hikari.HikariDataSource
+
 import java.net.Socket
 import java.util.Date
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, TestData, TestEnvironment, UnitSuite}
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import scalikejdbc.DB
 import no.ndla.conceptapi.TestData._
-import no.ndla.conceptapi.model.api.OptimisticLockException
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
 
@@ -25,8 +26,9 @@ class DraftConceptRepositoryTest
     with UnitSuite
     with TestEnvironment {
 
-  override val dataSource                = testDataSource.get
-  var repository: DraftConceptRepository = _
+  override val dataSource: HikariDataSource = testDataSource.get
+  override val migrator                     = new DBMigrator
+  var repository: DraftConceptRepository    = _
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -60,14 +62,14 @@ class DraftConceptRepositoryTest
     super.beforeAll()
     Try {
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-        DBMigrator.migrate(dataSource)
+        DataSource.connectToDatabase()
+        migrator.migrate()
       }
     }
   }
 
   def serverIsListening: Boolean = {
-    Try(new Socket(ConceptApiProperties.MetaServer, ConceptApiProperties.MetaPort)) match {
+    Try(new Socket(props.MetaServer, props.MetaPort)) match {
       case Success(c) =>
         c.close()
         true

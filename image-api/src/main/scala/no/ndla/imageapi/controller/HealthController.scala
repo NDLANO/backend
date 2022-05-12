@@ -8,17 +8,16 @@
 
 package no.ndla.imageapi.controller
 
-import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.Uri.parse
-import no.ndla.imageapi.ImageApiProperties
+import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.network.ApplicationUrl
 import org.scalatra._
-
 import scalaj.http.{Http, HttpResponse}
 
 trait HealthController {
-  this: ImageRepository =>
+  this: ImageRepository with Props =>
   val healthController: HealthController
 
   class HealthController extends ScalatraServlet {
@@ -44,13 +43,13 @@ trait HealthController {
 
     get("/") {
       val host = "localhost"
-      val port = ImageApiProperties.ApplicationPort
+      val port = props.ApplicationPort
 
       imageRepository
         .getRandomImage()
         .map(image => {
           val previewUrl =
-            s"http://$host:$port${ImageApiProperties.RawControllerPath}/${parse(image.imageUrl.toStringRaw.dropWhile(_ == '/')).toString}"
+            s"http://$host:$port${props.RawControllerPath}/${parse(image.imageUrl.toStringRaw.dropWhile(_ == '/')).toString}"
           getReturnCode(getApiResponse(previewUrl))
         })
         .getOrElse(Ok())

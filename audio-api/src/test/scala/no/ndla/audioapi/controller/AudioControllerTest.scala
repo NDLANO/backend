@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.{AudioSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
@@ -71,7 +71,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
   test("That POST / returns 200 if everything is fine and dandy") {
     val sampleAudioMeta =
-      AudioMetaInformation(
+      api.AudioMetaInformation(
         1,
         1,
         Title("title", "nb"),

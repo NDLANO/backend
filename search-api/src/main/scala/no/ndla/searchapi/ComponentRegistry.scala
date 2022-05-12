@@ -11,19 +11,20 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import no.ndla.searchapi.SearchApiProperties._
 import no.ndla.searchapi.auth.User
-import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
+import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
 import no.ndla.searchapi.integration._
+import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
 import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
 
-object ComponentRegistry
+class ComponentRegistry(properties: SearchApiProperties)
     extends ArticleApiClient
     with ArticleIndexService
     with LearningPathIndexService
     with DraftIndexService
     with MultiSearchService
+    with ErrorHelpers
     with MultiDraftSearchService
     with AudioApiClient
     with ConverterService
@@ -46,7 +47,13 @@ object ComponentRegistry
     with InternController
     with User
     with SearchApiClient
-    with GrepApiClient {
+    with GrepApiClient
+    with Props
+    with NdlaController
+    with SearchApiInfo {
+  import props.{SearchServer, DraftApiUrl, LearningpathApiUrl, ImageApiUrl, AudioApiUrl, ArticleApiUrl}
+  override val props: SearchApiProperties = properties
+
   implicit val swagger = new SearchSwagger
 
   lazy val searchController = new SearchController

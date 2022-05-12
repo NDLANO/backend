@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, DefaultPageSize}
 import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
@@ -21,6 +20,7 @@ import java.util.Date
 import scala.util.Success
 
 class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+  import props.{DefaultLanguage, DefaultPageSize, MaxPageSize}
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -206,7 +206,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.createIndexWithName(DraftApiProperties.DraftSearchIndex)
+    articleIndexService.createIndexWithName(props.DraftSearchIndex)
 
     articleIndexService.indexDocument(article1)
     articleIndexService.indexDocument(article2)
@@ -224,7 +224,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, DraftApiProperties.MaxPageSize))
+    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
   }
 
   test(

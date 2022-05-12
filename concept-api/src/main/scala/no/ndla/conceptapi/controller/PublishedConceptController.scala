@@ -8,8 +8,7 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, InitialScrollContextKeywords}
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
@@ -34,13 +33,15 @@ trait PublishedConceptController {
     with PublishedConceptSearchService
     with DraftConceptSearchService
     with SearchConverterService
-    with DraftNdlaController =>
+    with DraftNdlaController
+    with Props =>
   val publishedConceptController: PublishedConceptController
 
   class PublishedConceptController(implicit val swagger: Swagger)
       extends DraftNdlaControllerClass
       with SwaggerSupport
       with LazyLogging {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     val applicationDescription = "This is the Api for concepts"
@@ -162,7 +163,7 @@ trait PublishedConceptController {
       scrollSearchOr(scrollId, language) {
         val query           = paramOrNone(this.query.paramName)
         val sort            = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
-        val pageSize        = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
+        val pageSize        = intOrDefault(this.pageSize.paramName, DefaultPageSize)
         val page            = intOrDefault(this.pageNo.paramName, 1)
         val idList          = paramAsListOfLong(this.conceptIds.paramName)
         val fallback        = booleanOrDefault(this.fallback.paramName, default = false)
@@ -216,7 +217,7 @@ trait PublishedConceptController {
             val query           = searchParams.query
             val sort            = searchParams.sort.flatMap(Sort.valueOf)
             val language        = searchParams.language.getOrElse(Language.AllLanguages)
-            val pageSize        = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
+            val pageSize        = searchParams.pageSize.getOrElse(DefaultPageSize)
             val page            = searchParams.page.getOrElse(1)
             val idList          = searchParams.idList
             val fallback        = searchParams.fallback.getOrElse(false)

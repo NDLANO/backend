@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
@@ -19,13 +19,13 @@ import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
 
 trait TagIndexService {
-  this: SearchConverterService with IndexService with ImageRepository =>
+  this: SearchConverterService with IndexService with ImageRepository with Props =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableTag] {
     implicit val formats                                      = SearchableLanguageFormats.JSonFormats
-    override val documentType: String                         = ImageApiProperties.TagSearchDocument
-    override val searchIndex: String                          = ImageApiProperties.TagSearchIndex
+    override val documentType: String                         = props.TagSearchDocument
+    override val searchIndex: String                          = props.TagSearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
 
     override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {

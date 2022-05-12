@@ -8,8 +8,8 @@
 package no.ndla.draftapi.service
 
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.draftapi.DraftApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
-import no.ndla.draftapi.caching.MemoizeAutoRenew
+import no.ndla.draftapi.Props
+import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.model.{api, domain}
@@ -37,8 +37,12 @@ trait ReadService {
     with GrepCodesSearchService
     with SearchConverterService
     with UserDataRepository
-    with WriteService =>
+    with WriteService
+    with Props
+    with MemoizeHelpers =>
   val readService: ReadService
+
+  import props._
 
   class ReadService {
 

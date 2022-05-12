@@ -11,21 +11,29 @@ package no.ndla.audioapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.AudioApiProperties.SearchServer
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
+import no.ndla.audioapi.controller.{
+  AudioController,
+  HealthController,
+  InternController,
+  NdlaController,
+  SeriesController
+}
 import no.ndla.audioapi.integration._
+import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
+class ComponentRegistry(properties: AudioApiProperties)
     extends DataSource
     with AudioRepository
     with SeriesRepository
+    with DBSeries
+    with DBAudioMetaInformation
     with NdlaClient
     with AmazonClient
     with ReadService
@@ -34,6 +42,7 @@ object ComponentRegistry
     with ValidationService
     with ConverterService
     with AudioStorageService
+    with NdlaController
     with InternController
     with HealthController
     with AudioController
@@ -51,12 +60,17 @@ object ComponentRegistry
     with SearchConverterService
     with User
     with Role
-    with Clock {
-  def connectToDatabase(): Unit      = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-  implicit val swagger: AudioSwagger = new AudioSwagger
+    with Clock
+    with Props
+    with DBMigrator
+    with ErrorHelpers
+    with AudioApiInfo {
+  override val props: AudioApiProperties    = properties
+  override val migrator: DBMigrator         = new DBMigrator
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
-  lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  connectToDatabase()
+  implicit val swagger: AudioSwagger = new AudioSwagger
 
   val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
 
@@ -66,7 +80,7 @@ object ComponentRegistry
       .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
       .build()
 
-  lazy val storageName: String = AudioApiProperties.StorageName
+  lazy val storageName: String = props.StorageName
 
   lazy val audioRepository  = new AudioRepository
   lazy val seriesRepository = new SeriesRepository
@@ -86,7 +100,7 @@ object ComponentRegistry
   lazy val seriesController   = new SeriesController
   lazy val healthController   = new HealthController
 
-  var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchConverterService = new SearchConverterService
   lazy val audioIndexService      = new AudioIndexService
   lazy val audioSearchService     = new AudioSearchService

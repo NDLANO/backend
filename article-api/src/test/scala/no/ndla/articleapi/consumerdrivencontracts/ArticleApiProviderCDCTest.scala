@@ -32,54 +32,35 @@ class ArticleApiProviderCDCTest
     with UnitSuite
     with TestEnvironment {
   override val dataSource = testDataSource.get
+  override val migrator   = new DBMigrator
 
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
-
-  def findFreePort: Int = {
-    def closeQuietly(socket: ServerSocket): Unit = {
-      try {
-        socket.close()
-      } catch { case _: Throwable => }
-    }
-    var socket: ServerSocket = null
-    try {
-      socket = new ServerSocket(0)
-      socket.setReuseAddress(true)
-      val port = socket.getLocalPort
-      closeQuietly(socket)
-      return port;
-    } catch {
-      case e: IOException =>
-        logger.trace("Failed to open socket", e);
-    } finally {
-      if (socket != null) {
-        closeQuietly(socket)
-      }
-    }
-    throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
-  }
 
   var server: Option[Server] = None
   val serverPort: Int        = findFreePort
 
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
-    DBMigrator.migrate(dataSource)
+    migrator.migrate()
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
     DB autoCommit (implicit session => {
       val schemaName = SQLSyntax.createUnsafely(dataSource.getSchema)
       sql"drop schema if exists $schemaName cascade;"
         .execute()
     })
-    DBMigrator.migrate(dataSource)
+    migrator.migrate()
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
+  override val props = new ArticleApiProperties {
+    override def ApplicationPort: Int = serverPort
+  }
+  val mainClass = new MainClass(props)
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
-    server = Some(JettyLauncher.startServer(serverPort))
+    server = Some(mainClass.startServer())
   }
 
   override def afterAll(): Unit = {
@@ -90,7 +71,7 @@ class ArticleApiProviderCDCTest
   private def setupArticles() =
     (1 to 10)
       .map(id => {
-        ComponentRegistry.articleRepository
+        mainClass.componentRegistry.articleRepository
           .updateArticleFromDraftApi(
             TestData.sampleDomainArticle.copy(
               id = Some(id),
@@ -120,7 +101,7 @@ class ArticleApiProviderCDCTest
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
 
-    ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+    mainClass.componentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
     val consumersToVerify = List(
       TaggedConsumer("draft-api", List("master")),

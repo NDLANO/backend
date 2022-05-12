@@ -20,7 +20,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger}
 import scala.util.{Failure, Success}
 
 trait FileController {
-  this: WriteService with User =>
+  this: WriteService with User with NdlaController =>
   val fileController: FileController
 
   class FileController(implicit val swagger: Swagger) extends NdlaController with FileUploadSupport {

@@ -9,9 +9,10 @@
 package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
-import no.ndla.audioapi.model.api.OptimisticLockException
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
+import no.ndla.audioapi.model.api.ErrorHelpers
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries, Series}
 import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
@@ -20,7 +21,7 @@ import scalikejdbc.{DBSession, ReadOnlyAutoSession, _}
 import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
-  this: DataSource with SeriesRepository =>
+  this: DataSource with SeriesRepository with DBSeries with DBAudioMetaInformation with Props with ErrorHelpers =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends LazyLogging with Repository[AudioMetaInformation] {

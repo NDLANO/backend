@@ -101,20 +101,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
     {
       val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"))
-      apiImage.metaUrl should equal(s"${ImageApiProperties.ImageApiUrlBase}1")
-      apiImage.imageUrl should equal(s"${ImageApiProperties.RawImageUrlBase}/123.png")
+      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
     {
       val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"))
-      apiImage.metaUrl should equal(s"${ImageApiProperties.ImageApiUrlBase}1")
-      apiImage.imageUrl should equal(s"${ImageApiProperties.RawImageUrlBase}/123.png")
+      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
   }
 
   test("That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links with applicationUrl") {
     val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None)
-    apiImage.metaUrl should equal(s"${ImageApiProperties.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${ImageApiProperties.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links with domain urls") {
@@ -131,8 +131,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some("RandomLangauge")
     )
 
-    apiImage.metaUrl should equal(s"${ImageApiProperties.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${ImageApiProperties.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links even if language is not supported") {

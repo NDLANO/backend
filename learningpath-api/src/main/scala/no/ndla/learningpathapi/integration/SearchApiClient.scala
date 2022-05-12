@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest, HttpResponse}
-import no.ndla.learningpathapi.LearningpathApiProperties.SearchApiHost
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain._
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
@@ -22,10 +22,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val searchApiClient: SearchApiClient
 
   class SearchApiClient extends LazyLogging {
+    import props.SearchApiHost
     private val IndexTimeout = 90 * 1000 // 90 seconds
     @unused
     private val SearchApiBaseUrl = s"http://$SearchApiHost"

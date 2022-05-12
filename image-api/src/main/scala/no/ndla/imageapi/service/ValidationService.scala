@@ -7,8 +7,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.{ValidFileExtensions, ValidMimeTypes}
+import no.ndla.imageapi.{ImageApiProperties, Props}
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
@@ -21,10 +20,11 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient =>
+  this: DraftApiClient with Props =>
   val validationService: ValidationService
 
   class ValidationService {
+    import props.{ValidFileExtensions, ValidMimeTypes}
 
     def validateImageFile(imageFile: FileItem): Option[ValidationMessage] = {
       if (!hasValidFileExtension(imageFile.name.toLowerCase, ValidFileExtensions))
@@ -106,13 +106,9 @@ trait ValidationService {
           Some(copyright.license),
           copyright.rightsholders ++ copyright.creators ++ copyright.processors
         ) ++
-        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ImageApiProperties.creatorTypes)) ++
-        copyright.processors.flatMap(a =>
-          validateAuthor("copyright.processors", a, ImageApiProperties.processorTypes)
-        ) ++
-        copyright.rightsholders.flatMap(a =>
-          validateAuthor("copyright.rightsholders", a, ImageApiProperties.rightsholderTypes)
-        ) ++
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, props.creatorTypes)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, props.processorTypes)) ++
+        copyright.rightsholders.flatMap(a => validateAuthor("copyright.rightsholders", a, props.rightsholderTypes)) ++
         containsNoHtml("copyright.origin", copyright.origin) ++
         validateAgreement(copyright)
     }

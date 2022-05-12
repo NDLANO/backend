@@ -7,6 +7,14 @@
 
 package db.migration
 
+import imageapi.db.migration.{
+  V5_ImageAltText,
+  V5_ImageCaption,
+  V5_ImageMetaInformation,
+  V5_ImageTag,
+  V5_ImageTitle,
+  V5__AddLanguageToAll
+}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class V5__AddLanguageToAllTest extends UnitSuite with TestEnvironment {

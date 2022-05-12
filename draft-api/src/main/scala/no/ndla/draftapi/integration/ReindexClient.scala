@@ -8,25 +8,27 @@
 package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.{DraftApiProperties, Props}
 import scalaj.http.Http
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ReindexClient {
+  this: Props =>
   val reindexClient: ReindexClient
 
   class ReindexClient extends LazyLogging {
+    import props.internalApiUrls
 
     private def reindexArticles() =
-      Http(s"${DraftApiProperties.internalApiUrls("article-api")}/index").postForm.execute()
+      Http(s"${internalApiUrls("article-api")}/index").postForm.execute()
 
-    private def reindexAudios() = Http(s"${DraftApiProperties.internalApiUrls("audio-api")}/index").postForm.execute()
+    private def reindexAudios() = Http(s"${internalApiUrls("audio-api")}/index").postForm.execute()
 
-    private def reindexDrafts() = Http(s"${DraftApiProperties.internalApiUrls("draft-api")}/index").postForm.execute()
+    private def reindexDrafts() = Http(s"${internalApiUrls("draft-api")}/index").postForm.execute()
 
-    private def reindexImages() = Http(s"${DraftApiProperties.internalApiUrls("image-api")}/index").postForm.execute()
+    private def reindexImages() = Http(s"${internalApiUrls("image-api")}/index").postForm.execute()
 
     def reindexAll() = {
       logger.info("Calling for API's to reindex")

@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
-import no.ndla.searchapi.SearchApiProperties.ApiGatewayUrl
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
 import no.ndla.searchapi.model.taxonomy._
@@ -23,10 +23,11 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Futu
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends LazyLogging {
+    import props.ApiGatewayUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val TaxonomyApiEndpoint           = s"$ApiGatewayUrl/taxonomy/v1"
 

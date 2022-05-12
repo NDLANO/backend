@@ -7,8 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.InitialScrollContextKeywords
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ReindexClient
 import no.ndla.draftapi.model.api._
@@ -29,10 +28,14 @@ trait AgreementController {
     with ConverterService
     with SearchConverterService
     with User
-    with ReindexClient =>
+    with ReindexClient
+    with NdlaController
+    with Props
+    with ErrorHelpers =>
   val agreementController: AgreementController
 
   class AgreementController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription                 = "API for accessing agreements."
 
@@ -134,7 +137,7 @@ trait AgreementController {
           val query        = paramOrNone(this.query.paramName)
           val sort         = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
           val license      = paramOrNone(this.license.paramName)
-          val pageSize     = intOrDefault(this.pageSize.paramName, DraftApiProperties.DefaultPageSize)
+          val pageSize     = intOrDefault(this.pageSize.paramName, DefaultPageSize)
           val page         = intOrDefault(this.pageNo.paramName, 1)
           val idList       = paramAsListOfLong(this.agreementIds.paramName)
           val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
@@ -164,7 +167,7 @@ trait AgreementController {
 
         readService.agreementWithId(agreementId) match {
           case Some(agreement) => agreement
-          case None            => NotFound(body = Error(Error.NOT_FOUND, s"No agreement with id $agreementId found"))
+          case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No agreement with id $agreementId found"))
         }
       }
     }

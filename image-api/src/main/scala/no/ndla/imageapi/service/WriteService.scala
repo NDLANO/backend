@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformationV2, UpdateImageMetaInformation}
 import no.ndla.imageapi.model.domain.{Image, ImageDimensions, ImageMetaInformation, ModelReleasedStatus}
@@ -33,10 +33,12 @@ trait WriteService {
     with ImageStorageService
     with TagIndexService
     with Clock
-    with User =>
+    with User
+    with Props =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
+    import props.DefaultLanguage
 
     def deleteImageLanguageVersion(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] =
       imageRepository.withId(imageId) match {

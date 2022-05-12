@@ -22,7 +22,7 @@ import org.scalatra._
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
-  this: OEmbedServiceComponent =>
+  this: OEmbedServiceComponent with ErrorHelpers with CorrelationIdSupport =>
   val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController(implicit val swagger: Swagger)
@@ -78,24 +78,26 @@ trait OEmbedProxyController {
       ApplicationUrl.clear()
     }
 
+    import ErrorHelpers._
+
     error {
       case pme: ParameterMissingException =>
-        BadRequest(Error(Error.PARAMETER_MISSING, pme.getMessage))
+        BadRequest(Error(PARAMETER_MISSING, pme.getMessage))
       case pnse: ProviderNotSupportedException =>
-        NotImplemented(Error(Error.PROVIDER_NOT_SUPPORTED, pnse.getMessage))
+        NotImplemented(Error(PROVIDER_NOT_SUPPORTED, pnse.getMessage))
       case hre: HttpRequestException if hre.is404 =>
         logger.info(s"Could not fetch remote: '${hre.getMessage}'")
-        NotFound(Error(Error.REMOTE_ERROR, hre.getMessage))
+        NotFound(Error(REMOTE_ERROR, hre.getMessage))
       case hre: HttpRequestException =>
         val msg = hre.httpResponse.map(response =>
           s": Received '${response.code}' '${response.statusLine}'. Body was '${response.body}'"
         )
         logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
-        BadGateway(Error(Error.REMOTE_ERROR, hre.getMessage))
+        BadGateway(Error(REMOTE_ERROR, hre.getMessage))
       case t: Throwable => {
         t.printStackTrace()
         logger.error(t.getMessage)
-        InternalServerError(Error.GenericError)
+        InternalServerError(GenericError)
       }
     }
 

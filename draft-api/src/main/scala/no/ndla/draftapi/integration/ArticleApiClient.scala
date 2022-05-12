@@ -8,7 +8,7 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
-import no.ndla.draftapi.DraftApiProperties.ArticleApiHost
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
 import no.ndla.draftapi.model.domain.RevisionMeta
 import no.ndla.draftapi.model.{api, domain}
@@ -26,10 +26,10 @@ import java.time.LocalDateTime
 import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with Props =>
   val articleApiClient: ArticleApiClient
 
-  class ArticleApiClient(ArticleBaseUrl: String = s"http://$ArticleApiHost") {
+  class ArticleApiClient(ArticleBaseUrl: String = s"http://${props.ArticleApiHost}") {
     private val InternalEndpoint = s"$ArticleBaseUrl/intern"
     private val deleteTimeout    = 1000 * 10 // 10 seconds
     private val timeout          = 1000 * 15

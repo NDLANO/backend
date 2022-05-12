@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.FrontpageApiProperties
+import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
@@ -15,7 +15,7 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository =>
+  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository with Props with ConverterService =>
   val writeService: WriteService
 
   class WriteService {
@@ -24,7 +24,7 @@ trait WriteService {
       for {
         convertedSubject <- ConverterService.toDomainSubjectPage(subject)
         subjectPage      <- subjectPageRepository.newSubjectPage(convertedSubject, subject.externalId.getOrElse(""))
-        converted        <- ConverterService.toApiSubjectPage(subjectPage, FrontpageApiProperties.DefaultLanguage, true)
+        converted        <- ConverterService.toApiSubjectPage(subjectPage, props.DefaultLanguage, true)
       } yield converted
     }
 

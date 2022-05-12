@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.integration
 
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.api
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest}
@@ -16,12 +16,12 @@ import scalaj.http.{Http, HttpRequest}
 import java.util.Date
 
 trait DraftApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val draftApiClient: DraftApiClient
 
   class DraftApiClient {
     private val draftApiGetAgreementEndpoint =
-      s"http://${ImageApiProperties.DraftApiHost}/draft-api/v1/agreements/:agreement_id"
+      s"http://${props.DraftApiHost}/draft-api/v1/agreements/:agreement_id"
 
     def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
       implicit val formats     = org.json4s.DefaultFormats

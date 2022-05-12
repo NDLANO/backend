@@ -76,22 +76,22 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       body should equal("Deleted 8 indexes")
     }
 
-    verify(articleIndexService).findAllIndexes(DraftApiProperties.DraftSearchIndex)
+    verify(articleIndexService).findAllIndexes(props.DraftSearchIndex)
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verifyNoMoreInteractions(articleIndexService)
 
-    verify(agreementIndexService).findAllIndexes(DraftApiProperties.AgreementSearchIndex)
+    verify(agreementIndexService).findAllIndexes(props.AgreementSearchIndex)
     verify(agreementIndexService).deleteIndexWithName(Some("index5"))
     verify(agreementIndexService).deleteIndexWithName(Some("index6"))
     verifyNoMoreInteractions(agreementIndexService)
 
-    verify(tagIndexService).findAllIndexes(DraftApiProperties.DraftTagSearchIndex)
+    verify(tagIndexService).findAllIndexes(props.DraftTagSearchIndex)
     verify(tagIndexService).deleteIndexWithName(Some("index7"))
     verify(tagIndexService).deleteIndexWithName(Some("index8"))
     verifyNoMoreInteractions(tagIndexService)
 
-    verify(grepCodesIndexService).findAllIndexes(DraftApiProperties.DraftGrepCodesSearchIndex)
+    verify(grepCodesIndexService).findAllIndexes(props.DraftGrepCodesSearchIndex)
     verify(grepCodesIndexService).deleteIndexWithName(Some("index9"))
     verify(grepCodesIndexService).deleteIndexWithName(Some("index10"))
     verifyNoMoreInteractions(grepCodesIndexService)
@@ -107,10 +107,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(articleIndexService)
-      .findAllIndexes(DraftApiProperties.DraftSearchIndex)
+      .findAllIndexes(props.DraftSearchIndex)
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(agreementIndexService)
-      .findAllIndexes(DraftApiProperties.AgreementSearchIndex)
+      .findAllIndexes(props.AgreementSearchIndex)
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(agreementIndexService).deleteIndexWithName(Some("index5"))
