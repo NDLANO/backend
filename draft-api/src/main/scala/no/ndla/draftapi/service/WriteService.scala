@@ -912,12 +912,9 @@ trait WriteService {
       updateResult.map(_ => {
         entity match {
           case Topic(id, _, _, _) =>
-            for {
-              topics    <- taxonomyApiClient.getChildNodes(id)
-              resources <- taxonomyApiClient.getChildResources(id)
-              _         <- topics.traverse(setRevisions(_, revisions))
-              _         <- resources.traverse(setRevisions(_, revisions))
-            } yield ()
+            taxonomyApiClient
+              .getChildResources(id)
+              .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
           case _ => Success(())
         }
       })

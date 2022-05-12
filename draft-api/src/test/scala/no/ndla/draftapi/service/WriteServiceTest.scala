@@ -1272,14 +1272,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(nodeId)).thenReturn(Success(List(resource)))
-    when(taxonomyApiClient.getChildNodes(child.id)).thenReturn(Success(List.empty))
-    when(taxonomyApiClient.getChildResources(child.id)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
     when(draftRepository.withId(1)).thenReturn(Some(article1))
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     when(draftRepository.withId(3)).thenReturn(Some(article3))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(2)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+    verify(draftRepository, times(3)).updateArticle(any[Article], any[Boolean])(any[DBSession])
   }
 
   test("copyRevisionDates does nothing if revisionMeta is empty") {
@@ -1294,9 +1292,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(nodeId)).thenReturn(Success(List(resource)))
-    when(taxonomyApiClient.getChildNodes(child.id)).thenReturn(Success(List.empty))
-    when(taxonomyApiClient.getChildResources(child.id)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
     when(draftRepository.withId(1)).thenReturn(Some(article1))
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     when(draftRepository.withId(3)).thenReturn(Some(article3))
@@ -1319,12 +1315,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
     when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(nodeId)).thenReturn(Success(List(resource)))
-    when(taxonomyApiClient.getChildNodes(child.id)).thenReturn(Success(List.empty))
-    when(taxonomyApiClient.getChildResources(child.id)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
     when(draftRepository.withId(1)).thenReturn(Some(article1))
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(1)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+    verify(draftRepository, times(2)).updateArticle(any[Article], any[Boolean])(any[DBSession])
   }
 }
