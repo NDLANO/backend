@@ -1,5 +1,3 @@
-package no.ndla.learningpathapi
-
 /*
  * Part of NDLA learningpath-api.
  * Copyright (C) 2016 NDLA
@@ -8,8 +6,9 @@ package no.ndla.learningpathapi
  *
  */
 
-import org.scalatra.LifeCycle
+package no.ndla.learningpathapi
 
+import org.scalatra.LifeCycle
 import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends LifeCycle {

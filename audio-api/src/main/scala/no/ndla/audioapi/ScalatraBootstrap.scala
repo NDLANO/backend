@@ -1,5 +1,3 @@
-package no.ndla.audioapi
-
 /*
  * Part of NDLA audio-api
  * Copyright (C) 2016 NDLA
@@ -7,9 +5,9 @@ package no.ndla.audioapi
  * See LICENSE
  *
  */
+package no.ndla.audioapi
 
 import org.scalatra.LifeCycle
-
 import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends LifeCycle {

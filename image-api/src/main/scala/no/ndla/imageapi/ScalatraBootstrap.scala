@@ -1,5 +1,3 @@
-package no.ndla.imageapi
-
 /*
  * Part of NDLA image-api.
  * Copyright (C) 2016 NDLA
@@ -7,6 +5,7 @@ package no.ndla.imageapi
  * See LICENSE
  *
  */
+package no.ndla.imageapi
 
 import org.scalatra.LifeCycle
 import javax.servlet.ServletContext
