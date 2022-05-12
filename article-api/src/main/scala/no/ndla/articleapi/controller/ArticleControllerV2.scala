@@ -16,6 +16,7 @@ import no.ndla.articleapi.model.domain.{ArticleIds, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.language.Language.AllLanguages
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -334,18 +335,6 @@ trait ArticleControllerV2 {
           grepCodes,
           shouldScroll
         )
-      }
-    }
-
-    private val Pattern = """(urn:)?(article:)?(\d*)#?(\d*)""".r
-    private[controller] def parseArticleIdAndRevision(idString: String): (Try[Long], Option[Int]) = {
-      idString match {
-        case Pattern(_, _, id, rev) =>
-          (
-            stringParamToLong(this.articleId.paramName, id),
-            Try(rev.toInt).toOption
-          )
-        case _ => (stringParamToLong(this.articleId.paramName, ""), None)
       }
     }
 

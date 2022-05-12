@@ -8,6 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.draftapi.auth.{Role, UserInfo}
+import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
 import no.ndla.draftapi.model.domain._
@@ -17,7 +18,7 @@ import no.ndla.validation.{HtmlTagRules, ValidationMessage}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
@@ -1255,4 +1256,69 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("copyRevisionDates updates articles") {
+    val nodeId   = "urn:topic:1"
+    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
+    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+
+    val revisionMeta = RevisionMeta(LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val article1 = TestData.sampleDomainArticle.copy(
+      id = Some(1),
+      revisionMeta = Seq(revisionMeta)
+    )
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
+
+    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
+    when(draftRepository.withId(1)).thenReturn(Some(article1))
+    when(draftRepository.withId(2)).thenReturn(Some(article2))
+    when(draftRepository.withId(3)).thenReturn(Some(article3))
+    service.copyRevisionDates(nodeId) should be(Success(()))
+    verify(draftRepository, times(3)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+  }
+
+  test("copyRevisionDates does nothing if revisionMeta is empty") {
+    val nodeId   = "urn:topic:1"
+    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
+    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+
+    val article1 = TestData.sampleDomainArticle.copy(id = Some(1))
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
+
+    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
+    when(draftRepository.withId(1)).thenReturn(Some(article1))
+    when(draftRepository.withId(2)).thenReturn(Some(article2))
+    when(draftRepository.withId(3)).thenReturn(Some(article3))
+    service.copyRevisionDates(nodeId) should be(Success(()))
+    verify(draftRepository, times(0)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+  }
+
+  test("copyRevisionDates skips empty contentUris") {
+    val nodeId   = "urn:topic:1"
+    val node     = Topic(nodeId, "Topic", Some("urn:article:1"), List.empty)
+    val child    = Topic("urn:topic:2", "Topic", None, List.empty)
+    val resource = Resource("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
+
+    val revisionMeta = RevisionMeta(LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val article1 = TestData.sampleDomainArticle.copy(
+      id = Some(1),
+      revisionMeta = Seq(revisionMeta)
+    )
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
+
+    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
+    when(taxonomyApiClient.getChildResources(anyString())).thenReturn(Success(List(resource)))
+    when(draftRepository.withId(1)).thenReturn(Some(article1))
+    when(draftRepository.withId(2)).thenReturn(Some(article2))
+    service.copyRevisionDates(nodeId) should be(Success(()))
+    verify(draftRepository, times(2)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+  }
 }

@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.controller
 
+import enumeratum.Json4s
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
@@ -19,13 +20,12 @@ import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import org.joda.time.DateTime
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success, Try}
-import enumeratum.Json4s
-import org.json4s.ext.JavaTimeSerializers
 
 trait DraftController {
   this: ReadService
@@ -61,6 +61,7 @@ trait DraftController {
     private val optionalArticleId =
       Param[Option[Long]]("articleId", description = "The ID of the article to generate a status state machine for")
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fetched")
+    private val nodeId    = Param[String]("node_id", "Id of the taxonomy node to process")
     private val size      = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val articleTypes = Param[Option[String]](
       "articleTypes",
@@ -773,6 +774,34 @@ trait DraftController {
       }
     }
 
-  }
+    post(
+      "/copyRevisionDates/:node_id",
+      operation(
+        apiOperation[Unit]("copyRevisionDates")
+          .summary("Copy revision dates from the node with this id to _all_ children in taxonomy")
+          .description("Copy revision dates from the node with this id to _all_ children in taxonomy")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(nodeId)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response404, response500)
+      )
+    ) {
+      val userInfo = user.getUser
+      val nodeId   = paramOrNone(this.nodeId.paramName)
 
+      doOrAccessDenied(userInfo.canWrite) {
+        nodeId match {
+          case None => NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No nodeid supplied"))
+          case Some(publicId) =>
+            writeService.copyRevisionDates(publicId) match {
+              case Success(_)  => Ok()
+              case Failure(ex) => errorHandler(ex)
+            }
+        }
+      }
+    }
+
+  }
 }

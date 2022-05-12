@@ -217,6 +217,14 @@ trait TaxonomyApiClient {
     def queryTopic(articleId: Long): Try[List[Topic]] =
       get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
 
+    def getNode(uri: String): Try[Topic] = get[Topic](s"$TaxonomyApiEndpoint/nodes/${uri}")
+
+    def getChildNodes(uri: String): Try[List[Topic]] =
+      get[List[Topic]](s"$TaxonomyApiEndpoint/nodes/${uri}/nodes", "recursive" -> "true")
+
+    def getChildResources(uri: String): Try[List[Resource]] =
+      get[List[Resource]](s"$TaxonomyApiEndpoint/nodes/${uri}/resources")
+
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
@@ -246,6 +254,7 @@ trait TaxonomyApiClient {
 trait Taxonomy[E <: Taxonomy[E]] {
   val id: String
   def name: String
+  def contentUri: Option[String]
   def withName(name: String): E
 }
 case class Resource(id: String, name: String, contentUri: Option[String], paths: List[String])
