@@ -9,16 +9,18 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
-import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
+import no.ndla.learningpathapi.integration.{FeideApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{config, _}
+import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus, UserInfo, LearningPath => _, LearningStep => _, _}
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{FolderRepository, ConfigRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 
+import cats.implicits._
 import java.util.Date
 import scala.util.{Failure, Success, Try}
 
@@ -26,12 +28,14 @@ trait UpdateService {
   this: LearningPathRepositoryComponent
     with ReadService
     with ConfigRepository
+    with FolderRepository
     with ConverterService
     with SearchIndexService
     with Clock
     with LearningStepValidator
     with LearningPathValidator
     with TaxonomyApiClient
+    with FeideApiClient
     with SearchApiClient =>
   val updateService: UpdateService
 
@@ -418,6 +422,88 @@ trait UpdateService {
           if (n > 1) optimisticLockRetries(n - 1)(fn) else throw ole
         case t: Throwable => throw t
       }
+    }
+
+    def newFolder(
+        newFolder: api.NewFolder,
+        feideAccessToken: Option[String] = None
+    ): Try[api.Folder] = {
+      for {
+        feideId         <- feideApiClient.getUserFeideID(feideAccessToken)
+        newDomainFolder <- folderRepository.insertFolder(converterService.toDomainFolder(newFolder, feideId), feideId)
+        api             <- converterService.toApiFolder(newDomainFolder)
+      } yield api
+    }
+
+    def newFolderResourceConnection(
+        folderId: Long,
+        newResource: api.NewResource,
+        feideAccessToken: Option[String] = None
+    ): Try[_] = {
+      for {
+        feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
+        resource <- getExistingResourceOrCreateNew(newResource, feideId)
+        x        <- resource.doIfIdExists(id => folderRepository.createFolderResourceConnection(folderId, id))
+      } yield x
+    }
+
+    private[service] def getExistingResourceOrCreateNew(
+        newResource: api.NewResource,
+        feideId: FeideID
+    ): Try[domain.Resource] = {
+      folderRepository
+        .resourceWithResourceAndFeideId(newResource.resourceId, feideId)
+        .flatMap(
+          {
+            case None =>
+              val converted = converterService.toDomainResource(newResource, feideId)
+              folderRepository.insertResource(converted, feideId)
+            case Some(existingResource) =>
+              Success(existingResource.copy(tags = newResource.tags.getOrElse(existingResource.tags)))
+          }
+        )
+    }
+
+    def updateFolder(
+        id: Long,
+        updatedFolder: UpdatedFolder,
+        feideAccessToken: Option[domain.FeideID] = None
+    ): Try[api.Folder] = {
+      for {
+        feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
+        existingFolder <- folderRepository.folderWithId(id)
+        _              <- existingFolder.isOwner(feideId)
+        converted = converterService.mergeFolder(existingFolder, updatedFolder)
+        updated <- folderRepository.updateFolder(id, feideId, converted)
+        api     <- converterService.toApiFolder(updated)
+      } yield api
+    }
+
+    private def deleteResourceIfNoConnection(resourceId: Long): Try[_] = {
+      folderRepository.canResourceBeDeleted(resourceId) match {
+        case Failure(exception)                    => Failure(exception)
+        case Success(canBeDeleted) if canBeDeleted => folderRepository.deleteResource(resourceId)
+      }
+    }
+
+    def deleteRecursively(folder: domain.Folder, feideId: FeideID): Try[Long] = {
+      folder.data
+        .traverse {
+          case Left(childFolder) => deleteRecursively(childFolder, feideId)
+          case Right(childResource) =>
+            childResource.doFlatIfIdExists(id => deleteResourceIfNoConnection(id))
+        }
+        .flatMap(_ => folder.doFlatIfIdExists(id => folderRepository.deleteFolder(id)))
+    }
+
+    def deleteFolder(id: Long, feideAccessToken: Option[domain.FeideID] = None): Try[Long] = {
+      for {
+        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
+        folder  <- folderRepository.folderWithId(id)
+        _       <- folder.isOwner(feideId)
+        deleted <- deleteRecursively(folder, feideId)
+      } yield deleted
+
     }
   }
 

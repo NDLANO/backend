@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.language.Language.{
   AllLanguages,
@@ -665,6 +666,88 @@ trait ConverterService {
         configValue.value,
         configValue.updatedAt,
         configValue.updatedBy
+      )
+    }
+
+    def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): domain.Folder = {
+      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+
+      domain.Folder(
+        id = None,
+        feideId = Some(feideId),
+        parentId = newFolder.parentId,
+        name = newFolder.name,
+        status = newStatus,
+        data = List.empty
+      )
+    }
+
+    private def toApiFolderData(domainData: domain.FolderData): Try[api.FolderData] = {
+      domainData match {
+        case Right(resource) =>
+          Success(
+            Right(api.Resource(id = resource.resourceId, resourceType = resource.resourceType, tags = resource.tags))
+          )
+        case Left(folder) =>
+          folder.doFlatIfIdExists(id => {
+            folder.data
+              .traverse(toApiFolderData)
+              .map(subFolders =>
+                Left(api.Folder(id = id, name = folder.name, status = folder.status.toString, data = subFolders))
+              )
+          })
+      }
+    }
+
+    def toApiFolder(domainFolder: domain.Folder): Try[api.Folder] = {
+      domainFolder.doFlatIfIdExists(folderId => {
+        domainFolder.data
+          .traverse(folder => toApiFolderData(folder))
+          .map(folderData =>
+            api.Folder(
+              id = folderId,
+              name = domainFolder.name,
+              status = domainFolder.status.toString,
+              data = folderData
+            )
+          )
+      })
+    }
+
+    def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
+      val name   = updated.name.getOrElse(existing.name)
+      val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
+
+      domain.Folder(
+        id = existing.id,
+        data = existing.data,
+        feideId = existing.feideId,
+        parentId = existing.parentId,
+        name = name,
+        status = status
+      )
+    }
+
+    def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
+      domainResource.doIfIdExists(id => {
+        val resourceType = domainResource.resourceType
+        val tags         = domainResource.tags
+
+        api.Resource(id = id, resourceType = resourceType, tags = tags)
+      })
+    }
+
+    def toDomainResource(newResource: api.NewResource, feideId: api.FeideID): domain.Resource = {
+      val resourceId   = newResource.resourceId
+      val resourceType = newResource.resourceType
+      val tags         = newResource.tags.getOrElse(List.empty)
+
+      domain.Resource(
+        id = None,
+        feideId = Some(feideId),
+        resourceId = resourceId,
+        resourceType = resourceType,
+        tags = tags
       )
     }
   }

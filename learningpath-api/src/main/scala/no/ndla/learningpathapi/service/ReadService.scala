@@ -8,10 +8,14 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits._
+import no.ndla.learningpathapi.integration.FeideApiClient
+import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
+  FolderData,
   StepStatus,
   UserInfo,
   Author => _,
@@ -19,13 +23,19 @@ import no.ndla.learningpathapi.model.domain.{
   LearningPathTags => _,
   _
 }
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 
 import scala.math.max
+
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: LearningPathRepositoryComponent with ConfigRepository with ConverterService =>
+  this: LearningPathRepositoryComponent
+    with FeideApiClient
+    with ConfigRepository
+    with ConverterService
+    with FolderRepository =>
   val readService: ReadService
 
   class ReadService {
@@ -156,5 +166,78 @@ trait ReadService {
 
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
+
+    private[service] def domainToApiModel[Domain, Api](
+        domainObjects: List[Domain],
+        f: Domain => Try[Api]
+    ): Try[List[Api]] = {
+
+      @tailrec
+      def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
+        domainObjects match {
+          case ::(head, next) =>
+            f(head) match {
+              case Failure(exception) => Failure(exception)
+              case Success(apiObject) => loop(next, acc :+ apiObject)
+            }
+          case Nil => Success(acc)
+        }
+      }
+      loop(domainObjects, List())
+    }
+
+    def getAllResources(feideAccessToken: Option[domain.FeideID] = None): Try[List[api.Resource]] = {
+      for {
+        feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
+        resources          <- folderRepository.resourcesWithFeideId(feideId)
+        convertedResources <- domainToApiModel(resources, converterService.toApiResource)
+      } yield convertedResources
+    }
+
+    private def getFolderResources(
+        parentId: Long,
+        excludeResources: Boolean
+    ): Try[List[FolderData]] = {
+      if (excludeResources)
+        Success(List.empty)
+      else
+        folderRepository.getFolderResources(parentId).map(_.map(_.asRight))
+    }
+
+    private[service] def getSubFoldersRecursively(
+        folder: domain.Folder,
+        excludeResources: Boolean
+    ): Try[domain.Folder] = {
+      folder.doFlatIfIdExists(id =>
+        for {
+          directSubfolders <- folderRepository.foldersWithParentID(parentId = Some(id))
+          folderResources  <- getFolderResources(id, excludeResources)
+          subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, excludeResources))
+          combined = folderResources ++ subFolders.map(_.asLeft)
+        } yield folder.copy(data = combined)
+      )
+    }
+
+    def getFolder(
+        id: Long,
+        excludeResources: Boolean,
+        feideAccessToken: Option[domain.FeideID] = None
+    ): Try[api.Folder] = {
+      for {
+        feideId              <- feideApiClient.getUserFeideID(feideAccessToken)
+        mainFolder           <- folderRepository.folderWithId(id)
+        _                    <- mainFolder.hasReadAccess(feideId)
+        folderWithSubfolders <- getSubFoldersRecursively(mainFolder, excludeResources)
+        converted            <- converterService.toApiFolder(folderWithSubfolders)
+      } yield converted
+    }
+
+    def getFolders(feideAccessToken: Option[domain.FeideID] = None): Try[List[api.Folder]] = {
+      for {
+        feideId    <- feideApiClient.getUserFeideID(feideAccessToken)
+        folders    <- folderRepository.foldersWithFeideAndParentID(None, feideId)
+        apiFolders <- domainToApiModel(folders, converterService.toApiFolder)
+      } yield apiFolders
+    }
   }
 }
