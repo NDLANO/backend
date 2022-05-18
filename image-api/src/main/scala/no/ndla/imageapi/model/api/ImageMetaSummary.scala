@@ -20,6 +20,7 @@ case class ImageMetaSummary(
     @(ApiModelProperty @field)(description = "The title for this image") title: ImageTitle,
     @(ApiModelProperty @field)(description = "The copyright authors for this image") contributors: Seq[String],
     @(ApiModelProperty @field)(description = "The alt text for this image") altText: ImageAltText,
+    @(ApiModelProperty @field)(description = "The caption for this image") caption: ImageCaption,
     @(ApiModelProperty @field)(description = "The full url to where a preview of the image can be downloaded") previewUrl: String,
     @(ApiModelProperty @field)(description = "The full url to where the complete metainformation about the image can be found") metaUrl: String,
     @(ApiModelProperty @field)(description = "Describes the license of the image") license: String,
