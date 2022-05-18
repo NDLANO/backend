@@ -14,10 +14,11 @@ import no.ndla.learningpathapi.controller.{
   ConfigController,
   HealthController,
   InternController,
-  LearningpathControllerV2
+  LearningpathControllerV2,
+  FolderController
 }
 import no.ndla.learningpathapi.integration._
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent, FolderRepository}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
@@ -35,8 +36,10 @@ object ComponentRegistry
     with InternController
     with HealthController
     with ConfigController
+    with FolderController
     with LearningPathRepositoryComponent
     with ConfigRepository
+    with FolderRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -47,6 +50,7 @@ object ComponentRegistry
     with NdlaClient
     with ImageApiClientComponent
     with ConverterService
+    with FeideApiClient
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
@@ -65,6 +69,7 @@ object ComponentRegistry
 
   lazy val learningPathRepository   = new LearningPathRepository
   lazy val configRepository         = new ConfigRepository
+  lazy val folderRepository         = new FolderRepository
   lazy val readService              = new ReadService
   lazy val updateService            = new UpdateService
   lazy val searchConverterService   = new SearchConverterService
@@ -75,10 +80,12 @@ object ComponentRegistry
   lazy val learningpathControllerV2 = new LearningpathControllerV2
   lazy val internController         = new InternController
   lazy val configController         = new ConfigController
+  lazy val folderController         = new FolderController
   lazy val resourcesApp             = new ResourcesApp
   lazy val taxononyApiClient        = new TaxonomyApiClient
   lazy val ndlaClient               = new NdlaClient
   lazy val imageApiClient           = new ImageApiClient
+  lazy val feideApiClient           = new FeideApiClient
   lazy val healthController         = new HealthController
   lazy val languageValidator        = new LanguageValidator
   lazy val titleValidator           = new TitleValidator
