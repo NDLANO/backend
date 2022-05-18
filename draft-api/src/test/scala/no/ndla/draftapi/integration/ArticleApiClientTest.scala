@@ -7,31 +7,49 @@
 
 package no.ndla.draftapi.integration
 
+import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi
 import java.util.Date
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{Availability, RevisionMeta}
+import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta}
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.json4s.native.Serialization.write
+import org.eclipse.jetty.server.Server
+import org.joda.time.DateTime
 import org.json4s.Formats
+import org.testcontainers.containers.PostgreSQLContainer
+import scala.util.{Failure, Success, Try}
 
-import scala.util.Success
-
-class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvironment {
+class ArticleApiClientTest
+    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    with UnitSuite
+    with TestEnvironment {
   implicit val formats: Formats = DBArticle.jsonEncoder
   override val ndlaClient       = new NdlaClient
 
-  // Pact CDC imports
-  import com.itv.scalapact.ScalaPactForger._
-  import com.itv.scalapact.circe13._
-  import com.itv.scalapact.http4s21._
+  val articleApiPort: Int         = findFreePort
+  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val esHost: String              = elasticSearchHost.get
+  val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
+    override def ApplicationPort: Int = articleApiPort
+    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaResource: String = pgc.getDatabaseName
+    override def MetaUserName: String = pgc.getUsername
+    override def MetaPassword: String = pgc.getPassword
+    override def MetaPort: Int        = pgc.getMappedPort(5432)
+    override def MetaSchema: String   = "testschema"
+    override def SearchServer: String = esHost
+  }
 
-  val idResponse                = ContentId(1)
+  val articleApi               = new articleapi.MainClass(articleApiProperties)
+  val articleApiServer: Server = articleApi.startServer()
+
+  val idResponse: ContentId     = ContentId(1)
   override val converterService = new ConverterService
 
-  val testCopyright = domain.Copyright(
+  val testCopyright: Copyright = domain.Copyright(
     Some("CC-BY-SA-4.0"),
     Some("Origin"),
     Seq(domain.Author("Writer", "John doe")),
@@ -42,7 +60,7 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
     None
   )
 
-  val testArticle = domain.Article(
+  val testArticle: Article = domain.Article(
     id = Some(1),
     revision = Some(1),
     status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty),
@@ -72,109 +90,77 @@ class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvi
 
   val exampleToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
-  val authHeaderMap = Map("Authorization" -> s"Bearer $exampleToken")
+  val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
+
+  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestData {
+    override val props: ArticleApiProperties = articleApiProperties
+    val td                                   = new TestData
+
+    def setupArticles(): Try[Boolean] =
+      (1 to 10)
+        .map(id => {
+          articleApi.componentRegistry.articleRepository
+            .updateArticleFromDraftApi(
+              td.sampleDomainArticle.copy(
+                id = Some(id),
+                updated = new DateTime(0).toDate,
+                created = new DateTime(0).toDate,
+                published = new DateTime(0).toDate
+              ),
+              List(s"1$id")
+            )
+        })
+        .collectFirst { case Failure(ex) => Failure(ex) }
+        .getOrElse(Success(true))
+  }
+
+  val dataFixer         = new LocalArticleApiTestData
+  val articleApiBaseUrl = s"http://localhost:$articleApiPort"
 
   test("that updating articles should work") {
-    forgePact
-      .between("draft-api")
-      .and("article-api")
-      .addInteraction(
-        interaction
-          .description("Updating an article returns 200")
-          .given("articles")
-          .uponReceiving(
-            method = POST,
-            path = "/intern/article/1",
-            query = None,
-            headers = authHeaderMap,
-            body = write(testArticle),
-            matchingRules = None
-          )
-          .willRespondWith(200)
-      )
-      .runConsumerTest { mockConfig =>
-        AuthUser.setHeader(s"Bearer $exampleToken")
-        val articleApiClient = new ArticleApiClient(mockConfig.baseUrl)
-        articleApiClient.updateArticle(1, testArticle, List("1234"), false, false)
-      }
+    dataFixer.setupArticles()
+
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
+    val response = articleApiClient.updateArticle(
+      1,
+      testArticle,
+      List("1234"),
+      useImportValidation = false,
+      useSoftValidation = false
+    )
+    response.isSuccess should be(true)
   }
 
   test("that deleting an article should return 200") {
+    dataFixer.setupArticles()
     val contentId = ContentId(1)
-
-    forgePact
-      .between("draft-api")
-      .and("article-api")
-      .addInteraction(
-        interaction
-          .description("Deleting an article should return 200")
-          .given("articles")
-          .uponReceiving(
-            method = DELETE,
-            path = "/intern/article/1/",
-            query = None,
-            headers = authHeaderMap,
-            body = None,
-            matchingRules = None
-          )
-          .willRespondWith(200, write(contentId))
-      )
-      .runConsumerTest { mockConfig =>
-        AuthUser.setHeader(s"Bearer $exampleToken")
-        val articleApiClient = new ArticleApiClient(mockConfig.baseUrl)
-        articleApiClient.deleteArticle(1) should be(Success(contentId))
-      }
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
+    articleApiClient.deleteArticle(1) should be(Success(contentId))
   }
 
   test("that unpublishing an article returns 200") {
-    forgePact
-      .between("draft-api")
-      .and("article-api")
-      .addInteraction(
-        interaction
-          .description("Unpublishing an article should return 200")
-          .given("articles")
-          .uponReceiving(
-            method = POST,
-            path = "/intern/article/1/unpublish/",
-            query = None,
-            headers = authHeaderMap,
-            body = None,
-            matchingRules = None
-          )
-          .willRespondWith(200, write(ContentId(1)))
-      )
-      .runConsumerTest { mockConfig =>
-        AuthUser.setHeader(s"Bearer $exampleToken")
-        val articleApiCient = new ArticleApiClient(mockConfig.baseUrl)
-        articleApiCient.unpublishArticle(testArticle).isSuccess should be(true)
-      }
+    dataFixer.setupArticles()
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
+    articleApiCient.unpublishArticle(testArticle).isSuccess should be(true)
   }
 
   test("that verifying an article returns 200 if valid") {
     val articleApiArticle = converterService.toArticleApiArticle(testArticle)
-    forgePact
-      .between("draft-api")
-      .and("article-api")
-      .addInteraction(
-        interaction
-          .description("Validating article returns 200")
-          .given("empty")
-          .uponReceiving(
-            method = POST,
-            path = "/intern/validate/article",
-            query = None,
-            headers = authHeaderMap,
-            body = write(articleApiArticle),
-            matchingRules = None
-          )
-          .willRespondWith(200, write(articleApiArticle))
-      )
-      .runConsumerTest { mockConfig =>
-        AuthUser.setHeader(s"Bearer $exampleToken")
-        val articleApiCient = new ArticleApiClient(mockConfig.baseUrl)
-        val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
-        result.isSuccess should be(true)
-      }
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
+    val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
+    result.isSuccess should be(true)
+  }
+
+  test("that verifying an article returns 400 if invalid") {
+    val articleApiArticle =
+      converterService.toArticleApiArticle(testArticle.copy(title = Seq(domain.ArticleTitle("", "nb"))))
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
+    val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
+    result.isSuccess should be(false)
   }
 }
