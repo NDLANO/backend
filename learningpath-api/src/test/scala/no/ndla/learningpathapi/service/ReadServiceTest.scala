@@ -8,12 +8,13 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import scalikejdbc.DBSession
 
 import java.util.Date
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
@@ -314,6 +315,215 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     val Failure(ex) = service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", false, PUBLISHED_OWNER)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
+  }
+
+  test("That getting a folder returns folder, subFolders and resources") {
+    val mainFolder = emptyDomainFolder.copy(
+      id = Some(1),
+      feideId = Some("FEIDE"),
+      name = "mainFolder",
+      status = FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    val subFolder1 = emptyDomainFolder.copy(
+      id = Some(2),
+      parentId = Some(1),
+      name = "subFolder1",
+      status = FolderStatus.PUBLIC,
+      data = List.empty
+    )
+
+    val subFolder2 = emptyDomainFolder.copy(
+      id = Some(3),
+      parentId = Some(1),
+      name = "subFolder2",
+      status = FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    val resource1 = emptyDomainResource.copy(
+      id = Some(13),
+      resourceId = 42,
+      resourceType = "article",
+      tags = List.empty
+    )
+
+    val expected = emptyApiFolder.copy(
+      id = 1,
+      name = "mainFolder",
+      status = "private",
+      data = List(
+        Right(
+          emptyApiResource.copy(id = 42, resourceType = "article", tags = List.empty)
+        ),
+        Left(
+          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+        ),
+        Left(
+          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+        )
+      )
+    )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
+    when(folderRepository.folderWithId(1)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(Some(1))).thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(Some(2))).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(Some(3))).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(1)).thenReturn(Success(List(resource1)))
+    when(folderRepository.getFolderResources(2)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(3)).thenReturn(Success(List.empty))
+
+    val Success(result) = service.getFolder(1, false)
+    result should be(expected)
+    verify(folderRepository, times(3)).foldersWithParentID(any)
+    verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
+  }
+
+  test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
+    val mainFolder = emptyDomainFolder.copy(
+      id = Some(1),
+      feideId = Some("FEIDE"),
+      name = "mainFolder",
+      status = FolderStatus.PUBLIC,
+      data = List.empty
+    )
+
+    val subFolder1 = emptyDomainFolder.copy(
+      id = Some(2),
+      parentId = Some(1),
+      name = "subFolder1",
+      status = FolderStatus.PUBLIC,
+      data = List.empty
+    )
+
+    val subFolder2 = emptyDomainFolder.copy(
+      id = Some(3),
+      parentId = Some(1),
+      name = "subFolder2",
+      status = FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    val resource1 = emptyDomainResource.copy(
+      id = Some(13),
+      resourceId = 42,
+      resourceType = "article",
+      tags = List.empty
+    )
+
+    val expected = emptyApiFolder.copy(
+      id = 1,
+      name = "mainFolder",
+      status = "public",
+      data = List(
+        Right(
+          emptyApiResource.copy(id = 42, resourceType = "article", tags = List.empty)
+        ),
+        Left(
+          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+        ),
+        Left(
+          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+        )
+      )
+    )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("wrong"))
+    when(folderRepository.folderWithId(1)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(Some(1))).thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(Some(2))).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(Some(3))).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(1)).thenReturn(Success(List(resource1)))
+    when(folderRepository.getFolderResources(2)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(3)).thenReturn(Success(List.empty))
+
+    val Success(result) = service.getFolder(1, false)
+    result should be(expected)
+    verify(folderRepository, times(3)).foldersWithParentID(any)
+    verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
+  }
+
+  test("That setting excludeResources to true returns only folder and subFolders") {
+    val mainFolder = emptyDomainFolder.copy(
+      id = Some(1),
+      feideId = Some("FEIDE"),
+      name = "mainFolder",
+      status = FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    val subFolder1 = emptyDomainFolder.copy(
+      id = Some(2),
+      parentId = Some(1),
+      name = "subFolder1",
+      status = FolderStatus.PUBLIC,
+      data = List.empty
+    )
+
+    val subFolder2 = emptyDomainFolder.copy(
+      id = Some(3),
+      parentId = Some(1),
+      name = "subFolder2",
+      status = FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    val expected = emptyApiFolder.copy(
+      id = 1,
+      name = "mainFolder",
+      status = "private",
+      data = List(
+        Left(
+          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+        ),
+        Left(
+          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+        )
+      )
+    )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
+    when(folderRepository.folderWithId(1)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(Some(1))).thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(Some(2))).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(Some(3))).thenReturn(Success(List.empty))
+
+    val Success(result) = service.getFolder(1, true)
+    result should be(expected)
+    verify(folderRepository, times(3)).foldersWithParentID(any)
+    verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
+  }
+
+  test("That user with no access doesn't get the treat") {
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
+    when(folderRepository.folderWithId(1)).thenReturn(Success(emptyDomainFolder))
+
+    val result = service.getFolder(1, false)
+    result.isFailure should be(true)
+    verify(folderRepository, times(0)).foldersWithParentID(any)
+    verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
+  }
+
+  test("That domainToApimodel transforms Folder from domain to api model correctly") {
+    val folderDomainList = List(
+      emptyDomainFolder.copy(id = Some(1)),
+      emptyDomainFolder.copy(id = Some(2)),
+      emptyDomainFolder.copy(id = Some(3))
+    )
+
+    val result = service.domainToApiModel(folderDomainList, converterService.toApiFolder)
+    result.get.length should be(3)
+    result should be(
+      Success(
+        List(
+          emptyApiFolder.copy(id = 1, status = "private"),
+          emptyApiFolder.copy(id = 2, status = "private"),
+          emptyApiFolder.copy(id = 3, status = "private")
+        )
+      )
+    )
   }
 
 }

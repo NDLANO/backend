@@ -16,7 +16,7 @@ import no.ndla.learningpathapi.controller.{
   LearningpathControllerV2
 }
 import no.ndla.learningpathapi.integration._
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
@@ -29,6 +29,8 @@ trait TestEnvironment
     with ConfigController
     with LearningPathRepositoryComponent
     with ConfigRepository
+    with FeideApiClient
+    with FolderRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -78,6 +80,8 @@ trait TestEnvironment
   var e4sClient: NdlaE4sClient                                         = mock[NdlaE4sClient]
   val searchApiClient: SearchApiClient                                 = mock[SearchApiClient]
   val oembedProxyClient: OembedProxyClient                             = mock[OembedProxyClient]
+  val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
+  val folderRepository: FolderRepository                               = mock[FolderRepository]
 
   def resetMocks(): Unit = {
     reset(
@@ -93,7 +97,9 @@ trait TestEnvironment
       languageValidator,
       titleValidator,
       e4sClient,
-      oembedProxyClient
+      oembedProxyClient,
+      feideApiClient,
+      folderRepository
     )
   }
 }

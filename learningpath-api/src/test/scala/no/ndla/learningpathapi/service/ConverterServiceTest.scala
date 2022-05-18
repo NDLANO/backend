@@ -12,6 +12,7 @@ import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{LearningpathApiProperties, TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
@@ -479,5 +480,170 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp1).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
+  }
+
+  test("toDomainFolder transforms correctly") {
+    val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("private"))
+    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("public"))
+    val newFolder3 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("ikkeesksisterendestatus"))
+
+    val expected1 = domain.Folder(
+      id = None,
+      feideId = Some("kavring"),
+      parentId = Some(1337),
+      name = "kenkaku",
+      status = domain.FolderStatus.PRIVATE,
+      data = List.empty
+    )
+
+    service.toDomainFolder(newFolder1, "kavring") should be(expected1)
+    service.toDomainFolder(newFolder2, "kavring") should be(expected1.copy(status = domain.FolderStatus.PUBLIC))
+    service.toDomainFolder(newFolder3, "kavring") should be(expected1.copy(status = domain.FolderStatus.PRIVATE))
+  }
+
+  test("toApiFolder transforms correctly when data isn't corrupted") {
+    val resource =
+      domain.Resource(
+        id = Some(6),
+        feideId = Some("w"),
+        resourceId = 54,
+        resourceType = "concept",
+        tags = List("a", "b", "c")
+      )
+    val folderData1 = domain.Folder(
+      id = Some(1),
+      feideId = Some("u"),
+      parentId = Some(3),
+      name = "folderData1",
+      status = domain.FolderStatus.PRIVATE,
+      data = List(Right(resource))
+    )
+    val folderData2 = domain.Folder(
+      id = Some(2),
+      feideId = Some("w"),
+      parentId = Some(42),
+      name = "folderData2",
+      status = domain.FolderStatus.PUBLIC,
+      data = List.empty
+    )
+    val folderData3 = domain.Folder(
+      id = Some(3),
+      feideId = Some("u"),
+      parentId = Some(42),
+      name = "folderData3",
+      status = domain.FolderStatus.PRIVATE,
+      data = List(Left(folderData1))
+    )
+    val mainFolder = domain.Folder(
+      id = Some(42),
+      feideId = Some("u"),
+      parentId = None,
+      name = "mainFolder",
+      status = domain.FolderStatus.PUBLIC,
+      data = List(Left(folderData2), Left(folderData3), Right(resource))
+    )
+    val apiResource = TestData.emptyApiResource.copy(id = 54, resourceType = "concept", tags = List("a", "b", "c"))
+    val apiData1 = TestData.emptyApiFolder.copy(
+      id = 1,
+      name = "folderData1",
+      status = "private",
+      data = List(Right(apiResource))
+    )
+    val apiData2 = TestData.emptyApiFolder.copy(
+      id = 2,
+      name = "folderData2",
+      status = "public",
+      data = List.empty
+    )
+    val apiData3 = TestData.emptyApiFolder.copy(
+      id = 3,
+      name = "folderData3",
+      status = "private",
+      data = List(Left(apiData1))
+    )
+    val expected = api.Folder(
+      id = 42,
+      name = "mainFolder",
+      status = "public",
+      data = List(Left(apiData2), Left(apiData3), Right(apiResource))
+    )
+
+    val Success(result) = service.toApiFolder(mainFolder)
+    result should be(expected)
+  }
+
+  test("toApiFolder fails if id is None") {
+    val mainFolder = domain.Folder(
+      id = None,
+      feideId = Some("u"),
+      parentId = None,
+      name = "mainFolder",
+      status = domain.FolderStatus.PUBLIC,
+      data = List.empty
+    )
+
+    service.toApiFolder(mainFolder).isFailure should be(true)
+  }
+
+  test("updateFolder updates folder correctly") {
+    val existing = domain.Folder(
+      id = Some(1),
+      feideId = Some("u"),
+      parentId = Some(3),
+      name = "folderData1",
+      status = domain.FolderStatus.PRIVATE,
+      data = List.empty
+    )
+    val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("public"))
+    val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
+    val updatedWithGarbageData =
+      api.UpdatedFolder(name = Some("huehueuheasdasd+++"), status = Some("det å joike er noe kult"))
+
+    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.PUBLIC)
+    val expected2 = existing.copy(name = "folderData1", status = FolderStatus.PRIVATE)
+    val expected3 = existing.copy(name = "huehueuheasdasd+++", status = FolderStatus.PRIVATE)
+
+    val result1 = service.mergeFolder(existing, updatedWithData)
+    val result2 = service.mergeFolder(existing, updatedWithoutData)
+    val result3 = service.mergeFolder(existing, updatedWithGarbageData)
+
+    result1 should be(expected1)
+    result2 should be(expected2)
+    result3 should be(expected3)
+  }
+
+  test("that toApiResource converts correctly") {
+    val existing =
+      domain.Resource(
+        id = Some(1),
+        feideId = Some("feideid"),
+        resourceId = 43,
+        resourceType = "article",
+        tags = List("a", "b", "c")
+      )
+    val expected = api.Resource(id = 1, resourceType = "article", tags = List("a", "b", "c"))
+
+    service.toApiResource(existing) should be(Success(expected))
+  }
+
+  test("that toApiResource fails if no id") {
+    service.toApiResource(TestData.emptyDomainResource.copy(id = None)).isFailure should be(true)
+  }
+
+  test("toDomainResource") {
+    val newResource1 = api.NewResource(resourceId = 12, resourceType = "audio", tags = Some(List("a", "b")))
+    val newResource2 = api.NewResource(resourceId = 12, resourceType = "audio", tags = None)
+    val expected1 =
+      domain.Resource(
+        id = None,
+        feideId = Some("huehue"),
+        resourceId = 12,
+        resourceType = "audio",
+        tags = List("a", "b")
+      )
+    val expected2 = expected1.copy(tags = List.empty)
+
+    service.toDomainResource(newResource1, "huehue") should be(expected1)
+    service.toDomainResource(newResource2, "huehue") should be(expected2)
   }
 }

@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
@@ -1462,5 +1463,91 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
     res.isSuccess should be(true)
+  }
+
+  test("that a user without access cannot delete a folder") {
+    val id = 42
+    val folderWithChildren =
+      emptyDomainFolder.copy(
+        id = Some(id),
+        feideId = Some("FEIDE"),
+        data = List(Left(emptyDomainFolder), Left(emptyDomainFolder), Right(emptyDomainResource))
+      )
+    val wrongFeideId = "nope"
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(wrongFeideId))
+    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderWithId(id)).thenReturn(Success(folderWithChildren))
+
+    val x = service.deleteFolder(id, Some("token"))
+
+    x.isFailure should be(true)
+    verify(folderRepository, times(0)).deleteFolder(anyLong)(any[DBSession])
+    verify(folderRepository, times(0)).canResourceBeDeleted(any)(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
+  }
+
+  test("that a user with access can delete a folder") {
+    val mainFolderId = 42L
+    val subFolder1Id = 1L
+    val subFolder2Id = 2L
+    val resourceId   = 1L
+    val folderWithChildren =
+      emptyDomainFolder.copy(
+        id = Some(mainFolderId),
+        feideId = Some("FEIDE"),
+        data = List(
+          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
+          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
+          Right(emptyDomainResource.copy(id = Some(resourceId)))
+        )
+      )
+    val correctFeideId = "FEIDE"
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
+    when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
+
+    val x = service.deleteFolder(mainFolderId, Some("token"))
+
+    x.isSuccess should be(true)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
+    verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).deleteResource(any)(any[DBSession])
+  }
+
+  test("that resource is not deleted if canResourceBeDeleted() returns false") {
+    val mainFolderId = 42L
+    val subFolder1Id = 1L
+    val subFolder2Id = 2L
+    val resourceId   = 1L
+    val folderWithChildren =
+      emptyDomainFolder.copy(
+        id = Some(mainFolderId),
+        feideId = Some("FEIDE"),
+        data = List(
+          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
+          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
+          Right(emptyDomainResource.copy(id = Some(resourceId)))
+        )
+      )
+    val correctFeideId = "FEIDE"
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(false))
+    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
+    when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
+
+    val x = service.deleteFolder(mainFolderId, Some("token"))
+
+    x.isSuccess should be(true)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
+    verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
   }
 }

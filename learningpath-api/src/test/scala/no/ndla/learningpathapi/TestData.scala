@@ -11,7 +11,7 @@ import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 
 import java.util.Date
 import no.ndla.mapping.License.CC_BY
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchSettings, Sort}
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.joda.time.DateTime
@@ -100,6 +100,36 @@ object TestData {
     verificationStatus = None,
     shouldScroll = false,
     status = List(domain.LearningPathStatus.PUBLISHED)
+  )
+
+  val emptyDomainResource: domain.Resource = domain.Resource(
+    id = None,
+    feideId = None,
+    resourceId = 0,
+    resourceType = "",
+    tags = List.empty
+  )
+
+  val emptyDomainFolder: domain.Folder = domain.Folder(
+    id = None,
+    feideId = None,
+    parentId = None,
+    name = "",
+    status = domain.FolderStatus.PRIVATE,
+    data = List.empty
+  )
+
+  val emptyApiFolder: api.Folder = api.Folder(
+    id = 1,
+    name = "",
+    status = "",
+    data = List.empty
+  )
+
+  val emptyApiResource: api.Resource = api.Resource(
+    id = 0,
+    resourceType = "",
+    tags = List.empty
   )
 
 }
