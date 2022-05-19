@@ -7,13 +7,21 @@ def testWith(dep: Project, withTests: Boolean = false): ClasspathDependency =
   if (withTests) dep % "test->compile;test->test" else dep % "test"
 
 // Modules / API's
-lazy val `article-api` = Module.setup(
+val `article-api`: Project = Module.setup(
   project in file("./article-api/"),
   articleapi,
-  deps = Seq(network, mapping, language, validation, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    validation,
+    common,
+    search,
+    testWith(scalatestsuite)
+  )
 )
 
-lazy val `draft-api` = Module.setup(
+val `draft-api`: Project = Module.setup(
   project in file("./draft-api/"),
   draftapi,
   deps = Seq(
@@ -74,3 +82,15 @@ lazy val language       = Module.setup(project in file("./language/"), languagel
 lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
 lazy val validation     = Module.setup(project in file("./validation/"), validationlib)
 lazy val search         = Module.setup(project in file("./search/"), searchlib, deps = Seq(language, common))
+
+lazy val `integration-tests` = Module.setup(
+  project in file("./integration-tests/"),
+  integrationtests,
+  deps = Seq(
+    testWith(scalatestsuite),
+    testWith(`article-api`, withTests = true),
+    testWith(`draft-api`, withTests = true),
+    testWith(`learningpath-api`, withTests = true),
+    testWith(`search-api`, withTests = true)
+  )
+)

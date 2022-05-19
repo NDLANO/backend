@@ -74,7 +74,7 @@ trait Module {
   ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    if (true) Seq.empty
+    if (true /* TODO: Fix this */ ) Seq.empty
     else
       Seq(
         fork := true,

@@ -5,11 +5,11 @@
  * See LICENSE
  */
 
-package no.ndla.draftapi.integration
+package no.ndla.integrationtests.draftapi.articleapi
 
-import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi
-import java.util.Date
+import no.ndla.draftapi
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta}
@@ -20,12 +20,14 @@ import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
+
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
-    with TestEnvironment {
+    with draftapi.TestEnvironment {
   implicit val formats: Formats = DBArticle.jsonEncoder
   override val ndlaClient       = new NdlaClient
 
