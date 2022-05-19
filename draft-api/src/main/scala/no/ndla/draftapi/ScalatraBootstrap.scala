@@ -1,3 +1,5 @@
+package no.ndla.draftapi
+
 /*
  * Part of NDLA draft-api.
  * Copyright (C) 2017 NDLA
@@ -5,9 +7,9 @@
  * See LICENSE
  */
 
-import javax.servlet.ServletContext
-import no.ndla.draftapi.ComponentRegistry
 import org.scalatra.LifeCycle
+
+import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends LifeCycle {
 

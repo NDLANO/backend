@@ -1,19 +1,18 @@
 /*
- * Part of NDLA draft-api.
- * Copyright (C) 2018 NDLA
+ * Part of NDLA integration-tests
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
 
 package no.ndla.integrationtests.draftapi.articleapi
 
-import no.ndla.articleapi
-import no.ndla.draftapi
+import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta}
-import no.ndla.draftapi.{TestEnvironment, UnitSuite}
+import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
@@ -47,6 +46,11 @@ class ArticleApiClientTest
 
   val articleApi               = new articleapi.MainClass(articleApiProperties)
   val articleApiServer: Server = articleApi.startServer()
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    articleApiServer.stop()
+  }
 
   val idResponse: ContentId     = ContentId(1)
   override val converterService = new ConverterService
