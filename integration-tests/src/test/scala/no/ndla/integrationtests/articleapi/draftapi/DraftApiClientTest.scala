@@ -1,25 +1,21 @@
 /*
  * Part of NDLA integration-tests.
- * Copyright (C) 2018 NDLA
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
 
 package no.ndla.integrationtests.articleapi.draftapi
 
-import no.ndla.{articleapi, draftapi}
-import no.ndla.articleapi.integration.Agreement
 import no.ndla.articleapi.model.api
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.{articleapi, draftapi}
 import org.eclipse.jetty.server.Server
 import org.json4s.DefaultFormats
-import org.json4s.native.Serialization.write
 import org.testcontainers.containers.PostgreSQLContainer
-
-import scala.util.Try
 
 class DraftApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)

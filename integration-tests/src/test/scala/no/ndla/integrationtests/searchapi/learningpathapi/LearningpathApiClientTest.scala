@@ -1,6 +1,6 @@
 /*
- * Part of NDLA search-api.
- * Copyright (C) 2019 NDLA
+ * Part of NDLA integration-tests.
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
@@ -9,31 +9,27 @@ package no.ndla.integrationtests.searchapi.learningpathapi
 
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.{learningpathapi, searchapi}
 import no.ndla.network.AuthUser
+import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.DomainDumpResults
-import no.ndla.mapping.License.CC_BY
-import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.model.LanguageValue
+import no.ndla.{learningpathapi, searchapi}
 import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
-import org.json4s.native.Serialization.write
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 
 class LearningpathApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with searchapi.TestEnvironment {
-  import props.DefaultLanguage
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
       new EnumNameSerializer(ArticleStatus) +
