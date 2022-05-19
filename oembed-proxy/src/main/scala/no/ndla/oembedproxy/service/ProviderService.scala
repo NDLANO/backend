@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
-import no.ndla.oembedproxy.{OEmbedProxyProperties, Props}
+import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.caching.{Memoize, MemoizeHelpers}
 import no.ndla.oembedproxy.model.{DoNotUpdateMemoizeException, OEmbedEndpoint, OEmbedProvider}
 import no.ndla.oembedproxy.service.OEmbedConverterService.{

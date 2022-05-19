@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.integration
 
-import no.ndla.audioapi.{AudioApiProperties, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest}

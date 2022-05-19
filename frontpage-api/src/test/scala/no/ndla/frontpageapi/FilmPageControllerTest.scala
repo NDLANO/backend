@@ -14,8 +14,6 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import scalaj.http.Http
 
-import java.io.IOException
-import java.net.ServerSocket
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 

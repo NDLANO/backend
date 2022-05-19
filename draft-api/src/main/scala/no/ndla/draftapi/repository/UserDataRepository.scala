@@ -8,7 +8,6 @@
 package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.domain.{DBArticle, UserData}
 import org.json4s.Formats

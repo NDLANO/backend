@@ -60,7 +60,7 @@ trait Module {
       "-deprecation",
       "-feature",
       "-Xfatal-warnings",
-      "-Xlint:-strict-unsealed-patmat",
+      "-Xlint",
       "-Wconf:src=src_managed/.*:silent",
       "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
     ),

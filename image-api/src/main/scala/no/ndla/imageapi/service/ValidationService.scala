@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.{ImageApiProperties, Props}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}

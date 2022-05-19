@@ -7,7 +7,7 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.{AudioApiProperties, TestData, TestEnvironment}
+import no.ndla.audioapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome

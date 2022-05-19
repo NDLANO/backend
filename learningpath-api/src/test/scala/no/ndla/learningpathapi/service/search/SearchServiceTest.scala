@@ -13,7 +13,7 @@ import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{Description, _}
-import no.ndla.learningpathapi.{LearningpathApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.joda.time.DateTime

@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
-import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
+import no.ndla.imageapi.model.api.ErrorHelpers
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.language.model.Iso639

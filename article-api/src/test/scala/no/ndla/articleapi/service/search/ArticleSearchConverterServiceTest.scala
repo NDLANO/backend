@@ -10,7 +10,7 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
-import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.mockito.invocation.InvocationOnMock
 

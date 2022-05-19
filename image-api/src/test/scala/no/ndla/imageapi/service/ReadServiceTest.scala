@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
-import no.ndla.imageapi.{ImageApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
 import org.json4s.DefaultFormats
 import org.json4s.native.JsonParser

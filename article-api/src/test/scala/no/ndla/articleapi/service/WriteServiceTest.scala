@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}

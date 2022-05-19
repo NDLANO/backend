@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.lang.Math.{abs, max, min}
 import javax.imageio.ImageIO
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.{ImageApiProperties, Props}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import org.imgscalr.Scalr

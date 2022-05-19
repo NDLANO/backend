@@ -9,7 +9,7 @@ package no.ndla.draftapi.model.api
 
 import java.util.Date
 import scala.annotation.meta.field
-import no.ndla.draftapi.{DraftApiProperties, Props}
+import no.ndla.draftapi.Props
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 @ApiModel(description = "Information about an error")

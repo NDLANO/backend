@@ -9,7 +9,7 @@
 package no.ndla.imageapi.model.domain
 
 import java.util.Date
-import no.ndla.imageapi.{ImageApiProperties, Props}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}

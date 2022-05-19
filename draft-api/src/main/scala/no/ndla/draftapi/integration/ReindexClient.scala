@@ -8,7 +8,7 @@
 package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.{DraftApiProperties, Props}
+import no.ndla.draftapi.Props
 import scalaj.http.Http
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -18,7 +18,7 @@ import no.ndla.validation.{HtmlTagRules, ValidationMessage}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 

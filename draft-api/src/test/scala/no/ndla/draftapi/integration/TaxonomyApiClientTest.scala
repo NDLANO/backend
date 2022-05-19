@@ -9,7 +9,7 @@ package no.ndla.draftapi.integration
 
 import cats.implicits._
 import no.ndla.draftapi.model.domain.ArticleTitle
-import no.ndla.draftapi.{DraftApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock

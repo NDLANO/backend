@@ -7,9 +7,6 @@
 
 package no.ndla.learningpathapi.consumerdrivencontracts
 
-import java.io.IOException
-import java.net.ServerSocket
-
 import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}

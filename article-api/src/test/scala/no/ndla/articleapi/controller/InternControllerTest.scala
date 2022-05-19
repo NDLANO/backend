@@ -9,7 +9,7 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{ArticleApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._

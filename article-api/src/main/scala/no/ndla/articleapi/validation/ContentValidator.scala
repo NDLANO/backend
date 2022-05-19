@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}

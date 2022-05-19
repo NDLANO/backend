@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.{AudioApiProperties, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository

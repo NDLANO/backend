@@ -16,7 +16,7 @@ import no.ndla.articleapi.model.domain.{ArticleIds, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.common.ContentURIUtil.{NotUrnPatternException, parseArticleIdAndRevision}
+import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.language.Language.AllLanguages
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -25,7 +25,7 @@ import org.scalatra.util.NotNothing
 import org.scalatra.{NotFound, Ok}
 
 import javax.servlet.http.HttpServletRequest
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService

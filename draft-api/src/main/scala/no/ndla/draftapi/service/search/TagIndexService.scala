@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.{DraftApiProperties, Props}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain.Article
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.draftapi.repository.{DraftRepository, Repository}

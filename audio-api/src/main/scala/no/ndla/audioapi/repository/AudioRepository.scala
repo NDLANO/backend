@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.ErrorHelpers
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries, Series}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries}
 import org.json4s.Formats
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject

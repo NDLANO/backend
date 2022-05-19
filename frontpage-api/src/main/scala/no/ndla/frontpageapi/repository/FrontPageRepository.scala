@@ -12,7 +12,6 @@ import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.domain.{DBFrontPageData, FrontPageData}
 import org.postgresql.util.PGobject
 import scalikejdbc._
-import FrontPageData._
 
 import scala.util.{Failure, Success, Try}
 

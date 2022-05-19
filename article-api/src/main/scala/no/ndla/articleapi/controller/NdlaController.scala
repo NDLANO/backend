@@ -10,7 +10,7 @@ package no.ndla.articleapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.DataSource
-import no.ndla.articleapi.{ComponentRegistry, Props}
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ErrorHelpers, NotFoundException, ValidationError}
 import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}

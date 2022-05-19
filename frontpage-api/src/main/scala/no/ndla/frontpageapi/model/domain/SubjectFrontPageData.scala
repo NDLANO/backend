@@ -11,7 +11,7 @@ import cats.implicits._
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
-import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
+import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import scalikejdbc.{WrappedResultSet, _}
 

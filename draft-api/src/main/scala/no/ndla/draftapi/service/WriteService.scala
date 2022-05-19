@@ -17,7 +17,7 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
+import no.ndla.draftapi.integration.{ArticleApiClient, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._

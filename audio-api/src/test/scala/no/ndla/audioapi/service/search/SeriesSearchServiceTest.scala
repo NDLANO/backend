@@ -10,7 +10,7 @@ package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Sort, domain}
-import no.ndla.audioapi.{AudioApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
