@@ -3,7 +3,7 @@ import Dependencies.{testWith, versions}
 ThisBuild / scalaVersion := versions.ScalaV
 
 // Modules / API's
-val `article-api`: Project = Module.setup(
+lazy val `article-api`: Project = Module.setup(
   project in file("./article-api/"),
   articleapi,
   deps = Seq(
@@ -17,7 +17,7 @@ val `article-api`: Project = Module.setup(
   )
 )
 
-val `draft-api`: Project = Module.setup(
+lazy val `draft-api`: Project = Module.setup(
   project in file("./draft-api/"),
   draftapi,
   deps = Seq(
