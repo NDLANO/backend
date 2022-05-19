@@ -1,10 +1,6 @@
-import Dependencies.versions
+import Dependencies.{testWith, versions}
 
 ThisBuild / scalaVersion := versions.ScalaV
-
-/** Function to simplify depending on another component in the tests */
-def testWith(dep: Project, withTests: Boolean = false): ClasspathDependency =
-  if (withTests) dep % "test->compile;test->test" else dep % "test"
 
 // Modules / API's
 val `article-api`: Project = Module.setup(
@@ -31,8 +27,7 @@ val `draft-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite),
-    testWith(`article-api`, withTests = true)
+    testWith(scalatestsuite)
   )
 )
 

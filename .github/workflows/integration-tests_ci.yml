@@ -1,4 +1,4 @@
-name: 'CI: article-api'
+name: 'CI: Integration tests'
 on:
   workflow_dispatch:
     inputs: {}
@@ -14,6 +14,8 @@ on:
       - project/searchapi.scala
       - learningpath-api/**
       - project/learningpathapi.scala
+      - integration-tests/**
+      - project/integrationtests.scala
   pull_request:
     paths:
       - project/Dependencies.scala
@@ -26,6 +28,8 @@ on:
       - project/searchapi.scala
       - learningpath-api/**
       - project/learningpathapi.scala
+      - integration-tests/**
+      - project/integrationtests.scala
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
@@ -36,9 +40,6 @@ env:
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
-  PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
-  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
-  PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
   COMPONENT: integration-tests
 jobs:
   integration_tests:

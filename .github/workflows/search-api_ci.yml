@@ -24,13 +24,10 @@ env:
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
-  PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
-  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
-  PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
   COMPONENT: search-api
 jobs:
   unit_tests:
-    name: Unit tests and pact publication
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -47,5 +44,5 @@ jobs:
       - name: Login to dockerhub
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
-      - name: Unit tests and pact publication
-        run: sbt search-api/pactPublish
+      - name: Unit tests
+        run: sbt search-api/test

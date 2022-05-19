@@ -3,6 +3,10 @@ import sbt._
 
 object Dependencies {
 
+  /** Function to simplify depending on another component in the tests */
+  def testWith(dep: Project, withTests: Boolean = false): ClasspathDependency =
+    if (withTests) dep % "test->compile;test->test" else dep % "test"
+
   object versions {
     val ScalaV                = "2.13.8"
     val ScalatraV             = "2.8.2"
@@ -20,7 +24,6 @@ object Dependencies {
     val Json4SV               = "4.0.3"
     val FlywayV               = "7.5.3"
     val PostgresV             = "42.3.5"
-    val PactV                 = "2.3.16"
     val ScalaTsiV             = "0.6.0"
     val Http4sV               = "0.21.21"
     val RhoV                  = "0.21.0"
@@ -43,12 +46,6 @@ object Dependencies {
       scalikejdbc,
       postgres,
       hikari
-    )
-
-    lazy val pactTestFrameworkDependencies = Seq(
-      "com.itv" %% "scalapact-circe-0-13"  % PactV % "test",
-      "com.itv" %% "scalapact-http4s-0-21" % PactV % "test",
-      "com.itv" %% "scalapact-scalatest"   % PactV % "test"
     )
 
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV

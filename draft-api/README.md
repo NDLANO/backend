@@ -8,8 +8,6 @@ Creates, updates and returns an Article draft`. Implements Elasticsearch for sea
 
 **Run tests:** sbt test
 
-**Run pact provider verification tests:** sbt "pact:testOnly -- -n PactProviderTest"
-
 **Create Docker Image:** sbt docker
 
 **Check code formatting:** sbt checkfmt

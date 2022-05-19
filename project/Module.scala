@@ -2,14 +2,6 @@ import Dependencies.versions._
 import sbt.Keys._
 import sbt._
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
-import com.itv.scalapact.plugin.ScalaPactEnv
-import com.itv.scalapact.plugin.ScalaPactPlugin.autoImport.{
-  pactBrokerAddress,
-  pactBrokerCredentials,
-  pactContractTags,
-  pactContractVersion,
-  scalaPactEnv
-}
 import sbtassembly._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
   typescriptExports,
@@ -108,16 +100,6 @@ trait Module {
     }
   )
 
-  lazy val PactTestConfig = config("PactTest") extend (Test)
-  lazy val PactSettings: Seq[Def.Setting[_]] = inConfig(PactTestConfig)(Defaults.testTasks) ++ Seq(
-    // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
-    // To run all tests use pact config 'sbt PactTest/test' (or 'sbt article_api/PactTest/test' for a single subproject)
-    Test / testOptions                      := Seq(Tests.Argument("-l", "PactProviderTest")),
-    Test / testOnly / testOptions           := Seq(Tests.Argument("-l", "PactProviderTest")),
-    PactTestConfig / testOptions            := Seq.empty,
-    PactTestConfig / testOnly / testOptions := Seq.empty
-  )
-
   def dockerSettings(extraJavaOpts: String*): Seq[Def.Setting[_]] = {
     Seq(
       docker := (docker dependsOn assembly).value,
@@ -178,26 +160,6 @@ trait Module {
       typescriptGenerationImports := imports,
       typescriptExports           := exports,
       typescriptOutputFile        := baseDirectory.value / "typescript" / "index.ts"
-    )
-  }
-
-  def pactPublishingSettings() = {
-    import scala.sys.process._
-
-    Seq(
-      scalaPactEnv      := ScalaPactEnv.defaults.withOutputPath((baseDirectory.value / "target" / "pacts").toString),
-      pactBrokerAddress := sys.env.getOrElse("PACT_BROKER_URL", ""),
-      pactBrokerCredentials := (
-        sys.env.getOrElse("PACT_BROKER_USERNAME", ""),
-        sys.env.getOrElse("PACT_BROKER_PASSWORD", "")
-      ),
-      pactContractTags := Seq(
-        (for {
-          head <- sys.env.get("GITHUB_HEAD_REF").filter(_.nonEmpty)
-          base <- sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty)
-        } yield s"$base-from-$head").getOrElse(git.gitCurrentBranch.value)
-      ),
-      pactContractVersion := ("git rev-parse --short=7 HEAD" !!).trim
     )
   }
 }
