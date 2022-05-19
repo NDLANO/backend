@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -24,18 +24,18 @@ case class ConceptDomainDumpResults(
 )
 
 trait ArticleApiClient {
-  this: NdlaClient with LazyLogging =>
+  this: NdlaClient with LazyLogging with Props =>
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient {
-    val baseUrl        = s"http://${ConceptApiProperties.ArticleApiHost}/intern"
+    val baseUrl        = s"http://${props.ArticleApiHost}/intern"
     val dumpDomainPath = "dump/concepts"
 
     def getChunks: Iterator[Try[Seq[domain.Concept]]] = {
       getChunk(0, 0) match {
         case Success(initSearch) =>
           val dbCount  = initSearch.totalCount
-          val pageSize = ConceptApiProperties.IndexBulkSize
+          val pageSize = props.IndexBulkSize
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
           val pages    = Seq.range(1, numPages + 1)
 

@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
@@ -25,6 +24,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
+  import props.DefaultLanguage
   val clinton   = api.Author("author", "Crooked Hillary")
   val license   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
   val copyright = api.Copyright(license, List(clinton))
@@ -337,7 +337,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
     ApplicationUrl.set(httpServletRequest)
     service.createUrlToLearningPath(apiLearningPath.copy(status = "PRIVATE")) should equal(
-      s"${LearningpathApiProperties.Domain}/servlet/1"
+      s"${props.Domain}/servlet/1"
     )
   }
 

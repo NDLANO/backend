@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.model.domain
 
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.learningpathapi.LearningpathApiProperties
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import org.json4s.FieldSerializer._
 import org.json4s._
@@ -90,45 +90,50 @@ object StepType extends Enumeration {
   }
 }
 
-object LearningStep extends SQLSyntaxSupport[LearningStep] {
+trait DBLearningStep {
+  this: Props =>
 
-  val jsonSerializer: List[Serializer[_]] = List(
-    new EnumNameSerializer(StepType),
-    Json4s.serializer(StepStatus),
-    new EnumNameSerializer(EmbedType)
-  )
+  object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
 
-  val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningStep](
-    serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
-  )
-
-  val jsonEncoder = DefaultFormats ++ jsonSerializer
-
-  override val tableName  = "learningsteps"
-  override val schemaName = Some(LearningpathApiProperties.MetaSchema)
-
-  def apply(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep = apply(ls.resultName)(rs)
-
-  def apply(ls: ResultName[LearningStep])(rs: WrappedResultSet): LearningStep = {
-    implicit val formats = jsonEncoder
-
-    val meta = read[LearningStep](rs.string(ls.c("document")))
-    LearningStep(
-      Some(rs.long(ls.c("id"))),
-      Some(rs.int(ls.c("revision"))),
-      rs.stringOpt(ls.c("external_id")),
-      Some(rs.long(ls.c("learning_path_id"))),
-      meta.seqNo,
-      meta.title,
-      meta.description,
-      meta.embedUrl,
-      meta.`type`,
-      meta.license,
-      meta.showTitle,
-      meta.status
+    val jsonSerializer: List[Serializer[_]] = List(
+      new EnumNameSerializer(StepType),
+      Json4s.serializer(StepStatus),
+      new EnumNameSerializer(EmbedType)
     )
-  }
 
-  def opt(ls: ResultName[LearningStep])(rs: WrappedResultSet): Option[LearningStep] =
-    rs.longOpt(ls.c("id")).map(_ => LearningStep(ls)(rs))
+    val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningStep](
+      serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
+    )
+
+    val jsonEncoder = DefaultFormats ++ jsonSerializer
+
+    override val tableName  = "learningsteps"
+    override val schemaName = Some(props.MetaSchema)
+
+    def fromResultSet(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep =
+      fromResultSet(ls.resultName)(rs)
+
+    def fromResultSet(ls: ResultName[LearningStep])(rs: WrappedResultSet): LearningStep = {
+      implicit val formats = jsonEncoder
+
+      val meta = read[LearningStep](rs.string(ls.c("document")))
+      LearningStep(
+        Some(rs.long(ls.c("id"))),
+        Some(rs.int(ls.c("revision"))),
+        rs.stringOpt(ls.c("external_id")),
+        Some(rs.long(ls.c("learning_path_id"))),
+        meta.seqNo,
+        meta.title,
+        meta.description,
+        meta.embedUrl,
+        meta.`type`,
+        meta.license,
+        meta.showTitle,
+        meta.status
+      )
+    }
+
+    def opt(ls: ResultName[LearningStep])(rs: WrappedResultSet): Option[LearningStep] =
+      rs.longOpt(ls.c("id")).map(_ => fromResultSet(ls)(rs))
+  }
 }

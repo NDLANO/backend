@@ -9,7 +9,7 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.draftapi.DraftApiProperties.ConceptApiHost
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -24,10 +24,10 @@ case class DraftConcept(
 )
 
 trait ConceptApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with Props =>
   val conceptApiClient: ConceptApiClient
 
-  class ConceptApiClient(conceptBaseUrl: String = s"http://$ConceptApiHost") extends LazyLogging {
+  class ConceptApiClient(conceptBaseUrl: String = s"http://${props.ConceptApiHost}") extends LazyLogging {
     private val draftEndpoint  = s"concept-api/v1/drafts"
     private val conceptTimeout = 1000 * 10 // 10 seconds
 

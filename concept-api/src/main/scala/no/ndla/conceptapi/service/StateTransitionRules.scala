@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service
 
 import cats.effect.IO
 import no.ndla.conceptapi.auth.UserInfo
-import no.ndla.conceptapi.model.api.IllegalStatusStateTransition
+import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SideEffect, StateTransition}
@@ -29,7 +29,8 @@ trait StateTransitionRules {
     with ConverterService
     with ContentValidator
     with DraftConceptIndexService
-    with PublishedConceptRepository =>
+    with PublishedConceptRepository
+    with ErrorHelpers =>
 
   object StateTransitionRules {
 

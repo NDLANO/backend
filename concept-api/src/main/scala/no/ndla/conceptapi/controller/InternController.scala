@@ -8,10 +8,9 @@
 package no.ndla.conceptapi.controller
 
 import java.util.concurrent.Executors
-
 import no.ndla.conceptapi.auth.{User, UserInfo}
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
@@ -33,7 +32,9 @@ trait InternController {
     with ReadService
     with User
     with DraftConceptRepository
-    with PublishedConceptRepository =>
+    with PublishedConceptRepository
+    with NdlaController
+    with DBConcept =>
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {

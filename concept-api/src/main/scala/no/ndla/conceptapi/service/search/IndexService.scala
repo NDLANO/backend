@@ -13,8 +13,7 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.ConceptApiProperties.ElasticSearchIndexMaxResultWindow
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ElasticIndexingException
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
@@ -26,11 +25,11 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService =>
+  this: Elastic4sClient with BaseIndexService with Props =>
 
   trait IndexService[D <: Concept] extends BaseIndexService with LazyLogging {
     val repository: Repository[D]
-    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
+    override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val lowerNormalizer: CustomNormalizer =
       CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
@@ -89,7 +88,7 @@ trait IndexService {
         val (minId, maxId) = repository.minMaxId
         Seq
           .range(minId, maxId + 1)
-          .grouped(ConceptApiProperties.IndexBulkSize)
+          .grouped(props.IndexBulkSize)
           .map(group => (group.head, group.last))
           .toList
       }

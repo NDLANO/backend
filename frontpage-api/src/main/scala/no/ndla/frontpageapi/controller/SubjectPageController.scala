@@ -8,9 +8,9 @@
 package no.ndla.frontpageapi.controller
 
 import cats.effect.{Effect, IO}
-import no.ndla.frontpageapi.FrontpageApiProperties
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.auth.UserInfo
-import no.ndla.frontpageapi.model.api.{Error, NewSubjectFrontPageData, UpdatedSubjectFrontPageData}
+import no.ndla.frontpageapi.model.api.{Error, ErrorHelpers, NewSubjectFrontPageData, UpdatedSubjectFrontPageData}
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import org.http4s.rho.swagger.{SecOps, SwaggerSyntax}
@@ -18,7 +18,7 @@ import org.http4s.rho.swagger.{SecOps, SwaggerSyntax}
 import scala.util.{Failure, Success}
 
 trait SubjectPageController {
-  this: ReadService with WriteService =>
+  this: ReadService with WriteService with Props with ErrorHelpers =>
   val subjectPageController: SubjectPageController[IO]
 
   class SubjectPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
@@ -28,12 +28,12 @@ trait SubjectPageController {
     "Get data to display on a subject page" **
       GET / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
         "language",
-        FrontpageApiProperties.DefaultLanguage
+        props.DefaultLanguage
       ) & param[Boolean]("fallback", false) |>> { (id: Long, language: String, fallback: Boolean) =>
         {
           readService.subjectPage(id, language, fallback) match {
             case Some(s) => Ok(s)
-            case None    => NotFound(Error.notFound)
+            case None    => NotFound(ErrorHelpers.notFound)
           }
         }
       }
@@ -44,12 +44,13 @@ trait SubjectPageController {
           user match {
             case Some(user) if user.canWrite =>
               writeService.newSubjectPage(newSubjectFrontPageData) match {
-                case Success(s)                       => Ok(s)
-                case Failure(ex: ValidationException) => UnprocessableEntity(Error.unprocessableEntity(ex.getMessage))
-                case Failure(_)                       => InternalServerError(Error.generic)
+                case Success(s) => Ok(s)
+                case Failure(ex: ValidationException) =>
+                  UnprocessableEntity(ErrorHelpers.unprocessableEntity(ex.getMessage))
+                case Failure(_) => InternalServerError(ErrorHelpers.generic)
               }
-            case Some(_) => Forbidden(Error.forbidden)
-            case None    => Unauthorized(Error.unauthorized)
+            case Some(_) => Forbidden(ErrorHelpers.forbidden)
+            case None    => Unauthorized(ErrorHelpers.unauthorized)
           }
         }
     }
@@ -59,20 +60,21 @@ trait SubjectPageController {
         PATCH
     ) / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
       "language",
-      FrontpageApiProperties.DefaultLanguage
+      props.DefaultLanguage
     ) >>> Auth.auth ^ UpdatedSubjectFrontPageData.decoder |>> {
       (id: Long, language: String, user: Option[UserInfo], subjectPage: UpdatedSubjectFrontPageData) =>
         {
           user match {
             case Some(user) if user.canWrite =>
               writeService.updateSubjectPage(id, subjectPage, language) match {
-                case Success(s)                       => Ok(s)
-                case Failure(_: NotFoundException)    => NotFound(Error.notFound)
-                case Failure(ex: ValidationException) => UnprocessableEntity(Error.unprocessableEntity(ex.getMessage))
-                case Failure(_)                       => InternalServerError(Error.generic)
+                case Success(s)                    => Ok(s)
+                case Failure(_: NotFoundException) => NotFound(ErrorHelpers.notFound)
+                case Failure(ex: ValidationException) =>
+                  UnprocessableEntity(ErrorHelpers.unprocessableEntity(ex.getMessage))
+                case Failure(_) => InternalServerError(ErrorHelpers.generic)
               }
-            case Some(_) => Forbidden(Error.forbidden)
-            case None    => Unauthorized(Error.unauthorized)
+            case Some(_) => Forbidden(ErrorHelpers.forbidden)
+            case None    => Unauthorized(ErrorHelpers.unauthorized)
           }
         }
     }

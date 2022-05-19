@@ -9,18 +9,18 @@
 package no.ndla.audioapi.service
 
 import java.io.InputStream
-
 import com.amazonaws.services.s3.model.{ObjectMetadata, PutObjectRequest}
-import no.ndla.audioapi.AudioApiProperties.StorageName
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.AmazonClient
 
 import scala.util.{Failure, Success, Try}
 
 trait AudioStorageService {
-  this: AmazonClient =>
+  this: AmazonClient with Props =>
   val audioStorage: AudioStorage
 
   class AudioStorage {
+    import props.StorageName
 
     def storeAudio(
         audioStream: InputStream,

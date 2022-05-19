@@ -23,8 +23,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
-  val full    = Image("/123.png", 200, "image/png")
-  val wanting = Image("123.png", 200, "image/png")
+  val someDims = Some(ImageDimensions(100, 100))
+  val full     = Image("/123.png", 200, "image/png", someDims)
+  val wanting  = Image("123.png", 200, "image/png", someDims)
 
   val DefaultImageMetaInformation = ImageMetaInformation(
     Some(1),
@@ -41,7 +42,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    someDims
   )
 
   val WantingImageMetaInformation = ImageMetaInformation(
@@ -59,7 +61,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    someDims
   )
 
   val MultiLangImage = ImageMetaInformation(
@@ -77,7 +80,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    someDims
   )
 
   override def beforeEach(): Unit = {
@@ -97,20 +101,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
     {
       val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"))
-      apiImage.metaUrl should equal(s"${ImageApiProperties.ImageApiUrlBase}1")
-      apiImage.imageUrl should equal(s"${ImageApiProperties.RawImageUrlBase}/123.png")
+      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
     {
       val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"))
-      apiImage.metaUrl should equal(s"${ImageApiProperties.ImageApiUrlBase}1")
-      apiImage.imageUrl should equal(s"${ImageApiProperties.RawImageUrlBase}/123.png")
+      apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
+      apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
   }
 
   test("That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links with applicationUrl") {
     val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None)
-    apiImage.metaUrl should equal(s"${ImageApiProperties.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${ImageApiProperties.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links with domain urls") {
@@ -127,8 +131,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some("RandomLangauge")
     )
 
-    apiImage.metaUrl should equal(s"${ImageApiProperties.Domain}/v2/images/1")
-    apiImage.imageUrl should equal(s"${ImageApiProperties.Domain}/raw/123.png")
+    apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
+    apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links even if language is not supported") {

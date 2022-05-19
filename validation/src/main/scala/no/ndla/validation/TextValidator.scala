@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =
-    s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HtmlTagRules.allLegalTags.mkString(",")}"
+    s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HtmlTagRules.allLegalTags.mkString(", ")}"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
   private val FieldEmpty                = "Required field is empty"
   private val TagValidator              = new TagValidator

@@ -10,20 +10,25 @@ package no.ndla.oembedproxy.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.CorrelationID
-import no.ndla.oembedproxy.OEmbedProxyProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.oembedproxy.Props
 import org.apache.logging.log4j.ThreadContext
 import org.scalatra.CoreDsl
 
-trait CorrelationIdSupport extends CoreDsl with LazyLogging {
+trait CorrelationIdSupport {
+  this: Props =>
 
-  before() {
-    CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-    ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
+  trait CorrelationIdSupport extends CoreDsl with LazyLogging {
+    import props.{CorrelationIdKey, CorrelationIdHeader}
+
+    before() {
+      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
+      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
+    }
+
+    after() {
+      CorrelationID.clear()
+      ThreadContext.remove(CorrelationIdKey)
+    }
+
   }
-
-  after() {
-    CorrelationID.clear()
-    ThreadContext.remove(CorrelationIdKey)
-  }
-
 }

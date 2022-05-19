@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.LearningpathApiProperties
+import no.ndla.learningpathapi.Props
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import scalaj.http.{Http, HttpRequest}
@@ -17,7 +17,7 @@ import scalaj.http.{Http, HttpRequest}
 import scala.util.{Failure, Success}
 
 trait ImageApiClientComponent {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val imageApiClient: ImageApiClient
 
   class ImageApiClient extends LazyLogging {
@@ -25,10 +25,10 @@ trait ImageApiClientComponent {
     val ExternalId         = ":external_id"
 
     val byExternalIdEndpoint =
-      s"http://${LearningpathApiProperties.ImageApiHost}/intern/extern/$ExternalId"
+      s"http://${props.ImageApiHost}/intern/extern/$ExternalId"
 
     val importImageEndpoint =
-      s"http://${LearningpathApiProperties.ImageApiHost}/intern/import/$ExternalId"
+      s"http://${props.ImageApiHost}/intern/import/$ExternalId"
 
     def imageMetaWithExternalId(externalId: String): Option[ImageMetaInformation] =
       doRequest(Http(byExternalIdEndpoint.replace(ExternalId, externalId)))

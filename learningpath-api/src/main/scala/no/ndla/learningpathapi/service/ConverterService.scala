@@ -17,14 +17,7 @@ import no.ndla.language.Language.{
   getSearchLanguage,
   mergeLanguageFields
 }
-import no.ndla.learningpathapi.LearningpathApiProperties.{
-  DefaultLanguage,
-  Domain,
-  InternalImageApiUrl,
-  NdlaFrontendHost,
-  NdlaFrontendHostNames,
-  NdlaFrontendProtocol
-}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}
 import no.ndla.learningpathapi.model.domain._
@@ -43,11 +36,20 @@ trait ConverterService {
     with LanguageValidator
     with LearningPathValidator
     with OembedProxyClient
-    with Clock =>
+    with Clock
+    with Props =>
 
   val converterService: ConverterService
 
   class ConverterService {
+    import props.{
+      DefaultLanguage,
+      Domain,
+      InternalImageApiUrl,
+      NdlaFrontendHost,
+      NdlaFrontendHostNames,
+      NdlaFrontendProtocol
+    }
 
     def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): domain.EmbedUrl = {
       domain.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))

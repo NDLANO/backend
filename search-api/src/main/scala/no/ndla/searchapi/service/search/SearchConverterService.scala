@@ -13,8 +13,7 @@ import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, g
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
-import no.ndla.searchapi.SearchApiProperties
-import no.ndla.searchapi.SearchApiProperties.DefaultLanguage
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api._
 import no.ndla.searchapi.model.api.article.ArticleSummary
@@ -42,7 +41,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient with TaxonomyApiClient with ConverterService =>
+  this: DraftApiClient with TaxonomyApiClient with ConverterService with Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
@@ -446,7 +445,7 @@ trait SearchConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language)
       val metaImage       = findByLanguageOrBestEffort(metaImages, language)
 
-      val url = s"${SearchApiProperties.ExternalApiUrls("article-api")}/${searchableArticle.id}"
+      val url = s"${props.ExternalApiUrls("article-api")}/${searchableArticle.id}"
 
       ArticleSummary(
         searchableArticle.id,
@@ -478,7 +477,7 @@ trait SearchConverterService {
       val visualElement = findByLanguageOrBestEffort(visualElements, language)
       val introduction  = findByLanguageOrBestEffort(introductions, language)
 
-      val url = s"${SearchApiProperties.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
+      val url = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
 
       DraftSummary(
         id = searchableDraft.id,
@@ -517,7 +516,7 @@ trait SearchConverterService {
         api.learningpath.LearningPathTags(Seq.empty, UnknownLanguage.toString)
       )
 
-      val url = s"${SearchApiProperties.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
+      val url = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
 
       LearningPathSummary(
         searchableLearningPath.id,
@@ -573,7 +572,7 @@ trait SearchConverterService {
       val visualElements =
         searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElement(lv.value, lv.language))
       val metaImages = searchableArticle.metaImage.map(image => {
-        val metaImageUrl = s"${SearchApiProperties.ExternalApiUrls("raw-image")}/${image.imageId}"
+        val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         api.MetaImage(metaImageUrl, image.altText, image.language)
       })
 
@@ -586,7 +585,7 @@ trait SearchConverterService {
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
 
-      val url = s"${SearchApiProperties.ExternalApiUrls("article-api")}/${searchableArticle.id}"
+      val url = s"${props.ExternalApiUrls("article-api")}/${searchableArticle.id}"
 
       MultiSearchSummary(
         id = searchableArticle.id,
@@ -622,7 +621,7 @@ trait SearchConverterService {
       val visualElements =
         searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElement(lv.value, lv.language))
       val metaImages = searchableDraft.metaImage.map(image => {
-        val metaImageUrl = s"${SearchApiProperties.ExternalApiUrls("raw-image")}/${image.imageId}"
+        val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         api.MetaImage(metaImageUrl, image.altText, image.language)
       })
 
@@ -633,7 +632,7 @@ trait SearchConverterService {
       )
       val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
-      val url                = s"${SearchApiProperties.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
+      val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
       val revisions          = searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status))
 
       MultiSearchSummary(
@@ -675,11 +674,11 @@ trait SearchConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         api.MetaDescription("", UnknownLanguage.toString)
       )
-      val url = s"${SearchApiProperties.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
+      val url = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
       val metaImage =
         searchableLearningPath.coverPhotoId.map(id =>
           api.MetaImage(
-            url = s"${SearchApiProperties.ExternalApiUrls("raw-image")}/$id",
+            url = s"${props.ExternalApiUrls("raw-image")}/$id",
             alt = "",
             language = language
           )
@@ -753,7 +752,7 @@ trait SearchConverterService {
 
     private def getAllLanguagesAndDefault(breadcrumbs: Seq[TaxonomyElement]): Seq[String] =
       (breadcrumbs
-        .flatMap(_.translations.map(_.language)) :+ DefaultLanguage).distinct
+        .flatMap(_.translations.map(_.language)) :+ props.DefaultLanguage).distinct
 
     private def maybeElementToName(maybeElement: Option[TaxonomyElement], language: String): String =
       maybeElement
@@ -793,7 +792,7 @@ trait SearchConverterService {
           getSearchableLanguageValues(relevance.name, relevance.translations)
         })
 
-      relevanceName.getOrElse(SearchableLanguageValues(Seq(LanguageValue(DefaultLanguage, ""))))
+      relevanceName.getOrElse(SearchableLanguageValues(Seq(LanguageValue(props.DefaultLanguage, ""))))
     }
 
     private def getResourceTaxonomyContexts(
@@ -859,7 +858,7 @@ trait SearchConverterService {
         name: String,
         translations: List[TaxonomyTranslation]
     ): SearchableLanguageValues = {
-      val mainLv       = LanguageValue(DefaultLanguage, name)
+      val mainLv       = LanguageValue(props.DefaultLanguage, name)
       val translateLvs = translations.map(t => LanguageValue(t.language, t.name))
 
       // Keep `mainLv` at the back of the list so a translation is picked if one exists for the default language
@@ -933,7 +932,7 @@ trait SearchConverterService {
         connectedResourceTypes
           .flatMap(rt => bundle.resourceTypeParentsByResourceTypeId.getOrElse(rt.id, List.empty))
           .filterNot(connectedResourceTypes.contains)
-      (connectedResourceTypes ++ subParents).distinct
+      (connectedResourceTypes ++ subParents).distinct.sortWith((l, _) => l.subtypes.isDefined)
     }
 
     private def getTopicTaxonomyContexts(

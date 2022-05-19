@@ -11,7 +11,7 @@ package no.ndla.audioapi.service.search
 import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties.{AudioControllerPath, Domain}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.Title
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
 import no.ndla.audioapi.model.search._
@@ -24,7 +24,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import scala.util.Try
 
 trait SearchConverterService {
-  this: ConverterService =>
+  this: ConverterService with Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
@@ -82,7 +82,7 @@ trait SearchConverterService {
             id = searchable.id.toLong,
             title = title,
             audioType = searchable.audioType,
-            url = s"$Domain$AudioControllerPath${searchable.id}",
+            url = s"${props.Domain}${props.AudioControllerPath}${searchable.id}",
             license = searchable.license,
             supportedLanguages = supportedLanguages,
             podcastMeta = podcastMeta,

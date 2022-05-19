@@ -10,11 +10,11 @@ package no.ndla.imageapi.service
 
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, InputStream}
-
 import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.LazyLogging
+
 import javax.imageio.ImageIO
-import no.ndla.imageapi.ImageApiProperties.{StorageName, ValidMimeTypes}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.AmazonClient
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.{Image, ImageStream}
@@ -24,10 +24,11 @@ import scalaj.http.HttpRequest
 import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
-  this: AmazonClient with ReadService =>
+  this: AmazonClient with ReadService with Props =>
   val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends LazyLogging {
+    import props.{StorageName, ValidMimeTypes}
     case class NdlaImage(s3Object: S3Object, fileName: String) extends ImageStream {
       lazy val imageContent = {
         val content = IOUtils.toByteArray(s3Object.getObjectContent)

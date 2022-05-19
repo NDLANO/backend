@@ -11,12 +11,11 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-import no.ndla.imageapi.model.api.Error
+import no.ndla.imageapi.Props
+import no.ndla.imageapi.model.ResultWindowTooLargeException
+import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.imageapi.model.search.SearchableTag
-import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
 import org.json4s._
@@ -29,12 +28,15 @@ trait TagSearchService {
     with SearchConverterService
     with SearchService
     with TagIndexService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers =>
   val tagSearchService: TagSearchService
 
   class TagSearchService extends LazyLogging with SearchService[String] {
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, TagSearchIndex}
     implicit val formats: Formats    = DefaultFormats
-    override val searchIndex: String = ImageApiProperties.TagSearchIndex
+    override val searchIndex: String = TagSearchIndex
     override val indexService        = tagIndexService
 
     override def hitToApiModel(hit: String, language: String): String = {
@@ -101,7 +103,7 @@ trait TagSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
+        Failure(new ResultWindowTooLargeException(ErrorHelpers.WindowTooLargeError.description))
       } else {
         val searchToExecute = search(searchIndex)
           .size(numResults)

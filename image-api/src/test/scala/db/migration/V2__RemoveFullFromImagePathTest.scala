@@ -8,6 +8,7 @@
 
 package db.migration
 
+import imageapi.db.migration.{V2_DBImageMetaInformation, V2__RemoveFullFromImagePath}
 import no.ndla.imageapi.UnitSuite
 
 class V2__RemoveFullFromImagePathTest extends UnitSuite {

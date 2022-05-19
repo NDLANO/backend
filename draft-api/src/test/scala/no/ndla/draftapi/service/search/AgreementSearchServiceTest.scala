@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi.DraftApiProperties.DefaultPageSize
 import no.ndla.draftapi.TestData.agreementSearchSettings
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
@@ -19,11 +18,13 @@ import org.scalatest.Outcome
 import scala.util.Success
 
 class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+  import props.DefaultPageSize
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
+    elasticSearchContainer.get
     assume(elasticSearchContainer.isSuccess)
     super.withFixture(test)
   }
@@ -117,7 +118,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     sampleAgreement.copy(id = Some(11), title = "Woopie", content = "This agreement is not copyrighted")
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    agreementIndexService.createIndexWithName(DraftApiProperties.AgreementSearchIndex)
+    agreementIndexService.createIndexWithName(props.AgreementSearchIndex)
 
     agreementIndexService.indexDocument(agreement1)
     agreementIndexService.indexDocument(agreement2)
@@ -136,7 +137,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    agreementSearchService.getStartAtAndNumResults(0, 10001) should equal((0, DraftApiProperties.MaxPageSize))
+    agreementSearchService.getStartAtAndNumResults(0, 10001) should equal((0, props.MaxPageSize))
   }
 
   test(

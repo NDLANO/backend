@@ -8,7 +8,7 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.model.api.UploadedFile
-import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
 import org.scalatra.servlet.FileItem

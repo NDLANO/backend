@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties.{AudioTagSearchDocument, AudioTagSearchIndex}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import org.json4s.native.Serialization.write
@@ -19,10 +19,12 @@ import org.json4s.native.Serialization.write
 import scala.util.{Success, Try}
 
 trait TagIndexService {
-  this: SearchConverterService with IndexService with AudioRepository =>
+  this: SearchConverterService with IndexService with AudioRepository with Props =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends LazyLogging with IndexService[AudioMetaInformation, SearchableTag] {
+    import props._
+
     override val documentType: String                         = AudioTagSearchDocument
     override val searchIndex: String                          = AudioTagSearchIndex
     override val repository: Repository[AudioMetaInformation] = audioRepository

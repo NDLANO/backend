@@ -8,13 +8,7 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{
-  BrightcoveVideoScriptUrl,
-  H5PResizerScriptUrl,
-  MinimumAllowedTags,
-  NRKVideoScriptUrl
-}
+import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}
@@ -26,7 +20,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftApiClient =>
+  this: DraftApiClient with Props =>
   val contentValidator: ContentValidator
 
   class ContentValidator() {
@@ -155,13 +149,9 @@ trait ContentValidator {
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
       val contributorsMessages =
-        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
-          copyright.processors.flatMap(a =>
-            validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)
-          ) ++
-          copyright.rightsholders.flatMap(a =>
-            validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes)
-          )
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", props.creatorTypes)) ++
+          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", props.processorTypes)) ++
+          copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", props.rightsholderTypes))
       val originMessage    = NoHtmlValidator.validate("copyright.origin", copyright.origin)
       val agreementMessage = validateAgreement(copyright)
 
@@ -211,11 +201,11 @@ trait ContentValidator {
 
       // Since quite a few articles from old ndla has fewer than 3 tags we skip validation here for imported articles until we are done importing.
       val languageTagAmountErrors = tags.groupBy(_.language).flatMap {
-        case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < MinimumAllowedTags =>
+        case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < props.MinimumAllowedTags =>
           Seq(
             ValidationMessage(
               s"tags.$lang",
-              s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."
+              s"Invalid amount of tags. Articles needs ${props.MinimumAllowedTags} or more tags to be valid."
             )
           )
         case _ => Seq()
@@ -231,7 +221,7 @@ trait ContentValidator {
     }
 
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(BrightcoveVideoScriptUrl, H5PResizerScriptUrl) ++ NRKVideoScriptUrl
+      val permittedLibraries = Seq(props.BrightcoveVideoScriptUrl, props.H5PResizerScriptUrl) ++ props.NRKVideoScriptUrl
       if (permittedLibraries.contains(requiredLibrary.url)) {
         None
       } else {

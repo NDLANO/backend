@@ -46,12 +46,12 @@ class TagIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer 
   }
 
   test("That indexing does not fail if no tags are present") {
-    tagIndexService.createIndexWithName(DraftApiProperties.DraftTagSearchIndex)
+    tagIndexService.createIndexWithName(props.DraftTagSearchIndex)
 
     val article = TestData.sampleDomainArticle.copy(tags = Seq.empty)
     tagIndexService.indexDocument(article).isSuccess should be(true)
 
-    tagIndexService.deleteIndexWithName(Some(DraftApiProperties.DraftTagSearchIndex))
+    tagIndexService.deleteIndexWithName(Some(props.DraftTagSearchIndex))
   }
 
 }

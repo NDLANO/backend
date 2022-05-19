@@ -12,11 +12,10 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.ResultWindowTooLargeException
-import no.ndla.imageapi.model.api.{Error, ImageMetaSummary}
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.language.Language
@@ -29,12 +28,19 @@ import org.json4s.native.Serialization.read
 import scala.util.{Failure, Success, Try}
 
 trait ImageSearchService {
-  this: Elastic4sClient with ImageIndexService with SearchService with SearchConverterService with Role =>
+  this: Elastic4sClient
+    with ImageIndexService
+    with SearchService
+    with SearchConverterService
+    with Role
+    with Props
+    with ErrorHelpers =>
   val imageSearchService: ImageSearchService
 
   class ImageSearchService extends LazyLogging with SearchService[ImageMetaSummary] {
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
     private val noCopyright          = boolQuery().not(termQuery("license", "copyrighted"))
-    override val searchIndex: String = ImageApiProperties.SearchIndex
+    override val searchIndex: String = props.SearchIndex
     override val indexService        = imageIndexService
 
     def hitToApiModel(hit: String, language: String): ImageMetaSummary = {
@@ -129,7 +135,7 @@ trait ImageSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException(Error.WindowTooLargeError.description))
+        Failure(new ResultWindowTooLargeException(ErrorHelpers.WindowTooLargeError.description))
       } else {
         val searchToExecute =
           search(searchIndex)

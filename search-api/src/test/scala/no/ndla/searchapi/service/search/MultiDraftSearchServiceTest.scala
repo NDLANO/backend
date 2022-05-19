@@ -10,19 +10,20 @@ package no.ndla.searchapi.service.search
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import no.ndla.searchapi.SearchApiProperties.DefaultPageSize
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.{SearchApiProperties, TestEnvironment}
+import no.ndla.searchapi.TestEnvironment
 import org.scalatest.Outcome
 
 import java.util.Date
 import scala.util.{Failure, Success}
 
 class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+  import props.{DefaultPageSize, MaxPageSize}
+
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -97,7 +98,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    multiDraftSearchService.getStartAtAndNumResults(0, 10001) should equal((0, SearchApiProperties.MaxPageSize))
+    multiDraftSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
   }
 
   test(

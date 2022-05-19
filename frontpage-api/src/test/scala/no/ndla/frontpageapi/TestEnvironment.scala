@@ -8,10 +8,13 @@
 package no.ndla.frontpageapi
 
 import cats.effect.IO
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.frontpageapi.controller.FilmPageController
 import no.ndla.frontpageapi.integration.DataSource
+import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
@@ -22,9 +25,18 @@ trait TestEnvironment
     with FilmFrontPageRepository
     with FilmPageController
     with ReadService
-    with WriteService {
+    with WriteService
+    with ConverterService
+    with Props
+    with DBFilmFrontPageData
+    with DBSubjectFrontPageData
+    with DBFrontPageData
+    with ErrorHelpers
+    with DBMigrator {
+  override val props = new FrontpageApiProperties
 
-  override val dataSource = mock[javax.sql.DataSource]
+  override val migrator   = mock[DBMigrator]
+  override val dataSource = mock[HikariDataSource]
 
   override val filmPageController      = mock[FilmPageController[IO]]
   override val subjectPageRepository   = mock[SubjectPageRepository]

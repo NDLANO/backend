@@ -11,7 +11,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
+import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag, DBArticle}
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
@@ -21,7 +21,7 @@ import scalikejdbc._
 import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
-  this: DataSource =>
+  this: DataSource with DBArticle =>
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging with Repository[Article] {
@@ -192,14 +192,17 @@ trait ArticleRepository {
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
+      val ar = Article.syntax("ar")
       sql"""
            select count(distinct article_id)
            from (select
                    *,
+                   ar.document as doc,
                    max(revision) over (partition by article_id) as max_revision
-                 from ${Article.table}
-                 where document is not NULL) _
+                 from ${Article.as(ar)}
+                 ) _
            where revision = max_revision
+           and doc is not null
       """
         .map(rs => rs.long("count"))
         .single()
@@ -213,9 +216,11 @@ trait ArticleRepository {
            from (select
                    ${ar.result.*},
                    ${ar.revision} as revision,
+                   ar.document as doc,
                    max(revision) over (partition by article_id) as max_revision
                  from ${Article.as(ar)}) _
            where revision = max_revision
+           and doc is not null
            offset $offset
            limit $pageSize
       """

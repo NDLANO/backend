@@ -10,23 +10,26 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.articleapi.ArticleApiProperties.SearchServer
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController}
+import no.ndla.articleapi.caching.MemoizeHelpers
+import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController, NdlaController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
+import no.ndla.articleapi.model.api.ErrorHelpers
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
-    extends DataSource
+class ComponentRegistry(properties: ArticleApiProperties)
+    extends Props
+    with DataSource
     with InternController
     with ArticleControllerV2
+    with NdlaController
     with HealthController
     with ArticleRepository
     with Elastic4sClient
@@ -43,17 +46,23 @@ object ComponentRegistry
     with NdlaClient
     with SearchConverterService
     with ReadService
+    with MemoizeHelpers
     with WriteService
     with ContentValidator
     with Clock
     with Role
-    with User {
-  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+    with User
+    with ArticleApiInfo
+    with ErrorHelpers
+    with DBArticle
+    with DBMigrator {
+  override val props: ArticleApiProperties = properties
+  override val migrator                    = new DBMigrator
 
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  connectToDatabase()
+  DataSource.connectToDatabase()
 
   lazy val internController    = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
@@ -72,7 +81,7 @@ object ComponentRegistry
   lazy val readService            = new ReadService
   lazy val writeService           = new WriteService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val draftApiClient      = new DraftApiClient
   lazy val searchApiClient     = new SearchApiClient
   lazy val feideApiClient      = new FeideApiClient

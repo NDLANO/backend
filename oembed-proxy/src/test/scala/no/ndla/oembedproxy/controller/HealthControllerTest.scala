@@ -14,7 +14,7 @@ import org.scalatra.test.scalatest.ScalatraFunSuite
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
   lazy val controller = new HealthController
-  addServlet(controller, OEmbedProxyProperties.HealthControllerMountPoint)
+  addServlet(controller, props.HealthControllerMountPoint)
 
   test("That /health returns 200 ok") {
     get("/health") {

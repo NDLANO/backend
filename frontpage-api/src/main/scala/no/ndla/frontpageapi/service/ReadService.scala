@@ -14,7 +14,7 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository =>
+  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {

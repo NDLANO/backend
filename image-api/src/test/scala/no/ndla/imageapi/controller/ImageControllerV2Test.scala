@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.ImageApiProperties.MaxImageFileSizeBytes
 import no.ndla.imageapi.model.api.{
   ImageMetaSummary,
   NewImageMetaInformationV2,
@@ -17,7 +16,7 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
-import no.ndla.imageapi.{ImageSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.DefaultFormats
@@ -31,6 +30,7 @@ import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnvironment {
+  import props.MaxImageFileSizeBytes
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiaW1hZ2VzLXRlc3Q6d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.RBUfclGy31VoNvnI_641E-UE4ccdBlVR7wk4CphDWkF_-RcmnIwqswy4d6qY8FydS7VDx9or0rX2Ofc9k7iBX5Ux0b30i6SXnJJ3JPS8wSNipmp5ZpnkKyv_FFAbozKf9ZvwF5LT93TuksKtHe_QiwzT3Jy3_ss3HMwp54MrB6M"
@@ -121,10 +121,13 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Seq("nb"),
       Some("yes"),
       None,
-      date.toDate
+      date.toDate,
+      123,
+      "image/jpg",
+      None
     )
     val expectedBody =
-      """{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"2021-04-01T12:34:56Z"}]}"""
+      """{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"2021-04-01T12:34:56Z","fileSize":123,"contentType":"image/jpg"}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResult(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(domainSearchResult))
@@ -223,7 +226,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       new Date(),
       "createdBy",
       ModelReleasedStatus.YES,
-      Seq.empty
+      Seq.empty,
+      None
     )
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem])).thenReturn(Success(sampleImageMeta))

@@ -15,23 +15,23 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties
-import no.ndla.audioapi.AudioApiProperties.ElasticSearchIndexMaxResultWindow
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.ReindexResult
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.json4s.Formats
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: Elastic4sClient with BaseIndexService with SearchConverterService with AudioRepository =>
+  this: Elastic4sClient with BaseIndexService with SearchConverterService with AudioRepository with Props =>
 
   trait IndexService[D, T] extends BaseIndexService with LazyLogging {
     implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
-    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
+    override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val documentType: String
     val searchIndex: String
@@ -86,7 +86,7 @@ trait IndexService {
         Try {
           Seq
             .range(minId, maxId + 1)
-            .grouped(AudioApiProperties.IndexBulkSize)
+            .grouped(props.IndexBulkSize)
             .map(group => (group.head, group.last))
             .toList
         }

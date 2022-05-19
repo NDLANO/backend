@@ -9,7 +9,7 @@
 package no.ndla.imageapi.model.domain
 
 import java.util.Date
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.{ImageApiProperties, Props}
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
@@ -36,7 +36,7 @@ case class ImageTag(tags: Seq[String], language: String) extends LanguageField[S
   override def value: Seq[String] = tags
   override def isEmpty: Boolean   = tags.isEmpty
 }
-case class Image(fileName: String, size: Long, contentType: String)
+case class Image(fileName: String, size: Long, contentType: String, dimensions: Option[ImageDimensions])
 case class Copyright(
     license: String,
     origin: String,
@@ -50,6 +50,7 @@ case class Copyright(
 case class License(license: String, description: String, url: Option[String])
 case class Author(`type`: String, name: String)
 case class EditorNote(timeStamp: Date, updatedBy: String, note: String)
+case class ImageDimensions(width: Int, height: Int)
 
 object ModelReleasedStatus extends Enumeration {
   val YES            = Value("yes")
@@ -92,40 +93,45 @@ case class ImageMetaInformation(
     created: Date,
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
-    editorNotes: Seq[EditorNote]
+    editorNotes: Seq[EditorNote],
+    imageDimensions: Option[ImageDimensions]
 )
 
-object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
-  override val tableName   = "imagemetadata"
-  override val schemaName  = Some(ImageApiProperties.MetaSchema)
-  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ModelReleasedStatus)
-  val repositorySerializer = jsonEncoder + FieldSerializer[ImageMetaInformation](ignore("id"))
+trait DBImageMetaInformation {
+  this: Props =>
+  object DBImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
+    override val tableName   = "imagemetadata"
+    override val schemaName  = Some(props.MetaSchema)
+    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ModelReleasedStatus)
+    val repositorySerializer = jsonEncoder + FieldSerializer[ImageMetaInformation](ignore("id"))
 
-  def fromResultSet(im: SyntaxProvider[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation =
-    fromResultSet(im.resultName)(rs)
+    def fromResultSet(im: SyntaxProvider[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation =
+      fromResultSet(im.resultName)(rs)
 
-  def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
-    implicit val formats = this.jsonEncoder
-    val id               = rs.long(im.c("id"))
-    val jsonString       = rs.string(im.c("metadata"))
-    val meta             = read[ImageMetaInformation](jsonString)
-    ImageMetaInformation(
-      Some(id),
-      meta.titles,
-      meta.alttexts,
-      meta.imageUrl,
-      meta.size,
-      meta.contentType,
-      meta.copyright,
-      meta.tags,
-      meta.captions,
-      meta.updatedBy,
-      meta.updated,
-      meta.created,
-      meta.createdBy,
-      meta.modelReleased,
-      meta.editorNotes
-    )
+    def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
+      implicit val formats = this.jsonEncoder
+      val id               = rs.long(im.c("id"))
+      val jsonString       = rs.string(im.c("metadata"))
+      val meta             = read[ImageMetaInformation](jsonString)
+      ImageMetaInformation(
+        Some(id),
+        meta.titles,
+        meta.alttexts,
+        meta.imageUrl,
+        meta.size,
+        meta.contentType,
+        meta.copyright,
+        meta.tags,
+        meta.captions,
+        meta.updatedBy,
+        meta.updated,
+        meta.created,
+        meta.createdBy,
+        meta.modelReleased,
+        meta.editorNotes,
+        meta.imageDimensions
+      )
+    }
   }
 }
 

@@ -20,6 +20,7 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
+    elasticSearchContainer.get
     assume(elasticSearchContainer.isSuccess)
     super.withFixture(test)
   }
@@ -50,7 +51,7 @@ class GrepCodesSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
   val articlesToIndex = Seq(article1, article2, article3, article4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    tagIndexService.createIndexWithName(DraftApiProperties.DraftGrepCodesSearchIndex)
+    tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
 
     articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a))
 

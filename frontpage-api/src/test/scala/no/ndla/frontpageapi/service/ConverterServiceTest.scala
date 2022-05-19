@@ -31,7 +31,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val page2          = TestData.domainSubjectPage.copy(about = about2)
 
     val expected =
-      s"https://players.brightcove.net/${FrontpageApiProperties.BrightcoveAccountId}/${FrontpageApiProperties.BrightcovePlayer}_default/index.html?videoId=${visualElement2.id}"
+      s"https://players.brightcove.net/${props.BrightcoveAccountId}/${props.BrightcovePlayer}_default/index.html?videoId=${visualElement2.id}"
     ConverterService.toApiSubjectPage(page2, "nb").get.about.get.visualElement.url should equal(expected)
   }
 

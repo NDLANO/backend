@@ -11,7 +11,7 @@ package no.ndla.imageapi.controller
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
 import no.ndla.imageapi.model.domain.ModelReleasedStatus
 import no.ndla.imageapi.model.{api, domain}
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.jackson.Serialization._
@@ -30,10 +30,10 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   val DefaultApiImageMetaInformation = api.ImageMetaInformationV2(
     "1",
-    s"${ImageApiProperties.ImageApiUrlBase}1",
+    s"${props.ImageApiUrlBase}1",
     ImageTitle("", "nb"),
     ImageAltText("", "nb"),
-    s"${ImageApiProperties.RawImageUrlBase}/test.jpg",
+    s"${props.RawImageUrlBase}/test.jpg",
     0,
     "",
     api.Copyright(
@@ -52,6 +52,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     "ndla124",
     ModelReleasedStatus.YES.toString,
+    None,
     None
   )
 
@@ -70,7 +71,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     updated,
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   override def beforeEach() = {
@@ -110,7 +112,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       status should equal(200)
       body should equal("Deleted 3 indexes")
     }
-    verify(imageIndexService).findAllIndexes(ImageApiProperties.SearchIndex)
+    verify(imageIndexService).findAllIndexes(props.SearchIndex)
     verify(imageIndexService).deleteIndexWithName(Some("index1"))
     verify(imageIndexService).deleteIndexWithName(Some("index2"))
     verify(imageIndexService).deleteIndexWithName(Some("index3"))
@@ -120,7 +122,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(imageIndexService)
-      .findAllIndexes(ImageApiProperties.SearchIndex)
+      .findAllIndexes(props.SearchIndex)
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(imageIndexService).deleteIndexWithName(Some("index3"))

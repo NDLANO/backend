@@ -60,7 +60,7 @@ trait Module {
       "-deprecation",
       "-feature",
       "-Xfatal-warnings",
-      "-Xlint",
+      "-Xlint:-strict-unsealed-patmat",
       "-Wconf:src=src_managed/.*:silent",
       "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
     ),
@@ -74,12 +74,14 @@ trait Module {
   ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    Seq(
-      fork := true,
-      envVars ++= {
-        parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
-      }
-    )
+    if (true) Seq.empty
+    else
+      Seq(
+        fork := true,
+        envVars ++= {
+          parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
+        }
+      )
   }
 
   def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {

@@ -14,7 +14,7 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.getLicense
 
 trait LearningPathValidator {
-  this: LanguageValidator with TitleValidator =>
+  this: LanguageValidator with TitleValidator with TextValidator =>
   val learningPathValidator: LearningPathValidator
 
   class LearningPathValidator(titleRequired: Boolean = true, descriptionRequired: Boolean = true) {

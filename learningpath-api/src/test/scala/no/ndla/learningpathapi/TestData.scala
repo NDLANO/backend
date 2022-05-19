@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi
 
-import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
+import no.ndla.language.Language.DefaultLanguage
 
 import java.util.Date
 import no.ndla.mapping.License.CC_BY

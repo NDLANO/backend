@@ -12,9 +12,8 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-import no.ndla.draftapi.model.api.ResultWindowTooLargeException
+import no.ndla.draftapi.Props
+import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.language.Language
@@ -30,11 +29,14 @@ trait TagSearchService {
     with SearchConverterService
     with SearchService
     with TagIndexService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers =>
   val tagSearchService: TagSearchService
 
   class TagSearchService extends LazyLogging with SearchService[String] {
-    override val searchIndex: String = DraftApiProperties.DraftTagSearchIndex
+    import props._
+    override val searchIndex: String = DraftTagSearchIndex
     implicit val formats: Formats    = DefaultFormats
 
     override def hitToApiModel(hit: String, language: String): String = {

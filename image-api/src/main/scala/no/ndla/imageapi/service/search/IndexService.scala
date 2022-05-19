@@ -7,13 +7,13 @@
 
 package no.ndla.imageapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties
-import no.ndla.imageapi.ImageApiProperties.ElasticSearchIndexMaxResultWindow
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ReindexResult
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.SearchLanguage.languageAnalyzers
@@ -21,13 +21,12 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
 
 trait IndexService {
-  this: Elastic4sClient with ImageRepository with BaseIndexService =>
+  this: Elastic4sClient with ImageRepository with BaseIndexService with Props =>
 
   trait IndexService[D, T <: AnyRef] extends BaseIndexService with LazyLogging {
-    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
+    override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
     val repository: Repository[D]
 
     def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
@@ -77,7 +76,7 @@ trait IndexService {
         val (minId, maxId) = repository.minMaxId
         Seq
           .range(minId, maxId + 1)
-          .grouped(ImageApiProperties.IndexBulkSize)
+          .grouped(props.IndexBulkSize)
           .map(group => (group.head, group.last))
           .toList
       }

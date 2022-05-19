@@ -6,7 +6,7 @@ import sbt._
 import sbtdocker.DockerPlugin
 
 object oembedproxy extends Module {
-  override val MainClass: Option[String] = Some("no.ndla.oembedproxy.JettyLauncher")
+  override val MainClass: Option[String] = Some("no.ndla.oembedproxy.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaUri,

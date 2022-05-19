@@ -11,6 +11,7 @@ package no.ndla.articleapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -18,6 +19,8 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
+import no.ndla.articleapi.model.api.ErrorHelpers
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
@@ -30,6 +33,7 @@ trait TestEnvironment
     with BaseIndexService
     with SearchService
     with LazyLogging
+    with NdlaController
     with ArticleControllerV2
     with InternController
     with HealthController
@@ -47,7 +51,17 @@ trait TestEnvironment
     with ContentValidator
     with Clock
     with User
-    with Role {
+    with Role
+    with ErrorHelpers
+    with ArticleApiInfo
+    with MemoizeHelpers
+    with DBArticle
+    with Props
+    with TestData
+    with DBMigrator {
+  val props: ArticleApiProperties = new ArticleApiProperties
+  val TestData: TestData          = new TestData
+  val migrator                    = mock[DBMigrator]
 
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService  = mock[ArticleIndexService]

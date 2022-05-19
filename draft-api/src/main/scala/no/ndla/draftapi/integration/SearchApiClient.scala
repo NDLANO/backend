@@ -7,26 +7,26 @@
 
 package no.ndla.draftapi.integration
 
-import java.util.concurrent.Executors
 import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
-import no.ndla.draftapi.DraftApiProperties.SearchApiHost
-import no.ndla.draftapi.model.domain.{Article, ArticleStatus, ArticleType}
+import no.ndla.draftapi.Props
+import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.write
 import scalaj.http.Http
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://$SearchApiHost") extends LazyLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends LazyLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 1000 * 60
@@ -35,7 +35,10 @@ trait SearchApiClient {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
           new EnumNameSerializer(ArticleStatus) +
-          Json4s.serializer(ArticleType)
+          new EnumNameSerializer(Availability) +
+          Json4s.serializer(ArticleType) +
+          Json4s.serializer(RevisionStatus) ++
+          JavaTimeSerializers.all
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

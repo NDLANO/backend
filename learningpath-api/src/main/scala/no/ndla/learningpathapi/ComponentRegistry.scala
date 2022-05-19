@@ -9,29 +9,34 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.learningpathapi.LearningpathApiProperties.SearchServer
 import no.ndla.learningpathapi.controller.{
   ConfigController,
+  CorrelationIdSupport,
+  FolderController,
   HealthController,
   InternController,
   LearningpathControllerV2,
-  FolderController
+  NdlaController
 }
 import no.ndla.learningpathapi.integration._
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent, FolderRepository}
+import no.ndla.learningpathapi.model.api.ErrorHelpers
+import no.ndla.learningpathapi.model.domain.{DBFolder, DBFolderResource, DBLearningPath, DBLearningStep, DBResource}
+import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
   LanguageValidator,
   LearningPathValidator,
   LearningStepValidator,
-  TitleValidator
+  TextValidator,
+  TitleValidator,
+  UrlValidator
 }
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
+class ComponentRegistry(properties: LearningpathApiProperties)
     extends LearningpathControllerV2
     with InternController
     with HealthController
@@ -59,11 +64,25 @@ object ComponentRegistry
     with LearningPathValidator
     with LearningStepValidator
     with TitleValidator
-    with SearchApiClient {
-
-  def connectToDatabase(): Unit         = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-  lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  connectToDatabase()
+    with SearchApiClient
+    with Props
+    with DBMigrator
+    with DBFolder
+    with DBResource
+    with DBFolderResource
+    with TextValidator
+    with UrlValidator
+    with CorrelationIdSupport
+    with ErrorHelpers
+    with LearningpathApiInfo
+    with DBLearningPath
+    with DBLearningStep
+    with DBConfigMeta
+    with NdlaController {
+  override val props: LearningpathApiProperties = properties
+  override val migrator                         = new DBMigrator
+  override val dataSource: HikariDataSource     = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
@@ -91,7 +110,7 @@ object ComponentRegistry
   lazy val titleValidator           = new TitleValidator
   lazy val learningPathValidator    = new LearningPathValidator
   lazy val learningStepValidator    = new LearningStepValidator
-  var e4sClient: NdlaE4sClient      = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient      = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchApiClient          = new SearchApiClient
   lazy val oembedProxyClient        = new OembedProxyClient
 }

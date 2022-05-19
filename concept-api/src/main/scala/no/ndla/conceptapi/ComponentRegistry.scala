@@ -9,19 +9,20 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.ConceptApiProperties.SearchServer
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller._
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
+import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.domain.DBConcept
+import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.service._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-object ComponentRegistry
+class ComponentRegistry(properties: ConceptApiProperties)
     extends DraftConceptController
     with PublishedConceptController
     with DraftNdlaController
@@ -50,7 +51,20 @@ object ComponentRegistry
     with InternController
     with ArticleApiClient
     with ImageApiClient
-    with NdlaClient {
+    with NdlaClient
+    with Props
+    with DBMigrator
+    with ConceptApiInfo
+    with ErrorHelpers
+    with NdlaController
+    with DBConcept
+    with SearchSettingsHelper
+    with DraftSearchSettingsHelper {
+  override val props: ConceptApiProperties = properties
+  override val migrator                    = new DBMigrator
+
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  DataSource.connectToDatabase()
 
   lazy val draftConceptController     = new DraftConceptController
   lazy val publishedConceptController = new PublishedConceptController
@@ -66,7 +80,7 @@ object ComponentRegistry
   lazy val publishedConceptIndexService  = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
   lazy val ndlaClient       = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient
@@ -81,14 +95,8 @@ object ComponentRegistry
   lazy val clock            = new SystemClock
   lazy val contentValidator = new ContentValidator
 
-  def connectToDatabase(): Unit =
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-
   implicit val swagger: ConceptSwagger = new ConceptSwagger
 
   lazy val resourcesApp = new ResourcesApp
-
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  connectToDatabase()
 
 }

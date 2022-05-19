@@ -9,7 +9,7 @@
 package no.ndla.audioapi.service
 
 import cats.implicits._
-import no.ndla.audioapi.AudioApiProperties.{creatorTypeMap, processorTypeMap, rightsholderTypeMap}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain
@@ -26,10 +26,11 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient with ConverterService =>
+  this: DraftApiClient with ConverterService with Props =>
   val validationService: ValidationService
 
   class ValidationService {
+    import props._
 
     def validatePodcastEpisodes(
         episodes: Seq[(Long, Option[AudioMetaInformation])],

@@ -16,18 +16,12 @@ import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.network.model.RequestInfo
 import no.ndla.search.Elastic4sClient
-import no.ndla.searchapi.SearchApiProperties
-import no.ndla.searchapi.SearchApiProperties.{
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  SearchIndexes
-}
-import no.ndla.searchapi.model.api.ResultWindowTooLargeException
+import no.ndla.searchapi.Props
+import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.{SearchResult, draft}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
-
 import java.time.{LocalDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
@@ -38,10 +32,13 @@ trait MultiDraftSearchService {
     with IndexService
     with SearchService
     with DraftIndexService
-    with LearningPathIndexService =>
+    with LearningPathIndexService
+    with Props
+    with ErrorHelpers =>
   val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends LazyLogging with SearchService with TaxonomyFiltering {
+    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
     override val searchIndex   = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
     override val indexServices = List(draftIndexService, learningPathIndexService)
 
@@ -264,8 +261,8 @@ trait MultiDraftSearchService {
         learningPathIndexService.indexDocuments()
       }
 
-      handleScheduledIndexResults(SearchApiProperties.SearchIndexes(SearchType.Drafts), draftFuture)
-      handleScheduledIndexResults(SearchApiProperties.SearchIndexes(SearchType.LearningPaths), learningPathFuture)
+      handleScheduledIndexResults(SearchIndexes(SearchType.Drafts), draftFuture)
+      handleScheduledIndexResults(SearchIndexes(SearchType.LearningPaths), learningPathFuture)
     }
   }
 

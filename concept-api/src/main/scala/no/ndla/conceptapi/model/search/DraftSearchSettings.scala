@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.model.search
 
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.language.Language.AllLanguages
 
@@ -27,23 +27,25 @@ case class DraftSearchSettings(
     embedId: Option[String]
 )
 
-object DraftSearchSettings {
-
-  def empty: DraftSearchSettings = {
-    new DraftSearchSettings(
-      withIdIn = List.empty,
-      searchLanguage = AllLanguages,
-      page = 1,
-      pageSize = ConceptApiProperties.MaxPageSize,
-      sort = Sort.ByRelevanceDesc,
-      fallback = false,
-      subjects = Set.empty,
-      tagsToFilterBy = Set.empty,
-      statusFilter = Set.empty,
-      userFilter = Seq.empty,
-      shouldScroll = false,
-      embedResource = None,
-      embedId = None
-    )
+trait DraftSearchSettingsHelper {
+  this: Props =>
+  object draftSearchSettings {
+    def empty: DraftSearchSettings = {
+      DraftSearchSettings(
+        withIdIn = List.empty,
+        searchLanguage = AllLanguages,
+        page = 1,
+        pageSize = props.MaxPageSize,
+        sort = Sort.ByRelevanceDesc,
+        fallback = false,
+        subjects = Set.empty,
+        tagsToFilterBy = Set.empty,
+        statusFilter = Set.empty,
+        userFilter = Seq.empty,
+        shouldScroll = false,
+        embedResource = None,
+        embedId = None
+      )
+    }
   }
 }

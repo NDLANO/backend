@@ -8,6 +8,7 @@
 package no.ndla.learningpathapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationError
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
 import no.ndla.learningpathapi.model.domain.UserInfo
@@ -24,7 +25,7 @@ import scala.util.{Failure, Success}
 
 trait ConfigController {
 
-  this: ReadService with UpdateService =>
+  this: ReadService with UpdateService with NdlaController with Props with CorrelationIdSupport =>
   val configController: ConfigController
 
   class ConfigController(implicit val swagger: Swagger)

@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -21,7 +21,9 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService with LazyLogging =>
+  this: Elastic4sClient with SearchConverterService with LazyLogging with Props =>
+
+  import props._
 
   trait SearchService[T] extends BasicSearchService[T] {
     def hitToApiModel(hit: String, language: String): T

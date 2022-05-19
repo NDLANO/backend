@@ -22,7 +22,8 @@ import scala.util.{Failure, Success, Try}
 
 class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
   override val dataSource: HikariDataSource = testDataSource.get
-  var repository: ArticleRepository         = new ArticleRepository
+  override val migrator: DBMigrator         = new DBMigrator
+  var repository: ArticleRepository         = _
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -52,8 +53,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   def serverIsListening: Boolean = {
-    val server = DraftApiProperties.MetaServer
-    val port   = DraftApiProperties.MetaPort
+    val server = props.MetaServer
+    val port   = props.MetaPort
     Try(new Socket(server, port)) match {
       case Success(c) =>
         c.close()
@@ -72,9 +73,9 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   override def beforeAll(): Unit = {
     super.beforeAll()
     Try {
+      DataSource.connectToDatabase()
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-        DBMigrator.migrate(dataSource)
+        migrator.migrate()
       }
     }
   }

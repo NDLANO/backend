@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewAgreement, NotFoundException}
@@ -31,10 +31,11 @@ import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService =>
+  this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService with Props =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    import props.{externalApiUrls, resourceHtmlEmbedTag}
 
     def toDomainArticle(
         newArticleId: Long,

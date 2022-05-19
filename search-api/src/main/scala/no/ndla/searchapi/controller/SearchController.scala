@@ -9,8 +9,7 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.language.Language.AllLanguages
-import no.ndla.searchapi.SearchApiProperties
-import no.ndla.searchapi.SearchApiProperties._
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.{FeideApiClient, SearchApiClient}
 import no.ndla.searchapi.model.api.{
@@ -56,10 +55,13 @@ trait SearchController {
     with SearchService
     with MultiDraftSearchService
     with User
-    with FeideApiClient =>
+    with FeideApiClient
+    with NdlaController
+    with Props =>
   val searchController: SearchController
 
   class SearchController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription = "API for searching across NDLA APIs"
@@ -258,7 +260,7 @@ trait SearchController {
       )
     ) {
       val page          = intOrDefault(this.pageNo.paramName, 1)
-      val pageSize      = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
+      val pageSize      = intOrDefault(this.pageSize.paramName, DefaultPageSize)
       val resourceTypes = paramAsListOfString(this.groupTypes.paramName)
       val fallback      = booleanOrDefault(this.fallback.paramName, default = false)
       val language      = paramOrDefault(this.language.paramName, AllLanguages)
@@ -411,7 +413,7 @@ trait SearchController {
       val language                 = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback                 = booleanOrDefault(this.fallback.paramName, default = false)
       val page                     = intOrDefault(this.pageNo.paramName, 1)
-      val pageSize                 = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
+      val pageSize                 = intOrDefault(this.pageSize.paramName, DefaultPageSize)
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
       val idList                   = paramAsListOfLong(this.learningResourceIds.paramName)
       val resourceTypes            = paramAsListOfString(this.resourceTypes.paramName)
@@ -455,7 +457,7 @@ trait SearchController {
 
     private[controller] def getDraftSearchSettingsFromRequest(implicit request: HttpServletRequest) = {
       val page                     = intOrDefault(this.pageNo.paramName, 1)
-      val pageSize                 = intOrDefault(this.pageSize.paramName, SearchApiProperties.DefaultPageSize)
+      val pageSize                 = intOrDefault(this.pageSize.paramName, DefaultPageSize)
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
       val language                 = paramOrDefault(this.language.paramName, AllLanguages)
       val idList                   = paramAsListOfLong(this.learningResourceIds.paramName)

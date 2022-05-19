@@ -10,8 +10,8 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
-import no.ndla.articleapi.caching.MemoizeAutoRenew
+import no.ndla.articleapi.Props
+import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{AccessDeniedException, ArticleSummaryV2, NotFoundException}
@@ -35,7 +35,9 @@ trait ReadService {
     with FeideApiClient
     with ConverterService
     with ArticleSearchService
-    with SearchConverterService =>
+    with SearchConverterService
+    with MemoizeHelpers
+    with Props =>
   val readService: ReadService
 
   class ReadService extends LazyLogging {
@@ -162,7 +164,7 @@ trait ReadService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl   = Url.parse(externalApiUrls(resourceType))
+          val baseUrl   = Url.parse(props.externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(

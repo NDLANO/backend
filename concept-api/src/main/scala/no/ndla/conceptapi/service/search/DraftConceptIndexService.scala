@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
 import no.ndla.conceptapi.repository.{DraftConceptRepository, Repository}
@@ -24,13 +24,13 @@ import org.json4s.native.Serialization.write
 import scala.util.{Failure, Success, Try}
 
 trait DraftConceptIndexService {
-  this: IndexService with DraftConceptRepository with SearchConverterService =>
+  this: IndexService with DraftConceptRepository with SearchConverterService with Props =>
   val draftConceptIndexService: DraftConceptIndexService
 
   class DraftConceptIndexService extends LazyLogging with IndexService[Concept] {
     implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
-    override val documentType: String            = ConceptApiProperties.ConceptSearchDocument
-    override val searchIndex: String             = ConceptApiProperties.DraftConceptSearchIndex
+    override val documentType: String            = props.ConceptSearchDocument
+    override val searchIndex: String             = props.DraftConceptSearchIndex
     override val repository: Repository[Concept] = draftConceptRepository
 
     override def createIndexRequest(concept: Concept, indexName: String): Try[IndexRequest] = {

@@ -9,7 +9,6 @@ package no.ndla.frontpageapi
 
 import cats.effect.IO
 import cats.implicits._
-import no.ndla.frontpageapi.FrontpageApiProperties._
 import no.ndla.frontpageapi.auth.Role
 import no.ndla.frontpageapi.controller.{AuthController, HealthController, NdlaMiddleware}
 import org.http4s.HttpRoutes
@@ -43,19 +42,19 @@ class AuthedSwaggerService(override val service: AuthController[IO], override va
 
 object Routes {
 
-  def buildRoutes(): List[ServiceWithMountPoint] = {
-    val frontPage   = new SwaggerService(ComponentRegistry.frontPageController, "/frontpage-api/v1/frontpage")
-    val subjectPage = new AuthedSwaggerService(ComponentRegistry.subjectPageController, "/frontpage-api/v1/subjectpage")
+  def buildRoutes(componentRegistry: ComponentRegistry, props: FrontpageApiProperties): List[ServiceWithMountPoint] = {
+    val frontPage   = new SwaggerService(componentRegistry.frontPageController, "/frontpage-api/v1/frontpage")
+    val subjectPage = new AuthedSwaggerService(componentRegistry.subjectPageController, "/frontpage-api/v1/subjectpage")
     val filmFrontPage =
-      new AuthedSwaggerService(ComponentRegistry.filmPageController, "/frontpage-api/v1/filmfrontpage")
+      new AuthedSwaggerService(componentRegistry.filmPageController, "/frontpage-api/v1/filmfrontpage")
 
     List(
       frontPage,
       subjectPage,
       filmFrontPage,
-      new SwaggerService(ComponentRegistry.internController, "/intern"),
+      new SwaggerService(componentRegistry.internController, "/intern"),
       Service(HealthController(), "/health"),
-      Service(createSwaggerDocService(frontPage, subjectPage, filmFrontPage), "/frontpage-api/api-docs")
+      Service(createSwaggerDocService(props, frontPage, subjectPage, filmFrontPage), "/frontpage-api/api-docs")
     )
   }
 
@@ -67,14 +66,15 @@ object Routes {
     TypedPath(newPath)
   }
 
-  private def createSwaggerDocService(services: SwaggerService*): HttpRoutes[IO] = {
+  private def createSwaggerDocService(props: FrontpageApiProperties, services: SwaggerService*): HttpRoutes[IO] = {
+    import props._
     val info = Info(
       title = "frontpage-api",
       version = "1.0",
       description = "Service for fetching frontpage data".some,
       termsOfService = TermsUrl.some,
       contact = Contact(ContactName, Some(ContactUrl), Some(ContactEmail)).some,
-      license = License("GPL v3.0", "http://www.gnu.org/licenses/gpl-3.0.en.html").some
+      license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html").some
     )
 
     val allRoles = Role.values.map(r => s"${Role.prefix}${r.toString}".toLowerCase)

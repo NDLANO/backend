@@ -1507,7 +1507,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
+    when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
+      .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
+    when(folderRepository.deleteResource(anyLong)(any[DBSession])).thenReturn(Success(resourceId))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
 
@@ -1516,7 +1518,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
     verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
-    verify(folderRepository, times(1)).deleteResource(any)(any[DBSession])
+    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any[DBSession])
   }
 
   test("that resource is not deleted if canResourceBeDeleted() returns false") {

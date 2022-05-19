@@ -10,8 +10,8 @@ import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
-import no.ndla.conceptapi.model.search.DraftSearchSettings
-import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.model.search
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers._
@@ -213,10 +213,10 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     val multiResult =
       SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Some("heiheihei"))
-    when(draftConceptSearchService.all(any[DraftSearchSettings])).thenReturn(Success(multiResult))
+    when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
 
     val expectedSettings =
-      DraftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+      draftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
 
     get("/test/?search-context=initial") {
       status should be(200)

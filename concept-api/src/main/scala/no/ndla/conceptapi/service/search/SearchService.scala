@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.term.TermQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.mapping.ISO639
@@ -25,9 +25,11 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService with LazyLogging =>
+  this: Elastic4sClient with SearchConverterService with LazyLogging with Props =>
 
   trait SearchService[T] {
+    import props._
+
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =

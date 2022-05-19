@@ -8,13 +8,14 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.AudioApiProperties._
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
   AudioSummarySearchResult,
   Error,
+  ErrorHelpers,
   NewAudioMetaInformation,
   SearchParams,
   TagsSearchResult,
@@ -47,13 +48,17 @@ trait AudioController {
     with User
     with Clock
     with SearchConverterService
-    with ConverterService =>
+    with ConverterService
+    with NdlaController
+    with Props
+    with ErrorHelpers =>
   val audioApiController: AudioController
 
   class AudioController(implicit val swagger: Swagger)
       extends NdlaController
       with FileUploadSupport
       with SwaggerSupport {
+    import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
     protected val applicationDescription                 = "Services for accessing audio."
 
@@ -313,7 +318,7 @@ trait AudioController {
 
       readService.withId(id, language) match {
         case Some(audio) => Ok(audio)
-        case None        => NotFound(Error(Error.NOT_FOUND, s"Audio with id $id not found"))
+        case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Audio with id $id not found"))
       }
     }
 

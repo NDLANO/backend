@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.learningpathapi.LearningpathApiProperties.DefaultLanguage
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{FeideApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{config, _}
@@ -36,7 +36,8 @@ trait UpdateService {
     with LearningPathValidator
     with TaxonomyApiClient
     with FeideApiClient
-    with SearchApiClient =>
+    with SearchApiClient
+    with Props =>
   val updateService: UpdateService
 
   class UpdateService {
@@ -344,7 +345,7 @@ trait UpdateService {
                   converterService.asApiLearningStepV2(
                     updatedStep,
                     updatedPath,
-                    DefaultLanguage,
+                    props.DefaultLanguage,
                     fallback = true,
                     owner
                   )
@@ -483,6 +484,7 @@ trait UpdateService {
       folderRepository.canResourceBeDeleted(resourceId) match {
         case Failure(exception)                    => Failure(exception)
         case Success(canBeDeleted) if canBeDeleted => folderRepository.deleteResource(resourceId)
+        case Success(v)                            => Success(v)
       }
     }
 

@@ -10,12 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language.AllLanguages
-import no.ndla.learningpathapi.LearningpathApiProperties.{
-  DefaultLanguage,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  InitialScrollContextKeywords
-}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
@@ -49,7 +44,11 @@ trait LearningpathControllerV2 {
     with LanguageValidator
     with ConverterService
     with TaxonomyApiClient
-    with SearchConverterServiceComponent =>
+    with SearchConverterServiceComponent
+    with NdlaController
+    with Props
+    with ErrorHelpers
+    with CorrelationIdSupport =>
   val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2(implicit val swagger: Swagger)
@@ -59,6 +58,14 @@ trait LearningpathControllerV2 {
       with SwaggerSupport
       with LazyLogging
       with CorrelationIdSupport {
+
+    import props.{
+      DefaultLanguage,
+      ElasticSearchIndexMaxResultWindow,
+      ElasticSearchScrollKeepAlive,
+      InitialScrollContextKeywords
+    }
+
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     protected val applicationDescription = "API for accessing Learningpaths from ndla.no."
@@ -827,7 +834,7 @@ trait LearningpathControllerV2 {
       converterService.asApiLearningPathTagsSummary(allTags, language, fallback) match {
         case Some(s) => s
         case None =>
-          NotFound(Error(Error.NOT_FOUND, s"Tags with language '$language' not found"))
+          NotFound(Error(ErrorHelpers.NOT_FOUND, s"Tags with language '$language' not found"))
       }
     }
 

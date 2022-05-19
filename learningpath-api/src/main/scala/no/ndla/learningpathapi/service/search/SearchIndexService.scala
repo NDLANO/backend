@@ -14,12 +14,7 @@ import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.learningpathapi.LearningpathApiProperties.{
-  ElasticSearchIndexMaxResultWindow,
-  SearchDocument,
-  SearchIndex
-}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.SearchApiClient
 import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
@@ -38,10 +33,12 @@ trait SearchIndexService {
     with SearchConverterServiceComponent
     with LearningPathRepositoryComponent
     with SearchApiClient
-    with BaseIndexService =>
+    with BaseIndexService
+    with Props =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with LazyLogging {
+    import props.{SearchDocument, SearchIndex, ElasticSearchIndexMaxResultWindow}
     implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
     override val documentType: String       = SearchDocument
     override val searchIndex: String        = SearchIndex
@@ -75,6 +72,7 @@ trait SearchIndexService {
 
           e4sClient
             .execute {
+              deleteById(searchIndex, learningPath.id.get.toString)
               indexInto(searchIndex)
                 .doc(source)
                 .id(learningPath.id.get.toString)
@@ -129,7 +127,7 @@ trait SearchIndexService {
         val (minId, maxId) = learningPathRepository.minMaxId
         Seq
           .range(minId, maxId)
-          .grouped(LearningpathApiProperties.IndexBulkSize)
+          .grouped(props.IndexBulkSize)
           .map(group => (group.head, group.last + 1))
           .toList
       }

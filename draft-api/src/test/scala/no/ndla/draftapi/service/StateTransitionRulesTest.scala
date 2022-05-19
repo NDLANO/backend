@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept}
-import no.ndla.draftapi.model.api.{ArticleApiArticle, IllegalStatusStateTransition}
+import no.ndla.draftapi.model.api.ArticleApiArticle
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}

@@ -10,7 +10,7 @@ package no.ndla.imageapi.service.search
 import io.lemonlabs.uri.Uri.parse
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.ImageApiProperties.DefaultLanguage
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.api.{ImageAltText, ImageMetaSummary, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult}
@@ -25,7 +25,7 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 trait SearchConverterService {
-  this: ConverterService with Role =>
+  this: ConverterService with Role with Props =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
@@ -69,7 +69,10 @@ trait SearchConverterService {
         lastUpdated = imageWithAgreement.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
-        editorNotes = image.editorNotes.map(_.note)
+        editorNotes = image.editorNotes.map(_.note),
+        fileSize = image.size,
+        contentType = image.contentType,
+        imageDimensions = image.imageDimensions
       )
     }
 
@@ -78,11 +81,11 @@ trait SearchConverterService {
       val title = Language
         .findByLanguageOrBestEffort(searchableImage.titles.languageValues, Some(language))
         .map(res => ImageTitle(res.value, res.language))
-        .getOrElse(ImageTitle("", DefaultLanguage))
+        .getOrElse(ImageTitle("", props.DefaultLanguage))
       val altText = Language
         .findByLanguageOrBestEffort(searchableImage.alttexts.languageValues, Some(language))
         .map(res => ImageAltText(res.value, res.language))
-        .getOrElse(ImageAltText("", DefaultLanguage))
+        .getOrElse(ImageAltText("", props.DefaultLanguage))
 
       val supportedLanguages = Language.getSupportedLanguages(
         searchableImage.titles.languageValues,
@@ -104,7 +107,12 @@ trait SearchConverterService {
         supportedLanguages = supportedLanguages,
         modelRelease = searchableImage.modelReleased,
         editorNotes = editorNotes,
-        lastUpdated = searchableImage.lastUpdated
+        lastUpdated = searchableImage.lastUpdated,
+        fileSize = searchableImage.fileSize,
+        contentType = searchableImage.contentType,
+        imageDimensions = searchableImage.imageDimensions.map { case domain.ImageDimensions(width, height) =>
+          api.ImageDimensions(width, height)
+        }
       )
     }
 

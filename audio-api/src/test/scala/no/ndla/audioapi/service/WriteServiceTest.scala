@@ -748,7 +748,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(seriesRepository.insert(any[domain.SeriesWithoutId])(any[DBSession]))
       .thenAnswer((i: InvocationOnMock) => {
         Success(
-          domain.Series.fromId(
+          Series.fromId(
             id = 1,
             revision = 1,
             i.getArgument[domain.SeriesWithoutId](0)

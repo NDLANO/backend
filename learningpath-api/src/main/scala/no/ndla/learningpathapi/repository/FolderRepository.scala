@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.domain.{FeideID, Folder, FolderResource, NotFoundException, Resource}
+import no.ndla.learningpathapi.model.domain._
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -19,11 +19,11 @@ import scalikejdbc.interpolation.SQLSyntax
 import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
-  this: DataSource =>
+  this: DataSource with DBFolder with DBResource with DBFolderResource =>
   val folderRepository: FolderRepository
 
   class FolderRepository extends LazyLogging {
-    implicit val formats: Formats = Folder.repositorySerializer
+    implicit val formats: Formats = DBFolder.repositorySerializer
 
     def insertFolder(folder: Folder, feideId: FeideID)(implicit
         session: DBSession = AutoSession
@@ -35,7 +35,7 @@ trait FolderRepository {
 
         val folderId: Long =
           sql"""
-        insert into ${Folder.table} (parent_id, feide_id, document) values (${folder.parentId}, $feideId, $dataObject)
+        insert into ${DBFolder.table} (parent_id, feide_id, document) values (${folder.parentId}, $feideId, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new folder with id: $folderId")
@@ -56,7 +56,7 @@ trait FolderRepository {
 
         val resourceId: Long =
           sql"""
-        insert into ${Resource.table} (feide_id, document) values ($feideId, $dataObject)
+        insert into ${DBResource.table} (feide_id, document) values ($feideId, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new resource with id: $resourceId")
@@ -69,7 +69,7 @@ trait FolderRepository {
     ): Try[_] = {
       Try {
         sql"""
-        insert into ${FolderResource.table} (folder_id, resource_id) values ($folderId, $resourceId)
+        insert into ${DBFolderResource.table} (folder_id, resource_id) values ($folderId, $resourceId)
         """.update()
 
         logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
@@ -84,7 +84,7 @@ trait FolderRepository {
       dataObject.setValue(write(folder))
 
       sql"""
-          update ${Folder.table}
+          update ${DBFolder.table}
           set parent_id=${folder.parentId},
               document=$dataObject
           where id=${id} and feide_id=${feideId}
@@ -95,7 +95,7 @@ trait FolderRepository {
     }
 
     def canResourceBeDeleted(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Boolean] = {
-      Try(sql"select count(*) from ${FolderResource.table} where resource_id = $resourceId".update()) match {
+      Try(sql"select count(*) from ${DBFolderResource.table} where resource_id = $resourceId".update()) match {
         case Failure(ex)                  => Failure(ex)
         case Success(count) if count != 0 => Success(false)
         case Success(_)                   => Success(true)
@@ -103,7 +103,7 @@ trait FolderRepository {
     }
 
     def deleteFolder(id: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      Try(sql"delete from ${Folder.table} where id = $id".update()) match {
+      Try(sql"delete from ${DBFolder.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Success(_)                       => Success(id)
@@ -111,7 +111,7 @@ trait FolderRepository {
     }
 
     def deleteResource(id: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      Try(sql"delete from ${Resource.table} where id = $id".update()) match {
+      Try(sql"delete from ${DBResource.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
         case Success(_)                       => Success(id)
@@ -151,50 +151,50 @@ trait FolderRepository {
     def getFolderResources(
         id: Long
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
-      val fr = FolderResource.syntax("fr")
-      val r  = Resource.syntax("r")
-      sql"""select ${r.result.*} from ${FolderResource.as(fr)}
-            left join ${Resource.as(r)}
+      val fr = DBFolderResource.syntax("fr")
+      val r  = DBResource.syntax("r")
+      sql"""select ${r.result.*} from ${DBFolderResource.as(fr)}
+            left join ${DBResource.as(r)}
                 on fr.resource_id = r.id
             where fr.folder_id = ${id};
            """
-        .map(Resource.fromResultSet(r))
+        .map(DBResource.fromResultSet(r))
         .list()
     }
 
     private def folderWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Folder]] = Try {
-      val f = Folder.syntax("f")
-      sql"select ${f.result.*} from ${Folder.as(f)} where $whereClause"
-        .map(Folder.fromResultSet(f))
+      val f = DBFolder.syntax("f")
+      sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
+        .map(DBFolder.fromResultSet(f))
         .single()
     }
 
     private def foldersWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Folder]] = Try {
-      val f = Folder.syntax("f")
-      sql"select ${f.result.*} from ${Folder.as(f)} where $whereClause"
-        .map(Folder.fromResultSet(f))
+      val f = DBFolder.syntax("f")
+      sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
+        .map(DBFolder.fromResultSet(f))
         .list()
     }
 
     private def resourcesWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
-      val r = Resource.syntax("r")
-      sql"select ${r.result.*} from ${Resource.as(r)} where $whereClause"
-        .map(Resource.fromResultSet(r))
+      val r = DBResource.syntax("r")
+      sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
+        .map(DBResource.fromResultSet(r))
         .list()
     }
 
     private def resourceWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Resource]] = Try {
-      val r = Resource.syntax("r")
-      sql"select ${r.result.*} from ${Resource.as(r)} where $whereClause"
-        .map(Resource.fromResultSet(r))
+      val r = DBResource.syntax("r")
+      sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
+        .map(DBResource.fromResultSet(r))
         .single()
     }
   }

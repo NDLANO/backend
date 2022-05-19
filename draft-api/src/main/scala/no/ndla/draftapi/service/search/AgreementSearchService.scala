@@ -11,10 +11,9 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.ResultWindowTooLargeException
+import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.Language
@@ -28,11 +27,14 @@ trait AgreementSearchService {
     with SearchConverterService
     with SearchService
     with AgreementIndexService
-    with ConverterService =>
+    with ConverterService
+    with Props
+    with ErrorHelpers =>
   val agreementSearchService: AgreementSearchService
 
   class AgreementSearchService extends LazyLogging with SearchService[api.AgreementSummary] {
-    override val searchIndex: String = DraftApiProperties.AgreementSearchIndex
+    import props._
+    override val searchIndex: String = props.AgreementSearchIndex
 
     override def hitToApiModel(hit: String, language: String): api.AgreementSummary = {
       searchConverterService.hitAsAgreementSummary(hit)

@@ -14,10 +14,11 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.draftapi.DraftApiProperties.supportedUploadExtensions
+import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.integration.{ArticleApiClient, SearchApiClient, TaxonomyApiClient}
-import no.ndla.draftapi.model.api.{PartialArticleFields, _}
+import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
+import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
@@ -57,7 +58,8 @@ trait WriteService {
     with ArticleApiClient
     with SearchApiClient
     with FileStorageService
-    with TaxonomyApiClient =>
+    with TaxonomyApiClient
+    with Props =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
@@ -383,6 +385,7 @@ trait WriteService {
     }
 
     /** Article status should not be updated if notes and/or editorLabels are the only changes */
+
     /** Update 2021: Nor should the status be updated if only any of PartialArticleFields.Value has changed */
     def shouldUpdateStatus(changedArticle: domain.Article, existingArticle: domain.Article): Boolean = {
       // Function that sets values we don't want to include when comparing articles to check if we should update status
@@ -651,14 +654,14 @@ trait WriteService {
           errors = Seq(
             ValidationMessage(
               "file",
-              s"The file must have one of the supported file extensions: '${supportedUploadExtensions.mkString(", ")}'"
+              s"The file must have one of the supported file extensions: '${props.supportedUploadExtensions.mkString(", ")}'"
             )
           )
         )
 
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 =>
-          supportedUploadExtensions.find(_ == fileName.substring(index).toLowerCase) match {
+          props.supportedUploadExtensions.find(_ == fileName.substring(index).toLowerCase) match {
             case Some(e) => Success(e)
             case _       => Failure(badExtensionError)
           }
@@ -865,6 +868,67 @@ trait WriteService {
             )
           )
       }
+    }
+
+    private def getRevisionMetaForUrn(topic: Topic): Seq[domain.RevisionMeta] = {
+      topic.contentUri match {
+        case Some(contentUri) =>
+          parseArticleIdAndRevision(contentUri) match {
+            case (Success(articleId), _) =>
+              draftRepository.withId(articleId) match {
+                case Some(article) => article.revisionMeta
+                case _             => Seq.empty
+              }
+            case _ => Seq.empty
+          }
+        case _ => Seq.empty
+      }
+    }
+
+    def copyRevisionDates(publicId: String): Try[Unit] = {
+      taxonomyApiClient.getNode(publicId) match {
+        case Failure(_) => Failure(NotFoundException(s"No topics with id ${publicId}"))
+        case Success(topic) =>
+          val revisionMeta = getRevisionMetaForUrn(topic)
+          if (revisionMeta.nonEmpty) {
+            for {
+              topics    <- taxonomyApiClient.getChildNodes(publicId)
+              resources <- taxonomyApiClient.getChildResources(publicId)
+              _         <- topics.traverse(setRevisions(_, revisionMeta))
+              _         <- resources.traverse(setRevisions(_, revisionMeta))
+            } yield ()
+          } else Success(())
+      }
+    }
+
+    def setRevisions(entity: Taxonomy[_], revisions: Seq[domain.RevisionMeta]): Try[_] = {
+      val updateResult = entity.contentUri match {
+        case Some(contentUri) =>
+          parseArticleIdAndRevision(contentUri) match {
+            case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
+            case _                       => Success(())
+          }
+        case _ => Success(())
+      }
+      updateResult.map(_ => {
+        entity match {
+          case Topic(id, _, _, _) =>
+            taxonomyApiClient
+              .getChildResources(id)
+              .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
+          case _ => Success(())
+        }
+      })
+    }
+
+    def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Try[_] = {
+      draftRepository
+        .withId(articleId)
+        .traverse(article => {
+          val revisionMeta = article.revisionMeta ++ revisions
+          val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
+          draftRepository.updateArticle(toUpdate)
+        })
     }
   }
 }

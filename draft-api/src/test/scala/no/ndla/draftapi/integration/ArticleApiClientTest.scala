@@ -20,7 +20,7 @@ import org.json4s.Formats
 import scala.util.Success
 
 class ArticleApiClientTest extends IntegrationSuite with UnitSuite with TestEnvironment {
-  implicit val formats: Formats = domain.Article.jsonEncoder
+  implicit val formats: Formats = DBArticle.jsonEncoder
   override val ndlaClient       = new NdlaClient
 
   // Pact CDC imports

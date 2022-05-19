@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.integration
 
-import no.ndla.draftapi.DraftApiProperties.LearningpathApiHost
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import scalaj.http.Http
@@ -15,12 +15,12 @@ import scalaj.http.Http
 import scala.util.Try
 
 trait LearningpathApiClient {
-  this: NdlaClient with ConverterService =>
+  this: NdlaClient with ConverterService with Props =>
   val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
     implicit val format          = org.json4s.DefaultFormats
-    private val InternalEndpoint = s"http://$LearningpathApiHost/intern"
+    private val InternalEndpoint = s"http://${props.LearningpathApiHost}/intern"
 
     def getLearningpathsWithPaths(paths: Seq[String]): Try[Seq[LearningPath]] = {
       get[Seq[LearningPath]](s"$InternalEndpoint/containsArticle?paths=${paths.mkString(",")}")

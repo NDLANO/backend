@@ -18,7 +18,7 @@ import org.http4s.rho.swagger.{SecOps, SwaggerSyntax}
 import scala.util.{Failure, Success}
 
 trait FilmPageController {
-  this: ReadService with WriteService =>
+  this: ReadService with WriteService with ErrorHelpers =>
   val filmPageController: FilmPageController[IO]
 
   class FilmPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
@@ -30,7 +30,7 @@ trait FilmPageController {
         {
           readService.filmFrontPage(language) match {
             case Some(s) => Ok(s)
-            case None    => NotFound(Error.notFound)
+            case None    => NotFound(ErrorHelpers.notFound)
           }
         }
       }
@@ -41,12 +41,13 @@ trait FilmPageController {
           val x = user match {
             case Some(user) if user.canWrite =>
               writeService.updateFilmFrontPage(filmFrontPage) match {
-                case Success(s)                       => Ok(s)
-                case Failure(ex: ValidationException) => UnprocessableEntity(Error.unprocessableEntity(ex.getMessage))
-                case Failure(_)                       => InternalServerError(Error.generic)
+                case Success(s) => Ok(s)
+                case Failure(ex: ValidationException) =>
+                  UnprocessableEntity(ErrorHelpers.unprocessableEntity(ex.getMessage))
+                case Failure(_) => InternalServerError(ErrorHelpers.generic)
               }
-            case Some(_) => Forbidden(Error.forbidden)
-            case None    => Unauthorized(Error.unauthorized)
+            case Some(_) => Forbidden(ErrorHelpers.forbidden)
+            case None    => Unauthorized(ErrorHelpers.unauthorized)
           }
           x
         }

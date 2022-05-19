@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 trait FolderController {
-  this: ReadService with UpdateService with ConverterService =>
+  this: ReadService with UpdateService with ConverterService with NdlaController =>
   val folderController: FolderController
 
   class FolderController(implicit val swagger: Swagger)

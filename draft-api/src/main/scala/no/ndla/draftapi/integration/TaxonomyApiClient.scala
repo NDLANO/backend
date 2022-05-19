@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import cats.Traverse
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties.{ApiGatewayHost, DefaultLanguage}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain.{Article, ArticleTitle}
 import no.ndla.language.Language
 import no.ndla.network.NdlaClient
@@ -21,8 +21,9 @@ import scalaj.http.Http
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
+  import props.{ApiGatewayHost, DefaultLanguage}
 
   class TaxonomyApiClient extends LazyLogging {
     private val TaxonomyApiEndpoint           = s"http://$ApiGatewayHost/taxonomy/v1"
@@ -216,6 +217,14 @@ trait TaxonomyApiClient {
     def queryTopic(articleId: Long): Try[List[Topic]] =
       get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
 
+    def getNode(uri: String): Try[Topic] = get[Topic](s"$TaxonomyApiEndpoint/nodes/${uri}")
+
+    def getChildNodes(uri: String): Try[List[Topic]] =
+      get[List[Topic]](s"$TaxonomyApiEndpoint/nodes/${uri}/nodes", "recursive" -> "true")
+
+    def getChildResources(uri: String): Try[List[Resource]] =
+      get[List[Resource]](s"$TaxonomyApiEndpoint/nodes/${uri}/resources")
+
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
@@ -245,6 +254,7 @@ trait TaxonomyApiClient {
 trait Taxonomy[E <: Taxonomy[E]] {
   val id: String
   def name: String
+  def contentUri: Option[String]
   def withName(name: String): E
 }
 case class Resource(id: String, name: String, contentUri: Option[String], paths: List[String])

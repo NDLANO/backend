@@ -7,6 +7,7 @@
 
 package db.migration
 
+import imageapi.db.migration.V8__UpdateLicenses
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class V8__UpdateLicensesTest extends UnitSuite with TestEnvironment {

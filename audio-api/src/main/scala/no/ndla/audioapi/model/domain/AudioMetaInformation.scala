@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.model.domain
 
-import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.{AudioApiProperties, Props}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
@@ -74,38 +74,42 @@ case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[St
   override def value: Seq[String] = tags
   override def isEmpty: Boolean   = tags.isEmpty
 }
+trait DBAudioMetaInformation {
+  this: Props =>
 
-object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
-  override val tableName                  = "audiodata"
-  override val schemaName: Option[String] = Some(AudioApiProperties.MetaSchema)
+  object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
+    override val tableName                  = "audiodata"
+    override val schemaName: Option[String] = Some(props.MetaSchema)
 
-  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
+    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
 
-  val repositorySerializer: Formats = jsonEncoder +
-    FieldSerializer[AudioMetaInformation](
-      ignore("id") orElse
-        ignore("revision") orElse
-        ignore("external_id") orElse
-        ignore("seriesId") orElse
-        ignore("series")
-    )
+    val repositorySerializer: Formats = jsonEncoder +
+      FieldSerializer[AudioMetaInformation](
+        ignore("id") orElse
+          ignore("revision") orElse
+          ignore("external_id") orElse
+          ignore("seriesId") orElse
+          ignore("series")
+      )
 
-  def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
-    fromResultSet(au.resultName)(rs)
+    def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
+      fromResultSet(au.resultName)(rs)
 
-  def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
-    implicit val formats: Formats = jsonEncoder
-    val meta                      = read[AudioMetaInformation](rs.string(au.c("document")))
-    meta.copy(
-      id = Some(rs.long(au.c("id"))),
-      revision = Some(rs.int(au.c("revision"))),
-      seriesId = rs.longOpt(au.c("series_id"))
-    )
+    def fromResultSet(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation = {
+      implicit val formats: Formats = jsonEncoder
+      val meta                      = read[AudioMetaInformation](rs.string(au.c("document")))
+      meta.copy(
+        id = Some(rs.long(au.c("id"))),
+        revision = Some(rs.int(au.c("revision"))),
+        seriesId = rs.longOpt(au.c("series_id"))
+      )
+    }
+
+    def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
+      rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
+    }
   }
 
-  def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
-    rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
-  }
 }
 
 case class ReindexResult(totalIndexed: Int, millisUsed: Long)

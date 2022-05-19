@@ -10,9 +10,9 @@ package no.ndla.searchapi.controller
 import no.ndla.network.model.RequestInfo
 
 import java.util.concurrent.{Executors, TimeUnit}
-import no.ndla.searchapi.SearchApiProperties
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
-import no.ndla.searchapi.model.api.InvalidIndexBodyException
+import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.article.Article
 import no.ndla.searchapi.model.domain.draft.Draft
 import no.ndla.searchapi.model.domain.learningpath._
@@ -30,12 +30,15 @@ trait InternController {
     with LearningPathIndexService
     with DraftIndexService
     with TaxonomyApiClient
-    with GrepApiClient =>
+    with GrepApiClient
+    with NdlaController
+    with Props
+    with ErrorHelpers =>
   val internController: InternController
 
   class InternController extends NdlaController {
     implicit val ec: ExecutionContextExecutorService =
-      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchApiProperties.SearchIndexes.size))
+      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
     private def resolveResultFutures(indexResults: List[Future[(String, Try[ReindexResult])]]): ActionResult = {
 

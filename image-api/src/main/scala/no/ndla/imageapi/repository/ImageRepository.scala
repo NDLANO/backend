@@ -10,7 +10,7 @@ package no.ndla.imageapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.domain.ImageMetaInformation
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.service.ConverterService
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -18,14 +18,14 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 trait ImageRepository {
-  this: DataSource with ConverterService =>
+  this: DataSource with ConverterService with DBImageMetaInformation =>
   val imageRepository: ImageRepository
 
   class ImageRepository extends LazyLogging with Repository[ImageMetaInformation] {
-    implicit val formats: Formats = ImageMetaInformation.repositorySerializer
+    implicit val formats: Formats = DBImageMetaInformation.repositorySerializer
 
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-      sql"select count(*) from ${ImageMetaInformation.table}"
+      sql"select count(*) from ${DBImageMetaInformation.table}"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
@@ -37,9 +37,9 @@ trait ImageRepository {
     }
 
     def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      val im = ImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
-        .map(ImageMetaInformation.fromResultSet(im))
+      val im = DBImageMetaInformation.syntax("im")
+      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
+        .map(DBImageMetaInformation.fromResultSet(im))
         .single()
     }
 
@@ -109,18 +109,18 @@ trait ImageRepository {
     private def imageMetaInformationWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Option[ImageMetaInformation] = {
-      val im = ImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where $whereClause"
-        .map(ImageMetaInformation.fromResultSet(im))
+      val im = DBImageMetaInformation.syntax("im")
+      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where $whereClause"
+        .map(DBImageMetaInformation.fromResultSet(im))
         .single()
     }
 
     private def imageMetaInformationsWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): List[ImageMetaInformation] = {
-      val im = ImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where $whereClause"
-        .map(ImageMetaInformation.fromResultSet(im))
+      val im = DBImageMetaInformation.syntax("im")
+      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where $whereClause"
+        .map(DBImageMetaInformation.fromResultSet(im))
         .list()
     }
 
@@ -128,19 +128,19 @@ trait ImageRepository {
 
     def getImageFromFilePath(filePath: String)(implicit session: DBSession = ReadOnlyAutoSession) = {
       val wildcardMatch = s"%${escapeSQLWildcards(filePath.dropWhile(_ == '/'))}"
-      val im            = ImageMetaInformation.syntax("im")
+      val im            = DBImageMetaInformation.syntax("im")
       sql"""
             select ${im.result.*}
-            from ${ImageMetaInformation.as(im)}
+            from ${DBImageMetaInformation.as(im)}
             where metadata->>'imageUrl' like $wildcardMatch
             limit 1;
         """
-        .map(ImageMetaInformation.fromResultSet(im))
+        .map(DBImageMetaInformation.fromResultSet(im))
         .single()
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${ImageMetaInformation.table}"
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBImageMetaInformation.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
@@ -153,15 +153,15 @@ trait ImageRepository {
     def getByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[ImageMetaInformation] = {
-      val im = ImageMetaInformation.syntax("im")
+      val im = DBImageMetaInformation.syntax("im")
       sql"""
            select ${im.result.*}
-           from ${ImageMetaInformation.as(im)}
+           from ${DBImageMetaInformation.as(im)}
            where metadata is not null
            offset $offset
            limit $pageSize
       """
-        .map(ImageMetaInformation.fromResultSet(im))
+        .map(DBImageMetaInformation.fromResultSet(im))
         .list()
     }
 

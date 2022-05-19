@@ -11,12 +11,8 @@ package no.ndla.audioapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties.{
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  SeriesSearchIndex
-}
-import no.ndla.audioapi.model.api.ResultWindowTooLargeException
+import no.ndla.audioapi.Props
+import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.model.{api, domain}
@@ -32,10 +28,17 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 trait SeriesSearchService {
-  this: Elastic4sClient with SeriesIndexService with SearchConverterService with SearchService with ConverterService =>
+  this: Elastic4sClient
+    with SeriesIndexService
+    with SearchConverterService
+    with SearchService
+    with ConverterService
+    with Props
+    with ErrorHelpers =>
   val seriesSearchService: SeriesSearchService
 
   class SeriesSearchService extends LazyLogging with SearchService[api.SeriesSummary] {
+    import props._
 
     override val searchIndex: String = SeriesSearchIndex
 

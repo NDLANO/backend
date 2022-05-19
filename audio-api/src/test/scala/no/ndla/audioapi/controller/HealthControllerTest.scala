@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -29,7 +30,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val audioMeta = AudioMetaInformation(
+  val audioMeta = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     Seq(Title("Batmen er på vift med en bil", "nb")),

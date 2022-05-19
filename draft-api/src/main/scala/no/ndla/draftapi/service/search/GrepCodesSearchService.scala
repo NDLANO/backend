@@ -12,9 +12,8 @@ import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.DraftApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-import no.ndla.draftapi.model.api.ResultWindowTooLargeException
+import no.ndla.draftapi.Props
+import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.search.Elastic4sClient
@@ -30,11 +29,14 @@ trait GrepCodesSearchService {
     with SearchConverterService
     with SearchService
     with GrepCodesIndexService
-    with SearchConverterService =>
+    with SearchConverterService
+    with Props
+    with ErrorHelpers =>
   val grepCodesSearchService: GrepCodesSearchService
 
   class GrepCodesSearchService extends LazyLogging with BasicSearchService[String] {
-    override val searchIndex: String = DraftApiProperties.DraftGrepCodesSearchIndex
+    import props._
+    override val searchIndex: String = DraftGrepCodesSearchIndex
     implicit val formats: Formats    = DefaultFormats
 
     def getHits(response: SearchResponse): Seq[String] = {

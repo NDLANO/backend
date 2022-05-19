@@ -7,6 +7,7 @@
 
 package db.migration
 
+import imageapi.db.migration.{TimeService2, V4__DBImageMetaInformation, V4__DateFormatUpdated}
 import no.ndla.imageapi.UnitSuite
 
 class V4__DateFormatUpdatedTest extends UnitSuite {

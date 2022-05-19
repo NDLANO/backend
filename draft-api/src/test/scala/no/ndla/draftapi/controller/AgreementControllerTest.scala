@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.domain.{AgreementSearchSettings, SearchResult}
-import no.ndla.draftapi.{DraftSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite

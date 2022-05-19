@@ -9,7 +9,6 @@ package no.ndla.draftapi
 
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.model.domain._
-import no.ndla.draftapi.DraftApiProperties.{DefaultLanguage, resourceHtmlEmbedTag}
 import ArticleStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.LearningPath
@@ -494,7 +493,7 @@ object TestData {
   val sampleTitle: ArticleTitle = ArticleTitle("title", "en")
 
   val visualElement: VisualElement = VisualElement(
-    s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+    s"""<embed data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
     "nb"
   )
 
@@ -564,7 +563,7 @@ object TestData {
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
     withIdIn = List.empty,
-    searchLanguage = DefaultLanguage,
+    searchLanguage = "nb",
     license = None,
     page = 1,
     pageSize = 10,

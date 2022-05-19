@@ -42,7 +42,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
   val domainImageMeta =
-    converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg")).get
+    converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None)).get
 
   val multiLangImage = domain.ImageMetaInformation(
     Some(2),
@@ -59,12 +59,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     updated(),
     "ndla124",
     ModelReleasedStatus.YES,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     when(fileMock1.getContentType).thenReturn(Some("image/jpeg"))
-    when(fileMock1.get()).thenReturn(Array[Byte](-1, -40, -1))
+    val bytes = TestData.NdlaLogoImage.stream.readAllBytes()
+    when(fileMock1.get()).thenReturn(bytes)
     when(fileMock1.size).thenReturn(1024)
     when(fileMock1.name).thenReturn("file.jpg")
 
@@ -98,7 +100,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.uploadImage(fileMock1)
     verify(imageStorage, times(1)).uploadFromStream(any[InputStream], any[String], any[String], any[Long])
 
-    result should equal(Success(Image(newFileName, 1024, "image/jpeg")))
+    result should equal(Success(Image(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)))))
   }
 
   test("uploadFile should return Failure if file upload failed") {
@@ -202,7 +204,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(authUser.userOrClientid()).thenReturn("ndla54321")
     when(clock.now()).thenReturn(updated())
     val domain =
-      converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg")).get
+      converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None)).get
     domain.updatedBy should equal("ndla54321")
     domain.updated should equal(updated())
   }

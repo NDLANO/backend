@@ -10,7 +10,6 @@ package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import no.ndla.language.Language
-import no.ndla.learningpathapi.LearningpathApiProperties.{DefaultPageSize, MaxPageSize}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{Description, _}
@@ -26,7 +25,7 @@ class SearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
     with UnitSuite
     with TestEnvironment {
-
+  import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -87,7 +86,7 @@ class SearchServiceTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      searchIndexService.createIndexWithName(LearningpathApiProperties.SearchIndex)
+      searchIndexService.createIndexWithName(props.SearchIndex)
 
       doReturn(api.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
 

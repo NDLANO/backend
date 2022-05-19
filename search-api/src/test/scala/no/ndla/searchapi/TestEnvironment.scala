@@ -12,8 +12,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import no.ndla.searchapi.auth.User
-import no.ndla.searchapi.controller.{HealthController, InternController, SearchController}
+import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
 import no.ndla.searchapi.integration._
+import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.service.search._
 import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
 import org.mockito.scalatest.MockitoSugar
@@ -47,7 +48,13 @@ trait TestEnvironment
     with LearningPathIndexService
     with InternController
     with SearchApiClient
-    with GrepApiClient {
+    with NdlaController
+    with ErrorHelpers
+    with GrepApiClient
+    with Props
+    with SearchApiInfo {
+  override val props = new SearchApiProperties
+
   val searchController = mock[SearchController]
   val healthController = mock[HealthController]
   val internController = mock[InternController]

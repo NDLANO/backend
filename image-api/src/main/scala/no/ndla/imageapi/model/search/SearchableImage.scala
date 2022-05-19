@@ -7,6 +7,7 @@
 
 package no.ndla.imageapi.model.search
 
+import no.ndla.imageapi.model.domain.ImageDimensions
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 import java.util.Date
@@ -24,5 +25,8 @@ case class SearchableImage(
     lastUpdated: Date,
     defaultTitle: Option[String],
     modelReleased: Option[String],
-    editorNotes: Seq[String]
+    editorNotes: Seq[String],
+    fileSize: Long,
+    contentType: String,
+    imageDimensions: Option[ImageDimensions]
 )

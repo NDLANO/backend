@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
-import no.ndla.searchapi.SearchApiProperties
+import no.ndla.searchapi.{Props, SearchApiProperties}
 import no.ndla.searchapi.model.api.ApiSearchException
 import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
@@ -28,7 +28,7 @@ import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with LazyLogging =>
+  this: NdlaClient with LazyLogging with Props =>
 
   trait SearchApiClient {
     val name: String
@@ -43,7 +43,7 @@ trait SearchApiClient {
       initial match {
         case Success(initSearch) =>
           val dbCount  = initSearch.totalCount
-          val pageSize = SearchApiProperties.IndexBulkSize
+          val pageSize = props.IndexBulkSize
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
           val pages    = Seq.range(1, numPages + 1)
 

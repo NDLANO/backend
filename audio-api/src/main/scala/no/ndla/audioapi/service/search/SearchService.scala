@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.audioapi.AudioApiProperties.{DefaultPageSize, ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.SearchResult
 import no.ndla.audioapi.model.Sort
 import no.ndla.language.Language.AllLanguages
@@ -24,9 +24,10 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService =>
+  this: Elastic4sClient with SearchConverterService with Props =>
 
   trait SearchService[T] extends LazyLogging {
+    import props._
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =

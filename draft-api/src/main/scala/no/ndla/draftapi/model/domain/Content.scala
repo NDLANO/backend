@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
-import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._
@@ -56,38 +56,8 @@ case class Article(
     getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
 }
 
-object Article extends SQLSyntaxSupport[Article] {
-
-  val jsonEncoder: Formats = DefaultFormats.withLong +
-    new EnumNameSerializer(ArticleStatus) +
-    Json4s.serializer(ArticleType) +
-    Json4s.serializer(RevisionStatus) +
-    new EnumNameSerializer(Availability) ++
-    JavaTimeSerializers.all
-
-  val repositorySerializer = jsonEncoder +
-    FieldSerializer[Article](
-      ignore("id") orElse
-        ignore("revision")
-    )
-
-  override val tableName       = "articledata"
-  override lazy val schemaName = Some(DraftApiProperties.MetaSchema)
-
-  def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
-
-  def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
-    implicit val formats = jsonEncoder
-    val meta             = read[Article](rs.string(lp.c("document")))
-    meta.copy(
-      id = Some(rs.long(lp.c("article_id"))),
-      revision = Some(rs.int(lp.c("revision")))
-    )
-  }
-}
-
 object ArticleStatusAction extends Enumeration {
-  val UPDATE = Value
+  val UPDATE: ArticleStatusAction.Value = Value
 }
 
 object ArticleStatus extends Enumeration {
@@ -145,32 +115,6 @@ case class Agreement(
     updatedBy: String
 ) extends Content
 
-object Agreement extends SQLSyntaxSupport[Agreement] {
-  implicit val formats    = org.json4s.DefaultFormats
-  override val tableName  = "agreementdata"
-  override val schemaName = Some(DraftApiProperties.MetaSchema)
-
-  def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
-
-  def fromResultSet(lp: ResultName[Agreement])(rs: WrappedResultSet): Agreement = {
-    val meta = read[Agreement](rs.string(lp.c("document")))
-    Agreement(
-      id = Some(rs.long(lp.c("id"))),
-      title = meta.title,
-      content = meta.content,
-      copyright = meta.copyright,
-      created = meta.created,
-      updated = meta.updated,
-      updatedBy = meta.updatedBy
-    )
-  }
-
-  val JSonSerializer = FieldSerializer[Agreement](
-    ignore("id")
-  )
-
-}
-
 case class UserData(
     id: Option[Long],
     userId: String,
@@ -179,22 +123,82 @@ case class UserData(
     favoriteSubjects: Option[Seq[String]]
 )
 
-object UserData extends SQLSyntaxSupport[UserData] {
-  implicit val formats         = org.json4s.DefaultFormats
-  override val tableName       = "userdata"
-  lazy override val schemaName = Some(DraftApiProperties.MetaSchema)
+trait DBArticle {
+  this: Props =>
 
-  val JSonSerializer = FieldSerializer[UserData](
-    ignore("id")
-  )
+  object DBArticle extends SQLSyntaxSupport[Article] {
 
-  def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData =
-    fromResultSet(lp.resultName)(rs)
+    val jsonEncoder: Formats = DefaultFormats.withLong +
+      new EnumNameSerializer(ArticleStatus) +
+      Json4s.serializer(ArticleType) +
+      Json4s.serializer(RevisionStatus) +
+      new EnumNameSerializer(Availability) ++
+      JavaTimeSerializers.all
 
-  def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
-    val userData = read[UserData](rs.string(lp.c("document")))
-    userData.copy(
-      id = Some(rs.long(lp.c("id")))
+    val repositorySerializer = jsonEncoder +
+      FieldSerializer[Article](
+        ignore("id") orElse
+          ignore("revision")
+      )
+
+    override val tableName       = "articledata"
+    override lazy val schemaName = Some(props.MetaSchema)
+
+    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
+
+    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
+      implicit val formats = jsonEncoder
+      val meta             = read[Article](rs.string(lp.c("document")))
+      meta.copy(
+        id = Some(rs.long(lp.c("article_id"))),
+        revision = Some(rs.int(lp.c("revision")))
+      )
+    }
+  }
+
+  object DBAgreement extends SQLSyntaxSupport[Agreement] {
+    implicit val formats    = org.json4s.DefaultFormats
+    override val tableName  = "agreementdata"
+    override val schemaName = Some(props.MetaSchema)
+
+    def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
+
+    def fromResultSet(lp: ResultName[Agreement])(rs: WrappedResultSet): Agreement = {
+      val meta = read[Agreement](rs.string(lp.c("document")))
+      Agreement(
+        id = Some(rs.long(lp.c("id"))),
+        title = meta.title,
+        content = meta.content,
+        copyright = meta.copyright,
+        created = meta.created,
+        updated = meta.updated,
+        updatedBy = meta.updatedBy
+      )
+    }
+
+    val JSonSerializer = FieldSerializer[Agreement](
+      ignore("id")
     )
+
+  }
+
+  object DBUserData extends SQLSyntaxSupport[UserData] {
+    implicit val formats         = org.json4s.DefaultFormats
+    override val tableName       = "userdata"
+    lazy override val schemaName = Some(props.MetaSchema)
+
+    val JSonSerializer = FieldSerializer[UserData](
+      ignore("id")
+    )
+
+    def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData =
+      fromResultSet(lp.resultName)(rs)
+
+    def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
+      val userData = read[UserData](rs.string(lp.c("document")))
+      userData.copy(
+        id = Some(rs.long(lp.c("id")))
+      )
+    }
   }
 }

@@ -8,11 +8,11 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.model.api.Error
-import no.ndla.imageapi.model.domain.ImageMetaInformation
+import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
@@ -31,11 +31,15 @@ trait InternController {
     with ImageIndexService
     with TagIndexService
     with User
-    with ImageRepository =>
+    with ImageRepository
+    with DBImageMetaInformation
+    with NdlaController
+    with Props
+    with ErrorHelpers =>
   val internController: InternController
 
   class InternController extends NdlaController {
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
+    protected implicit override val jsonFormats: Formats = DBImageMetaInformation.jsonEncoder
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
@@ -63,7 +67,7 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      val deleteResults = imageIndexService.findAllIndexes(ImageApiProperties.SearchIndex) match {
+      val deleteResults = imageIndexService.findAllIndexes(props.SearchIndex) match {
         case Failure(f) => halt(status = 500, body = f.getMessage)
         case Success(indexes) =>
           indexes.map(index => {
@@ -87,7 +91,7 @@ trait InternController {
       val language   = paramOrNone("language")
       imageRepository.withExternalId(externalId) match {
         case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
-        case None        => NotFound(Error(Error.NOT_FOUND, s"Image with external id $externalId not found"))
+        case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
     }
 
@@ -101,7 +105,9 @@ trait InternController {
             case Failure(ex)    => errorHandler(ex)
           }
         case None =>
-          BadRequest(Error(Error.VALIDATION, s"Query param '$urlQueryParam' needs to be specified to return an image"))
+          BadRequest(
+            Error(ErrorHelpers.VALIDATION, s"Query param '$urlQueryParam' needs to be specified to return an image")
+          )
       }
     }
 

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.validation
 
-import no.ndla.draftapi.DraftApiProperties.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NewAgreementCopyright, NotFoundException, UpdatedArticle}
@@ -23,11 +23,12 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftRepository with ConverterService with ArticleApiClient =>
+  this: DraftRepository with ConverterService with ArticleApiClient with Props =>
   val contentValidator: ContentValidator
   val importValidator: ContentValidator
 
   class ContentValidator() {
+    import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
 

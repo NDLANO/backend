@@ -8,9 +8,8 @@
 package no.ndla.searchapi.integration
 
 import java.util.Date
-
 import no.ndla.network.NdlaClient
-import no.ndla.searchapi.SearchApiProperties
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, Author, SearchParams, article}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,7 +17,7 @@ import scala.util.Try
 import scalaj.http.{Http, HttpRequest}
 
 trait DraftApiClient {
-  this: NdlaClient with SearchApiClient =>
+  this: NdlaClient with SearchApiClient with Props =>
   val draftApiClient: DraftApiClient
 
   class DraftApiClient(val baseUrl: String) extends SearchApiClient {
@@ -32,7 +31,7 @@ trait DraftApiClient {
       search[ArticleApiSearchResults](searchParams)
 
     private val draftApiGetAgreementEndpoint =
-      s"http://${SearchApiProperties.DraftApiUrl}/draft-api/v1/agreements/:agreement_id"
+      s"http://${props.DraftApiUrl}/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean =
       getAgreementCopyright(agreementId).nonEmpty

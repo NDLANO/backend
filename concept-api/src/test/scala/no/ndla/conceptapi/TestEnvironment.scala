@@ -10,8 +10,16 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.controller.{DraftConceptController, DraftNdlaController, PublishedConceptController}
+import no.ndla.conceptapi.controller.{
+  DraftConceptController,
+  DraftNdlaController,
+  NdlaController,
+  PublishedConceptController
+}
 import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, ImageApiClient}
+import no.ndla.conceptapi.model.api.ErrorHelpers
+import no.ndla.conceptapi.model.domain.DBConcept
+import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   DraftConceptIndexService,
@@ -39,7 +47,9 @@ trait TestEnvironment
     extends DraftConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
+    with DBConcept
     with PublishedConceptController
+    with NdlaController
     with DraftNdlaController
     with SearchConverterService
     with PublishedConceptSearchService
@@ -63,8 +73,16 @@ trait TestEnvironment
     with ImageApiClient
     with NdlaClient
     with Clock
-    with User {
+    with User
+    with Props
+    with ErrorHelpers
+    with SearchSettingsHelper
+    with DraftSearchSettingsHelper
+    with DBMigrator
+    with ConceptApiInfo {
+  override val props = new ConceptApiProperties
 
+  val migrator                   = mock[DBMigrator]
   val draftConceptRepository     = mock[DraftConceptRepository]
   val publishedConceptRepository = mock[PublishedConceptRepository]
 
