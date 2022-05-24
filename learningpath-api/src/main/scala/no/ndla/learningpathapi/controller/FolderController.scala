@@ -9,7 +9,15 @@
 package no.ndla.learningpathapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.model.api.{Folder, NewFolder, NewResource, Resource, UpdatedFolder, ValidationError}
+import no.ndla.learningpathapi.model.api.{
+  Folder,
+  NewFolder,
+  NewResource,
+  Resource,
+  UpdatedResource,
+  UpdatedFolder,
+  ValidationError
+}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
@@ -46,8 +54,8 @@ trait FolderController {
 
     case class Param[T](paramName: String, description: String)
 
-    private val folderId =
-      Param[String]("folder_id", "Id of the folder.")
+    private val folderId   = Param[String]("folder_id", "Id of the folder.")
+    private val resourceId = Param[String]("resource_id", "Id of the resource.")
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -211,6 +219,28 @@ trait FolderController {
       updateService.newFolderResourceConnection(folderId, newResource, requestFeideToken) match {
         case Failure(ex) => errorHandler(ex)
         case Success(_)  => Ok()
+      }
+    }
+
+    patch(
+      "/resources/:resource_id",
+      operation(
+        apiOperation[Resource]("UpdateResource")
+          .summary("Updated selected resource")
+          .description("Updates selected resource")
+          .parameters(
+            asHeaderParam(feideToken),
+            bodyParam[UpdatedResource]
+          )
+          .responseMessages(response400, response403, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      val resourceId      = long(this.resourceId.paramName)
+      val updatedResource = extract[UpdatedResource](request.body)
+      updateService.updateResource(resourceId, updatedResource, requestFeideToken) match {
+        case Failure(ex)       => errorHandler(ex)
+        case Success(resource) => resource
       }
     }
   }

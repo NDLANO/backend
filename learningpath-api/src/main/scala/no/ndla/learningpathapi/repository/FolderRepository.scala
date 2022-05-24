@@ -94,6 +94,23 @@ trait FolderRepository {
       folder
     }
 
+    def updateResource(id: Long, resource: Resource)(implicit
+        session: DBSession = AutoSession
+    ): Try[Resource] = Try {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(resource))
+
+      sql"""
+          update ${DBResource.table}
+          set document=$dataObject
+          where id=${id}
+      """.update()
+
+      logger.info(s"Updated resource with id ${id}")
+      resource
+    }
+
     def canResourceBeDeleted(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Boolean] = {
       Try(sql"select count(*) from ${DBFolderResource.table} where resource_id = $resourceId".update()) match {
         case Failure(ex)                  => Failure(ex)
@@ -132,9 +149,16 @@ trait FolderRepository {
       }
     }
 
+    def resourceWithId(id: Long): Try[Resource] = {
+      resourceWhere(sqls"r.id=$id").flatMap({
+        case None           => Failure(NotFoundException(s"Resource with id $id does not exist"))
+        case Some(resource) => Success(resource)
+      })
+    }
+
     def resourcesWithFeideId(feideId: FeideID): Try[List[Resource]] = resourcesWhere(sqls"r.feide_id=$feideId")
-    def resourceWithResourceAndFeideId(resourceId: Long, feideId: FeideID): Try[Option[Resource]] = {
-      resourceWhere(sqls"document->>'resourceId'=${resourceId.toString} and feide_id=$feideId")
+    def resourceWithPathAndFeideId(path: String, feideId: FeideID): Try[Option[Resource]] = {
+      resourceWhere(sqls"document->>'path'=$path and feide_id=$feideId")
     }
 
     def foldersWithFeideAndParentID(parentId: Option[Long], feideId: FeideID): Try[List[Folder]] = {

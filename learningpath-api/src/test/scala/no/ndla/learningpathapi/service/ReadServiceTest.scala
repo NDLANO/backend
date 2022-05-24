@@ -344,8 +344,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val resource1 = emptyDomainResource.copy(
       id = Some(13),
-      resourceId = 42,
       resourceType = "article",
+      path = "/subject/1/topic/1/resource/4",
       tags = List.empty
     )
 
@@ -408,8 +408,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val resource1 = emptyDomainResource.copy(
       id = Some(13),
-      resourceId = 42,
       resourceType = "article",
+      path = "/subject/1/topic/1/resource/4",
       tags = List.empty
     )
 

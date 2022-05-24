@@ -506,8 +506,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domain.Resource(
         id = Some(6),
         feideId = Some("w"),
-        resourceId = 54,
         resourceType = "concept",
+        path = "subject",
         tags = List("a", "b", "c")
       )
     val folderData1 = domain.Folder(
@@ -617,11 +617,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domain.Resource(
         id = Some(1),
         feideId = Some("feideid"),
-        resourceId = 43,
         resourceType = "article",
+        path = "/subject/1/topic/1/resource/4",
         tags = List("a", "b", "c")
       )
-    val expected = api.Resource(id = 1, resourceType = "article", tags = List("a", "b", "c"))
+    val expected =
+      api.Resource(id = 1, resourceType = "article", tags = List("a", "b", "c"), path = "/subject/1/topic/1/resource/4")
 
     service.toApiResource(existing) should be(Success(expected))
   }
@@ -631,14 +632,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toDomainResource") {
-    val newResource1 = api.NewResource(resourceId = 12, resourceType = "audio", tags = Some(List("a", "b")))
-    val newResource2 = api.NewResource(resourceId = 12, resourceType = "audio", tags = None)
+    val newResource1 =
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = Some(List("a", "b")))
+    val newResource2 = api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None)
     val expected1 =
       domain.Resource(
         id = None,
         feideId = Some("huehue"),
-        resourceId = 12,
         resourceType = "audio",
+        path = "/subject/1/topic/1/resource/4",
         tags = List("a", "b")
       )
     val expected2 = expected1.copy(tags = List.empty)

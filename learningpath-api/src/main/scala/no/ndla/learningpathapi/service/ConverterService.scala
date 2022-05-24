@@ -687,8 +687,10 @@ trait ConverterService {
     private def toApiFolderData(domainData: domain.FolderData): Try[api.FolderData] = {
       domainData match {
         case Right(resource) =>
-          Success(
-            Right(api.Resource(id = resource.resourceId, resourceType = resource.resourceType, tags = resource.tags))
+          resource.doIfIdExists(id =>
+            Right(
+              api.Resource(id = id, resourceType = resource.resourceType, tags = resource.tags, path = resource.path)
+            )
           )
         case Left(folder) =>
           folder.doFlatIfIdExists(id => {
@@ -730,25 +732,38 @@ trait ConverterService {
       )
     }
 
+    def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
+      val tags = updated.tags.getOrElse(existing.tags)
+
+      domain.Resource(
+        id = existing.id,
+        feideId = existing.feideId,
+        resourceType = existing.resourceType,
+        path = existing.path,
+        tags = tags
+      )
+    }
+
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
       domainResource.doIfIdExists(id => {
         val resourceType = domainResource.resourceType
         val tags         = domainResource.tags
+        val path         = domainResource.path
 
-        api.Resource(id = id, resourceType = resourceType, tags = tags)
+        api.Resource(id = id, resourceType = resourceType, tags = tags, path = path)
       })
     }
 
     def toDomainResource(newResource: api.NewResource, feideId: api.FeideID): domain.Resource = {
-      val resourceId   = newResource.resourceId
       val resourceType = newResource.resourceType
+      val path         = newResource.path
       val tags         = newResource.tags.getOrElse(List.empty)
 
       domain.Resource(
         id = None,
         feideId = Some(feideId),
-        resourceId = resourceId,
         resourceType = resourceType,
+        path = path,
         tags = tags
       )
     }

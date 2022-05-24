@@ -35,21 +35,18 @@ case class Resource(
     @(ApiModelProperty @field)(
       description = "Type of the resource. (Article, Concept, Image, Audio)"
     ) resourceType: String,
+    @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String]
 )
 
 case class NewResource(
-    @(ApiModelProperty @field)(description = "Id of this resource") resourceId: Long,
     @(ApiModelProperty @field)(
       description = "Type of the resource. (Article, Concept, Image, Audio)"
     ) resourceType: String,
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[
-      List[String]
-    ]
+    @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
+    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]]
 )
 
 case class UpdatedResource(
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[
-      List[String]
-    ]
+    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]]
 )

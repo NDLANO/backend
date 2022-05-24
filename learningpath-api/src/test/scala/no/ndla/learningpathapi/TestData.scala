@@ -105,8 +105,8 @@ object TestData {
   val emptyDomainResource: domain.Resource = domain.Resource(
     id = None,
     feideId = None,
-    resourceId = 0,
     resourceType = "",
+    path = "",
     tags = List.empty
   )
 
@@ -129,6 +129,7 @@ object TestData {
   val emptyApiResource: api.Resource = api.Resource(
     id = 0,
     resourceType = "",
+    path = "",
     tags = List.empty
   )
 

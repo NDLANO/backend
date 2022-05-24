@@ -453,7 +453,7 @@ trait UpdateService {
         feideId: FeideID
     ): Try[domain.Resource] = {
       folderRepository
-        .resourceWithResourceAndFeideId(newResource.resourceId, feideId)
+        .resourceWithPathAndFeideId(newResource.path, feideId)
         .flatMap(
           {
             case None =>
@@ -477,6 +477,21 @@ trait UpdateService {
         converted = converterService.mergeFolder(existingFolder, updatedFolder)
         updated <- folderRepository.updateFolder(id, feideId, converted)
         api     <- converterService.toApiFolder(updated)
+      } yield api
+    }
+
+    def updateResource(
+        id: Long,
+        updatedResource: UpdatedResource,
+        feideAccessToken: Option[domain.FeideID] = None
+    ): Try[api.Resource] = {
+      for {
+        feideId          <- feideApiClient.getUserFeideID(feideAccessToken)
+        existingResource <- folderRepository.resourceWithId(id)
+        _                <- existingResource.isOwner(feideId)
+        converted = converterService.mergeResource(existingResource, updatedResource)
+        updated <- folderRepository.updateResource(id, converted)
+        api     <- converterService.toApiResource(updated)
       } yield api
     }
 

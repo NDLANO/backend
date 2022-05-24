@@ -18,7 +18,7 @@ import scalikejdbc._
 case class Resource(
     id: Option[Long],
     feideId: Option[FeideID],
-    resourceId: Long,
+    path: String,
     resourceType: String,
     tags: List[String]
 ) extends Content
@@ -48,7 +48,7 @@ trait DBResource {
       Resource(
         id = Some(rs.long(lp.c("id"))),
         feideId = Some(rs.string(lp.c("feide_id"))),
-        resourceId = metaData.resourceId,
+        path = metaData.path,
         resourceType = metaData.resourceType,
         tags = metaData.tags
       )
