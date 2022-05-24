@@ -355,7 +355,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "private",
       data = List(
         Right(
-          emptyApiResource.copy(id = 42, resourceType = "article", tags = List.empty)
+          emptyApiResource
+            .copy(id = 13, resourceType = "article", tags = List.empty, path = "/subject/1/topic/1/resource/4")
         ),
         Left(
           emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
@@ -419,7 +420,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "public",
       data = List(
         Right(
-          emptyApiResource.copy(id = 42, resourceType = "article", tags = List.empty)
+          emptyApiResource
+            .copy(id = 13, resourceType = "article", tags = List.empty, path = "/subject/1/topic/1/resource/4")
         ),
         Left(
           emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)

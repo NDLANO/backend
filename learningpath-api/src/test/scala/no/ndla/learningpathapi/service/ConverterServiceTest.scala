@@ -507,7 +507,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         id = Some(6),
         feideId = Some("w"),
         resourceType = "concept",
-        path = "subject",
+        path = "/subject/1/topic/1/resource/4",
         tags = List("a", "b", "c")
       )
     val folderData1 = domain.Folder(
@@ -542,7 +542,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PUBLIC,
       data = List(Left(folderData2), Left(folderData3), Right(resource))
     )
-    val apiResource = TestData.emptyApiResource.copy(id = 54, resourceType = "concept", tags = List("a", "b", "c"))
+    val apiResource = TestData.emptyApiResource.copy(
+      id = 6,
+      resourceType = "concept",
+      tags = List("a", "b", "c"),
+      path = "/subject/1/topic/1/resource/4"
+    )
     val apiData1 = TestData.emptyApiFolder.copy(
       id = 1,
       name = "folderData1",
