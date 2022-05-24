@@ -53,7 +53,7 @@ class MainClass(props: ConceptApiProperties) extends LazyLogging {
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    // Necessary to mount ComponentRegistry members in no.ndla.conceptapi.ScalatraBootstrap
+    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
     context.setAttribute("ComponentRegistry", componentRegistry)
 
     val server = new Server(props.ApplicationPort)
