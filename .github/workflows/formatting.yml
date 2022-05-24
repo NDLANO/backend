@@ -12,7 +12,7 @@ env:
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
 jobs:
   unit_tests:
-    name: Unit tests and pact publication
+    name: Formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

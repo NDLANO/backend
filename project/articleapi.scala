@@ -1,5 +1,4 @@
 import com.earldouglas.xwp.JettyPlugin
-import com.itv.scalapact.plugin.ScalaPactPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.{libraryDependencies, name}
@@ -30,7 +29,7 @@ object articleapi extends Module {
       "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ pactTestFrameworkDependencies
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
@@ -55,21 +54,14 @@ object articleapi extends Module {
     name := "article-api",
     libraryDependencies ++= dependencies
   ) ++
-    PactSettings ++
     commonSettings ++
     assemblySettings() ++
     dockerSettings() ++
-    tsSettings ++
-    pactPublishingSettings()
-
-  override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
-    PactTestConfig
-  )
+    tsSettings
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
-    ScalaPactPlugin,
     ScalaTsiPlugin
   )
 
