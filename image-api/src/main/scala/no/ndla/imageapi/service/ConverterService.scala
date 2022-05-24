@@ -184,7 +184,8 @@ trait ConverterService {
         imageUrl = Uri.parse(image.fileName).toString,
         size = image.size,
         contentType = image.contentType,
-        editorNotes = imageMeta.editorNotes :+ newNote
+        editorNotes = imageMeta.editorNotes :+ newNote,
+        imageDimensions = image.dimensions
       )
     }
 
