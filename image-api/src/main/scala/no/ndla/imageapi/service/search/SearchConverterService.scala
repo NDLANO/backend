@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
-import no.ndla.imageapi.model.api.{ImageAltText, ImageMetaSummary, ImageTitle}
+import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain
@@ -86,6 +86,10 @@ trait SearchConverterService {
         .findByLanguageOrBestEffort(searchableImage.alttexts.languageValues, Some(language))
         .map(res => ImageAltText(res.value, res.language))
         .getOrElse(ImageAltText("", props.DefaultLanguage))
+      val caption = Language
+        .findByLanguageOrBestEffort(searchableImage.captions.languageValues, Some(language))
+        .map(res => ImageCaption(res.value, res.language))
+        .getOrElse(ImageCaption("", props.DefaultLanguage))
 
       val supportedLanguages = Language.getSupportedLanguages(
         searchableImage.titles.languageValues,
@@ -101,6 +105,7 @@ trait SearchConverterService {
         title = title,
         contributors = searchableImage.contributors,
         altText = altText,
+        caption = caption,
         previewUrl = apiToRawRegex.replaceFirstIn(ApplicationUrl.get, "/raw") + searchableImage.previewUrl,
         metaUrl = ApplicationUrl.get + searchableImage.id,
         license = searchableImage.license,

@@ -96,7 +96,5 @@ The following tags may contain extra attributes which conveys information about 
 
 **Run tests:** sbt test
 
-**Run pact provider verification tests:** sbt "pact:testOnly -- -n PactProviderTest"
-
 **Create Docker Image:** sbt docker
 

@@ -54,7 +54,7 @@ class MainClass(props: ArticleApiProperties) extends LazyLogging {
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    // Necessary to mount ComponentRegistry members in no.ndla.articleapi.ScalatraBootstrap
+    // Necessary to mount ComponentRegistry members in ScalatraBootstrap
     context.setAttribute("ComponentRegistry", componentRegistry)
 
     val server = new Server(props.ApplicationPort)

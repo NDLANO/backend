@@ -43,7 +43,7 @@ class ImageApiProperties extends LazyLogging {
   val ImageControllerPath  = s"$ImageApiBasePath/v2/images"
   val RawControllerPath    = s"$ImageApiBasePath/raw"
 
-  val ValidFileExtensions = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg")
+  val ValidFileExtensions = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
 
   val ValidMimeTypes = Seq(
     "image/bmp",

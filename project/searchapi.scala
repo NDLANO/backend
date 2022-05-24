@@ -1,5 +1,4 @@
 import com.earldouglas.xwp.JettyPlugin
-import com.itv.scalapact.plugin.ScalaPactPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys._
@@ -27,7 +26,7 @@ object searchapi extends Module {
       "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
       "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test"
-    ) ++ elastic4s ++ scalatra ++ pactTestFrameworkDependencies ++ vulnerabilityOverrides
+    ) ++ elastic4s ++ scalatra ++ vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
@@ -53,21 +52,14 @@ object searchapi extends Module {
     name := "search-api",
     libraryDependencies ++= dependencies
   ) ++
-    PactSettings ++
     commonSettings ++
     assemblySettings() ++
     dockerSettings("-Xmx2G") ++
-    tsSettings ++
-    pactPublishingSettings()
-
-  override lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq(
-    PactTestConfig
-  )
+    tsSettings
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
-    ScalaPactPlugin,
     ScalaTsiPlugin
   )
 

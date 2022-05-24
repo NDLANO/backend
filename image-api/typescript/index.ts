@@ -38,6 +38,11 @@ export interface IImageCaption {
   language: string
 }
 
+export interface IImageDimensions {
+  width: number
+  height: number
+}
+
 export interface IImageMetaInformationV2 {
   id: string
   metaUrl: string
@@ -54,6 +59,7 @@ export interface IImageMetaInformationV2 {
   createdBy: string
   modelRelease: string
   editorNotes?: IEditorNote[]
+  imageDimensions?: IImageDimensions
 }
 
 export interface IImageMetaSummary {
@@ -61,6 +67,7 @@ export interface IImageMetaSummary {
   title: IImageTitle
   contributors: string[]
   altText: IImageAltText
+  caption: IImageCaption
   previewUrl: string
   metaUrl: string
   license: string
@@ -68,6 +75,9 @@ export interface IImageMetaSummary {
   modelRelease?: string
   editorNotes?: string[]
   lastUpdated: string
+  fileSize: number
+  contentType: string
+  imageDimensions?: IImageDimensions
 }
 
 export interface IImageTag {
