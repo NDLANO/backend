@@ -8,7 +8,11 @@
 
 package no.ndla.articleapi
 
-import articleapi.db.migrationwithdependencies.{R__SetArticleLanguageFromTaxonomy, V8__CopyrightFormatUpdated}
+import articleapi.db.migrationwithdependencies.{
+  R__SetArticleLanguageFromTaxonomy,
+  R__SetArticleTypeFromTaxonomy,
+  V8__CopyrightFormatUpdated
+}
 import no.ndla.articleapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -24,7 +28,7 @@ trait DBMigrator {
         .configure()
         .javaMigrations(
           new R__SetArticleLanguageFromTaxonomy(props),
-          new R__SetArticleLanguageFromTaxonomy(props),
+          new R__SetArticleTypeFromTaxonomy(props),
           new V8__CopyrightFormatUpdated(props)
         )
         .locations("articleapi/db/migration")
