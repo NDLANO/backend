@@ -123,6 +123,7 @@ object TestData {
     id = 1,
     name = "",
     status = "",
+    isFavorite = false,
     data = List.empty
   )
 

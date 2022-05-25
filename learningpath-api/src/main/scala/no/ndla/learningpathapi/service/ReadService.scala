@@ -218,6 +218,21 @@ trait ReadService {
       )
     }
 
+    private def createFavorite(
+        feideId: domain.FeideID
+    ): Try[domain.Folder] = {
+      val favoriteFolder = domain.Folder(
+        id = None,
+        feideId = Some(feideId),
+        parentId = None,
+        name = "favorites",
+        status = domain.FolderStatus.PRIVATE,
+        isFavorite = true,
+        data = List.empty
+      )
+      folderRepository.insertFolder(favoriteFolder)
+    }
+
     def getFolder(
         id: Long,
         excludeResources: Boolean,
@@ -234,9 +249,12 @@ trait ReadService {
 
     def getFolders(feideAccessToken: Option[domain.FeideID] = None): Try[List[api.Folder]] = {
       for {
-        feideId    <- feideApiClient.getUserFeideID(feideAccessToken)
-        folders    <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-        apiFolders <- domainToApiModel(folders, converterService.toApiFolder)
+        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
+        folders <- folderRepository.foldersWithFeideAndParentID(None, feideId)
+        maybeFavorite = folders.find(_.isFavorite)
+        favorite <- if (maybeFavorite.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
+        combined = favorite.toList ++ folders
+        apiFolders <- domainToApiModel(combined, converterService.toApiFolder)
       } yield apiFolders
     }
   }

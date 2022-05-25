@@ -14,8 +14,9 @@ import scala.annotation.meta.field
 
 case class Folder(
     @(ApiModelProperty @field)(description = "Unique ID of the folder") id: Long,
-    @(ApiModelProperty @field)(description = "Folders name") name: String,
-    @(ApiModelProperty @field)(description = "Folders status") status: String,
+    @(ApiModelProperty @field)(description = "Folder name") name: String,
+    @(ApiModelProperty @field)(description = "Folder status") status: String,
+    @(ApiModelProperty @field)(description = "Folder favorite flag") isFavorite: Boolean,
     @(ApiModelProperty @field)(description = "List of other folders and resources") data: List[FolderData]
 )
 

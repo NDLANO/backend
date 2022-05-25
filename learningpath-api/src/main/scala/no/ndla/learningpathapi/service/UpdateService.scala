@@ -431,7 +431,7 @@ trait UpdateService {
     ): Try[api.Folder] = {
       for {
         feideId         <- feideApiClient.getUserFeideID(feideAccessToken)
-        newDomainFolder <- folderRepository.insertFolder(converterService.toDomainFolder(newFolder, feideId), feideId)
+        newDomainFolder <- folderRepository.insertFolder(converterService.toDomainFolder(newFolder, feideId))
         api             <- converterService.toApiFolder(newDomainFolder)
       } yield api
     }
@@ -517,7 +517,7 @@ trait UpdateService {
       for {
         feideId <- feideApiClient.getUserFeideID(feideAccessToken)
         folder  <- folderRepository.folderWithId(id)
-        _       <- folder.isOwner(feideId)
+        _       <- folder.canDelete(feideId)
         deleted <- deleteRecursively(folder, feideId)
       } yield deleted
 

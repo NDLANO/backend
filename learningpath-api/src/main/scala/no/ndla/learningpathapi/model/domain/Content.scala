@@ -40,8 +40,17 @@ trait Content {
 
 trait FolderContent extends Content {
   def status: FolderStatus.Value
+  def isFavorite: Boolean
 
   def isPublic: Boolean = this.status == FolderStatus.PUBLIC
+
+  def canDelete(feideId: FeideID): Try[_] = {
+    isOwner(feideId) match {
+      case Failure(exception)            => Failure(exception)
+      case Success(_) if this.isFavorite => Failure(AccessDeniedException("Favorite folder can not be deleted"))
+      case Success(x)                    => Success(x)
+    }
+  }
 
   def hasReadAccess(feideId: FeideID): Try[_] = {
     if (isPublic) {

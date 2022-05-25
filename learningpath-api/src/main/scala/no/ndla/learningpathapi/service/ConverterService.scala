@@ -697,7 +697,15 @@ trait ConverterService {
             folder.data
               .traverse(toApiFolderData)
               .map(subFolders =>
-                Left(api.Folder(id = id, name = folder.name, status = folder.status.toString, data = subFolders))
+                Left(
+                  api.Folder(
+                    id = id,
+                    name = folder.name,
+                    status = folder.status.toString,
+                    isFavorite = folder.isFavorite,
+                    data = subFolders
+                  )
+                )
               )
           })
       }
@@ -712,6 +720,7 @@ trait ConverterService {
               id = folderId,
               name = domainFolder.name,
               status = domainFolder.status.toString,
+              isFavorite = domainFolder.isFavorite,
               data = folderData
             )
           )

@@ -62,6 +62,7 @@ case class Folder(
     parentId: Option[Long] = None,
     name: String,
     status: FolderStatus.Value = FolderStatus.PRIVATE,
+    isFavorite: Boolean = false,
     data: List[FolderData]
 ) extends FolderContent
 
@@ -92,6 +93,7 @@ trait DBFolder {
         id = Some(rs.long(lp.c("id"))),
         feideId = Some(rs.string(lp.c("feide_id"))),
         parentId = rs.longOpt(lp.c("parent_id")),
+        isFavorite = metaData.isFavorite,
         name = metaData.name,
         status = metaData.status,
         data = List.empty

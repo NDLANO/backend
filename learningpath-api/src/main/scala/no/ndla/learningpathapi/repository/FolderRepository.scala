@@ -25,7 +25,7 @@ trait FolderRepository {
   class FolderRepository extends LazyLogging {
     implicit val formats: Formats = DBFolder.repositorySerializer
 
-    def insertFolder(folder: Folder, feideId: FeideID)(implicit
+    def insertFolder(folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = {
       Try {
@@ -35,13 +35,13 @@ trait FolderRepository {
 
         val folderId: Long =
           sql"""
-        insert into ${DBFolder.table} (parent_id, feide_id, document) values (${folder.parentId}, $feideId, $dataObject)
+        insert into ${DBFolder.table} (parent_id, feide_id, document)
+        values (${folder.parentId}, ${folder.feideId}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new folder with id: $folderId")
         folder.copy(
-          id = Some(folderId),
-          feideId = Some(feideId)
+          id = Some(folderId)
         )
       }
     }

@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
+import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import scalikejdbc.DBSession
 
 import java.util.Date
@@ -528,4 +528,43 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
   }
 
+  test("That getFolders returns favorite folder if it exist") {
+    val feideId              = "yee boiii"
+    val folderWithId         = emptyDomainFolder.copy(id = Some(1))
+    val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
+    val favoriteApiFolder    = emptyApiFolder.copy(id = 1, name = "favorite", status = "private", isFavorite = true)
+
+    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
+    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+      .thenReturn(Success(List(folderWithId, folderWithId, favoriteDomainFolder)))
+
+    val result = service.getFolders(Some("token"))
+    result.isSuccess should be(true)
+    result.get.length should be(3)
+    result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
+
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
+    verify(folderRepository, times(0)).insertFolder(any)(any[DBSession])
+  }
+
+  test("That getFolders creates favorite folder if favorite does not exist ") {
+    val feideId              = "yee boiii"
+    val folderWithId         = emptyDomainFolder.copy(id = Some(1))
+    val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
+    val favoriteApiFolder    = emptyApiFolder.copy(id = 1, name = "favorite", status = "private", isFavorite = true)
+
+    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
+    when(folderRepository.insertFolder(any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+      .thenReturn(Success(List(folderWithId, folderWithId)))
+
+    val result = service.getFolders(Some("token"))
+    result.isSuccess should be(true)
+    result.get.length should be(3)
+    result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
+
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
+    verify(folderRepository, times(1)).insertFolder(any)(any[DBSession])
+
+  }
 }

@@ -570,6 +570,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       id = 42,
       name = "mainFolder",
       status = "public",
+      isFavorite = false,
       data = List(Left(apiData2), Left(apiData3), Right(apiResource))
     )
 

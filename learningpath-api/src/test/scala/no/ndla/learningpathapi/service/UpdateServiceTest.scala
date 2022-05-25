@@ -1480,8 +1480,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithId(id)).thenReturn(Success(folderWithChildren))
 
     val x = service.deleteFolder(id, Some("token"))
-
     x.isFailure should be(true)
+    x should be(Failure(AccessDeniedException("You do not have access to this entity.")))
+
     verify(folderRepository, times(0)).deleteFolder(anyLong)(any[DBSession])
     verify(folderRepository, times(0)).canResourceBeDeleted(any)(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
@@ -1519,6 +1520,42 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
     verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any[DBSession])
+  }
+
+  test("that a user with access can not delete Favorite folder") {
+    val correctFeideId = "FEIDE"
+    val mainFolderId   = 42L
+    val subFolder1Id   = 1L
+    val subFolder2Id   = 2L
+    val resourceId     = 1L
+    val folderWithChildren =
+      emptyDomainFolder.copy(
+        id = Some(mainFolderId),
+        feideId = Some("FEIDE"),
+        isFavorite = true,
+        data = List(
+          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
+          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
+          Right(emptyDomainResource.copy(id = Some(resourceId)))
+        )
+      )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
+    when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
+      .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
+    when(folderRepository.deleteResource(anyLong)(any[DBSession])).thenReturn(Success(resourceId))
+
+    val x = service.deleteFolder(mainFolderId, Some("token"))
+    x.isFailure should be(true)
+    x should be(Failure(AccessDeniedException("Favorite folder can not be deleted")))
+
+    verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
+    verify(folderRepository, times(0)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
   }
 
   test("that resource is not deleted if canResourceBeDeleted() returns false") {
