@@ -11,6 +11,7 @@ import draftapi.db.migrationwithdependencies.{
   R__RemoveEmptyStringLanguageFields,
   R__RemoveStatusPublishedArticles,
   R__SetArticleLanguageFromTaxonomy,
+  R__SetArticleTypeFromTaxonomy,
   V20__UpdateH5PDomainForFF,
   V23__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown
@@ -31,12 +32,13 @@ trait DBMigrator {
           new R__RemoveEmptyStringLanguageFields(props),
           new R__RemoveStatusPublishedArticles(props),
           new R__SetArticleLanguageFromTaxonomy(props),
-          new R__SetArticleLanguageFromTaxonomy(props),
+          new R__SetArticleTypeFromTaxonomy(props),
           new V20__UpdateH5PDomainForFF(props),
           new V23__UpdateH5PDomainForFFVisualElement(props),
           new V33__ConvertLanguageUnknown(props)
         )
         .locations("draftapi/db/migration")
+        .table("schema_version") // Flyway's default table name changed, so we specify the old one.
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
         // Therefore we simply override it with dataSource.getScheme.
