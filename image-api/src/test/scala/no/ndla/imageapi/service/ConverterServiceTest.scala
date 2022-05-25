@@ -207,4 +207,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.getSupportedLanguages(result4) should be(Seq("nn"))
   }
 
+  test("That with new image returns metadata from new image") {
+    val newImage = Image(
+      fileName = "somename.jpg",
+      size = 123,
+      contentType = "image/jpg",
+      dimensions = Some(ImageDimensions(123, 555))
+    )
+
+    val result = converterService.withNewImage(MultiLangImage, newImage)
+    result.size should be(123)
+    result.imageDimensions should be(Some(ImageDimensions(123, 555)))
+    result.contentType should be("image/jpg")
+  }
+
 }
