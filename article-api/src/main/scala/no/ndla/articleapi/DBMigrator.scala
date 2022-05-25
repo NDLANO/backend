@@ -8,7 +8,15 @@
 
 package no.ndla.articleapi
 
-import articleapi.db.migrationwithdependencies.{R__SetArticleLanguageFromTaxonomy, V8__CopyrightFormatUpdated}
+import articleapi.db.migrationwithdependencies.{
+  R__SetArticleLanguageFromTaxonomy,
+  R__SetArticleTypeFromTaxonomy,
+  V20__UpdateH5PDomainForFF,
+  V22__UpdateH5PDomainForFFVisualElement,
+  V33__ConvertLanguageUnknown,
+  V8__CopyrightFormatUpdated,
+  V9__TranslateUntranslatedAuthors
+}
 import no.ndla.articleapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -24,8 +32,12 @@ trait DBMigrator {
         .configure()
         .javaMigrations(
           new R__SetArticleLanguageFromTaxonomy(props),
-          new R__SetArticleLanguageFromTaxonomy(props),
-          new V8__CopyrightFormatUpdated(props)
+          new R__SetArticleTypeFromTaxonomy(props),
+          new V8__CopyrightFormatUpdated(props),
+          new V9__TranslateUntranslatedAuthors(props),
+          new V20__UpdateH5PDomainForFF(props),
+          new V22__UpdateH5PDomainForFFVisualElement(props),
+          new V33__ConvertLanguageUnknown(props)
         )
         .locations("articleapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.
