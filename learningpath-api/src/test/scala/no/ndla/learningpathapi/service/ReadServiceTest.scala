@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
+import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import scalikejdbc.DBSession
 
 import java.util.Date
