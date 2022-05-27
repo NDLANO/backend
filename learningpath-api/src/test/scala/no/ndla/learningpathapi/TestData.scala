@@ -107,6 +107,7 @@ object TestData {
     feideId = None,
     resourceType = "",
     path = "",
+    created = today,
     tags = List.empty
   )
 
@@ -125,13 +126,6 @@ object TestData {
     status = "",
     isFavorite = false,
     data = List.empty
-  )
-
-  val emptyApiResource: api.Resource = api.Resource(
-    id = 0,
-    resourceType = "",
-    path = "",
-    tags = List.empty
   )
 
 }

@@ -9,6 +9,8 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.learningpathapi.TestData._
+import no.ndla.learningpathapi.model.api
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import scalikejdbc.DBSession
@@ -318,7 +320,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getting a folder returns folder, subFolders and resources") {
-    val mainFolder = emptyDomainFolder.copy(
+    val created = clock.now()
+    val mainFolder = domain.Folder(
       id = Some(1),
       feideId = Some("FEIDE"),
       name = "mainFolder",
@@ -326,43 +329,53 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       data = List.empty
     )
 
-    val subFolder1 = emptyDomainFolder.copy(
+    val subFolder1 = domain.Folder(
       id = Some(2),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
       data = List.empty
     )
 
-    val subFolder2 = emptyDomainFolder.copy(
+    val subFolder2 = domain.Folder(
       id = Some(3),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
       data = List.empty
     )
 
-    val resource1 = emptyDomainResource.copy(
+    val resource1 = domain.Resource(
       id = Some(13),
+      feideId = None,
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
+      created = created,
       tags = List.empty
     )
 
-    val expected = emptyApiFolder.copy(
+    val expected = api.Folder(
       id = 1,
       name = "mainFolder",
       status = "private",
+      isFavorite = false,
       data = List(
         Right(
-          emptyApiResource
-            .copy(id = 13, resourceType = "article", tags = List.empty, path = "/subject/1/topic/1/resource/4")
+          api.Resource(
+            id = 13,
+            resourceType = "article",
+            tags = List.empty,
+            path = "/subject/1/topic/1/resource/4",
+            created = created
+          )
         ),
         Left(
-          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+          api.Folder(id = 2, name = "subFolder1", status = "public", data = List.empty, isFavorite = false)
         ),
         Left(
-          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+          api.Folder(id = 3, name = "subFolder2", status = "private", data = List.empty, isFavorite = false)
         )
       )
     )
@@ -383,7 +396,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
-    val mainFolder = emptyDomainFolder.copy(
+    val created = clock.now()
+    val mainFolder = domain.Folder(
       id = Some(1),
       feideId = Some("FEIDE"),
       name = "mainFolder",
@@ -391,43 +405,53 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       data = List.empty
     )
 
-    val subFolder1 = emptyDomainFolder.copy(
+    val subFolder1 = domain.Folder(
       id = Some(2),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
       data = List.empty
     )
 
-    val subFolder2 = emptyDomainFolder.copy(
+    val subFolder2 = domain.Folder(
       id = Some(3),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
       data = List.empty
     )
 
-    val resource1 = emptyDomainResource.copy(
+    val resource1 = domain.Resource(
       id = Some(13),
+      feideId = None,
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
+      created = created,
       tags = List.empty
     )
 
-    val expected = emptyApiFolder.copy(
+    val expected = api.Folder(
       id = 1,
       name = "mainFolder",
       status = "public",
+      isFavorite = false,
       data = List(
         Right(
-          emptyApiResource
-            .copy(id = 13, resourceType = "article", tags = List.empty, path = "/subject/1/topic/1/resource/4")
+          api.Resource(
+            id = 13,
+            resourceType = "article",
+            tags = List.empty,
+            path = "/subject/1/topic/1/resource/4",
+            created = created
+          )
         ),
         Left(
-          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+          api.Folder(id = 2, name = "subFolder1", status = "public", data = List.empty, isFavorite = false)
         ),
         Left(
-          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+          api.Folder(id = 3, name = "subFolder2", status = "private", data = List.empty, isFavorite = false)
         )
       )
     )
@@ -448,7 +472,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That setting excludeResources to true returns only folder and subFolders") {
-    val mainFolder = emptyDomainFolder.copy(
+    val created = clock.now()
+    val mainFolder = domain.Folder(
       id = Some(1),
       feideId = Some("FEIDE"),
       name = "mainFolder",
@@ -456,32 +481,35 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       data = List.empty
     )
 
-    val subFolder1 = emptyDomainFolder.copy(
+    val subFolder1 = domain.Folder(
       id = Some(2),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
       data = List.empty
     )
 
-    val subFolder2 = emptyDomainFolder.copy(
+    val subFolder2 = domain.Folder(
       id = Some(3),
+      feideId = None,
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
       data = List.empty
     )
 
-    val expected = emptyApiFolder.copy(
+    val expected = api.Folder(
       id = 1,
       name = "mainFolder",
       status = "private",
+      isFavorite = false,
       data = List(
         Left(
-          emptyApiFolder.copy(id = 2, name = "subFolder1", status = "public", data = List.empty)
+          api.Folder(id = 2, name = "subFolder1", status = "public", data = List.empty, isFavorite = false)
         ),
         Left(
-          emptyApiFolder.copy(id = 3, name = "subFolder2", status = "private", data = List.empty)
+          api.Folder(id = 3, name = "subFolder2", status = "private", data = List.empty, isFavorite = false)
         )
       )
     )

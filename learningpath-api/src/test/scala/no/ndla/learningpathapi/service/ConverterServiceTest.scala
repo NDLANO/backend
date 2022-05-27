@@ -502,12 +502,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toApiFolder transforms correctly when data isn't corrupted") {
+    val created = new Date()
+    when(clock.now()).thenReturn(created)
     val resource =
       domain.Resource(
         id = Some(6),
         feideId = Some("w"),
         resourceType = "concept",
         path = "/subject/1/topic/1/resource/4",
+        created = created,
         tags = List("a", "b", "c")
       )
     val folderData1 = domain.Folder(
@@ -542,28 +545,32 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PUBLIC,
       data = List(Left(folderData2), Left(folderData3), Right(resource))
     )
-    val apiResource = TestData.emptyApiResource.copy(
+    val apiResource = api.Resource(
       id = 6,
       resourceType = "concept",
       tags = List("a", "b", "c"),
+      created = created,
       path = "/subject/1/topic/1/resource/4"
     )
-    val apiData1 = TestData.emptyApiFolder.copy(
+    val apiData1 = api.Folder(
       id = 1,
       name = "folderData1",
       status = "private",
+      isFavorite = false,
       data = List(Right(apiResource))
     )
-    val apiData2 = TestData.emptyApiFolder.copy(
+    val apiData2 = api.Folder(
       id = 2,
       name = "folderData2",
       status = "public",
+      isFavorite = false,
       data = List.empty
     )
-    val apiData3 = TestData.emptyApiFolder.copy(
+    val apiData3 = api.Folder(
       id = 3,
       name = "folderData3",
       status = "private",
+      isFavorite = false,
       data = List(Left(apiData1))
     )
     val expected = api.Folder(
@@ -619,34 +626,53 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that toApiResource converts correctly") {
+    val created = new Date()
+    when(clock.now()).thenReturn(created)
     val existing =
       domain.Resource(
         id = Some(1),
         feideId = Some("feideid"),
         resourceType = "article",
         path = "/subject/1/topic/1/resource/4",
+        created = created,
         tags = List("a", "b", "c")
       )
     val expected =
-      api.Resource(id = 1, resourceType = "article", tags = List("a", "b", "c"), path = "/subject/1/topic/1/resource/4")
+      api.Resource(
+        id = 1,
+        resourceType = "article",
+        path = "/subject/1/topic/1/resource/4",
+        created = created,
+        tags = List("a", "b", "c")
+      )
 
     service.toApiResource(existing) should be(Success(expected))
   }
 
   test("that toApiResource fails if no id") {
-    service.toApiResource(TestData.emptyDomainResource.copy(id = None)).isFailure should be(true)
+    val domainResource =
+      domain.Resource(id = None, feideId = None, path = "", resourceType = "", created = clock.now(), tags = List.empty)
+    service.toApiResource(domainResource).isFailure should be(true)
   }
 
-  test("toDomainResource") {
+  test("that newResource toDomainResource converts correctly") {
+    val created = new Date()
+    when(clock.now()).thenReturn(created)
     val newResource1 =
-      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = Some(List("a", "b")))
-    val newResource2 = api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None)
+      api.NewResource(
+        resourceType = "audio",
+        path = "/subject/1/topic/1/resource/4",
+        tags = Some(List("a", "b"))
+      )
+    val newResource2 =
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None)
     val expected1 =
       domain.Resource(
         id = None,
         feideId = Some("huehue"),
         resourceType = "audio",
         path = "/subject/1/topic/1/resource/4",
+        created = created,
         tags = List("a", "b")
       )
     val expected2 = expected1.copy(tags = List.empty)
