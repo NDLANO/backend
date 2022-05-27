@@ -15,11 +15,14 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
+import java.util.Date
+
 case class Resource(
     id: Option[Long],
     feideId: Option[FeideID],
     path: String,
     resourceType: String,
+    created: Date,
     tags: List[String]
 ) extends Content
 
@@ -50,6 +53,7 @@ trait DBResource {
         feideId = Some(rs.string(lp.c("feide_id"))),
         path = metaData.path,
         resourceType = metaData.resourceType,
+        created = metaData.created,
         tags = metaData.tags
       )
     }

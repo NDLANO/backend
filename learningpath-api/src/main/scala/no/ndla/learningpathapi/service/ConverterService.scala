@@ -689,7 +689,13 @@ trait ConverterService {
         case Right(resource) =>
           resource.doIfIdExists(id =>
             Right(
-              api.Resource(id = id, resourceType = resource.resourceType, tags = resource.tags, path = resource.path)
+              api.Resource(
+                id = id,
+                resourceType = resource.resourceType,
+                path = resource.path,
+                created = resource.created,
+                tags = resource.tags
+              )
             )
           )
         case Left(folder) =>
@@ -749,6 +755,7 @@ trait ConverterService {
         feideId = existing.feideId,
         resourceType = existing.resourceType,
         path = existing.path,
+        created = existing.created,
         tags = tags
       )
     }
@@ -761,6 +768,7 @@ trait ConverterService {
         feideId = existing.feideId,
         resourceType = existing.resourceType,
         path = existing.path,
+        created = existing.created,
         tags = tags
       )
     }
@@ -768,10 +776,11 @@ trait ConverterService {
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
       domainResource.doIfIdExists(id => {
         val resourceType = domainResource.resourceType
-        val tags         = domainResource.tags
         val path         = domainResource.path
+        val created      = domainResource.created
+        val tags         = domainResource.tags
 
-        api.Resource(id = id, resourceType = resourceType, tags = tags, path = path)
+        api.Resource(id = id, resourceType = resourceType, path = path, created = created, tags = tags)
       })
     }
 
@@ -785,6 +794,7 @@ trait ConverterService {
         feideId = Some(feideId),
         resourceType = resourceType,
         path = path,
+        created = clock.now(),
         tags = tags
       )
     }
