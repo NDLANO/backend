@@ -442,7 +442,10 @@ trait UpdateService {
         feideAccessToken: Option[String] = None
     ): Try[_] = {
       for {
-        feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
+        _ <- folderRepository
+          .folderWithFeideId(folderId, feideId)
+          .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
         resource <- getExistingResourceOrCreateNew(newResource, feideId)
         x        <- resource.doIfIdExists(id => folderRepository.createFolderResourceConnection(folderId, id))
       } yield x
@@ -460,7 +463,7 @@ trait UpdateService {
               val converted = converterService.toDomainResource(newResource, feideId)
               folderRepository.insertResource(converted, feideId)
             case Some(existingResource) =>
-              Success(existingResource.copy(tags = newResource.tags.getOrElse(existingResource.tags)))
+              Success(converterService.mergeResource(existingResource, newResource))
           }
         )
     }

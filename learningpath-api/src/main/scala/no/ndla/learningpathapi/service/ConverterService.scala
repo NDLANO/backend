@@ -753,6 +753,18 @@ trait ConverterService {
       )
     }
 
+    def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
+      val tags = newResource.tags.getOrElse(existing.tags)
+
+      domain.Resource(
+        id = existing.id,
+        feideId = existing.feideId,
+        resourceType = existing.resourceType,
+        path = existing.path,
+        tags = tags
+      )
+    }
+
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
       domainResource.doIfIdExists(id => {
         val resourceType = domainResource.resourceType

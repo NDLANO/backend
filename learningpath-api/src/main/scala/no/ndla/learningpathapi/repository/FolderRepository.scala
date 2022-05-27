@@ -143,7 +143,7 @@ trait FolderRepository {
     }
 
     def folderWithFeideId(id: Long, feideId: FeideID): Try[Folder] = {
-      folderWhere(sqls"f.id=${id} and f.feide_id=${feideId}").flatMap {
+      folderWhere(sqls"f.id=$id and f.feide_id=$feideId").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Some(folder) => Success(folder)
       }

@@ -54,8 +54,8 @@ trait FolderController {
 
     case class Param[T](paramName: String, description: String)
 
-    private val folderId   = Param[String]("folder_id", "Id of the folder.")
-    private val resourceId = Param[String]("resource_id", "Id of the resource.")
+    private val folderId   = Param[Long]("folder_id", "Id of the folder.")
+    private val resourceId = Param[Long]("resource_id", "Id of the resource.")
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
