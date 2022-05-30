@@ -59,6 +59,8 @@ trait NdlaController {
         halt(status = 400, body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
       case a: AccessDeniedException =>
         halt(status = 403, body = Error(ACCESS_DENIED, a.getMessage))
+      case mna: MethodNotAllowed =>
+        halt(status = 405, body = Error(METHOD_NOT_ALLOWED, mna.getMessage))
       case ole: OptimisticLockException =>
         halt(status = 409, body = Error(RESOURCE_OUTDATED, RESOURCE_OUTDATED_DESCRIPTION))
       case nfe: NotFoundException =>

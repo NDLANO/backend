@@ -1493,10 +1493,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = 1L
     val subFolder2Id = 2L
     val resourceId   = 1L
+    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = Some("FEIDE"), data = List.empty)
     val folderWithChildren =
-      emptyDomainFolder.copy(
-        id = Some(mainFolderId),
-        feideId = Some("FEIDE"),
+      folder.copy(
         data = List(
           Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
           Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
@@ -1507,7 +1506,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
-    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
+    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folder))
+    when(readService.getSubFoldersRecursively(folder, false)).thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
     when(folderRepository.deleteResource(anyLong)(any[DBSession])).thenReturn(Success(resourceId))
@@ -1520,6 +1520,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any[DBSession])
+    verify(readService, times(1)).getSubFoldersRecursively(eqTo(folder), eqTo(false))
   }
 
   test("that a user with access can not delete Favorite folder") {
@@ -1549,13 +1550,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
     x.isFailure should be(true)
-    x should be(Failure(AccessDeniedException("Favorite folder can not be deleted")))
+    x should be(Failure(MethodNotAllowed("Favorite folder can not be deleted")))
 
     verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
     verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
+    verify(readService, times(0)).getSubFoldersRecursively(any, any)
   }
 
   test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
@@ -1563,10 +1565,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = 1L
     val subFolder2Id = 2L
     val resourceId   = 1L
+    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = Some("FEIDE"), data = List.empty)
     val folderWithChildren =
-      emptyDomainFolder.copy(
-        id = Some(mainFolderId),
-        feideId = Some("FEIDE"),
+      folder.copy(
         data = List(
           Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
           Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
@@ -1577,7 +1578,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
-    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
+    when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folder))
+    when(readService.getSubFoldersRecursively(folder, false)).thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
@@ -1588,5 +1590,93 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
+    verify(readService, times(1)).getSubFoldersRecursively(eqTo(folder), eqTo(false))
+  }
+
+  test("that deleteConnection only deletes connection when there are several references to a resource") {
+    val folderId       = 42L
+    val resourceId     = 13
+    val correctFeideId = "FEIDE"
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("FEIDE"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(resourceId)).thenReturn(Success(resource))
+    when(folderRepository.folderResourceConnectionCount(resourceId)).thenReturn(Success(2))
+    when(folderRepository.deleteFolderResourceConnection(folderId, resourceId)).thenReturn(Success(resourceId))
+
+    service.deleteConnection(folderId, resourceId).isSuccess should be(true)
+
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
+  }
+
+  test("that deleteConnection deletes the resource if there is only 1 references to a resource") {
+    val folderId       = 42L
+    val resourceId     = 13
+    val correctFeideId = "FEIDE"
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("FEIDE"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(resourceId)).thenReturn(Success(resource))
+    when(folderRepository.folderResourceConnectionCount(resourceId)).thenReturn(Success(1))
+    when(folderRepository.deleteFolderResourceConnection(folderId, resourceId)).thenReturn(Success(resourceId))
+    when(folderRepository.deleteResource(resourceId)).thenReturn(Success(resourceId))
+
+    service.deleteConnection(folderId, resourceId).isSuccess should be(true)
+
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any[DBSession])
+  }
+
+  test("that deleteConnection exits early if user is not the folder owner") {
+    val folderId       = 42L
+    val resourceId     = 13
+    val correctFeideId = "FEIDE"
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("asd"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
+
+    val res = service.deleteConnection(folderId, resourceId)
+    res.isFailure should be(true)
+    res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
+
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))
+    verify(folderRepository, times(0)).resourceWithId(eqTo(resourceId))
+    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
+  }
+
+  test("that deleteConnection exits early if user is not the resource owner") {
+    val folderId       = 42L
+    val resourceId     = 13
+    val correctFeideId = "FEIDE"
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("asd"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
+    when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(resourceId)).thenReturn(Success(resource))
+
+    val res = service.deleteConnection(folderId, resourceId)
+    res.isFailure should be(true)
+    res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
+
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))
+    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
   }
 }

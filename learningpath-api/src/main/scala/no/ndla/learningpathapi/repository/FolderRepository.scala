@@ -124,7 +124,9 @@ trait FolderRepository {
       Try(sql"delete from ${DBFolder.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
-        case Success(_)                       => Success(id)
+        case Success(_) =>
+          logger.info(s"Deleted folder with id $id")
+          Success(id)
       }
     }
 
@@ -132,7 +134,28 @@ trait FolderRepository {
       Try(sql"delete from ${DBResource.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
-        case Success(_)                       => Success(id)
+        case Success(_) =>
+          logger.info(s"Deleted resource with id $id")
+          Success(id)
+      }
+    }
+
+    def deleteFolderResourceConnection(folderId: Long, resourceId: Long)(implicit
+        session: DBSession = AutoSession
+    ): Try[Long] = {
+      Try(
+        sql"delete from ${DBFolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update()
+      ) match {
+        case Failure(ex) => Failure(ex)
+        case Success(numRows) if numRows != 1 =>
+          Failure(
+            NotFoundException(
+              s"Folder-Resource connection with folder_id $folderId and resource_id $resourceId does not exist"
+            )
+          )
+        case Success(_) =>
+          logger.info(s"Deleted folder-resource connection with folder_id $folderId and resource_id $resourceId")
+          Success(resourceId)
       }
     }
 

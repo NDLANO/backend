@@ -502,7 +502,9 @@ trait UpdateService {
       folderRepository.folderResourceConnectionCount(resourceId) match {
         case Failure(exception)           => Failure(exception)
         case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
-        case Success(v)                   => Success(v)
+        // The reason that we can "skip" deleting folder-resource connection here is that the connection will be
+        // deleted implicitly when the whole folder is deleted.
+        case Success(v) => Success(v)
       }
     }
 
@@ -518,12 +520,31 @@ trait UpdateService {
 
     def deleteFolder(id: Long, feideAccessToken: Option[domain.FeideID] = None): Try[Long] = {
       for {
-        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
-        folder  <- folderRepository.folderWithId(id)
-        _       <- folder.canDelete(feideId)
-        deleted <- deleteRecursively(folder, feideId)
+        feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
+        folder         <- folderRepository.folderWithId(id)
+        _              <- folder.canDelete(feideId)
+        folderWithData <- readService.getSubFoldersRecursively(folder, false)
+        deleted        <- deleteRecursively(folderWithData, feideId)
       } yield deleted
+    }
 
+    def deleteConnection(
+        folderId: Long,
+        resourceId: Long,
+        feideAccessToken: Option[domain.FeideID] = None
+    ): Try[Long] = {
+      for {
+        feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
+        folder   <- folderRepository.folderWithId(folderId)
+        _        <- folder.isOwner(feideId)
+        resource <- folderRepository.resourceWithId(resourceId)
+        _        <- resource.isOwner(feideId)
+        id <- folderRepository.folderResourceConnectionCount(resourceId) match {
+          case Failure(exception)           => Failure(exception)
+          case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
+          case Success(_)                   => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
+        }
+      } yield id
     }
   }
 

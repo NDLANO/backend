@@ -47,7 +47,7 @@ trait FolderContent extends Content {
   def canDelete(feideId: FeideID): Try[_] = {
     isOwner(feideId) match {
       case Failure(exception)            => Failure(exception)
-      case Success(_) if this.isFavorite => Failure(AccessDeniedException("Favorite folder can not be deleted"))
+      case Success(_) if this.isFavorite => Failure(MethodNotAllowed("Favorite folder can not be deleted"))
       case Success(x)                    => Success(x)
     }
   }

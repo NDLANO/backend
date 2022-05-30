@@ -102,6 +102,7 @@ trait FolderController {
           .description("Fetch folder with specific ID")
           .parameters(
             asHeaderParam(feideToken),
+            asPathParam(folderId),
             asQueryParam(excludeResources)
           )
           .responseMessages(response400, response403, response404, response500, response502)
@@ -208,6 +209,7 @@ trait FolderController {
           .description("Creates new folder resource")
           .parameters(
             asHeaderParam(feideToken),
+            asPathParam(folderId),
             bodyParam[NewResource]
           )
           .responseMessages(response400, response403, response404, response500, response502)
@@ -230,6 +232,7 @@ trait FolderController {
           .description("Updates selected resource")
           .parameters(
             asHeaderParam(feideToken),
+            asPathParam(resourceId),
             bodyParam[UpdatedResource]
           )
           .responseMessages(response400, response403, response404, response500, response502)
@@ -239,6 +242,29 @@ trait FolderController {
       val resourceId      = long(this.resourceId.paramName)
       val updatedResource = extract[UpdatedResource](request.body)
       updateService.updateResource(resourceId, updatedResource, requestFeideToken) match {
+        case Failure(ex)       => errorHandler(ex)
+        case Success(resource) => resource
+      }
+    }
+
+    delete(
+      "/:folder_id/resources/:resource_id",
+      operation(
+        apiOperation[Resource]("UpdateResource")
+          .summary("Updated selected resource")
+          .description("Updates selected resource")
+          .parameters(
+            asHeaderParam(feideToken),
+            asPathParam(folderId),
+            asPathParam(resourceId)
+          )
+          .responseMessages(response400, response403, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      val folderId   = long(this.folderId.paramName)
+      val resourceId = long(this.resourceId.paramName)
+      updateService.deleteConnection(folderId, resourceId, requestFeideToken) match {
         case Failure(ex)       => errorHandler(ex)
         case Success(resource) => resource
       }
