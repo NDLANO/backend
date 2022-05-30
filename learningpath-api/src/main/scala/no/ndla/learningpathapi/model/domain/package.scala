@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.model
 
 package object domain {
-  type FolderData = Either[Folder, Resource]
-  type FeideID    = String
+  type FolderData       = Either[Folder, Resource]
+  type FeideID          = String
+  type FeideAccessToken = String
 }

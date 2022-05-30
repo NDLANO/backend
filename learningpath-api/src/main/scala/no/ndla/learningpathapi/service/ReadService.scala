@@ -186,7 +186,7 @@ trait ReadService {
       loop(domainObjects, List())
     }
 
-    def getAllResources(feideAccessToken: Option[domain.FeideID] = None): Try[List[api.Resource]] = {
+    def getAllResources(feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
         feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId)
@@ -236,7 +236,7 @@ trait ReadService {
     def getFolder(
         id: Long,
         excludeResources: Boolean,
-        feideAccessToken: Option[domain.FeideID] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
         feideId              <- feideApiClient.getUserFeideID(feideAccessToken)
@@ -247,7 +247,7 @@ trait ReadService {
       } yield converted
     }
 
-    def getFolders(feideAccessToken: Option[domain.FeideID] = None): Try[List[api.Folder]] = {
+    def getFolders(feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Folder]] = {
       for {
         feideId <- feideApiClient.getUserFeideID(feideAccessToken)
         folders <- folderRepository.foldersWithFeideAndParentID(None, feideId)

@@ -427,7 +427,7 @@ trait UpdateService {
 
     def newFolder(
         newFolder: api.NewFolder,
-        feideAccessToken: Option[String] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
         feideId         <- feideApiClient.getUserFeideID(feideAccessToken)
@@ -439,7 +439,7 @@ trait UpdateService {
     def newFolderResourceConnection(
         folderId: Long,
         newResource: api.NewResource,
-        feideAccessToken: Option[String] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[_] = {
       for {
         feideId <- feideApiClient.getUserFeideID(feideAccessToken)
@@ -471,7 +471,7 @@ trait UpdateService {
     def updateFolder(
         id: Long,
         updatedFolder: UpdatedFolder,
-        feideAccessToken: Option[domain.FeideID] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
@@ -486,7 +486,7 @@ trait UpdateService {
     def updateResource(
         id: Long,
         updatedResource: UpdatedResource,
-        feideAccessToken: Option[domain.FeideID] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Resource] = {
       for {
         feideId          <- feideApiClient.getUserFeideID(feideAccessToken)
@@ -518,7 +518,7 @@ trait UpdateService {
         .flatMap(_ => folder.doFlatIfIdExists(id => folderRepository.deleteFolder(id)))
     }
 
-    def deleteFolder(id: Long, feideAccessToken: Option[domain.FeideID] = None): Try[Long] = {
+    def deleteFolder(id: Long, feideAccessToken: Option[FeideAccessToken] = None): Try[Long] = {
       for {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
@@ -531,7 +531,7 @@ trait UpdateService {
     def deleteConnection(
         folderId: Long,
         resourceId: Long,
-        feideAccessToken: Option[domain.FeideID] = None
+        feideAccessToken: Option[FeideAccessToken] = None
     ): Try[Long] = {
       for {
         feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
