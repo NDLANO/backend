@@ -472,7 +472,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That setting excludeResources to true returns only folder and subFolders") {
-    val created = clock.now()
     val mainFolder = domain.Folder(
       id = Some(1),
       feideId = Some("FEIDE"),
