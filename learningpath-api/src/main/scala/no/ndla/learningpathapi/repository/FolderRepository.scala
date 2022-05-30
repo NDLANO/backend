@@ -23,7 +23,7 @@ trait FolderRepository {
   val folderRepository: FolderRepository
 
   class FolderRepository extends LazyLogging {
-    implicit val formats: Formats = DBFolder.repositorySerializer
+    implicit val formats: Formats = DBFolder.repositorySerializer + DBResource.JSonSerializer
 
     def insertFolder(folder: Folder)(implicit
         session: DBSession = AutoSession
