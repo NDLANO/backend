@@ -1476,7 +1476,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val wrongFeideId = "nope"
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(wrongFeideId))
-    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
     when(folderRepository.folderWithId(id)).thenReturn(Success(folderWithChildren))
 
     val x = service.deleteFolder(id, Some("token"))
@@ -1484,7 +1484,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     x should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
     verify(folderRepository, times(0)).deleteFolder(anyLong)(any[DBSession])
-    verify(folderRepository, times(0)).canResourceBeDeleted(any)(any[DBSession])
+    verify(folderRepository, times(0)).folderResourceConnectionCount(any)(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
   }
 
@@ -1506,7 +1506,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val correctFeideId = "FEIDE"
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
@@ -1518,7 +1518,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
-    verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any[DBSession])
   }
 
@@ -1541,7 +1541,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(true))
+    when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
@@ -1554,11 +1554,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
-    verify(folderRepository, times(0)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
   }
 
-  test("that resource is not deleted if canResourceBeDeleted() returns false") {
+  test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
     val mainFolderId = 42L
     val subFolder1Id = 1L
     val subFolder2Id = 2L
@@ -1576,7 +1576,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val correctFeideId = "FEIDE"
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.canResourceBeDeleted(any)(any[DBSession])).thenReturn(Success(false))
+    when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
 
@@ -1586,7 +1586,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any[DBSession])
-    verify(folderRepository, times(1)).canResourceBeDeleted(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
   }
 }

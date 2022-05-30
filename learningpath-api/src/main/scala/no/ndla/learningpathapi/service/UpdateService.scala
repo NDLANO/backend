@@ -461,7 +461,7 @@ trait UpdateService {
           {
             case None =>
               val converted = converterService.toDomainResource(newResource, feideId)
-              folderRepository.insertResource(converted, feideId)
+              folderRepository.insertResource(converted)
             case Some(existingResource) =>
               Success(converterService.mergeResource(existingResource, newResource))
           }
@@ -499,10 +499,10 @@ trait UpdateService {
     }
 
     private def deleteResourceIfNoConnection(resourceId: Long): Try[_] = {
-      folderRepository.canResourceBeDeleted(resourceId) match {
-        case Failure(exception)                    => Failure(exception)
-        case Success(canBeDeleted) if canBeDeleted => folderRepository.deleteResource(resourceId)
-        case Success(v)                            => Success(v)
+      folderRepository.folderResourceConnectionCount(resourceId) match {
+        case Failure(exception)           => Failure(exception)
+        case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
+        case Success(v)                   => Success(v)
       }
     }
 

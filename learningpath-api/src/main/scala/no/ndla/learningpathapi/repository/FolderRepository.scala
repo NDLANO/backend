@@ -46,7 +46,7 @@ trait FolderRepository {
       }
     }
 
-    def insertResource(resource: Resource, feideId: FeideID)(implicit
+    def insertResource(resource: Resource)(implicit
         session: DBSession = AutoSession
     ): Try[Resource] = {
       Try {
@@ -56,7 +56,7 @@ trait FolderRepository {
 
         val resourceId: Long =
           sql"""
-        insert into ${DBResource.table} (feide_id, document) values ($feideId, $dataObject)
+        insert into ${DBResource.table} (feide_id, document) values (${resource.feideId}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new resource with id: $resourceId")
@@ -111,12 +111,13 @@ trait FolderRepository {
       resource
     }
 
-    def canResourceBeDeleted(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Boolean] = {
-      Try(sql"select count(*) from ${DBFolderResource.table} where resource_id = $resourceId".update()) match {
-        case Failure(ex)                  => Failure(ex)
-        case Success(count) if count != 0 => Success(false)
-        case Success(_)                   => Success(true)
-      }
+    def folderResourceConnectionCount(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+      Try(
+        sql"select count(*) from ${DBFolderResource.table} where resource_id=$resourceId"
+          .map(rs => rs.long("count"))
+          .single()
+          .getOrElse(0)
+      )
     }
 
     def deleteFolder(id: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
@@ -173,14 +174,14 @@ trait FolderRepository {
       foldersWhere(sqls"f.parent_id=$parentId")
 
     def getFolderResources(
-        id: Long
+        folder_id: Long
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
       val fr = DBFolderResource.syntax("fr")
       val r  = DBResource.syntax("r")
       sql"""select ${r.result.*} from ${DBFolderResource.as(fr)}
             left join ${DBResource.as(r)}
                 on fr.resource_id = r.id
-            where fr.folder_id = ${id};
+            where fr.folder_id = ${folder_id};
            """
         .map(DBResource.fromResultSet(r))
         .list()
