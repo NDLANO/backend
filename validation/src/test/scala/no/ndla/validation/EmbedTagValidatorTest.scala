@@ -295,10 +295,10 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if concept-list embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle    -> "Liste",
-        TagAttributes.DataTag      -> "Liste:kategori:kategori2",
-        TagAttributes.DataSubjectId      -> "urn:subject:123"
+        TagAttributes.DataResource  -> ResourceType.ConceptList.toString,
+        TagAttributes.DataTitle     -> "Liste",
+        TagAttributes.DataTag       -> "Liste:kategori:kategori2",
+        TagAttributes.DataSubjectId -> "urn:subject:123"
       )
     )
     embedTagValidator.validate("content", tag).size should be(0)
