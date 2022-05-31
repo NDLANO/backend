@@ -110,7 +110,7 @@
         "data-resource"
       ],
       "optional": [
-        [ "data-tag", "data-title" ],
+        [ "data-tag", "data-title", "data-subject-id" ],
         [ "data-resource_id", "data-recursive" ]
       ]
     },
