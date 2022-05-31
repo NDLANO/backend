@@ -297,7 +297,8 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttributes.DataResource -> ResourceType.ConceptList.toString,
         TagAttributes.DataTitle    -> "Liste",
-        TagAttributes.DataTag      -> "Liste:kategori:kategori2"
+        TagAttributes.DataTag      -> "Liste:kategori:kategori2",
+        TagAttributes.DataSubjectId      -> "urn:subject:123"
       )
     )
     embedTagValidator.validate("content", tag).size should be(0)
