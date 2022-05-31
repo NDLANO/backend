@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.model.domain.{AccessDeniedException, FeideAccessToken}
+import no.ndla.learningpathapi.model.domain.{AccessDeniedException, FeideAccessToken, FeideID}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import org.json4s.native.JsonMethods
@@ -65,7 +65,7 @@ trait FeideApiClient {
       })
     }
 
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken] = None): Try[String] = {
+    def getUserFeideID(feideAccessToken: Option[FeideAccessToken] = None): Try[FeideID] = {
       feideAccessToken match {
         case None =>
           Failure(

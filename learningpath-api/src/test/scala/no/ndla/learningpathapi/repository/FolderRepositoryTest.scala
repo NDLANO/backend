@@ -91,13 +91,6 @@ class FolderRepositoryTest
       .getOrElse(0)
   }
 
-//  def getFolderResource(folderId: Long, resourceId: Long)(implicit session: DBSession = AutoSession): Long = {
-//    sql"select * from ${DBFolderResource.table} where folder_id=$folderId and resource_id=$resourceId"
-//      .map(rs => rs.long("count"))
-//      .single()
-//      .getOrElse(0)
-//  }
-
   test("that inserting records to folder database is generating id as expected") {
     this.resetIdSequence()
 

@@ -66,13 +66,13 @@ trait FolderRepository {
 
     def createFolderResourceConnection(folderId: Long, resourceId: Long)(implicit
         session: DBSession = AutoSession
-    ): Try[_] = {
+    ): Try[Unit] = {
       Try {
         sql"""
         insert into ${DBFolderResource.table} (folder_id, resource_id) values ($folderId, $resourceId)
         """.update()
 
-        logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
+//        logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
       }
     }
 
@@ -89,9 +89,13 @@ trait FolderRepository {
               document=$dataObject
           where id=${id} and feide_id=${feideId}
       """.update()
-
-      logger.info(s"Updated folder with id ${id}")
-      folder
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(count) if count == 1 =>
+        logger.info(s"Updated folder with id $id")
+        Success(folder)
+      case Success(count) =>
+        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
     def updateResource(id: Long, resource: Resource)(implicit
@@ -106,9 +110,13 @@ trait FolderRepository {
           set document=$dataObject
           where id=${id}
       """.update()
-
-      logger.info(s"Updated resource with id ${id}")
-      resource
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(count) if count == 1 =>
+        logger.info(s"Updated resource with id $id")
+        Success(resource)
+      case Success(count) =>
+        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
     def folderResourceConnectionCount(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {

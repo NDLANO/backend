@@ -37,7 +37,7 @@ trait ErrorHelpers {
     val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
     val MISSING_STATUS         = "INVALID_STATUS"
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
-    val METHOD_NOT_ALLOWED     = "METHOD_NOT_ALLOWED"
+    val DELETE_FAVORITE        = "DELETE_FAVORITE"
 
     val GENERIC_DESCRIPTION =
       s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."

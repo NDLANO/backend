@@ -85,7 +85,7 @@ trait FolderController {
             asHeaderParam(feideToken)
           )
           .responseMessages(response400, response403, response404, response500, response502)
-          .authorizations("FEIDE")
+          .authorizations("oauth2")
       )
     ) {
       readService.getFolders(requestFeideToken) match {
@@ -106,7 +106,7 @@ trait FolderController {
             asQueryParam(excludeResources)
           )
           .responseMessages(response400, response403, response404, response500, response502)
-          .authorizations("FEIDE")
+          .authorizations("oauth2")
       )
     ) {
       val id               = long(this.folderId.paramName)
@@ -192,7 +192,7 @@ trait FolderController {
             asHeaderParam(feideToken)
           )
           .responseMessages(response400, response403, response404, response500, response502)
-          .authorizations("FEIDE")
+          .authorizations("oauth2")
       )
     ) {
       readService.getAllResources(requestFeideToken) match {
@@ -204,7 +204,7 @@ trait FolderController {
     post(
       "/:folder_id/resources/",
       operation(
-        apiOperation[Resource]("createFolderResource")
+        apiOperation[Unit]("createFolderResource")
           .summary("Creates new folder resource")
           .description("Creates new folder resource")
           .parameters(

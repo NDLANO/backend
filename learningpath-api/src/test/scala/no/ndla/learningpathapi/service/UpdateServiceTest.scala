@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.model.api.{
   NewCopyLearningPathV2,
   NewLearningPathV2,
   NewLearningStepV2,
+  NewResource,
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
@@ -1550,7 +1551,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
     x.isFailure should be(true)
-    x should be(Failure(MethodNotAllowed("Favorite folder can not be deleted")))
+    x should be(Failure(DeleteFavoriteException("Favorite folder can not be deleted")))
 
     verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any[DBSession])
@@ -1678,5 +1679,72 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
+  }
+
+  test("that createNewResourceOrUpdateExisting creates a resource if it does not already exist") {
+    val created = new Date()
+    when(clock.now()).thenReturn(created)
+
+    val feideId      = "FEIDE"
+    val folderId     = 42
+    val resourceId   = 13
+    val resourcePath = "/subject/1/topic/2/resource/3"
+    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
+    val resource =
+      domain.Resource(
+        id = Some(resourceId),
+        feideId = Some(feideId),
+        path = resourcePath,
+        resourceType = "",
+        created = created,
+        tags = List.empty
+      )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.resourceWithPathAndFeideId(any, any)).thenReturn(Success(None))
+    when(folderRepository.insertResource(any)(any[DBSession])).thenReturn(Success(resource))
+    when(folderRepository.createFolderResourceConnection(any, any)(any[DBSession])).thenReturn(Success(()))
+
+    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
+
+    verify(folderRepository, times(1)).resourceWithPathAndFeideId(eqTo(resourcePath), eqTo(feideId))
+    verify(converterService, times(1)).toDomainResource(eqTo(newResource), eqTo(feideId))
+    verify(folderRepository, times(1)).insertResource(eqTo(resource.copy(id = None)))(any[DBSession])
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(converterService, times(0)).mergeResource(any, any[NewResource])
+    verify(folderRepository, times(0)).updateResource(any, any)(any[DBSession])
+  }
+
+  test("that createNewResourceOrUpdateExisting updates a resource if the resource already exist") {
+    val created = new Date()
+    when(clock.now()).thenReturn(created)
+
+    val feideId      = "FEIDE"
+    val folderId     = 42
+    val resourceId   = 13
+    val resourcePath = "/subject/1/topic/2/resource/3"
+    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
+    val resource =
+      domain.Resource(
+        id = Some(resourceId),
+        feideId = Some(feideId),
+        path = resourcePath,
+        resourceType = "",
+        created = created,
+        tags = List.empty
+      )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.resourceWithPathAndFeideId(any, any)).thenReturn(Success(Some(resource)))
+    when(folderRepository.updateResource(resourceId, resource)).thenReturn(Success(resource))
+
+    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
+
+    verify(folderRepository, times(1)).resourceWithPathAndFeideId(eqTo(resourcePath), eqTo(feideId))
+    verify(converterService, times(0)).toDomainResource(eqTo(newResource), eqTo(feideId))
+    verify(folderRepository, times(0)).insertResource(eqTo(resource.copy(id = None)))(any[DBSession])
+    verify(folderRepository, times(0)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
+    verify(folderRepository, times(1)).updateResource(eqTo(resourceId), eqTo(resource))(any[DBSession])
   }
 }

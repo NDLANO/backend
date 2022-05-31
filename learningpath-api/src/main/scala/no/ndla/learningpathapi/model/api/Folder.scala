@@ -34,18 +34,14 @@ case class UpdatedFolder(
 
 case class Resource(
     @(ApiModelProperty @field)(description = "Unique ID of the resource") id: Long,
-    @(ApiModelProperty @field)(
-      description = "Type of the resource. (Article, Concept, Image, Audio)"
-    ) resourceType: String,
+    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "When the resource was created") created: Date,
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String]
 )
 
 case class NewResource(
-    @(ApiModelProperty @field)(
-      description = "Type of the resource. (Article, Concept, Image, Audio)"
-    ) resourceType: String,
+    @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]]
 )

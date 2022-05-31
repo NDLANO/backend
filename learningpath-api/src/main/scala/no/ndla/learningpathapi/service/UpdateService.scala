@@ -446,26 +446,29 @@ trait UpdateService {
         _ <- folderRepository
           .folderWithFeideId(folderId, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
-        resource <- getExistingResourceOrCreateNew(newResource, feideId)
-        x        <- resource.doIfIdExists(id => folderRepository.createFolderResourceConnection(folderId, id))
-      } yield x
+        _ <- createNewResourceOrUpdateExisting(newResource, folderId, feideId)
+      } yield ()
     }
 
-    private[service] def getExistingResourceOrCreateNew(
+    private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
+        folderId: Long,
         feideId: FeideID
-    ): Try[domain.Resource] = {
+    ): Try[_] = {
       folderRepository
         .resourceWithPathAndFeideId(newResource.path, feideId)
-        .flatMap(
-          {
-            case None =>
-              val converted = converterService.toDomainResource(newResource, feideId)
-              folderRepository.insertResource(converted)
-            case Some(existingResource) =>
-              Success(converterService.mergeResource(existingResource, newResource))
-          }
-        )
+        .flatMap {
+          case None =>
+            val converted = converterService.toDomainResource(newResource, feideId)
+            for {
+              inserted <- folderRepository.insertResource(converted)
+              _ <- inserted
+                .doFlatIfIdExists(resourceId => folderRepository.createFolderResourceConnection(folderId, resourceId))
+            } yield ()
+          case Some(existingResource) =>
+            val mergedResource = converterService.mergeResource(existingResource, newResource)
+            mergedResource.doFlatIfIdExists(resourceId => folderRepository.updateResource(resourceId, mergedResource))
+        }
     }
 
     def updateFolder(
