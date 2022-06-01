@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - 3064-folder-api
     paths:
       - learningpath-api/typescript/index.ts
 env:
