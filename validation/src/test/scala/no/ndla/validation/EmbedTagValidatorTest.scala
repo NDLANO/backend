@@ -295,22 +295,31 @@ class EmbedTagValidatorTest extends UnitSuite {
   test("validate should return no validation errors if concept-list embed-tag is used correctly") {
     val tag = generateTagWithAttrs(
       Map(
-        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
-        TagAttributes.DataTitle    -> "Liste",
-        TagAttributes.DataTag      -> "Liste:kategori:kategori2",
-        TagAttributes.DataSubjectId      -> "urn:subject:123"
+        TagAttributes.DataResource  -> ResourceType.ConceptList.toString,
+        TagAttributes.DataTitle     -> "Liste",
+        TagAttributes.DataTag       -> "Liste:kategori:kategori2",
+        TagAttributes.DataSubjectId -> "urn:subject:123"
       )
     )
     embedTagValidator.validate("content", tag).size should be(0)
 
     val tag2 = generateTagWithAttrs(
       Map(
+        TagAttributes.DataResource -> ResourceType.ConceptList.toString,
+        TagAttributes.DataTitle    -> "Liste",
+        TagAttributes.DataTag      -> "Liste:kategori:kategori2"
+      )
+    )
+    embedTagValidator.validate("content", tag2).size should be(0)
+
+    val tag3 = generateTagWithAttrs(
+      Map(
         TagAttributes.DataResource    -> ResourceType.ConceptList.toString,
         TagAttributes.DataResource_Id -> "1",
         TagAttributes.DataRecursive   -> "false"
       )
     )
-    embedTagValidator.validate("content", tag2).size should be(0)
+    embedTagValidator.validate("content", tag3).size should be(0)
   }
 
   test("validate should fail if only one optional attribute is specified") {
