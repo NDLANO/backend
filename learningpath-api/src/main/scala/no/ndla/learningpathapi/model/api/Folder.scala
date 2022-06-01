@@ -42,13 +42,13 @@ object Folder {
 }
 
 case class NewFolder(
-    @(ApiModelProperty @field)(description = "Folders name") name: String,
+    @(ApiModelProperty @field)(description = "Folder name") name: String,
     @(ApiModelProperty @field)(description = "Id of parent folder") parentId: Option[Long],
     @(ApiModelProperty @field)(description = "Status of the folder (private, public)") status: Option[String]
 )
 
 case class UpdatedFolder(
-    @(ApiModelProperty @field)(description = "Folders name") name: Option[String],
+    @(ApiModelProperty @field)(description = "Folder name") name: Option[String],
     @(ApiModelProperty @field)(description = "Status of the folder (private, public)") status: Option[String]
 )
 

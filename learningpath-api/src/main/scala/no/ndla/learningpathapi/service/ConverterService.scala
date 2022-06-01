@@ -28,6 +28,7 @@ import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValida
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -738,6 +739,7 @@ trait ConverterService {
         data = existing.data,
         feideId = existing.feideId,
         parentId = existing.parentId,
+        isFavorite = existing.isFavorite,
         name = name,
         status = status
       )
@@ -793,6 +795,25 @@ trait ConverterService {
         created = clock.now(),
         tags = tags
       )
+    }
+
+    def domainToApiModel[Domain, Api](
+        domainObjects: List[Domain],
+        f: Domain => Try[Api]
+    ): Try[List[Api]] = {
+
+      @tailrec
+      def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
+        domainObjects match {
+          case ::(head, next) =>
+            f(head) match {
+              case Failure(exception) => Failure(exception)
+              case Success(apiObject) => loop(next, acc :+ apiObject)
+            }
+          case Nil => Success(acc)
+        }
+      }
+      loop(domainObjects, List())
     }
   }
 }

@@ -72,7 +72,7 @@ trait FolderRepository {
         insert into ${DBFolderResource.table} (folder_id, resource_id) values ($folderId, $resourceId)
         """.update()
 
-//        logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
+        logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
       }
     }
 

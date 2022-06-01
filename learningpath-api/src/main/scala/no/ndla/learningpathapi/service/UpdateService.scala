@@ -461,9 +461,9 @@ trait UpdateService {
           case None =>
             val converted = converterService.toDomainResource(newResource, feideId)
             for {
-              inserted <- folderRepository.insertResource(converted)
-              _ <- inserted
-                .doFlatIfIdExists(resourceId => folderRepository.createFolderResourceConnection(folderId, resourceId))
+              inserted   <- folderRepository.insertResource(converted)
+              resourceId <- inserted.doIfIdExists(id => id)
+              _          <- folderRepository.createFolderResourceConnection(folderId, resourceId)
             } yield ()
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)

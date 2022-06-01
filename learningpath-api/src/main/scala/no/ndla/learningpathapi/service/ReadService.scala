@@ -27,7 +27,6 @@ import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, L
 
 import scala.math.max
 
-import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
@@ -167,30 +166,11 @@ trait ReadService {
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 
-    private[service] def domainToApiModel[Domain, Api](
-        domainObjects: List[Domain],
-        f: Domain => Try[Api]
-    ): Try[List[Api]] = {
-
-      @tailrec
-      def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
-        domainObjects match {
-          case ::(head, next) =>
-            f(head) match {
-              case Failure(exception) => Failure(exception)
-              case Success(apiObject) => loop(next, acc :+ apiObject)
-            }
-          case Nil => Success(acc)
-        }
-      }
-      loop(domainObjects, List())
-    }
-
     def getAllResources(feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
         feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId)
-        convertedResources <- domainToApiModel(resources, converterService.toApiResource)
+        convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
     }
 
@@ -225,7 +205,7 @@ trait ReadService {
         id = None,
         feideId = Some(feideId),
         parentId = None,
-        name = "favorites",
+        name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
         isFavorite = true,
         data = List.empty
@@ -254,7 +234,7 @@ trait ReadService {
         maybeFavorite = folders.find(_.isFavorite)
         favorite <- if (maybeFavorite.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
         combined = favorite.toList ++ folders
-        apiFolders <- domainToApiModel(combined, converterService.toApiFolder)
+        apiFolders <- converterService.domainToApiModel(combined, converterService.toApiFolder)
       } yield apiFolders
     }
   }

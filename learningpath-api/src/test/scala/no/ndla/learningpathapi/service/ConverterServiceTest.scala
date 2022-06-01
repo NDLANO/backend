@@ -680,4 +680,24 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.toDomainResource(newResource1, "huehue") should be(expected1)
     service.toDomainResource(newResource2, "huehue") should be(expected2)
   }
+
+  test("That domainToApimodel transforms Folder from domain to api model correctly") {
+    val folderDomainList = List(
+      TestData.emptyDomainFolder.copy(id = Some(1)),
+      TestData.emptyDomainFolder.copy(id = Some(2)),
+      TestData.emptyDomainFolder.copy(id = Some(3))
+    )
+
+    val result = service.domainToApiModel(folderDomainList, converterService.toApiFolder)
+    result.get.length should be(3)
+    result should be(
+      Success(
+        List(
+          TestData.emptyApiFolder.copy(id = 1, status = "private"),
+          TestData.emptyApiFolder.copy(id = 2, status = "private"),
+          TestData.emptyApiFolder.copy(id = 3, status = "private")
+        )
+      )
+    )
+  }
 }

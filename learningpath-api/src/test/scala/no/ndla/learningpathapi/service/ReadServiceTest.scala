@@ -519,26 +519,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
   }
 
-  test("That domainToApimodel transforms Folder from domain to api model correctly") {
-    val folderDomainList = List(
-      emptyDomainFolder.copy(id = Some(1)),
-      emptyDomainFolder.copy(id = Some(2)),
-      emptyDomainFolder.copy(id = Some(3))
-    )
-
-    val result = service.domainToApiModel(folderDomainList, converterService.toApiFolder)
-    result.get.length should be(3)
-    result should be(
-      Success(
-        List(
-          emptyApiFolder.copy(id = 1, status = "private"),
-          emptyApiFolder.copy(id = 2, status = "private"),
-          emptyApiFolder.copy(id = 3, status = "private")
-        )
-      )
-    )
-  }
-
   test("That getFolders returns favorite folder if it exist") {
     val feideId              = "yee boiii"
     val folderWithId         = emptyDomainFolder.copy(id = Some(1))
