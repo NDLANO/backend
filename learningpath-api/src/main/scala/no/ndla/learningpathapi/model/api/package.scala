@@ -9,6 +9,5 @@
 package no.ndla.learningpathapi.model
 
 package object api {
-  type FolderData = Either[Folder, Resource]
-  type FeideID    = String
+  type FeideID = String
 }

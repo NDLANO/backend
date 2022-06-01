@@ -52,7 +52,13 @@ object learningpathapi extends Module {
       "LearningStepV2",
       "License",
       "SearchResultV2",
-      "config.ConfigMeta"
+      "config.ConfigMeta",
+      "Folder",
+      "FolderData",
+      "NewFolder",
+      "UpdatedFolder",
+      "NewResource",
+      "UpdatedResource"
     )
   )
 

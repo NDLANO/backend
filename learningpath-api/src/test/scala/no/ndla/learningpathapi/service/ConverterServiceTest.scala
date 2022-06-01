@@ -557,7 +557,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = "private",
       isFavorite = false,
-      data = List(Right(apiResource))
+      data = List(apiResource)
     )
     val apiData2 = api.Folder(
       id = 2,
@@ -571,14 +571,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData3",
       status = "private",
       isFavorite = false,
-      data = List(Left(apiData1))
+      data = List(apiData1)
     )
     val expected = api.Folder(
       id = 42,
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      data = List(Left(apiData2), Left(apiData3), Right(apiResource))
+      data = List(apiData2, apiData3, apiResource)
     )
 
     val Success(result) = service.toApiFolder(mainFolder)

@@ -38,6 +38,16 @@ export interface IError {
   occuredAt: string
 }
 
+export interface IFolder {
+  id: number
+  name: string
+  status: string
+  isFavorite: boolean
+  data: IFolderData[]
+}
+
+export type IFolderData = (IResource | IFolder)
+
 export interface IIntroduction {
   introduction: string
   language: string
@@ -147,6 +157,26 @@ export interface IMessage {
   date: string
 }
 
+export interface INewFolder {
+  name: string
+  parentId?: number
+  status?: string
+}
+
+export interface INewResource {
+  resourceType: string
+  path: string
+  tags?: string[]
+}
+
+export interface IResource {
+  id: number
+  resourceType: string
+  path: string
+  created: string
+  tags: string[]
+}
+
 export interface ISearchResultV2 {
   totalCount: number
   page?: number
@@ -158,4 +188,13 @@ export interface ISearchResultV2 {
 export interface ITitle {
   title: string
   language: string
+}
+
+export interface IUpdatedFolder {
+  name?: string
+  status?: string
+}
+
+export interface IUpdatedResource {
+  tags?: string[]
 }

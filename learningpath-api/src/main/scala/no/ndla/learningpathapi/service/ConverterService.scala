@@ -688,14 +688,12 @@ trait ConverterService {
       domainData match {
         case Right(resource) =>
           resource.doIfIdExists(id =>
-            Right(
-              api.Resource(
-                id = id,
-                resourceType = resource.resourceType,
-                path = resource.path,
-                created = resource.created,
-                tags = resource.tags
-              )
+            api.Resource(
+              id = id,
+              resourceType = resource.resourceType,
+              path = resource.path,
+              created = resource.created,
+              tags = resource.tags
             )
           )
         case Left(folder) =>
@@ -703,14 +701,12 @@ trait ConverterService {
             folder.data
               .traverse(toApiFolderData)
               .map(subFolders =>
-                Left(
-                  api.Folder(
-                    id = id,
-                    name = folder.name,
-                    status = folder.status.toString,
-                    isFavorite = folder.isFavorite,
-                    data = subFolders
-                  )
+                api.Folder(
+                  id = id,
+                  name = folder.name,
+                  status = folder.status.toString,
+                  isFavorite = folder.isFavorite,
+                  data = subFolders
                 )
               )
           })
