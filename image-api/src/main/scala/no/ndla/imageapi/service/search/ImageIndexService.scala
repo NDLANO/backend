@@ -39,17 +39,19 @@ trait ImageIndexService {
       val fields: Seq[ElasticField] = List(
         intField("id"),
         keywordField("license"),
-        intField("imageSize"),
-        textField("previewUrl"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
         keywordField("modelReleased"),
         textField("editorNotes"),
-        ObjectField(
-          "imageDimensions",
-          properties = Seq(
-            intField("width"),
-            intField("height")
+        nestedField("imageFiles").fields(
+          intField("imageSize"),
+          textField("previewUrl"),
+          ObjectField(
+            "dimensions",
+            properties = Seq(
+              intField("width"),
+              intField("height")
+            )
           )
         )
       )

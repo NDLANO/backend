@@ -80,9 +80,10 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val path1  = "/path1.jpg"
     val path2  = "/path123.png"
     val path3  = "/path555.png"
-    val image1 = TestData.bjorn.copy(id = None, imageUrl = path1)
-    val image2 = TestData.bjorn.copy(id = None, imageUrl = path2)
-    val image3 = TestData.bjorn.copy(id = None, imageUrl = path3)
+    val image  = TestData.bjorn.images.head
+    val image1 = TestData.bjorn.copy(id = None, images = Seq(image.copy(fileName = path1)))
+    val image2 = TestData.bjorn.copy(id = None, images = Seq(image.copy(fileName = path2)))
+    val image3 = TestData.bjorn.copy(id = None, images = Seq(image.copy(fileName = path3)))
 
     val id1 = repository.insert(image1).id.get
     val id2 = repository.insert(image2).id.get
@@ -96,13 +97,15 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("that fetching based on path works with and without slash") {
     assume(databaseIsAvailable)
-    val path1  = "/path1.jpg"
-    val image1 = TestData.bjorn.copy(id = None, imageUrl = path1)
-    val id1    = repository.insert(image1).id.get
+    val path1      = "/path1.jpg"
+    val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
+    val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val id1        = repository.insert(image1).id.get
 
-    val path2  = "path2.jpg"
-    val image2 = TestData.bjorn.copy(id = None, imageUrl = path2)
-    val id2    = repository.insert(image2).id.get
+    val path2      = "path2.jpg"
+    val imageFile2 = TestData.bjorn.images.head.copy(fileName = path2)
+    val image2     = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
+    val id2        = repository.insert(image2).id.get
 
     repository.getImageFromFilePath(path1).get should be(image1.copy(id = Some(id1)))
     repository.getImageFromFilePath("/" + path1).get should be(image1.copy(id = Some(id1)))
@@ -113,9 +116,10 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("That fetching image from url where there exists multiple works") {
     assume(databaseIsAvailable)
-    val path1  = "/path1.jpg"
-    val image1 = TestData.bjorn.copy(id = None, imageUrl = path1)
-    val id1    = repository.insert(image1).id.get
+    val path1      = "/path1.jpg"
+    val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
+    val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val id1        = repository.insert(image1).id.get
     repository.insert(image1.copy(id = None)).id.get
 
     repository.getImageFromFilePath(path1).get should be(image1.copy(id = Some(id1)))
@@ -123,13 +127,15 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("That fetching image from url with special characters are escaped") {
     assume(databaseIsAvailable)
-    val path1  = "/path1.jpg"
-    val image1 = TestData.bjorn.copy(id = None, imageUrl = path1)
-    val id1    = repository.insert(image1).id.get
+    val path1      = "/path1.jpg"
+    val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
+    val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
+    val id1        = repository.insert(image1).id.get
 
-    val path2  = "/pa%h1.jpg"
-    val image2 = TestData.bjorn.copy(id = None, imageUrl = path2)
-    val id2    = repository.insert(image2).id.get
+    val path2      = "/pa%h1.jpg"
+    val imageFile2 = TestData.bjorn.images.head.copy(fileName = path2)
+    val image2     = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
+    val id2        = repository.insert(image2).id.get
 
     repository.getImageFromFilePath(path1).get should be(image1.copy(id = Some(id1)))
     repository.getImageFromFilePath(path2).get should be(image2.copy(id = Some(id2)))

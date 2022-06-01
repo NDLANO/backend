@@ -32,6 +32,7 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   override def beforeEach() = {
     when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
+    when(readService.getImageFileName(id, None)).thenReturn(Some(TestData.bjorn.images.head.fileName))
   }
 
   test("That GET /image.jpg returns 200 if image was found") {

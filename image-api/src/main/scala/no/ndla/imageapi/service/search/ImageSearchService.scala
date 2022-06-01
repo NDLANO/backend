@@ -43,9 +43,12 @@ trait ImageSearchService {
     override val searchIndex: String = props.SearchIndex
     override val indexService        = imageIndexService
 
-    def hitToApiModel(hit: String, language: String): ImageMetaSummary = {
+    def hitToApiModel(hit: String, language: String): Try[ImageMetaSummary] = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      searchConverterService.asImageMetaSummary(read[SearchableImage](hit), language)
+      for {
+        searchableImage <- Try(read[SearchableImage](hit))
+        summary         <- searchConverterService.asImageMetaSummary(searchableImage, language)
+      } yield summary
     }
 
     override def getSortDefinition(sort: Sort, language: String): FieldSort = {
@@ -112,8 +115,11 @@ trait ImageSearchService {
       }
 
       val sizeFilter = settings.minimumSize match {
-        case Some(size) => Some(rangeQuery("imageSize").gte(size))
-        case _          => None
+        case Some(size) =>
+          Some(
+            nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size))
+          )
+        case _ => None
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
@@ -155,16 +161,16 @@ trait ImageSearchService {
         e4sClient
           .execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
+            getHits(response.result, searchLanguage).map(hits => {
               SearchResult(
                 response.result.totalHits,
                 Some(settings.page.getOrElse(1)),
                 numResults,
                 searchLanguage,
-                getHits(response.result, searchLanguage),
+                hits,
                 response.result.scrollId
               )
-            )
+            })
           case Failure(ex) => errorHandler(ex)
         }
       }

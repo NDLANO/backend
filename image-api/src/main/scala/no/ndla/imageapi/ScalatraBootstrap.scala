@@ -16,7 +16,7 @@ class ScalatraBootstrap extends LifeCycle {
     val componentRegistry = context.getAttribute("ComponentRegistry").asInstanceOf[ComponentRegistry]
     import componentRegistry.props.{ImageApiBasePath, RawControllerPath, ApiDocsPath, HealthControllerPath}
 
-    context.mount(componentRegistry.imageControllerV2, s"${ImageApiBasePath}/v2/images", "imagesV2")
+    context.mount(componentRegistry.imageControllerV2, s"$ImageApiBasePath/v2/images", "imagesV2")
     context.mount(componentRegistry.rawController, RawControllerPath, "raw")
     context.mount(componentRegistry.resourcesApp, ApiDocsPath)
     context.mount(componentRegistry.internController, "/intern")

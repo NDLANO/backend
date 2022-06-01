@@ -21,22 +21,21 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
   val sampleImageMeta = ImageMetaInformation(
-    Some(1),
-    Seq.empty,
-    Seq.empty,
-    "image.jpg",
-    1024,
-    "image/jpeg",
-    Copyright(CC_BY.toString, "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None),
-    Seq.empty,
-    Seq.empty,
-    "ndla124",
-    updated(),
-    updated(),
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    id = Some(1),
+    titles = Seq.empty,
+    alttexts = Seq.empty,
+    images =
+      Seq(Image(fileName = "image.jpg", size = 1024, contentType = "image/jpeg", dimensions = None, language = "nb")),
+    copyright =
+      Copyright(CC_BY.toString, "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None),
+    tags = Seq.empty,
+    captions = Seq.empty,
+    updatedBy = "ndla124",
+    updated = updated(),
+    created = updated(),
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeEach() = {

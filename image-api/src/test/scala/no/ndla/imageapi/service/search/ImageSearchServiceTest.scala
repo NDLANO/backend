@@ -46,8 +46,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = Image("large-full-url", 10000, "jpg", None)
-  val smallImage = Image("small-full-url", 100, "jpg", None)
+  val largeImage = Image("large-full-url", 10000, "jpg", None, "und")
+  val smallImage = Image("small-full-url", 100, "jpg", None, "und")
 
   val byNcSa = Copyright(
     CC_BY_NC_SA.toString,
@@ -84,102 +84,87 @@ class ImageSearchServiceTest
   )
 
   val image1 = ImageMetaInformation(
-    Some(1),
-    List(ImageTitle("Batmen er på vift med en bil", "nb")),
-    List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
-    largeImage.fileName,
-    largeImage.size,
-    largeImage.contentType,
-    byNcSa,
-    List(ImageTag(List("fugl"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.NO,
-    Seq.empty,
-    None
+    id = Some(1),
+    titles = List(ImageTitle("Batmen er på vift med en bil", "nb")),
+    alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
+    images = Seq(largeImage),
+    copyright = byNcSa,
+    tags = List(ImageTag(List("fugl"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.NO,
+    editorNotes = Seq.empty
   )
 
   val image2 = ImageMetaInformation(
-    Some(2),
-    List(ImageTitle("Pingvinen er ute og går", "nb")),
-    List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
-    largeImage.fileName,
-    largeImage.size,
-    largeImage.contentType,
-    publicDomain,
-    List(ImageTag(List("fugl"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.NOT_APPLICABLE,
-    Seq(EditorNote(new Date(), "someone", "Lillehjelper")),
-    None
+    id = Some(2),
+    titles = List(ImageTitle("Pingvinen er ute og går", "nb")),
+    alttexts = List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
+    images = Seq(largeImage),
+    copyright = publicDomain,
+    tags = List(ImageTag(List("fugl"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
+    editorNotes = Seq(EditorNote(new Date(), "someone", "Lillehjelper"))
   )
 
   val image3 = ImageMetaInformation(
-    Some(3),
-    List(ImageTitle("Donald Duck kjører bil", "nb")),
-    List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa,
-    List(ImageTag(List("and"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    id = Some(3),
+    titles = List(ImageTitle("Donald Duck kjører bil", "nb")),
+    alttexts = List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
+    images = Seq(smallImage),
+    copyright = byNcSa,
+    tags = List(ImageTag(List("and"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   val image4 = ImageMetaInformation(
-    Some(4),
-    List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
-    Seq(),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa,
-    Seq(),
-    Seq(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    id = Some(4),
+    titles = List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
+    alttexts = Seq(),
+    images = Seq(smallImage),
+    copyright = byNcSa,
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   val image5 = ImageMetaInformation(
-    Some(5),
-    List(
+    id = Some(5),
+    titles = List(
       ImageTitle("Dette er et urelatert bilde", "und"),
       ImageTitle("This is a unrelated photo", "en"),
       ImageTitle("Nynoreg", "nn")
     ),
-    Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa.copy(agreementId = Some(1)),
-    Seq(),
-    Seq(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
+    images = Seq(smallImage),
+    copyright = byNcSa.copy(agreementId = Some(1)),
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeAll(): Unit = {

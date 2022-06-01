@@ -28,4 +28,5 @@ case class ValidationMessage(field: String, message: String)
 class ResultWindowTooLargeException(message: String) extends RuntimeException(message)
 case class ElasticIndexingException(message: String) extends RuntimeException(message)
 
-class ImageStorageException(message: String) extends RuntimeException(message)
+class ImageStorageException(message: String)         extends RuntimeException(message)
+case class ImageConversionException(message: String) extends RuntimeException(message)

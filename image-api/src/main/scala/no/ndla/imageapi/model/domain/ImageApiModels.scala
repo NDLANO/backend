@@ -11,7 +11,7 @@ package no.ndla.imageapi.model.domain
 import java.util.Date
 import no.ndla.imageapi.{ImageApiProperties, Props}
 import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
-import no.ndla.language.model.LanguageField
+import no.ndla.language.model.{LanguageField, WithLanguage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer
@@ -28,6 +28,10 @@ case class ImageAltText(alttext: String, language: String) extends LanguageField
   override def value: String    = alttext
   override def isEmpty: Boolean = alttext.isEmpty
 }
+case class ImageUrl(url: String, language: String) extends LanguageField[String] {
+  override def value: String    = url
+  override def isEmpty: Boolean = url.isEmpty
+}
 case class ImageCaption(caption: String, language: String) extends LanguageField[String] {
   override def value: String    = caption
   override def isEmpty: Boolean = caption.isEmpty
@@ -36,7 +40,13 @@ case class ImageTag(tags: Seq[String], language: String) extends LanguageField[S
   override def value: Seq[String] = tags
   override def isEmpty: Boolean   = tags.isEmpty
 }
-case class Image(fileName: String, size: Long, contentType: String, dimensions: Option[ImageDimensions])
+case class Image(
+    fileName: String,
+    size: Long,
+    contentType: String,
+    dimensions: Option[ImageDimensions],
+    language: String
+) extends WithLanguage
 case class Copyright(
     license: String,
     origin: String,
@@ -82,9 +92,7 @@ case class ImageMetaInformation(
     id: Option[Long],
     titles: Seq[ImageTitle],
     alttexts: Seq[ImageAltText],
-    imageUrl: String,
-    size: Long,
-    contentType: String,
+    images: Seq[Image],
     copyright: Copyright,
     tags: Seq[ImageTag],
     captions: Seq[ImageCaption],
@@ -93,8 +101,7 @@ case class ImageMetaInformation(
     created: Date,
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
-    editorNotes: Seq[EditorNote],
-    imageDimensions: Option[ImageDimensions]
+    editorNotes: Seq[EditorNote]
 )
 
 trait DBImageMetaInformation {
@@ -109,27 +116,25 @@ trait DBImageMetaInformation {
       fromResultSet(im.resultName)(rs)
 
     def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
-      implicit val formats = this.jsonEncoder
-      val id               = rs.long(im.c("id"))
-      val jsonString       = rs.string(im.c("metadata"))
-      val meta             = read[ImageMetaInformation](jsonString)
+      implicit val formats: Formats = this.jsonEncoder
+      val id                        = rs.long(im.c("id"))
+      val jsonString                = rs.string(im.c("metadata"))
+      val meta                      = read[ImageMetaInformation](jsonString)
+
       ImageMetaInformation(
-        Some(id),
-        meta.titles,
-        meta.alttexts,
-        meta.imageUrl,
-        meta.size,
-        meta.contentType,
-        meta.copyright,
-        meta.tags,
-        meta.captions,
-        meta.updatedBy,
-        meta.updated,
-        meta.created,
-        meta.createdBy,
-        meta.modelReleased,
-        meta.editorNotes,
-        meta.imageDimensions
+        id = Some(id),
+        titles = meta.titles,
+        alttexts = meta.alttexts,
+        images = meta.images,
+        copyright = meta.copyright,
+        tags = meta.tags,
+        captions = meta.captions,
+        updatedBy = meta.updatedBy,
+        updated = meta.updated,
+        created = meta.created,
+        createdBy = meta.createdBy,
+        modelReleased = meta.modelReleased,
+        editorNotes = meta.editorNotes
       )
     }
   }

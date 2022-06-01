@@ -24,6 +24,7 @@ import java.lang.Math.max
 import java.util.Date
 import javax.imageio.ImageIO
 import scala.util.{Failure, Random, Success, Try}
+import cats.implicits._
 
 trait WriteService {
   this: ConverterService
@@ -61,12 +62,12 @@ trait WriteService {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
           val metaDeleted  = imageRepository.delete(imageId)
-          val fileDeleted  = imageStorage.deleteObject(toDelete.imageUrl)
+          val filesDeleted = toDelete.images.traverse(image => imageStorage.deleteObject(image.fileName))
           val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
           if (metaDeleted < 1) {
             Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-          } else if (fileDeleted.isFailure) {
+          } else if (filesDeleted.isFailure) {
             Failure(new ImageStorageException("Something went wrong when deleting image file from storage."))
           } else {
             indexDeleted match {
@@ -85,16 +86,24 @@ trait WriteService {
         case _                       =>
       }
 
-      val domainImage = uploadImage(file).flatMap(uploadedImage =>
+      val domainImage = uploadImage(file, newImage.language).flatMap(uploadedImage =>
         converterService.asDomainImageMetaInformationV2(newImage, uploadedImage)
       ) match {
         case Failure(e)     => return Failure(e)
         case Success(image) => image
       }
 
+      val deleteUploadedImages = (reason: Throwable) => {
+        logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
+        domainImage.images.traverse(image => {
+          val x = imageStorage.deleteObject(image.fileName)
+          x
+        })
+      }
+
       validationService.validate(domainImage, None) match {
         case Failure(e) =>
-          imageStorage.deleteObject(domainImage.imageUrl)
+          deleteUploadedImages(e)
           return Failure(e)
         case _ =>
       }
@@ -102,14 +111,14 @@ trait WriteService {
       val imageMeta = Try(imageRepository.insert(domainImage)) match {
         case Success(meta) => meta
         case Failure(e) =>
-          imageStorage.deleteObject(domainImage.imageUrl)
+          deleteUploadedImages(e)
           return Failure(e)
       }
 
       imageIndexService.indexDocument(imageMeta) match {
         case Success(_) =>
         case Failure(e) =>
-          imageStorage.deleteObject(domainImage.imageUrl)
+          deleteUploadedImages(e)
           imageRepository.delete(imageMeta.id.get)
           return Failure(e)
       }
@@ -117,7 +126,7 @@ trait WriteService {
       tagIndexService.indexDocument(imageMeta) match {
         case Success(_) => Success(imageMeta)
         case Failure(e) =>
-          imageStorage.deleteObject(domainImage.imageUrl)
+          deleteUploadedImages(e)
           imageIndexService.deleteDocument(imageMeta.id.get)
           tagIndexService.deleteDocument(imageMeta.id.get)
           imageRepository.delete(imageMeta.id.get)
@@ -189,23 +198,29 @@ trait WriteService {
       for {
         validated <- validationService.validate(image, oldImage)
         updated = imageRepository.update(validated, imageId)
+        lang    = language.getOrElse(DefaultLanguage).some
         indexed       <- imageIndexService.indexDocument(updated)
         indexedByTags <- tagIndexService.indexDocument(indexed)
-      } yield converterService.asApiImageMetaInformationWithDomainUrlV2(
-        indexedByTags,
-        Some(language.getOrElse(DefaultLanguage))
-      )
+        converted     <- converterService.asApiImageMetaInformationWithDomainUrlV2(indexedByTags, lang)
+      } yield converted
     }
 
-    private def overwriteImage(newFile: FileItem, oldImage: ImageMetaInformation): Try[ImageMetaInformation] = {
-      for {
-        uploaded <- uploadImage(newFile)
-        _ <- imageStorage.cloneObject(
-          uploaded.fileName,
-          oldImage.imageUrl
-        ) // Overwrite old image with new one to make sure direct-urls are updated
-      } yield converterService.withNewImage(oldImage, uploaded)
-    }
+    private def overwriteImage(
+        newFile: FileItem,
+        oldImage: ImageMetaInformation,
+        language: String
+    ): Try[ImageMetaInformation] =
+      uploadImage(newFile, language).flatMap(uploadedImage => {
+        val imageForLang = oldImage.images.find(_.language == language)
+        imageForLang match {
+          case None => Success(converterService.withNewImage(oldImage, uploadedImage, language))
+          case Some(existingImage) =>
+            val clonedImage = uploadedImage.copy(fileName = existingImage.fileName)
+            imageStorage
+              .cloneObject(uploadedImage.fileName, existingImage.fileName)
+              .map(_ => converterService.withNewImage(oldImage, clonedImage, language))
+        }
+      })
 
     def updateImage(
         imageId: Long,
@@ -219,7 +234,7 @@ trait WriteService {
             case Some(file) =>
               validationService.validateImageFile(file) match {
                 case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
-                case _                       => overwriteImage(file, oldImage)
+                case _                       => overwriteImage(file, oldImage, updateMeta.language)
               }
             case _ => Success(oldImage)
           }
@@ -243,7 +258,7 @@ trait WriteService {
       }
     }
 
-    private def uploadImageWithName(file: FileItem, fileName: String): Try[Image] = {
+    private def uploadImageWithName(file: FileItem, fileName: String, language: String): Try[Image] = {
       val contentType = file.getContentType.getOrElse("")
       val bytes       = file.get()
       val image       = Try(Option(ImageIO.read(new ByteArrayInputStream(bytes))))
@@ -266,14 +281,14 @@ trait WriteService {
       imageStorage
         .uploadFromStream(new ByteArrayInputStream(bytes), fileName, contentType, file.size)
         .map(filePath => {
-          Image(filePath, file.size, contentType, dimensions)
+          Image(filePath, file.size, contentType, dimensions, language)
         })
     }
 
-    private[service] def uploadImage(file: FileItem): Try[Image] = {
+    private[service] def uploadImage(file: FileItem, language: String): Try[Image] = {
       val extension = getFileExtension(file.name).getOrElse("")
       val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
-      uploadImageWithName(file, fileName)
+      uploadImageWithName(file, fileName, language)
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {

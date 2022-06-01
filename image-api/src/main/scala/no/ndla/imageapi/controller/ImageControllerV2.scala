@@ -33,7 +33,7 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
-import org.scalatra.{NoContent, NotFound, Ok}
+import org.scalatra.{Delete, Get, Head, NoContent, NotFound, Ok, Options, Patch, Post, Put, Route, RouteTransformer}
 
 import scala.util.{Failure, Success}
 
@@ -131,10 +131,13 @@ trait ImageControllerV2 {
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
+
     private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
       headerParam[T](param.paramName).description(param.description)
+
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
+
     private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
       val className = manifest[T].runtimeClass.getSimpleName
       val modelOpt  = models.get(className)
@@ -147,6 +150,7 @@ trait ImageControllerV2 {
           formParam[T](param.paramName).description(param.description)
       }
     }
+
     private def asFileParam(param: Param[_]) =
       Parameter(
         name = param.paramName,
@@ -340,12 +344,13 @@ trait ImageControllerV2 {
       val language = paramOrNone(this.language.paramName)
 
       readService.withId(imageId, language) match {
-        case Some(image) => image
-        case None =>
+        case Success(Some(image)) => image
+        case Success(None) =>
           halt(
             status = 404,
             body = Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found")
           )
+        case Failure(ex) => errorHandler(ex)
       }
     }
 
@@ -547,6 +552,9 @@ trait ImageControllerV2 {
       }
 
     }
+    // TODO: getV3("/:image_id") {
+    //         // ... do stuff
+    //        }
 
   }
 

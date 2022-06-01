@@ -14,15 +14,22 @@ import javax.servlet.http.HttpServletRequest
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.{ImageConverter, ImageStorageService}
+import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
+import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.Ok
+import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
-  this: ImageStorageService with ImageConverter with ImageRepository with ErrorHelpers with NdlaController with Props =>
+  this: ImageStorageService
+    with ImageConverter
+    with ImageRepository
+    with ErrorHelpers
+    with NdlaController
+    with Props
+    with ReadService =>
   val rawController: RawController
 
   class RawController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -96,25 +103,25 @@ trait RawController {
           .description("Fetches a image with options to resize and crop")
           .produces(ValidMimeTypes :+ "application/octet-stream": _*)
           .parameters(
-            List[Parameter](pathParam[String]("image_id").description("The ID of the image"))
+            List[Parameter](
+              pathParam[String]("image_id").description("The ID of the image"),
+              queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language.")
+            )
               ++ getImageParams: _*
           )
           .responseMessages(response404, response500)
       )
     ) {
-      val imageId = long("image_id")
-      imageRepository.withId(imageId) match {
-        case Some(imageMeta) =>
-          val imageName = Uri
-            .parse(imageMeta.imageUrl)
-            .toStringRaw
-            .dropWhile(_ == '/') // Strip heading '/'
+      val imageId  = long("image_id")
+      val language = paramOrNone("language")
 
-          getRawImage(imageName) match {
+      readService.getImageFileName(imageId, language) match {
+        case Some(fileName) =>
+          getRawImage(fileName) match {
             case Failure(ex)  => errorHandler(ex)
             case Success(img) => Ok(img)
           }
-        case None => halt(status = 404, body = Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId not found"))
+        case None => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId not found"))
       }
     }
 

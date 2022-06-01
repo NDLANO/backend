@@ -14,15 +14,18 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
 import no.ndla.imageapi.model.domain.{ImageMetaInformation, SearchResult}
-import no.ndla.imageapi.model.api
-import no.ndla.imageapi.model.domain
-import no.ndla.imageapi.model.search.{SearchableImage, SearchableTag}
+import no.ndla.imageapi.model.{ImageConversionException, api, domain}
+import no.ndla.imageapi.model.search.{SearchableImage, SearchableImageFile, SearchableTag}
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.language.Language
+import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import cats.implicits._
+
+import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
   this: ConverterService with Role with Props =>
@@ -39,6 +42,19 @@ trait SearchConverterService {
           )
         )
       )
+
+    def asSearchableImageFiles(images: Seq[domain.Image]): Seq[SearchableImageFile] = {
+      images.map(i => {
+        SearchableImageFile(
+          imageSize = i.size,
+          previewUrl = parse("/" + i.fileName.dropWhile(_ == '/')).toString,
+          fileSize = i.size,
+          contentType = i.contentType,
+          dimensions = i.dimensions,
+          language = i.language
+        )
+      })
+    }
 
     def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
       val imageWithAgreement = converterService.withAgreementCopyright(image)
@@ -64,19 +80,25 @@ trait SearchConverterService {
         contributors = image.copyright.creators.map(c => c.name) ++ image.copyright.processors
           .map(p => p.name) ++ image.copyright.rightsholders.map(r => r.name),
         license = imageWithAgreement.copyright.license,
-        imageSize = imageWithAgreement.size,
-        previewUrl = parse("/" + imageWithAgreement.imageUrl.dropWhile(_ == '/')).toString,
         lastUpdated = imageWithAgreement.updated,
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),
-        fileSize = image.size,
-        contentType = image.contentType,
-        imageDimensions = image.imageDimensions
+        imageFiles = asSearchableImageFiles(image.images)
       )
     }
 
-    def asImageMetaSummary(searchableImage: SearchableImage, language: String): ImageMetaSummary = {
+    private def getSearchableImageFileFromSearchableImage(
+        meta: SearchableImage,
+        language: Option[String]
+    ): Try[SearchableImageFile] = {
+      findByLanguageOrBestEffort(meta.imageFiles, language) match {
+        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case Some(image) => Success(image)
+      }
+    }
+
+    def asImageMetaSummary(searchableImage: SearchableImage, language: String): Try[ImageMetaSummary] = {
       val apiToRawRegex = "/v\\d+/images/".r
       val title = Language
         .findByLanguageOrBestEffort(searchableImage.titles.languageValues, Some(language))
@@ -100,25 +122,27 @@ trait SearchConverterService {
 
       val editorNotes = Option.when(authRole.userHasWriteRole())(searchableImage.editorNotes)
 
-      ImageMetaSummary(
-        id = searchableImage.id.toString,
-        title = title,
-        contributors = searchableImage.contributors,
-        altText = altText,
-        caption = caption,
-        previewUrl = apiToRawRegex.replaceFirstIn(ApplicationUrl.get, "/raw") + searchableImage.previewUrl,
-        metaUrl = ApplicationUrl.get + searchableImage.id,
-        license = searchableImage.license,
-        supportedLanguages = supportedLanguages,
-        modelRelease = searchableImage.modelReleased,
-        editorNotes = editorNotes,
-        lastUpdated = searchableImage.lastUpdated,
-        fileSize = searchableImage.fileSize,
-        contentType = searchableImage.contentType,
-        imageDimensions = searchableImage.imageDimensions.map { case domain.ImageDimensions(width, height) =>
-          api.ImageDimensions(width, height)
-        }
-      )
+      getSearchableImageFileFromSearchableImage(searchableImage, language.some).map(imageFile => {
+        ImageMetaSummary(
+          id = searchableImage.id.toString,
+          title = title,
+          contributors = searchableImage.contributors,
+          altText = altText,
+          caption = caption,
+          previewUrl = apiToRawRegex.replaceFirstIn(ApplicationUrl.get, "/raw") + imageFile.previewUrl,
+          metaUrl = ApplicationUrl.get + searchableImage.id,
+          license = searchableImage.license,
+          supportedLanguages = supportedLanguages,
+          modelRelease = searchableImage.modelReleased,
+          editorNotes = editorNotes,
+          lastUpdated = searchableImage.lastUpdated,
+          fileSize = imageFile.fileSize,
+          contentType = imageFile.contentType,
+          imageDimensions = imageFile.dimensions.map { case domain.ImageDimensions(width, height) =>
+            api.ImageDimensions(width, height)
+          }
+        )
+      })
     }
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {

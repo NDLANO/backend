@@ -56,22 +56,19 @@ object Language {
     (toKeep ++ updated).filterNot(_.isEmpty)
   }
 
-  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: Option[String]): Option[P] = {
+  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: Option[String]): Option[P] =
     language match {
       case Some(l) => findByLanguageOrBestEffort(sequence, l)
-      case None    => sequence.sorted.headOption
+      case None    => sortByLanguagePriority(sequence).headOption
     }
-  }
 
-  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: String): Option[P] = {
+  def sortByLanguagePriority[P <: WithLanguage](sequence: Seq[P]): Seq[P] =
+    sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).reverse
+
+  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: String): Option[P] =
     sequence
       .find(_.language == language)
-      .orElse(
-        sequence
-          .sortBy(lf => languagePriority.reverse.indexOf(lf.language))
-          .lastOption
-      )
-  }
+      .orElse(sortByLanguagePriority(sequence).headOption)
 
   def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
     sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>

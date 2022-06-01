@@ -17,6 +17,8 @@ import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
+import scala.util.Try
+
 trait ImageRepository {
   this: DataSource with ConverterService with DBImageMetaInformation =>
   val imageRepository: ImageRepository
@@ -126,13 +128,17 @@ trait ImageRepository {
 
     private def escapeSQLWildcards(str: String): String = str.replace("%", "\\%")
 
-    def getImageFromFilePath(filePath: String)(implicit session: DBSession = ReadOnlyAutoSession) = {
+    def getImageFromFilePath(
+        filePath: String
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
       val wildcardMatch = s"%${escapeSQLWildcards(filePath.dropWhile(_ == '/'))}"
       val im            = DBImageMetaInformation.syntax("im")
+      // TODO: This is slow, move images to separate table maybe?
       sql"""
             select ${im.result.*}
-            from ${DBImageMetaInformation.as(im)}
-            where metadata->>'imageUrl' like $wildcardMatch
+            from ${DBImageMetaInformation.as(im)},
+            jsonb_array_elements(metadata->'images') as value
+            where value->>'fileName' like $wildcardMatch
             limit 1;
         """
         .map(DBImageMetaInformation.fromResultSet(im))

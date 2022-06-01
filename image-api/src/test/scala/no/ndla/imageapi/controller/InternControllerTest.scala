@@ -57,22 +57,19 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   )
 
   val DefaultDomainImageMetaInformation = domain.ImageMetaInformation(
-    Some(1),
-    List(),
-    List(),
-    "test.jpg",
-    0,
-    "",
-    domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    id = Some(1),
+    titles = List(),
+    alttexts = List(),
+    images = Seq(domain.Image(fileName = "test.jpg", size = 0, contentType = "", dimensions = None, language = "und")),
+    copyright = domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeEach() = {

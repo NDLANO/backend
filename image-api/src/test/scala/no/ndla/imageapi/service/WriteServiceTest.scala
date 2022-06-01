@@ -42,25 +42,27 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
   val domainImageMeta =
-    converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None)).get
+    converterService
+      .asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None, "nb"))
+      .get
 
   val multiLangImage = domain.ImageMetaInformation(
-    Some(2),
-    List(domain.ImageTitle("nynorsk", "nn"), domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
-    List(),
-    "yolo.jpeg",
-    100,
-    "image/jpeg",
-    domain.Copyright("", "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated(),
-    updated(),
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    id = Some(2),
+    titles =
+      List(domain.ImageTitle("nynorsk", "nn"), domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
+    alttexts = List(),
+    images = Seq(
+      domain.Image(fileName = "yolo.jpeg", size = 100, contentType = "image/jpeg", dimensions = None, language = "nb")
+    ),
+    copyright = domain.Copyright("", "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated(),
+    created = updated(),
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -97,10 +99,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
-    val result = writeService.uploadImage(fileMock1)
+    val result = writeService.uploadImage(fileMock1, "nb")
     verify(imageStorage, times(1)).uploadFromStream(any[InputStream], any[String], any[String], any[Long])
 
-    result should equal(Success(Image(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)))))
+    result should equal(Success(Image(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb")))
   }
 
   test("uploadFile should return Failure if file upload failed") {
@@ -108,7 +110,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Failure(new RuntimeException))
 
-    writeService.uploadImage(fileMock1).isFailure should be(true)
+    writeService.uploadImage(fileMock1, "nb").isFailure should be(true)
   }
 
   test("storeNewImage should return Failure if upload failes") {
@@ -125,6 +127,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Failure(new ValidationException(errors = Seq())))
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
     verify(imageRepository, times(0)).insert(any[ImageMetaInformation])(any[DBSession])
@@ -138,6 +141,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
     when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession])).thenThrow(new RuntimeException)
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
@@ -150,6 +154,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
@@ -164,6 +169,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
@@ -204,7 +210,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(authUser.userOrClientid()).thenReturn("ndla54321")
     when(clock.now()).thenReturn(updated())
     val domain =
-      converterService.asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None)).get
+      converterService
+        .asDomainImageMetaInformationV2(newImageMeta, Image(newFileName, 1024, "image/jpeg", None, "nb"))
+        .get
     domain.updatedBy should equal("ndla54321")
     domain.updated should equal(updated())
   }
@@ -321,7 +329,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.deleteImageAndFiles(imageId)
 
-    verify(imageStorage, times(1)).deleteObject(domainImageMeta.imageUrl)
+    verify(imageStorage, times(1)).deleteObject(domainImageMeta.images.head.fileName)
     verify(imageIndexService, times(1)).deleteDocument(imageId)
     verify(tagIndexService, times(1)).deleteDocument(imageId)
     verify(imageRepository, times(1)).delete(eqTo(imageId))(any[DBSession])
@@ -388,9 +396,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.deleteImageLanguageVersion(imageId, "en")
 
-    verify(imageStorage, times(1)).deleteObject(image.imageUrl)
+    verify(imageStorage, times(1)).deleteObject(image.images.head.fileName)
     verify(imageIndexService, times(1)).deleteDocument(imageId)
     verify(tagIndexService, times(1)).deleteDocument(imageId)
     verify(imageRepository, times(1)).delete(eqTo(imageId))(any[DBSession])
+  }
+
+  test("That updating image file with multiple same filepaths does not override filepath") {
+    ???
   }
 }

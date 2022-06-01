@@ -34,9 +34,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That path to id conversion works as expected for id paths") {
-    val id            = 1234
-    val imageUrl      = "apekatt.jpg"
-    val expectedImage = TestData.bjorn.copy(id = Some(id), imageUrl = "/" + imageUrl)
+    val id                = 1234
+    val imageUrl          = "apekatt.jpg"
+    val expectedImageFile = TestData.bjorn.images.head.copy(fileName = "/" + imageUrl)
+    val expectedImage     = TestData.bjorn.copy(id = Some(id), images = Seq(expectedImageFile))
 
     when(imageRepository.withId(id)).thenReturn(Some(expectedImage))
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/id/$id") should be(Success(expectedImage))
@@ -74,13 +75,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""{"id":"1","metaUrl":"$testUrl","created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","title":{"title":"Elg i busk","language":"nb"},"alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
     val agreementElg = domain.ImageMetaInformation(
-      Some(1),
-      List(domain.ImageTitle("Elg i busk", "nb")),
-      List(domain.ImageAltText("Elg i busk", "nb")),
-      "Elg.jpg",
-      2865539,
-      "image/jpeg",
-      domain.Copyright(
+      id = Some(1),
+      titles = List(domain.ImageTitle("Elg i busk", "nb")),
+      alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        domain
+          .Image(fileName = "Elg.jpg", size = 2865539, contentType = "image/jpeg", dimensions = None, language = "nb")
+      ),
+      copyright = domain.Copyright(
         TestData.ByNcSa,
         "http://www.scanpix.no",
         List(domain.Author("Fotograf", "Test Testesen")),
@@ -90,20 +92,19 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       ),
-      List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
-      List(domain.ImageCaption("Elg i busk", "nb")),
-      "ndla124",
-      TestData.updated(),
-      TestData.updated(),
-      "ndla124",
-      ModelReleasedStatus.YES,
-      Seq.empty,
-      None
+      tags = List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
+      captions = List(domain.ImageCaption("Elg i busk", "nb")),
+      updatedBy = "ndla124",
+      updated = TestData.updated(),
+      created = TestData.updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
     val result = readService.withId(1, None)
-    result should be(Some(expectedObject))
+    result should be(Success(Some(expectedObject)))
   }
 
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
@@ -115,13 +116,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
     val agreementElg = domain.ImageMetaInformation(
-      Some(1),
-      List(domain.ImageTitle("Elg i busk", "nb")),
-      List(domain.ImageAltText("Elg i busk", "nb")),
-      "Elg.jpg",
-      2865539,
-      "image/jpeg",
-      domain.Copyright(
+      id = Some(1),
+      titles = List(domain.ImageTitle("Elg i busk", "nb")),
+      alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        domain
+          .Image(fileName = "Elg.jpg", size = 2865539, contentType = "image/jpeg", dimensions = None, language = "nb")
+      ),
+      copyright = domain.Copyright(
         TestData.ByNcSa,
         "http://www.scanpix.no",
         List(domain.Author("Fotograf", "Test Testesen")),
@@ -131,19 +133,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       ),
-      List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
-      List(domain.ImageCaption("Elg i busk", "nb")),
-      "ndla124",
-      TestData.updated(),
-      TestData.updated(),
-      "ndla124",
-      ModelReleasedStatus.YES,
-      Seq.empty,
-      None
+      tags = List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
+      captions = List(domain.ImageCaption("Elg i busk", "nb")),
+      updatedBy = "ndla124",
+      updated = TestData.updated(),
+      created = TestData.updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(agreementElg))
-    readService.withId(1, None) should be(Some(expectedObject))
+    readService.withId(1, None) should be(Success(Some(expectedObject)))
   }
 
   test("That path to raw conversion works with non-ascii characters in paths") {
@@ -151,7 +152,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val id            = 1234
     val imageUrl      = "Jordbær.jpg"
     val encodedPath   = "Jordb%C3%A6r.jpg"
-    val expectedImage = TestData.bjorn.copy(id = Some(id), imageUrl = imageUrl)
+    val expectedFile  = TestData.bjorn.images.head.copy(fileName = imageUrl)
+    val expectedImage = TestData.bjorn.copy(id = Some(id), images = Seq(expectedFile))
 
     doReturn(Some(expectedImage), Some(expectedImage))
       .when(imageRepository)
