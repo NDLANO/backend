@@ -231,4 +231,20 @@ class FolderRepositoryTest
     repository.getFolderResources(folder2.get.id.get).get.length should be(1)
   }
 
+  test("that resourcesWithFeideId works as expected") {
+    this.resetIdSequence()
+
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide2")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide3")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
+
+    val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
+    results.isSuccess should be(true)
+    results.get.length should be(2)
+    results.get.length should not be (4)
+  }
+
 }

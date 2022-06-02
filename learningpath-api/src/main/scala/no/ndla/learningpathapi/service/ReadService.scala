@@ -166,10 +166,10 @@ trait ReadService {
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 
-    def getAllResources(feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
+    def getAllResources(size: Int, feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
         feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
-        resources          <- folderRepository.resourcesWithFeideId(feideId)
+        resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
     }

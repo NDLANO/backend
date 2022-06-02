@@ -188,7 +188,9 @@ trait FolderRepository {
       })
     }
 
-    def resourcesWithFeideId(feideId: FeideID): Try[List[Resource]] = resourcesWhere(sqls"r.feide_id=$feideId")
+    def resourcesWithFeideId(feideId: FeideID, size: Int): Try[List[Resource]] = resourcesWhere(
+      sqls"r.feide_id=$feideId limit $size"
+    )
     def resourceWithPathAndFeideId(path: String, feideId: FeideID): Try[Option[Resource]] = {
       resourceWhere(sqls"document->>'path'=$path and feide_id=$feideId")
     }

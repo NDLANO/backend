@@ -56,7 +56,7 @@ trait FolderController {
 
     private val folderId   = Param[Long]("folder_id", "Id of the folder.")
     private val resourceId = Param[Long]("resource_id", "Id of the resource.")
-
+    private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
     private val excludeResources =
@@ -189,13 +189,19 @@ trait FolderController {
           .summary("Fetch all resources that belongs to a user")
           .description("Fetch all resources that belongs to a user")
           .parameters(
-            asHeaderParam(feideToken)
+            asHeaderParam(feideToken),
+            asQueryParam(size)
           )
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
     ) {
-      readService.getAllResources(requestFeideToken) match {
+      val defaultSize = 5
+      val size = intOrDefault("size", defaultSize) match {
+        case tooSmall if tooSmall < 1 => defaultSize
+        case x                        => x
+      }
+      readService.getAllResources(size, requestFeideToken) match {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
