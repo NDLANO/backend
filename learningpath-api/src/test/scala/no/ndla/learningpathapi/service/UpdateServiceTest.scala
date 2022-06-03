@@ -1471,7 +1471,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderWithChildren =
       emptyDomainFolder.copy(
         id = Some(id),
-        feideId = Some("FEIDE"),
+        feideId = "FEIDE",
         data = List(Left(emptyDomainFolder), Left(emptyDomainFolder), Right(emptyDomainResource))
       )
     val wrongFeideId = "nope"
@@ -1494,7 +1494,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = 1L
     val subFolder2Id = 2L
     val resourceId   = 1L
-    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = Some("FEIDE"), data = List.empty)
+    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
         data = List(
@@ -1533,7 +1533,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderWithChildren =
       emptyDomainFolder.copy(
         id = Some(mainFolderId),
-        feideId = Some("FEIDE"),
+        feideId = "FEIDE",
         isFavorite = true,
         data = List(
           Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
@@ -1566,7 +1566,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = 1L
     val subFolder2Id = 2L
     val resourceId   = 1L
-    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = Some("FEIDE"), data = List.empty)
+    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
         data = List(
@@ -1598,8 +1598,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = 42L
     val resourceId     = 13
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("FEIDE"))
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1620,8 +1620,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = 42L
     val resourceId     = 13
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("FEIDE"))
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1643,7 +1643,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = 42L
     val resourceId     = 13
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("asd"))
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "asd")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1663,8 +1663,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = 42L
     val resourceId     = 13
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = Some("FEIDE"))
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = Some("asd"))
+    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "asd")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1693,7 +1693,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource =
       domain.Resource(
         id = Some(resourceId),
-        feideId = Some(feideId),
+        feideId = feideId,
         path = resourcePath,
         resourceType = "",
         created = created,
@@ -1727,7 +1727,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource =
       domain.Resource(
         id = Some(resourceId),
-        feideId = Some(feideId),
+        feideId = feideId,
         path = resourcePath,
         resourceType = "",
         created = created,

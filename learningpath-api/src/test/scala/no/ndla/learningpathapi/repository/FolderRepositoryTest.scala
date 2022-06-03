@@ -182,7 +182,7 @@ class FolderRepositoryTest
   }
 
   test("that resourceWithPathAndFeideId works correctly") {
-    val resource1 = TestData.emptyDomainResource.copy(path = "pathernity test", feideId = Some("feide-1"))
+    val resource1 = TestData.emptyDomainResource.copy(path = "pathernity test", feideId = "feide-1")
 
     repository.insertResource(resource1)
     val correct = repository.resourceWithPathAndFeideId(path = "pathernity test", feideId = "feide-1")
@@ -202,10 +202,10 @@ class FolderRepositoryTest
     this.resetIdSequence()
     val data = TestData.emptyDomainFolder
 
-    repository.insertFolder(data.copy(parentId = None, feideId = Some("feide")))
-    repository.insertFolder(data.copy(parentId = None, feideId = Some("feide")))
-    repository.insertFolder(data.copy(parentId = Some(1), feideId = Some("feide")))
-    repository.insertFolder(data.copy(parentId = Some(2), feideId = Some("feide")))
+    repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(1), feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(2), feideId = "feide"))
 
     repository.foldersWithFeideAndParentID(None, "feide").get.length should be(2)
     repository.foldersWithFeideAndParentID(Some(1), "feide").get.length should be(1)
@@ -216,8 +216,8 @@ class FolderRepositoryTest
     this.resetIdSequence()
     val folderData = TestData.emptyDomainFolder
 
-    val folder1   = repository.insertFolder(folderData.copy(parentId = None, feideId = Some("feide")))
-    val folder2   = repository.insertFolder(folderData.copy(parentId = Some(1), feideId = Some("feide")))
+    val folder1   = repository.insertFolder(folderData.copy(parentId = None, feideId = "feide"))
+    val folder2   = repository.insertFolder(folderData.copy(parentId = Some(1), feideId = "feide"))
     val resource1 = repository.insertResource(TestData.emptyDomainResource)
     val resource2 = repository.insertResource(TestData.emptyDomainResource)
     val resource3 = repository.insertResource(TestData.emptyDomainResource)
@@ -234,12 +234,12 @@ class FolderRepositoryTest
   test("that resourcesWithFeideId works as expected") {
     this.resetIdSequence()
 
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide2")))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide3")))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = Some("feide1")))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide2"))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide3"))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
+    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
 
     val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
     results.isSuccess should be(true)

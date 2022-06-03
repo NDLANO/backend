@@ -104,7 +104,7 @@ object TestData {
 
   val emptyDomainResource: domain.Resource = domain.Resource(
     id = None,
-    feideId = None,
+    feideId = "",
     resourceType = "",
     path = "",
     created = today,
@@ -113,10 +113,11 @@ object TestData {
 
   val emptyDomainFolder: domain.Folder = domain.Folder(
     id = None,
-    feideId = None,
+    feideId = "",
     parentId = None,
     name = "",
     status = domain.FolderStatus.PRIVATE,
+    isFavorite = false,
     data = List.empty
   )
 

@@ -323,33 +323,37 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val created = clock.now()
     val mainFolder = domain.Folder(
       id = Some(1),
-      feideId = Some("FEIDE"),
+      feideId = "FEIDE",
+      parentId = None,
       name = "mainFolder",
       status = FolderStatus.PRIVATE,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder1 = domain.Folder(
       id = Some(2),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder2 = domain.Folder(
       id = Some(3),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
+      isFavorite = false,
       data = List.empty
     )
 
     val resource1 = domain.Resource(
       id = Some(13),
-      feideId = None,
+      feideId = "",
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
       created = created,
@@ -393,33 +397,37 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val created = clock.now()
     val mainFolder = domain.Folder(
       id = Some(1),
-      feideId = Some("FEIDE"),
+      feideId = "FEIDE",
+      parentId = None,
       name = "mainFolder",
       status = FolderStatus.PUBLIC,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder1 = domain.Folder(
       id = Some(2),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder2 = domain.Folder(
       id = Some(3),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
+      isFavorite = false,
       data = List.empty
     )
 
     val resource1 = domain.Resource(
       id = Some(13),
-      feideId = None,
+      feideId = "",
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
       created = created,
@@ -462,27 +470,31 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That setting excludeResources to true returns only folder and subFolders") {
     val mainFolder = domain.Folder(
       id = Some(1),
-      feideId = Some("FEIDE"),
+      feideId = "FEIDE",
+      parentId = None,
       name = "mainFolder",
       status = FolderStatus.PRIVATE,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder1 = domain.Folder(
       id = Some(2),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
+      isFavorite = false,
       data = List.empty
     )
 
     val subFolder2 = domain.Folder(
       id = Some(3),
-      feideId = None,
+      feideId = "",
       parentId = Some(1),
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
+      isFavorite = false,
       data = List.empty
     )
 

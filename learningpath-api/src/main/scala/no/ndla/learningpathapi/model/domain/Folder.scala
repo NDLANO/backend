@@ -17,14 +17,21 @@ import scalikejdbc._
 
 import java.util.Date
 
+class ResourceDocument(path: String, resourceType: String, tags: List[String], created: Date) {
+  def toFullResource(id: Option[Long], feideId: String): Resource = {
+    Resource(id = id, feideId = feideId, path = path, resourceType = resourceType, tags = tags, created = created)
+  }
+}
+
 case class Resource(
     id: Option[Long],
-    feideId: Option[FeideID],
+    feideId: FeideID,
+    created: Date,
     path: String,
     resourceType: String,
-    created: Date,
     tags: List[String]
-) extends Content
+) extends ResourceDocument(path = path, resourceType = resourceType, tags = tags, created = created)
+    with Content
 
 trait DBResource {
   this: Props =>
@@ -34,7 +41,10 @@ trait DBResource {
     override val tableName       = "resources"
     lazy override val schemaName = Some(props.MetaSchema)
 
-    val JSonSerializer = FieldSerializer[Resource](ignore("id") orElse ignore("feideId"))
+    val JSonSerializer = FieldSerializer[Resource](
+      ignore("id") orElse
+        ignore("feideId")
+    )
 
     def fromResultSetOpt(ls: ResultName[Resource])(rs: WrappedResultSet): Option[Resource] =
       rs.longOpt(ls.c("id")).map(_ => fromResultSet(ls)(rs))
@@ -46,27 +56,36 @@ trait DBResource {
       fromResultSetOpt(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Resource = {
-      val metaData = read[Resource](rs.string(lp.c("document")))
+      val metaData = read[ResourceDocument](rs.string(lp.c("document")))
+      val id       = rs.longOpt(lp.c("id"))
+      val feideId  = rs.string(lp.c("feide_id"))
 
-      Resource(
-        id = Some(rs.long(lp.c("id"))),
-        feideId = Some(rs.string(lp.c("feide_id"))),
-        path = metaData.path,
-        resourceType = metaData.resourceType,
-        created = metaData.created,
-        tags = metaData.tags
-      )
+      metaData.toFullResource(id, feideId)
     }
+  }
+}
+
+class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value, data: List[FolderData]) {
+  def toFullFolder(id: Option[Long], feideId: FeideID, parentId: Option[Long]): Folder = {
+    Folder(
+      id = id,
+      feideId = feideId,
+      parentId = parentId,
+      name = name,
+      status = status,
+      isFavorite = isFavorite,
+      data = data
+    )
   }
 }
 
 case class Folder(
     id: Option[Long],
-    feideId: Option[FeideID],
-    parentId: Option[Long] = None,
+    feideId: FeideID,
+    parentId: Option[Long],
     name: String,
-    status: FolderStatus.Value = FolderStatus.PRIVATE,
-    isFavorite: Boolean = false,
+    status: FolderStatus.Value,
+    isFavorite: Boolean,
     data: List[FolderData]
 ) extends FolderContent
 
@@ -91,17 +110,12 @@ trait DBFolder {
       fromResultSet(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[Folder])(rs: WrappedResultSet): Folder = {
-      val metaData = read[Folder](rs.string(lp.c("document")))
+      val metaData = read[FolderDocument](rs.string(lp.c("document")))
+      val id       = rs.longOpt(lp.c("id"))
+      val feideId  = rs.string(lp.c("feide_id"))
+      val parentId = rs.longOpt(lp.c("parent_id"))
 
-      Folder(
-        id = Some(rs.long(lp.c("id"))),
-        feideId = Some(rs.string(lp.c("feide_id"))),
-        parentId = rs.longOpt(lp.c("parent_id")),
-        isFavorite = metaData.isFavorite,
-        name = metaData.name,
-        status = metaData.status,
-        data = List.empty
-      )
+      metaData.toFullFolder(id, feideId, parentId)
     }
   }
 }

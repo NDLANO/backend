@@ -673,14 +673,16 @@ trait ConverterService {
     }
 
     def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): domain.Folder = {
-      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newFavorite = false
 
       domain.Folder(
         id = None,
-        feideId = Some(feideId),
+        feideId = feideId,
         parentId = newFolder.parentId,
         name = newFolder.name,
         status = newStatus,
+        isFavorite = newFavorite,
         data = List.empty
       )
     }
@@ -789,7 +791,7 @@ trait ConverterService {
 
       domain.Resource(
         id = None,
-        feideId = Some(feideId),
+        feideId = feideId,
         resourceType = resourceType,
         path = path,
         created = clock.now(),

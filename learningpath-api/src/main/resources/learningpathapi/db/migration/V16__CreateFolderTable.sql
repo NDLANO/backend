@@ -8,6 +8,7 @@ CREATE TABLE folders (
 CREATE TABLE resources (
     id BIGSERIAL PRIMARY KEY,
     feide_id TEXT,
+    created TIMESTAMP,
     document JSONB
 );
 

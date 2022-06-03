@@ -25,9 +25,7 @@ trait FolderRepository {
   class FolderRepository extends LazyLogging {
     implicit val formats: Formats = DBFolder.repositorySerializer + DBResource.JSonSerializer
 
-    def insertFolder(folder: Folder)(implicit
-        session: DBSession = AutoSession
-    ): Try[Folder] = {
+    def insertFolder(folder: Folder)(implicit session: DBSession = AutoSession): Try[Folder] = {
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
@@ -40,15 +38,11 @@ trait FolderRepository {
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new folder with id: $folderId")
-        folder.copy(
-          id = Some(folderId)
-        )
+        folder.copy(id = Some(folderId))
       }
     }
 
-    def insertResource(resource: Resource)(implicit
-        session: DBSession = AutoSession
-    ): Try[Resource] = {
+    def insertResource(resource: Resource)(implicit session: DBSession = AutoSession): Try[Resource] = {
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
@@ -56,7 +50,7 @@ trait FolderRepository {
 
         val resourceId: Long =
           sql"""
-        insert into ${DBResource.table} (feide_id, document) values (${resource.feideId}, $dataObject)
+        insert into ${DBResource.table} (feide_id, created, document) values (${resource.feideId}, ${resource.created}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
         logger.info(s"Inserted new resource with id: $resourceId")

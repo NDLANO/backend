@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
 
 trait Content {
   def id: Option[Long]
-  def feideId: Option[FeideID]
+  def feideId: FeideID
 
   def doIfIdExists[T](func: Long => T): Try[T] = {
     this.id match {
@@ -29,11 +29,8 @@ trait Content {
   }
 
   def isOwner(feideId: FeideID): Try[Content] = {
-    this.feideId match {
-      case None => Failure(MissingIdException("Entity did not have feide_id when expected. This is a bug."))
-      case Some(id) if id != feideId => Failure(AccessDeniedException("You do not have access to this entity."))
-      case Some(_)                   => Success(this)
-    }
+    if (this.feideId == feideId) Success(this)
+    else Failure(AccessDeniedException("You do not have access to this entity."))
   }
 
 }

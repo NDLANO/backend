@@ -203,7 +203,7 @@ trait ReadService {
     ): Try[domain.Folder] = {
       val favoriteFolder = domain.Folder(
         id = None,
-        feideId = Some(feideId),
+        feideId = feideId,
         parentId = None,
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
