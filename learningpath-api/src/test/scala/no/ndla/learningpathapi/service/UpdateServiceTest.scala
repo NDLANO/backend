@@ -1715,7 +1715,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).updateResource(any, any)(any[DBSession])
   }
 
-  test("that createNewResourceOrUpdateExisting updates a resource if the resource already exist") {
+  test(
+    "that createNewResourceOrUpdateExisting updates a resource and creates new connection if the resource already exist"
+  ) {
     val created = new Date()
     when(clock.now()).thenReturn(created)
 
@@ -1737,14 +1739,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndFeideId(any, any)).thenReturn(Success(Some(resource)))
     when(folderRepository.updateResource(resourceId, resource)).thenReturn(Success(resource))
+    when(folderRepository.createFolderResourceConnection(any, any)(any[DBSession])).thenReturn(Success(()))
 
     service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndFeideId(eqTo(resourcePath), eqTo(feideId))
     verify(converterService, times(0)).toDomainResource(eqTo(newResource), eqTo(feideId))
     verify(folderRepository, times(0)).insertResource(eqTo(resource.copy(id = None)))(any[DBSession])
-    verify(folderRepository, times(0)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
     verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resourceId), eqTo(resource))(any[DBSession])
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
   }
 }

@@ -467,7 +467,11 @@ trait UpdateService {
             } yield ()
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)
-            mergedResource.doFlatIfIdExists(resourceId => folderRepository.updateResource(resourceId, mergedResource))
+            for {
+              resourceId <- mergedResource.doIfIdExists(id => id)
+              _          <- folderRepository.updateResource(resourceId, mergedResource)
+              _          <- folderRepository.createFolderResourceConnection(folderId, resourceId)
+            } yield ()
         }
     }
 

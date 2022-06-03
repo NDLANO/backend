@@ -175,24 +175,24 @@ trait ReadService {
     }
 
     private def getFolderResources(
-        parentId: Long,
-        excludeResources: Boolean
+        id: Long,
+        includeResources: Boolean
     ): Try[List[FolderData]] = {
-      if (excludeResources)
-        Success(List.empty)
+      if (includeResources)
+        folderRepository.getFolderResources(id).map(_.map(_.asRight))
       else
-        folderRepository.getFolderResources(parentId).map(_.map(_.asRight))
+        Success(List.empty)
     }
 
     private[service] def getSubFoldersRecursively(
         folder: domain.Folder,
-        excludeResources: Boolean
+        includeResources: Boolean
     ): Try[domain.Folder] = {
       folder.doFlatIfIdExists(id =>
         for {
           directSubfolders <- folderRepository.foldersWithParentID(parentId = Some(id))
-          folderResources  <- getFolderResources(id, excludeResources)
-          subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, excludeResources))
+          folderResources  <- getFolderResources(id, includeResources)
+          subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, includeResources))
           combined = folderResources ++ subFolders.map(_.asLeft)
         } yield folder.copy(data = combined)
       )
@@ -215,26 +215,62 @@ trait ReadService {
 
     def getFolder(
         id: Long,
-        excludeResources: Boolean,
+        includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
         feideId              <- feideApiClient.getUserFeideID(feideAccessToken)
         mainFolder           <- folderRepository.folderWithId(id)
         _                    <- mainFolder.hasReadAccess(feideId)
-        folderWithSubfolders <- getSubFoldersRecursively(mainFolder, excludeResources)
+        folderWithSubfolders <- getSubFoldersRecursively(mainFolder, includeResources)
         converted            <- converterService.toApiFolder(folderWithSubfolders)
       } yield converted
     }
 
-    def getFolders(feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Folder]] = {
+    private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
+      val maybeFavorite = folders.find(_.isFavorite)
       for {
-        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
-        folders <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-        maybeFavorite = folders.find(_.isFavorite)
         favorite <- if (maybeFavorite.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
         combined = favorite.toList ++ folders
-        apiFolders <- converterService.domainToApiModel(combined, converterService.toApiFolder)
+      } yield combined
+    }
+
+    private[service] def injectResourcesToFolders(
+        folders: List[domain.Folder],
+        includeResources: Boolean
+    ): Try[List[domain.Folder]] = {
+      folders.traverse(folder => {
+        for {
+          id              <- folder.doIfIdExists(id => id)
+          folderResources <- getFolderResources(id, includeResources)
+        } yield folder.copy(data = folderResources)
+      })
+    }
+
+    private def getSubfolders(
+        folders: List[domain.Folder],
+        includeSubfolders: Boolean,
+        includeResources: Boolean
+    ): Try[List[domain.Folder]] = {
+      if (includeSubfolders)
+        folders.traverse(folder => getSubFoldersRecursively(folder, includeResources))
+      else {
+        // getSubFoldersRecursively already injects resources into folders, this prevents double-up
+        injectResourcesToFolders(folders, includeResources)
+      }
+    }
+
+    def getFolders(
+        includeSubfolders: Boolean,
+        includeResources: Boolean,
+        feideAccessToken: Option[FeideAccessToken] = None
+    ): Try[List[api.Folder]] = {
+      for {
+        feideId      <- feideApiClient.getUserFeideID(feideAccessToken)
+        topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
+        withFavorite <- mergeWithFavorite(topFolders, feideId)
+        withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
+        apiFolders   <- converterService.domainToApiModel(withData, converterService.toApiFolder)
       } yield apiFolders
     }
   }

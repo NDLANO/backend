@@ -201,14 +201,14 @@ trait FolderRepository {
       foldersWhere(sqls"f.parent_id=$parentId")
 
     def getFolderResources(
-        folder_id: Long
+        folderId: Long
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
       val fr = DBFolderResource.syntax("fr")
       val r  = DBResource.syntax("r")
       sql"""select ${r.result.*} from ${DBFolderResource.as(fr)}
             left join ${DBResource.as(r)}
                 on fr.resource_id = r.id
-            where fr.folder_id = ${folder_id};
+            where fr.folder_id = ${folderId};
            """
         .map(DBResource.fromResultSet(r))
         .list()

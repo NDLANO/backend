@@ -59,8 +59,10 @@ trait FolderController {
     private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
-    private val excludeResources =
-      Param[Option[Boolean]]("exclude-resources", "Choose if resources should be omitted in the response")
+    private val includeResources =
+      Param[Option[Boolean]]("include-resources", "Choose if resources should be included in the response")
+    private val includeSubfolders =
+      Param[Option[Boolean]]("include-subfolders", "Choose if sub-folders should be included in the response")
 
     private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
       headerParam[T](param.paramName).description(param.description)
@@ -88,7 +90,9 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      readService.getFolders(requestFeideToken) match {
+      val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
+      val includeResources  = booleanOrDefault(this.includeResources.paramName, default = false)
+      readService.getFolders(includeSubfolders, includeResources, requestFeideToken) match {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
@@ -103,15 +107,15 @@ trait FolderController {
           .parameters(
             asHeaderParam(feideToken),
             asPathParam(folderId),
-            asQueryParam(excludeResources)
+            asQueryParam(includeResources)
           )
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
     ) {
       val id               = long(this.folderId.paramName)
-      val excludeResources = booleanOrDefault(this.excludeResources.paramName, default = false)
-      readService.getFolder(id, excludeResources, requestFeideToken) match {
+      val includeResources = booleanOrDefault(this.includeResources.paramName, default = false)
+      readService.getFolder(id, includeResources, requestFeideToken) match {
         case Failure(ex)     => errorHandler(ex)
         case Success(folder) => folder
       }
