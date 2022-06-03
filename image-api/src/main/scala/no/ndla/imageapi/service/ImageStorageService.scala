@@ -17,14 +17,13 @@ import javax.imageio.ImageIO
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.AmazonClient
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.model.domain.{Image, ImageStream}
+import no.ndla.imageapi.model.domain.{DBImageFile, ImageStream}
 import org.apache.commons.io.IOUtils
-import scalaj.http.HttpRequest
 
 import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
-  this: AmazonClient with ReadService with Props =>
+  this: AmazonClient with ReadService with Props with DBImageFile =>
   val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends LazyLogging {
@@ -72,9 +71,6 @@ trait ImageStorageService {
         case Failure(_) => Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
       }
     }
-
-    def uploadFromUrl(image: Image, storageKey: String, request: HttpRequest): Try[String] =
-      request.execute(stream => uploadFromStream(stream, storageKey, image.contentType, image.size)).body
 
     def uploadFromStream(stream: InputStream, storageKey: String, contentType: String, size: Long): Try[String] = {
       val metadata = new ObjectMetadata()

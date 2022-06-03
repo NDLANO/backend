@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.imageapi.TestData.searchSettings
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -28,6 +27,7 @@ class ImageSearchServiceTest
     with TestEnvironment
     with PrivateMethodTester {
   import props.{DefaultPageSize, MaxPageSize}
+  import TestData.searchSettings
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -46,8 +46,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = Image("large-full-url", 10000, "jpg", None, "und")
-  val smallImage = Image("small-full-url", 100, "jpg", None, "und")
+  val largeImage = new Image(1, "large-full-url", 10000, "jpg", None, "und", 4)
+  val smallImage = new Image(2, "small-full-url", 100, "jpg", None, "und", 6)
 
   val byNcSa = Copyright(
     CC_BY_NC_SA.toString,
@@ -83,7 +83,7 @@ class ImageSearchServiceTest
     None
   )
 
-  val image1 = ImageMetaInformation(
+  val image1 = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("Batmen er på vift med en bil", "nb")),
     alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
@@ -99,7 +99,7 @@ class ImageSearchServiceTest
     editorNotes = Seq.empty
   )
 
-  val image2 = ImageMetaInformation(
+  val image2 = new ImageMetaInformation(
     id = Some(2),
     titles = List(ImageTitle("Pingvinen er ute og går", "nb")),
     alttexts = List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
@@ -115,7 +115,7 @@ class ImageSearchServiceTest
     editorNotes = Seq(EditorNote(new Date(), "someone", "Lillehjelper"))
   )
 
-  val image3 = ImageMetaInformation(
+  val image3 = new ImageMetaInformation(
     id = Some(3),
     titles = List(ImageTitle("Donald Duck kjører bil", "nb")),
     alttexts = List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
@@ -131,7 +131,7 @@ class ImageSearchServiceTest
     editorNotes = Seq.empty
   )
 
-  val image4 = ImageMetaInformation(
+  val image4 = new ImageMetaInformation(
     id = Some(4),
     titles = List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
     alttexts = Seq(),
@@ -147,7 +147,7 @@ class ImageSearchServiceTest
     editorNotes = Seq.empty
   )
 
-  val image5 = ImageMetaInformation(
+  val image5 = new ImageMetaInformation(
     id = Some(5),
     titles = List(
       ImageTitle("Dette er et urelatert bilde", "und"),

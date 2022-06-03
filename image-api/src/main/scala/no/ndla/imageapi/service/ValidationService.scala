@@ -20,7 +20,7 @@ import org.scalatra.servlet.FileItem
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: DraftApiClient with Props =>
+  this: DraftApiClient with Props with DBImageMetaInformation =>
   val validationService: ValidationService
 
   class ValidationService {

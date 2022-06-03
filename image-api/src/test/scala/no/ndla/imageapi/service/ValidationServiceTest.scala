@@ -20,12 +20,21 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   val fileMock  = mock[FileItem]
   def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
-  val sampleImageMeta = ImageMetaInformation(
+  val sampleImageMeta = new ImageMetaInformation(
     id = Some(1),
     titles = Seq.empty,
     alttexts = Seq.empty,
-    images =
-      Seq(Image(fileName = "image.jpg", size = 1024, contentType = "image/jpeg", dimensions = None, language = "nb")),
+    images = Seq(
+      new Image(
+        id = 1,
+        fileName = "image.jpg",
+        size = 1024,
+        contentType = "image/jpeg",
+        dimensions = None,
+        language = "nb",
+        imageMetaId = 1
+      )
+    ),
     copyright =
       Copyright(CC_BY.toString, "", Seq(Author("originator", "test")), Seq.empty, Seq.empty, None, None, None),
     tags = Seq.empty,

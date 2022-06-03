@@ -10,7 +10,7 @@ package no.ndla.imageapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, Image, ImageDocument, ImageMetaInformation}
 import no.ndla.imageapi.service.ConverterService
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -20,14 +20,14 @@ import scalikejdbc._
 import scala.util.Try
 
 trait ImageRepository {
-  this: DataSource with ConverterService with DBImageMetaInformation =>
+  this: DataSource with ConverterService with DBImageMetaInformation with DBImageFile =>
   val imageRepository: ImageRepository
 
   class ImageRepository extends LazyLogging with Repository[ImageMetaInformation] {
-    implicit val formats: Formats = DBImageMetaInformation.repositorySerializer
+    implicit val formats: Formats = ImageMetaInformation.repositorySerializer
 
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-      sql"select count(*) from ${DBImageMetaInformation.table}"
+      sql"select count(*) from ${ImageMetaInformation.table}"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
@@ -39,9 +39,9 @@ trait ImageRepository {
     }
 
     def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      val im = DBImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
-        .map(DBImageMetaInformation.fromResultSet(im))
+      val im = ImageMetaInformation.syntax("im")
+      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
+        .map(ImageMetaInformation.fromResultSet(im))
         .single()
     }
 
@@ -76,16 +76,16 @@ trait ImageRepository {
       }
     }
 
-    def update(imageMetaInformation: ImageMetaInformation, id: Long): ImageMetaInformation = {
+    def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
+        session: DBSession = AutoSession
+    ): ImageMetaInformation = {
       val json       = write(imageMetaInformation)
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(json)
 
-      DB localTx { implicit session =>
-        sql"update imagemetadata set metadata = ${dataObject} where id = ${id}".update()
-        imageMetaInformation.copy(id = Some(id))
-      }
+      sql"update imagemetadata set metadata = ${dataObject} where id = ${id}".update()
+      imageMetaInformation.copy(id = Some(id))
     }
 
     def delete(imageId: Long)(implicit session: DBSession = AutoSession) = {
@@ -105,48 +105,79 @@ trait ImageRepository {
       }
     }
 
+    def insertImageFile(imageId: Long, fileName: String, document: ImageDocument)(implicit
+        session: DBSession = AutoSession
+    ): Try[Image] = Try {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(document))
+
+      val insertedId =
+        sql"""
+              insert into imagefiledata(file_name, metadata, image_meta_id)
+              values ($fileName, $dataObject, $imageId)
+           """
+          .updateAndReturnGeneratedKey()
+
+      document.toFull(insertedId, fileName, imageId)
+    }
+
     def documentsWithIdBetween(min: Long, max: Long): List[ImageMetaInformation] =
       imageMetaInformationsWhere(sqls"im.id between $min and $max")
 
     private def imageMetaInformationWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession): Option[ImageMetaInformation] = {
-      val im = DBImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where $whereClause"
-        .map(DBImageMetaInformation.fromResultSet(im))
+      val im  = ImageMetaInformation.syntax("im")
+      val dif = Image.syntax("dif")
+      sql"""
+            SELECT ${im.result.*}, ${dif.result.*}
+            FROM ${ImageMetaInformation.as(im)}
+            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
+            WHERE $whereClause
+         """
+        .one(ImageMetaInformation.fromResultSet(im))
+        .toMany(rs => Image.fromResultSet(dif)(rs).toOption)
+        .map((meta, images) => meta.copy(images = images.toSeq))
         .single()
     }
 
     private def imageMetaInformationsWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): List[ImageMetaInformation] = {
-      val im = DBImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${DBImageMetaInformation.as(im)} where $whereClause"
-        .map(DBImageMetaInformation.fromResultSet(im))
+      val im  = ImageMetaInformation.syntax("im")
+      val dif = Image.syntax("dif")
+      sql"""
+            SELECT ${im.result.*}, ${dif.result.*}
+            FROM ${ImageMetaInformation.as(im)}
+            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
+            WHERE $whereClause
+         """
+        .map(ImageMetaInformation.fromResultSet(im))
         .list()
     }
 
-    private def escapeSQLWildcards(str: String): String = str.replace("%", "\\%")
+    def withAndWithoutPrefixSlash(str: String): (String, String) = {
+      val without = str.dropWhile(_ == '/')
+      (without, s"/$without")
+    }
 
     def getImageFromFilePath(
         filePath: String
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      val wildcardMatch = s"%${escapeSQLWildcards(filePath.dropWhile(_ == '/'))}"
-      val im            = DBImageMetaInformation.syntax("im")
-      // TODO: This is slow, move images to separate table maybe?
-      sql"""
-            select ${im.result.*}
-            from ${DBImageMetaInformation.as(im)},
-            jsonb_array_elements(metadata->'images') as value
-            where value->>'fileName' like $wildcardMatch
-            limit 1;
-        """
-        .map(DBImageMetaInformation.fromResultSet(im))
-        .single()
+      val i                         = Image.syntax("i")
+      val (withoutSlash, withSlash) = withAndWithoutPrefixSlash(filePath)
+      imageMetaInformationWhere(sqls"""
+         im.id = (
+           SELECT ${i.imageMetaId}
+           FROM ${Image.as(i)}
+           WHERE (${i.fileName} = $withSlash OR ${i.fileName} = $withoutSlash)
+         )
+      """)
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBImageMetaInformation.table}"
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${ImageMetaInformation.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
@@ -159,15 +190,15 @@ trait ImageRepository {
     def getByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[ImageMetaInformation] = {
-      val im = DBImageMetaInformation.syntax("im")
+      val im = ImageMetaInformation.syntax("im")
       sql"""
            select ${im.result.*}
-           from ${DBImageMetaInformation.as(im)}
+           from ${ImageMetaInformation.as(im)}
            where metadata is not null
            offset $offset
            limit $pageSize
       """
-        .map(DBImageMetaInformation.fromResultSet(im))
+        .map(ImageMetaInformation.fromResultSet(im))
         .list()
     }
 

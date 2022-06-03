@@ -13,15 +13,15 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.imageapi.{ImageApiProperties, Props}
-import no.ndla.imageapi.model.domain.ImageMetaInformation
+import no.ndla.imageapi.Props
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
 
 trait ImageIndexService {
-  this: SearchConverterService with IndexService with ImageRepository with Props =>
+  this: SearchConverterService with IndexService with ImageRepository with Props with DBImageMetaInformation =>
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableImage] {

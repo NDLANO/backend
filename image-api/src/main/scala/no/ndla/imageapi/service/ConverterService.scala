@@ -14,8 +14,16 @@ import io.lemonlabs.uri.{Uri, UrlPath}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
-import no.ndla.imageapi.model.domain.{ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.model.{ImageConversionException, ImageStorageException, api, domain}
+import no.ndla.imageapi.model.domain.{
+  DBImageFile,
+  DBImageMetaInformation,
+  Image,
+  ImageDocument,
+  ImageMetaInformation,
+  ModelReleasedStatus,
+  UploadedImage
+}
+import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
@@ -25,7 +33,7 @@ import cats.implicits._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: User with Role with Clock with DraftApiClient with Props =>
+  this: User with Role with Clock with DraftApiClient with Props with DBImageFile with DBImageMetaInformation =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -48,7 +56,7 @@ trait ConverterService {
       )
     }
 
-    def asApiImage(domainImage: domain.Image, baseUrl: Option[String] = None): api.Image = {
+    def asApiImage(domainImage: Image, baseUrl: Option[String] = None): api.Image = {
       api.Image(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
     }
 
@@ -57,7 +65,7 @@ trait ConverterService {
     }
 
     def asApiImageMetaInformationWithApplicationUrlV2(
-        domainImageMetaInformation: domain.ImageMetaInformation,
+        domainImageMetaInformation: ImageMetaInformation,
         language: Option[String]
     ): Try[api.ImageMetaInformationV2] = {
       val baseUrl = ApplicationUrl.get
@@ -66,7 +74,7 @@ trait ConverterService {
     }
 
     def asApiImageMetaInformationWithDomainUrlV2(
-        domainImageMetaInformation: domain.ImageMetaInformation,
+        domainImageMetaInformation: ImageMetaInformation,
         language: Option[String]
     ): Try[api.ImageMetaInformationV2] = {
       asImageMetaInformationV2(
@@ -81,7 +89,7 @@ trait ConverterService {
       notes.map(n => api.EditorNote(n.timeStamp, n.updatedBy, n.note))
     }
 
-    private def getImageFromMeta(meta: domain.ImageMetaInformation, language: Option[String]): Try[domain.Image] = {
+    private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[Image] = {
       findByLanguageOrBestEffort(meta.images, language) match {
         case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
         case Some(image) => Success(image)
@@ -89,7 +97,7 @@ trait ConverterService {
     }
 
     private[service] def asImageMetaInformationV2(
-        imageMeta: domain.ImageMetaInformation,
+        imageMeta: ImageMetaInformation,
         language: Option[String],
         baseUrl: String,
         rawBaseUrl: Option[String]
@@ -136,7 +144,7 @@ trait ConverterService {
       })
     }
 
-    def withAgreementCopyright(image: domain.ImageMetaInformation): domain.ImageMetaInformation = {
+    def withAgreementCopyright(image: ImageMetaInformation): ImageMetaInformation = {
       val agreementCopyright = image.copyright.agreementId
         .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
         .getOrElse(image.copyright)
@@ -189,8 +197,8 @@ trait ConverterService {
     }
 
     def withNewImage(
-        imageMeta: domain.ImageMetaInformation,
-        image: domain.Image,
+        imageMeta: ImageMetaInformation,
+        image: Image,
         language: String
     ): ImageMetaInformation = {
       val user      = authUser.userOrClientid()
@@ -203,10 +211,7 @@ trait ConverterService {
       )
     }
 
-    def asDomainImageMetaInformationV2(
-        imageMeta: api.NewImageMetaInformationV2,
-        image: domain.Image
-    ): Try[domain.ImageMetaInformation] = {
+    def asDomainImageMetaInformationV2(imageMeta: api.NewImageMetaInformationV2): Try[ImageMetaInformation] = {
       val modelReleasedStatus = imageMeta.modelReleased match {
         case Some(mrs) => ModelReleasedStatus.valueOfOrError(mrs)
         case None      => Success(ModelReleasedStatus.NOT_SET)
@@ -216,11 +221,11 @@ trait ConverterService {
         val now  = clock.now()
         val user = authUser.userOrClientid()
 
-        domain.ImageMetaInformation(
+        new ImageMetaInformation(
           id = None,
           titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
           alttexts = Seq(asDomainAltText(imageMeta.alttext, imageMeta.language)),
-          images = Seq(image),
+          images = Seq.empty,
           copyright = toDomainCopyright(imageMeta.copyright),
           tags = if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language)) else Seq.empty,
           captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
@@ -268,9 +273,9 @@ trait ConverterService {
     }
 
     def withoutLanguage(
-        domainMetaInformation: domain.ImageMetaInformation,
+        domainMetaInformation: ImageMetaInformation,
         languageToRemove: String
-    ): domain.ImageMetaInformation = {
+    ): ImageMetaInformation = {
       val now    = clock.now()
       val userId = authUser.userOrClientid()
       domainMetaInformation.copy(
@@ -283,7 +288,7 @@ trait ConverterService {
       )
     }
 
-    def getSupportedLanguages(domainImageMetaInformation: domain.ImageMetaInformation): Seq[String] = {
+    def getSupportedLanguages(domainImageMetaInformation: ImageMetaInformation): Seq[String] = {
       Language.getSupportedLanguages(
         domainImageMetaInformation.titles,
         domainImageMetaInformation.alttexts,
@@ -292,6 +297,14 @@ trait ConverterService {
       )
     }
 
+    def toImageDocument(image: UploadedImage, language: String): ImageDocument = {
+      new ImageDocument(
+        size = image.size,
+        contentType = image.contentType,
+        dimensions = image.dimensions,
+        language = language
+      )
+    }
   }
 
 }

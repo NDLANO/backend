@@ -14,8 +14,8 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
-import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.model.domain.DBImageMetaInformation
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -64,7 +64,10 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ImagesApiInfo
     with ErrorHelpers
     with DBImageMetaInformation
-    with NdlaController {
+    with DBImageFile
+    with ImageMetaDomainDump
+    with NdlaController
+    with Random {
   override val props: ImageApiProperties = properties
 
   override val migrator                     = new DBMigrator
@@ -106,4 +109,5 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val authUser       = new AuthUser
   lazy val authRole       = new AuthRole
   lazy val clock          = new SystemClock
+  lazy val random         = new Random
 }

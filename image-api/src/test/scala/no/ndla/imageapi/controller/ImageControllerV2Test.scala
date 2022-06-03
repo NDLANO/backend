@@ -212,12 +212,21 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val tags: Seq[ImageTag]         = Seq()
     val captions: Seq[ImageCaption] = Seq()
 
-    val sampleImageMeta = ImageMetaInformation(
+    val sampleImageMeta = new ImageMetaInformation(
       id = Some(1),
       titles = titles,
       alttexts = alttexts,
-      images =
-        Seq(Image(fileName = "/img.jpg", size = 1024, contentType = "image/jpeg", dimensions = None, language = "und")),
+      images = Seq(
+        new Image(
+          id = 1,
+          fileName = "/img.jpg",
+          size = 1024,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "und",
+          imageMetaId = 1
+        )
+      ),
       copyright = copyright,
       tags = tags,
       captions = captions,

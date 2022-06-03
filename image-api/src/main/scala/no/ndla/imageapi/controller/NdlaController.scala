@@ -88,7 +88,13 @@ trait NdlaController {
       org.scalatra.util.io.copy(f.stream, response.getOutputStream)
     }
 
-    override def renderPipeline = streamRenderer orElse super.renderPipeline
+    // TODO: Forstå hvorfor denne tryner ved `halt` kall?
+    //       Og kanskje fikse det om mulig? Evt unngå halt? Kan vi fikse så `halt` ikke er lov?
+    private val tryRenderer: RenderPipeline = {
+      case Success(value) => Ok(value)
+      case Failure(ex)    => errorHandler(ex)
+    }
+    override def renderPipeline: RenderPipeline = tryRenderer.orElse(streamRenderer.orElse(super.renderPipeline))
 
     def isInteger(value: String): Boolean = value.forall(_.isDigit)
 

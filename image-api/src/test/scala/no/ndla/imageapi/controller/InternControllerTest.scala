@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
-import no.ndla.imageapi.model.domain.ModelReleasedStatus
+import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
@@ -56,11 +56,21 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     None
   )
 
-  val DefaultDomainImageMetaInformation = domain.ImageMetaInformation(
+  val DefaultDomainImageMetaInformation = new ImageMetaInformation(
     id = Some(1),
     titles = List(),
     alttexts = List(),
-    images = Seq(domain.Image(fileName = "test.jpg", size = 0, contentType = "", dimensions = None, language = "und")),
+    images = Seq(
+      new Image(
+        id = 1,
+        fileName = "test.jpg",
+        size = 0,
+        contentType = "",
+        dimensions = None,
+        language = "und",
+        imageMetaId = 1
+      )
+    ),
     copyright = domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
     tags = List(),
     captions = List(),

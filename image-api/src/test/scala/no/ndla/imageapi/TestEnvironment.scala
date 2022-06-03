@@ -19,8 +19,8 @@ import no.ndla.imageapi.controller.{
   RawController
 }
 import no.ndla.imageapi.integration._
-import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.model.domain.DBImageMetaInformation
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation}
 import no.ndla.imageapi.repository._
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -50,6 +50,7 @@ trait TestEnvironment
     with ValidationService
     with ImageRepository
     with ReadService
+    with ImageMetaDomainDump
     with WriteService
     with AmazonClient
     with ImageStorageService
@@ -71,8 +72,12 @@ trait TestEnvironment
     with ErrorHelpers
     with DBMigrator
     with NdlaController
-    with ImagesApiInfo {
-  val props = new ImageApiProperties
+    with ImagesApiInfo
+    with TestData
+    with DBImageFile
+    with Random {
+  val props    = new ImageApiProperties
+  val TestData = new TestData
 
   val migrator     = mock[DBMigrator]
   val amazonClient = mock[AmazonS3]
@@ -105,4 +110,5 @@ trait TestEnvironment
   val clock    = mock[SystemClock]
   val authUser = mock[AuthUser]
   val authRole = mock[AuthRole]
+  val random   = mock[Random]
 }

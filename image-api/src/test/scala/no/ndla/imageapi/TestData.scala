@@ -16,329 +16,360 @@ import no.ndla.imageapi.model.api.ImageMetaInformationV2
 import no.ndla.imageapi.model.domain._
 import no.ndla.mapping
 import org.joda.time.{DateTime, DateTimeZone}
+import java.util.Date
 
 /** Testklasse (og kanskje et utgangspunkt for en mer permanent løsning) som kan benyttes til å laste opp bilder til en
   * S3-bucket, samt metainformasjon til en DynamoDB-instans
   */
-object TestData {
+trait TestData {
+  this: DBImageMetaInformation with DBImageFile =>
 
-  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+  class TestData {
 
-  val ByNcSa = mapping.License.CC_BY_NC_SA.toString
+    def updated(): Date = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
 
-  val elg = ImageMetaInformation(
-    id = Some(1),
-    titles = List(ImageTitle("Elg i busk", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(
-        fileName = "Elg.jpg",
-        size = 2865539,
-        contentType = "image/jpeg",
-        dimensions = None,
-        language = "nb"
-      )
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(Author("Redaksjonelt", "Kåre Knegg")),
-      List(Author("Leverandør", "Leverans Leveransensen")),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "elg"), "nb")),
-    captions = List(ImageCaption("Elg i busk", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val ByNcSa = mapping.License.CC_BY_NC_SA.toString
 
-  val apiElg = api.ImageMetaInformationV2(
-    "1",
-    "Elg.jpg",
-    api.ImageTitle("Elg i busk", "nb"),
-    api.ImageAltText("Elg i busk", "nb"),
-    "Elg.jpg",
-    2865539,
-    "image/jpeg",
-    api.Copyright(
-      api.License(
-        "by-nc-sa",
-        "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
-        Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+    val elg = new ImageMetaInformation(
+      id = Some(1),
+      titles = List(ImageTitle("Elg i busk", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 123,
+          fileName = "Elg.jpg",
+          size = 2865539,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          1
+        )
       ),
-      "http://www.scanpix.no",
-      List(api.Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    api.ImageTag(List("rovdyr", "elg"), "nb"),
-    api.ImageCaption("Elg i busk", "nb"),
-    List("nb"),
-    updated(),
-    "ndla123",
-    ModelReleasedStatus.YES.toString,
-    None,
-    None
-  )
-
-  val apiBjorn = ImageMetaInformationV2(
-    id = "2",
-    metaUrl = "",
-    title = api.ImageTitle("Bjørn i busk", "nb"),
-    alttext = api.ImageAltText("Elg i busk", "nb"),
-    imageUrl = "",
-    size = 141134,
-    contentType = "image/jpeg",
-    copyright = api.Copyright(
-      api.License(
-        "by-nc-sa",
-        "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
-        Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(Author("Redaksjonelt", "Kåre Knegg")),
+        List(Author("Leverandør", "Leverans Leveransensen")),
+        None,
+        None,
+        None
       ),
-      "http://www.scanpix.no",
-      List(api.Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
+      tags = List(ImageTag(List("rovdyr", "elg"), "nb")),
+      captions = List(ImageCaption("Elg i busk", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
+
+    val apiElg = api.ImageMetaInformationV2(
+      "1",
+      "Elg.jpg",
+      api.ImageTitle("Elg i busk", "nb"),
+      api.ImageAltText("Elg i busk", "nb"),
+      "Elg.jpg",
+      2865539,
+      "image/jpeg",
+      api.Copyright(
+        api.License(
+          "by-nc-sa",
+          "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
+          Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+        ),
+        "http://www.scanpix.no",
+        List(api.Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      api.ImageTag(List("rovdyr", "elg"), "nb"),
+      api.ImageCaption("Elg i busk", "nb"),
+      List("nb"),
+      updated(),
+      "ndla123",
+      ModelReleasedStatus.YES.toString,
       None,
       None
-    ),
-    tags = api.ImageTag(List("rovdyr", "bjørn"), "nb"),
-    caption = api.ImageCaption("Bjørn i busk", "nb"),
-    supportedLanguages = Seq("nb"),
-    created = updated(),
-    createdBy = "ndla124",
-    modelRelease = "YES",
-    editorNotes = None,
-    imageDimensions = None
-  )
+    )
 
-  val bjorn = ImageMetaInformation(
-    id = Some(2),
-    titles = List(ImageTitle("Bjørn i busk", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(
-        fileName = "Bjørn.jpg",
-        size = 141134,
-        contentType = "image/jpeg",
-        dimensions = None,
-        language = "nb"
-      )
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "bjørn"), "nb")),
-    captions = List(ImageCaption("Bjørn i busk", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val apiBjorn = ImageMetaInformationV2(
+      id = "2",
+      metaUrl = "",
+      title = api.ImageTitle("Bjørn i busk", "nb"),
+      alttext = api.ImageAltText("Elg i busk", "nb"),
+      imageUrl = "",
+      size = 141134,
+      contentType = "image/jpeg",
+      copyright = api.Copyright(
+        api.License(
+          "by-nc-sa",
+          "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic",
+          Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+        ),
+        "http://www.scanpix.no",
+        List(api.Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = api.ImageTag(List("rovdyr", "bjørn"), "nb"),
+      caption = api.ImageCaption("Bjørn i busk", "nb"),
+      supportedLanguages = Seq("nb"),
+      created = updated(),
+      createdBy = "ndla124",
+      modelRelease = ModelReleasedStatus.YES.toString,
+      editorNotes = None,
+      imageDimensions = None
+    )
 
-  val jerv = ImageMetaInformation(
-    id = Some(3),
-    titles = List(ImageTitle("Jerv på stein", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(
-        fileName = "Jerv.jpg",
-        size = 39061,
-        contentType = "image/jpeg",
-        dimensions = None,
-        language = "nb"
-      )
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "jerv"), "nb")),
-    captions = List(ImageCaption("Jerv på stein", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val bjorn = new ImageMetaInformation(
+      id = Some(2),
+      titles = List(ImageTitle("Bjørn i busk", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 333,
+          fileName = "Bjørn.jpg",
+          size = 141134,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          2
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("rovdyr", "bjørn"), "nb")),
+      captions = List(ImageCaption("Bjørn i busk", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  val mink = ImageMetaInformation(
-    id = Some(4),
-    titles = List(ImageTitle("Overrasket mink", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(
-        fileName = "Mink.jpg",
-        size = 102559,
-        contentType = "image/jpeg",
-        dimensions = None,
-        language = "nb"
-      )
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "mink"), "nb")),
-    captions = List(ImageCaption("Overrasket mink", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val jerv = new ImageMetaInformation(
+      id = Some(3),
+      titles = List(ImageTitle("Jerv på stein", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 444,
+          fileName = "Jerv.jpg",
+          size = 39061,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          3
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("rovdyr", "jerv"), "nb")),
+      captions = List(ImageCaption("Jerv på stein", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  val rein = ImageMetaInformation(
-    id = Some(5),
-    titles = List(ImageTitle("Rein har fanget rødtopp", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(
-        fileName = "Rein.jpg",
-        size = 504911,
-        contentType = "image/jpeg",
-        dimensions = None,
-        language = "nb"
-      )
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "rein", "jakt"), "nb")),
-    captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val mink = new ImageMetaInformation(
+      id = Some(4),
+      titles = List(ImageTitle("Overrasket mink", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 555,
+          fileName = "Mink.jpg",
+          size = 102559,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          4
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("rovdyr", "mink"), "nb")),
+      captions = List(ImageCaption("Overrasket mink", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  val nonexisting = ImageMetaInformation(
-    id = Some(6),
-    titles = List(ImageTitle("Krokodille på krok", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(fileName = "Krokodille.jpg", size = 2865539, contentType = "image/jpeg", dimensions = None, language = "nb")
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("rovdyr", "krokodille"), "nb")),
-    captions = List(ImageCaption("Krokodille på krok", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val rein = new ImageMetaInformation(
+      id = Some(5),
+      titles = List(ImageTitle("Rein har fanget rødtopp", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 667,
+          fileName = "Rein.jpg",
+          size = 504911,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          5
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("rovdyr", "rein", "jakt"), "nb")),
+      captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  val nonexistingWithoutThumb = ImageMetaInformation(
-    id = Some(6),
-    titles = List(ImageTitle("Bison på sletten", "nb")),
-    alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      Image(fileName = "Bison.jpg", size = 2865539, contentType = "image/jpeg", dimensions = None, language = "nb")
-    ),
-    copyright = Copyright(
-      ByNcSa,
-      "http://www.scanpix.no",
-      List(Author("Fotograf", "Test Testesen")),
-      List(),
-      List(),
-      None,
-      None,
-      None
-    ),
-    tags = List(ImageTag(List("bison"), "nb")),
-    captions = List(ImageCaption("Bison på sletten", "nb")),
-    updatedBy = "ndla124",
-    updated = updated(),
-    created = updated(),
-    createdBy = "ndla124",
-    modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
-  )
+    val nonexisting = new ImageMetaInformation(
+      id = Some(6),
+      titles = List(ImageTitle("Krokodille på krok", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 777,
+          fileName = "Krokodille.jpg",
+          size = 2865539,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          6
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("rovdyr", "krokodille"), "nb")),
+      captions = List(ImageCaption("Krokodille på krok", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  val testdata = List(elg, bjorn, jerv, mink, rein)
+    val nonexistingWithoutThumb = new ImageMetaInformation(
+      id = Some(6),
+      titles = List(ImageTitle("Bison på sletten", "nb")),
+      alttexts = List(ImageAltText("Elg i busk", "nb")),
+      images = Seq(
+        new Image(
+          id = 888,
+          fileName = "Bison.jpg",
+          size = 2865539,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "nb",
+          6
+        )
+      ),
+      copyright = Copyright(
+        ByNcSa,
+        "http://www.scanpix.no",
+        List(Author("Fotograf", "Test Testesen")),
+        List(),
+        List(),
+        None,
+        None,
+        None
+      ),
+      tags = List(ImageTag(List("bison"), "nb")),
+      captions = List(ImageCaption("Bison på sletten", "nb")),
+      updatedBy = "ndla124",
+      updated = updated(),
+      created = updated(),
+      createdBy = "ndla124",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
+    )
 
-  case class DiskImage(filename: String) extends ImageStream {
-    override def contentType: String = s"image/$format"
+    val testdata = List(elg, bjorn, jerv, mink, rein)
 
-    override def stream: InputStream = getClass.getResourceAsStream(s"/$filename")
-    override def fileName: String    = filename
+    case class DiskImage(filename: String) extends ImageStream {
+      override def contentType: String = s"image/$format"
 
-    override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-    lazy val rawBytes                            = scala.io.Source.fromInputStream(stream).mkString
+      override def stream: InputStream = getClass.getResourceAsStream(s"/$filename")
+      override def fileName: String    = filename
+
+      override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
+      lazy val rawBytes                            = scala.io.Source.fromInputStream(stream).mkString
+    }
+
+    val NdlaLogoImage    = DiskImage("ndla_logo.jpg")
+    val NdlaLogoGIFImage = DiskImage("ndla_logo.gif")
+    val CCLogoSvgImage   = DiskImage("cc.svg")
+
+    val ChildrensImage = DiskImage(
+      "children-drawing-582306_640.jpg"
+    ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+
+    val searchSettings = SearchSettings(
+      query = None,
+      minimumSize = None,
+      language = None,
+      license = None,
+      sort = Sort.ByIdAsc,
+      page = None,
+      pageSize = None,
+      includeCopyrighted = false,
+      shouldScroll = false,
+      modelReleased = Seq.empty
+    )
   }
-
-  val NdlaLogoImage    = DiskImage("ndla_logo.jpg")
-  val NdlaLogoGIFImage = DiskImage("ndla_logo.gif")
-  val CCLogoSvgImage   = DiskImage("cc.svg")
-
-  val ChildrensImage = DiskImage(
-    "children-drawing-582306_640.jpg"
-  ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
-
-  val searchSettings = SearchSettings(
-    query = None,
-    minimumSize = None,
-    language = None,
-    license = None,
-    sort = Sort.ByIdAsc,
-    page = None,
-    pageSize = None,
-    includeCopyrighted = false,
-    shouldScroll = false,
-    modelReleased = Seq.empty
-  )
 }

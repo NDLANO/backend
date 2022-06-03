@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.auth.User
-import no.ndla.imageapi.model.api.ImageMetaInformationV2
-import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, Sort}
+import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, Image, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
@@ -31,7 +31,10 @@ trait ReadService {
     with TagSearchService
     with SearchConverterService
     with Clock
-    with User =>
+    with User
+    with DBImageFile
+    with DBImageMetaInformation
+    with ImageMetaDomainDump =>
   val readService: ReadService
 
   class ReadService extends LazyLogging {
@@ -109,11 +112,11 @@ trait ReadService {
       else Failure(new InvalidUrlException("Could not extract id or path from url."))
     }
 
-    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): api.ImageMetaDomainDump = {
+    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
       val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-      api.ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
+      ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
     }
 
     def getImageFileName(imageId: Long, language: Option[String]): Option[String] = {

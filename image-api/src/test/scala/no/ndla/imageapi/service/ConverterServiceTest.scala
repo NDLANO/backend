@@ -25,10 +25,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val someDims = Some(ImageDimensions(100, 100))
-  val full     = Image("/123.png", 200, "image/png", someDims, "nb")
-  val wanting  = Image("123.png", 200, "image/png", someDims, "und")
+  val full     = new Image(1, "/123.png", 200, "image/png", someDims, "nb", 5)
+  val wanting  = new Image(2, "123.png", 200, "image/png", someDims, "und", 6)
 
-  val DefaultImageMetaInformation = ImageMetaInformation(
+  val DefaultImageMetaInformation = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
@@ -44,7 +44,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     editorNotes = Seq.empty
   )
 
-  val WantingImageMetaInformation = ImageMetaInformation(
+  val WantingImageMetaInformation = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
@@ -60,7 +60,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     editorNotes = Seq.empty
   )
 
-  val MultiLangImage = ImageMetaInformation(
+  val MultiLangImage = new ImageMetaInformation(
     id = Some(2),
     titles = List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
     alttexts = List(),
@@ -203,12 +203,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That with new image returns metadata from new image") {
-    val newImage = Image(
+    val newImage = new Image(
+      id = 1,
       fileName = "somename.jpg",
       size = 123,
       contentType = "image/jpg",
       dimensions = Some(ImageDimensions(123, 555)),
-      language = "nb"
+      language = "nb",
+      imageMetaId = 4
     )
 
     val result = converterService.withNewImage(MultiLangImage, newImage, "nb")

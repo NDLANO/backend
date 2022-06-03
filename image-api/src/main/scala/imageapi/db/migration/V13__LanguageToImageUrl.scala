@@ -8,21 +8,21 @@
 package imageapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.FieldSerializer.ignore
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, JField, JObject}
+import org.json4s.native.Serialization
+import org.json4s.{DefaultFormats, Extraction, FieldSerializer, Formats, JField, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V12__LanguageToImageUrl extends BaseJavaMigration {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-
+class V13__LanguageToImageUrl extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>
       imagesToUpdate.map { case (id, document) =>
-        update(convertImageUpdate(document), id)
+        convertImageUpdate(document, id)
       }
     }
   }
@@ -45,7 +45,35 @@ class V12__LanguageToImageUrl extends BaseJavaMigration {
       language: String
   )
 
-  def convertImageUpdate(imageMeta: String): String = {
+  def updateImageMetaData(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(imagemetadata)
+    sql"update imagemetadata set metadata = $dataObject where id = $id".update()
+  }
+
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats +
+      FieldSerializer[V12__Image](ignore("fileName"))
+
+  def insertImageFileData(images: List[V12__Image], imageId: Long)(implicit session: DBSession): Unit = {
+
+    images.foreach(image => {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      val jsonString = Serialization.write(image)
+      dataObject.setValue(jsonString)
+
+      sql"""
+         insert into imagefiledata(file_name, metadata, image_meta_id)
+         values (${image.fileName}, $dataObject, $imageId)
+       """
+        .update()
+    })
+  }
+
+  def convertImageUpdate(imageMeta: String, id: Long)(implicit session: DBSession): Unit = {
+
     val oldImage = parse(imageMeta)
 
     val existingUrl         = (oldImage \ "imageUrl").extract[String]
@@ -72,14 +100,6 @@ class V12__LanguageToImageUrl extends BaseJavaMigration {
       )
     })
 
-    val imageObject =
-      JObject(
-        JField(
-          "images",
-          Extraction.decompose(newImages)
-        )
-      )
-
     val withoutOldFields = oldImage.removeField {
       case ("imageUrl", _)        => false
       case ("size", _)            => false
@@ -88,16 +108,8 @@ class V12__LanguageToImageUrl extends BaseJavaMigration {
       case _                      => true
     }
 
-    val updated = withoutOldFields.merge(imageObject)
-
-    compact(render(updated))
+    updateImageMetaData(compact(render(withoutOldFields)), id)
+    insertImageFileData(newImages, id)
   }
 
-  def update(imagemetadata: String, id: Long)(implicit session: DBSession): Int = {
-    val dataObject = new PGobject()
-    dataObject.setType("jsonb")
-    dataObject.setValue(imagemetadata)
-
-    sql"update imagemetadata set metadata = $dataObject where id = $id".update()
-  }
 }

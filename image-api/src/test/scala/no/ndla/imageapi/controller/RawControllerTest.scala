@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -17,6 +16,7 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+  import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
   implicit val swagger = new ImageSwagger
   val imageName        = "ndla_logo.jpg"
   val imageGifName     = "ndla_logo.gif"
