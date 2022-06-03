@@ -17,8 +17,8 @@ import scalikejdbc._
 
 import java.util.Date
 
-class ResourceDocument(path: String, resourceType: String, tags: List[String], created: Date) {
-  def toFullResource(id: Option[Long], feideId: String): Resource = {
+class ResourceDocument(path: String, resourceType: String, tags: List[String]) {
+  def toFullResource(id: Option[Long], feideId: String, created: Date): Resource = {
     Resource(id = id, feideId = feideId, path = path, resourceType = resourceType, tags = tags, created = created)
   }
 }
@@ -30,7 +30,7 @@ case class Resource(
     path: String,
     resourceType: String,
     tags: List[String]
-) extends ResourceDocument(path = path, resourceType = resourceType, tags = tags, created = created)
+) extends ResourceDocument(path = path, resourceType = resourceType, tags = tags)
     with Content
 
 trait DBResource {
@@ -43,7 +43,8 @@ trait DBResource {
 
     val JSonSerializer = FieldSerializer[Resource](
       ignore("id") orElse
-        ignore("feideId")
+        ignore("feideId") orElse
+        ignore("created")
     )
 
     def fromResultSetOpt(ls: ResultName[Resource])(rs: WrappedResultSet): Option[Resource] =
@@ -59,8 +60,9 @@ trait DBResource {
       val metaData = read[ResourceDocument](rs.string(lp.c("document")))
       val id       = rs.longOpt(lp.c("id"))
       val feideId  = rs.string(lp.c("feide_id"))
+      val created  = rs.timestamp(lp.c("created"))
 
-      metaData.toFullResource(id, feideId)
+      metaData.toFullResource(id, feideId, created)
     }
   }
 }
