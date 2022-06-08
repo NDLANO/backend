@@ -101,11 +101,11 @@ class V13__LanguageToImageUrl extends BaseJavaMigration {
     })
 
     val withoutOldFields = oldImage.removeField {
-      case ("imageUrl", _)        => false
-      case ("size", _)            => false
-      case ("contentType", _)     => false
-      case ("imageDimensions", _) => false
-      case _                      => true
+      case ("imageUrl", _)        => true
+      case ("size", _)            => true
+      case ("contentType", _)     => true
+      case ("imageDimensions", _) => true
+      case _                      => false
     }
 
     updateImageMetaData(compact(render(withoutOldFields)), id)

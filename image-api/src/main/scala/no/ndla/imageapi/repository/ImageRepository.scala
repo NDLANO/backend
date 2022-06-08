@@ -142,8 +142,8 @@ trait ImageRepository {
             LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
             WHERE $whereClause
          """
-        .one(ImageMetaInformation.fromResultSet(im))
-        .toMany(rs => Image.fromResultSet(dif)(rs).toOption)
+        .one(ImageMetaInformation.fromResultSet(im.resultName))
+        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption)
         .map((meta, images) => meta.copy(images = images.toSeq))
         .single()
     }
@@ -159,7 +159,9 @@ trait ImageRepository {
             LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
             WHERE $whereClause
          """
-        .map(ImageMetaInformation.fromResultSet(im))
+        .one(ImageMetaInformation.fromResultSet(im.resultName))
+        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption)
+        .map((meta, files) => meta.copy(images = files.toSeq))
         .list()
     }
 
