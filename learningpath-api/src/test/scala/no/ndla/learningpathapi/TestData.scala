@@ -16,6 +16,8 @@ import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchS
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.joda.time.DateTime
 
+import java.time.LocalDateTime
+
 object TestData {
 
   val today: Date = new DateTime().toDate
@@ -107,7 +109,7 @@ object TestData {
     feideId = "",
     resourceType = "",
     path = "",
-    created = today,
+    created = LocalDateTime.now(),
     tags = List.empty
   )
 
@@ -122,7 +124,7 @@ object TestData {
   )
 
   val emptyApiFolder: api.Folder = api.Folder(
-    id = 1,
+    id = "",
     name = "",
     status = "",
     isFavorite = false,

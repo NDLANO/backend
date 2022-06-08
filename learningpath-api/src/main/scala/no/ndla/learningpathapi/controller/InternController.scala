@@ -75,22 +75,25 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      val deleteResults = searchIndexService.findAllIndexes(props.SearchIndex) match {
-        case Failure(f) => halt(status = 500, body = f.getMessage)
-        case Success(indexes) =>
+      searchIndexService
+        .findAllIndexes(props.SearchIndex)
+        .map(indexes => {
           indexes.map(index => {
             logger.info(s"Deleting index $index")
             searchIndexService.deleteIndexWithName(Option(index))
           })
-      }
-      val (errors, successes) = deleteResults.partition(_.isFailure)
-      if (errors.nonEmpty) {
-        val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-          s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-          s"${pluralIndex(successes.length)} were deleted successfully."
-        halt(status = 500, body = message)
-      } else {
-        Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+        }) match {
+        case Failure(ex) => InternalServerError(ex.getMessage)
+        case Success(deleteResults) =>
+          val (errors, successes) = deleteResults.partition(_.isFailure)
+          if (errors.nonEmpty) {
+            val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+              s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+              s"${pluralIndex(successes.length)} were deleted successfully."
+            InternalServerError(body = message)
+          } else {
+            Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+          }
       }
     }
 

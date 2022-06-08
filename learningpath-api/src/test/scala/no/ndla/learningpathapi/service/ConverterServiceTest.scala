@@ -19,7 +19,8 @@ import no.ndla.network.ApplicationUrl
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 
-import java.util.Date
+import java.time.LocalDateTime
+import java.util.{Date, UUID}
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
@@ -483,14 +484,16 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toDomainFolder transforms correctly") {
-    val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("private"))
-    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("public"))
-    val newFolder3 = api.NewFolder(name = "kenkaku", parentId = Some(1337), status = Some("ikkeesksisterendestatus"))
+    val folderUUID = UUID.randomUUID()
+    val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
+    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("public"))
+    val newFolder3 =
+      api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("ikkeesksisterendestatus"))
 
     val expected1 = domain.Folder(
       id = None,
       feideId = "kavring",
-      parentId = Some(1337),
+      parentId = Some(folderUUID),
       name = "kenkaku",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
@@ -503,11 +506,17 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toApiFolder transforms correctly when data isn't corrupted") {
-    val created = new Date()
-    when(clock.now()).thenReturn(created)
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
+    val mainFolderUUID = UUID.randomUUID()
+    val subFolder1UUID = UUID.randomUUID()
+    val subFolder2UUID = UUID.randomUUID()
+    val subFolder3UUID = UUID.randomUUID()
+    val resourceUUID   = UUID.randomUUID()
+
     val resource =
       domain.Resource(
-        id = Some(6),
+        id = Some(resourceUUID),
         feideId = "w",
         resourceType = "concept",
         path = "/subject/1/topic/1/resource/4",
@@ -515,34 +524,34 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         tags = List("a", "b", "c")
       )
     val folderData1 = domain.Folder(
-      id = Some(1),
+      id = Some(subFolder1UUID),
       feideId = "u",
-      parentId = Some(3),
+      parentId = Some(subFolder3UUID),
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
       data = List(Right(resource))
     )
     val folderData2 = domain.Folder(
-      id = Some(2),
+      id = Some(subFolder2UUID),
       feideId = "w",
-      parentId = Some(42),
+      parentId = Some(mainFolderUUID),
       name = "folderData2",
       status = domain.FolderStatus.PUBLIC,
       isFavorite = false,
       data = List.empty
     )
     val folderData3 = domain.Folder(
-      id = Some(3),
+      id = Some(subFolder3UUID),
       feideId = "u",
-      parentId = Some(42),
+      parentId = Some(mainFolderUUID),
       name = "folderData3",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
       data = List(Left(folderData1))
     )
     val mainFolder = domain.Folder(
-      id = Some(42),
+      id = Some(mainFolderUUID),
       feideId = "u",
       parentId = None,
       name = "mainFolder",
@@ -551,35 +560,35 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       data = List(Left(folderData2), Left(folderData3), Right(resource))
     )
     val apiResource = api.Resource(
-      id = 6,
+      id = resourceUUID.toString,
       resourceType = "concept",
       tags = List("a", "b", "c"),
       created = created,
       path = "/subject/1/topic/1/resource/4"
     )
     val apiData1 = api.Folder(
-      id = 1,
+      id = subFolder1UUID.toString,
       name = "folderData1",
       status = "private",
       isFavorite = false,
       data = List(apiResource)
     )
     val apiData2 = api.Folder(
-      id = 2,
+      id = subFolder2UUID.toString,
       name = "folderData2",
       status = "public",
       isFavorite = false,
       data = List.empty
     )
     val apiData3 = api.Folder(
-      id = 3,
+      id = subFolder3UUID.toString,
       name = "folderData3",
       status = "private",
       isFavorite = false,
       data = List(apiData1)
     )
     val expected = api.Folder(
-      id = 42,
+      id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "public",
       isFavorite = false,
@@ -605,10 +614,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("updateFolder updates folder correctly") {
+    val folderUUID = UUID.randomUUID()
+    val parentUUID = UUID.randomUUID()
+
     val existing = domain.Folder(
-      id = Some(1),
+      id = Some(folderUUID),
       feideId = "u",
-      parentId = Some(3),
+      parentId = Some(parentUUID),
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
@@ -633,11 +645,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that toApiResource converts correctly") {
-    val created = new Date()
-    when(clock.now()).thenReturn(created)
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
+    val folderUUID = UUID.randomUUID()
+
     val existing =
       domain.Resource(
-        id = Some(1),
+        id = Some(folderUUID),
         feideId = "feideid",
         resourceType = "article",
         path = "/subject/1/topic/1/resource/4",
@@ -646,7 +660,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val expected =
       api.Resource(
-        id = 1,
+        id = folderUUID.toString,
         resourceType = "article",
         path = "/subject/1/topic/1/resource/4",
         created = created,
@@ -658,13 +672,20 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that toApiResource fails if no id") {
     val domainResource =
-      domain.Resource(id = None, feideId = "", path = "", resourceType = "", created = clock.now(), tags = List.empty)
+      domain.Resource(
+        id = None,
+        feideId = "",
+        path = "",
+        resourceType = "",
+        created = clock.nowLocalDateTime(),
+        tags = List.empty
+      )
     service.toApiResource(domainResource).isFailure should be(true)
   }
 
   test("that newResource toDomainResource converts correctly") {
-    val created = new Date()
-    when(clock.now()).thenReturn(created)
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
     val newResource1 =
       api.NewResource(
         resourceType = "audio",
@@ -689,10 +710,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That domainToApimodel transforms Folder from domain to api model correctly") {
+    val folder1UUID = UUID.randomUUID()
+    val folder2UUID = UUID.randomUUID()
+    val folder3UUID = UUID.randomUUID()
+
     val folderDomainList = List(
-      TestData.emptyDomainFolder.copy(id = Some(1)),
-      TestData.emptyDomainFolder.copy(id = Some(2)),
-      TestData.emptyDomainFolder.copy(id = Some(3))
+      TestData.emptyDomainFolder.copy(id = Some(folder1UUID)),
+      TestData.emptyDomainFolder.copy(id = Some(folder2UUID)),
+      TestData.emptyDomainFolder.copy(id = Some(folder3UUID))
     )
 
     val result = service.domainToApiModel(folderDomainList, converterService.toApiFolder)
@@ -700,9 +725,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result should be(
       Success(
         List(
-          TestData.emptyApiFolder.copy(id = 1, status = "private"),
-          TestData.emptyApiFolder.copy(id = 2, status = "private"),
-          TestData.emptyApiFolder.copy(id = 3, status = "private")
+          TestData.emptyApiFolder.copy(id = folder1UUID.toString, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder2UUID.toString, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder3UUID.toString, status = "private")
         )
       )
     )

@@ -15,6 +15,8 @@ import org.scalatest.Outcome
 import scalikejdbc._
 
 import java.net.Socket
+import java.time.LocalDateTime
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class FolderRepositoryTest
@@ -43,15 +45,6 @@ class FolderRepositoryTest
       sql"delete from folders;".execute()(session)
       sql"delete from resources;".execute()(session)
       sql"delete from folder_resources;".execute()(session)
-    })
-  }
-
-  private def resetIdSequence() = {
-    DB autoCommit (implicit session => {
-      sql"select setval('folder_resources_folder_id_seq', 1, false);".execute()
-      sql"select setval('folder_resources_resource_id_seq', 1, false);".execute()
-      sql"select setval('folders_id_seq', 1, false);".execute()
-      sql"select setval('resources_id_seq', 1, false);".execute()
     })
   }
 
@@ -91,33 +84,30 @@ class FolderRepositoryTest
       .getOrElse(0)
   }
 
-  test("that inserting records to folder database is generating id as expected") {
-    this.resetIdSequence()
-
+  test("that inserting and retrieving a folder works as expected") {
     val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
     val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
     val folder3 = repository.insertFolder(TestData.emptyDomainFolder)
 
-    folder1.get.id should be(Some(1))
-    folder2.get.id should be(Some(2))
-    folder3.get.id should be(Some(3))
+    repository.folderWithId(folder1.get.id.get) should be(folder1)
+    repository.folderWithId(folder2.get.id.get) should be(folder2)
+    repository.folderWithId(folder3.get.id.get) should be(folder3)
   }
 
-  test("that inserting records to resource database is generating id as expected") {
-    this.resetIdSequence()
+  test("that inserting and retrieving a resource works as expected") {
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
 
-    val resource1 = repository.insertResource(TestData.emptyDomainResource)
-    val resource2 = repository.insertResource(TestData.emptyDomainResource)
-    val resource3 = repository.insertResource(TestData.emptyDomainResource)
+    val resource1 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
+    val resource2 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
+    val resource3 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
 
-    resource1.get.id should be(Some(1))
-    resource2.get.id should be(Some(2))
-    resource3.get.id should be(Some(3))
+    repository.resourceWithId(resource1.get.id.get) should be(resource1)
+    repository.resourceWithId(resource2.get.id.get) should be(resource2)
+    repository.resourceWithId(resource3.get.id.get) should be(resource3)
   }
 
   test("that connecting folders and resources works as expected") {
-    this.resetIdSequence()
-
     val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
     val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
 
@@ -128,12 +118,10 @@ class FolderRepositoryTest
     repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
     repository.createFolderResourceConnection(folder2.get.id.get, resource2.get.id.get)
 
-    folderResourcesCount() should be(3)
+    folderResourcesCount should be(3)
   }
 
   test("that deleting a folder deletes folder-resource connection") {
-    this.resetIdSequence()
-
     val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
     val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
 
@@ -144,19 +132,12 @@ class FolderRepositoryTest
     repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
     repository.createFolderResourceConnection(folder2.get.id.get, resource2.get.id.get)
 
-    folder1.get.id should be(Some(1))
-    folder2.get.id should be(Some(2))
-    resource1.get.id should be(Some(1))
-    resource2.get.id should be(Some(2))
-
     folderResourcesCount() should be(3)
-    repository.deleteFolder(1)
+    repository.deleteFolder(folder1.get.id.get)
     folderResourcesCount() should be(1)
   }
 
   test("that deleting a resource deletes folder-resource connection") {
-    this.resetIdSequence()
-
     val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
     val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
 
@@ -167,17 +148,12 @@ class FolderRepositoryTest
     repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
     repository.createFolderResourceConnection(folder2.get.id.get, resource1.get.id.get)
 
-    folder1.get.id should be(Some(1))
-    folder2.get.id should be(Some(2))
-    resource1.get.id should be(Some(1))
-    resource2.get.id should be(Some(2))
-
-    repository.folderResourceConnectionCount(1).get should be(2)
-    repository.folderResourceConnectionCount(2).get should be(1)
+    repository.folderResourceConnectionCount(resource1.get.id.get).get should be(2)
+    repository.folderResourceConnectionCount(resource2.get.id.get).get should be(1)
     folderResourcesCount() should be(3)
-    repository.deleteResource(1)
+    repository.deleteResource(resource1.get.id.get)
     folderResourcesCount() should be(1)
-    repository.deleteResource(2)
+    repository.deleteResource(resource2.get.id.get)
     folderResourcesCount() should be(0)
   }
 
@@ -199,25 +175,25 @@ class FolderRepositoryTest
   }
 
   test("that foldersWithParentID works correctly") {
-    this.resetIdSequence()
-    val data = TestData.emptyDomainFolder
+    val data  = TestData.emptyDomainFolder
+    val uuid1 = UUID.randomUUID()
+    val uuid2 = UUID.randomUUID()
 
-    repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(1), feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(2), feideId = "feide"))
+    repository.insertFolder(data.copy(id = Some(uuid1), parentId = None, feideId = "feide"))
+    repository.insertFolder(data.copy(id = Some(uuid2), parentId = None, feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(uuid1), feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(uuid2), feideId = "feide"))
 
     repository.foldersWithFeideAndParentID(None, "feide").get.length should be(2)
-    repository.foldersWithFeideAndParentID(Some(1), "feide").get.length should be(1)
-    repository.foldersWithFeideAndParentID(Some(2), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(uuid1), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(uuid2), "feide").get.length should be(1)
   }
 
   test("that getFolderResources works as expected") {
-    this.resetIdSequence()
     val folderData = TestData.emptyDomainFolder
 
     val folder1   = repository.insertFolder(folderData.copy(parentId = None, feideId = "feide"))
-    val folder2   = repository.insertFolder(folderData.copy(parentId = Some(1), feideId = "feide"))
+    val folder2   = repository.insertFolder(folderData.copy(parentId = Some(folder1.get.id.get), feideId = "feide"))
     val resource1 = repository.insertResource(TestData.emptyDomainResource)
     val resource2 = repository.insertResource(TestData.emptyDomainResource)
     val resource3 = repository.insertResource(TestData.emptyDomainResource)
@@ -232,8 +208,6 @@ class FolderRepositoryTest
   }
 
   test("that resourcesWithFeideId works as expected") {
-    this.resetIdSequence()
-
     repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
     repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide2"))
     repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide3"))

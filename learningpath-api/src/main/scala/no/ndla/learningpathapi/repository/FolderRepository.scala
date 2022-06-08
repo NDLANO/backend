@@ -16,6 +16,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 import scalikejdbc.interpolation.SQLSyntax
 
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
@@ -31,14 +32,15 @@ trait FolderRepository {
         dataObject.setType("jsonb")
         dataObject.setValue(write(folder))
 
-        val folderId: Long =
-          sql"""
-        insert into ${DBFolder.table} (parent_id, feide_id, document)
-        values (${folder.parentId}, ${folder.feideId}, $dataObject)
-        """.updateAndReturnGeneratedKey()
+        val newId = UUID.randomUUID()
 
-        logger.info(s"Inserted new folder with id: $folderId")
-        folder.copy(id = Some(folderId))
+        sql"""
+        insert into ${DBFolder.table} (id, parent_id, feide_id, document)
+        values ($newId, ${folder.parentId}, ${folder.feideId}, $dataObject)
+        """.update()
+
+        logger.info(s"Inserted new folder with id: $newId")
+        folder.copy(id = Some(newId))
       }
     }
 
@@ -48,17 +50,19 @@ trait FolderRepository {
         dataObject.setType("jsonb")
         dataObject.setValue(write(resource))
 
-        val resourceId: Long =
-          sql"""
-        insert into ${DBResource.table} (feide_id, created, document) values (${resource.feideId}, ${resource.created}, $dataObject)
-        """.updateAndReturnGeneratedKey()
+        val newId = UUID.randomUUID()
 
-        logger.info(s"Inserted new resource with id: $resourceId")
-        resource.copy(id = Some(resourceId))
+        sql"""
+        insert into ${DBResource.table} (id, feide_id, created, document)
+        values (${newId}, ${resource.feideId}, ${resource.created}, $dataObject)
+        """.update()
+
+        logger.info(s"Inserted new resource with id: $newId")
+        resource.copy(id = Some(newId))
       }
     }
 
-    def createFolderResourceConnection(folderId: Long, resourceId: Long)(implicit
+    def createFolderResourceConnection(folderId: UUID, resourceId: UUID)(implicit
         session: DBSession = AutoSession
     ): Try[Unit] = {
       Try {
@@ -70,7 +74,7 @@ trait FolderRepository {
       }
     }
 
-    def updateFolder(id: Long, feideId: FeideID, folder: Folder)(implicit
+    def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = Try {
       val dataObject = new PGobject()
@@ -92,7 +96,7 @@ trait FolderRepository {
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
-    def updateResource(id: Long, resource: Resource)(implicit
+    def updateResource(id: UUID, resource: Resource)(implicit
         session: DBSession = AutoSession
     ): Try[Resource] = Try {
       val dataObject = new PGobject()
@@ -113,7 +117,7 @@ trait FolderRepository {
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
-    def folderResourceConnectionCount(resourceId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def folderResourceConnectionCount(resourceId: UUID)(implicit session: DBSession = AutoSession): Try[Long] = {
       Try(
         sql"select count(*) from ${DBFolderResource.table} where resource_id=$resourceId"
           .map(rs => rs.long("count"))
@@ -122,7 +126,7 @@ trait FolderRepository {
       )
     }
 
-    def deleteFolder(id: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteFolder(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
       Try(sql"delete from ${DBFolder.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
@@ -132,7 +136,7 @@ trait FolderRepository {
       }
     }
 
-    def deleteResource(id: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteResource(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
       Try(sql"delete from ${DBResource.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
@@ -142,9 +146,9 @@ trait FolderRepository {
       }
     }
 
-    def deleteFolderResourceConnection(folderId: Long, resourceId: Long)(implicit
+    def deleteFolderResourceConnection(folderId: UUID, resourceId: UUID)(implicit
         session: DBSession = AutoSession
-    ): Try[Long] = {
+    ): Try[UUID] = {
       Try(
         sql"delete from ${DBFolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update()
       ) match {
@@ -161,21 +165,21 @@ trait FolderRepository {
       }
     }
 
-    def folderWithId(id: Long): Try[Folder] = {
+    def folderWithId(id: UUID): Try[Folder] = {
       folderWhere(sqls"f.id=$id").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Some(folder) => Success(folder)
       }
     }
 
-    def folderWithFeideId(id: Long, feideId: FeideID): Try[Folder] = {
+    def folderWithFeideId(id: UUID, feideId: FeideID): Try[Folder] = {
       folderWhere(sqls"f.id=$id and f.feide_id=$feideId").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Some(folder) => Success(folder)
       }
     }
 
-    def resourceWithId(id: Long): Try[Resource] = {
+    def resourceWithId(id: UUID): Try[Resource] = {
       resourceWhere(sqls"r.id=$id").flatMap({
         case None           => Failure(NotFoundException(s"Resource with id $id does not exist"))
         case Some(resource) => Success(resource)
@@ -189,7 +193,7 @@ trait FolderRepository {
       resourceWhere(sqls"document->>'path'=$path and feide_id=$feideId")
     }
 
-    def foldersWithFeideAndParentID(parentId: Option[Long], feideId: FeideID): Try[List[Folder]] = {
+    def foldersWithFeideAndParentID(parentId: Option[UUID], feideId: FeideID): Try[List[Folder]] = {
       val parentIdClause = parentId match {
         case Some(pid) => sqls"f.parent_id=$pid"
         case None      => sqls"f.parent_id is null"
@@ -197,11 +201,11 @@ trait FolderRepository {
       foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId")
     }
 
-    def foldersWithParentID(parentId: Option[Long]): Try[List[Folder]] =
+    def foldersWithParentID(parentId: Option[UUID]): Try[List[Folder]] =
       foldersWhere(sqls"f.parent_id=$parentId")
 
     def getFolderResources(
-        folderId: Long
+        folderId: UUID
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
       val fr = DBFolderResource.syntax("fr")
       val r  = DBResource.syntax("r")

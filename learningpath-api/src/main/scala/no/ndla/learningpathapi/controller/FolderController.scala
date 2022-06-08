@@ -14,17 +14,19 @@ import no.ndla.learningpathapi.model.api.{
   NewFolder,
   NewResource,
   Resource,
-  UpdatedResource,
   UpdatedFolder,
+  UpdatedResource,
   ValidationError
 }
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
-import org.scalatra.{Ok, ScalatraServlet}
+import org.scalatra.ScalatraServlet
 
+import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
@@ -38,7 +40,7 @@ trait FolderController {
       with NativeJsonSupport
       with SwaggerSupport
       with LazyLogging {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 
@@ -54,8 +56,8 @@ trait FolderController {
 
     case class Param[T](paramName: String, description: String)
 
-    private val folderId   = Param[Long]("folder_id", "Id of the folder.")
-    private val resourceId = Param[Long]("resource_id", "Id of the resource.")
+    private val folderId   = Param[UUID]("folder_id", "UUID of the folder.")
+    private val resourceId = Param[UUID]("resource_id", "UUID of the resource.")
     private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -102,8 +104,8 @@ trait FolderController {
       "/:folder_id",
       operation(
         apiOperation[Folder]("fetchFolder")
-          .summary("Fetch folder with specific ID")
-          .description("Fetch folder with specific ID")
+          .summary("Fetch a folder and all its content")
+          .description("Fetch a folder and all its content")
           .parameters(
             asHeaderParam(feideToken),
             asPathParam(folderId),
@@ -113,12 +115,10 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val id               = long(this.folderId.paramName)
-      val includeResources = booleanOrDefault(this.includeResources.paramName, default = false)
-      readService.getFolder(id, includeResources, requestFeideToken) match {
-        case Failure(ex)     => errorHandler(ex)
-        case Success(folder) => folder
-      }
+      uuidParam(this.folderId.paramName).flatMap(id => {
+        val includeResources = booleanOrDefault(this.includeResources.paramName, default = false)
+        readService.getFolder(id, includeResources, requestFeideToken)
+      })
     }
 
     post(
@@ -137,8 +137,9 @@ trait FolderController {
     ) {
       val newFolder = extract[NewFolder](request.body)
       updateService.newFolder(newFolder, requestFeideToken) match {
-        case Failure(ex)     => errorHandler(ex)
-        case Success(folder) => folder
+        case Failure(ex) => errorHandler(ex)
+        case Success(folder) =>
+          folder
       }
     }
 
@@ -157,12 +158,10 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val updatedFolder = extract[UpdatedFolder](request.body)
-      val id            = long(this.folderId.paramName)
-      updateService.updateFolder(id, updatedFolder, requestFeideToken) match {
-        case Failure(ex)     => errorHandler(ex)
-        case Success(folder) => folder
-      }
+      uuidParam(this.folderId.paramName).flatMap(id => {
+        val updatedFolder = extract[UpdatedFolder](request.body)
+        updateService.updateFolder(id, updatedFolder, requestFeideToken)
+      })
     }
 
     delete(
@@ -179,11 +178,9 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val folderId = long(this.folderId.paramName)
-      updateService.deleteFolder(folderId, requestFeideToken) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(id) => id
-      }
+      uuidParam(this.folderId.paramName).flatMap(id => {
+        updateService.deleteFolder(id, requestFeideToken)
+      })
     }
 
     get(
@@ -226,12 +223,10 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val folderId    = long(this.folderId.paramName)
-      val newResource = extract[NewResource](request.body)
-      updateService.newFolderResourceConnection(folderId, newResource, requestFeideToken) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_)  => Ok()
-      }
+      uuidParam(this.folderId.paramName).flatMap(id => {
+        val newResource = extract[NewResource](request.body)
+        updateService.newFolderResourceConnection(id, newResource, requestFeideToken)
+      })
     }
 
     patch(
@@ -249,12 +244,10 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val resourceId      = long(this.resourceId.paramName)
-      val updatedResource = extract[UpdatedResource](request.body)
-      updateService.updateResource(resourceId, updatedResource, requestFeideToken) match {
-        case Failure(ex)       => errorHandler(ex)
-        case Success(resource) => resource
-      }
+      uuidParam(this.resourceId.paramName).flatMap(id => {
+        val updatedResource = extract[UpdatedResource](request.body)
+        updateService.updateResource(id, updatedResource, requestFeideToken)
+      })
     }
 
     delete(
@@ -272,12 +265,11 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      val folderId   = long(this.folderId.paramName)
-      val resourceId = long(this.resourceId.paramName)
-      updateService.deleteConnection(folderId, resourceId, requestFeideToken) match {
-        case Failure(ex)       => errorHandler(ex)
-        case Success(resource) => resource
-      }
+      uuidParam(this.folderId.paramName).flatMap(folderId => {
+        uuidParam(this.resourceId.paramName).flatMap(resourceId => {
+          updateService.deleteConnection(folderId, resourceId, requestFeideToken)
+        })
+      })
     }
   }
 }

@@ -28,6 +28,7 @@ import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValida
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 
+import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
@@ -674,12 +675,13 @@ trait ConverterService {
 
     def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): domain.Folder = {
       val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newParentId = newFolder.parentId.map(UUID.fromString)
       val newFavorite = false
 
       domain.Folder(
         id = None,
         feideId = feideId,
-        parentId = newFolder.parentId,
+        parentId = newParentId,
         name = newFolder.name,
         status = newStatus,
         isFavorite = newFavorite,
@@ -692,7 +694,7 @@ trait ConverterService {
         case Right(resource) =>
           resource.doIfIdExists(id =>
             api.Resource(
-              id = id,
+              id = id.toString,
               resourceType = resource.resourceType,
               path = resource.path,
               created = resource.created,
@@ -705,7 +707,7 @@ trait ConverterService {
               .traverse(toApiFolderData)
               .map(subFolders =>
                 api.Folder(
-                  id = id,
+                  id = id.toString,
                   name = folder.name,
                   status = folder.status.toString,
                   isFavorite = folder.isFavorite,
@@ -722,7 +724,7 @@ trait ConverterService {
           .traverse(folder => toApiFolderData(folder))
           .map(folderData =>
             api.Folder(
-              id = folderId,
+              id = folderId.toString,
               name = domainFolder.name,
               status = domainFolder.status.toString,
               isFavorite = domainFolder.isFavorite,
@@ -780,7 +782,7 @@ trait ConverterService {
         val created      = domainResource.created
         val tags         = domainResource.tags
 
-        api.Resource(id = id, resourceType = resourceType, path = path, created = created, tags = tags)
+        api.Resource(id = id.toString, resourceType = resourceType, path = path, created = created, tags = tags)
       })
     }
 
@@ -794,7 +796,7 @@ trait ConverterService {
         feideId = feideId,
         resourceType = resourceType,
         path = path,
-        created = clock.now(),
+        created = clock.nowLocalDateTime(),
         tags = tags
       )
     }

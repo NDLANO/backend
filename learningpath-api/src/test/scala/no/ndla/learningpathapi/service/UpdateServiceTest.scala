@@ -25,7 +25,8 @@ import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import java.util.Date
+import java.time.LocalDateTime
+import java.util.{Date, UUID}
 import scala.util.{Failure, Success}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -1467,7 +1468,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that a user without access cannot delete a folder") {
-    val id = 42
+    val id = UUID.randomUUID()
     val folderWithChildren =
       emptyDomainFolder.copy(
         id = Some(id),
@@ -1484,16 +1485,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     x.isFailure should be(true)
     x should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
-    verify(folderRepository, times(0)).deleteFolder(anyLong)(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolder(any)(any[DBSession])
     verify(folderRepository, times(0)).folderResourceConnectionCount(any)(any[DBSession])
     verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
   }
 
   test("that a user with access can delete a folder") {
-    val mainFolderId = 42L
-    val subFolder1Id = 1L
-    val subFolder2Id = 2L
-    val resourceId   = 1L
+    val mainFolderId = UUID.randomUUID()
+    val subFolder1Id = UUID.randomUUID()
+    val subFolder2Id = UUID.randomUUID()
+    val resourceId   = UUID.randomUUID()
     val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
@@ -1509,9 +1510,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folder))
     when(readService.getSubFoldersRecursively(folder, false)).thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
+    when(folderRepository.deleteFolder(any)(any[DBSession]))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
-    when(folderRepository.deleteResource(anyLong)(any[DBSession])).thenReturn(Success(resourceId))
+    when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
 
@@ -1526,10 +1527,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that a user with access can not delete Favorite folder") {
     val correctFeideId = "FEIDE"
-    val mainFolderId   = 42L
-    val subFolder1Id   = 1L
-    val subFolder2Id   = 2L
-    val resourceId     = 1L
+    val mainFolderId   = UUID.randomUUID()
+    val subFolder1Id   = UUID.randomUUID()
+    val subFolder2Id   = UUID.randomUUID()
+    val resourceId     = UUID.randomUUID()
     val folderWithChildren =
       emptyDomainFolder.copy(
         id = Some(mainFolderId),
@@ -1545,9 +1546,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(anyLong)(any[DBSession]))
+    when(folderRepository.deleteFolder(any)(any[DBSession]))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
-    when(folderRepository.deleteResource(anyLong)(any[DBSession])).thenReturn(Success(resourceId))
+    when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
     x.isFailure should be(true)
@@ -1562,10 +1563,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
-    val mainFolderId = 42L
-    val subFolder1Id = 1L
-    val subFolder2Id = 2L
-    val resourceId   = 1L
+    val mainFolderId = UUID.randomUUID()
+    val subFolder1Id = UUID.randomUUID()
+    val subFolder2Id = UUID.randomUUID()
+    val resourceId   = UUID.randomUUID()
     val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
@@ -1581,7 +1582,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(0))
     when(folderRepository.folderWithId(mainFolderId)).thenReturn(Success(folder))
     when(readService.getSubFoldersRecursively(folder, false)).thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(anyLong)(any[DBSession])).thenReturn(Success(anyLong))
+    when(folderRepository.deleteFolder(any)(any[DBSession])).thenReturn(Success(any))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
 
@@ -1595,8 +1596,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that deleteConnection only deletes connection when there are several references to a resource") {
-    val folderId       = 42L
-    val resourceId     = 13
+    val folderId       = UUID.randomUUID()
+    val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
@@ -1617,8 +1618,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that deleteConnection deletes the resource if there is only 1 references to a resource") {
-    val folderId       = 42L
-    val resourceId     = 13
+    val folderId       = UUID.randomUUID()
+    val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
@@ -1640,8 +1641,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that deleteConnection exits early if user is not the folder owner") {
-    val folderId       = 42L
-    val resourceId     = 13
+    val folderId       = UUID.randomUUID()
+    val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "asd")
 
@@ -1660,8 +1661,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that deleteConnection exits early if user is not the resource owner") {
-    val folderId       = 42L
-    val resourceId     = 13
+    val folderId       = UUID.randomUUID()
+    val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "asd")
@@ -1682,12 +1683,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that createNewResourceOrUpdateExisting creates a resource if it does not already exist") {
-    val created = new Date()
-    when(clock.now()).thenReturn(created)
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
 
     val feideId      = "FEIDE"
-    val folderId     = 42
-    val resourceId   = 13
+    val folderId     = UUID.randomUUID()
+    val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
     val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
     val resource =
@@ -1718,12 +1719,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "that createNewResourceOrUpdateExisting updates a resource and creates new connection if the resource already exist"
   ) {
-    val created = new Date()
-    when(clock.now()).thenReturn(created)
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
 
     val feideId      = "FEIDE"
-    val folderId     = 42
-    val resourceId   = 13
+    val folderId     = UUID.randomUUID()
+    val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
     val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
     val resource =

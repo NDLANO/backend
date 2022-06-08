@@ -16,12 +16,12 @@ import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus, UserInfo, LearningPath => _, LearningStep => _, _}
-import no.ndla.learningpathapi.repository.{FolderRepository, ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
-
 import cats.implicits._
-import java.util.Date
+
+import java.util.{Date, UUID}
 import scala.util.{Failure, Success, Try}
 
 trait UpdateService {
@@ -437,7 +437,7 @@ trait UpdateService {
     }
 
     def newFolderResourceConnection(
-        folderId: Long,
+        folderId: UUID,
         newResource: api.NewResource,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[_] = {
@@ -452,7 +452,7 @@ trait UpdateService {
 
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
-        folderId: Long,
+        folderId: UUID,
         feideId: FeideID
     ): Try[_] = {
       folderRepository
@@ -476,7 +476,7 @@ trait UpdateService {
     }
 
     def updateFolder(
-        id: Long,
+        id: UUID,
         updatedFolder: UpdatedFolder,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
@@ -491,7 +491,7 @@ trait UpdateService {
     }
 
     def updateResource(
-        id: Long,
+        id: UUID,
         updatedResource: UpdatedResource,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Resource] = {
@@ -505,7 +505,7 @@ trait UpdateService {
       } yield api
     }
 
-    private def deleteResourceIfNoConnection(resourceId: Long): Try[_] = {
+    private def deleteResourceIfNoConnection(resourceId: UUID): Try[_] = {
       folderRepository.folderResourceConnectionCount(resourceId) match {
         case Failure(exception)           => Failure(exception)
         case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
@@ -515,7 +515,7 @@ trait UpdateService {
       }
     }
 
-    def deleteRecursively(folder: domain.Folder, feideId: FeideID): Try[Long] = {
+    def deleteRecursively(folder: domain.Folder, feideId: FeideID): Try[UUID] = {
       folder.data
         .traverse {
           case Left(childFolder) => deleteRecursively(childFolder, feideId)
@@ -525,7 +525,7 @@ trait UpdateService {
         .flatMap(_ => folder.doFlatIfIdExists(id => folderRepository.deleteFolder(id)))
     }
 
-    def deleteFolder(id: Long, feideAccessToken: Option[FeideAccessToken] = None): Try[Long] = {
+    def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken] = None): Try[UUID] = {
       for {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
@@ -536,10 +536,10 @@ trait UpdateService {
     }
 
     def deleteConnection(
-        folderId: Long,
-        resourceId: Long,
+        folderId: UUID,
+        resourceId: UUID,
         feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[Long] = {
+    ): Try[UUID] = {
       for {
         feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
         folder   <- folderRepository.folderWithId(folderId)

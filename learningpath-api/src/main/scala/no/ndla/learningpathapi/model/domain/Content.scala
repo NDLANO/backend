@@ -8,20 +8,21 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait Content {
-  def id: Option[Long]
+  def id: Option[UUID]
   def feideId: FeideID
 
-  def doIfIdExists[T](func: Long => T): Try[T] = {
+  def doIfIdExists[T](func: UUID => T): Try[T] = {
     this.id match {
       case None     => Failure(MissingIdException("Entity did not have id when expected. This is a bug."))
       case Some(id) => Success(func(id))
     }
   }
 
-  def doFlatIfIdExists[T](func: Long => Try[T]): Try[T] = {
+  def doFlatIfIdExists[T](func: UUID => Try[T]): Try[T] = {
     this.id match {
       case None     => Failure(MissingIdException("Entity did not have id when expected. This is a bug."))
       case Some(id) => func(id)

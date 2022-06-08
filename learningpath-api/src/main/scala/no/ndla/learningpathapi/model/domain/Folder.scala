@@ -15,18 +15,19 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
-import java.util.Date
+import java.util.UUID
+import java.time.LocalDateTime
 
 class ResourceDocument(path: String, resourceType: String, tags: List[String]) {
-  def toFullResource(id: Option[Long], feideId: String, created: Date): Resource = {
+  def toFullResource(id: Option[UUID], feideId: String, created: LocalDateTime): Resource = {
     Resource(id = id, feideId = feideId, path = path, resourceType = resourceType, tags = tags, created = created)
   }
 }
 
 case class Resource(
-    id: Option[Long],
+    id: Option[UUID],
     feideId: FeideID,
-    created: Date,
+    created: LocalDateTime,
     path: String,
     resourceType: String,
     tags: List[String]
@@ -56,11 +57,16 @@ trait DBResource {
     def fromResultSetOpt(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Option[Resource] =
       fromResultSetOpt(lp.resultName)(rs)
 
+    implicit val uuidBinder: Binders[Option[UUID]] = Binders.of[Option[UUID]] {
+      case v: UUID => Some(v)
+      case _       => None
+    }(v => (ps, idx) => ps.setObject(idx, v))
+
     def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Resource = {
       val metaData = read[ResourceDocument](rs.string(lp.c("document")))
-      val id       = rs.longOpt(lp.c("id"))
+      val id       = rs.get[Option[UUID]](lp.c("id"))
       val feideId  = rs.string(lp.c("feide_id"))
-      val created  = rs.timestamp(lp.c("created"))
+      val created  = rs.localDateTime(lp.c("created"))
 
       metaData.toFullResource(id, feideId, created)
     }
@@ -68,7 +74,7 @@ trait DBResource {
 }
 
 class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value, data: List[FolderData]) {
-  def toFullFolder(id: Option[Long], feideId: FeideID, parentId: Option[Long]): Folder = {
+  def toFullFolder(id: Option[UUID], feideId: FeideID, parentId: Option[UUID]): Folder = {
     Folder(
       id = id,
       feideId = feideId,
@@ -82,9 +88,9 @@ class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Val
 }
 
 case class Folder(
-    id: Option[Long],
+    id: Option[UUID],
     feideId: FeideID,
-    parentId: Option[Long],
+    parentId: Option[UUID],
     name: String,
     status: FolderStatus.Value,
     isFavorite: Boolean,
@@ -111,11 +117,16 @@ trait DBFolder {
     def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Folder =
       fromResultSet(lp.resultName)(rs)
 
+    implicit val uuidBinder: Binders[Option[UUID]] = Binders.of[Option[UUID]] {
+      case v: UUID => Some(v)
+      case _       => None
+    }(v => (ps, idx) => ps.setObject(idx, v))
+
     def fromResultSet(lp: ResultName[Folder])(rs: WrappedResultSet): Folder = {
       val metaData = read[FolderDocument](rs.string(lp.c("document")))
-      val id       = rs.longOpt(lp.c("id"))
+      val id       = rs.get[Option[UUID]](lp.c("id"))
       val feideId  = rs.string(lp.c("feide_id"))
-      val parentId = rs.longOpt(lp.c("parent_id"))
+      val parentId = rs.get[Option[UUID]](lp.c("parent_id"))
 
       metaData.toFullFolder(id, feideId, parentId)
     }

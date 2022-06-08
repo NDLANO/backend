@@ -25,8 +25,8 @@ import no.ndla.learningpathapi.model.domain.{
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 
+import java.util.UUID
 import scala.math.max
-
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
@@ -175,7 +175,7 @@ trait ReadService {
     }
 
     private def getFolderResources(
-        id: Long,
+        id: UUID,
         includeResources: Boolean
     ): Try[List[FolderData]] = {
       if (includeResources)
@@ -214,7 +214,7 @@ trait ReadService {
     }
 
     def getFolder(
-        id: Long,
+        id: UUID,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
