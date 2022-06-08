@@ -13,7 +13,13 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageMetaInformation, Image, SearchResult}
+import no.ndla.imageapi.model.domain.{
+  DBImageFile,
+  DBImageMetaInformation,
+  ImageMetaInformation,
+  ImageFileData,
+  SearchResult
+}
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.imageapi.model.search.{SearchableImage, SearchableImageFile, SearchableTag}
 import no.ndla.imageapi.service.ConverterService
@@ -43,7 +49,7 @@ trait SearchConverterService {
         )
       )
 
-    def asSearchableImageFiles(images: Seq[Image]): Seq[SearchableImageFile] = {
+    def asSearchableImageFiles(images: Seq[ImageFileData]): Seq[SearchableImageFile] = {
       images.map(i => {
         SearchableImageFile(
           imageSize = i.size,

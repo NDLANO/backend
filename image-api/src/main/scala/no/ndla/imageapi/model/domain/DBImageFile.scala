@@ -16,7 +16,7 @@ import scalikejdbc._
 
 import scala.util.Try
 
-case class Image( // TODO: Rename to ImageFileMeta for clarity?
+case class ImageFileData(
     id: Long,
     fileName: String,
     size: Long,
@@ -24,16 +24,16 @@ case class Image( // TODO: Rename to ImageFileMeta for clarity?
     dimensions: Option[ImageDimensions],
     override val language: String,
     imageMetaId: Long
-) extends ImageDocument(size, contentType, dimensions, language)
+) extends ImageFileDataDocument(size, contentType, dimensions, language)
 
-class ImageDocument(
+class ImageFileDataDocument(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
     override val language: String
 ) extends WithLanguage {
-  def toFull(id: Long, fileName: String, imageId: Long): Image = {
-    new Image(
+  def toFull(id: Long, fileName: String, imageId: Long): ImageFileData = {
+    new ImageFileData(
       id = id,
       fileName = fileName,
       size = size,
@@ -48,22 +48,22 @@ class ImageDocument(
 trait DBImageFile {
   this: Props =>
 
-  object Image extends SQLSyntaxSupport[Image] {
+  object Image extends SQLSyntaxSupport[ImageFileData] {
     override val tableName                  = "imagefiledata"
     override val schemaName: Option[String] = Some(props.MetaSchema)
     val jsonEncoder: Formats                = DefaultFormats
     val repositorySerializer: Formats       = jsonEncoder
 
-    def fromResultSet(im: SyntaxProvider[Image])(rs: WrappedResultSet): Try[Image] =
+    def fromResultSet(im: SyntaxProvider[ImageFileData])(rs: WrappedResultSet): Try[ImageFileData] =
       fromResultSet(im.resultName)(rs)
 
-    def fromResultSet(im: ResultName[Image])(rs: WrappedResultSet): Try[Image] = Try {
+    def fromResultSet(im: ResultName[ImageFileData])(rs: WrappedResultSet): Try[ImageFileData] = Try {
       implicit val formats: Formats = this.jsonEncoder
       val id                        = rs.long(im.c("id"))
       val jsonString                = rs.string(im.c("metadata"))
       val fileName                  = rs.string(im.c("file_name"))
       val imageMetaId               = rs.long(im.c("image_meta_id"))
-      val documentMeta              = Serialization.read[ImageDocument](jsonString)
+      val documentMeta              = Serialization.read[ImageFileDataDocument](jsonString)
       documentMeta.toFull(id, fileName, imageMetaId)
     }
   }

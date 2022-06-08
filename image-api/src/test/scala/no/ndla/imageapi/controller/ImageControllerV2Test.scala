@@ -217,7 +217,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       titles = titles,
       alttexts = alttexts,
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 1,
           fileName = "/img.jpg",
           size = 1024,

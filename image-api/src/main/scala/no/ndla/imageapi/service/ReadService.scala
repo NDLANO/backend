@@ -13,7 +13,7 @@ import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2}
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, Image, ImageMetaInformation, Sort}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
@@ -74,7 +74,7 @@ trait ReadService {
         case _                           => Failure(new InvalidUrlException("Could not extract path from url."))
       }
 
-    def getImageFromFilePath(path: String): Try[Image] = {
+    def getImageFromFilePath(path: String): Try[ImageFileData] = {
       val encodedPath = urlEncodePath(path)
       imageRepository.getImageFromFilePath(encodedPath) match {
         case Some(image) =>

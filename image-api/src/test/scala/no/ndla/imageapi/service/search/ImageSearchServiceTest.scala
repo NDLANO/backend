@@ -46,8 +46,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = new Image(1, "large-full-url", 10000, "jpg", None, "und", 4)
-  val smallImage = new Image(2, "small-full-url", 100, "jpg", None, "und", 6)
+  val largeImage = new ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
+  val smallImage = new ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
 
   val byNcSa = Copyright(
     CC_BY_NC_SA.toString,

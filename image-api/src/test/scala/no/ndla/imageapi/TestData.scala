@@ -35,7 +35,7 @@ trait TestData {
       titles = List(ImageTitle("Elg i busk", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 123,
           fileName = "Elg.jpg",
           size = 2865539,
@@ -134,7 +134,7 @@ trait TestData {
       titles = List(ImageTitle("Bjørn i busk", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 333,
           fileName = "Bjørn.jpg",
           size = 141134,
@@ -169,7 +169,7 @@ trait TestData {
       titles = List(ImageTitle("Jerv på stein", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 444,
           fileName = "Jerv.jpg",
           size = 39061,
@@ -204,7 +204,7 @@ trait TestData {
       titles = List(ImageTitle("Overrasket mink", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 555,
           fileName = "Mink.jpg",
           size = 102559,
@@ -239,7 +239,7 @@ trait TestData {
       titles = List(ImageTitle("Rein har fanget rødtopp", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 667,
           fileName = "Rein.jpg",
           size = 504911,
@@ -274,7 +274,7 @@ trait TestData {
       titles = List(ImageTitle("Krokodille på krok", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 777,
           fileName = "Krokodille.jpg",
           size = 2865539,
@@ -309,7 +309,7 @@ trait TestData {
       titles = List(ImageTitle("Bison på sletten", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 888,
           fileName = "Bison.jpg",
           size = 2865539,

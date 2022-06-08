@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.{ValidationException, domain}
-import no.ndla.imageapi.model.domain.{ImageDocument, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
 import org.joda.time.{DateTime, DateTimeZone}
@@ -52,7 +52,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       List(domain.ImageTitle("nynorsk", "nn"), domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
     alttexts = List(),
     images = Seq(
-      new domain.Image(
+      new domain.ImageFileData(
         id = 65123,
         fileName = "yolo.jpeg",
         size = 100,
@@ -115,7 +115,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
     val expectedImage =
-      domain.Image(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
+      domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
 
     when(imageRepository.insertImageFile(any, any, any)(any)).thenReturn(Success(expectedImage))
     val result = writeService.uploadImage(1, fileMock1, "nb")
@@ -185,7 +185,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
-      val document = i.getArgument[ImageDocument](2)
+      val document = i.getArgument[ImageFileDataDocument](2)
       Success(document.toFull(1, fileName, imageId))
     })
 
@@ -207,7 +207,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
-      val document = i.getArgument[ImageDocument](2)
+      val document = i.getArgument[ImageFileDataDocument](2)
       Success(document.toFull(1, fileName, imageId))
     })
 
@@ -226,11 +226,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(imageRepository.insert(any)(any)).thenReturn(afterInsert)
-    var fullImage: Option[domain.Image] = None
+    var fullImage: Option[domain.ImageFileData] = None
     when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
-      val document = i.getArgument[ImageDocument](2)
+      val document = i.getArgument[ImageFileDataDocument](2)
       fullImage = Some(document.toFull(1, fileName, imageId))
       Success(fullImage.get)
     })
@@ -369,7 +369,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val imageId = 4444.toLong
     val domainWithImage = domainImageMeta.copy(
       images = Seq(
-        domain.Image(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
+        domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
       )
     )
 
@@ -469,7 +469,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       caption = None,
       modelReleased = None
     )
-    val image = domain.Image(
+    val image = domain.ImageFileData(
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
@@ -519,7 +519,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
-      val doc      = i.getArgument[domain.ImageDocument](2)
+      val doc      = i.getArgument[domain.ImageFileDataDocument](2)
       val image    = doc.toFull(5, fileName, imageId)
       Success(image)
     })
@@ -566,7 +566,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       caption = None,
       modelReleased = None
     )
-    val image = domain.Image(
+    val image = domain.ImageFileData(
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
@@ -615,7 +615,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
-      val doc      = i.getArgument[domain.ImageDocument](2)
+      val doc      = i.getArgument[domain.ImageFileDataDocument](2)
       val image    = doc.toFull(5, fileName, imageId)
       Success(image)
     })

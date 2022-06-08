@@ -10,7 +10,13 @@ package no.ndla.imageapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, Image, ImageDocument, ImageMetaInformation}
+import no.ndla.imageapi.model.domain.{
+  DBImageFile,
+  DBImageMetaInformation,
+  ImageFileData,
+  ImageFileDataDocument,
+  ImageMetaInformation
+}
 import no.ndla.imageapi.service.ConverterService
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -105,9 +111,9 @@ trait ImageRepository {
       }
     }
 
-    def insertImageFile(imageId: Long, fileName: String, document: ImageDocument)(implicit
+    def insertImageFile(imageId: Long, fileName: String, document: ImageFileDataDocument)(implicit
         session: DBSession = AutoSession
-    ): Try[Image] = Try {
+    ): Try[ImageFileData] = Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(document))

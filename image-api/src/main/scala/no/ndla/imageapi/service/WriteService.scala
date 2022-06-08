@@ -15,7 +15,7 @@ import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformati
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
-  Image,
+  ImageFileData,
   ImageDimensions,
   ImageMetaInformation,
   ModelReleasedStatus,
@@ -320,14 +320,19 @@ trait WriteService {
         .map(filePath => UploadedImage(filePath, file.size, contentType, dimensions))
     }
 
-    private def uploadAndInsertImage(imageId: Long, file: FileItem, fileName: String, language: String): Try[Image] = {
+    private def uploadAndInsertImage(
+        imageId: Long,
+        file: FileItem,
+        fileName: String,
+        language: String
+    ): Try[ImageFileData] = {
       uploadImageWithName(file, fileName).flatMap(s3Uploaded => {
         val imageDocument = converterService.toImageDocument(s3Uploaded, language)
         imageRepository.insertImageFile(imageId, s3Uploaded.fileName, imageDocument)
       })
     }
 
-    private[service] def uploadImage(imageId: Long, file: FileItem, language: String): Try[Image] = {
+    private[service] def uploadImage(imageId: Long, file: FileItem, language: String): Try[ImageFileData] = {
       val extension = getFileExtension(file.name).getOrElse("")
       val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
       uploadAndInsertImage(imageId, file, fileName, language)

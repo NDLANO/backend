@@ -17,8 +17,8 @@ import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
-  Image,
-  ImageDocument,
+  ImageFileData,
+  ImageFileDataDocument,
   ImageMetaInformation,
   ModelReleasedStatus,
   UploadedImage
@@ -56,7 +56,7 @@ trait ConverterService {
       )
     }
 
-    def asApiImage(domainImage: Image, baseUrl: Option[String] = None): api.Image = {
+    def asApiImage(domainImage: ImageFileData, baseUrl: Option[String] = None): api.Image = {
       api.Image(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
     }
 
@@ -89,7 +89,7 @@ trait ConverterService {
       notes.map(n => api.EditorNote(n.timeStamp, n.updatedBy, n.note))
     }
 
-    private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[Image] = {
+    private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
       findByLanguageOrBestEffort(meta.images, language) match {
         case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
         case Some(image) => Success(image)
@@ -198,7 +198,7 @@ trait ConverterService {
 
     def withNewImage(
         imageMeta: ImageMetaInformation,
-        image: Image,
+        image: ImageFileData,
         language: String
     ): ImageMetaInformation = {
       val user      = authUser.userOrClientid()
@@ -297,8 +297,8 @@ trait ConverterService {
       )
     }
 
-    def toImageDocument(image: UploadedImage, language: String): ImageDocument = {
-      new ImageDocument(
+    def toImageDocument(image: UploadedImage, language: String): ImageFileDataDocument = {
+      new ImageFileDataDocument(
         size = image.size,
         contentType = image.contentType,
         dimensions = image.dimensions,

@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
@@ -79,7 +79,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       titles = List(domain.ImageTitle("Elg i busk", "nb")),
       alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 1,
           fileName = "Elg.jpg",
           size = 2865539,
@@ -127,7 +127,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       titles = List(domain.ImageTitle("Elg i busk", "nb")),
       alttexts = List(domain.ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new Image(
+        new ImageFileData(
           id = 1,
           fileName = "Elg.jpg",
           size = 2865539,

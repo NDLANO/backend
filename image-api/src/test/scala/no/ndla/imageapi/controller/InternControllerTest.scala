@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
-import no.ndla.imageapi.model.domain.{Image, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
@@ -61,7 +61,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     titles = List(),
     alttexts = List(),
     images = Seq(
-      new Image(
+      new ImageFileData(
         id = 1,
         fileName = "test.jpg",
         size = 0,
