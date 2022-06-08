@@ -66,7 +66,7 @@ trait Module {
   ) ++ loadEnvFile() ++ fmtSettings
 
   private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    if (true /* TODO: Fix this */ ) Seq.empty
+    if (sys.env.get("DISABLE_SUB_DOTENV").contains("true")) Seq.empty
     else
       Seq(
         fork := true,
