@@ -39,7 +39,7 @@ export interface IError {
 }
 
 export interface IFolder {
-  id: number
+  id: string
   name: string
   status: string
   isFavorite: boolean
@@ -159,7 +159,7 @@ export interface IMessage {
 
 export interface INewFolder {
   name: string
-  parentId?: number
+  parentId?: string
   status?: string
 }
 
@@ -170,7 +170,7 @@ export interface INewResource {
 }
 
 export interface IResource {
-  id: number
+  id: string
   resourceType: string
   path: string
   created: string
