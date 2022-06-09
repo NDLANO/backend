@@ -70,15 +70,16 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Random {
   override val props: ImageApiProperties = properties
 
-  override val migrator                     = new DBMigrator
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override lazy val migrator   = new DBMigrator
+  override lazy val dataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
   implicit val swagger = new ImageSwagger
 
-  val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
+  lazy val currentRegion: Option[Regions] =
+    Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
 
-  val amazonClient: AmazonS3 =
+  lazy val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
       .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))

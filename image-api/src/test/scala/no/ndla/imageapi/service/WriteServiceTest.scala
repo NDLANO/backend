@@ -9,10 +9,11 @@
 package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.api._
-import no.ndla.imageapi.model.{ValidationException, domain}
+import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
+import no.ndla.scalatra.error.ValidationException
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem

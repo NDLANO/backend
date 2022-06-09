@@ -7,12 +7,12 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.{ImageApiProperties, Props}
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._
-import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 import org.scalatra.servlet.FileItem

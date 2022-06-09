@@ -15,8 +15,8 @@ import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformati
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
-  ImageFileData,
   ImageDimensions,
+  ImageFileData,
   ImageMetaInformation,
   ModelReleasedStatus,
   UploadedImage
@@ -33,6 +33,7 @@ import java.util.Date
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: ConverterService

@@ -10,8 +10,8 @@ package no.ndla.imageapi.model.domain
 
 import java.util.Date
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.language.model.{LanguageField, WithLanguage}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.EnumNameSerializer

@@ -8,9 +8,9 @@
 package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.domain._
-import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.servlet.FileItem
 

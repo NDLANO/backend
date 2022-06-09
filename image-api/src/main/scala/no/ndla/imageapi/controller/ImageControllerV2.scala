@@ -11,7 +11,6 @@ package no.ndla.imageapi.controller
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
-import no.ndla.imageapi.model.ValidationException
 import no.ndla.imageapi.model.api.{
   Error,
   ErrorHelpers,
@@ -28,12 +27,13 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.scalatra.error.ValidationException
 import org.json4s.Formats
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
-import org.scalatra.{Delete, Get, Head, NoContent, NotFound, Ok, Options, Patch, Post, Put, Route, RouteTransformer}
+import org.scalatra.{NoContent, NotFound, Ok}
 
 import scala.util.{Failure, Success}
 
@@ -552,8 +552,5 @@ trait ImageControllerV2 {
       }
 
     }
-    // TODO: getV3("/:image_id") {
-    //         // ... do stuff
-    //        }
   }
 }
