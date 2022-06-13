@@ -92,4 +92,5 @@ object Language {
       supportedLanguages.head
   }
 
+  final val LanguageDocString = "ISO 639-1 code that represents the language used in the caption"
 }

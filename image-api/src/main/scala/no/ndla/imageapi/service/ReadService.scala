@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.auth.User
-import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2}
+import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
 import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
@@ -38,6 +38,12 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService extends LazyLogging {
+
+    def withIdV3(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV3]] = {
+      imageRepository
+        .withId(imageId)
+        .traverse(image => converterService.asApiImageMetaInformationV3(image, language))
+    }
 
     def getAllTags(input: String, pageSize: Int, page: Int, language: String, sort: Sort): Try[api.TagsSearchResult] = {
       val result = tagSearchService.matchingQuery(

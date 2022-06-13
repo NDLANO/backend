@@ -1,6 +1,6 @@
 /*
  * Part of NDLA image-api.
- * Copyright (C) 2016 NDLA
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
@@ -14,25 +14,31 @@ import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.api.{
   Error,
   ErrorHelpers,
-  ImageMetaInformationV2,
+  ImageMetaInformationV3,
   NewImageMetaInformationV2,
   SearchParams,
-  SearchResult,
+  SearchResultV3,
   TagsSearchResult,
-  UpdateImageMetaInformation
+  UpdateImageMetaInformation,
+  ValidationError
 }
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.scalatra.error.ValidationException
+import org.json4s.Formats
+import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
+import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
+import org.scalatra.util.NotNothing
 import org.scalatra.{NoContent, NotFound, Ok}
 
 import scala.util.{Failure, Success}
 
-trait ImageControllerV2 {
+trait ImageControllerV3 {
   this: ImageRepository
     with ImageSearchService
     with ConverterService
@@ -45,13 +51,84 @@ trait ImageControllerV2 {
     with NdlaController
     with DBImageMetaInformation
     with Props
-    with ErrorHelpers
-    with ImageControllerV3 =>
-  val imageControllerV2: ImageControllerV2
+    with ErrorHelpers =>
+  val imageControllerV3: ImageControllerV3
 
-  class ImageControllerV2(override implicit val swagger: Swagger) extends ImageControllerV3 {
+  class ImageControllerV3(implicit override val swagger: Swagger)
+      extends NdlaController
+      with NdlaSwaggerSupport
+      with FileUploadSupport {
 
     import props._
+
+    // Swagger-stuff
+    protected val applicationDescription                 = "Services for accessing images from NDLA"
+    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
+
+    // Additional models used in error responses
+    registerModel[ValidationError]()
+    registerModel[Error]()
+    registerModel[NewImageMetaInformationV2]()
+    registerModel[UpdateImageMetaInformation]()
+
+    val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response400: ResponseMessage = ResponseMessage(400, "Validation error", Some("ValidationError"))
+    val response413: ResponseMessage = ResponseMessage(413, "File too big", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
+
+    protected val correlationId =
+      Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
+    protected val query =
+      Param[Option[String]]("query", "Return only images with titles, alt-texts or tags matching the specified query.")
+    protected val minSize =
+      Param[Option[Int]]("minimum-size", "Return only images with full size larger than submitted value in bytes.")
+    protected val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+    protected val license  = Param[Option[String]]("license", "Return only images with provided license.")
+    protected val includeCopyrighted =
+      Param[Option[Boolean]]("includeCopyrighted", "Return copyrighted images. May be omitted.")
+    protected val sort = Param[Option[String]](
+      "sort",
+      s"""The sorting used on results.
+             The following are supported: ${Sort.all.mkString(", ")}.
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
+    )
+    protected val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
+    protected val pageSize = Param[Option[Int]](
+      "page-size",
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+    )
+    protected val imageId      = Param[String]("image_id", "Image_id of the image that needs to be fetched.")
+    protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
+    protected val externalId   = Param[String]("external_id", "External node id of the image that needs to be fetched.")
+    protected val metadata = Param[NewImageMetaInformationV2](
+      "metadata",
+      """The metadata for the image file to submit.""".stripMargin
+    )
+
+    protected val updateMetadata = Param[UpdateImageMetaInformation](
+      "metadata",
+      """The metadata for the image file to submit.""".stripMargin
+    )
+    protected val file = Param("file", "The image file(s) to upload")
+
+    protected val scrollId = Param[Option[String]](
+      "search-context",
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+          .mkString("[", ",", "]")}.
+         |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}'.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
+         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
+         |""".stripMargin
+    )
+
+    protected val modelReleased = Param[Option[Seq[String]]](
+      "model-released",
+      s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
+          .mkString(",")}"
+    )
+
+    configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes)))
 
     /** Does a scroll with [[ImageSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -61,19 +138,22 @@ trait ImageControllerV2 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    protected def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
+    private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          imageSearchService.scrollV2(scroll, language) match {
+          imageSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              Ok(searchConverterService.asApiSearchResult(scrollResult), headers = responseHeader)
+              searchConverterService.asApiSearchResultV3(scrollResult, language) match {
+                case Failure(ex)        => Failure(ex)
+                case Success(converted) => Ok(converted, headers = responseHeader)
+              }
             case Failure(ex) => errorHandler(ex)
           }
         case _ => orFunction
       }
 
-    private def search(
+    private def searchV3(
         minimumSize: Option[Int],
         query: Option[String],
         language: Option[String],
@@ -114,10 +194,13 @@ trait ImageControllerV2 {
           )
       }
 
-      imageSearchService.matchingQuery(settings) match {
+      imageSearchService.matchingQueryV3(settings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiSearchResult(searchResult), headers = responseHeader)
+          searchConverterService.asApiSearchResultV3(searchResult, language.getOrElse(Language.AllLanguages)) match {
+            case Failure(ex)        => errorHandler(ex)
+            case Success(converted) => Ok(converted, headers = responseHeader)
+          }
         case Failure(ex) => errorHandler(ex)
       }
     }
@@ -125,7 +208,7 @@ trait ImageControllerV2 {
     get(
       "/",
       operation(
-        apiOperation[SearchResult]("getImages")
+        apiOperation[SearchResultV3]("getImages")
           .summary("Find images.")
           .description("Find images in the ndla.no database.")
           .parameters(
@@ -159,7 +242,7 @@ trait ImageControllerV2 {
         val modelReleasedStatus =
           paramAsListOfString(this.modelReleased.paramName).flatMap(ModelReleasedStatus.valueOf)
 
-        search(
+        searchV3(
           minimumSize,
           query,
           language,
@@ -177,7 +260,7 @@ trait ImageControllerV2 {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResult]]("getImagesPost")
+        apiOperation[List[SearchResultV3]]("getImagesPost")
           .summary("Find images.")
           .description("Search for images in the ndla.no database.")
           .parameters(
@@ -203,7 +286,7 @@ trait ImageControllerV2 {
         val modelReleasedStatus =
           searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 
-        search(
+        searchV3(
           minimumSize,
           query,
           language,
@@ -221,7 +304,7 @@ trait ImageControllerV2 {
     get(
       "/:image_id",
       operation(
-        apiOperation[ImageMetaInformationV2]("findByImageId")
+        apiOperation[ImageMetaInformationV3]("findByImageId")
           .summary("Fetch information for image.")
           .description("Shows info of the image with submitted id.")
           .parameters(
@@ -235,13 +318,10 @@ trait ImageControllerV2 {
       val imageId  = long(this.imageId.paramName)
       val language = paramOrNone(this.language.paramName)
 
-      readService.withId(imageId, language) match {
+      readService.withIdV3(imageId, language) match {
         case Success(Some(image)) => image
         case Success(None) =>
-          halt(
-            status = 404,
-            body = Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found")
-          )
+          NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId and language $language not found"))
         case Failure(ex) => errorHandler(ex)
       }
     }
@@ -249,7 +329,7 @@ trait ImageControllerV2 {
     get(
       "/external_id/:external_id",
       operation(
-        apiOperation[ImageMetaInformationV2]("findImageByExternalId")
+        apiOperation[ImageMetaInformationV3]("findImageByExternalId")
           .summary("Fetch information for image by external id.")
           .description("Shows info of the image with submitted external id.")
           .parameters(
@@ -264,7 +344,7 @@ trait ImageControllerV2 {
       val language   = paramOrNone(this.language.paramName)
 
       imageRepository.withExternalId(externalId) match {
-        case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
+        case Some(image) => Ok(converterService.asApiImageMetaInformationV3(image, language))
         case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
     }
@@ -272,7 +352,7 @@ trait ImageControllerV2 {
     post(
       "/",
       operation(
-        apiOperation[ImageMetaInformationV2]("newImage")
+        apiOperation[ImageMetaInformationV3]("newImage")
           .summary("Upload a new image with meta information.")
           .description("Upload a new image file with meta data.")
           .consumes("multipart/form-data")
@@ -303,7 +383,7 @@ trait ImageControllerV2 {
               writeService.storeNewImage(imageMeta, file) match {
                 case Failure(ex) => errorHandler(ex)
                 case Success(storedImage) =>
-                  converterService.asApiImageMetaInformationWithApplicationUrlV2(storedImage, Some(imageMeta.language))
+                  converterService.asApiImageMetaInformationV3(storedImage, Some(imageMeta.language))
               }
           }
       }
@@ -337,7 +417,7 @@ trait ImageControllerV2 {
     delete(
       "/:image_id/language/:language",
       operation(
-        apiOperation[ImageMetaInformationV2]("deleteLanguage")
+        apiOperation[ImageMetaInformationV3]("deleteLanguage")
           .summary("Delete language version of image metadata.")
           .description("Delete language version of image metadata.")
           .parameters(
@@ -355,7 +435,7 @@ trait ImageControllerV2 {
       val imageId  = long(this.imageId.paramName)
       val language = params(this.language.paramName)
 
-      writeService.deleteImageLanguageVersionV2(imageId, language) match {
+      writeService.deleteImageLanguageVersionV3(imageId, language) match {
         case Failure(ex)          => errorHandler(ex)
         case Success(Some(image)) => Ok(image)
         case Success(None)        => NoContent()
@@ -365,7 +445,7 @@ trait ImageControllerV2 {
     patch(
       "/:image_id",
       operation(
-        apiOperation[ImageMetaInformationV2]("newImage")
+        apiOperation[ImageMetaInformationV3]("newImage")
           .summary("Update an existing image with meta information.")
           .description("Updates an existing image with meta data.")
           .consumes("form-data")

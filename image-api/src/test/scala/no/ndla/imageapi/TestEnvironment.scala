@@ -14,6 +14,7 @@ import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
   HealthController,
   ImageControllerV2,
+  ImageControllerV3,
   InternController,
   NdlaController,
   RawController
@@ -59,6 +60,7 @@ trait TestEnvironment
     with NdlaClient
     with InternController
     with ImageControllerV2
+    with ImageControllerV3
     with HealthController
     with RawController
     with TagsService
@@ -99,6 +101,7 @@ trait TestEnvironment
   val rawController          = mock[RawController]
   val internController       = mock[InternController]
   val imageControllerV2      = mock[ImageControllerV2]
+  val imageControllerV3      = mock[ImageControllerV3]
   val converterService       = mock[ConverterService]
   val validationService      = mock[ValidationService]
   val tagsService            = mock[TagsService]

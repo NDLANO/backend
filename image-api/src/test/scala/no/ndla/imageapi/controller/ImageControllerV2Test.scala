@@ -349,14 +349,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
 
     get(s"/?search-context=$scrollId") {
       status should be(200)
     }
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
   }
 
   test("That scrolling with POST uses scroll and not searches normally") {
@@ -372,14 +372,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
 
     post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
   }
 
   test("that initial search-context doesn't scroll") {
@@ -403,7 +403,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     get("/?search-context=initial") {
       status should be(200)
       verify(imageSearchService, times(1)).matchingQuery(expectedSettings)
-      verify(imageSearchService, times(0)).scroll(any[String], any[String])
+      verify(imageSearchService, times(0)).scrollV2(any[String], any[String])
     }
 
   }

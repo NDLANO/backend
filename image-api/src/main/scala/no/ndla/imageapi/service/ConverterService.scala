@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
-import io.lemonlabs.uri.{Uri, UrlPath}
+import io.lemonlabs.uri.UrlPath
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
@@ -82,6 +82,67 @@ trait ConverterService {
         language,
         props.ImageApiUrlBase,
         Some(props.RawImageUrlBase)
+      )
+    }
+
+    def asApiImageMetaInformationV3(
+        imageMeta: ImageMetaInformation,
+        language: Option[String]
+    ): Try[api.ImageMetaInformationV3] = {
+      val baseUrl = ApplicationUrl.get
+      val rawPath = baseUrl.replace("/v3/images/", "/raw")
+
+      val title = findByLanguageOrBestEffort(imageMeta.titles, language)
+        .map(asApiImageTitle)
+        .getOrElse(api.ImageTitle("", DefaultLanguage))
+      val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
+        .map(asApiImageAltText)
+        .getOrElse(api.ImageAltText("", DefaultLanguage))
+      val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
+        .map(asApiImageTag)
+        .getOrElse(api.ImageTag(Seq(), DefaultLanguage))
+      val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
+        .map(asApiCaption)
+        .getOrElse(api.ImageCaption("", DefaultLanguage))
+
+      getImageFromMeta(imageMeta, language).flatMap(image => {
+        val apiUrl       = asApiUrl(image.fileName, rawPath.some)
+        val editorNotes  = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+        val apiImageFile = asApiImageFile(image, apiUrl)
+
+        Success(
+          api
+            .ImageMetaInformationV3(
+              id = imageMeta.id.get.toString,
+              metaUrl = baseUrl + imageMeta.id.get,
+              title = title,
+              alttext = alttext,
+              copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+              tags = tags,
+              caption = caption,
+              supportedLanguages = getSupportedLanguages(imageMeta),
+              created = imageMeta.created,
+              createdBy = imageMeta.createdBy,
+              modelRelease = imageMeta.modelReleased.toString,
+              editorNotes = editorNotes,
+              image = apiImageFile
+            )
+        )
+      })
+    }
+
+    private def asApiImageFile(image: ImageFileData, url: String): api.ImageFile = {
+      val dimensions = image.dimensions.map { case domain.ImageDimensions(width, height) =>
+        api.ImageDimensions(width, height)
+      }
+
+      api.ImageFile(
+        fileName = image.fileName,
+        size = image.size,
+        contentType = image.contentType,
+        imageUrl = url,
+        dimensions = dimensions,
+        language = image.language
       )
     }
 

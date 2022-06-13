@@ -421,7 +421,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(tagIndexService.indexDocument(any[ImageMetaInformation]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
 
-    writeService.deleteImageLanguageVersion(imageId, "nn")
+    writeService.deleteImageLanguageVersionV2(imageId, "nn")
 
     verify(imageRepository, times(1)).update(eqTo(expectedImage), eqTo(imageId))(any)
   }
@@ -449,7 +449,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(tagIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Long](0)))
 
-    writeService.deleteImageLanguageVersion(imageId, "en")
+    writeService.deleteImageLanguageVersionV2(imageId, "en")
 
     verify(imageStorage, times(1)).deleteObject(image.images.head.fileName)
     verify(imageIndexService, times(1)).deleteDocument(imageId)

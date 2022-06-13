@@ -62,11 +62,12 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
   test("That inserting and retrieving images works as expected") {
     assume(databaseIsAvailable)
+    postgresContainer.map(x => println(x.getJdbcUrl))
     val image1 = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("KyllingFisk", "nb")))
 
     val inserted1     = repository.insert(image1)
     val imageFile1    = TestData.bjorn.images.head
-    val insertedFile1 = repository.insertImageFile(inserted1.id.get, imageFile1.fileName, imageFile1)
+    val insertedFile1 = repository.insertImageFile(inserted1.id.get, imageFile1.fileName, imageFile1.toDocument())
     val expected1     = inserted1.copy(images = Seq(insertedFile1.get))
 
     val image2    = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("Apekatter", "nb")))
@@ -93,9 +94,9 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val meta2      = repository.insert(imageMeta1)
     val meta3      = repository.insert(imageMeta1)
 
-    val image1 = repository.insertImageFile(meta1.id.get, path1, image.copy(fileName = path1)).get
-    val image2 = repository.insertImageFile(meta2.id.get, path2, image.copy(fileName = path2)).get
-    val image3 = repository.insertImageFile(meta3.id.get, path3, image.copy(fileName = path3)).get
+    val image1 = repository.insertImageFile(meta1.id.get, path1, image.copy(fileName = path1).toDocument()).get
+    val image2 = repository.insertImageFile(meta2.id.get, path2, image.copy(fileName = path2).toDocument()).get
+    val image3 = repository.insertImageFile(meta3.id.get, path3, image.copy(fileName = path3).toDocument()).get
 
     repository.getImageFromFilePath(path1).get should be(meta1.copy(images = Seq(image1)))
     repository.getImageFromFilePath(path2).get should be(meta2.copy(images = Seq(image2)))
@@ -109,14 +110,14 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val imageFile1    = TestData.bjorn.images.head.copy(fileName = path1)
     val image1        = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
     val inserted1     = repository.insert(image1)
-    val insertedFile1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1).get
+    val insertedFile1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1.toDocument()).get
     val expected1     = inserted1.copy(images = Seq(insertedFile1))
 
     val path2         = "no-slash-path2.jpg"
     val imageFile2    = TestData.bjorn.images.head.copy(fileName = path2)
     val image2        = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
     val inserted2     = repository.insert(image2)
-    val insertedFile2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2).get
+    val insertedFile2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
     val expected2     = inserted2.copy(images = Seq(insertedFile2))
 
     repository.getImageFromFilePath(path1).get should be(expected1)
@@ -132,7 +133,7 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val imageFile1   = TestData.bjorn.images.head.copy(fileName = path1)
     val image1       = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
     val inserted     = repository.insert(image1)
-    val insertedFile = repository.insertImageFile(inserted.id.get, path1, imageFile1).get
+    val insertedFile = repository.insertImageFile(inserted.id.get, path1, imageFile1.toDocument()).get
 
     val expected = inserted.copy(images = Seq(insertedFile))
 
@@ -145,14 +146,14 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val imageFile1   = TestData.bjorn.images.head.copy(fileName = path1)
     val image1       = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
     val inserted1    = repository.insert(image1)
-    val insertedImg1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1).get
+    val insertedImg1 = repository.insertImageFile(inserted1.id.get, path1, imageFile1.toDocument()).get
     val expected1    = inserted1.copy(images = Seq(insertedImg1))
 
     val path2        = "/pa%h1.jpg"
     val imageFile2   = TestData.bjorn.images.head.copy(fileName = path2)
     val image2       = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
     val inserted2    = repository.insert(image2)
-    val insertedImg2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2).get
+    val insertedImg2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
     val expected2    = inserted2.copy(images = Seq(insertedImg2))
 
     repository.getImageFromFilePath(path1).get should be(expected1)

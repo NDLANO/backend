@@ -137,7 +137,7 @@ trait TestData {
         new ImageFileData(
           id = 333,
           fileName = "Bjørn.jpg",
-          size = 141134,
+          size = 14113,
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",

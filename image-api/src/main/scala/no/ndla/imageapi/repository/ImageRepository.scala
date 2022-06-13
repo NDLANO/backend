@@ -18,7 +18,7 @@ import no.ndla.imageapi.model.domain.{
   ImageMetaInformation
 }
 import no.ndla.imageapi.service.ConverterService
-import org.json4s.Formats
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -46,9 +46,7 @@ trait ImageRepository {
 
     def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
       val im = ImageMetaInformation.syntax("im")
-      sql"select ${im.result.*} from ${ImageMetaInformation.as(im)} where metadata is not null order by random() limit 1"
-        .map(ImageMetaInformation.fromResultSet(im))
-        .single()
+      imageMetaInformationWhere(sqls"im.metadata is not null order by random() limit 1")
     }
 
     def withExternalId(externalId: String): Option[ImageMetaInformation] = {
@@ -57,7 +55,7 @@ trait ImageRepository {
       }
     }
 
-    def insert(imageMeta: ImageMetaInformation)(implicit session: DBSession = AutoSession) = {
+    def insert(imageMeta: ImageMetaInformation)(implicit session: DBSession = AutoSession): ImageMetaInformation = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(imageMeta))
@@ -116,7 +114,8 @@ trait ImageRepository {
     ): Try[ImageFileData] = Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(document))
+      val jsonString = write(document)
+      dataObject.setValue(jsonString)
 
       val insertedId =
         sql"""
@@ -143,7 +142,7 @@ trait ImageRepository {
             WHERE $whereClause
          """
         .one(ImageMetaInformation.fromResultSet(im.resultName))
-        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption)
+        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
         .map((meta, images) => meta.copy(images = images.toSeq))
         .single()
     }
@@ -160,7 +159,7 @@ trait ImageRepository {
             WHERE $whereClause
          """
         .one(ImageMetaInformation.fromResultSet(im.resultName))
-        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption)
+        .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
         .map((meta, files) => meta.copy(images = files.toSeq))
         .list()
     }

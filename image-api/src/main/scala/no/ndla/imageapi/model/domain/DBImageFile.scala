@@ -24,16 +24,25 @@ case class ImageFileData(
     dimensions: Option[ImageDimensions],
     override val language: String,
     imageMetaId: Long
-) extends ImageFileDataDocument(size, contentType, dimensions, language)
+) extends WithLanguage {
+  def toDocument(): ImageFileDataDocument = {
+    ImageFileDataDocument(
+      size = size,
+      contentType = contentType,
+      dimensions = dimensions,
+      language = language
+    )
+  }
+}
 
-class ImageFileDataDocument(
+case class ImageFileDataDocument(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
     override val language: String
 ) extends WithLanguage {
   def toFull(id: Long, fileName: String, imageId: Long): ImageFileData = {
-    new ImageFileData(
+    ImageFileData(
       id = id,
       fileName = fileName,
       size = size,
@@ -54,17 +63,18 @@ trait DBImageFile {
     val jsonEncoder: Formats                = DefaultFormats
     val repositorySerializer: Formats       = jsonEncoder
 
-    def fromResultSet(im: SyntaxProvider[ImageFileData])(rs: WrappedResultSet): Try[ImageFileData] =
+    def fromResultSet(im: SyntaxProvider[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] =
       fromResultSet(im.resultName)(rs)
 
-    def fromResultSet(im: ResultName[ImageFileData])(rs: WrappedResultSet): Try[ImageFileData] = Try {
+    def fromResultSet(im: ResultName[ImageFileData])(rs: WrappedResultSet): Try[Option[ImageFileData]] = Try {
       implicit val formats: Formats = this.jsonEncoder
-      val id                        = rs.long(im.c("id"))
-      val jsonString                = rs.string(im.c("metadata"))
-      val fileName                  = rs.string(im.c("file_name"))
-      val imageMetaId               = rs.long(im.c("image_meta_id"))
-      val documentMeta              = Serialization.read[ImageFileDataDocument](jsonString)
-      documentMeta.toFull(id, fileName, imageMetaId)
+      for {
+        id          <- rs.longOpt(im.c("id"))
+        jsonString  <- rs.stringOpt(im.c("metadata"))
+        fileName    <- rs.stringOpt(im.c("file_name"))
+        imageMetaId <- rs.longOpt(im.c("image_meta_id"))
+        document = Serialization.read[ImageFileDataDocument](jsonString)
+      } yield document.toFull(id, fileName, imageMetaId)
     }
   }
 }

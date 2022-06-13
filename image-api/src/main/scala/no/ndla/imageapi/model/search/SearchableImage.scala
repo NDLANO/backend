@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.model.search
 
-import no.ndla.imageapi.model.domain.ImageDimensions
+import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation}
 import no.ndla.language.model.WithLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
@@ -25,7 +25,8 @@ case class SearchableImage(
     defaultTitle: Option[String],
     modelReleased: Option[String],
     editorNotes: Seq[String],
-    imageFiles: Seq[SearchableImageFile]
+    imageFiles: Seq[SearchableImageFile],
+    domainObject: ImageMetaInformation
 )
 
 case class SearchableImageFile(

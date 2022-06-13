@@ -71,9 +71,8 @@ trait SearchService {
           val resultArray = response.hits.hits.toList
           resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
-                searchConverterService.getLanguageFromHit(result).getOrElse(language)
-              case _ => language
+              case Language.AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+              case _                     => language
             }
 
             hitToApiModel(result.sourceAsString, matchedLanguage)

@@ -16,8 +16,9 @@ import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary,
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
-  ImageMetaInformation,
   ImageFileData,
+  ImageMetaInformation,
+  ModelReleasedStatus,
   SearchResult
 }
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
@@ -90,7 +91,8 @@ trait SearchConverterService {
         defaultTitle = defaultTitle.map(t => t.title),
         modelReleased = Some(image.modelReleased.toString),
         editorNotes = image.editorNotes.map(_.note),
-        imageFiles = asSearchableImageFiles(image.images)
+        imageFiles = asSearchableImageFiles(image.images),
+        domainObject = image
       )
     }
 
@@ -195,6 +197,24 @@ trait SearchConverterService {
         searchResult.language,
         searchResult.results
       )
+
+    def asApiSearchResultV3(
+        searchResult: domain.SearchResult[(SearchableImage, MatchedLanguage)],
+        language: String
+    ): Try[api.SearchResultV3] = {
+      searchResult.results
+        .traverse(r => converterService.asApiImageMetaInformationV3(r._1.domainObject, language.some))
+        .map(results =>
+          api.SearchResultV3(
+            searchResult.totalCount,
+            searchResult.page,
+            searchResult.pageSize,
+            searchResult.language,
+            results
+          )
+        )
+
+    }
   }
 
 }

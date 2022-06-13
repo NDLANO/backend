@@ -18,7 +18,7 @@ import org.scalatra.{ActionResult, HaltException, Ok, RenderPipeline, ScalatraSe
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
-abstract class NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
   type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]

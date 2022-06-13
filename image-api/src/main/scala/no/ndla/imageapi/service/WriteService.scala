@@ -11,7 +11,12 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
-import no.ndla.imageapi.model.api.{ImageMetaInformationV2, NewImageMetaInformationV2, UpdateImageMetaInformation}
+import no.ndla.imageapi.model.api.{
+  ImageMetaInformationV2,
+  ImageMetaInformationV3,
+  NewImageMetaInformationV2,
+  UpdateImageMetaInformation
+}
 import no.ndla.imageapi.model.domain.{
   DBImageFile,
   DBImageMetaInformation,
@@ -53,16 +58,29 @@ trait WriteService {
   class WriteService extends LazyLogging {
     import props.DefaultLanguage
 
-    def deleteImageLanguageVersion(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] =
+    def deleteImageLanguageVersionV2(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] = {
+      deleteImageLanguageVersion(imageId, language).flatMap {
+        case Some(updated) => converterService.asApiImageMetaInformationWithDomainUrlV2(updated, None).map(_.some)
+        case None          => Success(None)
+      }
+    }
+
+    def deleteImageLanguageVersionV3(imageId: Long, language: String): Try[Option[ImageMetaInformationV3]] = {
+      deleteImageLanguageVersion(imageId, language).flatMap {
+        case Some(updated) => converterService.asApiImageMetaInformationV3(updated, None).map(_.some)
+        case None          => Success(None)
+      }
+    }
+
+    private def deleteImageLanguageVersion(imageId: Long, language: String): Try[Option[ImageMetaInformation]] =
       imageRepository.withId(imageId) match {
         case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
           val newImage = converterService.withoutLanguage(existing, language)
 
           // If last language version delete entire image
-          if (converterService.getSupportedLanguages(newImage).isEmpty)
-            deleteImageAndFiles(imageId).map(_ => None)
-          else
-            updateImage(imageId, newImage, Some(existing), None).map(Some(_))
+          // TODO: Fix so deleting LanguageVersion deletes the file if it is not used by others
+          if (converterService.getSupportedLanguages(newImage).isEmpty) deleteImageAndFiles(imageId).map(_ => None)
+          else updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
 
         case Some(_) =>
           Failure(new ImageNotFoundException(s"Image with id $imageId does not exist in language '$language'."))
@@ -219,19 +237,6 @@ trait WriteService {
       } yield indexedByTags
     }
 
-    private def updateImage(
-        imageId: Long,
-        image: ImageMetaInformation,
-        oldImage: Option[ImageMetaInformation],
-        language: Option[String]
-    ) = {
-      val conversionLanguage = language.getOrElse(DefaultLanguage).some
-      for {
-        updated   <- updateAndIndexImage(imageId, image, oldImage)
-        converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(updated, conversionLanguage)
-      } yield converted
-    }
-
     private def updateImageFile(
         imageId: Long,
         newFile: FileItem,
@@ -270,11 +275,7 @@ trait WriteService {
 
           maybeOverwrittenImage.flatMap(moi => {
             val newImage = mergeImages(moi, updateMeta)
-            updateAndIndexImage(
-              imageId,
-              newImage,
-              Some(oldImage)
-            )
+            updateAndIndexImage(imageId, newImage, oldImage.some)
           })
       }
     }

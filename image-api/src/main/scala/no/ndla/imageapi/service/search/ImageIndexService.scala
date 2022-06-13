@@ -18,25 +18,29 @@ import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformati
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
-import org.json4s.native.Serialization.write
+import org.json4s.Formats
+import org.json4s.native.Serialization
 
 trait ImageIndexService {
   this: SearchConverterService with IndexService with ImageRepository with Props with DBImageMetaInformation =>
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableImage] {
-    implicit val formats                                      = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + ImageMetaInformation.jsonEncoderWoDefaults
     override val documentType: String                         = props.SearchDocument
     override val searchIndex: String                          = props.SearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
 
     override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
-      val source = write(searchConverterService.asSearchableImage(domainModel))
+      val searchable = searchConverterService.asSearchableImage(domainModel)
+      val source     = Serialization.write(searchable)
+
       Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }
 
     def getMapping: MappingDefinition = {
       val fields: Seq[ElasticField] = List(
+        ObjectField("domainObject", enabled = Some(false)),
         intField("id"),
         keywordField("license"),
         dateField("lastUpdated"),

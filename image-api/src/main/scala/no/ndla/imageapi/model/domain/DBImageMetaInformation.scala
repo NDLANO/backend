@@ -31,9 +31,10 @@ trait DBImageMetaInformation {
   this: Props with DBImageFile =>
 
   object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
-    override val tableName   = "imagemetadata"
-    override val schemaName  = Some(props.MetaSchema)
-    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ModelReleasedStatus)
+    override val tableName    = "imagemetadata"
+    override val schemaName   = Some(props.MetaSchema)
+    val jsonEncoderWoDefaults = new EnumNameSerializer(ModelReleasedStatus)
+    val jsonEncoder: Formats  = DefaultFormats + jsonEncoderWoDefaults
     val repositorySerializer: Formats = {
       jsonEncoder +
         FieldSerializer[ImageMetaInformation](

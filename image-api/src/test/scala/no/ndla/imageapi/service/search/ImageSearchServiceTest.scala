@@ -177,11 +177,11 @@ class ImageSearchServiceTest
 
       when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreement1Copyright))
 
-      imageIndexService.indexDocument(image1)
-      imageIndexService.indexDocument(image2)
-      imageIndexService.indexDocument(image3)
-      imageIndexService.indexDocument(image4)
-      imageIndexService.indexDocument(image5)
+      imageIndexService.indexDocument(image1).get
+      imageIndexService.indexDocument(image2).get
+      imageIndexService.indexDocument(image3).get
+      imageIndexService.indexDocument(image4).get
+      imageIndexService.indexDocument(image5).get
 
       val servletRequest = mock[HttpServletRequest]
       when(servletRequest.getHeader(any[String])).thenReturn("http")
@@ -471,14 +471,35 @@ class ImageSearchServiceTest
       )
     )
 
-    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
-    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
-    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*")
+    val Success(scroll1) = imageSearchService.scrollV2(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = imageSearchService.scrollV2(scroll1.scrollId.get, "*")
+    val Success(scroll3) = imageSearchService.scrollV2(scroll2.scrollId.get, "*")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
     scroll2.results.map(_.id) should be(expectedIds(2))
     scroll3.results.map(_.id) should be(List.empty)
+  }
+
+  test("That scrolling v3 works as expected") {
+    val pageSize    = 2
+    val expectedIds = List[Long](1, 2, 3, 4, 5).sliding(pageSize, pageSize).toList
+
+    val Success(initialSearch) = imageSearchService.matchingQueryV3(
+      searchSettings.copy(
+        pageSize = Some(pageSize),
+        shouldScroll = true
+      )
+    )
+
+    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
+    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*")
+
+    initialSearch.results.map(_._1.id) should be(expectedIds.head)
+    scroll1.results.map(_._1.id) should be(expectedIds(1))
+    scroll2.results.map(_._1.id) should be(expectedIds(2))
+    scroll3.results.map(_._1.id) should be(List.empty)
   }
 
   test("That title search works as expected, and doesn't crash in combination with language") {
