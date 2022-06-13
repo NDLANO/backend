@@ -48,7 +48,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     ),
     ImageTag(Seq.empty, "nb"),
     ImageCaption("", "nb"),
-    Seq(),
+    Seq("und"),
     updated,
     "ndla124",
     ModelReleasedStatus.YES.toString,

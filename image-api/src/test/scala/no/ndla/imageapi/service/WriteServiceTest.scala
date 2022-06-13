@@ -438,7 +438,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(domain.ImageTitle("english", "en")),
       captions = List(domain.ImageCaption("english", "en")),
       tags = Seq(domain.ImageTag(Seq("eng", "elsk"), "en")),
-      alttexts = Seq(domain.ImageAltText("english", "en"))
+      alttexts = Seq(domain.ImageAltText("english", "en")),
+      images = Seq(TestData.bjorn.images.head.copy(language = "en"))
     )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
@@ -648,5 +649,145 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(any)
     verify(imageRepository, times(1)).insertImageFile(any, any, any)(any)
+  }
+
+  test("Deleting language version should delete file if only used by that language") {
+    reset(validationService, imageRepository, imageStorage)
+    val imageId  = 100
+    val coolDate = new Date()
+
+    val image = domain.ImageFileData(
+      id = 1,
+      fileName = "apekatt.jpg",
+      size = 100,
+      contentType = "image/jpg",
+      dimensions = None,
+      language = "nb",
+      imageMetaId = imageId
+    )
+
+    val dbImage = TestData.bjorn.copy(
+      titles = Seq(
+        domain.ImageTitle("hei nb", "nb"),
+        domain.ImageTitle("hei nn", "nn")
+      ),
+      images = Seq(
+        image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb"),
+        image.copy(id = 2, fileName = "hello-nn.jpg", language = "nn")
+      ),
+      updated = coolDate,
+      updatedBy = "ndla124"
+    )
+
+    val fileMock = mock[FileItem]
+    when(authUser.userOrClientid()).thenReturn("ndla124")
+    when(validationService.validateImageFile(any)).thenReturn(None)
+    when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      i.getArgument[domain.ImageMetaInformation](0)
+    })
+    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[String](1))
+    })
+    when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(tagIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(clock.now()).thenReturn(coolDate)
+    when(imageStorage.objectExists(any)).thenReturn(false)
+    when(random.string(any)).thenReturn("randomstring")
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+
+    val expectedResult =
+      dbImage.copy(
+        titles = Seq(domain.ImageTitle("hei nb", "nb")),
+        images = Seq(image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb")),
+        editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'."))
+      )
+
+    val result = writeService.deleteImageLanguageVersion(imageId, "nn")
+    result should be(Success(Some(expectedResult)))
+
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
+    verify(imageStorage, times(1)).deleteObject(eqTo("hello-nn.jpg"))
+    verify(imageStorage, times(0)).cloneObject(any, any)
+    verify(imageRepository, times(1)).update(any, any)(any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+  }
+
+  test("Deleting language version should not delete file if it used by more languages") {
+    reset(validationService, imageRepository, imageStorage)
+    val imageId  = 100
+    val coolDate = new Date()
+
+    val image = domain.ImageFileData(
+      id = 1,
+      fileName = "apekatt.jpg",
+      size = 100,
+      contentType = "image/jpg",
+      dimensions = None,
+      language = "nb",
+      imageMetaId = imageId
+    )
+
+    val dbImage = TestData.bjorn.copy(
+      titles = Seq(
+        domain.ImageTitle("hei nb", "nb"),
+        domain.ImageTitle("hei nn", "nn")
+      ),
+      images = Seq(
+        image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb"),
+        image.copy(id = 2, fileName = "hello-shared.jpg", language = "nn")
+      ),
+      updated = coolDate,
+      updatedBy = "ndla124"
+    )
+
+    val fileMock = mock[FileItem]
+    when(authUser.userOrClientid()).thenReturn("ndla124")
+    when(validationService.validateImageFile(any)).thenReturn(None)
+    when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      i.getArgument[domain.ImageMetaInformation](0)
+    })
+    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[String](1))
+    })
+    when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(tagIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.ImageMetaInformation](0))
+    })
+    when(clock.now()).thenReturn(coolDate)
+    when(imageStorage.objectExists(any)).thenReturn(false)
+    when(random.string(any)).thenReturn("randomstring")
+    when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+
+    val expectedResult =
+      dbImage.copy(
+        titles = Seq(domain.ImageTitle("hei nb", "nb")),
+        images = Seq(image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb")),
+        editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'."))
+      )
+
+    val result = writeService.deleteImageLanguageVersion(imageId, "nn")
+    result should be(Success(Some(expectedResult)))
+
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
+    verify(imageStorage, times(0)).deleteObject(any)
+    verify(imageStorage, times(0)).cloneObject(any, any)
+    verify(imageRepository, times(1)).update(any, any)(any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
   }
 }

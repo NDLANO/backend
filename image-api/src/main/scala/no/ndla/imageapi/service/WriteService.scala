@@ -71,16 +71,42 @@ trait WriteService {
         case None          => Success(None)
       }
     }
+    private def deleteFileForLanguageIfUnused(images: Seq[ImageFileData], language: String): Try[_] = {
+      val imageFileToDelete = images.find(_.language == language)
+      imageFileToDelete match {
+        case Some(fileToDelete) =>
+          val imageIsUsedOtherwhere =
+            images.filterNot(_.language == language).exists(_.fileName == fileToDelete.fileName)
+          if (!imageIsUsedOtherwhere) {
+            imageStorage.deleteObject(fileToDelete.fileName)
+          } else {
+            logger.info("Image is used by other languages. Skipping file delete")
+            Success(())
+          }
+        case None =>
+          logger.warn("Deleting language for image without imagefile. This is weird.")
+          Success(())
+        case _ => Success(())
+      }
+    }
 
-    private def deleteImageLanguageVersion(imageId: Long, language: String): Try[Option[ImageMetaInformation]] =
+    private[service] def deleteImageLanguageVersion(
+        imageId: Long,
+        language: String
+    ): Try[Option[ImageMetaInformation]] =
       imageRepository.withId(imageId) match {
         case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
           val newImage = converterService.withoutLanguage(existing, language)
 
           // If last language version delete entire image
-          // TODO: Fix so deleting LanguageVersion deletes the file if it is not used by others
-          if (converterService.getSupportedLanguages(newImage).isEmpty) deleteImageAndFiles(imageId).map(_ => None)
-          else updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
+          val isLastLanguage = converterService.getSupportedLanguages(newImage).isEmpty
+          if (isLastLanguage) {
+            deleteImageAndFiles(imageId).map(_ => None)
+          } else {
+            deleteFileForLanguageIfUnused(existing.images, language).flatMap(_ =>
+              updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
+            )
+          }
 
         case Some(_) =>
           Failure(new ImageNotFoundException(s"Image with id $imageId does not exist in language '$language'."))

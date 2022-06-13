@@ -31,9 +31,7 @@ import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.scalatra.error.ValidationException
 import org.json4s.Formats
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
-import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
-import org.scalatra.util.NotNothing
 import org.scalatra.{NoContent, NotFound, Ok}
 
 import scala.util.{Failure, Success}

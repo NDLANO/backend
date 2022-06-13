@@ -106,9 +106,10 @@ trait ConverterService {
         .getOrElse(api.ImageCaption("", DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
-        val apiUrl       = asApiUrl(image.fileName, rawPath.some)
-        val editorNotes  = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
-        val apiImageFile = asApiImageFile(image, apiUrl)
+        val apiUrl             = asApiUrl(image.fileName, rawPath.some)
+        val editorNotes        = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+        val apiImageFile       = asApiImageFile(image, apiUrl)
+        val supportedLanguages = getSupportedLanguages(imageMeta)
 
         Success(
           api
@@ -120,7 +121,7 @@ trait ConverterService {
               copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
               tags = tags,
               caption = caption,
-              supportedLanguages = getSupportedLanguages(imageMeta),
+              supportedLanguages = supportedLanguages,
               created = imageMeta.created,
               createdBy = imageMeta.createdBy,
               modelRelease = imageMeta.modelReleased.toString,
@@ -177,9 +178,10 @@ trait ConverterService {
         .getOrElse(api.ImageCaption("", DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
-        val apiUrl          = asApiUrl(image.fileName, rawBaseUrl)
-        val editorNotes     = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
-        val imageDimensions = image.dimensions.map(d => api.ImageDimensions(d.width, d.height))
+        val apiUrl             = asApiUrl(image.fileName, rawBaseUrl)
+        val editorNotes        = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+        val imageDimensions    = image.dimensions.map(d => api.ImageDimensions(d.width, d.height))
+        val supportedLanguages = getSupportedLanguages(imageMeta)
 
         Success(
           api
@@ -194,7 +196,7 @@ trait ConverterService {
               copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
               tags = tags,
               caption = caption,
-              supportedLanguages = getSupportedLanguages(imageMeta),
+              supportedLanguages = supportedLanguages,
               created = imageMeta.created,
               createdBy = imageMeta.createdBy,
               modelRelease = imageMeta.modelReleased.toString,
@@ -337,15 +339,16 @@ trait ConverterService {
         domainMetaInformation: ImageMetaInformation,
         languageToRemove: String
     ): ImageMetaInformation = {
-      val now    = clock.now()
-      val userId = authUser.userOrClientid()
+      val now     = clock.now()
+      val userId  = authUser.userOrClientid()
+      val newNote = domain.EditorNote(now, userId, s"Deleted language '$languageToRemove'.")
       domainMetaInformation.copy(
         titles = domainMetaInformation.titles.filterNot(_.language == languageToRemove),
         alttexts = domainMetaInformation.alttexts.filterNot(_.language == languageToRemove),
         tags = domainMetaInformation.tags.filterNot(_.language == languageToRemove),
         captions = domainMetaInformation.captions.filterNot(_.language == languageToRemove),
-        editorNotes =
-          domainMetaInformation.editorNotes :+ domain.EditorNote(now, userId, s"Deleted language '$languageToRemove'.")
+        editorNotes = domainMetaInformation.editorNotes :+ newNote,
+        images = domainMetaInformation.images.filterNot(_.language == languageToRemove)
       )
     }
 
@@ -354,7 +357,8 @@ trait ConverterService {
         domainImageMetaInformation.titles,
         domainImageMetaInformation.alttexts,
         domainImageMetaInformation.tags,
-        domainImageMetaInformation.captions
+        domainImageMetaInformation.captions,
+        domainImageMetaInformation.images
       )
     }
 
