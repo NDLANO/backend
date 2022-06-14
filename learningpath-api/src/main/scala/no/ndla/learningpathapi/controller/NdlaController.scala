@@ -145,9 +145,12 @@ trait NdlaController {
     }
 
     def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
-      paramOrNone(paramName)(request) match {
-        case Some(value) => Try(UUID.fromString(value))
-        case None =>
+      val param     = paramOrNone(paramName)(request)
+      val maybeUUID = param.map(value => Try(UUID.fromString(value)))
+
+      maybeUUID match {
+        case Some(Success(uuid)) => Success(uuid)
+        case _ =>
           Failure(
             new ValidationException(
               errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
