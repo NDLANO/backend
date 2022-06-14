@@ -12,7 +12,7 @@ import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
@@ -133,7 +133,8 @@ trait DBArticle {
       Json4s.serializer(ArticleType) +
       Json4s.serializer(RevisionStatus) +
       new EnumNameSerializer(Availability) ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all ++
+      JavaTypesSerializers.all
 
     val repositorySerializer = jsonEncoder +
       FieldSerializer[Article](

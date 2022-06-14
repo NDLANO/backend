@@ -25,7 +25,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.jsoup.nodes.Element
 
-import java.util.Date
+import java.util.{Date, UUID}
 import scala.jdk.CollectionConverters._
 import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
@@ -103,6 +103,7 @@ trait ConverterService {
 
     private def toDomainRevisionMeta(revisionMeta: api.RevisionMeta): domain.RevisionMeta = {
       domain.RevisionMeta(
+        id = revisionMeta.id.map(UUID.fromString).getOrElse(UUID.randomUUID()),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
         status = RevisionStatus.fromStringDefault(revisionMeta.status)
@@ -111,6 +112,7 @@ trait ConverterService {
 
     private def toApiRevisionMeta(revisionMeta: domain.RevisionMeta): api.RevisionMeta = {
       api.RevisionMeta(
+        id = Some(revisionMeta.id.toString),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
         status = revisionMeta.status.entryName

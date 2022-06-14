@@ -24,7 +24,7 @@ import scalikejdbc.DBSession
 
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import java.util.Date
+import java.util.{Date, UUID}
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -971,21 +971,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
       revisionMeta = Seq(
         RevisionMeta(
+          UUID.randomUUID(),
           yesterday,
           "Test1",
           RevisionStatus.Revised
         ),
         RevisionMeta(
+          UUID.randomUUID(),
           tomorrow,
           "Test2",
           RevisionStatus.Revised
         ),
         RevisionMeta(
+          UUID.randomUUID(),
           tomorrow,
           "Test3",
           RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
+          UUID.randomUUID(),
           afterTomorrow,
           "Test4",
           RevisionStatus.NeedsRevision
@@ -1262,7 +1266,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
 
-    val revisionMeta = RevisionMeta(LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val revisionMeta = RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)
@@ -1306,7 +1310,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val child    = Topic("urn:topic:2", "Topic", None, List.empty)
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
 
-    val revisionMeta = RevisionMeta(LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val revisionMeta = RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)

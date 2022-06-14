@@ -10,8 +10,10 @@ package no.ndla.draftapi.model.domain
 import enumeratum._
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 case class RevisionMeta(
+    id: UUID,
     revisionDate: LocalDateTime,
     note: String,
     status: RevisionStatus
