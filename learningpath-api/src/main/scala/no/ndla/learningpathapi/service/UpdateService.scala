@@ -431,7 +431,8 @@ trait UpdateService {
     ): Try[api.Folder] = {
       for {
         feideId         <- feideApiClient.getUserFeideID(feideAccessToken)
-        newDomainFolder <- folderRepository.insertFolder(converterService.toDomainFolder(newFolder, feideId))
+        converted       <- converterService.toDomainFolder(newFolder, feideId)
+        newDomainFolder <- folderRepository.insertFolder(converted)
         api             <- converterService.toApiFolder(newDomainFolder)
       } yield api
     }

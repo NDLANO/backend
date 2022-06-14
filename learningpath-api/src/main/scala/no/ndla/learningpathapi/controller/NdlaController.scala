@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError, ValidationMessage}
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -27,7 +28,7 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait NdlaController {
-  this: DataSource with ErrorHelpers with CorrelationIdSupport =>
+  this: DataSource with ErrorHelpers with CorrelationIdSupport with ConverterService =>
 
   abstract class NdlaController
       extends ScalatraServlet
@@ -145,18 +146,8 @@ trait NdlaController {
     }
 
     def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
-      val param     = paramOrNone(paramName)(request)
-      val maybeUUID = param.map(value => Try(UUID.fromString(value)))
-
-      maybeUUID match {
-        case Some(Success(uuid)) => Success(uuid)
-        case _ =>
-          Failure(
-            new ValidationException(
-              errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
-            )
-          )
-      }
+      val maybeParam = paramOrNone(paramName)(request)
+      converterService.toUUIDValidated(maybeParam, paramName)
     }
 
     def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {

@@ -673,20 +673,35 @@ trait ConverterService {
       )
     }
 
-    def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): domain.Folder = {
+    def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
+      val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
+      maybeUUID match {
+        case Some(Success(uuid)) => Success(uuid)
+        case _ =>
+          Failure(
+            new ValidationException(
+              errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
+            )
+          )
+      }
+    }
+
+    def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): Try[domain.Folder] = {
       val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-      val newParentId = newFolder.parentId.map(UUID.fromString)
+      val newParentId = newFolder.parentId.traverse(pid => toUUIDValidated(pid.some, "parentId"))
       val newFavorite = false
 
-      domain.Folder(
-        id = None,
-        feideId = feideId,
-        parentId = newParentId,
-        name = newFolder.name,
-        status = newStatus,
-        isFavorite = newFavorite,
-        data = List.empty
-      )
+      newParentId.map(parentId => {
+        domain.Folder(
+          id = None,
+          feideId = feideId,
+          parentId = parentId,
+          name = newFolder.name,
+          status = newStatus,
+          isFavorite = newFavorite,
+          data = List.empty
+        )
+      })
     }
 
     private def toApiFolderData(domainData: domain.FolderData): Try[api.FolderData] = {
