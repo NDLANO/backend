@@ -424,16 +424,35 @@ trait UpdateService {
         case t: Throwable => throw t
       }
     }
+    private def validateParentId(parentId: UUID, feideId: FeideID): Try[Unit] = {
+      folderRepository.folderWithFeideId(parentId, feideId) match {
+        case Failure(_: NotFoundException) =>
+          val paramName = "parentId"
+          Failure(
+            new ValidationException(
+              errors = List(
+                ValidationMessage(
+                  paramName,
+                  s"Invalid value for $paramName. The UUID specified does not exist or is not writable by you."
+                )
+              )
+            )
+          )
+        case Failure(ex) => Failure(ex)
+        case Success(_)  => Success(())
+      }
+    }
 
     def newFolder(
         newFolder: api.NewFolder,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
-        feideId         <- feideApiClient.getUserFeideID(feideAccessToken)
-        converted       <- converterService.toDomainFolder(newFolder, feideId)
-        newDomainFolder <- folderRepository.insertFolder(converted)
-        api             <- converterService.toApiFolder(newDomainFolder)
+        feideId   <- feideApiClient.getUserFeideID(feideAccessToken)
+        converted <- converterService.toDomainFolder(newFolder, feideId)
+        _         <- converted.parentId.traverse(pid => validateParentId(pid, feideId))
+        inserted  <- folderRepository.insertFolder(converted)
+        api       <- converterService.toApiFolder(inserted)
       } yield api
     }
 
