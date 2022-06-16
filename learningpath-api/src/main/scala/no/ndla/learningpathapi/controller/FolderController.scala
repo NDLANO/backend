@@ -86,7 +86,9 @@ trait FolderController {
           .summary("Fetch top folders that belongs to a user")
           .description("Fetch top folders that belongs to a user")
           .parameters(
-            asHeaderParam(feideToken)
+            asHeaderParam(feideToken),
+            asQueryParam(includeSubfolders),
+            asQueryParam(includeResources)
           )
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
