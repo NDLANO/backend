@@ -2,9 +2,12 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE folders (
     id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
-    parent_id UUID DEFAULT uuid_generate_v4 (),
+    parent_id UUID NULL,
     feide_id TEXT,
-    document JSONB
+    document JSONB,
+    CONSTRAINT fk_parent_id
+      FOREIGN KEY(parent_id)
+	  REFERENCES folders(id)
 );
 
 CREATE TABLE resources (
