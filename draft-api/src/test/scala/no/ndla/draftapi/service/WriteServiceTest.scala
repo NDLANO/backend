@@ -1087,6 +1087,56 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     ) should equal(converterService.toApiArticle(expectedArticle, "en"))
   }
 
+  test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
+    val revision = api.RevisionMeta(None, LocalDateTime.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
+    val updatedApiArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      revisionMeta = Some(Seq(revision))
+    )
+
+    val saved = service.updateArticle(
+      articleId,
+      updatedApiArticle,
+      List.empty,
+      Seq.empty,
+      TestData.userWithWriteAccess,
+      None,
+      None,
+      None
+    )
+    saved.get.notes.size should be(1)
+    saved.get.notes.head.note should be("Lagt til revisjon Ny revision.")
+    val savedRevision = saved.get.revisions.head
+
+    val revised = revision.copy(id = savedRevision.id, status = RevisionStatus.Revised.entryName)
+    val revisedApiArticle = TestData.blankUpdatedArticle.copy(
+      revision = 1,
+      revisionMeta = Some(Seq(revised))
+    )
+    val domainRev = domain.RevisionMeta(
+      id = UUID.fromString(savedRevision.id.get),
+      revisionDate = savedRevision.revisionDate,
+      note = savedRevision.note,
+      status = RevisionStatus.fromString(savedRevision.status, RevisionStatus.NeedsRevision)
+    )
+    val another: Article = article.copy(revisionMeta = Seq(domainRev))
+    when(draftRepository.withId(articleId)).thenReturn(Option(another))
+
+    val updated2 = service.updateArticle(
+      articleId,
+      revisedApiArticle,
+      List.empty,
+      Seq.empty,
+      TestData.userWithWriteAccess,
+      None,
+      None,
+      None
+    )
+    updated2.get.notes.size should be(1)
+    updated2.get.notes.head.note should be("Fullført revisjon Ny revision.")
+
+  }
+
   test("partial publish notes should be updated before update function") {
     val existingTitle = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
@@ -1266,7 +1316,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val child    = Topic("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
 
-    val revisionMeta = RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val revisionMeta =
+      RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)
@@ -1310,7 +1361,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val child    = Topic("urn:topic:2", "Topic", None, List.empty)
     val resource = Resource("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
 
-    val revisionMeta = RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
+    val revisionMeta =
+      RevisionMeta(UUID.randomUUID(), LocalDateTime.now(), "Test revision", RevisionStatus.NeedsRevision)
     val article1 = TestData.sampleDomainArticle.copy(
       id = Some(1),
       revisionMeta = Seq(revisionMeta)

@@ -20,7 +20,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class V37__AddIdToAllRevisionMeta extends BaseJavaMigration {
-  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + Json4s.serializer(RevisionStatus)
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + Json4s.serializer(RevisionStatus)
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
