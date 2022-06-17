@@ -500,9 +500,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       data = List.empty
     )
 
-    service.toDomainFolder(newFolder1, "kavring") should be(expected1)
-    service.toDomainFolder(newFolder2, "kavring") should be(expected1.copy(status = domain.FolderStatus.PUBLIC))
-    service.toDomainFolder(newFolder3, "kavring") should be(expected1.copy(status = domain.FolderStatus.PRIVATE))
+    service.toDomainFolder(newFolder1, "kavring").get should be(expected1)
+    service.toDomainFolder(newFolder2, "kavring").get should be(expected1.copy(status = domain.FolderStatus.PUBLIC))
+    service.toDomainFolder(newFolder3, "kavring").get should be(expected1.copy(status = domain.FolderStatus.PRIVATE))
   }
 
   test("toApiFolder transforms correctly when data isn't corrupted") {

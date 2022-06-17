@@ -8,6 +8,7 @@
 package no.ndla.learningpathapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.domain.{AccessDeniedException, FeideAccessToken, FeideID}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -28,7 +29,7 @@ trait FeideApiClient {
     private val userInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
     private val feideTimeout     = 1000 * 30
 
-    def getUser(accessToken: String): Try[FeideExtendedUserInfo] = {
+    private def getUser(accessToken: String): Try[FeideExtendedUserInfo] = {
       val request =
         Http(userInfoEndpoint)
           .timeout(feideTimeout, feideTimeout)
@@ -65,7 +66,7 @@ trait FeideApiClient {
       })
     }
 
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken] = None): Try[FeideID] = {
+    def getUserFeideIDUncached(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
       feideAccessToken match {
         case None =>
           Failure(
@@ -87,6 +88,10 @@ trait FeideApiClient {
           }
       }
     }
+
+    private val getUserFeideIDMemoize = Memoize(getUserFeideIDUncached)
+    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] =
+      getUserFeideIDMemoize(feideAccessToken)
 
   }
 

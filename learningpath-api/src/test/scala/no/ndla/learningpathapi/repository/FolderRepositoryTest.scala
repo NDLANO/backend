@@ -175,18 +175,16 @@ class FolderRepositoryTest
   }
 
   test("that foldersWithParentID works correctly") {
-    val data  = TestData.emptyDomainFolder
-    val uuid1 = UUID.randomUUID()
-    val uuid2 = UUID.randomUUID()
+    val data = TestData.emptyDomainFolder
 
-    repository.insertFolder(data.copy(id = Some(uuid1), parentId = None, feideId = "feide"))
-    repository.insertFolder(data.copy(id = Some(uuid2), parentId = None, feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(uuid1), feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(uuid2), feideId = "feide"))
+    val parent1 = repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
+    val parent2 = repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(parent1.get.id.get), feideId = "feide"))
+    repository.insertFolder(data.copy(parentId = Some(parent2.get.id.get), feideId = "feide"))
 
     repository.foldersWithFeideAndParentID(None, "feide").get.length should be(2)
-    repository.foldersWithFeideAndParentID(Some(uuid1), "feide").get.length should be(1)
-    repository.foldersWithFeideAndParentID(Some(uuid2), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(parent1.get.id.get), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(parent2.get.id.get), "feide").get.length should be(1)
   }
 
   test("that getFolderResources works as expected") {
