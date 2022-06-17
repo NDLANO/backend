@@ -322,38 +322,28 @@ trait WriteService {
 
     def addRevisionDateNotes(user: UserInfo, updatedArticle: Article, oldArticle: Option[Article]): Article = {
       val oldRevisions = oldArticle.map(a => a.revisionMeta).getOrElse(Seq.empty)
-      val oldIds       = oldRevisions.map(rm => rm.id)
-      val newIds       = updatedArticle.revisionMeta.map(rm => rm.id)
-      val deletedIds   = oldIds.filterNot(newIds.toSet)
+      val oldIds       = oldRevisions.map(rm => rm.id).toSet
+      val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
+      val deleted = oldRevisions
+        .filterNot(old => newIds.contains(old.id))
+        .map(del => EditorNote(f"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, new Date()))
 
-      val notes = new ListBuffer[domain.EditorNote]()
-
-      updatedArticle.revisionMeta.foreach(rm => {
-        if (!oldIds.contains(rm.id)) {
-          if (rm.status == RevisionStatus.Revised) {
-            notes += domain
-              .EditorNote(f"Lagt til og fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
-          } else {
-            notes += domain.EditorNote(f"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
+      val notes = updatedArticle.revisionMeta.flatMap {
+        case rm if !oldIds.contains(rm.id) && rm.status == RevisionStatus.Revised =>
+          EditorNote(f"Lagt til og fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+        case rm if !oldIds.contains(rm.id) =>
+          EditorNote(f"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+        case rm =>
+          oldRevisions.find(_.id == rm.id) match {
+            case Some(old) if old.status != rm.status && rm.status == RevisionStatus.Revised =>
+              EditorNote(f"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+            case Some(old) if old != rm =>
+              EditorNote(f"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+            case _ => None
           }
-        } else {
-          // updated or deleted
-          oldRevisions.foreach(old => {
-            if (old.id == rm.id) {
-              if (old.status != rm.status && rm.status == RevisionStatus.Revised) {
-                notes += domain.EditorNote(f"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
-              } else if (old != rm) {
-                notes += domain.EditorNote(f"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
-              }
-              // no change, do nothing
-            }
-          })
-        }
-      })
-      if (deletedIds.nonEmpty) {
-        notes += domain.EditorNote(f"Slettet revisjon.", user.id, updatedArticle.status, new Date())
       }
-      updatedArticle.copy(notes = updatedArticle.notes ++ notes.toSeq)
+
+      updatedArticle.copy(notes = updatedArticle.notes ++ notes ++ deleted)
     }
 
     private def updateArticle(
