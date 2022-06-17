@@ -13,6 +13,8 @@ CREATE TABLE folders (
 CREATE TABLE resources (
     id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
     feide_id TEXT,
+    path TEXT,
+    resource_type TEXT,
     created TIMESTAMP,
     document JSONB
 );

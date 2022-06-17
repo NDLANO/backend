@@ -60,9 +60,7 @@ trait UpdateService {
       }
     }
 
-    def insertDump(dump: domain.LearningPath) = {
-      learningPathRepository.insert(dump)
-    }
+    def insertDump(dump: domain.LearningPath): domain.LearningPath = learningPathRepository.insert(dump)
 
     private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: UserInfo)(w: => Try[T]): Try[T] =
       writeOrAccessDenied(
@@ -145,7 +143,7 @@ trait UpdateService {
         deleteIsBasedOnReference(learningPath)
       }
 
-      sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, false))
+      sRes.flatMap(lp => taxononyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false))
     }
 
     def updateLearningPathStatusV2(
@@ -424,7 +422,7 @@ trait UpdateService {
         case t: Throwable => throw t
       }
     }
-    private def validateParentId(parentId: UUID, feideId: FeideID): Try[Unit] = {
+    private def validateParentId(parentId: UUID, feideId: FeideID): Try[UUID] = {
       folderRepository.folderWithFeideId(parentId, feideId) match {
         case Failure(_: NotFoundException) =>
           val paramName = "parentId"
@@ -439,28 +437,26 @@ trait UpdateService {
             )
           )
         case Failure(ex) => Failure(ex)
-        case Success(_)  => Success(())
+        case Success(_)  => Success(parentId)
       }
     }
 
-    def newFolder(
-        newFolder: api.NewFolder,
-        feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[api.Folder] = {
+    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       for {
-        feideId   <- feideApiClient.getUserFeideID(feideAccessToken)
-        converted <- converterService.toDomainFolder(newFolder, feideId)
-        _         <- converted.parentId.traverse(pid => validateParentId(pid, feideId))
-        inserted  <- folderRepository.insertFolder(converted)
-        api       <- converterService.toApiFolder(inserted)
+        feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
+        document <- converterService.toDomainFolderDocument(newFolder, feideId)
+        parentId <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
+        parentId <- parentId.traverse(pid => validateParentId(pid, feideId))
+        inserted <- folderRepository.insertFolder(feideId, parentId, document)
+        api      <- converterService.toApiFolder(inserted)
       } yield api
     }
 
     def newFolderResourceConnection(
         folderId: UUID,
         newResource: api.NewResource,
-        feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[_] = {
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[_] =
       for {
         feideId <- feideApiClient.getUserFeideID(feideAccessToken)
         _ <- folderRepository
@@ -468,32 +464,40 @@ trait UpdateService {
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
         _ <- createNewResourceOrUpdateExisting(newResource, folderId, feideId)
       } yield ()
-    }
 
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
         folderId: UUID,
         feideId: FeideID
-    ): Try[_] = {
+    ): Try[_] =
       folderRepository
-        .resourceWithPathAndFeideId(newResource.path, feideId)
+        .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
         .flatMap {
           case None =>
-            val converted = converterService.toDomainResource(newResource, feideId)
+            val document = converterService.toDomainResource(newResource)
             for {
-              inserted   <- folderRepository.insertResource(converted)
-              resourceId <- inserted.doIfIdExists(id => id)
-              _          <- folderRepository.createFolderResourceConnection(folderId, resourceId)
+              inserted <- folderRepository.insertResource(
+                feideId,
+                newResource.path,
+                newResource.resourceType,
+                clock.nowLocalDateTime(),
+                document
+              )
+              _ <- folderRepository.createFolderResourceConnection(folderId, inserted.id)
             } yield ()
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)
             for {
-              resourceId <- mergedResource.doIfIdExists(id => id)
-              _          <- folderRepository.updateResource(resourceId, mergedResource)
-              _          <- folderRepository.createFolderResourceConnection(folderId, resourceId)
+              _ <- folderRepository.updateResource(mergedResource)
+              _ <- connectIfNotConnected(folderId, mergedResource.id)
             } yield ()
         }
-    }
+
+    private def connectIfNotConnected(folderId: UUID, resourceId: UUID): Try[Unit] =
+      folderRepository.isConnected(folderId, resourceId).map {
+        case false => folderRepository.createFolderResourceConnection(folderId, resourceId)
+        case true  => Success(())
+      }
 
     def updateFolder(
         id: UUID,
@@ -520,7 +524,7 @@ trait UpdateService {
         existingResource <- folderRepository.resourceWithId(id)
         _                <- existingResource.isOwner(feideId)
         converted = converterService.mergeResource(existingResource, updatedResource)
-        updated <- folderRepository.updateResource(id, converted)
+        updated <- folderRepository.updateResource(converted)
         api     <- converterService.toApiResource(updated)
       } yield api
     }
@@ -538,11 +542,10 @@ trait UpdateService {
     def deleteRecursively(folder: domain.Folder, feideId: FeideID): Try[UUID] = {
       folder.data
         .traverse {
-          case Left(childFolder) => deleteRecursively(childFolder, feideId)
-          case Right(childResource) =>
-            childResource.doFlatIfIdExists(id => deleteResourceIfNoConnection(id))
+          case Left(childFolder)    => deleteRecursively(childFolder, feideId)
+          case Right(childResource) => deleteResourceIfNoConnection(childResource.id)
         }
-        .flatMap(_ => folder.doFlatIfIdExists(id => folderRepository.deleteFolder(id)))
+        .flatMap(_ => folderRepository.deleteFolder(folder.id))
     }
 
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken] = None): Try[UUID] = {
@@ -550,7 +553,7 @@ trait UpdateService {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
         _              <- folder.canDelete(feideId)
-        folderWithData <- readService.getSubFoldersRecursively(folder, false)
+        folderWithData <- readService.getSubFoldersRecursively(folder, includeResources = false)
         deleted        <- deleteRecursively(folderWithData, feideId)
       } yield deleted
     }

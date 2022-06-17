@@ -188,29 +188,24 @@ trait ReadService {
         folder: domain.Folder,
         includeResources: Boolean
     ): Try[domain.Folder] = {
-      folder.doFlatIfIdExists(id =>
-        for {
-          directSubfolders <- folderRepository.foldersWithParentID(parentId = Some(id))
-          folderResources  <- getFolderResources(id, includeResources)
-          subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, includeResources))
-          combined = folderResources ++ subFolders.map(_.asLeft)
-        } yield folder.copy(data = combined)
-      )
+      for {
+        directSubfolders <- folderRepository.foldersWithParentID(parentId = folder.id.some)
+        folderResources  <- getFolderResources(folder.id, includeResources)
+        subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, includeResources))
+        combined = folderResources ++ subFolders.map(_.asLeft)
+      } yield folder.copy(data = combined)
     }
 
     private def createFavorite(
         feideId: domain.FeideID
     ): Try[domain.Folder] = {
-      val favoriteFolder = domain.Folder(
-        id = None,
-        feideId = feideId,
-        parentId = None,
+      val favoriteFolder = domain.FolderDocument(
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
         isFavorite = true,
         data = List.empty
       )
-      folderRepository.insertFolder(favoriteFolder)
+      folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
 
     def getFolder(
@@ -238,14 +233,11 @@ trait ReadService {
     private[service] def injectResourcesToFolders(
         folders: List[domain.Folder],
         includeResources: Boolean
-    ): Try[List[domain.Folder]] = {
+    ): Try[List[domain.Folder]] =
       folders.traverse(folder => {
-        for {
-          id              <- folder.doIfIdExists(id => id)
-          folderResources <- getFolderResources(id, includeResources)
-        } yield folder.copy(data = folderResources)
+        val folderResources = getFolderResources(folder.id, includeResources)
+        folderResources.map(res => folder.copy(data = res))
       })
-    }
 
     private def getSubfolders(
         folders: List[domain.Folder],

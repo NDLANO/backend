@@ -17,22 +17,35 @@ import scalikejdbc._
 
 import java.util.UUID
 import java.time.LocalDateTime
+import scala.util.Try
+import cats.implicits._
 
-class ResourceDocument(path: String, resourceType: String, tags: List[String]) {
-  def toFullResource(id: Option[UUID], feideId: String, created: LocalDateTime): Resource = {
-    Resource(id = id, feideId = feideId, path = path, resourceType = resourceType, tags = tags, created = created)
-  }
+case class ResourceDocument(tags: List[String]) {
+  def toFullResource(
+      id: UUID,
+      path: String,
+      resourceType: String,
+      feideId: String,
+      created: LocalDateTime
+  ): Resource =
+    Resource(
+      id = id,
+      feideId = feideId,
+      path = path,
+      resourceType = resourceType,
+      tags = tags,
+      created = created
+    )
 }
 
 case class Resource(
-    id: Option[UUID],
+    id: UUID,
     feideId: FeideID,
     created: LocalDateTime,
     path: String,
     resourceType: String,
     tags: List[String]
-) extends ResourceDocument(path = path, resourceType = resourceType, tags = tags)
-    with Content
+) extends FeideContent
 
 trait DBResource {
   this: Props =>
@@ -48,33 +61,30 @@ trait DBResource {
         ignore("created")
     )
 
-    def fromResultSetOpt(ls: ResultName[Resource])(rs: WrappedResultSet): Option[Resource] =
-      rs.longOpt(ls.c("id")).map(_ => fromResultSet(ls)(rs))
+    def fromResultSetOpt(ls: ResultName[Resource])(rs: WrappedResultSet): Try[Option[Resource]] =
+      rs.get[Option[UUID]](ls.c("id")).traverse(_ => fromResultSet(ls)(rs))
 
-    def fromResultSet(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Resource =
+    def fromResultSet(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Try[Resource] =
       fromResultSet(lp.resultName)(rs)
 
-    def fromResultSetOpt(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Option[Resource] =
+    def fromResultSetOpt(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Try[Option[Resource]] =
       fromResultSetOpt(lp.resultName)(rs)
 
-    implicit val uuidBinder: Binders[Option[UUID]] = Binders.of[Option[UUID]] {
-      case v: UUID => Some(v)
-      case _       => None
-    }(v => (ps, idx) => ps.setObject(idx, v))
+    def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Try[Resource] = {
+      val metaData     = read[ResourceDocument](rs.string(lp.c("document")))
+      val id           = rs.get[Try[UUID]](lp.c("id"))
+      val feideId      = rs.string(lp.c("feide_id"))
+      val created      = rs.localDateTime(lp.c("created"))
+      val path         = rs.string(lp.c("path"))
+      val resourceType = rs.string(lp.c("resource_type"))
 
-    def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Resource = {
-      val metaData = read[ResourceDocument](rs.string(lp.c("document")))
-      val id       = rs.get[Option[UUID]](lp.c("id"))
-      val feideId  = rs.string(lp.c("feide_id"))
-      val created  = rs.localDateTime(lp.c("created"))
-
-      metaData.toFullResource(id, feideId, created)
+      id.map(id => metaData.toFullResource(id, path, resourceType, feideId, created))
     }
   }
 }
 
-class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value, data: List[FolderData]) {
-  def toFullFolder(id: Option[UUID], feideId: FeideID, parentId: Option[UUID]): Folder = {
+case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value, data: List[FolderData]) {
+  def toFullFolder(id: UUID, feideId: FeideID, parentId: Option[UUID]): Folder = {
     Folder(
       id = id,
       feideId = feideId,
@@ -88,7 +98,7 @@ class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Val
 }
 
 case class Folder(
-    id: Option[UUID],
+    id: UUID,
     feideId: FeideID,
     parentId: Option[UUID],
     name: String,
@@ -111,24 +121,25 @@ trait DBFolder {
         ignore("parentId")
     )
 
-    def fromResultSetOpt(ls: ResultName[Folder])(rs: WrappedResultSet): Option[Folder] =
-      rs.longOpt(ls.c("id")).map(_ => fromResultSet(ls)(rs))
+    def fromResultSetOpt(ls: ResultName[Folder])(rs: WrappedResultSet): Try[Option[Folder]] =
+      rs.get[Option[UUID]](ls.c("id")).traverse(_ => fromResultSet(ls)(rs))
 
-    def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Folder =
+    def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] =
       fromResultSet(lp.resultName)(rs)
 
-    implicit val uuidBinder: Binders[Option[UUID]] = Binders.of[Option[UUID]] {
-      case v: UUID => Some(v)
-      case _       => None
-    }(v => (ps, idx) => ps.setObject(idx, v))
-
-    def fromResultSet(lp: ResultName[Folder])(rs: WrappedResultSet): Folder = {
+    def fromResultSet(lp: ResultName[Folder])(rs: WrappedResultSet): Try[Folder] = {
       val metaData = read[FolderDocument](rs.string(lp.c("document")))
-      val id       = rs.get[Option[UUID]](lp.c("id"))
+      val id       = rs.get[Try[UUID]](lp.c("id"))
       val feideId  = rs.string(lp.c("feide_id"))
       val parentId = rs.get[Option[UUID]](lp.c("parent_id"))
 
-      metaData.toFullFolder(id, feideId, parentId)
+      id.map(id =>
+        metaData.toFullFolder(
+          id,
+          feideId,
+          parentId
+        )
+      )
     }
   }
 }

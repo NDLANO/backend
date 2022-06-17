@@ -686,30 +686,26 @@ trait ConverterService {
       }
     }
 
-    def toDomainFolder(newFolder: api.NewFolder, feideId: FeideID): Try[domain.Folder] = {
+    def toDomainFolderDocument(newFolder: api.NewFolder, feideId: FeideID): Try[domain.FolderDocument] = {
       val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-      val newParentId = newFolder.parentId.traverse(pid => toUUIDValidated(pid.some, "parentId"))
       val newFavorite = false
 
-      newParentId.map(parentId => {
-        domain.Folder(
-          id = None,
-          feideId = feideId,
-          parentId = parentId,
+      Success(
+        FolderDocument(
           name = newFolder.name,
           status = newStatus,
           isFavorite = newFavorite,
           data = List.empty
         )
-      })
+      )
     }
 
     private def toApiFolderData(domainData: domain.FolderData): Try[api.FolderData] = {
       domainData match {
         case Right(resource) =>
-          resource.doIfIdExists(id =>
+          Success(
             api.Resource(
-              id = id.toString,
+              id = resource.id.toString,
               resourceType = resource.resourceType,
               path = resource.path,
               created = resource.created,
@@ -717,36 +713,32 @@ trait ConverterService {
             )
           )
         case Left(folder) =>
-          folder.doFlatIfIdExists(id => {
-            folder.data
-              .traverse(toApiFolderData)
-              .map(subFolders =>
-                api.Folder(
-                  id = id.toString,
-                  name = folder.name,
-                  status = folder.status.toString,
-                  isFavorite = folder.isFavorite,
-                  data = subFolders
-                )
+          folder.data
+            .traverse(toApiFolderData)
+            .map(subFolders =>
+              api.Folder(
+                id = folder.id.toString,
+                name = folder.name,
+                status = folder.status.toString,
+                isFavorite = folder.isFavorite,
+                data = subFolders
               )
-          })
+            )
       }
     }
 
     def toApiFolder(domainFolder: domain.Folder): Try[api.Folder] = {
-      domainFolder.doFlatIfIdExists(folderId => {
-        domainFolder.data
-          .traverse(folder => toApiFolderData(folder))
-          .map(folderData =>
-            api.Folder(
-              id = folderId.toString,
-              name = domainFolder.name,
-              status = domainFolder.status.toString,
-              isFavorite = domainFolder.isFavorite,
-              data = folderData
-            )
+      domainFolder.data
+        .traverse(folder => toApiFolderData(folder))
+        .map(folderData =>
+          api.Folder(
+            id = domainFolder.id.toString,
+            name = domainFolder.name,
+            status = domainFolder.status.toString,
+            isFavorite = domainFolder.isFavorite,
+            data = folderData
           )
-      })
+        )
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
@@ -791,29 +783,25 @@ trait ConverterService {
     }
 
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
-      domainResource.doIfIdExists(id => {
-        val resourceType = domainResource.resourceType
-        val path         = domainResource.path
-        val created      = domainResource.created
-        val tags         = domainResource.tags
+      val resourceType = domainResource.resourceType
+      val path         = domainResource.path
+      val created      = domainResource.created
+      val tags         = domainResource.tags
 
-        api.Resource(id = id.toString, resourceType = resourceType, path = path, created = created, tags = tags)
-      })
+      Success(
+        api.Resource(
+          id = domainResource.id.toString,
+          resourceType = resourceType,
+          path = path,
+          created = created,
+          tags = tags
+        )
+      )
     }
 
-    def toDomainResource(newResource: api.NewResource, feideId: api.FeideID): domain.Resource = {
-      val resourceType = newResource.resourceType
-      val path         = newResource.path
-      val tags         = newResource.tags.getOrElse(List.empty)
-
-      domain.Resource(
-        id = None,
-        feideId = feideId,
-        resourceType = resourceType,
-        path = path,
-        created = clock.nowLocalDateTime(),
-        tags = tags
-      )
+    def toDomainResource(newResource: api.NewResource): ResourceDocument = {
+      val tags = newResource.tags.getOrElse(List.empty)
+      ResourceDocument(tags = tags)
     }
 
     def domainToApiModel[Domain, Api](

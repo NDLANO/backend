@@ -29,16 +29,21 @@ trait Content {
     }
   }
 
-  def isOwner(feideId: FeideID): Try[Content] = {
+}
+
+trait FeideContent {
+  val feideId: FeideID
+
+  def isOwner(feideId: FeideID): Try[FeideContent] = {
     if (this.feideId == feideId) Success(this)
     else Failure(AccessDeniedException("You do not have access to this entity."))
   }
-
 }
 
-trait FolderContent extends Content {
+trait FolderContent extends FeideContent {
   def status: FolderStatus.Value
   def isFavorite: Boolean
+  val feideId: FeideID
 
   def isPublic: Boolean = this.status == FolderStatus.PUBLIC
 
