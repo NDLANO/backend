@@ -686,7 +686,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainFolderDocument(newFolder: api.NewFolder, feideId: FeideID): Try[domain.FolderDocument] = {
+    def toDomainFolderDocument(newFolder: api.NewFolder): Try[domain.FolderDocument] = {
       val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
       val newFavorite = false
 

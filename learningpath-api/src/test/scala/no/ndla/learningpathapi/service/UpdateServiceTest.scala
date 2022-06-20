@@ -1471,7 +1471,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val id = UUID.randomUUID()
     val folderWithChildren =
       emptyDomainFolder.copy(
-        id = Some(id),
+        id = id,
         feideId = "FEIDE",
         data = List(Left(emptyDomainFolder), Left(emptyDomainFolder), Right(emptyDomainResource))
       )
@@ -1495,13 +1495,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = UUID.randomUUID()
     val subFolder2Id = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
-    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
+    val folder       = emptyDomainFolder.copy(id = mainFolderId, feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
         data = List(
-          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
-          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
-          Right(emptyDomainResource.copy(id = Some(resourceId)))
+          Left(emptyDomainFolder.copy(id = subFolder1Id)),
+          Left(emptyDomainFolder.copy(id = subFolder2Id)),
+          Right(emptyDomainResource.copy(id = resourceId))
         )
       )
     val correctFeideId = "FEIDE"
@@ -1533,13 +1533,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val resourceId     = UUID.randomUUID()
     val folderWithChildren =
       emptyDomainFolder.copy(
-        id = Some(mainFolderId),
+        id = mainFolderId,
         feideId = "FEIDE",
         isFavorite = true,
         data = List(
-          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
-          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
-          Right(emptyDomainResource.copy(id = Some(resourceId)))
+          Left(emptyDomainFolder.copy(id = subFolder1Id)),
+          Left(emptyDomainFolder.copy(id = subFolder2Id)),
+          Right(emptyDomainResource.copy(id = resourceId))
         )
       )
 
@@ -1567,13 +1567,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder1Id = UUID.randomUUID()
     val subFolder2Id = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
-    val folder       = emptyDomainFolder.copy(id = Some(mainFolderId), feideId = "FEIDE", data = List.empty)
+    val folder       = emptyDomainFolder.copy(id = mainFolderId, feideId = "FEIDE", data = List.empty)
     val folderWithChildren =
       folder.copy(
         data = List(
-          Left(emptyDomainFolder.copy(id = Some(subFolder1Id))),
-          Left(emptyDomainFolder.copy(id = Some(subFolder2Id))),
-          Right(emptyDomainResource.copy(id = Some(resourceId)))
+          Left(emptyDomainFolder.copy(id = subFolder1Id)),
+          Left(emptyDomainFolder.copy(id = subFolder2Id)),
+          Right(emptyDomainResource.copy(id = resourceId))
         )
       )
     val correctFeideId = "FEIDE"
@@ -1599,8 +1599,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = UUID.randomUUID()
     val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
+    val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1621,8 +1621,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = UUID.randomUUID()
     val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "FEIDE")
+    val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1644,7 +1644,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = UUID.randomUUID()
     val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "asd")
+    val folder         = emptyDomainFolder.copy(id = folderId, feideId = "asd")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1664,8 +1664,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId       = UUID.randomUUID()
     val resourceId     = UUID.randomUUID()
     val correctFeideId = "FEIDE"
-    val folder         = emptyDomainFolder.copy(id = Some(folderId), feideId = "FEIDE")
-    val resource       = emptyDomainResource.copy(id = Some(resourceId), feideId = "asd")
+    val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
+    val resource       = emptyDomainResource.copy(id = resourceId, feideId = "asd")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
@@ -1693,7 +1693,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
     val resource =
       domain.Resource(
-        id = Some(resourceId),
+        id = resourceId,
         feideId = feideId,
         path = resourcePath,
         resourceType = "",
@@ -1702,18 +1702,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.resourceWithPathAndFeideId(any, any)).thenReturn(Success(None))
-    when(folderRepository.insertResource(any)(any[DBSession])).thenReturn(Success(resource))
+    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)).thenReturn(Success(None))
+    when(folderRepository.insertResource(any, any, any, any, any)(any[DBSession])).thenReturn(Success(resource))
     when(folderRepository.createFolderResourceConnection(any, any)(any[DBSession])).thenReturn(Success(()))
 
     service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
 
-    verify(folderRepository, times(1)).resourceWithPathAndFeideId(eqTo(resourcePath), eqTo(feideId))
-    verify(converterService, times(1)).toDomainResource(eqTo(newResource), eqTo(feideId))
-    verify(folderRepository, times(1)).insertResource(eqTo(resource.copy(id = None)))(any[DBSession])
+    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))
+    verify(converterService, times(1)).toDomainResource(eqTo(newResource))
+    verify(folderRepository, times(1)).insertResource(eqTo(feideId), eqTo(resourcePath), eqTo(""), any, any)(
+      any[DBSession]
+    )
     verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
     verify(converterService, times(0)).mergeResource(any, any[NewResource])
-    verify(folderRepository, times(0)).updateResource(any, any)(any[DBSession])
+    verify(folderRepository, times(0)).updateResource(any)(any[DBSession])
   }
 
   test(
@@ -1729,7 +1731,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None)
     val resource =
       domain.Resource(
-        id = Some(resourceId),
+        id = resourceId,
         feideId = feideId,
         path = resourcePath,
         resourceType = "",
@@ -1738,17 +1740,18 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.resourceWithPathAndFeideId(any, any)).thenReturn(Success(Some(resource)))
-    when(folderRepository.updateResource(resourceId, resource)).thenReturn(Success(resource))
+    when(folderRepository.isConnected(eqTo(folderId), eqTo(resourceId))(any)).thenReturn(Success(false))
+    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)).thenReturn(Success(Some(resource)))
+    when(folderRepository.updateResource(resource)).thenReturn(Success(resource))
     when(folderRepository.createFolderResourceConnection(any, any)(any[DBSession])).thenReturn(Success(()))
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
+    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).get
 
-    verify(folderRepository, times(1)).resourceWithPathAndFeideId(eqTo(resourcePath), eqTo(feideId))
-    verify(converterService, times(0)).toDomainResource(eqTo(newResource), eqTo(feideId))
-    verify(folderRepository, times(0)).insertResource(eqTo(resource.copy(id = None)))(any[DBSession])
+    verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))
+    verify(converterService, times(0)).toDomainResource(eqTo(newResource))
+    verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(any)
     verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
-    verify(folderRepository, times(1)).updateResource(eqTo(resourceId), eqTo(resource))(any[DBSession])
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
   }
 }

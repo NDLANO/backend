@@ -327,7 +327,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource1UUID  = UUID.randomUUID()
 
     val mainFolder = domain.Folder(
-      id = Some(mainFolderUUID),
+      id = mainFolderUUID,
       feideId = "FEIDE",
       parentId = None,
       name = "mainFolder",
@@ -337,7 +337,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder1 = domain.Folder(
-      id = Some(subFolder1UUID),
+      id = subFolder1UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder1",
@@ -347,7 +347,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder2 = domain.Folder(
-      id = Some(subFolder2UUID),
+      id = subFolder2UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder2",
@@ -357,7 +357,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val resource1 = domain.Resource(
-      id = Some(resource1UUID),
+      id = resource1UUID,
       feideId = "",
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
@@ -418,7 +418,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource1UUID  = UUID.randomUUID()
 
     val mainFolder = domain.Folder(
-      id = Some(mainFolderUUID),
+      id = mainFolderUUID,
       feideId = "FEIDE",
       parentId = None,
       name = "mainFolder",
@@ -428,7 +428,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder1 = domain.Folder(
-      id = Some(subFolder1UUID),
+      id = subFolder1UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder1",
@@ -438,7 +438,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder2 = domain.Folder(
-      id = Some(subFolder2UUID),
+      id = subFolder2UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder2",
@@ -448,7 +448,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val resource1 = domain.Resource(
-      id = Some(resource1UUID),
+      id = resource1UUID,
       feideId = "",
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
@@ -507,7 +507,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val subFolder2UUID = UUID.randomUUID()
 
     val mainFolder = domain.Folder(
-      id = Some(mainFolderUUID),
+      id = mainFolderUUID,
       feideId = "FEIDE",
       parentId = None,
       name = "mainFolder",
@@ -517,7 +517,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder1 = domain.Folder(
-      id = Some(subFolder1UUID),
+      id = subFolder1UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder1",
@@ -527,7 +527,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     val subFolder2 = domain.Folder(
-      id = Some(subFolder2UUID),
+      id = subFolder2UUID,
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder2",
@@ -586,7 +586,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That getFolders returns favorite folder if it exist") {
     val feideId              = "yee boiii"
     val folderUUID           = UUID.randomUUID()
-    val folderWithId         = emptyDomainFolder.copy(id = Some(folderUUID))
+    val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
     val favoriteApiFolder =
       emptyApiFolder.copy(id = folderUUID.toString, name = "favorite", status = "private", isFavorite = true)
@@ -601,19 +601,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
-    verify(folderRepository, times(0)).insertFolder(any)(any[DBSession])
+    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
   }
 
   test("That getFolders creates favorite folder if favorite does not exist ") {
     val feideId              = "yee boiii"
     val folderUUID           = UUID.randomUUID()
-    val folderWithId         = emptyDomainFolder.copy(id = Some(folderUUID))
+    val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
     val favoriteApiFolder =
       emptyApiFolder.copy(id = folderUUID.toString, name = "favorite", status = "private", isFavorite = true)
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.insertFolder(any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(None, feideId))
       .thenReturn(Success(List(folderWithId, folderWithId)))
 
@@ -623,7 +623,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
-    verify(folderRepository, times(1)).insertFolder(any)(any[DBSession])
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -632,9 +632,9 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val feideId              = "yee boiii"
     val randomUUID           = UUID.randomUUID()
-    val folderWithId         = emptyDomainFolder.copy(id = Some(randomUUID))
+    val folderWithId         = emptyDomainFolder.copy(id = randomUUID)
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
-    val domainResource       = emptyDomainResource.copy(id = Some(randomUUID), created = created)
+    val domainResource       = emptyDomainResource.copy(id = randomUUID, created = created)
     val favoriteApiFolder =
       emptyApiFolder.copy(id = randomUUID.toString, name = "favorite", status = "private", isFavorite = true)
     val apiResource =
@@ -652,7 +652,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(None, feideId))
       .thenReturn(Success(List(folderWithId, folderWithId)))
-    when(folderRepository.insertFolder(any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getFolderResources(any)(any[DBSession]))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
 
@@ -667,7 +667,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.exists(f => f.data.isEmpty)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
-    verify(folderRepository, times(1)).insertFolder(any)(any[DBSession])
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
     verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
   }
 
@@ -681,12 +681,12 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val UUID3                = UUID.randomUUID()
     val UUID4                = UUID.randomUUID()
     val UUID5                = UUID.randomUUID()
-    val folderId1            = emptyDomainFolder.copy(id = Some(UUID1))
-    val folderId2            = emptyDomainFolder.copy(id = Some(UUID2))
-    val folderId3            = emptyDomainFolder.copy(id = Some(UUID3))
-    val folderId4            = emptyDomainFolder.copy(id = Some(UUID4))
-    val favoriteDomainFolder = folderId1.copy(id = Some(UUID5), name = "favorite", isFavorite = true)
-    val domainResource       = emptyDomainResource.copy(id = Some(UUID1), created = created)
+    val folderId1            = emptyDomainFolder.copy(id = UUID1)
+    val folderId2            = emptyDomainFolder.copy(id = UUID2)
+    val folderId3            = emptyDomainFolder.copy(id = UUID3)
+    val folderId4            = emptyDomainFolder.copy(id = UUID4)
+    val favoriteDomainFolder = folderId1.copy(id = UUID5, name = "favorite", isFavorite = true)
+    val domainResource       = emptyDomainResource.copy(id = UUID1, created = created)
     val favoriteApiFolder =
       emptyApiFolder.copy(id = UUID5.toString, name = "favorite", status = "private", isFavorite = true)
     val apiResource =
@@ -709,7 +709,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.foldersWithParentID(Some(UUID3))).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithParentID(Some(UUID4))).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithParentID(Some(UUID5))).thenReturn(Success(List.empty))
-    when(folderRepository.insertFolder(any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getFolderResources(eqTo(UUID1))(any[DBSession])).thenReturn(folderResourcesResponse1)
     when(folderRepository.getFolderResources(eqTo(UUID2))(any[DBSession])).thenReturn(folderResourcesResponse2)
     when(folderRepository.getFolderResources(eqTo(UUID3))(any[DBSession])).thenReturn(folderResourcesResponse3)
@@ -736,6 +736,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).getFolderResources(eqTo(UUID3))(any[DBSession])
     verify(folderRepository, times(1)).getFolderResources(eqTo(UUID4))(any[DBSession])
     verify(folderRepository, times(1)).getFolderResources(eqTo(UUID5))(any[DBSession])
-    verify(folderRepository, times(1)).insertFolder(any)(any[DBSession])
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
   }
 }

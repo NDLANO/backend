@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.learningpathapi.model.domain.DBFolderResource
+import no.ndla.learningpathapi.model.domain.{DBFolderResource, FolderDocument, FolderStatus, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -16,7 +16,6 @@ import scalikejdbc._
 
 import java.net.Socket
 import java.time.LocalDateTime
-import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class FolderRepositoryTest
@@ -85,138 +84,155 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a folder works as expected") {
-    val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
-    val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
-    val folder3 = repository.insertFolder(TestData.emptyDomainFolder)
+    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val folder3 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
 
-    repository.folderWithId(folder1.get.id.get) should be(folder1)
-    repository.folderWithId(folder2.get.id.get) should be(folder2)
-    repository.folderWithId(folder3.get.id.get) should be(folder3)
+    repository.folderWithId(folder1.get.id) should be(folder1)
+    repository.folderWithId(folder2.get.id) should be(folder2)
+    repository.folderWithId(folder3.get.id) should be(folder3)
   }
 
   test("that inserting and retrieving a resource works as expected") {
     val created = LocalDateTime.now()
     when(clock.nowLocalDateTime()).thenReturn(created)
 
-    val resource1 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
-    val resource2 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
-    val resource3 = repository.insertResource(TestData.emptyDomainResource.copy(created = created))
+    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource3 = repository.insertResource("feide", "/path3", "type", created, TestData.baseResourceDocument)
 
-    repository.resourceWithId(resource1.get.id.get) should be(resource1)
-    repository.resourceWithId(resource2.get.id.get) should be(resource2)
-    repository.resourceWithId(resource3.get.id.get) should be(resource3)
+    repository.resourceWithId(resource1.get.id) should be(resource1)
+    repository.resourceWithId(resource2.get.id) should be(resource2)
+    repository.resourceWithId(resource3.get.id) should be(resource3)
   }
 
   test("that connecting folders and resources works as expected") {
-    val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
-    val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
+    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
 
-    val resource1 = repository.insertResource(TestData.emptyDomainResource)
-    val resource2 = repository.insertResource(TestData.emptyDomainResource)
+    val created = LocalDateTime.now()
 
-    repository.createFolderResourceConnection(folder1.get.id.get, resource1.get.id.get)
-    repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
-    repository.createFolderResourceConnection(folder2.get.id.get, resource2.get.id.get)
+    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id)
+    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id)
 
     folderResourcesCount should be(3)
   }
 
   test("that deleting a folder deletes folder-resource connection") {
-    val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
-    val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
+    val created = LocalDateTime.now()
 
-    val resource1 = repository.insertResource(TestData.emptyDomainResource)
-    val resource2 = repository.insertResource(TestData.emptyDomainResource)
+    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id.get, resource1.get.id.get)
-    repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
-    repository.createFolderResourceConnection(folder2.get.id.get, resource2.get.id.get)
+    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id)
+    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id)
 
     folderResourcesCount() should be(3)
-    repository.deleteFolder(folder1.get.id.get)
+    repository.deleteFolder(folder1.get.id)
     folderResourcesCount() should be(1)
   }
 
   test("that deleting a resource deletes folder-resource connection") {
-    val folder1 = repository.insertFolder(TestData.emptyDomainFolder)
-    val folder2 = repository.insertFolder(TestData.emptyDomainFolder)
+    val created = LocalDateTime.now()
 
-    val resource1 = repository.insertResource(TestData.emptyDomainResource)
-    val resource2 = repository.insertResource(TestData.emptyDomainResource)
+    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id.get, resource1.get.id.get)
-    repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
-    repository.createFolderResourceConnection(folder2.get.id.get, resource1.get.id.get)
+    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
 
-    repository.folderResourceConnectionCount(resource1.get.id.get).get should be(2)
-    repository.folderResourceConnectionCount(resource2.get.id.get).get should be(1)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id)
+
+    repository.folderResourceConnectionCount(resource1.get.id).get should be(2)
+    repository.folderResourceConnectionCount(resource2.get.id).get should be(1)
     folderResourcesCount() should be(3)
-    repository.deleteResource(resource1.get.id.get)
+    repository.deleteResource(resource1.get.id)
     folderResourcesCount() should be(1)
-    repository.deleteResource(resource2.get.id.get)
+    repository.deleteResource(resource2.get.id)
     folderResourcesCount() should be(0)
   }
 
   test("that resourceWithPathAndFeideId works correctly") {
-    val resource1 = TestData.emptyDomainResource.copy(path = "pathernity test", feideId = "feide-1")
+    val resource1 =
+      TestData.emptyDomainResource.copy(path = "pathernity test", resourceType = "type", feideId = "feide-1")
 
-    repository.insertResource(resource1)
-    val correct = repository.resourceWithPathAndFeideId(path = "pathernity test", feideId = "feide-1")
+    repository.insertResource(
+      resource1.feideId,
+      resource1.path,
+      resource1.resourceType,
+      resource1.created,
+      ResourceDocument(resource1.tags)
+    )
+    val correct =
+      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity test", resourceType = "type", feideId = "feide-1")
     correct.isSuccess should be(true)
     correct.get.isDefined should be(true)
 
-    val wrong1 = repository.resourceWithPathAndFeideId(path = "pathernity test", feideId = "wrong")
+    val wrong1 =
+      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity test", resourceType = "type", feideId = "wrong")
     wrong1.isSuccess should be(true)
     wrong1.get.isDefined should be(false)
 
-    val wrong2 = repository.resourceWithPathAndFeideId(path = "pathernity", feideId = "feide-1")
+    val wrong2 =
+      repository.resourceWithPathAndTypeAndFeideId(path = "pathernity", resourceType = "type", feideId = "feide-1")
     wrong2.isSuccess should be(true)
     wrong2.get.isDefined should be(false)
   }
 
   test("that foldersWithParentID works correctly") {
-    val data = TestData.emptyDomainFolder
+    val parent1 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
+    val parent2 = repository.insertFolder("feide", None, TestData.baseFolderDocument)
 
-    val parent1 = repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
-    val parent2 = repository.insertFolder(data.copy(parentId = None, feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(parent1.get.id.get), feideId = "feide"))
-    repository.insertFolder(data.copy(parentId = Some(parent2.get.id.get), feideId = "feide"))
+    repository.insertFolder("feide", Some(parent1.get.id), TestData.baseFolderDocument)
+    repository.insertFolder("feide", Some(parent2.get.id), TestData.baseFolderDocument)
 
     repository.foldersWithFeideAndParentID(None, "feide").get.length should be(2)
-    repository.foldersWithFeideAndParentID(Some(parent1.get.id.get), "feide").get.length should be(1)
-    repository.foldersWithFeideAndParentID(Some(parent2.get.id.get), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(parent1.get.id), "feide").get.length should be(1)
+    repository.foldersWithFeideAndParentID(Some(parent2.get.id), "feide").get.length should be(1)
   }
 
   test("that getFolderResources works as expected") {
-    val folderData = TestData.emptyDomainFolder
+    val created = LocalDateTime.now()
+    val doc = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC, data = List.empty)
 
-    val folder1   = repository.insertFolder(folderData.copy(parentId = None, feideId = "feide"))
-    val folder2   = repository.insertFolder(folderData.copy(parentId = Some(folder1.get.id.get), feideId = "feide"))
-    val resource1 = repository.insertResource(TestData.emptyDomainResource)
-    val resource2 = repository.insertResource(TestData.emptyDomainResource)
-    val resource3 = repository.insertResource(TestData.emptyDomainResource)
+    val folder1 = repository.insertFolder("feide", None, doc)
+    val folder2 = repository.insertFolder("feide", Some(folder1.get.id), doc)
 
-    repository.createFolderResourceConnection(folder1.get.id.get, resource1.get.id.get)
-    repository.createFolderResourceConnection(folder1.get.id.get, resource2.get.id.get)
-    repository.createFolderResourceConnection(folder1.get.id.get, resource3.get.id.get)
-    repository.createFolderResourceConnection(folder2.get.id.get, resource1.get.id.get)
+    val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource3 = repository.insertResource("feide", "/path3", "type", created, TestData.baseResourceDocument)
 
-    repository.getFolderResources(folder1.get.id.get).get.length should be(3)
-    repository.getFolderResources(folder2.get.id.get).get.length should be(1)
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id)
+
+    repository.getFolderResources(folder1.get.id).get.length should be(3)
+    repository.getFolderResources(folder2.get.id).get.length should be(1)
   }
 
   test("that resourcesWithFeideId works as expected") {
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide2"))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide3"))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
-    repository.insertResource(TestData.emptyDomainResource.copy(feideId = "feide1"))
+    val created = LocalDateTime.now()
+
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide3", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
 
     val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
     results.isSuccess should be(true)
     results.get.length should be(2)
-    results.get.length should not be (4)
   }
 
 }

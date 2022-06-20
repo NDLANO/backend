@@ -444,7 +444,7 @@ trait UpdateService {
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       for {
         feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
-        document <- converterService.toDomainFolderDocument(newFolder, feideId)
+        document <- converterService.toDomainFolderDocument(newFolder)
         parentId <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         parentId <- parentId.traverse(pid => validateParentId(pid, feideId))
         inserted <- folderRepository.insertFolder(feideId, parentId, document)

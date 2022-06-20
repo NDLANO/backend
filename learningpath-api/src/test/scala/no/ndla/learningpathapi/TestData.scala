@@ -9,10 +9,18 @@ package no.ndla.learningpathapi
 
 import no.ndla.language.Language.DefaultLanguage
 
-import java.util.Date
+import java.util.{Date, UUID}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.model.domain.{LearningPath, LearningStep, SearchSettings, Sort}
+import no.ndla.learningpathapi.model.domain.{
+  FolderDocument,
+  FolderStatus,
+  LearningPath,
+  LearningStep,
+  ResourceDocument,
+  SearchSettings,
+  Sort
+}
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.joda.time.DateTime
 
@@ -105,7 +113,7 @@ object TestData {
   )
 
   val emptyDomainResource: domain.Resource = domain.Resource(
-    id = None,
+    id = UUID.randomUUID(),
     feideId = "",
     resourceType = "",
     path = "",
@@ -114,13 +122,24 @@ object TestData {
   )
 
   val emptyDomainFolder: domain.Folder = domain.Folder(
-    id = None,
+    id = UUID.randomUUID(),
     feideId = "",
     parentId = None,
     name = "",
     status = domain.FolderStatus.PRIVATE,
     isFavorite = false,
     data = List.empty
+  )
+
+  val baseFolderDocument: FolderDocument = FolderDocument(
+    isFavorite = false,
+    name = "some-name",
+    status = FolderStatus.PUBLIC,
+    data = List.empty
+  )
+
+  val baseResourceDocument: ResourceDocument = ResourceDocument(
+    tags = List.empty
   )
 
   val emptyApiFolder: api.Folder = api.Folder(
