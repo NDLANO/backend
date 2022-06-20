@@ -7,9 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import java.io.ByteArrayInputStream
-import java.util.Date
-import java.util.concurrent.Executors
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Path
@@ -17,10 +14,10 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.integration.{ArticleApiClient, Resource, SearchApiClient, Taxonomy, TaxonomyApiClient, Topic}
+import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.{Article, _}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -37,6 +34,10 @@ import no.ndla.validation._
 import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
 
+import java.io.ByteArrayInputStream
+import java.util.Date
+import java.util.concurrent.Executors
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.jdk.CollectionConverters._
@@ -319,6 +320,34 @@ trait WriteService {
         }
       }
 
+    def addRevisionDateNotes(user: UserInfo, updatedArticle: Article, oldArticle: Option[Article]): Article = {
+      val oldRevisions = oldArticle.map(a => a.revisionMeta).getOrElse(Seq.empty)
+      val oldIds       = oldRevisions.map(rm => rm.id).toSet
+      val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
+      val deleted = oldRevisions
+        .filterNot(old => newIds.contains(old.id))
+        .map(del => domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, new Date()))
+
+      val notes = updatedArticle.revisionMeta.flatMap {
+        case rm if !oldIds.contains(rm.id) && rm.status == RevisionStatus.Revised =>
+          domain
+            .EditorNote(s"Lagt til og fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
+            .some
+        case rm if !oldIds.contains(rm.id) =>
+          domain.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+        case rm =>
+          oldRevisions.find(_.id == rm.id) match {
+            case Some(old) if old.status != rm.status && rm.status == RevisionStatus.Revised =>
+              domain.EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+            case Some(old) if old != rm =>
+              domain.EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+            case _ => None
+          }
+      }
+
+      updatedArticle.copy(notes = updatedArticle.notes ++ notes ++ deleted)
+    }
+
     private def updateArticle(
         toUpdate: domain.Article,
         importId: Option[String],
@@ -342,10 +371,12 @@ trait WriteService {
           converterService.addNote(toUpdate, "Artikkelen har blitt delpublisert", user)
         else toUpdate
 
+      val withRevisionDateNotes = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
+
       for {
         _ <- contentValidator.validateArticle(articleToValidate)
         domainArticle <- performArticleUpdate(
-          withPartialPublishNote,
+          withRevisionDateNotes,
           externalIds,
           externalSubjectIds,
           isImported,
