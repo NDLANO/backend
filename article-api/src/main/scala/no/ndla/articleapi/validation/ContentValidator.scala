@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}
@@ -16,6 +16,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}
 
+import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -53,12 +54,19 @@ trait ContentValidator {
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateArticleType(article.articleType)
-
+        validateArticleType(article.articleType) ++
+        validateRevisionDate(article.revisionDate)
       if (validationErrors.isEmpty) {
         Success(article)
       } else {
         Failure(new ValidationException(errors = validationErrors))
+      }
+    }
+
+    def validateRevisionDate(revisionDate: Option[LocalDateTime]): Seq[ValidationMessage] = {
+      revisionDate match {
+        case None => Seq(ValidationMessage("revisionDate", "Article must have at least one unfinished revision"))
+        case _    => Seq.empty
       }
     }
 

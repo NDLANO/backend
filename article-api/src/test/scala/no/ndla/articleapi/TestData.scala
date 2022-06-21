@@ -14,6 +14,8 @@ import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.joda.time.{DateTime, DateTimeZone}
 
+import java.time.LocalDateTime
+
 trait TestData {
   this: Props =>
 
@@ -141,7 +143,7 @@ trait TestData {
       Seq(1),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = Some(LocalDateTime.now().withNano(0))
     )
 
     val sampleDomainArticle = Article(
