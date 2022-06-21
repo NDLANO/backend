@@ -12,6 +12,7 @@ import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
+  BaseImageController,
   HealthController,
   ImageControllerV2,
   ImageControllerV3,
@@ -59,6 +60,7 @@ trait TestEnvironment
     with DraftApiClient
     with NdlaClient
     with InternController
+    with BaseImageController
     with ImageControllerV2
     with ImageControllerV3
     with HealthController

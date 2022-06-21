@@ -46,10 +46,10 @@ trait ImageControllerV2 {
     with DBImageMetaInformation
     with Props
     with ErrorHelpers
-    with ImageControllerV3 =>
+    with BaseImageController =>
   val imageControllerV2: ImageControllerV2
 
-  class ImageControllerV2(override implicit val swagger: Swagger) extends ImageControllerV3 {
+  class ImageControllerV2(override implicit val swagger: Swagger) extends BaseImageController {
 
     import props._
 

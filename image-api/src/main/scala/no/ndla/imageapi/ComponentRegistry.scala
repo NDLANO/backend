@@ -51,6 +51,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ConverterService
     with ValidationService
     with TagsService
+    with BaseImageController
     with ImageControllerV2
     with ImageControllerV3
     with RawController
