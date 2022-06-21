@@ -12,7 +12,7 @@ import no.ndla.imageapi.Props
 import org.json4s.FieldSerializer.ignore
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
+import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
 
 import java.util.Date
 import scalikejdbc._
@@ -41,22 +41,21 @@ trait DBImageMetaInformation {
   object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
     override val tableName: String          = "imagemetadata"
     override val schemaName: Option[String] = Some(props.MetaSchema)
-    val jsonEncoder                         = new EnumNameSerializer(ModelReleasedStatus)
-    val jsonEncoderWithDefaults: Formats    = DefaultFormats + jsonEncoder
-    val repositorySerializer: Formats = {
-      jsonEncoderWithDefaults +
-        FieldSerializer[ImageMetaInformation](
-          PartialFunction.empty
-            .orElse(ignore("id"))
-            .orElse(ignore("images"))
-        )
-    }
+    val jsonEncoders: Seq[Serializer[_]]    = Seq(new EnumNameSerializer(ModelReleasedStatus))
+    val fieldSerializer: FieldSerializer[ImageMetaInformation] =
+      FieldSerializer[ImageMetaInformation](
+        PartialFunction.empty
+          .orElse(ignore("id"))
+          .orElse(ignore("images"))
+      )
+
+    val repositorySerializer: Formats = DefaultFormats + fieldSerializer ++ jsonEncoders
 
     def fromResultSet(im: SyntaxProvider[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation =
       fromResultSet(im.resultName)(rs)
 
     def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
-      implicit val formats: Formats = this.jsonEncoderWithDefaults
+      implicit val formats: Formats = DefaultFormats ++ this.jsonEncoders
       val id                        = rs.long(im.c("id"))
       val jsonString                = rs.string(im.c("metadata"))
       val metaT                     = Try(Serialization.read[ImageMetaInformation](jsonString))

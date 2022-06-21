@@ -16,7 +16,7 @@ import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformati
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
-import org.json4s.Formats
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -39,7 +39,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends NdlaController {
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoderWithDefaults
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ ImageMetaInformation.jsonEncoders
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))

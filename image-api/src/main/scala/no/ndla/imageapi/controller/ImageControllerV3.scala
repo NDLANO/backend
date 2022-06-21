@@ -29,7 +29,7 @@ import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.scalatra.error.ValidationException
-import org.json4s.Formats
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger._
 import org.scalatra.{NoContent, NotFound, Ok}
@@ -61,7 +61,7 @@ trait ImageControllerV3 {
 
     // Swagger-stuff
     protected val applicationDescription                 = "Services for accessing images from NDLA"
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoderWithDefaults
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ ImageMetaInformation.jsonEncoders
 
     // Additional models used in error responses
     registerModel[ValidationError]()
