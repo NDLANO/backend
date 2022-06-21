@@ -11,7 +11,7 @@ import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta}
+import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -20,7 +20,8 @@ import org.joda.time.DateTime
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
-import java.util.Date
+import java.time.LocalDateTime
+import java.util.{Date, UUID}
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -91,7 +92,14 @@ class ArticleApiClientTest
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = Seq(
+      RevisionMeta(
+        id = UUID.randomUUID(),
+        note = "Revision",
+        revisionDate = LocalDateTime.now(),
+        status = RevisionStatus.NeedsRevision
+      )
+    )
   )
 
   val exampleToken =
