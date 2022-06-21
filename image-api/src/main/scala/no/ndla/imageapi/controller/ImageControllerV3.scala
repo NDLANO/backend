@@ -131,7 +131,7 @@ trait ImageControllerV3 {
     get(
       "/",
       operation(
-        apiOperation[SearchResultV3]("getImages")
+        apiOperation[SearchResultV3]("getImagesV3")
           .summary("Find images.")
           .description("Find images in the ndla.no database.")
           .parameters(
@@ -183,7 +183,7 @@ trait ImageControllerV3 {
     post(
       "/search/",
       operation(
-        apiOperation[List[SearchResultV3]]("getImagesPost")
+        apiOperation[List[SearchResultV3]]("getImagesPostV3")
           .summary("Find images.")
           .description("Search for images in the ndla.no database.")
           .parameters(
@@ -227,7 +227,7 @@ trait ImageControllerV3 {
     get(
       "/:image_id",
       operation(
-        apiOperation[ImageMetaInformationV3]("findByImageId")
+        apiOperation[ImageMetaInformationV3]("findByImageIdV3")
           .summary("Fetch information for image.")
           .description("Shows info of the image with submitted id.")
           .parameters(
@@ -252,7 +252,7 @@ trait ImageControllerV3 {
     get(
       "/external_id/:external_id",
       operation(
-        apiOperation[ImageMetaInformationV3]("findImageByExternalId")
+        apiOperation[ImageMetaInformationV3]("findImageByExternalIdV3")
           .summary("Fetch information for image by external id.")
           .description("Shows info of the image with submitted external id.")
           .parameters(
@@ -275,7 +275,7 @@ trait ImageControllerV3 {
     post(
       "/",
       operation(
-        apiOperation[ImageMetaInformationV3]("newImage")
+        apiOperation[ImageMetaInformationV3]("newImageV3")
           .summary("Upload a new image with meta information.")
           .description("Upload a new image file with meta data.")
           .consumes("multipart/form-data")
@@ -315,7 +315,7 @@ trait ImageControllerV3 {
     delete(
       "/:image_id",
       operation(
-        apiOperation[Unit]("deleteImage")
+        apiOperation[Unit]("deleteImageV3")
           .summary("Deletes the specified images meta data and file")
           .description("Deletes the specified images meta data and file")
           .parameters(
@@ -340,7 +340,7 @@ trait ImageControllerV3 {
     delete(
       "/:image_id/language/:language",
       operation(
-        apiOperation[ImageMetaInformationV3]("deleteLanguage")
+        apiOperation[ImageMetaInformationV3]("deleteLanguageV3")
           .summary("Delete language version of image metadata.")
           .description("Delete language version of image metadata.")
           .parameters(
@@ -368,7 +368,7 @@ trait ImageControllerV3 {
     patch(
       "/:image_id",
       operation(
-        apiOperation[ImageMetaInformationV3]("newImage")
+        apiOperation[ImageMetaInformationV3]("newImageV3")
           .summary("Update an existing image with meta information.")
           .description("Updates an existing image with meta data.")
           .consumes("form-data")
@@ -413,7 +413,7 @@ trait ImageControllerV3 {
     get(
       "/tag-search/",
       operation(
-        apiOperation[TagsSearchResult]("getTagsSearchable")
+        apiOperation[TagsSearchResult]("getTagsSearchableV3")
           .summary("Retrieves a list of all previously used tags in images")
           .description("Retrieves a list of all previously used tags in images")
           .parameters(
