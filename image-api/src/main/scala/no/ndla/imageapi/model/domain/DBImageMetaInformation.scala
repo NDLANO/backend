@@ -39,12 +39,12 @@ trait DBImageMetaInformation {
   this: Props with DBImageFile =>
 
   object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
-    override val tableName    = "imagemetadata"
-    override val schemaName   = Some(props.MetaSchema)
-    val jsonEncoderWoDefaults = new EnumNameSerializer(ModelReleasedStatus)
-    val jsonEncoder: Formats  = DefaultFormats + jsonEncoderWoDefaults
+    override val tableName: String          = "imagemetadata"
+    override val schemaName: Option[String] = Some(props.MetaSchema)
+    val jsonEncoder                         = new EnumNameSerializer(ModelReleasedStatus)
+    val jsonEncoderWithDefaults: Formats    = DefaultFormats + jsonEncoder
     val repositorySerializer: Formats = {
-      jsonEncoder +
+      jsonEncoderWithDefaults +
         FieldSerializer[ImageMetaInformation](
           PartialFunction.empty
             .orElse(ignore("id"))
@@ -56,7 +56,7 @@ trait DBImageMetaInformation {
       fromResultSet(im.resultName)(rs)
 
     def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
-      implicit val formats: Formats = this.jsonEncoder
+      implicit val formats: Formats = this.jsonEncoderWithDefaults
       val id                        = rs.long(im.c("id"))
       val jsonString                = rs.string(im.c("metadata"))
       val metaT                     = Try(Serialization.read[ImageMetaInformation](jsonString))

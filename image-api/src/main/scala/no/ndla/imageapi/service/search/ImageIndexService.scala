@@ -26,9 +26,9 @@ trait ImageIndexService {
   val imageIndexService: ImageIndexService
 
   class ImageIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableImage] {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + ImageMetaInformation.jsonEncoderWoDefaults
-    override val documentType: String                         = props.SearchDocument
-    override val searchIndex: String                          = props.SearchIndex
+    implicit val formats: Formats     = SearchableLanguageFormats.JSonFormats + ImageMetaInformation.jsonEncoder
+    override val documentType: String = props.SearchDocument
+    override val searchIndex: String  = props.SearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
 
     override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {

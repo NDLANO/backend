@@ -46,7 +46,7 @@ trait ImageSearchService {
     override val indexService        = imageIndexService
 
     def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + ImageMetaInformation.jsonEncoderWoDefaults
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + ImageMetaInformation.jsonEncoder
       val searchableImage           = Try(read[SearchableImage](hit))
       searchableImage.map(image => (image, matchedLanguage))
     }

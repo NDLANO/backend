@@ -39,7 +39,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends NdlaController {
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
+    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoderWithDefaults
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))

@@ -61,7 +61,7 @@ trait ImageControllerV3 {
 
     // Swagger-stuff
     protected val applicationDescription                 = "Services for accessing images from NDLA"
-    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoder
+    protected implicit override val jsonFormats: Formats = ImageMetaInformation.jsonEncoderWithDefaults
 
     // Additional models used in error responses
     registerModel[ValidationError]()
