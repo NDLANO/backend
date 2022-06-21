@@ -49,7 +49,7 @@ class OEmbedProxyProperties {
   val NdlaApiOembedProvider: String = Domain
 
   val NdlaApprovedUrl: List[String] = Map(
-    "local" -> List("http://localhost:30017/*", "http://ndla-frontend.ndla-local/*"),
+    "local" -> List("http://localhost:3000/*", "http://localhost:30017/*", "http://ndla-frontend.ndla-local/*"),
     "prod"  -> List("https?://www.ndla.no/*", "https?://ndla.no/*", "https?://beta.ndla.no/*")
   ).getOrElse(Environment, List(s"https?://ndla-frontend.$Environment.ndla.no/*", s"https?://$Environment.ndla.no/*"))
 

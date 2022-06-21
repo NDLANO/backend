@@ -194,6 +194,7 @@ export interface IRequiredLibrary {
 }
 
 export interface IRevisionMeta {
+  id?: string
   revisionDate: string
   note: string
   status: string
