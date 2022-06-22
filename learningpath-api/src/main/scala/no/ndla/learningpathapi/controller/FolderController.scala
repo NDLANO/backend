@@ -255,9 +255,9 @@ trait FolderController {
     delete(
       "/:folder_id/resources/:resource_id",
       operation(
-        apiOperation[Resource]("UpdateResource")
-          .summary("Updated selected resource")
-          .description("Updates selected resource")
+        apiOperation[Resource]("DeleteResource")
+          .summary("Delete selected resource")
+          .description("Delete selected resource")
           .parameters(
             asHeaderParam(feideToken),
             asPathParam(folderId),
