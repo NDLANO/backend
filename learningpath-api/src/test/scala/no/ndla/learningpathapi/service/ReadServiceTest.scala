@@ -370,6 +370,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "private",
       isFavorite = false,
+      breadcrumbs = List("mainFolder"),
       data = List(
         api.Resource(
           id = resource1UUID.toString,
@@ -383,14 +384,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           name = "subFolder1",
           status = "public",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder1")
         ),
         api.Folder(
           id = subFolder2UUID.toString,
           name = "subFolder2",
           status = "private",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder2")
         )
       )
     )
@@ -461,6 +464,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "public",
       isFavorite = false,
+      breadcrumbs = List("mainFolder"),
       data = List(
         api.Resource(
           id = resource1UUID.toString,
@@ -474,14 +478,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           name = "subFolder1",
           status = "public",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder1")
         ),
         api.Folder(
           id = subFolder2UUID.toString,
           name = "subFolder2",
           status = "private",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder2")
         )
       )
     )
@@ -541,20 +547,23 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "private",
       isFavorite = false,
+      breadcrumbs = List("mainFolder"),
       data = List(
         api.Folder(
           id = subFolder1UUID.toString,
           name = "subFolder1",
           status = "public",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder1")
         ),
         api.Folder(
           id = subFolder2UUID.toString,
           name = "subFolder2",
           status = "private",
           data = List.empty,
-          isFavorite = false
+          isFavorite = false,
+          breadcrumbs = List("mainFolder", "subFolder2")
         )
       )
     )
@@ -589,7 +598,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
     val favoriteApiFolder =
-      emptyApiFolder.copy(id = folderUUID.toString, name = "favorite", status = "private", isFavorite = true)
+      emptyApiFolder.copy(
+        id = folderUUID.toString,
+        name = "favorite",
+        status = "private",
+        isFavorite = true,
+        breadcrumbs = List("favorite")
+      )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(None, feideId))
@@ -610,7 +625,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
     val favoriteApiFolder =
-      emptyApiFolder.copy(id = folderUUID.toString, name = "favorite", status = "private", isFavorite = true)
+      emptyApiFolder.copy(
+        id = folderUUID.toString,
+        name = "favorite",
+        status = "private",
+        isFavorite = true,
+        breadcrumbs = List("favorite")
+      )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
@@ -636,7 +657,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
     val domainResource       = emptyDomainResource.copy(id = randomUUID, created = created)
     val favoriteApiFolder =
-      emptyApiFolder.copy(id = randomUUID.toString, name = "favorite", status = "private", isFavorite = true)
+      emptyApiFolder.copy(
+        id = randomUUID.toString,
+        name = "favorite",
+        status = "private",
+        isFavorite = true,
+        breadcrumbs = List("favorite")
+      )
     val apiResource =
       api.Resource(
         id = randomUUID.toString,
@@ -688,7 +715,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val favoriteDomainFolder = folderId1.copy(id = UUID5, name = "favorite", isFavorite = true)
     val domainResource       = emptyDomainResource.copy(id = UUID1, created = created)
     val favoriteApiFolder =
-      emptyApiFolder.copy(id = UUID5.toString, name = "favorite", status = "private", isFavorite = true)
+      emptyApiFolder.copy(
+        id = UUID5.toString,
+        name = "favorite",
+        status = "private",
+        isFavorite = true,
+        breadcrumbs = List("favorite")
+      )
     val apiResource =
       api.Resource(
         id = UUID1.toString,

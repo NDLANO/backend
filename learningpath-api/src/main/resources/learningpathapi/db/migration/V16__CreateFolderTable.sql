@@ -1,7 +1,8 @@
+DROP EXTENSION IF EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE folders (
-    id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     parent_id UUID NULL,
     feide_id TEXT,
     document JSONB,
@@ -11,7 +12,7 @@ CREATE TABLE folders (
 );
 
 CREATE TABLE resources (
-    id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     feide_id TEXT,
     path TEXT,
     resource_type TEXT,

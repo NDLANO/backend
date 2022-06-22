@@ -147,7 +147,8 @@ object TestData {
     name = "",
     status = "",
     isFavorite = false,
-    data = List.empty
+    data = List.empty,
+    breadcrumbs = List.empty
   )
 
 }

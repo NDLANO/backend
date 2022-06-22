@@ -572,31 +572,35 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = "private",
       isFavorite = false,
-      data = List(apiResource)
+      data = List(apiResource),
+      breadcrumbs = List("mainFolder", "folderData3", "folderData1")
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
       name = "folderData2",
       status = "public",
       isFavorite = false,
-      data = List.empty
+      data = List.empty,
+      breadcrumbs = List("mainFolder", "folderData2")
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
       name = "folderData3",
       status = "private",
       isFavorite = false,
-      data = List(apiData1)
+      data = List(apiData1),
+      breadcrumbs = List("mainFolder", "folderData3")
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      data = List(apiData2, apiData3, apiResource)
+      data = List(apiData2, apiData3, apiResource),
+      breadcrumbs = List("mainFolder")
     )
 
-    val Success(result) = service.toApiFolder(mainFolder)
+    val Success(result) = service.toApiFolder(mainFolder, List("mainFolder"))
     result should be(expected)
   }
 
@@ -689,7 +693,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       TestData.emptyDomainFolder.copy(id = folder3UUID)
     )
 
-    val result = service.domainToApiModel(folderDomainList, converterService.toApiFolder)
+    val result = service.domainToApiModel(folderDomainList, f => converterService.toApiFolder(f, List.empty))
     result.get.length should be(3)
     result should be(
       Success(

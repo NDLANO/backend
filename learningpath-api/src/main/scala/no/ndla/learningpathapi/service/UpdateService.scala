@@ -448,7 +448,8 @@ trait UpdateService {
         parentId <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         parentId <- parentId.traverse(pid => validateParentId(pid, feideId))
         inserted <- folderRepository.insertFolder(feideId, parentId, document)
-        api      <- converterService.toApiFolder(inserted)
+        crumbs   <- readService.getBreadcrumbs(inserted)
+        api      <- converterService.toApiFolder(inserted, crumbs)
       } yield api
     }
 
@@ -510,7 +511,8 @@ trait UpdateService {
         _              <- existingFolder.isOwner(feideId)
         converted = converterService.mergeFolder(existingFolder, updatedFolder)
         updated <- folderRepository.updateFolder(id, feideId, converted)
-        api     <- converterService.toApiFolder(updated)
+        crumbs  <- readService.getBreadcrumbs(updated)
+        api     <- converterService.toApiFolder(updated, crumbs)
       } yield api
     }
 

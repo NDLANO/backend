@@ -26,6 +26,7 @@ import no.ndla.learningpathapi.model.domain.{
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 
 import java.util.UUID
+import scala.annotation.tailrec
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
@@ -208,19 +209,38 @@ trait ReadService {
       folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
 
+    def getBreadcrumbs(folder: domain.Folder): Try[List[String]] = {
+      @tailrec
+      def getParentRecursively(folder: domain.Folder, crumbs: List[String]): Try[List[String]] = {
+        folder.parentId match {
+          case None => Success(crumbs)
+          case Some(parentId) =>
+            folderRepository.folderWithId(parentId) match {
+              case Failure(ex) => Failure(ex)
+              case Success(p)  => getParentRecursively(p, p.name +: crumbs)
+            }
+        }
+      }
+
+      getParentRecursively(folder, List.empty) match {
+        case Failure(ex)    => Failure(ex)
+        case Success(value) => Success(value :+ folder.name)
+      }
+    }
+
     def getFolder(
         id: UUID,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[api.Folder] = {
+    ): Try[api.Folder] =
       for {
         feideId              <- feideApiClient.getUserFeideID(feideAccessToken)
         mainFolder           <- folderRepository.folderWithId(id)
         _                    <- mainFolder.hasReadAccess(feideId)
         folderWithSubfolders <- getSubFoldersRecursively(mainFolder, includeResources)
-        converted            <- converterService.toApiFolder(folderWithSubfolders)
+        breadcrumbs          <- getBreadcrumbs(mainFolder)
+        converted            <- converterService.toApiFolder(folderWithSubfolders, breadcrumbs)
       } yield converted
-    }
 
     private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
       val maybeFavorite = folders.find(_.isFavorite)
@@ -262,7 +282,7 @@ trait ReadService {
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
-        apiFolders   <- converterService.domainToApiModel(withData, converterService.toApiFolder)
+        apiFolders   <- converterService.domainToApiModel(withData, v => converterService.toApiFolder(v, List(v.name)))
       } yield apiFolders
     }
   }

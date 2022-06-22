@@ -700,43 +700,54 @@ trait ConverterService {
       )
     }
 
-    private def toApiFolderData(domainData: domain.FolderData): Try[api.FolderData] = {
-      domainData match {
-        case Right(resource) =>
-          Success(
-            api.Resource(
-              id = resource.id.toString,
-              resourceType = resource.resourceType,
-              path = resource.path,
-              created = resource.created,
-              tags = resource.tags
-            )
-          )
-        case Left(folder) =>
-          folder.data
-            .traverse(toApiFolderData)
-            .map(subFolders =>
-              api.Folder(
-                id = folder.id.toString,
-                name = folder.name,
-                status = folder.status.toString,
-                isFavorite = folder.isFavorite,
-                data = subFolders
+    private def toApiFolderData(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
+      def loop(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
+        domainData match {
+          case Right(resource) =>
+            Success(
+              api.Resource(
+                id = resource.id.toString,
+                resourceType = resource.resourceType,
+                path = resource.path,
+                created = resource.created,
+                tags = resource.tags
               )
             )
+          case Left(folder) =>
+            folder.data
+              .traverse(d => {
+                val newCrumbs = d.swap.map(n => crumbs :+ n.name).getOrElse(crumbs)
+                loop(d, newCrumbs)
+              })
+              .map(subFolders =>
+                api.Folder(
+                  id = folder.id.toString,
+                  name = folder.name,
+                  status = folder.status.toString,
+                  isFavorite = folder.isFavorite,
+                  data = subFolders,
+                  breadcrumbs = crumbs
+                )
+              )
+        }
       }
+      loop(domainData, crumbs)
     }
 
-    def toApiFolder(domainFolder: domain.Folder): Try[api.Folder] = {
+    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[String]): Try[api.Folder] = {
       domainFolder.data
-        .traverse(folder => toApiFolderData(folder))
+        .traverse(folder => {
+          val newCrumbs = folder.swap.map(n => breadcrumbs :+ n.name).getOrElse(breadcrumbs)
+          toApiFolderData(folder, newCrumbs)
+        })
         .map(folderData =>
           api.Folder(
             id = domainFolder.id.toString,
             name = domainFolder.name,
             status = domainFolder.status.toString,
             isFavorite = domainFolder.isFavorite,
-            data = folderData
+            data = folderData,
+            breadcrumbs = breadcrumbs
           )
         )
     }
