@@ -368,7 +368,7 @@ trait ImageControllerV3 {
     patch(
       "/:image_id",
       operation(
-        apiOperation[ImageMetaInformationV3]("newImageV3")
+        apiOperation[ImageMetaInformationV3]("editImageV3")
           .summary("Update an existing image with meta information.")
           .description("Updates an existing image with meta data.")
           .consumes("form-data")
