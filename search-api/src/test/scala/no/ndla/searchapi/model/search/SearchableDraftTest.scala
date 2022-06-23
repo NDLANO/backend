@@ -8,10 +8,10 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.article.{ArticleMetaImage, LearningResourceType}
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.model.domain.article.{ArticleMetaImage, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.{ArticleStatus, RevisionMeta}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 
@@ -70,11 +70,13 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
     val revisionMeta = List(
       RevisionMeta(
+        id = "id",
         revisionDate = today,
         note = "some note",
         status = "needs-revision"
       ),
       RevisionMeta(
+        id = "id",
         revisionDate = olddate,
         note = "some other note",
         status = "needs-revision"

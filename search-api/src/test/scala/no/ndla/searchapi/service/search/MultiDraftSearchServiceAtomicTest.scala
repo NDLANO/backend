@@ -118,16 +118,19 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           today,
           note = "note",
           status = "needs-revision"
         ),
         RevisionMeta(
+          id = "id",
           tomorrow,
           note = "note",
           status = "needs-revision"
         ),
         RevisionMeta(
+          id = "id",
           yesterday,
           note = "note",
           status = "revised"
@@ -138,6 +141,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           yesterday.minusDays(10),
           note = "note",
           status = "revised"
@@ -148,6 +152,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           yesterday,
           note = "note",
           status = "needs-revision"
@@ -191,16 +196,19 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           today,
           note = "apekatt",
           status = "needs-revision"
         ),
         RevisionMeta(
+          id = "id",
           tomorrow,
           note = "note",
           status = "needs-revision"
         ),
         RevisionMeta(
+          id = "id",
           yesterday,
           note = "note",
           status = "revised"
@@ -211,6 +219,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           yesterday.minusDays(10),
           note = "kinakål",
           status = "revised"
@@ -221,6 +230,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           yesterday,
           note = "trylleformel",
           status = "needs-revision"
@@ -254,11 +264,13 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           today.plusDays(1),
           note = "apekatt",
           status = "needs-revision"
         ),
         RevisionMeta(
+          id = "id",
           today.plusDays(10),
           note = "note",
           status = "revised"
@@ -269,6 +281,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           today.minusDays(10),
           note = "kinakål",
           status = "revised"
@@ -279,6 +292,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
+          id = "id",
           today.minusDays(10),
           note = "trylleformel",
           status = "needs-revision"
