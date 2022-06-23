@@ -42,12 +42,11 @@ trait DraftApiInfo {
   class DraftSwagger extends Swagger("2.0", "1.0", DraftApiInfo.apiInfo) {
 
     private def writeRolesInTest: List[String] = {
-      val writeRoles = List(
+      List(
         props.DraftRoleWithWriteAccess,
         props.DraftRoleWithPublishAccess,
         props.ArticleRoleWithPublishAccess
       )
-      writeRoles.map(_.replace(":", "-test:"))
     }
 
     addAuthorization(

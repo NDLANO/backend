@@ -391,4 +391,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     softRes.isSuccess should be(true)
   }
+
+  test("validateArticle throws an exception on an article with a missing revisionDate") {
+    val article = TestData.sampleArticleWithByNcSa.copy(revisionDate = None)
+    contentValidator.validateArticle(article).isFailure should be(true)
+  }
 }
