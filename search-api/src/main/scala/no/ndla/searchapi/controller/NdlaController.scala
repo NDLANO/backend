@@ -12,7 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{AccessDeniedException, Error, ErrorHelpers, TaxonomyException, ValidationException, ValidationMessage}
+import no.ndla.searchapi.model.api.{
+  AccessDeniedException,
+  Error,
+  ErrorHelpers,
+  TaxonomyException,
+  ValidationException,
+  ValidationMessage
+}
 import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
