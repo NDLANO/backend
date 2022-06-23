@@ -111,15 +111,17 @@ trait FolderController {
           .parameters(
             asHeaderParam(feideToken),
             asPathParam(folderId),
-            asQueryParam(includeResources)
+            asQueryParam(includeResources),
+            asQueryParam(includeSubfolders)
           )
           .responseMessages(response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => {
-        val includeResources = booleanOrDefault(this.includeResources.paramName, default = false)
-        readService.getFolder(id, includeResources, requestFeideToken)
+        val includeResources  = booleanOrDefault(this.includeResources.paramName, default = false)
+        val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
+        readService.getFolder(id, includeSubfolders, includeResources, requestFeideToken)
       })
     }
 

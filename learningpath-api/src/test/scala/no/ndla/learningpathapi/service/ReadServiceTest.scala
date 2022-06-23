@@ -407,7 +407,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(subFolder1UUID)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderResources(subFolder2UUID)).thenReturn(Success(List.empty))
 
-    val Success(result) = service.getFolder(mainFolderUUID, true)
+    val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
     result should be(expected)
     verify(folderRepository, times(3)).foldersWithParentID(any)
     verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
@@ -501,7 +501,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(subFolder1UUID)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderResources(subFolder2UUID)).thenReturn(Success(List.empty))
 
-    val Success(result) = service.getFolder(mainFolderUUID, true)
+    val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
     result should be(expected)
     verify(folderRepository, times(3)).foldersWithParentID(any)
     verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
@@ -574,7 +574,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.foldersWithParentID(Some(subFolder1UUID))).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithParentID(Some(subFolder2UUID))).thenReturn(Success(List.empty))
 
-    val Success(result) = service.getFolder(mainFolderUUID, false)
+    val Success(result) = service.getFolder(mainFolderUUID, true, false, None)
     result should be(expected)
     verify(folderRepository, times(3)).foldersWithParentID(any)
     verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
@@ -586,7 +586,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
     when(folderRepository.folderWithId(mainFolderUUID)).thenReturn(Success(emptyDomainFolder))
 
-    val result = service.getFolder(mainFolderUUID, false)
+    val result = service.getFolder(mainFolderUUID, true, false, None)
     result.isFailure should be(true)
     verify(folderRepository, times(0)).foldersWithParentID(any)
     verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])

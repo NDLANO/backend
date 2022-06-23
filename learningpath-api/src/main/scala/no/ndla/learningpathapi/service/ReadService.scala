@@ -230,17 +230,29 @@ trait ReadService {
 
     def getFolder(
         id: UUID,
+        includeSubfolders: Boolean,
         includeResources: Boolean,
-        feideAccessToken: Option[FeideAccessToken] = None
+        feideAccessToken: Option[FeideAccessToken]
     ): Try[api.Folder] =
       for {
-        feideId              <- feideApiClient.getUserFeideID(feideAccessToken)
-        mainFolder           <- folderRepository.folderWithId(id)
-        _                    <- mainFolder.hasReadAccess(feideId)
-        folderWithSubfolders <- getSubFoldersRecursively(mainFolder, includeResources)
-        breadcrumbs          <- getBreadcrumbs(mainFolder)
-        converted            <- converterService.toApiFolder(folderWithSubfolders, breadcrumbs)
+        feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
+        mainFolder        <- folderRepository.folderWithId(id)
+        _                 <- mainFolder.hasReadAccess(feideId)
+        folderWithContent <- folderWithContent(mainFolder, includeSubfolders, includeResources)
+        breadcrumbs       <- getBreadcrumbs(mainFolder)
+        converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
       } yield converted
+
+    private def folderWithContent(
+        folder: domain.Folder,
+        includeSubfolders: Boolean,
+        includeResources: Boolean
+    ): Try[domain.Folder] =
+      if (includeSubfolders) getSubFoldersRecursively(folder, includeResources)
+      else
+        getFolderResources(folder.id, includeResources).map(resources => {
+          folder.copy(data = resources)
+        })
 
     private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
       val maybeFavorite = folders.find(_.isFavorite)
