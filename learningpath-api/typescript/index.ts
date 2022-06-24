@@ -43,6 +43,7 @@ export interface IFolder {
   name: string
   status: string
   isFavorite: boolean
+  breadcrumbs: string[]
   data: IFolderData[]
 }
 
