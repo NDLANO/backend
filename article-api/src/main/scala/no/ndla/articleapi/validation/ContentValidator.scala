@@ -35,7 +35,8 @@ trait ContentValidator {
         validateArticleType(article.articleType) ++
           validateNonEmpty("content", article.content) ++
           validateNonEmpty("title", article.title) ++
-          metaValidation
+          metaValidation ++
+          validateRevisionDate(article.revisionDate)
 
       if (validationErrors.isEmpty) {
         Success(article)
