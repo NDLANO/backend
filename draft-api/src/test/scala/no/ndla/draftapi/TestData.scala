@@ -11,7 +11,7 @@ import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.model.domain._
 import ArticleStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
-import no.ndla.draftapi.integration.LearningPath
+import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}
 import org.joda.time.{DateTime, DateTimeZone}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
@@ -555,7 +555,7 @@ object TestData {
   val statusWithAwaitingQA: Status          = domain.Status(ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty)
   val statusWithQueuedForPublishing: Status = domain.Status(ArticleStatus.QUEUED_FOR_PUBLISHING, Set.empty)
 
-  val sampleLearningPath: LearningPath = LearningPath(Some(1))
+  val sampleLearningPath: LearningPath = LearningPath(1, Title("Title", "nb"))
 
   val sampleApiGrepCodesSearchResult: GrepCodesSearchResult = api.GrepCodesSearchResult(10, 1, 1, Seq("a", "b"))
   val sampleApiTagsSearchResult: TagsSearchResult           = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))

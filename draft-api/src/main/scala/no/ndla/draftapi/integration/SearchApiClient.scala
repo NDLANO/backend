@@ -29,18 +29,19 @@ trait SearchApiClient {
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends LazyLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
+    private val SearchEndpoint   = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
     private val indexTimeout     = 1000 * 60
 
-    def indexDraft(draft: Article): Article = {
-      implicit val formats: Formats =
-        org.json4s.DefaultFormats +
-          new EnumNameSerializer(ArticleStatus) +
-          new EnumNameSerializer(Availability) +
-          Json4s.serializer(ArticleType) +
-          Json4s.serializer(RevisionStatus) ++
-          JavaTimeSerializers.all ++
-          JavaTypesSerializers.all
+    implicit val formats: Formats =
+      org.json4s.DefaultFormats +
+        new EnumNameSerializer(ArticleStatus) +
+        new EnumNameSerializer(Availability) +
+        Json4s.serializer(ArticleType) +
+        Json4s.serializer(RevisionStatus) ++
+        JavaTimeSerializers.all ++
+        JavaTypesSerializers.all
 
+    def indexDraft(draft: Article): Article = {
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
@@ -67,7 +68,7 @@ trait SearchApiClient {
 
     private def postWithData[A, B <: AnyRef](endpointUrl: String, data: B, params: (String, String)*)(implicit
         mf: Manifest[A],
-        format: org.json4s.Formats,
+        formats: org.json4s.Formats,
         executionContext: ExecutionContext
     ): Future[Try[A]] = {
 
@@ -82,6 +83,28 @@ trait SearchApiClient {
         )
       }
     }
+
+    def articlesWhereUsed(articleId: Long): Seq[SearchHit] = {
+      get[SearchResults](
+        SearchEndpoint,
+        "embed-resource" -> "content-link,related-content",
+        "embed-id"       -> s"${articleId}"
+      ) match {
+        case Success(value) => value.results
+        case Failure(_)     => Seq.empty
+      }
+    }
+
+    private def get[A](endpointUrl: String, params: (String, String)*)(implicit
+        mf: Manifest[A],
+        formats: org.json4s.Formats
+    ): Try[A] = {
+      ndlaClient.fetchWithForwardedAuth[A](Http(endpointUrl).method("GET").params(params.toMap))
+    }
   }
 
 }
+
+case class SearchResults(totalCount: Int, results: Seq[SearchHit])
+case class SearchHit(id: Long, title: Title)
+case class Title(title: String, language: String)

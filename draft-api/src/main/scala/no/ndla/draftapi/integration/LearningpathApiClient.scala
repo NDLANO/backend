@@ -35,4 +35,4 @@ trait LearningpathApiClient {
 
   }
 }
-case class LearningPath(id: Option[Long])
+case class LearningPath(id: Long, title: Title)

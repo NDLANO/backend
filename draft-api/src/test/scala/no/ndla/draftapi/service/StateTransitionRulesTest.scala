@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.service
 
-import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept}
+import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.model.api.ArticleApiArticle
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.ArticleStatus._
@@ -174,6 +174,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
 
     when(learningpathApiClient.getLearningpathsWithPaths(Seq.empty)).thenReturn(Success(Seq.empty))
+    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(taxonomyApiClient.queryResource(any[Long])).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(any[Long])).thenReturn(Success(List.empty))
     when(articleApiClient.unpublishArticle(any[Article])).thenReturn(Success(expectedArticle))
@@ -236,6 +237,19 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     res.isFailure should be(true)
   }
 
+  test("unpublishArticle should fail if article is used in another article") {
+    val articleId: Long = 7
+    val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
+    when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
+    when(learningpathApiClient.getLearningpathsWithPaths(any[Seq[String]]))
+      .thenReturn(Success(Seq.empty))
+    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
+
+    val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
+    res.errors.head.message should equal("Article is in use in these article(s) 1 (Title)")
+  }
+
   test("unpublishArticle should fail if article is used in a learningstep with a taxonomy-url") {
     val articleId: Long = 7
     val externalId      = "169243"
@@ -270,6 +284,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
+    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq.empty)
 
     val res = StateTransitionRules.unpublishArticle(article, false)
     res.isSuccess should be(true)
@@ -292,8 +307,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
 
-    val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsUsedInLearningStep(article, false)
-    res.errors.head.message should equal("Learningpath(s) with id(s) 1 contains a learning step that uses this article")
+    val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
+    res.errors.head.message should equal("Learningpath(s) 1 (Title) contains a learning step that uses this article")
   }
 
   test("checkIfArticleIsUsedInLearningStep should fail if article is used in a learningstep with a taxonomy-url") {
@@ -309,8 +324,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(Seq(learningPath)))
     when(draftRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(articleId.toLong))
 
-    val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsUsedInLearningStep(article, false)
-    res.errors.head.message should equal("Learningpath(s) with id(s) 1 contains a learning step that uses this article")
+    val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
+    res.errors.head.message should equal("Learningpath(s) 1 (Title) contains a learning step that uses this article")
   }
 
   test("checkIfArticleIsUsedInLearningStep should succeed if article is not used in a learningstep") {
@@ -329,7 +344,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
 
-    val res = StateTransitionRules.checkIfArticleIsUsedInLearningStep(article, false)
+    val res = StateTransitionRules.checkIfArticleIsInUse(article, false)
     res.isSuccess should be(true)
   }
 
