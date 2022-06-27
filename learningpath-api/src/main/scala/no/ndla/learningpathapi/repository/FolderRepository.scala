@@ -28,6 +28,10 @@ trait FolderRepository {
   class FolderRepository extends LazyLogging {
     implicit val formats: Formats = DBFolder.repositorySerializer + DBResource.JSonSerializer
 
+    def getSession(readOnly: Boolean): DBSession =
+      if (readOnly) ReadOnlyAutoSession
+      else AutoSession
+
     def insertFolder(feideId: FeideID, parentId: Option[UUID], document: FolderDocument)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] =
@@ -175,34 +179,40 @@ trait FolderRepository {
           Success(resourceId)
       }
 
-    def folderWithId(id: UUID): Try[Folder] =
+    def folderWithId(id: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Folder] =
       folderWhere(sqls"f.id=$id").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Some(folder) => Success(folder)
       }
 
-    def folderWithFeideId(id: UUID, feideId: FeideID): Try[Folder] =
+    def folderWithFeideId(id: UUID, feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Folder] =
       folderWhere(sqls"f.id=$id and f.feide_id=$feideId").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
         case Some(folder) => Success(folder)
       }
 
-    def resourceWithId(id: UUID): Try[Resource] =
+    def resourceWithId(id: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Resource] =
       resourceWhere(sqls"r.id=$id").flatMap({
         case None           => Failure(NotFoundException(s"Resource with id $id does not exist"))
         case Some(resource) => Success(resource)
       })
 
-    def resourcesWithFeideId(feideId: FeideID, size: Int): Try[List[Resource]] =
+    def resourcesWithFeideId(feideId: FeideID, size: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[Resource]] =
       resourcesWhere(sqls"r.feide_id=$feideId order by r.created desc limit $size")
 
     def resourceWithPathAndTypeAndFeideId(
         path: String,
         resourceType: String,
         feideId: FeideID
-    ): Try[Option[Resource]] = resourceWhere(sqls"path=$path and resource_type=$resourceType and feide_id=$feideId")
+    )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Resource]] = resourceWhere(
+      sqls"path=$path and resource_type=$resourceType and feide_id=$feideId"
+    )
 
-    def foldersWithFeideAndParentID(parentId: Option[UUID], feideId: FeideID): Try[List[Folder]] = {
+    def foldersWithFeideAndParentID(parentId: Option[UUID], feideId: FeideID)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[Folder]] = {
       val parentIdClause = parentId match {
         case Some(pid) => sqls"f.parent_id=$pid"
         case None      => sqls"f.parent_id is null"
@@ -210,7 +220,9 @@ trait FolderRepository {
       foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId")
     }
 
-    def foldersWithParentID(parentId: Option[UUID]): Try[List[Folder]] =
+    def foldersWithParentID(parentId: Option[UUID])(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[Folder]] =
       foldersWhere(sqls"f.parent_id=$parentId")
 
     def getFolderResources(
@@ -230,7 +242,7 @@ trait FolderRepository {
 
     private def folderWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Folder]] = Try {
+    )(implicit session: DBSession): Try[Option[Folder]] = Try {
       val f = DBFolder.syntax("f")
       sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
         .map(DBFolder.fromResultSet(f))
@@ -240,7 +252,7 @@ trait FolderRepository {
 
     private def foldersWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Folder]] = Try {
+    )(implicit session: DBSession): Try[List[Folder]] = Try {
       val f = DBFolder.syntax("f")
       sql"select ${f.result.*} from ${DBFolder.as(f)} where $whereClause"
         .map(DBFolder.fromResultSet(f))
@@ -250,7 +262,7 @@ trait FolderRepository {
 
     private def resourcesWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
+    )(implicit session: DBSession): Try[List[Resource]] = Try {
       val r = DBResource.syntax("r")
       sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
         .map(DBResource.fromResultSet(r))
@@ -260,7 +272,7 @@ trait FolderRepository {
 
     private def resourceWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Resource]] = Try {
+    )(implicit session: DBSession): Try[Option[Resource]] = Try {
       val r = DBResource.syntax("r")
       sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
         .map(DBResource.fromResultSet(r))

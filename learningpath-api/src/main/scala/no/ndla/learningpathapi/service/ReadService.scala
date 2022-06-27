@@ -24,6 +24,7 @@ import no.ndla.learningpathapi.model.domain.{
   _
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
+import scalikejdbc.{DBSession}
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -178,7 +179,7 @@ trait ReadService {
     private def getFolderResources(
         id: UUID,
         includeResources: Boolean
-    ): Try[List[FolderData]] = {
+    )(implicit session: DBSession): Try[List[FolderData]] = {
       if (includeResources)
         folderRepository.getFolderResources(id).map(_.map(_.asRight))
       else
@@ -188,7 +189,7 @@ trait ReadService {
     private[service] def getSubFoldersRecursively(
         folder: domain.Folder,
         includeResources: Boolean
-    ): Try[domain.Folder] = {
+    )(implicit session: DBSession): Try[domain.Folder] = {
       for {
         directSubfolders <- folderRepository.foldersWithParentID(parentId = folder.id.some)
         folderResources  <- getFolderResources(folder.id, includeResources)
@@ -209,7 +210,7 @@ trait ReadService {
       folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
 
-    def getBreadcrumbs(folder: domain.Folder): Try[List[String]] = {
+    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[String]] = {
       @tailrec
       def getParentRecursively(folder: domain.Folder, crumbs: List[String]): Try[List[String]] = {
         folder.parentId match {
@@ -233,7 +234,8 @@ trait ReadService {
         includeSubfolders: Boolean,
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Folder] =
+    ): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
       for {
         feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
         mainFolder        <- folderRepository.folderWithId(id)
@@ -242,12 +244,13 @@ trait ReadService {
         breadcrumbs       <- getBreadcrumbs(mainFolder)
         converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
       } yield converted
+    }
 
     private def folderWithContent(
         folder: domain.Folder,
         includeSubfolders: Boolean,
         includeResources: Boolean
-    ): Try[domain.Folder] =
+    )(implicit session: DBSession): Try[domain.Folder] =
       if (includeSubfolders) getSubFoldersRecursively(folder, includeResources)
       else
         getFolderResources(folder.id, includeResources).map(resources => {
@@ -265,7 +268,7 @@ trait ReadService {
     private[service] def injectResourcesToFolders(
         folders: List[domain.Folder],
         includeResources: Boolean
-    ): Try[List[domain.Folder]] =
+    )(implicit session: DBSession): Try[List[domain.Folder]] =
       folders.traverse(folder => {
         val folderResources = getFolderResources(folder.id, includeResources)
         folderResources.map(res => folder.copy(data = res))
@@ -275,7 +278,7 @@ trait ReadService {
         folders: List[domain.Folder],
         includeSubfolders: Boolean,
         includeResources: Boolean
-    ): Try[List[domain.Folder]] = {
+    )(implicit session: DBSession): Try[List[domain.Folder]] = {
       if (includeSubfolders)
         folders.traverse(folder => getSubFoldersRecursively(folder, includeResources))
       else {
@@ -289,6 +292,7 @@ trait ReadService {
         includeResources: Boolean,
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[List[api.Folder]] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
       for {
         feideId      <- feideApiClient.getUserFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)

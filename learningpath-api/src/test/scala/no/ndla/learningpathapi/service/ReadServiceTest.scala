@@ -113,6 +113,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach() = {
     service = new ReadService
     resetMocks()
+    when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
   }
 
   test("That withIdV2 returns None when id does not exist") {
@@ -399,18 +400,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
-    when(folderRepository.folderWithId(mainFolderUUID)).thenReturn(Success(mainFolder))
-    when(folderRepository.foldersWithParentID(Some(mainFolderUUID))).thenReturn(Success(List(subFolder1, subFolder2)))
-    when(folderRepository.foldersWithParentID(Some(subFolder1UUID))).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(Some(subFolder2UUID))).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(mainFolderUUID)).thenReturn(Success(List(resource1)))
-    when(folderRepository.getFolderResources(subFolder1UUID)).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(subFolder2UUID)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
+      .thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder1UUID)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder2UUID)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(eqTo(mainFolderUUID))(any)).thenReturn(Success(List(resource1)))
+    when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
 
     val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
     result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)
-    verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
+    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
+    verify(folderRepository, times(3)).getFolderResources(any)(any)
   }
 
   test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
@@ -493,18 +495,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("wrong"))
-    when(folderRepository.folderWithId(mainFolderUUID)).thenReturn(Success(mainFolder))
-    when(folderRepository.foldersWithParentID(Some(mainFolderUUID))).thenReturn(Success(List(subFolder1, subFolder2)))
-    when(folderRepository.foldersWithParentID(Some(subFolder1UUID))).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(Some(subFolder2UUID))).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(mainFolderUUID)).thenReturn(Success(List(resource1)))
-    when(folderRepository.getFolderResources(subFolder1UUID)).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(subFolder2UUID)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
+      .thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder1UUID)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder2UUID)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(eqTo(mainFolderUUID))(any)).thenReturn(Success(List(resource1)))
+    when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
 
     val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
     result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)
-    verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
+    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
+    verify(folderRepository, times(3)).getFolderResources(any)(any)
   }
 
   test("That setting includeResources to false in getFolders returns only folder and subFolders") {
@@ -569,27 +572,28 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
-    when(folderRepository.folderWithId(mainFolderUUID)).thenReturn(Success(mainFolder))
-    when(folderRepository.foldersWithParentID(Some(mainFolderUUID))).thenReturn(Success(List(subFolder1, subFolder2)))
-    when(folderRepository.foldersWithParentID(Some(subFolder1UUID))).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(Some(subFolder2UUID))).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
+    when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
+      .thenReturn(Success(List(subFolder1, subFolder2)))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder1UUID)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder2UUID)))(any)).thenReturn(Success(List.empty))
 
     val Success(result) = service.getFolder(mainFolderUUID, true, false, None)
     result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)
-    verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
+    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
+    verify(folderRepository, times(0)).getFolderResources(any)(any)
   }
 
   test("That user with no access doesn't get the treat") {
     val mainFolderUUID = UUID.randomUUID()
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
-    when(folderRepository.folderWithId(mainFolderUUID)).thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(emptyDomainFolder))
 
     val result = service.getFolder(mainFolderUUID, true, false, None)
     result.isFailure should be(true)
-    verify(folderRepository, times(0)).foldersWithParentID(any)
-    verify(folderRepository, times(0)).getFolderResources(any)(any[DBSession])
+    verify(folderRepository, times(0)).foldersWithParentID(any)(any)
+    verify(folderRepository, times(0)).getFolderResources(any)(any)
   }
 
   test("That getFolders returns favorite folder if it exist") {
@@ -607,7 +611,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId, favoriteDomainFolder)))
 
     val result = service.getFolders(false, false, Some("token"))
@@ -615,7 +619,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.length should be(3)
     result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
 
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
     verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
   }
 
@@ -634,8 +638,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+    when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
 
     val result = service.getFolders(false, false, Some("token"))
@@ -643,8 +647,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.length should be(3)
     result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
 
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -677,10 +681,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderResourcesResponse3 = Success(List.empty)
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
-    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getFolderResources(any)(any[DBSession]))
+    when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.getFolderResources(any)(any))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
 
     val result = service.getFolders(false, true, Some("token"))
@@ -693,9 +697,9 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.exists(f => f.data.length.equals(1))
     result.get.exists(f => f.data.isEmpty)
 
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(None, feideId)
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
-    verify(folderRepository, times(3)).getFolderResources(any)(any[DBSession])
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(3)).getFolderResources(any)(any)
   }
 
   test("That getFolders includes resources and subfolders when both flag are set to true") {
@@ -735,19 +739,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderResourcesResponse3 = Success(List.empty)
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.foldersWithFeideAndParentID(None, feideId))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderId1, folderId2)))
-    when(folderRepository.foldersWithParentID(Some(UUID1))).thenReturn(Success(List(folderId3)))
-    when(folderRepository.foldersWithParentID(Some(UUID2))).thenReturn(Success(List(folderId4)))
-    when(folderRepository.foldersWithParentID(Some(UUID3))).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(Some(UUID4))).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(Some(UUID5))).thenReturn(Success(List.empty))
-    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getFolderResources(eqTo(UUID1))(any[DBSession])).thenReturn(folderResourcesResponse1)
-    when(folderRepository.getFolderResources(eqTo(UUID2))(any[DBSession])).thenReturn(folderResourcesResponse2)
-    when(folderRepository.getFolderResources(eqTo(UUID3))(any[DBSession])).thenReturn(folderResourcesResponse3)
-    when(folderRepository.getFolderResources(eqTo(UUID4))(any[DBSession])).thenReturn(folderResourcesResponse3)
-    when(folderRepository.getFolderResources(eqTo(UUID5))(any[DBSession])).thenReturn(folderResourcesResponse1)
+    when(folderRepository.foldersWithParentID(eqTo(Some(UUID1)))(any)).thenReturn(Success(List(folderId3)))
+    when(folderRepository.foldersWithParentID(eqTo(Some(UUID2)))(any)).thenReturn(Success(List(folderId4)))
+    when(folderRepository.foldersWithParentID(eqTo(Some(UUID3)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(eqTo(Some(UUID4)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithParentID(eqTo(Some(UUID5)))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.getFolderResources(eqTo(UUID1))(any)).thenReturn(folderResourcesResponse1)
+    when(folderRepository.getFolderResources(eqTo(UUID2))(any)).thenReturn(folderResourcesResponse2)
+    when(folderRepository.getFolderResources(eqTo(UUID3))(any)).thenReturn(folderResourcesResponse3)
+    when(folderRepository.getFolderResources(eqTo(UUID4))(any)).thenReturn(folderResourcesResponse3)
+    when(folderRepository.getFolderResources(eqTo(UUID5))(any)).thenReturn(folderResourcesResponse1)
 
     val result = service.getFolders(true, true, Some("token"))
     result.isSuccess should be(true)
@@ -756,19 +760,19 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteApiFolder.copy(data = List(apiResource, apiResource))
     )
 
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))
-    verify(folderRepository, times(5)).foldersWithParentID(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID1)))
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID2)))
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID3)))
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID4)))
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID5)))
-    verify(folderRepository, times(5)).getFolderResources(any)(any[DBSession])
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID1))(any[DBSession])
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID2))(any[DBSession])
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID3))(any[DBSession])
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID4))(any[DBSession])
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID5))(any[DBSession])
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any[DBSession])
+    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
+    verify(folderRepository, times(5)).foldersWithParentID(any)(any)
+    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID1)))(any)
+    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID2)))(any)
+    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID3)))(any)
+    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID4)))(any)
+    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID5)))(any)
+    verify(folderRepository, times(5)).getFolderResources(any)(any)
+    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID1))(any)
+    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID2))(any)
+    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID3))(any)
+    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID4))(any)
+    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID5))(any)
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
   }
 }

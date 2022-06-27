@@ -20,6 +20,7 @@ import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, L
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import cats.implicits._
+import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.util.{Date, UUID}
 import scala.util.{Failure, Success, Try}
@@ -448,7 +449,7 @@ trait UpdateService {
         parentId          <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         validatedParentId <- parentId.traverse(pid => validateParentId(pid, feideId))
         inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document)
-        crumbs            <- readService.getBreadcrumbs(inserted)
+        crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api               <- converterService.toApiFolder(inserted, crumbs)
       } yield api
     }
@@ -511,7 +512,7 @@ trait UpdateService {
         _              <- existingFolder.isOwner(feideId)
         converted = converterService.mergeFolder(existingFolder, updatedFolder)
         updated <- folderRepository.updateFolder(id, feideId, converted)
-        crumbs  <- readService.getBreadcrumbs(updated)
+        crumbs  <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
         api     <- converterService.toApiFolder(updated, crumbs)
       } yield api
     }
@@ -531,7 +532,7 @@ trait UpdateService {
       } yield api
     }
 
-    private def deleteResourceIfNoConnection(resourceId: UUID): Try[_] = {
+    private def deleteResourceIfNoConnection(resourceId: UUID)(implicit session: DBSession): Try[_] = {
       folderRepository.folderResourceConnectionCount(resourceId) match {
         case Failure(exception)           => Failure(exception)
         case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
@@ -541,7 +542,7 @@ trait UpdateService {
       }
     }
 
-    def deleteRecursively(folder: domain.Folder, feideId: FeideID): Try[UUID] = {
+    def deleteRecursively(folder: domain.Folder, feideId: FeideID)(implicit session: DBSession): Try[UUID] = {
       folder.data
         .traverse {
           case Left(childFolder)    => deleteRecursively(childFolder, feideId)
@@ -550,7 +551,8 @@ trait UpdateService {
         .flatMap(_ => folderRepository.deleteFolder(folder.id))
     }
 
-    def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken] = None): Try[UUID] = {
+    def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
@@ -563,7 +565,7 @@ trait UpdateService {
     def deleteConnection(
         folderId: UUID,
         resourceId: UUID,
-        feideAccessToken: Option[FeideAccessToken] = None
+        feideAccessToken: Option[FeideAccessToken]
     ): Try[UUID] = {
       for {
         feideId  <- feideApiClient.getUserFeideID(feideAccessToken)
