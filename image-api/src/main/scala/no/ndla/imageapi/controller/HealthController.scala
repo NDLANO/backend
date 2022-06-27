@@ -8,13 +8,10 @@
 
 package no.ndla.imageapi.controller
 
-import io.lemonlabs.uri.Uri.parse
-import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.network.ApplicationUrl
 import org.scalatra._
-import scalaj.http.{Http, HttpResponse}
 
 trait HealthController {
   this: ImageRepository with Props =>
@@ -30,31 +27,8 @@ trait HealthController {
       ApplicationUrl.clear()
     }
 
-    def getApiResponse(url: String): HttpResponse[String] = {
-      Http(url).execute()
-    }
-
-    def getReturnCode(imageResponse: HttpResponse[String]): ActionResult = {
-      imageResponse.code match {
-        case 200 => Ok()
-        case _   => InternalServerError()
-      }
-    }
-
     get("/") {
-      val host = "localhost"
-      val port = props.ApplicationPort
-
-      imageRepository
-        .getRandomImage()
-        .flatMap(image => {
-          image.images.headOption.map(imageFile => {
-            val previewUrl =
-              s"http://$host:$port${props.RawControllerPath}/${parse(imageFile.fileName.toStringRaw.dropWhile(_ == '/')).toString}"
-            getReturnCode(getApiResponse(previewUrl))
-          })
-        })
-        .getOrElse(Ok())
+      Ok()
     }
 
   }
