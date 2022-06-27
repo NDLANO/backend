@@ -13,7 +13,8 @@ lazy val `article-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    scalatra
   )
 )
 
@@ -27,46 +28,98 @@ lazy val `draft-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite)
+    testWith(scalatestsuite),
+    scalatra
   )
 )
 
 lazy val `audio-api` = Module.setup(
   project in file("./audio-api/"),
   audioapi,
-  deps = Seq(network, mapping, language, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    search,
+    testWith(scalatestsuite),
+    scalatra
+  )
 )
 
 lazy val `concept-api` = Module.setup(
   project in file("./concept-api/"),
   conceptapi,
-  deps = Seq(network, mapping, language, validation, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    validation,
+    common,
+    search,
+    testWith(scalatestsuite),
+    scalatra
+  )
 )
 
 lazy val `frontpage-api` = Module.setup(
   project in file("./frontpage-api/"),
   frontpageapi,
-  deps = Seq(network, mapping, language, common, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    testWith(scalatestsuite)
+  )
 )
 
 lazy val `image-api` = Module.setup(
   project in file("./image-api/"),
   imageapi,
-  deps = Seq(network, mapping, language, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    search,
+    testWith(scalatestsuite),
+    scalatra
+  )
 )
 
 lazy val `learningpath-api` = Module.setup(
   project in file("./learningpath-api/"),
   learningpathapi,
-  deps = Seq(network, mapping, language, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    search,
+    testWith(scalatestsuite),
+    scalatra
+  )
 )
 
-lazy val `oembed-proxy` = Module.setup(project in file("./oembed-proxy/"), oembedproxy, deps = Seq(network, common))
+lazy val `oembed-proxy` = Module.setup(
+  project in file("./oembed-proxy/"),
+  oembedproxy,
+  deps = Seq(network, common, scalatra)
+)
 
 lazy val `search-api` = Module.setup(
   project in file("./search-api/"),
   searchapi,
-  deps = Seq(network, mapping, language, common, search, testWith(scalatestsuite))
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    search,
+    testWith(scalatestsuite),
+    scalatra
+  )
 )
 
 // Libraries
@@ -77,6 +130,7 @@ lazy val language       = Module.setup(project in file("./language/"), languagel
 lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
 lazy val validation     = Module.setup(project in file("./validation/"), validationlib)
 lazy val search         = Module.setup(project in file("./search/"), searchlib, deps = Seq(language, common))
+lazy val scalatra       = Module.setup(project in file("./scalatra/"), scalatralib)
 
 lazy val `integration-tests` = Module.setup(
   project in file("./integration-tests/"),

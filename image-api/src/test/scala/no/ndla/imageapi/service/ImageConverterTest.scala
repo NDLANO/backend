@@ -7,15 +7,15 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.TestData.NdlaLogoImage
 import no.ndla.imageapi.model.domain.ImageStream
-import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.scalactic.TolerantNumerics
 
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
 class ImageConverterTest extends UnitSuite with TestEnvironment {
+  import TestData.NdlaLogoImage
   val service                   = new ImageConverter
   val (imageWidth, imageHeight) = (1000, 1000)
   val image: BufferedImage      = mock[BufferedImage]

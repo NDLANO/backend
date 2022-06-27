@@ -10,7 +10,7 @@ package no.ndla.imageapi.integration
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.s3.model.{GetObjectRequest, ObjectMetadata, S3Object}
-import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 

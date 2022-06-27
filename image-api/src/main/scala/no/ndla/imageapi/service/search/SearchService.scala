@@ -20,6 +20,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
+import cats.implicits._
+
 trait SearchService {
   this: Elastic4sClient with IndexService with SearchConverterService with Props =>
 
@@ -27,22 +29,23 @@ trait SearchService {
     val searchIndex: String
     val indexService: IndexService[_, _]
 
-    def hitToApiModel(hit: String, language: String): T
+    def hitToApiModel(hit: String, language: String): Try[T]
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
       e4sClient
         .execute {
           searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
-        .map(response => {
-          val hits = getHits(response.result, language)
-          SearchResult(
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language = language,
-            results = hits,
-            scrollId = response.result.scrollId
+        .flatMap(response => {
+          getHits(response.result, language).map(hits =>
+            SearchResult(
+              totalCount = response.result.totalHits,
+              page = None,
+              pageSize = response.result.hits.hits.length,
+              language = language,
+              results = hits,
+              scrollId = response.result.scrollId
+            )
           )
         })
 
@@ -62,20 +65,19 @@ trait SearchService {
       }
     }
 
-    def getHits(response: SearchResponse, language: String): Seq[T] = {
+    def getHits(response: SearchResponse, language: String): Try[Seq[T]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
-          resultArray.map(result => {
+          resultArray.traverse(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages =>
-                searchConverterService.getLanguageFromHit(result).getOrElse(language)
-              case _ => language
+              case Language.AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+              case _                     => language
             }
 
             hitToApiModel(result.sourceAsString, matchedLanguage)
           })
-        case _ => Seq()
+        case _ => Success(Seq())
       }
     }
 

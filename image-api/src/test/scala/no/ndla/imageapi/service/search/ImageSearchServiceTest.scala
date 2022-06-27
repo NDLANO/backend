@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.imageapi.TestData.searchSettings
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -28,6 +27,7 @@ class ImageSearchServiceTest
     with TestEnvironment
     with PrivateMethodTester {
   import props.{DefaultPageSize, MaxPageSize}
+  import TestData.searchSettings
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -46,8 +46,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = Image("large-full-url", 10000, "jpg", None)
-  val smallImage = Image("small-full-url", 100, "jpg", None)
+  val largeImage = new ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
+  val smallImage = new ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
 
   val byNcSa = Copyright(
     CC_BY_NC_SA.toString,
@@ -83,103 +83,88 @@ class ImageSearchServiceTest
     None
   )
 
-  val image1 = ImageMetaInformation(
-    Some(1),
-    List(ImageTitle("Batmen er på vift med en bil", "nb")),
-    List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
-    largeImage.fileName,
-    largeImage.size,
-    largeImage.contentType,
-    byNcSa,
-    List(ImageTag(List("fugl"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.NO,
-    Seq.empty,
-    None
+  val image1 = new ImageMetaInformation(
+    id = Some(1),
+    titles = List(ImageTitle("Batmen er på vift med en bil", "nb")),
+    alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
+    images = Seq(largeImage),
+    copyright = byNcSa,
+    tags = List(ImageTag(List("fugl"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.NO,
+    editorNotes = Seq.empty
   )
 
-  val image2 = ImageMetaInformation(
-    Some(2),
-    List(ImageTitle("Pingvinen er ute og går", "nb")),
-    List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
-    largeImage.fileName,
-    largeImage.size,
-    largeImage.contentType,
-    publicDomain,
-    List(ImageTag(List("fugl"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.NOT_APPLICABLE,
-    Seq(EditorNote(new Date(), "someone", "Lillehjelper")),
-    None
+  val image2 = new ImageMetaInformation(
+    id = Some(2),
+    titles = List(ImageTitle("Pingvinen er ute og går", "nb")),
+    alttexts = List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
+    images = Seq(largeImage),
+    copyright = publicDomain,
+    tags = List(ImageTag(List("fugl"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
+    editorNotes = Seq(EditorNote(new Date(), "someone", "Lillehjelper"))
   )
 
-  val image3 = ImageMetaInformation(
-    Some(3),
-    List(ImageTitle("Donald Duck kjører bil", "nb")),
-    List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa,
-    List(ImageTag(List("and"), "nb")),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+  val image3 = new ImageMetaInformation(
+    id = Some(3),
+    titles = List(ImageTitle("Donald Duck kjører bil", "nb")),
+    alttexts = List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
+    images = Seq(smallImage),
+    copyright = byNcSa,
+    tags = List(ImageTag(List("and"), "nb")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
-  val image4 = ImageMetaInformation(
-    Some(4),
-    List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
-    Seq(),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa,
-    Seq(),
-    Seq(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+  val image4 = new ImageMetaInformation(
+    id = Some(4),
+    titles = List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
+    alttexts = Seq(),
+    images = Seq(smallImage),
+    copyright = byNcSa,
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
-  val image5 = ImageMetaInformation(
-    Some(5),
-    List(
+  val image5 = new ImageMetaInformation(
+    id = Some(5),
+    titles = List(
       ImageTitle("Dette er et urelatert bilde", "und"),
       ImageTitle("This is a unrelated photo", "en"),
       ImageTitle("Nynoreg", "nn")
     ),
-    Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
-    smallImage.fileName,
-    smallImage.size,
-    smallImage.contentType,
-    byNcSa.copy(agreementId = Some(1)),
-    Seq(),
-    Seq(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+    alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
+    images = Seq(smallImage),
+    copyright = byNcSa.copy(agreementId = Some(1)),
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeAll(): Unit = {
@@ -192,11 +177,11 @@ class ImageSearchServiceTest
 
       when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreement1Copyright))
 
-      imageIndexService.indexDocument(image1)
-      imageIndexService.indexDocument(image2)
-      imageIndexService.indexDocument(image3)
-      imageIndexService.indexDocument(image4)
-      imageIndexService.indexDocument(image5)
+      imageIndexService.indexDocument(image1).get
+      imageIndexService.indexDocument(image2).get
+      imageIndexService.indexDocument(image3).get
+      imageIndexService.indexDocument(image4).get
+      imageIndexService.indexDocument(image5).get
 
       val servletRequest = mock[HttpServletRequest]
       when(servletRequest.getHeader(any[String])).thenReturn("http")
@@ -486,14 +471,35 @@ class ImageSearchServiceTest
       )
     )
 
-    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
-    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
-    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*")
+    val Success(scroll1) = imageSearchService.scrollV2(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = imageSearchService.scrollV2(scroll1.scrollId.get, "*")
+    val Success(scroll3) = imageSearchService.scrollV2(scroll2.scrollId.get, "*")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
     scroll2.results.map(_.id) should be(expectedIds(2))
     scroll3.results.map(_.id) should be(List.empty)
+  }
+
+  test("That scrolling v3 works as expected") {
+    val pageSize    = 2
+    val expectedIds = List[Long](1, 2, 3, 4, 5).sliding(pageSize, pageSize).toList
+
+    val Success(initialSearch) = imageSearchService.matchingQueryV3(
+      searchSettings.copy(
+        pageSize = Some(pageSize),
+        shouldScroll = true
+      )
+    )
+
+    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
+    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*")
+
+    initialSearch.results.map(_._1.id) should be(expectedIds.head)
+    scroll1.results.map(_._1.id) should be(expectedIds(1))
+    scroll2.results.map(_._1.id) should be(expectedIds(2))
+    scroll3.results.map(_._1.id) should be(List.empty)
   }
 
   test("That title search works as expected, and doesn't crash in combination with language") {

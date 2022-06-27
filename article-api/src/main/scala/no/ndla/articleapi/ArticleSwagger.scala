@@ -47,8 +47,7 @@ trait ArticleApiInfo {
   class ArticleSwagger extends Swagger("2.0", "1.0", ArticleApiInfo.apiInfo) {
 
     private def writeRolesInTest: List[String] = {
-      val writeRoles = List(props.DraftRoleWithWriteAccess, props.RoleWithWriteAccess)
-      writeRoles.map(_.replace(":", "-test:"))
+      List(props.DraftRoleWithWriteAccess, props.RoleWithWriteAccess)
     }
 
     addAuthorization(

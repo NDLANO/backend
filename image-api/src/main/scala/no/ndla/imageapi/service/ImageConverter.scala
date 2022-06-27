@@ -14,7 +14,7 @@ import javax.imageio.ImageIO
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
-import no.ndla.imageapi.model.{ValidationException, ValidationMessage}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.imgscalr.Scalr
 import org.imgscalr.Scalr.Mode
 

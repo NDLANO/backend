@@ -135,7 +135,6 @@ trait ArticleApiClient {
     }
   }
 
-  case class ArticleApiId(id: Long)
   case class PartialPublishArticle(
       availability: Option[api.Availability.Value],
       grepCodes: Option[Seq[String]],
@@ -186,3 +185,4 @@ trait ArticleApiClient {
     def empty(): PartialPublishArticle = PartialPublishArticle(None, None, None, None, None, None, Right(None))
   }
 }
+case class ArticleApiId(id: Long)

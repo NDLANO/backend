@@ -9,14 +9,16 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import io.lemonlabs.uri.UrlPath
+import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.auth.User
-import no.ndla.imageapi.model.api.ImageMetaInformationV2
-import no.ndla.imageapi.model.domain.{ImageMetaInformation, Sort}
-import no.ndla.imageapi.model.{ImageNotFoundException, InvalidUrlException, api}
+import no.ndla.imageapi.model.api.{ImageMetaDomainDump, ImageMetaInformationV2, ImageMetaInformationV3}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageFileData, ImageMetaInformation, Sort}
+import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
+import no.ndla.language.Language.findByLanguageOrBestEffort
+import cats.implicits._
 
 import scala.util.{Failure, Success, Try}
 
@@ -29,10 +31,19 @@ trait ReadService {
     with TagSearchService
     with SearchConverterService
     with Clock
-    with User =>
+    with User
+    with DBImageFile
+    with DBImageMetaInformation
+    with ImageMetaDomainDump =>
   val readService: ReadService
 
   class ReadService extends LazyLogging {
+
+    def withIdV3(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV3]] = {
+      imageRepository
+        .withId(imageId)
+        .traverse(image => converterService.asApiImageMetaInformationV3(image, language))
+    }
 
     def getAllTags(input: String, pageSize: Int, page: Int, language: String, sort: Sort): Try[api.TagsSearchResult] = {
       val result = tagSearchService.matchingQuery(
@@ -46,10 +57,10 @@ trait ReadService {
       result.map(searchConverterService.tagSearchResultAsApiResult)
     }
 
-    def withId(imageId: Long, language: Option[String]): Option[ImageMetaInformationV2] =
+    def withId(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV2]] =
       imageRepository
         .withId(imageId)
-        .map(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language))
+        .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language))
 
     private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       Try(pathParts(3).toLong) match {
@@ -65,11 +76,30 @@ trait ReadService {
 
     private def handleRawPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       pathParts.lift(2) match {
-        case Some(path) if path.size > 0 => getImageFromFilePath(path)
+        case Some(path) if path.nonEmpty => getImageMetaFromFilePath(path)
         case _                           => Failure(new InvalidUrlException("Could not extract path from url."))
       }
 
-    def getImageFromFilePath(path: String) = {
+    def getImageFromFilePath(path: String): Try[ImageFileData] = {
+      val encodedPath = urlEncodePath(path)
+      imageRepository.getImageFromFilePath(encodedPath) match {
+        case Some(image) =>
+          image.images.find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
+            case Some(img) => Success(img)
+            case None =>
+              Failure(
+                ImageConversionException(
+                  "Image path was found in database, but not found in metadata. This is a bug."
+                )
+              )
+          }
+        case None =>
+          Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
+      }
+
+    }
+
+    def getImageMetaFromFilePath(path: String): Try[ImageMetaInformation] = {
       val encodedPath = urlEncodePath(path)
       imageRepository.getImageFromFilePath(encodedPath) match {
         case Some(image) => Success(image)
@@ -88,11 +118,19 @@ trait ReadService {
       else Failure(new InvalidUrlException("Could not extract id or path from url."))
     }
 
-    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): api.ImageMetaDomainDump = {
+    def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
       val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-      api.ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
+      ImageMetaDomainDump(imageRepository.imageCount, pageNo, pageSize, results)
+    }
+
+    def getImageFileName(imageId: Long, language: Option[String]): Option[String] = {
+      for {
+        imageMeta     <- imageRepository.withId(imageId)
+        imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images, language)
+        imageName = Uri.parse(imageFileMeta.fileName).toStringRaw.dropWhile(_ == '/')
+      } yield imageName
     }
   }
 

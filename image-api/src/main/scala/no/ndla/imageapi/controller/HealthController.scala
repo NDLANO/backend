@@ -47,13 +47,16 @@ trait HealthController {
 
       imageRepository
         .getRandomImage()
-        .map(image => {
-          val previewUrl =
-            s"http://$host:$port${props.RawControllerPath}/${parse(image.imageUrl.toStringRaw.dropWhile(_ == '/')).toString}"
-          getReturnCode(getApiResponse(previewUrl))
+        .flatMap(image => {
+          image.images.headOption.map(imageFile => {
+            val previewUrl =
+              s"http://$host:$port${props.RawControllerPath}/${parse(imageFile.fileName.toStringRaw.dropWhile(_ == '/')).toString}"
+            getReturnCode(getApiResponse(previewUrl))
+          })
         })
         .getOrElse(Ok())
     }
+
   }
 
 }

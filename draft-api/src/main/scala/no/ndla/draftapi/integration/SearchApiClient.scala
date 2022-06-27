@@ -14,7 +14,7 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization.write
 import scalaj.http.Http
 
@@ -38,7 +38,8 @@ trait SearchApiClient {
           new EnumNameSerializer(Availability) +
           Json4s.serializer(ArticleType) +
           Json4s.serializer(RevisionStatus) ++
-          JavaTimeSerializers.all
+          JavaTimeSerializers.all ++
+          JavaTypesSerializers.all
 
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
