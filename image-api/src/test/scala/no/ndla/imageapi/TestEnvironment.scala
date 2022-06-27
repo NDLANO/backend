@@ -12,15 +12,17 @@ import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
+  BaseImageController,
   HealthController,
   ImageControllerV2,
+  ImageControllerV3,
   InternController,
   NdlaController,
   RawController
 }
 import no.ndla.imageapi.integration._
-import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.model.domain.DBImageMetaInformation
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation}
 import no.ndla.imageapi.repository._
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -50,6 +52,7 @@ trait TestEnvironment
     with ValidationService
     with ImageRepository
     with ReadService
+    with ImageMetaDomainDump
     with WriteService
     with AmazonClient
     with ImageStorageService
@@ -57,7 +60,9 @@ trait TestEnvironment
     with DraftApiClient
     with NdlaClient
     with InternController
+    with BaseImageController
     with ImageControllerV2
+    with ImageControllerV3
     with HealthController
     with RawController
     with TagsService
@@ -71,8 +76,12 @@ trait TestEnvironment
     with ErrorHelpers
     with DBMigrator
     with NdlaController
-    with ImagesApiInfo {
-  val props = new ImageApiProperties
+    with ImagesApiInfo
+    with TestData
+    with DBImageFile
+    with Random {
+  val props    = new ImageApiProperties
+  val TestData = new TestData
 
   val migrator     = mock[DBMigrator]
   val amazonClient = mock[AmazonS3]
@@ -94,6 +103,7 @@ trait TestEnvironment
   val rawController          = mock[RawController]
   val internController       = mock[InternController]
   val imageControllerV2      = mock[ImageControllerV2]
+  val imageControllerV3      = mock[ImageControllerV3]
   val converterService       = mock[ConverterService]
   val validationService      = mock[ValidationService]
   val tagsService            = mock[TagsService]
@@ -105,4 +115,5 @@ trait TestEnvironment
   val clock    = mock[SystemClock]
   val authUser = mock[AuthUser]
   val authRole = mock[AuthRole]
+  val random   = mock[Random]
 }

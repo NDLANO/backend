@@ -14,8 +14,8 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
-import no.ndla.imageapi.model.api.ErrorHelpers
-import no.ndla.imageapi.model.domain.DBImageMetaInformation
+import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaDomainDump}
+import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service._
 import no.ndla.imageapi.service.search.{
@@ -51,7 +51,9 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ConverterService
     with ValidationService
     with TagsService
+    with BaseImageController
     with ImageControllerV2
+    with ImageControllerV3
     with RawController
     with InternController
     with HealthController
@@ -64,18 +66,22 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ImagesApiInfo
     with ErrorHelpers
     with DBImageMetaInformation
-    with NdlaController {
+    with DBImageFile
+    with ImageMetaDomainDump
+    with NdlaController
+    with Random {
   override val props: ImageApiProperties = properties
 
-  override val migrator                     = new DBMigrator
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override lazy val migrator   = new DBMigrator
+  override lazy val dataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
 
   implicit val swagger = new ImageSwagger
 
-  val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
+  lazy val currentRegion: Option[Regions] =
+    Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
 
-  val amazonClient: AmazonS3 =
+  lazy val amazonClient: AmazonS3 =
     AmazonS3ClientBuilder
       .standard()
       .withRegion(currentRegion.getOrElse(Regions.EU_CENTRAL_1))
@@ -93,6 +99,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val ndlaClient             = new NdlaClient
   lazy val draftApiClient         = new DraftApiClient
   lazy val imageControllerV2      = new ImageControllerV2
+  lazy val imageControllerV3      = new ImageControllerV3
   lazy val rawController          = new RawController
   lazy val internController       = new InternController
   lazy val healthController       = new HealthController
@@ -106,4 +113,5 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val authUser       = new AuthUser
   lazy val authRole       = new AuthRole
   lazy val clock          = new SystemClock
+  lazy val random         = new Random
 }

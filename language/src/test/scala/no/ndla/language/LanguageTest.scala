@@ -1,6 +1,6 @@
 package no.ndla.language
 
-import no.ndla.language.model.LanguageField
+import no.ndla.language.model.{LanguageField, WithLanguage}
 
 class LanguageTest extends UnitSuite {
 
@@ -61,5 +61,37 @@ class LanguageTest extends UnitSuite {
     val updated  = Seq(oppdatertDesc2)
 
     Language.mergeLanguageFields(existing, updated) should equal(Seq(desc1, desc3, oppdatertDesc2))
+  }
+
+  test("That sorting sorts by language in prioritized order") {
+    case class LangClass(x: String, language: String) extends WithLanguage
+
+    val nb      = LangClass("hei", "nb")
+    val und     = LangClass("kwargos", "und")
+    val en      = LangClass("hello", "en")
+    val de      = LangClass("hallo", "de")
+    val sv      = LangClass("hej", "sv")
+    val apekatt = LangClass("finnes ikke", "apekatt")
+
+    val l = Seq(
+      en,
+      nb,
+      und,
+      de,
+      apekatt,
+      sv
+    )
+
+    Language.sortByLanguagePriority(l) should be(
+      Seq(
+        nb,
+        en,
+        de,
+        sv,
+        und,
+        apekatt
+      )
+    )
+
   }
 }

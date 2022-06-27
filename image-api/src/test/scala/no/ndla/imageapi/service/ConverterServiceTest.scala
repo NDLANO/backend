@@ -16,6 +16,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 
 import java.util.Date
 import javax.servlet.http.HttpServletRequest
+import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -24,64 +25,55 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
 
   val someDims = Some(ImageDimensions(100, 100))
-  val full     = Image("/123.png", 200, "image/png", someDims)
-  val wanting  = Image("123.png", 200, "image/png", someDims)
+  val full     = new ImageFileData(1, "/123.png", 200, "image/png", someDims, "nb", 5)
+  val wanting  = new ImageFileData(2, "123.png", 200, "image/png", someDims, "und", 6)
 
-  val DefaultImageMetaInformation = ImageMetaInformation(
-    Some(1),
-    List(ImageTitle("test", "nb")),
-    List(),
-    full.fileName,
-    full.size,
-    full.contentType,
-    Copyright("", "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    someDims
+  val DefaultImageMetaInformation = new ImageMetaInformation(
+    id = Some(1),
+    titles = List(ImageTitle("test", "nb")),
+    alttexts = List(),
+    images = Seq(full),
+    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
-  val WantingImageMetaInformation = ImageMetaInformation(
-    Some(1),
-    List(ImageTitle("test", "nb")),
-    List(),
-    wanting.fileName,
-    wanting.size,
-    wanting.contentType,
-    Copyright("", "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    someDims
+  val WantingImageMetaInformation = new ImageMetaInformation(
+    id = Some(1),
+    titles = List(ImageTitle("test", "nb")),
+    alttexts = List(),
+    images = Seq(wanting),
+    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
-  val MultiLangImage = ImageMetaInformation(
-    Some(2),
-    List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
-    List(),
-    full.fileName,
-    full.size,
-    full.contentType,
-    Copyright("", "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    someDims
+  val MultiLangImage = new ImageMetaInformation(
+    id = Some(2),
+    titles = List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
+    alttexts = List(),
+    images = Seq(full.copy(language = "nn")),
+    copyright = Copyright("", "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -100,25 +92,28 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
     {
-      val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"))
+      val Success(apiImage) =
+        converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"))
       apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
     {
-      val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"))
+      val Success(apiImage) =
+        converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"))
       apiImage.metaUrl should equal(s"${props.ImageApiUrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
   }
 
   test("That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links with applicationUrl") {
-    val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None)
+    val Success(apiImage) =
+      converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None)
     apiImage.metaUrl should equal(s"${props.Domain}/v2/images/1")
     apiImage.imageUrl should equal(s"${props.Domain}/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links with domain urls") {
-    val apiImage = converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, None)
+    val Success(apiImage) = converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, None)
     apiImage.metaUrl should equal("http://api-gateway.ndla-local/image-api/v2/images/1")
     apiImage.imageUrl should equal("http://api-gateway.ndla-local/image-api/raw/123.png")
   }
@@ -126,7 +121,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test(
     "That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links even if language is not supported"
   ) {
-    val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(
+    val Success(apiImage) = converterService.asApiImageMetaInformationWithApplicationUrlV2(
       DefaultImageMetaInformation,
       Some("RandomLangauge")
     )
@@ -136,7 +131,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links even if language is not supported") {
-    val apiImage =
+    val Success(apiImage) =
       converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("RandomLangauge"))
     apiImage.metaUrl should equal("http://api-gateway.ndla-local/image-api/v2/images/1")
     apiImage.imageUrl should equal("http://api-gateway.ndla-local/image-api/raw/123.png")
@@ -156,7 +151,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some(to)
     )
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
-    val apiImage = converterService.asApiImageMetaInformationWithApplicationUrlV2(
+    val Success(apiImage) = converterService.asApiImageMetaInformationWithApplicationUrlV2(
       DefaultImageMetaInformation.copy(
         copyright = DefaultImageMetaInformation.copyright.copy(
           processors = List(Author("Idea", "Kaptein Snabelfant")),
@@ -177,22 +172,22 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that asImageMetaInformationV2 properly") {
-    val result1 = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None)
+    val Success(result1) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None)
     result1.id should be("2")
     result1.title.language should be("nn")
 
-    val result2 = converterService.asImageMetaInformationV2(MultiLangImage, Some("en"), "", None)
+    val Success(result2) = converterService.asImageMetaInformationV2(MultiLangImage, Some("en"), "", None)
     result2.id should be("2")
     result2.title.language should be("en")
 
-    val result3 = converterService.asImageMetaInformationV2(MultiLangImage, Some("nn"), "", None)
+    val Success(result3) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nn"), "", None)
     result3.id should be("2")
     result3.title.language should be("nn")
 
   }
 
   test("that asImageMetaInformationV2 returns sorted supportedLanguages") {
-    val result = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None)
+    val Success(result) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None)
     result.supportedLanguages should be(Seq("nn", "en", "und"))
   }
 
@@ -208,17 +203,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That with new image returns metadata from new image") {
-    val newImage = Image(
+    val newImage = new ImageFileData(
+      id = 1,
       fileName = "somename.jpg",
       size = 123,
       contentType = "image/jpg",
-      dimensions = Some(ImageDimensions(123, 555))
+      dimensions = Some(ImageDimensions(123, 555)),
+      language = "nb",
+      imageMetaId = 4
     )
 
-    val result = converterService.withNewImage(MultiLangImage, newImage)
-    result.size should be(123)
-    result.imageDimensions should be(Some(ImageDimensions(123, 555)))
-    result.contentType should be("image/jpg")
+    val result = converterService.withNewImage(MultiLangImage, newImage, "nb")
+    result.images.find(_.language == "nb").get.size should be(123)
+    result.images.find(_.language == "nb").get.dimensions should be(Some(ImageDimensions(123, 555)))
+    result.images.find(_.language == "nb").get.contentType should be("image/jpg")
   }
 
 }

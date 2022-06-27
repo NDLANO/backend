@@ -16,7 +16,8 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
-import no.ndla.imageapi.model.domain.{SearchResult, SearchSettings, Sort}
+import no.ndla.imageapi.model.api
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
@@ -24,6 +25,7 @@ import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.read
+import cats.implicits._
 
 import scala.util.{Failure, Success, Try}
 
@@ -34,18 +36,20 @@ trait ImageSearchService {
     with SearchConverterService
     with Role
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with DBImageMetaInformation =>
   val imageSearchService: ImageSearchService
-
-  class ImageSearchService extends LazyLogging with SearchService[ImageMetaSummary] {
+  class ImageSearchService extends LazyLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
     private val noCopyright          = boolQuery().not(termQuery("license", "copyrighted"))
     override val searchIndex: String = props.SearchIndex
     override val indexService        = imageIndexService
 
-    def hitToApiModel(hit: String, language: String): ImageMetaSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
-      searchConverterService.asImageMetaSummary(read[SearchableImage](hit), language)
+    def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
+      implicit val formats: Formats =
+        SearchableLanguageFormats.JSonFormats ++ ImageMetaInformation.jsonEncoders
+      val searchableImage = Try(read[SearchableImage](hit))
+      searchableImage.map(image => (image, matchedLanguage))
     }
 
     override def getSortDefinition(sort: Sort, language: String): FieldSort = {
@@ -76,7 +80,26 @@ trait ImageSearchService {
       }
     }
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult[ImageMetaSummary]] = {
+    private def convertToV2(
+        result: Try[SearchResult[(SearchableImage, MatchedLanguage)]]
+    ): Try[SearchResult[ImageMetaSummary]] =
+      for {
+        searchResult <- result
+        summaries <- searchResult.results.traverse { case (image, language) =>
+          searchConverterService.asImageMetaSummary(image, language)
+        }
+        convertedResult = searchResult.copy(results = summaries)
+      } yield convertedResult
+
+    def scrollV2(scrollId: String, language: String): Try[SearchResult[ImageMetaSummary]] = convertToV2(
+      scroll(scrollId, language)
+    )
+
+    def matchingQuery(settings: SearchSettings): Try[SearchResult[ImageMetaSummary]] = convertToV2(
+      matchingQueryV3(settings)
+    )
+
+    def matchingQueryV3(settings: SearchSettings): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
       val fullSearch = settings.query match {
         case None => boolQuery()
         case Some(query) =>
@@ -104,7 +127,10 @@ trait ImageSearchService {
       executeSearch(fullSearch, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ImageMetaSummary]] = {
+    def executeSearch(
+        queryBuilder: BoolQuery,
+        settings: SearchSettings
+    ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
 
       val licenseFilter = settings.license match {
         case None      => Option.unless(settings.includeCopyrighted)(noCopyright)
@@ -112,8 +138,11 @@ trait ImageSearchService {
       }
 
       val sizeFilter = settings.minimumSize match {
-        case Some(size) => Some(rangeQuery("imageSize").gte(size))
-        case _          => None
+        case Some(size) =>
+          Some(
+            nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size))
+          )
+        case _ => None
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
@@ -152,19 +181,18 @@ trait ImageSearchService {
             searchToExecute.scroll(ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
-        e4sClient
-          .execute(searchWithScroll) match {
+        e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
+            getHits(response.result, searchLanguage).map(hits => {
               SearchResult(
                 response.result.totalHits,
                 Some(settings.page.getOrElse(1)),
                 numResults,
                 searchLanguage,
-                getHits(response.result, searchLanguage),
+                hits,
                 response.result.scrollId
               )
-            )
+            })
           case Failure(ex) => errorHandler(ex)
         }
       }

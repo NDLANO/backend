@@ -140,7 +140,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   }
 
   test("That GET /<id> returns 404 when image does not exist") {
-    when(readService.withId(123, None)).thenReturn(None)
+    when(readService.withId(123, None)).thenReturn(Success(None))
     get("/123") {
       status should equal(404)
     }
@@ -152,7 +152,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
-    when(readService.withId(1, None)).thenReturn(Option(expectedObject))
+    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -168,7 +168,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
-    when(readService.withId(1, None)).thenReturn(Option(expectedObject))
+    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -184,7 +184,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
 
-    when(readService.withId(1, None)).thenReturn(Option(expectedObject))
+    when(readService.withId(1, None)).thenReturn(Success(Option(expectedObject)))
 
     get("/1") {
       status should equal(200)
@@ -212,23 +212,30 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val tags: Seq[ImageTag]         = Seq()
     val captions: Seq[ImageCaption] = Seq()
 
-    val sampleImageMeta = ImageMetaInformation(
-      Some(1),
-      titles,
-      alttexts,
-      "/img.jpg",
-      1024,
-      "image/jpeg",
-      copyright,
-      tags,
-      captions,
-      "updatedBy",
-      new Date(),
-      new Date(),
-      "createdBy",
-      ModelReleasedStatus.YES,
-      Seq.empty,
-      None
+    val sampleImageMeta = new ImageMetaInformation(
+      id = Some(1),
+      titles = titles,
+      alttexts = alttexts,
+      images = Seq(
+        new ImageFileData(
+          id = 1,
+          fileName = "/img.jpg",
+          size = 1024,
+          contentType = "image/jpeg",
+          dimensions = None,
+          language = "und",
+          imageMetaId = 1
+        )
+      ),
+      copyright = copyright,
+      tags = tags,
+      captions = captions,
+      updatedBy = "updatedBy",
+      updated = new Date(),
+      created = new Date(),
+      createdBy = "createdBy",
+      modelReleased = ModelReleasedStatus.YES,
+      editorNotes = Seq.empty
     )
 
     when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem])).thenReturn(Success(sampleImageMeta))
@@ -342,14 +349,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
 
     get(s"/?search-context=$scrollId") {
       status should be(200)
     }
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
   }
 
   test("That scrolling with POST uses scroll and not searches normally") {
@@ -365,14 +372,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Some(scrollId)
     )
 
-    when(imageSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
+    when(imageSearchService.scrollV2(anyString, anyString)).thenReturn(Success(searchResponse))
 
     post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
     verify(imageSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(imageSearchService, times(1)).scroll(eqTo(scrollId), any[String])
+    verify(imageSearchService, times(1)).scrollV2(eqTo(scrollId), any[String])
   }
 
   test("that initial search-context doesn't scroll") {
@@ -396,7 +403,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     get("/?search-context=initial") {
       status should be(200)
       verify(imageSearchService, times(1)).matchingQuery(expectedSettings)
-      verify(imageSearchService, times(0)).scroll(any[String], any[String])
+      verify(imageSearchService, times(0)).scrollV2(any[String], any[String])
     }
 
   }

@@ -16,7 +16,7 @@ import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformati
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
-import org.json4s.Formats
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -39,7 +39,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends NdlaController {
-    protected implicit override val jsonFormats: Formats = DBImageMetaInformation.jsonEncoder
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ ImageMetaInformation.jsonEncoders
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
@@ -90,8 +90,12 @@ trait InternController {
       val externalId = params("image_id")
       val language   = paramOrNone("language")
       imageRepository.withExternalId(externalId) match {
-        case Some(image) => Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(image, language))
-        case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
+        case Some(image) =>
+          converterService.asApiImageMetaInformationWithDomainUrlV2(image, language) match {
+            case Failure(ex)        => errorHandler(ex)
+            case Success(converted) => Ok(converted)
+          }
+        case None => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
     }
 

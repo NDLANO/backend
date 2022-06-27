@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageTag, ImageTitle}
-import no.ndla.imageapi.model.domain.ModelReleasedStatus
+import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
@@ -48,7 +48,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     ),
     ImageTag(Seq.empty, "nb"),
     ImageCaption("", "nb"),
-    Seq(),
+    Seq("und"),
     updated,
     "ndla124",
     ModelReleasedStatus.YES.toString,
@@ -56,23 +56,30 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     None
   )
 
-  val DefaultDomainImageMetaInformation = domain.ImageMetaInformation(
-    Some(1),
-    List(),
-    List(),
-    "test.jpg",
-    0,
-    "",
-    domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
-    List(),
-    List(),
-    "ndla124",
-    updated,
-    updated,
-    "ndla124",
-    ModelReleasedStatus.YES,
-    Seq.empty,
-    None
+  val DefaultDomainImageMetaInformation = new ImageMetaInformation(
+    id = Some(1),
+    titles = List(),
+    alttexts = List(),
+    images = Seq(
+      new ImageFileData(
+        id = 1,
+        fileName = "test.jpg",
+        size = 0,
+        contentType = "",
+        dimensions = None,
+        language = "und",
+        imageMetaId = 1
+      )
+    ),
+    copyright = domain.Copyright(CC_BY.toString, "", List(), List(), List(), None, None, None),
+    tags = List(),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty
   )
 
   override def beforeEach() = {

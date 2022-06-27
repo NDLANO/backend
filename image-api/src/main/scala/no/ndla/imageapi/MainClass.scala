@@ -19,6 +19,7 @@ import javax.servlet.DispatcherType
 import scala.io.Source
 
 class MainClass(props: ImageApiProperties) extends LazyLogging {
+  private val initTime  = System.currentTimeMillis()
   val componentRegistry = new ComponentRegistry(props)
 
   def startServer(): Server = {
@@ -65,6 +66,7 @@ class MainClass(props: ImageApiProperties) extends LazyLogging {
 
     val startTime = System.currentTimeMillis() - startMillis
     logger.info(s"Started at port ${props.ApplicationPort} in $startTime ms.")
+    logger.info(s"Entire ${props.ApplicationName} started in ${System.currentTimeMillis() - initTime} ms.")
     server
   }
 

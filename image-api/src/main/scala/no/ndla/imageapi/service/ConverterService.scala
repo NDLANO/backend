@@ -10,21 +10,30 @@ package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
-import io.lemonlabs.uri.{Uri, UrlPath}
+import io.lemonlabs.uri.UrlPath
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
-import no.ndla.imageapi.model.domain.ModelReleasedStatus
-import no.ndla.imageapi.model.{api, domain}
+import no.ndla.imageapi.model.domain.{
+  DBImageFile,
+  DBImageMetaInformation,
+  ImageFileData,
+  ImageFileDataDocument,
+  ImageMetaInformation,
+  ModelReleasedStatus,
+  UploadedImage
+}
+import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import cats.implicits._
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: User with Role with Clock with DraftApiClient with Props =>
+  this: User with Role with Clock with DraftApiClient with Props with DBImageFile with DBImageMetaInformation =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -47,7 +56,7 @@ trait ConverterService {
       )
     }
 
-    def asApiImage(domainImage: domain.Image, baseUrl: Option[String] = None): api.Image = {
+    def asApiImage(domainImage: ImageFileData, baseUrl: Option[String] = None): api.Image = {
       api.Image(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
     }
 
@@ -56,18 +65,18 @@ trait ConverterService {
     }
 
     def asApiImageMetaInformationWithApplicationUrlV2(
-        domainImageMetaInformation: domain.ImageMetaInformation,
+        domainImageMetaInformation: ImageMetaInformation,
         language: Option[String]
-    ): api.ImageMetaInformationV2 = {
+    ): Try[api.ImageMetaInformationV2] = {
       val baseUrl = ApplicationUrl.get
       val rawPath = baseUrl.replace("/v2/images/", "/raw")
       asImageMetaInformationV2(domainImageMetaInformation, language, ApplicationUrl.get, Some(rawPath))
     }
 
     def asApiImageMetaInformationWithDomainUrlV2(
-        domainImageMetaInformation: domain.ImageMetaInformation,
+        domainImageMetaInformation: ImageMetaInformation,
         language: Option[String]
-    ): api.ImageMetaInformationV2 = {
+    ): Try[api.ImageMetaInformationV2] = {
       asImageMetaInformationV2(
         domainImageMetaInformation,
         language,
@@ -76,16 +85,13 @@ trait ConverterService {
       )
     }
 
-    private def asApiEditorNotes(notes: Seq[domain.EditorNote]): Seq[api.EditorNote] = {
-      notes.map(n => api.EditorNote(n.timeStamp, n.updatedBy, n.note))
-    }
+    def asApiImageMetaInformationV3(
+        imageMeta: ImageMetaInformation,
+        language: Option[String]
+    ): Try[api.ImageMetaInformationV3] = {
+      val baseUrl = ApplicationUrl.get
+      val rawPath = baseUrl.replace("/v3/images/", "/raw")
 
-    private[service] def asImageMetaInformationV2(
-        imageMeta: domain.ImageMetaInformation,
-        language: Option[String],
-        baseUrl: String,
-        rawBaseUrl: Option[String]
-    ): api.ImageMetaInformationV2 = {
       val title = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
         .getOrElse(api.ImageTitle("", DefaultLanguage))
@@ -99,32 +105,109 @@ trait ConverterService {
         .map(asApiCaption)
         .getOrElse(api.ImageCaption("", DefaultLanguage))
 
-      val apiUrl = asApiUrl(imageMeta.imageUrl, rawBaseUrl)
+      getImageFromMeta(imageMeta, language).flatMap(image => {
+        val apiUrl             = asApiUrl(image.fileName, rawPath.some)
+        val editorNotes        = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+        val apiImageFile       = asApiImageFile(image, apiUrl)
+        val supportedLanguages = getSupportedLanguages(imageMeta)
 
-      val editorNotes     = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
-      val imageDimensions = imageMeta.imageDimensions.map(d => api.ImageDimensions(d.width, d.height))
+        Success(
+          api
+            .ImageMetaInformationV3(
+              id = imageMeta.id.get.toString,
+              metaUrl = baseUrl + imageMeta.id.get,
+              title = title,
+              alttext = alttext,
+              copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+              tags = tags,
+              caption = caption,
+              supportedLanguages = supportedLanguages,
+              created = imageMeta.created,
+              createdBy = imageMeta.createdBy,
+              modelRelease = imageMeta.modelReleased.toString,
+              editorNotes = editorNotes,
+              image = apiImageFile
+            )
+        )
+      })
+    }
 
-      api.ImageMetaInformationV2(
-        id = imageMeta.id.get.toString,
-        metaUrl = baseUrl + imageMeta.id.get,
-        title = title,
-        alttext = alttext,
-        imageUrl = apiUrl,
-        size = imageMeta.size,
-        contentType = imageMeta.contentType,
-        copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
-        tags = tags,
-        caption = caption,
-        supportedLanguages = getSupportedLanguages(imageMeta),
-        created = imageMeta.created,
-        createdBy = imageMeta.createdBy,
-        modelRelease = imageMeta.modelReleased.toString,
-        editorNotes = editorNotes,
-        imageDimensions = imageDimensions
+    private def asApiImageFile(image: ImageFileData, url: String): api.ImageFile = {
+      val dimensions = image.dimensions.map { case domain.ImageDimensions(width, height) =>
+        api.ImageDimensions(width, height)
+      }
+
+      api.ImageFile(
+        fileName = image.fileName,
+        size = image.size,
+        contentType = image.contentType,
+        imageUrl = url,
+        dimensions = dimensions,
+        language = image.language
       )
     }
 
-    def withAgreementCopyright(image: domain.ImageMetaInformation): domain.ImageMetaInformation = {
+    private def asApiEditorNotes(notes: Seq[domain.EditorNote]): Seq[api.EditorNote] = {
+      notes.map(n => api.EditorNote(n.timeStamp, n.updatedBy, n.note))
+    }
+
+    private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
+      findByLanguageOrBestEffort(meta.images, language) match {
+        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case Some(image) => Success(image)
+      }
+    }
+
+    private[service] def asImageMetaInformationV2(
+        imageMeta: ImageMetaInformation,
+        language: Option[String],
+        baseUrl: String,
+        rawBaseUrl: Option[String]
+    ): Try[api.ImageMetaInformationV2] = {
+      val title = findByLanguageOrBestEffort(imageMeta.titles, language)
+        .map(asApiImageTitle)
+        .getOrElse(api.ImageTitle("", DefaultLanguage))
+      val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
+        .map(asApiImageAltText)
+        .getOrElse(api.ImageAltText("", DefaultLanguage))
+      val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
+        .map(asApiImageTag)
+        .getOrElse(api.ImageTag(Seq(), DefaultLanguage))
+      val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
+        .map(asApiCaption)
+        .getOrElse(api.ImageCaption("", DefaultLanguage))
+
+      getImageFromMeta(imageMeta, language).flatMap(image => {
+        val apiUrl             = asApiUrl(image.fileName, rawBaseUrl)
+        val editorNotes        = Option.when(authRole.userHasWriteRole())(asApiEditorNotes(imageMeta.editorNotes))
+        val imageDimensions    = image.dimensions.map(d => api.ImageDimensions(d.width, d.height))
+        val supportedLanguages = getSupportedLanguages(imageMeta)
+
+        Success(
+          api
+            .ImageMetaInformationV2(
+              id = imageMeta.id.get.toString,
+              metaUrl = baseUrl + imageMeta.id.get,
+              title = title,
+              alttext = alttext,
+              imageUrl = apiUrl,
+              size = image.size,
+              contentType = image.contentType,
+              copyright = withAgreementCopyright(asApiCopyright(imageMeta.copyright)),
+              tags = tags,
+              caption = caption,
+              supportedLanguages = supportedLanguages,
+              created = imageMeta.created,
+              createdBy = imageMeta.createdBy,
+              modelRelease = imageMeta.modelReleased.toString,
+              editorNotes = editorNotes,
+              imageDimensions = imageDimensions
+            )
+        )
+      })
+    }
+
+    def withAgreementCopyright(image: ImageMetaInformation): ImageMetaInformation = {
       val agreementCopyright = image.copyright.agreementId
         .flatMap(aid => draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright))
         .getOrElse(image.copyright)
@@ -176,23 +259,22 @@ trait ConverterService {
       base.withPath(basePath).toString
     }
 
-    def withNewImage(imageMeta: domain.ImageMetaInformation, image: domain.Image) = {
-      val user    = authUser.userOrClientid()
-      val now     = clock.now()
-      val newNote = domain.EditorNote(now, user, "Updated image file.")
+    def withNewImage(
+        imageMeta: ImageMetaInformation,
+        image: ImageFileData,
+        language: String
+    ): ImageMetaInformation = {
+      val user      = authUser.userOrClientid()
+      val now       = clock.now()
+      val newNote   = domain.EditorNote(now, user, s"Updated image file for '$language' language.")
+      val newImages = imageMeta.images.filterNot(_.language == language) :+ image
       imageMeta.copy(
-        imageUrl = Uri.parse(image.fileName).toString,
-        size = image.size,
-        contentType = image.contentType,
-        editorNotes = imageMeta.editorNotes :+ newNote,
-        imageDimensions = image.dimensions
+        images = newImages,
+        editorNotes = imageMeta.editorNotes :+ newNote
       )
     }
 
-    def asDomainImageMetaInformationV2(
-        imageMeta: api.NewImageMetaInformationV2,
-        image: domain.Image
-    ): Try[domain.ImageMetaInformation] = {
+    def asDomainImageMetaInformationV2(imageMeta: api.NewImageMetaInformationV2): Try[ImageMetaInformation] = {
       val modelReleasedStatus = imageMeta.modelReleased match {
         case Some(mrs) => ModelReleasedStatus.valueOfOrError(mrs)
         case None      => Success(ModelReleasedStatus.NOT_SET)
@@ -202,13 +284,11 @@ trait ConverterService {
         val now  = clock.now()
         val user = authUser.userOrClientid()
 
-        domain.ImageMetaInformation(
+        new ImageMetaInformation(
           id = None,
           titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
           alttexts = Seq(asDomainAltText(imageMeta.alttext, imageMeta.language)),
-          imageUrl = Uri.parse(image.fileName).toString,
-          size = image.size,
-          contentType = image.contentType,
+          images = Seq.empty,
           copyright = toDomainCopyright(imageMeta.copyright),
           tags = if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language)) else Seq.empty,
           captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
@@ -217,8 +297,7 @@ trait ConverterService {
           created = now,
           updated = now,
           modelReleased = modelStatus,
-          editorNotes = Seq(domain.EditorNote(now, user, "Image created.")),
-          imageDimensions = image.dimensions
+          editorNotes = Seq(domain.EditorNote(now, user, "Image created."))
         )
       })
     }
@@ -257,30 +336,40 @@ trait ConverterService {
     }
 
     def withoutLanguage(
-        domainMetaInformation: domain.ImageMetaInformation,
+        domainMetaInformation: ImageMetaInformation,
         languageToRemove: String
-    ): domain.ImageMetaInformation = {
-      val now    = clock.now()
-      val userId = authUser.userOrClientid()
+    ): ImageMetaInformation = {
+      val now     = clock.now()
+      val userId  = authUser.userOrClientid()
+      val newNote = domain.EditorNote(now, userId, s"Deleted language '$languageToRemove'.")
       domainMetaInformation.copy(
         titles = domainMetaInformation.titles.filterNot(_.language == languageToRemove),
         alttexts = domainMetaInformation.alttexts.filterNot(_.language == languageToRemove),
         tags = domainMetaInformation.tags.filterNot(_.language == languageToRemove),
         captions = domainMetaInformation.captions.filterNot(_.language == languageToRemove),
-        editorNotes =
-          domainMetaInformation.editorNotes :+ domain.EditorNote(now, userId, s"Deleted language '$languageToRemove'.")
+        editorNotes = domainMetaInformation.editorNotes :+ newNote,
+        images = domainMetaInformation.images.filterNot(_.language == languageToRemove)
       )
     }
 
-    def getSupportedLanguages(domainImageMetaInformation: domain.ImageMetaInformation): Seq[String] = {
+    def getSupportedLanguages(domainImageMetaInformation: ImageMetaInformation): Seq[String] = {
       Language.getSupportedLanguages(
         domainImageMetaInformation.titles,
         domainImageMetaInformation.alttexts,
         domainImageMetaInformation.tags,
-        domainImageMetaInformation.captions
+        domainImageMetaInformation.captions,
+        domainImageMetaInformation.images
       )
     }
 
+    def toImageDocument(image: UploadedImage, language: String): ImageFileDataDocument = {
+      new ImageFileDataDocument(
+        size = image.size,
+        contentType = image.contentType,
+        dimensions = image.dimensions,
+        language = language
+      )
+    }
   }
 
 }

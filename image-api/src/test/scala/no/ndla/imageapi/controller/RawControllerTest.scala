@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -17,6 +16,7 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+  import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
   implicit val swagger = new ImageSwagger
   val imageName        = "ndla_logo.jpg"
   val imageGifName     = "ndla_logo.gif"
@@ -32,6 +32,7 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   override def beforeEach() = {
     when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
+    when(readService.getImageFileName(id, None)).thenReturn(Some(TestData.bjorn.images.head.fileName))
   }
 
   test("That GET /image.jpg returns 200 if image was found") {

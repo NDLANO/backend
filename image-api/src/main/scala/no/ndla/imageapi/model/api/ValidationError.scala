@@ -9,8 +9,7 @@
 package no.ndla.imageapi.model.api
 
 import java.util.Date
-
-import no.ndla.imageapi.model.ValidationMessage
+import no.ndla.scalatra.error.ValidationMessage
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

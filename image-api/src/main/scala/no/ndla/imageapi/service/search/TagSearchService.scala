@@ -39,9 +39,8 @@ trait TagSearchService {
     override val searchIndex: String = TagSearchIndex
     override val indexService        = tagIndexService
 
-    override def hitToApiModel(hit: String, language: String): String = {
-      val searchableTag = read[SearchableTag](hit)
-      searchableTag.tag
+    override def hitToApiModel(hit: String, language: String): Try[String] = {
+      Try(read[SearchableTag](hit)).map(_.tag)
     }
 
     override def getSortDefinition(sort: Sort, language: String): FieldSort = {
@@ -118,13 +117,13 @@ trait TagSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            Success(
+            getHits(response.result, language).map(hits =>
               SearchResult(
                 response.result.totalHits,
                 Some(page),
                 numResults,
                 language,
-                getHits(response.result, language),
+                hits,
                 response.result.scrollId
               )
             )

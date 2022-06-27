@@ -13,7 +13,9 @@ case class LanguageValue[T](language: String, value: T) extends LanguageField[T]
   def isEmpty: Boolean = language.isEmpty
 }
 
-case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
+case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]]) {
+  def map[T](f: LanguageValue[String] => T): Seq[T] = languageValues.map(lv => f(lv))
+}
 
 object SearchableLanguageValues {
 
@@ -27,4 +29,6 @@ object SearchableLanguageList {
     SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))
 }
 
-case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
+case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]]) {
+  def map[T](f: LanguageValue[Seq[String]] => T): Seq[T] = languageValues.map(lv => f(lv))
+}
