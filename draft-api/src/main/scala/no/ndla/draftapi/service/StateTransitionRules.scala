@@ -19,6 +19,7 @@ import no.ndla.draftapi.integration.{
   H5PApiClient,
   LearningPath,
   LearningpathApiClient,
+  SearchApiClient,
   TaxonomyApiClient
 }
 import no.ndla.draftapi.model.domain.{ArticleStatus, IgnoreFunction, StateTransition}
@@ -44,20 +45,21 @@ trait StateTransitionRules {
     with ConverterService
     with ContentValidator
     with ArticleIndexService
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with SearchApiClient =>
 
   object StateTransitionRules {
 
     // Import implicits to clean up SideEffect creation where we don't need all parameters
     import SideEffect.implicits._
 
-    private[service] val checkIfArticleIsUsedInLearningStep: SideEffect = (article: domain.Article) =>
-      doIfArticleIsUnusedByLearningpath(article.id.getOrElse(1)) {
+    private[service] val checkIfArticleIsInUse: SideEffect = (article: domain.Article) =>
+      doIfArticleIsNotInUse(article.id.getOrElse(1)) {
         Success(article)
       }
 
     private[service] val unpublishArticle: SideEffect = (article: domain.Article) =>
-      doIfArticleIsUnusedByLearningpath(article.id.getOrElse(1)) {
+      doIfArticleIsNotInUse(article.id.getOrElse(1)) {
         article.id match {
           case Some(id) =>
             val taxMetadataT = taxonomyApiClient.updateTaxonomyMetadataIfExists(id, visible = false)
@@ -118,7 +120,7 @@ trait StateTransitionRules {
        ARCHIVED                      -> DRAFT,
        AWAITING_ARCHIVING            -> DRAFT,
        AWAITING_ARCHIVING            -> AWAITING_ARCHIVING,
-      (AWAITING_ARCHIVING            -> AWAITING_UNPUBLISHING)         require PublishRoles withSideEffect checkIfArticleIsUsedInLearningStep keepCurrentOnTransition,
+      (AWAITING_ARCHIVING            -> AWAITING_UNPUBLISHING)         require PublishRoles withSideEffect checkIfArticleIsInUse keepCurrentOnTransition,
        AWAITING_ARCHIVING            -> UNPUBLISHED                    keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect unpublishArticle,
       (AWAITING_ARCHIVING            -> PUBLISHED)                     keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect publishArticle,
        PROPOSAL                      -> DRAFT,
@@ -173,13 +175,13 @@ trait StateTransitionRules {
        //QUEUED_FOR_PUBLISHING_DELAYED -> AWAITING_ARCHIVING,
       (PUBLISHED                     -> DRAFT)                         keepCurrentOnTransition,
       (PUBLISHED                     -> PROPOSAL)                      keepCurrentOnTransition,
-      (PUBLISHED                     -> AWAITING_UNPUBLISHING)         require PublishRoles withSideEffect checkIfArticleIsUsedInLearningStep keepCurrentOnTransition,
+      (PUBLISHED                     -> AWAITING_UNPUBLISHING)         require PublishRoles withSideEffect checkIfArticleIsInUse keepCurrentOnTransition,
       (PUBLISHED                     -> UNPUBLISHED)                   keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect unpublishArticle,
       (PUBLISHED                     -> ARCHIVED)                     .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle,
        //PUBLISHED                     -> AWAITING_ARCHIVING,
        AWAITING_UNPUBLISHING         -> DRAFT,
       (AWAITING_UNPUBLISHING         -> PUBLISHED)                     keepStates Set(IMPORTED) require PublishRoles withSideEffect publishArticle,
-      (AWAITING_UNPUBLISHING         -> AWAITING_UNPUBLISHING)         withSideEffect checkIfArticleIsUsedInLearningStep keepCurrentOnTransition,
+      (AWAITING_UNPUBLISHING         -> AWAITING_UNPUBLISHING)         withSideEffect checkIfArticleIsInUse keepCurrentOnTransition,
       (AWAITING_UNPUBLISHING         -> UNPUBLISHED)                   keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect unpublishArticle,
       (AWAITING_UNPUBLISHING         -> ARCHIVED)                     .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED),
        //AWAITING_UNPUBLISHING         -> AWAITING_ARCHIVING,
@@ -290,26 +292,25 @@ trait StateTransitionRules {
       }
     }
 
-    private def doIfArticleIsUnusedByLearningpath(
-        articleId: Long
-    )(callback: => Try[domain.Article]): Try[domain.Article] = {
-      val pathsUsingArticle = learningPathsUsingArticle(articleId)
-      if (pathsUsingArticle.isEmpty)
-        callback
-      else {
-        val ids: Seq[Long] = pathsUsingArticle.map(_.id.getOrElse(-1))
-        Failure(
-          new ValidationException(
-            errors = Seq(
-              ValidationMessage(
-                "status.current",
-                s"Learningpath(s) with id(s) ${ids.mkString(",")} contains a learning step that uses this article"
-              )
-            )
+    private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[domain.Article]): Try[domain.Article] =
+      (searchApiClient.articlesWhereUsed(articleId), learningPathsUsingArticle(articleId)) match {
+        case (Nil, Nil) => callback
+        case (articlesUsingArticle, pathsUsingArticle) =>
+          val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
+          val articleIds      = articlesUsingArticle.map(art => s"${art.id} (${art.title.title})")
+          def errorMessage(ids: Seq[_], msg: String): Option[ValidationMessage] =
+            Option.when(ids.nonEmpty)(ValidationMessage("status.current", msg))
+
+          val learningPathMessage = errorMessage(
+            learningPathIds,
+            s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article"
           )
-        )
+          val articleMessage = errorMessage(
+            articleIds,
+            s"Article is in use in these article(s) ${articleIds.mkString(", ")}"
+          )
+          Failure(new ValidationException(errors = learningPathMessage.toSeq ++ articleMessage.toSeq))
       }
-    }
 
   }
 }
