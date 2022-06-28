@@ -20,5 +20,6 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(componentRegistry.resourcesApp, "/learningpath-api/api-docs")
     context.mount(componentRegistry.healthController, "/health")
     context.mount(componentRegistry.configController, "/learningpath-api/v1/config", "config")
+    context.mount(componentRegistry.folderController, "/learningpath-api/v1/folders", "folders")
   }
 }

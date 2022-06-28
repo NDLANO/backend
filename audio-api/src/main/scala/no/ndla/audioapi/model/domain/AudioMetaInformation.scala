@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.model.domain
 
-import no.ndla.audioapi.{AudioApiProperties, Props}
+import no.ndla.audioapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._

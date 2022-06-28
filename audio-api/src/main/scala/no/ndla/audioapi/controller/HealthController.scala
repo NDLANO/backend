@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.{AudioApiProperties, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.ApplicationUrl
 import org.scalatra.{ActionResult, InternalServerError, Ok, ScalatraServlet}

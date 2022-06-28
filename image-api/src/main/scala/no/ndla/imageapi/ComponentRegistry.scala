@@ -10,7 +10,6 @@ package no.ndla.imageapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._

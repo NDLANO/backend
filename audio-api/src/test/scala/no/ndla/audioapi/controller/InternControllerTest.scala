@@ -10,7 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.{AudioApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.test.scalatest.ScalatraSuite
 

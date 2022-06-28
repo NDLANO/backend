@@ -12,7 +12,6 @@ import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, FilmFrontPageData}
 import org.postgresql.util.PGobject
 import scalikejdbc._
-import FilmFrontPageData._
 
 import scala.util.{Failure, Success, Try}
 

@@ -8,28 +8,22 @@
 
 package no.ndla.imageapi.service
 
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
+import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2,
   ImageMetaInformationV3,
   NewImageMetaInformationV2,
   UpdateImageMetaInformation
 }
-import no.ndla.imageapi.model.domain.{
-  DBImageFile,
-  DBImageMetaInformation,
-  ImageDimensions,
-  ImageFileData,
-  ImageMetaInformation,
-  ModelReleasedStatus,
-  UploadedImage
-}
-import no.ndla.imageapi.model._
+import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.mergeLanguageFields
+import no.ndla.scalatra.error.ValidationException
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -37,8 +31,6 @@ import java.lang.Math.max
 import java.util.Date
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
-import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: ConverterService
@@ -56,7 +48,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
-    import props.DefaultLanguage
 
     def deleteImageLanguageVersionV2(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] = {
       deleteImageLanguageVersion(imageId, language).flatMap {

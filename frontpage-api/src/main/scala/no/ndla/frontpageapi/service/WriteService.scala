@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi.service
 
-import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}

@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
-import no.ndla.draftapi.{DraftApiProperties, Props}
+import no.ndla.draftapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._

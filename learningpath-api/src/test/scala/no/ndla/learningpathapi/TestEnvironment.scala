@@ -20,8 +20,8 @@ import no.ndla.learningpathapi.controller.{
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
 import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
-import no.ndla.learningpathapi.model.domain.{DBLearningPath, DBLearningStep}
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.model.domain.{DBFolder, DBFolderResource, DBLearningPath, DBLearningStep, DBResource}
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
@@ -34,6 +34,8 @@ trait TestEnvironment
     with ConfigController
     with LearningPathRepositoryComponent
     with ConfigRepository
+    with FeideApiClient
+    with FolderRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -60,6 +62,9 @@ trait TestEnvironment
     with DBLearningPath
     with DBLearningStep
     with DBConfigMeta
+    with DBFolder
+    with DBResource
+    with DBFolderResource
     with NdlaController
     with CorrelationIdSupport
     with ErrorHelpers
@@ -96,6 +101,8 @@ trait TestEnvironment
   var e4sClient: NdlaE4sClient                                         = mock[NdlaE4sClient]
   val searchApiClient: SearchApiClient                                 = mock[SearchApiClient]
   val oembedProxyClient: OembedProxyClient                             = mock[OembedProxyClient]
+  val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
+  val folderRepository: FolderRepository                               = mock[FolderRepository]
 
   def resetMocks(): Unit = {
     reset(
@@ -111,7 +118,9 @@ trait TestEnvironment
       languageValidator,
       titleValidator,
       e4sClient,
-      oembedProxyClient
+      oembedProxyClient,
+      feideApiClient,
+      folderRepository
     )
   }
 }

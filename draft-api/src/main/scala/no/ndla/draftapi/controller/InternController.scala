@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.{DraftApiProperties, Props}
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}

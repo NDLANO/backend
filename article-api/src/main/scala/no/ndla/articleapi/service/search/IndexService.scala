@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 import no.ndla.search.SearchLanguage.languageAnalyzers

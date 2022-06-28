@@ -10,15 +10,9 @@ package no.ndla.imageapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.integration.DataSource
-import no.ndla.imageapi.model.domain.{
-  DBImageFile,
-  DBImageMetaInformation,
-  ImageFileData,
-  ImageFileDataDocument,
-  ImageMetaInformation
-}
+import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.service.ConverterService
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -45,7 +39,6 @@ trait ImageRepository {
     }
 
     def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      val im = ImageMetaInformation.syntax("im")
       imageMetaInformationWhere(sqls"im.metadata is not null order by random() limit 1")
     }
 

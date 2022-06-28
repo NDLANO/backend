@@ -8,7 +8,7 @@
 package no.ndla.learningpathapi.model.domain.config
 
 import enumeratum.Json4s
-import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain.ValidationException
 import org.json4s.Formats

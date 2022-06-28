@@ -7,7 +7,6 @@
 
 package no.ndla.imageapi.controller
 
-import io.lemonlabs.uri.Uri
 import no.ndla.imageapi.Props
 
 import javax.servlet.http.HttpServletRequest
@@ -15,7 +14,6 @@ import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
-import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger, SwaggerSupport}

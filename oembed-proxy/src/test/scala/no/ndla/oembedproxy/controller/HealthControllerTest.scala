@@ -8,7 +8,7 @@
 
 package no.ndla.oembedproxy.controller
 
-import no.ndla.oembedproxy.{OEmbedProxyProperties, TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

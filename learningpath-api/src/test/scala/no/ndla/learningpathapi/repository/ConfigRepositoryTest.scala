@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.learningpathapi.{DBMigrator, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome

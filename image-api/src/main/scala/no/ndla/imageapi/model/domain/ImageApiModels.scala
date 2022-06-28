@@ -8,16 +8,10 @@
 
 package no.ndla.imageapi.model.domain
 
-import java.util.Date
-import no.ndla.imageapi.Props
-import no.ndla.language.model.{LanguageField, WithLanguage}
+import no.ndla.language.model.LanguageField
 import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
-import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
-import org.json4s.native.Serialization._
-import scalikejdbc._
 
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {

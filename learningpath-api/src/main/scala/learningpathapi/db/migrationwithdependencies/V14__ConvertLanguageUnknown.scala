@@ -8,7 +8,7 @@
 package learningpathapi.db.migrationwithdependencies
 
 import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
-import no.ndla.learningpathapi.model.domain.{DBLearningStep, EmbedType, LearningStep}
+import no.ndla.learningpathapi.model.domain.{DBLearningStep, EmbedType}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}

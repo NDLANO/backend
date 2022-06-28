@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.{AudioApiProperties, Props}
+import no.ndla.audioapi.Props
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.model.domain.AudioMetaInformation

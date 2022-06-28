@@ -9,7 +9,7 @@
 package no.ndla.articleapi.model.domain
 
 import java.util.Date
-import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.articleapi.Props
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._

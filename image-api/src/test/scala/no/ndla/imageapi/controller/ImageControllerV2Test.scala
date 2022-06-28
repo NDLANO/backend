@@ -16,7 +16,7 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
-import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.DefaultFormats

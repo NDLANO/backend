@@ -10,7 +10,6 @@ package no.ndla.imageapi.model.api
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
-import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 
 trait ImageMetaDomainDump {

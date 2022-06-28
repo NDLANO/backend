@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.model.api
 
 import java.time.LocalDateTime
-import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
+import no.ndla.frontpageapi.Props
 import cats.Applicative
 import cats.effect.Sync
 import org.http4s.circe.{jsonEncoderOf, jsonOf}

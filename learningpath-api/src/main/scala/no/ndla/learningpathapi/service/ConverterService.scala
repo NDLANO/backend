@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.language.Language.{
   AllLanguages,
@@ -27,6 +28,8 @@ import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValida
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 
+import java.util.UUID
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -668,6 +671,167 @@ trait ConverterService {
         configValue.updatedAt,
         configValue.updatedBy
       )
+    }
+
+    def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
+      val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
+      maybeUUID match {
+        case Some(Success(uuid)) => Success(uuid)
+        case _ =>
+          Failure(
+            new ValidationException(
+              errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
+            )
+          )
+      }
+    }
+
+    def toDomainFolderDocument(newFolder: api.NewFolder): Try[domain.FolderDocument] = {
+      val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newFavorite = false
+
+      Success(
+        FolderDocument(
+          name = newFolder.name,
+          status = newStatus,
+          isFavorite = newFavorite,
+          data = List.empty
+        )
+      )
+    }
+
+    private def toApiFolderData(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
+      def loop(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
+        domainData match {
+          case Right(resource) =>
+            Success(
+              api.Resource(
+                id = resource.id.toString,
+                resourceType = resource.resourceType,
+                path = resource.path,
+                created = resource.created,
+                tags = resource.tags
+              )
+            )
+          case Left(folder) =>
+            folder.data
+              .traverse(d => {
+                val newCrumbs = d.swap.map(n => crumbs :+ n.name).getOrElse(crumbs)
+                loop(d, newCrumbs)
+              })
+              .map(subFolders =>
+                api.Folder(
+                  id = folder.id.toString,
+                  name = folder.name,
+                  status = folder.status.toString,
+                  isFavorite = folder.isFavorite,
+                  data = subFolders,
+                  breadcrumbs = crumbs
+                )
+              )
+        }
+      }
+      loop(domainData, crumbs)
+    }
+
+    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[String]): Try[api.Folder] = {
+      domainFolder.data
+        .traverse(folder => {
+          val newCrumbs = folder.swap.map(n => breadcrumbs :+ n.name).getOrElse(breadcrumbs)
+          toApiFolderData(folder, newCrumbs)
+        })
+        .map(folderData =>
+          api.Folder(
+            id = domainFolder.id.toString,
+            name = domainFolder.name,
+            status = domainFolder.status.toString,
+            isFavorite = domainFolder.isFavorite,
+            data = folderData,
+            breadcrumbs = breadcrumbs
+          )
+        )
+    }
+
+    def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
+      val name   = updated.name.getOrElse(existing.name)
+      val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
+
+      domain.Folder(
+        id = existing.id,
+        data = existing.data,
+        feideId = existing.feideId,
+        parentId = existing.parentId,
+        isFavorite = existing.isFavorite,
+        name = name,
+        status = status
+      )
+    }
+
+    def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
+      val tags = updated.tags.getOrElse(existing.tags)
+
+      domain.Resource(
+        id = existing.id,
+        feideId = existing.feideId,
+        resourceType = existing.resourceType,
+        path = existing.path,
+        created = existing.created,
+        tags = tags
+      )
+    }
+
+    def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
+      val tags = newResource.tags.getOrElse(existing.tags)
+
+      domain.Resource(
+        id = existing.id,
+        feideId = existing.feideId,
+        resourceType = existing.resourceType,
+        path = existing.path,
+        created = existing.created,
+        tags = tags
+      )
+    }
+
+    def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
+      val resourceType = domainResource.resourceType
+      val path         = domainResource.path
+      val created      = domainResource.created
+      val tags         = domainResource.tags
+
+      Success(
+        api.Resource(
+          id = domainResource.id.toString,
+          resourceType = resourceType,
+          path = path,
+          created = created,
+          tags = tags
+        )
+      )
+    }
+
+    def toDomainResource(newResource: api.NewResource): ResourceDocument = {
+      val tags = newResource.tags.getOrElse(List.empty)
+      ResourceDocument(tags = tags)
+    }
+
+    def domainToApiModel[Domain, Api](
+        domainObjects: List[Domain],
+        f: Domain => Try[Api]
+    ): Try[List[Api]] = {
+
+      @tailrec
+      def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
+        domainObjects match {
+          case ::(head, next) =>
+            f(head) match {
+              case Failure(exception) => Failure(exception)
+              case Success(apiObject) => loop(next, acc :+ apiObject)
+            }
+          case Nil => Success(acc)
+        }
+      }
+      loop(domainObjects, List())
     }
   }
 }

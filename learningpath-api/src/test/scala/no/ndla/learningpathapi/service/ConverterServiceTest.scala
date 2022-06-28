@@ -11,14 +11,16 @@ package no.ndla.learningpathapi.service
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.{LearningpathApiProperties, TestData, UnitSuite, UnitTestEnvironment}
+import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 
-import java.util.Date
+import java.time.LocalDateTime
+import java.util.{Date, UUID}
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
@@ -479,5 +481,228 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp1).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
+  }
+
+  test("toDomainFolder transforms correctly") {
+    val folderUUID = UUID.randomUUID()
+    val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
+    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("public"))
+    val newFolder3 =
+      api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("ikkeesksisterendestatus"))
+
+    val expected1 = domain.FolderDocument(
+      name = "kenkaku",
+      status = domain.FolderStatus.PRIVATE,
+      isFavorite = false,
+      data = List.empty
+    )
+
+    service.toDomainFolderDocument(newFolder1).get should be(expected1)
+    service.toDomainFolderDocument(newFolder2).get should be(
+      expected1.copy(status = domain.FolderStatus.PUBLIC)
+    )
+    service.toDomainFolderDocument(newFolder3).get should be(
+      expected1.copy(status = domain.FolderStatus.PRIVATE)
+    )
+  }
+
+  test("toApiFolder transforms correctly when data isn't corrupted") {
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
+    val mainFolderUUID = UUID.randomUUID()
+    val subFolder1UUID = UUID.randomUUID()
+    val subFolder2UUID = UUID.randomUUID()
+    val subFolder3UUID = UUID.randomUUID()
+    val resourceUUID   = UUID.randomUUID()
+
+    val resource =
+      domain.Resource(
+        id = resourceUUID,
+        feideId = "w",
+        resourceType = "concept",
+        path = "/subject/1/topic/1/resource/4",
+        created = created,
+        tags = List("a", "b", "c")
+      )
+    val folderData1 = domain.Folder(
+      id = subFolder1UUID,
+      feideId = "u",
+      parentId = Some(subFolder3UUID),
+      name = "folderData1",
+      status = domain.FolderStatus.PRIVATE,
+      isFavorite = false,
+      data = List(Right(resource))
+    )
+    val folderData2 = domain.Folder(
+      id = subFolder2UUID,
+      feideId = "w",
+      parentId = Some(mainFolderUUID),
+      name = "folderData2",
+      status = domain.FolderStatus.PUBLIC,
+      isFavorite = false,
+      data = List.empty
+    )
+    val folderData3 = domain.Folder(
+      id = subFolder3UUID,
+      feideId = "u",
+      parentId = Some(mainFolderUUID),
+      name = "folderData3",
+      status = domain.FolderStatus.PRIVATE,
+      isFavorite = false,
+      data = List(Left(folderData1))
+    )
+    val mainFolder = domain.Folder(
+      id = mainFolderUUID,
+      feideId = "u",
+      parentId = None,
+      name = "mainFolder",
+      status = domain.FolderStatus.PUBLIC,
+      isFavorite = false,
+      data = List(Left(folderData2), Left(folderData3), Right(resource))
+    )
+    val apiResource = api.Resource(
+      id = resourceUUID.toString,
+      resourceType = "concept",
+      tags = List("a", "b", "c"),
+      created = created,
+      path = "/subject/1/topic/1/resource/4"
+    )
+    val apiData1 = api.Folder(
+      id = subFolder1UUID.toString,
+      name = "folderData1",
+      status = "private",
+      isFavorite = false,
+      data = List(apiResource),
+      breadcrumbs = List("mainFolder", "folderData3", "folderData1")
+    )
+    val apiData2 = api.Folder(
+      id = subFolder2UUID.toString,
+      name = "folderData2",
+      status = "public",
+      isFavorite = false,
+      data = List.empty,
+      breadcrumbs = List("mainFolder", "folderData2")
+    )
+    val apiData3 = api.Folder(
+      id = subFolder3UUID.toString,
+      name = "folderData3",
+      status = "private",
+      isFavorite = false,
+      data = List(apiData1),
+      breadcrumbs = List("mainFolder", "folderData3")
+    )
+    val expected = api.Folder(
+      id = mainFolderUUID.toString,
+      name = "mainFolder",
+      status = "public",
+      isFavorite = false,
+      data = List(apiData2, apiData3, apiResource),
+      breadcrumbs = List("mainFolder")
+    )
+
+    val Success(result) = service.toApiFolder(mainFolder, List("mainFolder"))
+    result should be(expected)
+  }
+
+  test("updateFolder updates folder correctly") {
+    val folderUUID = UUID.randomUUID()
+    val parentUUID = UUID.randomUUID()
+
+    val existing = domain.Folder(
+      id = folderUUID,
+      feideId = "u",
+      parentId = Some(parentUUID),
+      name = "folderData1",
+      status = domain.FolderStatus.PRIVATE,
+      isFavorite = false,
+      data = List.empty
+    )
+    val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("public"))
+    val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
+    val updatedWithGarbageData =
+      api.UpdatedFolder(name = Some("huehueuheasdasd+++"), status = Some("det å joike er noe kult"))
+
+    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.PUBLIC)
+    val expected2 = existing.copy(name = "folderData1", status = FolderStatus.PRIVATE)
+    val expected3 = existing.copy(name = "huehueuheasdasd+++", status = FolderStatus.PRIVATE)
+
+    val result1 = service.mergeFolder(existing, updatedWithData)
+    val result2 = service.mergeFolder(existing, updatedWithoutData)
+    val result3 = service.mergeFolder(existing, updatedWithGarbageData)
+
+    result1 should be(expected1)
+    result2 should be(expected2)
+    result3 should be(expected3)
+  }
+
+  test("that toApiResource converts correctly") {
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
+    val folderUUID = UUID.randomUUID()
+
+    val existing =
+      domain.Resource(
+        id = folderUUID,
+        feideId = "feideid",
+        resourceType = "article",
+        path = "/subject/1/topic/1/resource/4",
+        created = created,
+        tags = List("a", "b", "c")
+      )
+    val expected =
+      api.Resource(
+        id = folderUUID.toString,
+        resourceType = "article",
+        path = "/subject/1/topic/1/resource/4",
+        created = created,
+        tags = List("a", "b", "c")
+      )
+
+    service.toApiResource(existing) should be(Success(expected))
+  }
+
+  test("that newResource toDomainResource converts correctly") {
+    val created = LocalDateTime.now()
+    when(clock.nowLocalDateTime()).thenReturn(created)
+    val newResource1 =
+      api.NewResource(
+        resourceType = "audio",
+        path = "/subject/1/topic/1/resource/4",
+        tags = Some(List("a", "b"))
+      )
+    val newResource2 =
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None)
+    val expected1 =
+      domain.ResourceDocument(
+        tags = List("a", "b")
+      )
+    val expected2 = expected1.copy(tags = List.empty)
+
+    service.toDomainResource(newResource1) should be(expected1)
+    service.toDomainResource(newResource2) should be(expected2)
+  }
+
+  test("That domainToApimodel transforms Folder from domain to api model correctly") {
+    val folder1UUID = UUID.randomUUID()
+    val folder2UUID = UUID.randomUUID()
+    val folder3UUID = UUID.randomUUID()
+
+    val folderDomainList = List(
+      TestData.emptyDomainFolder.copy(id = folder1UUID),
+      TestData.emptyDomainFolder.copy(id = folder2UUID),
+      TestData.emptyDomainFolder.copy(id = folder3UUID)
+    )
+
+    val result = service.domainToApiModel(folderDomainList, f => converterService.toApiFolder(f, List.empty))
+    result.get.length should be(3)
+    result should be(
+      Success(
+        List(
+          TestData.emptyApiFolder.copy(id = folder1UUID.toString, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder2UUID.toString, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder3UUID.toString, status = "private")
+        )
+      )
+    )
   }
 }

@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
 import org.joda.time.{DateTime, DateTimeZone}
 

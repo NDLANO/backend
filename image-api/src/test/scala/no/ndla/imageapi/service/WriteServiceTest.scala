@@ -679,7 +679,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = "ndla124"
     )
 
-    val fileMock = mock[FileItem]
     when(authUser.userOrClientid()).thenReturn("ndla124")
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -749,7 +748,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updatedBy = "ndla124"
     )
 
-    val fileMock = mock[FileItem]
     when(authUser.userOrClientid()).thenReturn("ndla124")
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {

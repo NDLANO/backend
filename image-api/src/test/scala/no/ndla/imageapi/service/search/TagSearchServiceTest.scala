@@ -9,7 +9,7 @@ package no.ndla.imageapi.service.search
 
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.Sort
-import no.ndla.imageapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome

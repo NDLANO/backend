@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.model.SearchableLanguageFormats
-import no.ndla.searchapi.{Props, SearchApiProperties}
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.model.grep.GrepBundle

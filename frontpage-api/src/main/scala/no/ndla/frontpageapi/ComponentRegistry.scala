@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi
 
 import cats.effect.IO
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
@@ -20,7 +20,6 @@ import no.ndla.frontpageapi.controller.{
 }
 import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 import org.http4s.rho.swagger.syntax.{io => ioSwagger}
 
 class ComponentRegistry(properties: FrontpageApiProperties)

@@ -10,9 +10,9 @@ package no.ndla.imageapi.repository
 import java.net.Socket
 
 import no.ndla.imageapi.model.domain.ImageTitle
-import no.ndla.imageapi.{DBMigrator, ImageApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
+import scalikejdbc.DB
 
 import scala.util.{Success, Try}
 import scalikejdbc._

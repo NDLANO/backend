@@ -9,7 +9,6 @@ package no.ndla.draftapi.repository
 
 import java.util.{Date, UUID}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}

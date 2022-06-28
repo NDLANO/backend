@@ -11,7 +11,7 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain
 import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.model.domain.{AboutSubject, Errors, MetaDescription, VisualElement, VisualElementType}
-import no.ndla.frontpageapi.{FrontpageApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
 

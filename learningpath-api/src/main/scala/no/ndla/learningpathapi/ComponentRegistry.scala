@@ -12,6 +12,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.controller.{
   ConfigController,
   CorrelationIdSupport,
+  FolderController,
   HealthController,
   InternController,
   LearningpathControllerV2,
@@ -19,9 +20,9 @@ import no.ndla.learningpathapi.controller.{
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
-import no.ndla.learningpathapi.model.domain.{DBLearningPath, DBLearningStep}
+import no.ndla.learningpathapi.model.domain.{DBFolder, DBFolderResource, DBLearningPath, DBLearningStep, DBResource}
 import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
-import no.ndla.learningpathapi.repository.{ConfigRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
@@ -34,15 +35,16 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
     extends LearningpathControllerV2
     with InternController
     with HealthController
     with ConfigController
+    with FolderController
     with LearningPathRepositoryComponent
     with ConfigRepository
+    with FolderRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -53,6 +55,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with NdlaClient
     with ImageApiClientComponent
     with ConverterService
+    with FeideApiClient
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
@@ -64,6 +67,9 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with SearchApiClient
     with Props
     with DBMigrator
+    with DBFolder
+    with DBResource
+    with DBFolderResource
     with TextValidator
     with UrlValidator
     with CorrelationIdSupport
@@ -82,6 +88,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
 
   lazy val learningPathRepository   = new LearningPathRepository
   lazy val configRepository         = new ConfigRepository
+  lazy val folderRepository         = new FolderRepository
   lazy val readService              = new ReadService
   lazy val updateService            = new UpdateService
   lazy val searchConverterService   = new SearchConverterService
@@ -92,10 +99,12 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val learningpathControllerV2 = new LearningpathControllerV2
   lazy val internController         = new InternController
   lazy val configController         = new ConfigController
+  lazy val folderController         = new FolderController
   lazy val resourcesApp             = new ResourcesApp
   lazy val taxononyApiClient        = new TaxonomyApiClient
   lazy val ndlaClient               = new NdlaClient
   lazy val imageApiClient           = new ImageApiClient
+  lazy val feideApiClient           = new FeideApiClient
   lazy val healthController         = new HealthController
   lazy val languageValidator        = new LanguageValidator
   lazy val titleValidator           = new TitleValidator

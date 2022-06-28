@@ -16,8 +16,7 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
-import no.ndla.imageapi.model.api
-import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation, SearchResult, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{DBImageMetaInformation, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639

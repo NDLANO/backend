@@ -11,7 +11,6 @@ import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.anyString
 
 import java.util.Date
 import scala.util.{Failure, Success}

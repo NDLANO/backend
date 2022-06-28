@@ -10,7 +10,7 @@ package no.ndla.frontpageapi.controller
 import cats.effect.{Effect, IO}
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.auth.UserInfo
-import no.ndla.frontpageapi.model.api.{Error, ErrorHelpers, NewSubjectFrontPageData, UpdatedSubjectFrontPageData}
+import no.ndla.frontpageapi.model.api.{ErrorHelpers, NewSubjectFrontPageData, UpdatedSubjectFrontPageData}
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import org.http4s.rho.swagger.{SecOps, SwaggerSyntax}

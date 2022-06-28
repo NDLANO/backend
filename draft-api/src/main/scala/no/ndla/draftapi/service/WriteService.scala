@@ -37,7 +37,6 @@ import org.scalatra.servlet.FileItem
 import java.io.ByteArrayInputStream
 import java.util.Date
 import java.util.concurrent.Executors
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.jdk.CollectionConverters._

@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.model.domain
 
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import org.json4s.FieldSerializer._
 import org.json4s._

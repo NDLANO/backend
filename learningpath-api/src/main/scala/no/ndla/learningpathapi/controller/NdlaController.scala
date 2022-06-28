@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError, ValidationMessage}
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -23,10 +24,11 @@ import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 
-import scala.util.Try
+import java.util.UUID
+import scala.util.{Failure, Success, Try}
 
 trait NdlaController {
-  this: DataSource with ErrorHelpers with CorrelationIdSupport =>
+  this: DataSource with ErrorHelpers with CorrelationIdSupport with ConverterService =>
 
   abstract class NdlaController
       extends ScalatraServlet
@@ -52,19 +54,34 @@ trait NdlaController {
       AuthUser.clear()
     }
 
+    // This lets us return Try[T] and handle errors automatically, otherwise return 200 OK :^)
+    val tryRenderer: RenderPipeline = {
+      case Success(value) => Ok(value)
+      case Failure(ex) =>
+        Try(errorHandler(ex)) match {
+          case Failure(ex: HaltException) => renderHaltException(ex)
+          case Failure(ex)                => errorHandler(ex)
+          case Success(result)            => result
+        }
+    }
+
+    override def renderPipeline: RenderPipeline = tryRenderer.orElse(super.renderPipeline)
+
     import ErrorHelpers._
 
     error {
       case v: ValidationException =>
-        halt(status = 400, body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
+        BadRequest(body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
       case a: AccessDeniedException =>
-        halt(status = 403, body = Error(ACCESS_DENIED, a.getMessage))
+        Forbidden(body = Error(ACCESS_DENIED, a.getMessage))
+      case dfe: DeleteFavoriteException =>
+        BadRequest(body = Error(DELETE_FAVORITE, dfe.getMessage))
       case ole: OptimisticLockException =>
-        halt(status = 409, body = Error(RESOURCE_OUTDATED, RESOURCE_OUTDATED_DESCRIPTION))
+        Conflict(body = Error(RESOURCE_OUTDATED, RESOURCE_OUTDATED_DESCRIPTION))
       case nfe: NotFoundException =>
-        halt(status = 404, body = Error(NOT_FOUND, nfe.getMessage))
+        NotFound(Error(NOT_FOUND, nfe.getMessage))
       case hre: HttpRequestException =>
-        halt(status = 502, body = Error(REMOTE_ERROR, hre.getMessage))
+        BadGateway(body = Error(REMOTE_ERROR, hre.getMessage))
       case i: ImportException =>
         UnprocessableEntity(body = Error(IMPORT_FAILED, i.getMessage))
       case rw: ResultWindowTooLargeException =>
@@ -86,7 +103,7 @@ trait NdlaController {
       case t: Throwable =>
         t.printStackTrace()
         logger.error(t.getMessage)
-        halt(status = 500, body = Error(GENERIC, GENERIC_DESCRIPTION))
+        InternalServerError(body = Error(GENERIC, GENERIC_DESCRIPTION))
     }
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
@@ -126,6 +143,11 @@ trait NdlaController {
 
     def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
       params.get(paramName).map(_.trim).filterNot(_.isEmpty())
+    }
+
+    def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
+      val maybeParam = paramOrNone(paramName)(request)
+      converterService.toUUIDValidated(maybeParam, paramName)
     }
 
     def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {

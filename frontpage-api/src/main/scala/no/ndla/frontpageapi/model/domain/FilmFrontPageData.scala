@@ -12,7 +12,7 @@ import io.circe.generic.auto._
 import io.circe.generic.semiauto._
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
-import no.ndla.frontpageapi.{FrontpageApiProperties, Props}
+import no.ndla.frontpageapi.Props
 import scalikejdbc.{WrappedResultSet, _}
 
 import scala.util.Try

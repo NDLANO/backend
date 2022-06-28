@@ -18,7 +18,6 @@ import no.ndla.imageapi.model.domain.{
   DBImageMetaInformation,
   ImageFileData,
   ImageMetaInformation,
-  ModelReleasedStatus,
   SearchResult
 }
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
