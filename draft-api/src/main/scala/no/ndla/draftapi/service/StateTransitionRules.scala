@@ -292,38 +292,25 @@ trait StateTransitionRules {
       }
     }
 
-    private def doIfArticleIsNotInUse(
-        articleId: Long
-    )(callback: => Try[domain.Article]): Try[domain.Article] = {
-      val articlesWhereUsed = searchApiClient.articlesWhereUsed(articleId)
-      val pathsUsingArticle = learningPathsUsingArticle(articleId)
-      if (articlesWhereUsed.isEmpty && pathsUsingArticle.isEmpty)
-        callback
-      else {
-        val ids = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
-        if (ids.nonEmpty) {
-          Failure(
-            new ValidationException(
-              errors = Seq(
-                ValidationMessage(
-                  "status.current",
-                  s"Learningpath(s) ${ids.mkString(", ")} contains a learning step that uses this article"
-                )
-              )
-            )
+    private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[domain.Article]): Try[domain.Article] =
+      (searchApiClient.articlesWhereUsed(articleId), learningPathsUsingArticle(articleId)) match {
+        case (Nil, Nil) => callback
+        case (articlesUsingArticle, pathsUsingArticle) =>
+          val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
+          val articleIds      = articlesUsingArticle.map(art => s"${art.id} (${art.title.title})")
+          def errorMessage(ids: Seq[_], msg: String): Option[ValidationMessage] =
+            Option.when(ids.nonEmpty)(ValidationMessage("status.current", msg))
+
+          val learningPathMessage = errorMessage(
+            learningPathIds,
+            s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article"
           )
-        } else {
-          val articles = articlesWhereUsed.map(art => s"${art.id} (${art.title.title})")
-          Failure(
-            new ValidationException(
-              errors = Seq(
-                ValidationMessage("status.current", s"Article is in use in these article(s) ${articles.mkString(", ")}")
-              )
-            )
+          val articleMessage = errorMessage(
+            articleIds,
+            s"Article is in use in these article(s) ${articleIds.mkString(", ")}"
           )
-        }
+          Failure(new ValidationException(errors = learningPathMessage.toSeq ++ articleMessage.toSeq))
       }
-    }
 
   }
 }
