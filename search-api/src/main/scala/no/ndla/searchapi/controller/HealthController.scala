@@ -8,12 +8,9 @@
 
 package no.ndla.searchapi.controller
 
-import com.sksamuel.elastic4s.ElasticDsl._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.search.Elastic4sClient
-import org.scalatra.{InternalServerError, Ok, ScalatraServlet}
-
-import scala.util.{Failure, Success}
+import org.scalatra.{Ok, ScalatraServlet}
 
 trait HealthController {
   this: Elastic4sClient =>
@@ -21,27 +18,7 @@ trait HealthController {
 
   class HealthController extends ScalatraServlet with LazyLogging {
     get("/") {
-      e4sClient.execute(clusterHealth()) match {
-        case Failure(exception) =>
-          logger.error(
-            "Something went wrong when contacting elasticsearch instance when performing health check",
-            exception
-          )
-          InternalServerError()
-        case Success(successfulResponse) if successfulResponse.status == 200 && successfulResponse.isSuccess =>
-          Ok()
-        case Success(notReallySuccessfulResponse) =>
-          logger.error(
-            s"""Health check against elasticsearch failed --->
-                 |Status: $status
-                 |Body: ${notReallySuccessfulResponse.body.getOrElse("<missing>")}
-                 |headers:   ${notReallySuccessfulResponse.headers.mkString("\n\t")}
-                 |Result: ${notReallySuccessfulResponse.result.toString}
-                 |""".stripMargin
-          )
-          InternalServerError()
-      }
+      Ok()
     }
-
   }
 }
