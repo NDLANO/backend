@@ -15,7 +15,6 @@ import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
-  FolderData,
   StepStatus,
   UserInfo,
   Author => _,
@@ -24,7 +23,7 @@ import no.ndla.learningpathapi.model.domain.{
   _
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
-import scalikejdbc.{DBSession}
+import scalikejdbc.DBSession
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -78,7 +77,7 @@ trait ReadService {
         user: UserInfo = UserInfo.getUserOrPublic
     ): Try[LearningStepStatus] = {
       learningstepV2For(learningPathId, learningStepId, language, fallback, user).map(ls =>
-        LearningStepStatus(ls.status.toString)
+        LearningStepStatus(ls.status)
       )
     }
 
@@ -176,28 +175,6 @@ trait ReadService {
       } yield convertedResources
     }
 
-    private def getFolderResources(
-        id: UUID,
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[List[FolderData]] = {
-      if (includeResources)
-        folderRepository.getFolderResources(id).map(_.map(_.asRight))
-      else
-        Success(List.empty)
-    }
-
-    private[service] def getSubFoldersRecursively(
-        folder: domain.Folder,
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[domain.Folder] = {
-      for {
-        directSubfolders <- folderRepository.foldersWithParentID(parentId = folder.id.some)
-        folderResources  <- getFolderResources(folder.id, includeResources)
-        subFolders <- directSubfolders.traverse(subFolder => getSubFoldersRecursively(subFolder, includeResources))
-        combined = folderResources ++ subFolders.map(_.asLeft)
-      } yield folder.copy(data = combined)
-    }
-
     private def createFavorite(
         feideId: domain.FeideID
     ): Try[domain.Folder] = {
@@ -229,7 +206,7 @@ trait ReadService {
       }
     }
 
-    def getFolder(
+    def getSingleFolder(
         id: UUID,
         includeSubfolders: Boolean,
         includeResources: Boolean,
@@ -238,24 +215,12 @@ trait ReadService {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
         feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
-        mainFolder        <- folderRepository.folderWithId(id)
-        _                 <- mainFolder.hasReadAccess(feideId)
-        folderWithContent <- folderWithContent(mainFolder, includeSubfolders, includeResources)
-        breadcrumbs       <- getBreadcrumbs(mainFolder)
+        folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
+        _                 <- folderWithContent.hasReadAccess(feideId)
+        breadcrumbs       <- getBreadcrumbs(folderWithContent)
         converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
       } yield converted
     }
-
-    private def folderWithContent(
-        folder: domain.Folder,
-        includeSubfolders: Boolean,
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[domain.Folder] =
-      if (includeSubfolders) getSubFoldersRecursively(folder, includeResources)
-      else
-        getFolderResources(folder.id, includeResources).map(resources => {
-          folder.copy(data = resources)
-        })
 
     private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
       val maybeFavorite = folders.find(_.isFavorite)
@@ -265,27 +230,43 @@ trait ReadService {
       } yield combined
     }
 
-    private[service] def injectResourcesToFolders(
-        folders: List[domain.Folder],
-        includeResources: Boolean
-    )(implicit session: DBSession): Try[List[domain.Folder]] =
-      folders.traverse(folder => {
-        val folderResources = getFolderResources(folder.id, includeResources)
+    def withResources(folderId: UUID, shouldIncludeResources: Boolean)(implicit
+        session: DBSession
+    ): Try[domain.Folder] = folderRepository
+      .folderWithId(folderId)
+      .flatMap(folder => {
+        val folderResources =
+          if (shouldIncludeResources) folderRepository.getFolderResources(folderId).map(_.map(_.asRight))
+          else Success(List.empty)
+
         folderResources.map(res => folder.copy(data = res))
       })
+
+    def getSingleFolderWithContent(
+        folderId: UUID,
+        includeSubfolders: Boolean,
+        includeResources: Boolean
+    )(implicit session: DBSession): Try[domain.Folder] = {
+      val folderWithContent = (includeSubfolders, includeResources) match {
+        case (true, true)                    => folderRepository.getFolderAndChildrenSubfoldersWithResources(folderId)
+        case (true, false)                   => folderRepository.getFolderAndChildrenSubfolders(folderId)
+        case (false, shouldIncludeResources) => withResources(folderId, shouldIncludeResources).map(_.some)
+      }
+
+      folderWithContent match {
+        case Failure(ex)           => Failure(ex)
+        case Success(Some(folder)) => Success(folder)
+        case Success(None)         => Failure(NotFoundException(s"Folder with id $folderId does not exist"))
+      }
+    }
 
     private def getSubfolders(
         folders: List[domain.Folder],
         includeSubfolders: Boolean,
         includeResources: Boolean
-    )(implicit session: DBSession): Try[List[domain.Folder]] = {
-      if (includeSubfolders)
-        folders.traverse(folder => getSubFoldersRecursively(folder, includeResources))
-      else {
-        // getSubFoldersRecursively already injects resources into folders, this prevents double-up
-        injectResourcesToFolders(folders, includeResources)
-      }
-    }
+    )(implicit session: DBSession): Try[List[domain.Folder]] =
+      folders
+        .traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
     def getFolders(
         includeSubfolders: Boolean,

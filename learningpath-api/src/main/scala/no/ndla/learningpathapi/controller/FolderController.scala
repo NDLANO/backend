@@ -121,7 +121,7 @@ trait FolderController {
       uuidParam(this.folderId.paramName).flatMap(id => {
         val includeResources  = booleanOrDefault(this.includeResources.paramName, default = false)
         val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
-        readService.getFolder(id, includeSubfolders, includeResources, requestFeideToken)
+        readService.getSingleFolder(id, includeSubfolders, includeResources, requestFeideToken)
       })
     }
 
