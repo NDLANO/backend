@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 abstract class IntegrationSuite(
     EnableElasticsearchContainer: Boolean = false,
     EnablePostgresContainer: Boolean = false,
-    PostgresqlVersion: String = "12.4",
+    PostgresqlVersion: String = "13.6",
     ElasticsearchImage: String = "9062bdb", // elasticsearch 7.16.2
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
