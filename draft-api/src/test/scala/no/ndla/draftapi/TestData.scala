@@ -308,7 +308,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.planned
+    RevisionMeta.default
   )
 
   val sampleDomainArticle: Article = Article(

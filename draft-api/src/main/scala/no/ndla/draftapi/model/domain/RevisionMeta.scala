@@ -22,7 +22,7 @@ case class RevisionMeta(
 }
 
 object RevisionMeta {
-  def planned: Seq[RevisionMeta] = Seq(
+  def default: Seq[RevisionMeta] = Seq(
     RevisionMeta(
       UUID.randomUUID(),
       LocalDateTime.now().plusYears(5).withNano(0),
