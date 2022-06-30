@@ -7,14 +7,14 @@
 
 package no.ndla.draftapi
 
-import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.model.domain._
-import ArticleStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}
-import org.joda.time.{DateTime, DateTimeZone}
+import no.ndla.draftapi.model.domain.ArticleStatus._
+import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
+import org.joda.time.{DateTime, DateTimeZone}
 
 import java.util.Date
 
@@ -308,7 +308,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    RevisionMeta.planned
   )
 
   val sampleDomainArticle: Article = Article(

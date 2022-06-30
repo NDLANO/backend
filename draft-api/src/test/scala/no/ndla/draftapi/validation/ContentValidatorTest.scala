@@ -277,4 +277,17 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.message should be("Meta image ID must be a number")
   }
 
+  test("validation should fail if revisionMeta does not have unplanned revisions") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          revisionMeta = RevisionMeta.default
+        )
+      )
+
+    res.errors.length should be(1)
+    res.errors.head.field should be("revisionMeta")
+    res.errors.head.message should be("An article must contain at least one planned revisiondate")
+  }
+
 }

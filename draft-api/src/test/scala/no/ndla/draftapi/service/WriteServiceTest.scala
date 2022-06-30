@@ -1104,7 +1104,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None
     )
-    saved.get.notes.size should be(1)
+    saved.get.notes.size should be(2)
     saved.get.notes.head.note should be("Lagt til revisjon Ny revision.")
     val savedRevision = saved.get.revisions.head
 
