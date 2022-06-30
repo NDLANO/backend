@@ -22,12 +22,11 @@ case class RevisionMeta(
 }
 
 object RevisionMeta {
-  def default: Seq[RevisionMeta] = Seq.empty
   def planned: Seq[RevisionMeta] = Seq(
     RevisionMeta(
       UUID.randomUUID(),
       LocalDateTime.now().plusYears(5).withNano(0),
-      "Automatisk revisjonsdato satt av systemet.",
+      "Automatisk revisjonsdato satt av systemet",
       RevisionStatus.NeedsRevision
     )
   )

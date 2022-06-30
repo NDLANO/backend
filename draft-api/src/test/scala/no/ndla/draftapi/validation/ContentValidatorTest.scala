@@ -281,7 +281,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val Failure(res: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          revisionMeta = RevisionMeta.default
+          revisionMeta = Seq.empty
         )
       )
 

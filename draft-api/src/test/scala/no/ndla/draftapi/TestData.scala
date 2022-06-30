@@ -280,7 +280,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -336,7 +336,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -364,7 +364,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -437,7 +437,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
