@@ -19,6 +19,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 import org.joda.time.format.ISODateTimeFormat
 
+import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -150,7 +151,9 @@ trait ContentValidator {
     }
 
     private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta]): Seq[ValidationMessage] = {
-      revisionMeta.find(rm => rm.status == RevisionStatus.NeedsRevision) match {
+      revisionMeta.find(rm =>
+        rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(LocalDateTime.now())
+      ) match {
         case Some(_) => Seq.empty
         case None =>
           Seq(
