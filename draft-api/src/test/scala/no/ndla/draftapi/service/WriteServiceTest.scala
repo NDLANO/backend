@@ -15,7 +15,6 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{HtmlTagRules, ValidationMessage}
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -24,14 +23,14 @@ import scalikejdbc.DBSession
 
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import java.util.{Date, UUID}
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today: Date     = DateTime.now().toDate
-  val yesterday: Date = DateTime.now().minusDays(1).toDate
+  val today: LocalDateTime     = LocalDateTime.now()
+  val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service         = new WriteService()
 
   val articleId   = 13
@@ -504,20 +503,20 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That articles are cloned with reasonable values") {
-    val yesterday = new DateTime().minusDays(1)
-    val today     = new DateTime()
+    val yesterday = LocalDateTime.now().minusDays(1)
+    val today     = LocalDateTime.now()
 
-    when(clock.now()).thenReturn(today.toDate)
+    when(clock.now()).thenReturn(today)
 
-    withFrozenTime(today) {
+    //withFrozenTime(today) {
       val article =
         TestData.sampleDomainArticle.copy(
           id = Some(5),
           title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
           status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
-          updated = yesterday.toDate,
-          created = yesterday.minusDays(1).toDate,
-          published = yesterday.toDate
+          updated = yesterday,
+          created = yesterday.minusDays(1),
+          published = yesterday
         )
 
       val userinfo = UserInfo("somecoolid", Set.empty)
@@ -530,9 +529,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         id = Some(newId),
         title = Seq(domain.ArticleTitle("Tittel (Kopi)", "nb"), domain.ArticleTitle("Title (Kopi)", "en")),
         revision = Some(1),
-        updated = today.toDate,
-        created = today.toDate,
-        published = today.toDate,
+        updated = today,
+        created = today,
+        published = today,
         updatedBy = userinfo.id,
         status = Status(ArticleStatus.DRAFT, Set.empty),
         notes = article.notes ++
@@ -556,23 +555,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val insertedArticle = cap.getValue
       insertedArticle should be(expectedInsertedArticle)
     }
-  }
+  //}
 
   test("That articles are cloned without title postfix if flag is false") {
-    val yesterday = new DateTime().minusDays(1)
-    val today     = new DateTime()
+    val yesterday = LocalDateTime.now().minusDays(1)
+    val today     = LocalDateTime.now()
 
-    when(clock.now()).thenReturn(today.toDate)
+    when(clock.now()).thenReturn(today)
 
-    withFrozenTime(today) {
+    //withFrozenTime(today) {
       val article =
         TestData.sampleDomainArticle.copy(
           id = Some(5),
           title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
           status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
-          updated = yesterday.toDate,
-          created = yesterday.minusDays(1).toDate,
-          published = yesterday.toDate
+          updated = yesterday,
+          created = yesterday.minusDays(1),
+          published = yesterday
         )
 
       val userinfo = UserInfo("somecoolid", Set.empty)
@@ -584,9 +583,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val expectedInsertedArticle = article.copy(
         id = Some(newId),
         revision = Some(1),
-        updated = today.toDate,
-        created = today.toDate,
-        published = today.toDate,
+        updated = today,
+        created = today,
+        published = today,
         updatedBy = userinfo.id,
         status = Status(ArticleStatus.DRAFT, Set.empty),
         notes = article.notes ++
@@ -610,7 +609,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val insertedArticle = cap.getValue
       insertedArticle should be(expectedInsertedArticle)
     }
-  }
+  //}
 
   test("article status should not be updated if only notes are changed") {
     val updatedArticle = TestData.blankUpdatedArticle.copy(
