@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.repository
 
-import java.util.{Date, UUID}
+import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
@@ -19,6 +19,7 @@ import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
@@ -89,7 +90,7 @@ trait DraftRepository {
             val articleRevision                 = article.revision.getOrElse(0) + 1
             val copiedArticle = article.copy(
               notes = user
-                .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, new Date()))
+                .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, LocalDateTime.now()))
                 .toList,
               previousVersionsNotes = article.previousVersionsNotes ++ article.notes
             )

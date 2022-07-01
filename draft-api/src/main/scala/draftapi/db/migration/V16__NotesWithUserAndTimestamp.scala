@@ -7,7 +7,7 @@
 
 package draftapi.db.migration
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import no.ndla.draftapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -84,5 +84,5 @@ class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
       .update()
   }
 
-  case class V15__Article(status: Status, updated: Date, notes: Seq[String])
+  case class V15__Article(status: Status, updated: LocalDateTime, notes: Seq[String])
 }

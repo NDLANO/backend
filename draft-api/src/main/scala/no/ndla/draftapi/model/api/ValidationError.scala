@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import no.ndla.validation.ValidationMessage
 import org.scalatra.swagger.annotations._
@@ -20,5 +20,5 @@ case class ValidationError(
     @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
     @(ApiModelProperty @field)(description = "List of validation messages") messages: Seq[ValidationMessage],
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date()
+    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )

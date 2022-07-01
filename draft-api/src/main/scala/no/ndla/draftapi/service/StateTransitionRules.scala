@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.service
 
-import java.util.Date
+import java.time.LocalDateTime
 import cats.effect.IO
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
@@ -243,7 +243,7 @@ trait StateTransitionRules {
                 "Status endret",
                 if (isImported) "System" else user.id,
                 newStatus,
-                new Date()
+                LocalDateTime.now()
               )
             else current.notes
           val convertedArticle = current.copy(status = newStatus, notes = newEditorNotes)

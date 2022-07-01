@@ -7,7 +7,7 @@
 
 package no.ndla.scalatestsuite
 
-import org.joda.time.{DateTime, DateTimeUtils}
+import org.joda.time.{DateTime, DateTimeUtils, LocalDateTime}
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
@@ -45,6 +45,7 @@ abstract class UnitTestSuite
     keys.flatMap(key => getPropEnv(key).map(value => key -> value)).toMap
   }
 
+  // TODO: Jonas sier jeg skal vente med denne
   def withFrozenTime(time: DateTime = new DateTime())(toExecute: => Any): Unit = {
     DateTimeUtils.setCurrentMillisFixed(time.getMillis)
     toExecute

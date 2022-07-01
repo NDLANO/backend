@@ -15,7 +15,7 @@ import org.json4s.{DefaultFormats, Extraction}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Success, Try}
 
 class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
@@ -92,5 +92,5 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
   }
 }
 case class V18__Article(notes: Seq[V18__EditorNote])
-case class V18__EditorNote(note: String, user: String, status: V18__Status, timestamp: Date)
+case class V18__EditorNote(note: String, user: String, status: V18__Status, timestamp: LocalDateTime)
 case class V18__Status(current: String, other: Set[String])

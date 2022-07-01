@@ -13,10 +13,9 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -24,8 +23,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val byNcSa: Copyright =
     Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, None)
-  def updated(): Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  def created(): Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  def updated(): LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  def created(): LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
   val domainTitles = List(
     Title("Bokmål tittel", "nb"),

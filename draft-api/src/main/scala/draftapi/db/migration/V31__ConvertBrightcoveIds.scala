@@ -12,7 +12,6 @@ import no.ndla.common.Environment.prop
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
 import org.json4s
 import org.json4s.JsonAST.{JArray, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -25,6 +24,7 @@ import org.postgresql.util.PGobject
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import scalikejdbc.{DB, DBSession, _}
 
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
@@ -53,16 +53,16 @@ class BrightcoveApiClient {
     fetchAccessToken().map(token => {
       val temp = StoredToken(
         token.access_token,
-        token.expires_in + (new DateTime().getMillis / 1000)
+        token.expires_in + LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
       )
       accessToken = Some(temp)
       temp
     })
   }
-
+  //     LocalDateTime.now().minusDays(4).withNano(0),
   def refreshTokenIfInvalid(): Try[StoredToken] = {
     accessToken match {
-      case Some(storedToken) if (new DateTime().getMillis / 1000) < storedToken.expiresAt - 10 => Success(storedToken)
+      case Some(storedToken) if LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) < storedToken.expiresAt - 10 => Success(storedToken)
       case _                                                                                   => refreshToken()
     }
   }

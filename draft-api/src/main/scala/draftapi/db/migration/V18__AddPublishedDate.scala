@@ -7,7 +7,7 @@
 
 package draftapi.db.migration
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
@@ -79,4 +79,4 @@ class V18__AddPublishedDate extends BaseJavaMigration {
     }
   }
 }
-case class V17__Article(updated: Date)
+case class V17__Article(updated: LocalDateTime)

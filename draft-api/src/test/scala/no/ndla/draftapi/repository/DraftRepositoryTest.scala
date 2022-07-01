@@ -13,10 +13,10 @@ import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 import scalikejdbc._
 
+import java.time.LocalDateTime
 import java.net.Socket
 import scala.util.{Failure, Success, Try}
 
@@ -335,21 +335,20 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("published, then copied article keeps old notes in hidden field and notes is emptied") {
-    val timeToFreeze = new DateTime().withMillisOfSecond(0)
-    withFrozenTime(timeToFreeze) {
+    // TODO: val timeToFreeze = LocalDateTime.now().withNano(0)
       val status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)
       val prevNotes1 = Seq(
-        domain.EditorNote("Note1", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note2", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note3", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note4", "SomeId", status, new DateTime().toDate)
+        domain.EditorNote("Note1", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note2", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note3", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note4", "SomeId", status, LocalDateTime.now())
       )
 
       val prevNotes2 = Seq(
-        domain.EditorNote("Note5", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note6", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note7", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note8", "SomeId", status, new DateTime().toDate)
+        domain.EditorNote("Note5", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note6", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note7", "SomeId", status, LocalDateTime.now()),
+        domain.EditorNote("Note8", "SomeId", status, LocalDateTime.now())
       )
       val draftArticle1 = TestData.sampleDomainArticle.copy(
         status = domain.Status(domain.ArticleStatus.UNPUBLISHED, Set.empty),
@@ -383,13 +382,12 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
       val copiedArticle2 = repository.storeArticleAsNewVersion(updatedArticle2, None).get
       copiedArticle2.notes should be(Seq.empty)
       copiedArticle2.previousVersionsNotes should be(prevNotes1 ++ prevNotes2)
-    }
+
 
   }
 
   test("copied article should have new note about copying if user present") {
-    val timeToFreeze = new DateTime().withMillisOfSecond(0)
-    withFrozenTime(timeToFreeze) {
+    // TODO: val timeToFreeze = new DateTime().withMillisOfSecond(0)
       val draftArticle1 = TestData.sampleDomainArticle.copy(
         status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty),
         notes = Seq.empty
@@ -401,9 +399,6 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
       copiedArticle1.notes.length should be(1)
       copiedArticle1.notes.head.user should be("user-id")
       copiedArticle1.previousVersionsNotes should be(Seq.empty)
-
-    }
-
   }
 
   test("withId parse relatedContent correctly") {

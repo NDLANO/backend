@@ -6,6 +6,6 @@
  */
 
 package no.ndla.draftapi.model.domain
-import java.util.Date
+import java.time.LocalDateTime
 
-case class EditorNote(note: String, user: String, status: Status, timestamp: Date)
+case class EditorNote(note: String, user: String, status: Status, timestamp: LocalDateTime)

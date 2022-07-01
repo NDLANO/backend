@@ -10,7 +10,7 @@ package draftapi.db.migration
 import draftapi.db.migration.V17__MoveTopicArticleEmbedToVisualElement
 import enumeratum.Json4s
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.draftapi.model.domain.ArticleType
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats
@@ -109,7 +109,7 @@ class V17__MoveTopicArticleEmbedToVisualElementTest extends UnitSuite with TestE
     implicit val formats: Formats =
       org.json4s.DefaultFormats + new EnumNameSerializer(migration.V16__ArticleStatus) + Json4s.serializer(ArticleType)
 
-    val d            = write(new Date())
+    val d            = write(LocalDateTime.now())
     val existingNote = s"""{"note":"kake","user":"testleif","timestamp":$d,"status":{"current":"DRAFT","other":[]}}"""
     val noteText =
       s"Embed plassert før første tekst har blitt slettet og gjort om til visuelt element, dersom det var mulig. Status har blitt endret til 'Til kvalitetssikring'."
