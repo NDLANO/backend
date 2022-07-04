@@ -9,11 +9,12 @@ package imageapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class V3__AddUpdatedColoums extends BaseJavaMigration with LazyLogging {
 
@@ -63,7 +64,8 @@ class TimeService() {
 
   def nowAsString(): String = {
     // NB!!! BUG day format is wrong should have been dd, and the Z should have been 'Z'
-    val formatter: DateTimeFormatter = DateTimeFormat.forPattern("YYYY-MM-DD'T'HH:mm:ssZ")
-    (new DateTime).toString(formatter)
+    val currentTime = LocalDateTime.now()
+    val formatter   = DateTimeFormatter.ofPattern("YYYY-MM-DD'T'HH:mm:ssZ")
+    currentTime.format(formatter)
   }
 }

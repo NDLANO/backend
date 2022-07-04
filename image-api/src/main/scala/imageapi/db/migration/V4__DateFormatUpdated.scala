@@ -9,11 +9,13 @@ package imageapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class V4__DateFormatUpdated extends BaseJavaMigration with LazyLogging {
   // There was a bug in the dateformat of V3__AddUpdatedColoums had days as DD and the 'Z' got stored as +0000 not as 'Z'.
@@ -64,7 +66,9 @@ case class V4__DBImageMetaInformation(id: Long, document: String)
 class TimeService2() {
 
   def nowAsString(): String = {
-    (new DateTime()).toString("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val currentTime = LocalDateTime.now()
+    val formatter   = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    currentTime.format(formatter)
   }
 
 }

@@ -13,7 +13,7 @@ import no.ndla.imageapi.model.api
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 trait DraftApiClient {
   this: NdlaClient with Props =>
@@ -42,7 +42,7 @@ case class Agreement(
     title: String,
     content: String,
     copyright: api.Copyright,
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String
 )

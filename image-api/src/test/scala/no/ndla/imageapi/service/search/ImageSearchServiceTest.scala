@@ -14,10 +14,9 @@ import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain}
 import no.ndla.network.ApplicationUrl
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.{Outcome, PrivateMethodTester}
 
-import java.util.Date
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
@@ -70,7 +69,7 @@ class ImageSearchServiceTest
     None,
     None
   )
-  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val agreement1Copyright = api.Copyright(
     api.License("gnu", "gnustuff", Some("http://gnugnusen")),
@@ -112,7 +111,7 @@ class ImageSearchServiceTest
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
-    editorNotes = Seq(EditorNote(new Date(), "someone", "Lillehjelper"))
+    editorNotes = Seq(EditorNote(LocalDateTime.now(), "someone", "Lillehjelper"))
   )
 
   val image3 = new ImageMetaInformation(

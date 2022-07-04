@@ -28,7 +28,7 @@ import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
 import java.lang.Math.max
-import java.util.Date
+import java.time.LocalDateTime
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
@@ -189,7 +189,7 @@ trait WriteService {
       val withoutMetas = (i: ImageMetaInformation) =>
         i.copy(
           images = Seq.empty,
-          updated = new Date(0),
+          updated = LocalDateTime.MIN,
           updatedBy = ""
         )
 

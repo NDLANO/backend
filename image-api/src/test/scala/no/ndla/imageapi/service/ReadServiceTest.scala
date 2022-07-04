@@ -12,7 +12,8 @@ import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Model
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
 import scalikejdbc.DBSession
 
@@ -68,9 +69,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         )
       )
     )
-    implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl                               = s"${props.Domain}/image-api/v2/images/1"
-    val testRawUrl                            = s"${props.Domain}/image-api/raw/Elg.jpg"
+    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val testUrl                   = s"${props.Domain}/image-api/v2/images/1"
+    val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","title":{"title":"Elg i busk","language":"nb"},"alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -116,9 +117,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
     when(draftApiClient.getAgreementCopyright(1)).thenReturn(None)
-    implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl                               = s"${props.Domain}/image-api/v2/images/1"
-    val testRawUrl                            = s"${props.Domain}/image-api/raw/Elg.jpg"
+    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val testUrl                   = s"${props.Domain}/image-api/v2/images/1"
+    val testRawUrl                = s"${props.Domain}/image-api/raw/Elg.jpg"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testRawUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]

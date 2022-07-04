@@ -11,14 +11,15 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.servlet.FileItem
+
+import java.time.LocalDateTime
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
   override val validationService = new ValidationService
 
   val fileMock  = mock[FileItem]
-  def updated() = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+  def updated() = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val sampleImageMeta = new ImageMetaInformation(
     id = Some(1),

@@ -13,6 +13,7 @@ import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.service.ConverterService
 import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -24,7 +25,7 @@ trait ImageRepository {
   val imageRepository: ImageRepository
 
   class ImageRepository extends LazyLogging with Repository[ImageMetaInformation] {
-    implicit val formats: Formats = ImageMetaInformation.repositorySerializer
+    implicit val formats: Formats = ImageMetaInformation.repositorySerializer ++ JavaTimeSerializers.all
 
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${ImageMetaInformation.table}"

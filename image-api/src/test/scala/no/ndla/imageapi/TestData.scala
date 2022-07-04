@@ -15,8 +15,7 @@ import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2
 import no.ndla.imageapi.model.domain._
 import no.ndla.mapping
-import org.joda.time.{DateTime, DateTimeZone}
-import java.util.Date
+import java.time.LocalDateTime
 
 /** Testklasse (og kanskje et utgangspunkt for en mer permanent løsning) som kan benyttes til å laste opp bilder til en
   * S3-bucket, samt metainformasjon til en DynamoDB-instans
@@ -26,7 +25,7 @@ trait TestData {
 
   class TestData {
 
-    def updated(): Date = (new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC)).toDate
+    def updated(): LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
     val ByNcSa = mapping.License.CC_BY_NC_SA.toString
 
