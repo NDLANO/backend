@@ -16,11 +16,10 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 
 import java.time.LocalDateTime
-import java.util.{Date, UUID}
+import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
@@ -43,7 +42,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     "PRIVATE",
     "CREATED_BY_NDLA",
-    new Date(),
+    LocalDateTime.now(),
     api.LearningPathTags(List(), "nb"),
     copyright,
     true,
@@ -67,7 +66,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   )
   val apiTags = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
 
-  val randomDate                = DateTime.now().toDate
+  val randomDate                = LocalDateTime.now()
   var service: ConverterService = _
 
   val domainLearningPath = LearningPath(
@@ -508,7 +507,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("toApiFolder transforms correctly when data isn't corrupted") {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
     val mainFolderUUID = UUID.randomUUID()
     val subFolder1UUID = UUID.randomUUID()
     val subFolder2UUID = UUID.randomUUID()
@@ -637,7 +636,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that toApiResource converts correctly") {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
     val folderUUID = UUID.randomUUID()
 
     val existing =
@@ -663,7 +662,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that newResource toDomainResource converts correctly") {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
     val newResource1 =
       api.NewResource(
         resourceType = "audio",

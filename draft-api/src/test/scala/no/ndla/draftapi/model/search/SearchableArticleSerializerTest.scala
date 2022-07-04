@@ -29,7 +29,6 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     tags = SearchableLanguageList(
       List(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
     ),
-    //LocalDateTime.of(2017, 1, 1, 12, 15, 32),
     lastUpdated = LocalDateTime.of(2018, 2, 22, 13, 0, 51),
     license = Some("by-sa"),
     authors = Seq("Jonas Natty"),

@@ -13,12 +13,12 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.validation.DurationValidator
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Serializer}
+import org.json4s.{DefaultFormats, FieldSerializer, Formats, Serializer}
 import scalikejdbc._
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class LearningPath(
@@ -32,7 +32,7 @@ case class LearningPath(
     duration: Option[Int],
     status: LearningPathStatus.Value,
     verificationStatus: LearningPathVerificationStatus.Value,
-    lastUpdated: Date,
+    lastUpdated: LocalDateTime,
     tags: Seq[LearningPathTags],
     owner: String,
     copyright: Copyright,
@@ -166,7 +166,7 @@ trait DBLearningPath {
       ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
     )
 
-    val jsonEncoder = DefaultFormats ++ jsonSerializer
+    val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer ++ JavaTimeSerializers.all
 
     override val tableName  = "learningpaths"
     override val schemaName = Some(props.MetaSchema)
@@ -175,8 +175,8 @@ trait DBLearningPath {
       fromResultSet(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[LearningPath])(rs: WrappedResultSet): LearningPath = {
-      implicit val formats = jsonEncoder
-      val meta             = read[LearningPath](rs.string(lp.c("document")))
+      implicit val formats: Formats = jsonEncoder ++ JavaTimeSerializers.all
+      val meta                      = read[LearningPath](rs.string(lp.c("document")))
       meta.copy(
         id = Some(rs.long(lp.c("id"))),
         revision = Some(rs.int(lp.c("revision"))),

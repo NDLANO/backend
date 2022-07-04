@@ -95,7 +95,7 @@ class FolderRepositoryTest
 
   test("that inserting and retrieving a resource works as expected") {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)

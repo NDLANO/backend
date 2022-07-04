@@ -26,6 +26,7 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.DataType.ValueDataType
@@ -66,7 +67,7 @@ trait LearningpathControllerV2 {
       InitialScrollContextKeywords
     }
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription = "API for accessing Learningpaths from ndla.no."
 

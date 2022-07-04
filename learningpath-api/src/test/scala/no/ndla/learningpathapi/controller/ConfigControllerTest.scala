@@ -15,7 +15,7 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.Success
 
 class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -34,7 +34,9 @@ class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   test("That updating config returns 200 if all is good") {
     when(updateService.updateConfig(any[ConfigKey], any[UpdateConfigValue], any[UserInfo]))
-      .thenReturn(Success(ConfigMeta(ConfigKey.IsWriteRestricted.entryName, "true", new Date(), "someoneCool")))
+      .thenReturn(
+        Success(ConfigMeta(ConfigKey.IsWriteRestricted.entryName, "true", LocalDateTime.now(), "someoneCool"))
+      )
 
     post(
       s"/${ConfigKey.IsWriteRestricted.entryName}",
