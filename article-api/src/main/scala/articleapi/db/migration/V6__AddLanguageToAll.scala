@@ -15,7 +15,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class V6__AddLanguageToAll extends BaseJavaMigration {
 
@@ -165,8 +165,8 @@ case class V6_Article(
     introduction: Seq[V6_ArticleIntroduction],
     metaDescription: Seq[V6_ArticleMetaDescription],
     metaImageId: Option[String],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
     articleType: String
 )
@@ -176,8 +176,8 @@ case class V6_Concept(
     title: Seq[V6_ConceptTitle],
     content: Seq[V6_ConceptContent],
     authors: Seq[V6_Author],
-    created: Date,
-    updated: Date
+    created: LocalDateTime,
+    updated: LocalDateTime
 )
 case class V6_ConceptTitle(title: String, language: Option[String])
 case class V6_ConceptContent(content: String, language: Option[String])

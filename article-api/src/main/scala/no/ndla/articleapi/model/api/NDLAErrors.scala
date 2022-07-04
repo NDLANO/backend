@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 import no.ndla.articleapi.Props
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
@@ -17,7 +17,7 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 case class Error(
     @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date(),
+    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now(),
     @(ApiModelProperty @field)(description = "The supported languages for an article") supportedLanguages: Option[
       Seq[String]
     ] = None

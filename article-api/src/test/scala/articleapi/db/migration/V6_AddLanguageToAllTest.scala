@@ -19,7 +19,7 @@ import articleapi.db.migration.{
   V6__AddLanguageToAll
 }
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V6_AddLanguageToAllTest extends UnitSuite with TestEnvironment {
@@ -38,8 +38,8 @@ class V6_AddLanguageToAllTest extends UnitSuite with TestEnvironment {
       Seq(V6_ArticleIntroduction("some", None)),
       Seq(V6_ArticleMetaDescription("some", Some(""))),
       None,
-      new Date(),
-      new Date(),
+      LocalDateTime.now(),
+      LocalDateTime.now(),
       "",
       ""
     )

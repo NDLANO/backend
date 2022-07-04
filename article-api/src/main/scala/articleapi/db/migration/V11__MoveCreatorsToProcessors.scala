@@ -7,7 +7,7 @@
 
 package articleapi.db.migration
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
@@ -92,7 +92,7 @@ class V11__MoveCreatorsToProcessors extends BaseJavaMigration {
       processors: Seq[V11_Author],
       rightsholders: Seq[V11_Author],
       agreementId: Option[Long],
-      validFrom: Option[Date],
-      validTo: Option[Date]
+      validFrom: Option[LocalDateTime],
+      validTo: Option[LocalDateTime]
   )
 }

@@ -98,9 +98,6 @@ class ArticleRepositoryTest
     val externalIds = List("123", "456")
     val sampleArticle: domain.Article =
       TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
-
-    sampleArticle.created.setTime(0)
-    sampleArticle.created.setTime(0)
     val Success(res: domain.Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
     res.id.isDefined should be(true)

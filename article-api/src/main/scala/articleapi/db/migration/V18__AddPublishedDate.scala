@@ -7,19 +7,19 @@
 
 package articleapi.db.migration
 
-import java.util.Date
-
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.JsonAST.{JField, JObject}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
+import java.time.LocalDateTime
 import scala.util.{Success, Try}
 
 class V18__AddPublishedDate extends BaseJavaMigration {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -79,4 +79,4 @@ class V18__AddPublishedDate extends BaseJavaMigration {
     }
   }
 }
-case class V17__Article(updated: Date)
+case class V17__Article(updated: LocalDateTime)

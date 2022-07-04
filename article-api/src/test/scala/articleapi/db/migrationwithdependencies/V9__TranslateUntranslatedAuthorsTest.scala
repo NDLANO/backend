@@ -8,10 +8,11 @@
 package articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import org.json4s.ext.JavaTimeSerializers
 
 class V9__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
   val migration        = new V9__TranslateUntranslatedAuthors(props)
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   test("That redaksjonelt is translated to editorial whilst still keeping correct authors") {
     val metaString =

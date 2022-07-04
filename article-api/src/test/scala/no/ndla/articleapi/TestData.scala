@@ -12,7 +12,6 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
-import org.joda.time.{DateTime, DateTimeZone}
 
 import java.time.LocalDateTime
 
@@ -44,7 +43,7 @@ trait TestData {
         None,
         None
       )
-    private val today = new DateTime().toDate
+    private val today = LocalDateTime.now().withNano(0)
 
     val (articleId, externalId) = (1, "751234")
 
@@ -70,10 +69,10 @@ trait TestData {
       metaImage = None,
       introduction = None,
       metaDescription = api.ArticleMetaDescription("metaDesc", "nb"),
-      created = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
-      updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
+      created = LocalDateTime.of(2017, 1, 1, 12, 15, 32),
+      updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
       updatedBy = "me",
-      published = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
+      published = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
       articleType = "standard",
       supportedLanguages = Seq("nb"),
       grepCodes = Seq.empty,
@@ -134,10 +133,10 @@ trait TestData {
       Seq(ArticleIntroduction("This is an introduction", "en")),
       Seq(ArticleMetaDescription("meta", "en")),
       Seq.empty,
-      DateTime.now().minusDays(4).withMillisOfSecond(0).toDate,
-      DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+      LocalDateTime.now().minusDays(4).withNano(0),
+      LocalDateTime.now().minusDays(2).withNano(0),
       "ndalId54321",
-      DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+      LocalDateTime.now().minusDays(2).withNano(0),
       ArticleType.Standard.toString,
       Seq("COMPCODE1"),
       Seq(1),
@@ -250,10 +249,10 @@ trait TestData {
       None,
       None,
       api.ArticleMetaDescription("so meta", "en"),
-      DateTime.now().minusDays(4).toDate,
-      DateTime.now().minusDays(2).toDate,
+      LocalDateTime.now().minusDays(4),
+      LocalDateTime.now().minusDays(2),
       "ndalId54321",
-      DateTime.now().minusDays(2).toDate,
+      LocalDateTime.now().minusDays(2),
       "standard",
       Seq("en"),
       Seq.empty,
