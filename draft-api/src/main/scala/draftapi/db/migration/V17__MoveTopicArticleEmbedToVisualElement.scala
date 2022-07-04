@@ -10,7 +10,7 @@ package draftapi.db.migration
 import enumeratum.Json4s
 import no.ndla.draftapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.jsoup.Jsoup
@@ -72,7 +72,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
 
   def convertTopicArticle(document: String): String = {
     implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V16__ArticleStatus) + Json4s
-      .serializer(ArticleType)
+      .serializer(ArticleType) ++ JavaTimeSerializers.all
 
     val oldArticle       = parse(document)
     val extractedArticle = oldArticle.extract[V16__Article]

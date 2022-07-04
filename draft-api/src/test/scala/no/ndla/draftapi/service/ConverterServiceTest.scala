@@ -91,8 +91,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should use created and updated dates from parameter list if defined") {
     val apiArticle = TestData.newArticle
-    val created    = DateParser.fromString("2016-12-06T16:20:05Z")
-    val updated    = DateParser.fromString("2017-03-07T21:18:19Z")
+    val created    = DateParser.fromString("2016-12-06T16:20:05.000Z")
+    val updated    = DateParser.fromString("2017-03-07T21:18:19.000Z")
 
     val Success(result) =
       service.toDomainArticle(1, apiArticle, List.empty, TestData.userWithWriteAccess, Some(created), Some(updated))

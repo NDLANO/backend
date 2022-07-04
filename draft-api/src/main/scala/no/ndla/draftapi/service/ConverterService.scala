@@ -119,7 +119,7 @@ trait ConverterService {
     private[service] def newNotes(notes: Seq[String], user: UserInfo, status: Status): Try[Seq[EditorNote]] = {
       notes match {
         case Nil                  => Success(Seq.empty)
-        case l if !l.contains("") => Success(l.map(domain.EditorNote(_, user.id, status, LocalDateTime.now())))
+        case l if !l.contains("") => Success(l.map(domain.EditorNote(_, user.id, status, clock.now())))
         case _ =>
           Failure(
             new ValidationException(errors = Seq(ValidationMessage("notes", "A note can not be an empty string")))
@@ -185,7 +185,7 @@ trait ConverterService {
 
     def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
       val validFrom = newCopyright.validFrom.map(date => DateParser.fromString(date))
-      val validTo = newCopyright.validTo.map(date => DateParser.fromString(date))
+      val validTo   = newCopyright.validTo.map(date => DateParser.fromString(date))
 
       val apiCopyright = api.Copyright(
         newCopyright.license,
