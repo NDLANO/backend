@@ -15,7 +15,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
@@ -115,8 +115,8 @@ case class V5_Copyright(
     processors: Seq[V4_Author],
     rightsholders: Seq[V4_Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )
 case class V5_AudioMetaInformation(
     id: Option[Long],
@@ -126,5 +126,5 @@ case class V5_AudioMetaInformation(
     copyright: V5_Copyright,
     tags: Seq[V4_Tag],
     updatedBy: String,
-    updated: Date
+    updated: LocalDateTime
 )

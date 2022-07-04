@@ -9,7 +9,7 @@ package audioapi.db.migration
 
 import no.ndla.language.Language.languageOrUnknown
 
-import java.util.Date
+import java.time.LocalDateTime
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -73,7 +73,7 @@ case class V4_AudioMetaInformation(
     copyright: V4_Copyright,
     tags: Seq[V4_Tag],
     updatedBy: String,
-    updated: Date
+    updated: LocalDateTime
 )
 
 case class V4_Title(title: String, language: Option[String])

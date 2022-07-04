@@ -19,8 +19,8 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
-import org.joda.time.DateTime
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -45,7 +45,7 @@ trait ConverterService {
         title = mergeLanguageField(existingSeries.title, newTitle),
         description = mergeLanguageField(existingSeries.description, newDescription),
         coverPhoto = coverPhoto,
-        updated = new DateTime(),
+        updated = LocalDateTime.now(),
         created = existingSeries.created
       )
     }
@@ -59,7 +59,7 @@ trait ConverterService {
         altText = newSeries.coverPhotoAltText
       )
 
-      val createdDate = new DateTime()
+      val createdDate = LocalDateTime.now()
 
       new domain.SeriesWithoutId(
         title = titles,
@@ -88,7 +88,7 @@ trait ConverterService {
         title = series.title.filterNot(_.language == language),
         description = series.description.filterNot(_.language == language),
         coverPhoto = series.coverPhoto,
-        updated = new DateTime(),
+        updated = LocalDateTime.now(),
         created = series.created
       )
     }

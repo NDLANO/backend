@@ -9,7 +9,7 @@ package audioapi.db.migration
 
 import audioapi.db.migration.{V4_Audio, V4_AudioMetaInformation, V4_Copyright, V4_Tag, V4_Title, V4__AddLanguageToAll}
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
@@ -22,7 +22,16 @@ class V4__AddLanguageToAllTest extends UnitSuite with TestEnvironment {
     val titles    = Seq(V4_Title("En tittel", None), V4_Title("abc", Some("nb")))
 
     val before =
-      V4_AudioMetaInformation(Some(1), Some(1), titles, filePaths, V4_Copyright("", None, Seq()), tags, "", new Date())
+      V4_AudioMetaInformation(
+        Some(1),
+        Some(1),
+        titles,
+        filePaths,
+        V4_Copyright("", None, Seq()),
+        tags,
+        "",
+        LocalDateTime.now()
+      )
     val after = migration.convertAudioUpdate(before)
 
     after.titles.head.language should equal(Some("und"))

@@ -14,11 +14,10 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.Success
 
 class AudioSearchServiceTest
@@ -55,14 +54,14 @@ class AudioSearchServiceTest
   val copyrighted: Copyright =
     Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val updated1: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated2: Date = new DateTime(2017, 5, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated3: Date = new DateTime(2017, 6, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated4: Date = new DateTime(2017, 7, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated5: Date = new DateTime(2017, 8, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated6: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val updated7: Date = new DateTime(2017, 9, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val created: Date  = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated1: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val updated2: LocalDateTime = LocalDateTime.of(2017, 5, 1, 12, 15, 32)
+  val updated3: LocalDateTime = LocalDateTime.of(2017, 6, 1, 12, 15, 32)
+  val updated4: LocalDateTime = LocalDateTime.of(2017, 7, 1, 12, 15, 32)
+  val updated5: LocalDateTime = LocalDateTime.of(2017, 8, 1, 12, 15, 32)
+  val updated6: LocalDateTime = LocalDateTime.of(2017, 9, 1, 12, 15, 32)
+  val updated7: LocalDateTime = LocalDateTime.of(2017, 9, 1, 12, 15, 32)
+  val created: LocalDateTime  = LocalDateTime.of(2017, 1, 1, 12, 15, 32)
 
   val podcastSeries1: domain.Series = domain.Series(
     id = 1,

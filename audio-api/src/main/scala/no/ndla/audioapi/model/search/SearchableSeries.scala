@@ -10,7 +10,8 @@ package no.ndla.audioapi.model.search
 
 import no.ndla.audioapi.model.domain.CoverPhoto
 import no.ndla.search.model.SearchableLanguageValues
-import org.joda.time.DateTime
+
+import java.time.LocalDateTime
 
 case class SearchableSeries(
     id: String,
@@ -18,5 +19,5 @@ case class SearchableSeries(
     descriptions: SearchableLanguageValues,
     episodes: Option[Seq[SearchableAudioInformation]],
     coverPhoto: CoverPhoto,
-    lastUpdated: DateTime
+    lastUpdated: LocalDateTime
 )

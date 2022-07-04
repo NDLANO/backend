@@ -8,10 +8,12 @@
 package audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class V2__AddUpdatedColoums extends BaseJavaMigration {
 
@@ -33,7 +35,7 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
       .list()
   }
 
-  def convertAudioUpdate(audioMeta: V2_DBAudioMetaInformation) = {
+  def convertAudioUpdate(audioMeta: V2_DBAudioMetaInformation): V2_DBAudioMetaInformation = {
     val oldDocument = parse(audioMeta.document)
     val updatedJson = parse(s"""{"updatedBy": "content-import-client", "updated": "${timeService.nowAsString()}"}""")
 
@@ -57,6 +59,8 @@ case class V2_DBAudioMetaInformation(id: Long, document: String)
 class TimeService() {
 
   def nowAsString(): String = {
-    (new DateTime()).toString("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val currentTime = LocalDateTime.now()
+    val formatter   = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    currentTime.format(formatter)
   }
 }

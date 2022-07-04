@@ -11,6 +11,7 @@ import audioapi.db.migration.V4_Author
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -18,7 +19,7 @@ import scalikejdbc._
 class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
   import props._
   // Translates authors that wasn't translated in V5
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

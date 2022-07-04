@@ -11,9 +11,10 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalaj.http.HttpResponse
+
+import java.time.LocalDateTime
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
@@ -24,8 +25,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     override def getApiResponse(url: String): HttpResponse[String] = httpResponseMock
   }
 
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val created = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val created = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
   val copyrighted =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)

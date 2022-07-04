@@ -59,11 +59,11 @@ class BrightcoveApiClient {
       temp
     })
   }
-  //     LocalDateTime.now().minusDays(4).withNano(0),
   def refreshTokenIfInvalid(): Try[StoredToken] = {
     accessToken match {
-      case Some(storedToken) if LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) < storedToken.expiresAt - 10 => Success(storedToken)
-      case _                                                                                   => refreshToken()
+      case Some(storedToken) if LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) < storedToken.expiresAt - 10 =>
+        Success(storedToken)
+      case _ => refreshToken()
     }
   }
 
