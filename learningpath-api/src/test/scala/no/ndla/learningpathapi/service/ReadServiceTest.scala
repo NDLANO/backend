@@ -374,7 +374,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      breadcrumbs = List("mainFolder"),
+      breadcrumbs = List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
       parentId = None,
       resources = List(
         api.Resource(
@@ -393,7 +393,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           subfolders = List.empty,
           resources = List.empty,
           isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder1"),
+          breadcrumbs = List(
+            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
+          ),
           parentId = Some(mainFolderUUID.toString)
         ),
         api.Folder(
@@ -403,7 +406,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           resources = List.empty,
           subfolders = List.empty,
           isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder2"),
+          breadcrumbs = List(
+            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
+          ),
           parentId = Some(mainFolderUUID.toString)
         )
       )
@@ -459,7 +465,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         name = "favorite",
         status = "private",
         isFavorite = true,
-        breadcrumbs = List("favorite")
+        breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
@@ -494,7 +500,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         name = "favorite",
         status = "private",
         isFavorite = true,
-        breadcrumbs = List("favorite")
+        breadcrumbs = List(api.Breadcrumb(id = favoriteId.toString, name = "favorite"))
       )
     val apiResource =
       api.Resource(

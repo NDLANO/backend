@@ -699,9 +699,16 @@ trait ConverterService {
       )
     }
 
-    private def toApiFolderData(domainData: domain.Folder, crumbs: List[String]): Try[api.Folder] = {
-      def loop(folder: domain.Folder, crumbs: List[String]): Try[api.Folder] = folder.subfolders
-        .traverse(d => loop(d, crumbs :+ d.name))
+    private def toApiFolderData(domainData: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = {
+      def loop(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = folder.subfolders
+        .traverse(d => {
+          val newCrumb = api.Breadcrumb(
+            id = d.id.toString,
+            name = d.name
+          )
+          val newCrumbs = crumbs :+ newCrumb
+          loop(d, newCrumbs)
+        })
         .flatMap(subFolders =>
           folder.resources
             .traverse(toApiResource)
@@ -722,9 +729,16 @@ trait ConverterService {
       loop(domainData, crumbs)
     }
 
-    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[String]): Try[api.Folder] = {
+    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[api.Breadcrumb]): Try[api.Folder] = {
       domainFolder.subfolders
-        .traverse(folder => toApiFolderData(folder, breadcrumbs :+ folder.name))
+        .traverse(folder => {
+          val newCrumb = api.Breadcrumb(
+            id = folder.id.toString,
+            name = folder.name
+          )
+          val newCrumbs = breadcrumbs :+ newCrumb
+          toApiFolderData(folder, newCrumbs)
+        })
         .flatMap(subfolders => {
           domainFolder.resources
             .traverse(toApiResource)

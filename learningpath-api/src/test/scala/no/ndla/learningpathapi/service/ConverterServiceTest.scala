@@ -577,7 +577,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       isFavorite = false,
       resources = List(apiResource),
       subfolders = List(),
-      breadcrumbs = List("mainFolder", "folderData3", "folderData1"),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3"),
+        api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
+      ),
       parentId = Some(subFolder3UUID.toString)
     )
     val apiData2 = api.Folder(
@@ -587,7 +591,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       isFavorite = false,
       resources = List.empty,
       subfolders = List.empty,
-      breadcrumbs = List("mainFolder", "folderData2"),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
+      ),
       parentId = Some(mainFolderUUID.toString)
     )
     val apiData3 = api.Folder(
@@ -597,7 +604,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       isFavorite = false,
       subfolders = List(apiData1),
       resources = List(),
-      breadcrumbs = List("mainFolder", "folderData3"),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
+      ),
       parentId = Some(mainFolderUUID.toString)
     )
     val expected = api.Folder(
@@ -607,11 +617,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       isFavorite = false,
       subfolders = List(apiData2, apiData3),
       resources = List(apiResource),
-      breadcrumbs = List("mainFolder"),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
+      ),
       parentId = None
     )
 
-    val Success(result) = service.toApiFolder(mainFolder, List("mainFolder"))
+    val Success(result) =
+      service.toApiFolder(mainFolder, List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")))
     result should be(expected)
   }
 
