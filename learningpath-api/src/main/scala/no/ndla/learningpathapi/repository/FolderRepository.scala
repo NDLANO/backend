@@ -220,22 +220,29 @@ trait FolderRepository {
       foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId")
     }
 
-    private[repository] def buildTreeStructureFromListOfChildren(folders: List[Folder]): Option[Folder] =
+    private[repository] def buildTreeStructureFromListOfChildren(
+        baseParentId: UUID,
+        folders: List[Folder]
+    ): Option[Folder] =
       folders match {
         case Nil => None
-        case mainParent :: rest =>
-          val byPid = rest.groupBy(_.parentId)
-          def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
-            case Some(children) =>
-              val childrenWithTheirChildrenFolders =
-                children
-                  .sortBy(_.id.toString)
-                  .map(child => injectChildrenRecursively(child))
+        case allTheStuffs =>
+          allTheStuffs.find(_.id == baseParentId) match {
+            case None => None
+            case Some(mainParent) =>
+              val byPid = allTheStuffs.groupBy(_.parentId)
+              def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
+                case Some(children) =>
+                  val childrenWithTheirChildrenFolders =
+                    children
+                      .sortBy(_.id.toString)
+                      .map(child => injectChildrenRecursively(child))
 
-              current.copy(subfolders = childrenWithTheirChildrenFolders)
-            case None => current
+                  current.copy(subfolders = childrenWithTheirChildrenFolders)
+                case None => current
+              }
+              injectChildrenRecursively(mainParent).some
           }
-          injectChildrenRecursively(mainParent).some
       }
 
     /** A flat list of the folder with `id` as well as its children folders. The folders in the list comes with
@@ -265,7 +272,7 @@ trait FolderRepository {
         )
         .list()
         .sequence
-    }.flatten.map(buildTreeStructureFromListOfChildren)
+    }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
 
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
@@ -283,7 +290,7 @@ trait FolderRepository {
         .map(rs => DBFolder.fromResultSet(rs))
         .list()
         .sequence
-    }.flatten.map(buildTreeStructureFromListOfChildren)
+    }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
 
     def foldersWithParentID(parentId: Option[UUID])(implicit
         session: DBSession = ReadOnlyAutoSession

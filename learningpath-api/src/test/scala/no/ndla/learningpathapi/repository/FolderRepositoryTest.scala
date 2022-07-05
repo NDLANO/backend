@@ -280,7 +280,10 @@ class FolderRepositoryTest
       ).sortBy(_.id.toString)
     )
 
-    repository.buildTreeStructureFromListOfChildren(List(mainParent, child1, child2, nestedChild1)) should be(
+    repository.buildTreeStructureFromListOfChildren(
+      mainParent.id,
+      List(mainParent, child1, child2, nestedChild1)
+    ) should be(
       Some(expectedResult)
     )
   }
