@@ -573,7 +573,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "private",
       isFavorite = false,
       data = List(apiResource),
-      breadcrumbs = List("mainFolder", "folderData3", "folderData1")
+      breadcrumbs = List("mainFolder", "folderData3", "folderData1"),
+      parentId = Some(subFolder3UUID.toString)
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -581,7 +582,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "public",
       isFavorite = false,
       data = List.empty,
-      breadcrumbs = List("mainFolder", "folderData2")
+      breadcrumbs = List("mainFolder", "folderData2"),
+      parentId = Some(mainFolderUUID.toString)
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -589,7 +591,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "private",
       isFavorite = false,
       data = List(apiData1),
-      breadcrumbs = List("mainFolder", "folderData3")
+      breadcrumbs = List("mainFolder", "folderData3"),
+      parentId = Some(mainFolderUUID.toString)
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -597,7 +600,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "public",
       isFavorite = false,
       data = List(apiData2, apiData3, apiResource),
-      breadcrumbs = List("mainFolder")
+      breadcrumbs = List("mainFolder"),
+      parentId = None
     )
 
     val Success(result) = service.toApiFolder(mainFolder, List("mainFolder"))

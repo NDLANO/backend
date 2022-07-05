@@ -726,7 +726,8 @@ trait ConverterService {
                   status = folder.status.toString,
                   isFavorite = folder.isFavorite,
                   data = subFolders,
-                  breadcrumbs = crumbs
+                  breadcrumbs = crumbs,
+                  parentId = folder.parentId.map(_.toString)
                 )
               )
         }
@@ -747,7 +748,8 @@ trait ConverterService {
             status = domainFolder.status.toString,
             isFavorite = domainFolder.isFavorite,
             data = folderData,
-            breadcrumbs = breadcrumbs
+            breadcrumbs = breadcrumbs,
+            parentId = domainFolder.parentId.map(_.toString)
           )
         )
     }

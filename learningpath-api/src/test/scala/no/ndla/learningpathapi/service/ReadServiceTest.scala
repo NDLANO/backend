@@ -372,6 +372,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = "public",
       isFavorite = false,
       breadcrumbs = List("mainFolder"),
+      parentId = None,
       data = List(
         api.Folder(
           id = subFolder1UUID.toString,
@@ -379,7 +380,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           status = "public",
           data = List.empty,
           isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder1")
+          breadcrumbs = List("mainFolder", "subFolder1"),
+          parentId = Some(mainFolderUUID.toString)
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -387,7 +389,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           status = "private",
           data = List.empty,
           isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder2")
+          breadcrumbs = List("mainFolder", "subFolder2"),
+          parentId = Some(mainFolderUUID.toString)
         ),
         api.Resource(
           id = resource1UUID.toString,
