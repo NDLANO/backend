@@ -14,15 +14,16 @@ import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.{articleapi, draftapi}
 import org.eclipse.jetty.server.Server
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.ext.JavaTimeSerializers
 import org.testcontainers.containers.PostgreSQLContainer
 
 class DraftApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with articleapi.TestEnvironment {
-  implicit val formats: DefaultFormats = DefaultFormats
-  override val ndlaClient              = new NdlaClient
+  implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+  override val ndlaClient       = new NdlaClient
 
   val draftApiPort: Int                 = findFreePort
   val pgc: PostgreSQLContainer[Nothing] = postgresContainer.get

@@ -22,7 +22,7 @@ trait AgreementRepository {
   val agreementRepository: AgreementRepository
 
   class AgreementRepository extends LazyLogging with Repository[Agreement] {
-    implicit val formats: Formats = org.json4s.DefaultFormats + DBAgreement.JSonSerializer
+    implicit val formats: Formats = DBAgreement.JSonSerializer
 
     def insert(agreement: Agreement)(implicit session: DBSession = AutoSession): Agreement = {
       val dataObject = new PGobject()

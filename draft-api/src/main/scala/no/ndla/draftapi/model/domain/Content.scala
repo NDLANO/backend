@@ -158,7 +158,11 @@ trait DBArticle {
   }
 
   object DBAgreement extends SQLSyntaxSupport[Agreement] {
-    implicit val formats    = org.json4s.DefaultFormats
+    val JSonSerializer: Formats = org.json4s.DefaultFormats +
+      FieldSerializer[Agreement](ignore("id")) ++
+      JavaTimeSerializers.all
+
+    implicit val formats    = JSonSerializer
     override val tableName  = "agreementdata"
     override val schemaName = Some(props.MetaSchema)
 
@@ -176,10 +180,6 @@ trait DBArticle {
         updatedBy = meta.updatedBy
       )
     }
-
-    val JSonSerializer = FieldSerializer[Agreement](
-      ignore("id")
-    )
 
   }
 
