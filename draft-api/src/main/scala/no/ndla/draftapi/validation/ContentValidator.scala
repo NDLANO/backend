@@ -19,6 +19,7 @@ import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 
+import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -77,7 +78,8 @@ trait ContentValidator {
         validateTags(article.tags) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
-        article.visualElement.flatMap(v => validateVisualElement(v))
+        article.visualElement.flatMap(v => validateVisualElement(v)) ++
+        validateRevisionMeta(article.revisionMeta)
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -145,6 +147,21 @@ trait ContentValidator {
           requiredToOptional = Map("image" -> Seq("data-caption"))
         )
         .toList ++ validateLanguage("language", content.language)
+    }
+
+    private def validateRevisionMeta(revisionMeta: Seq[RevisionMeta]): Seq[ValidationMessage] = {
+      revisionMeta.find(rm =>
+        rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(LocalDateTime.now())
+      ) match {
+        case Some(_) => Seq.empty
+        case None =>
+          Seq(
+            ValidationMessage(
+              "revisionMeta",
+              "An article must contain at least one planned revisiondate"
+            )
+          )
+      }
     }
 
     private def validateIntroduction(content: ArticleIntroduction): List[ValidationMessage] = {

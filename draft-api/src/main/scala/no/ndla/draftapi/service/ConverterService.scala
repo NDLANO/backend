@@ -55,7 +55,11 @@ trait ConverterService {
       }
 
       val newAvailability = Availability.valueOf(newArticle.availability).getOrElse(Availability.everyone)
-      val revisionMeta    = newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(RevisionMeta.default)
+      val revisionMeta = newArticle.revisionMeta match {
+        case Some(revs) if revs.nonEmpty =>
+          newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(RevisionMeta.default)
+        case _ => RevisionMeta.default
+      }
 
       newNotes(newArticle.notes, user, status).map(notes =>
         domain.Article(

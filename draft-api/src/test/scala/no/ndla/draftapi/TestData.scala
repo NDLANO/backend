@@ -7,12 +7,12 @@
 
 package no.ndla.draftapi
 
-import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.model.domain._
-import ArticleStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}
+import no.ndla.draftapi.model.domain.ArticleStatus._
+import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
 
 import java.time.LocalDateTime
@@ -279,7 +279,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -335,7 +335,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -363,7 +363,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -436,7 +436,7 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    Seq.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
