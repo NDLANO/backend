@@ -205,7 +205,7 @@ class FolderRepositoryTest
 
   test("that getFolderResources works as expected") {
     val created = LocalDateTime.now()
-    val doc = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC, data = List.empty)
+    val doc     = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC)
 
     val folder1 = repository.insertFolder("feide", None, doc)
     val folder2 = repository.insertFolder("feide", Some(folder1.get.id), doc)
@@ -247,7 +247,8 @@ class FolderRepositoryTest
         name = "name",
         status = FolderStatus.PUBLIC,
         isFavorite = false,
-        data = List.empty
+        resources = List.empty,
+        subfolders = List.empty
       )
 
     val mainParent = base.copy(
@@ -271,16 +272,12 @@ class FolderRepositoryTest
     )
 
     val expectedResult = mainParent.copy(
-      data = List(
-        Left(
-          child1.copy(
-            data = List(
-              Left(nestedChild1)
-            )
-          )
+      subfolders = List(
+        child1.copy(
+          subfolders = List(nestedChild1)
         ),
-        Left(child2.copy())
-      )
+        child2.copy()
+      ).sortBy(_.id.toString)
     )
 
     repository.buildTreeStructureFromListOfChildren(List(mainParent, child1, child2, nestedChild1)) should be(
@@ -297,7 +294,8 @@ class FolderRepositoryTest
         name = "name",
         status = FolderStatus.PUBLIC,
         isFavorite = false,
-        data = List.empty
+        subfolders = List.empty,
+        resources = List.empty
       )
 
     val mainParent = base.copy(
@@ -333,21 +331,18 @@ class FolderRepositoryTest
     )
     repository.createFolderResourceConnection(insertedMain.get.id, insertedResource.get.id).get
 
-    val expectedFolders = List(
-      Left(insertedChild2.get),
-      Left(
-        insertedChild1.get.copy(
-          data = List(
-            Left(insertedChild3.get)
-          )
+    val expectedSubfolders = List(
+      insertedChild2.get,
+      insertedChild1.get.copy(
+        subfolders = List(
+          insertedChild3.get
         )
       )
-    ).sortBy { case Left(ch) => ch.id.toString }
+    )
 
     val expectedResult = insertedMain.get.copy(
-      data = expectedFolders ++ List(
-        Right(insertedResource.get)
-      )
+      subfolders = expectedSubfolders.sortBy(_.id.toString),
+      resources = List(insertedResource.get)
     )
 
     val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.get.id)(ReadOnlyAutoSession)

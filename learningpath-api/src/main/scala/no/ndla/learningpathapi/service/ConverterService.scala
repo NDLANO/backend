@@ -694,64 +694,53 @@ trait ConverterService {
         FolderDocument(
           name = newFolder.name,
           status = newStatus,
-          isFavorite = newFavorite,
-          data = List.empty
+          isFavorite = newFavorite
         )
       )
     }
 
-    private def toApiFolderData(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
-      def loop(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
-        domainData match {
-          case Right(resource) =>
-            Success(
-              api.Resource(
-                id = resource.id.toString,
-                resourceType = resource.resourceType,
-                path = resource.path,
-                created = resource.created,
-                tags = resource.tags
+    private def toApiFolderData(domainData: domain.Folder, crumbs: List[String]): Try[api.Folder] = {
+      def loop(folder: domain.Folder, crumbs: List[String]): Try[api.Folder] = folder.subfolders
+        .traverse(d => loop(d, crumbs :+ d.name))
+        .flatMap(subFolders =>
+          folder.resources
+            .traverse(toApiResource)
+            .map(resources => {
+              api.Folder(
+                id = folder.id.toString,
+                name = folder.name,
+                status = folder.status.toString,
+                isFavorite = folder.isFavorite,
+                subfolders = subFolders,
+                resources = resources,
+                breadcrumbs = crumbs,
+                parentId = folder.parentId.map(_.toString)
               )
-            )
-          case Left(folder) =>
-            folder.data
-              .traverse(d => {
-                val newCrumbs = d.swap.map(n => crumbs :+ n.name).getOrElse(crumbs)
-                loop(d, newCrumbs)
-              })
-              .map(subFolders =>
-                api.Folder(
-                  id = folder.id.toString,
-                  name = folder.name,
-                  status = folder.status.toString,
-                  isFavorite = folder.isFavorite,
-                  data = subFolders,
-                  breadcrumbs = crumbs,
-                  parentId = folder.parentId.map(_.toString)
-                )
-              )
-        }
-      }
+            })
+        )
+
       loop(domainData, crumbs)
     }
 
     def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[String]): Try[api.Folder] = {
-      domainFolder.data
-        .traverse(folder => {
-          val newCrumbs = folder.swap.map(n => breadcrumbs :+ n.name).getOrElse(breadcrumbs)
-          toApiFolderData(folder, newCrumbs)
+      domainFolder.subfolders
+        .traverse(folder => toApiFolderData(folder, breadcrumbs :+ folder.name))
+        .flatMap(subfolders => {
+          domainFolder.resources
+            .traverse(toApiResource)
+            .map(resources => {
+              api.Folder(
+                id = domainFolder.id.toString,
+                name = domainFolder.name,
+                status = domainFolder.status.toString,
+                isFavorite = domainFolder.isFavorite,
+                subfolders = subfolders,
+                resources = resources,
+                breadcrumbs = breadcrumbs,
+                parentId = domainFolder.parentId.map(_.toString)
+              )
+            })
         })
-        .map(folderData =>
-          api.Folder(
-            id = domainFolder.id.toString,
-            name = domainFolder.name,
-            status = domainFolder.status.toString,
-            isFavorite = domainFolder.isFavorite,
-            data = folderData,
-            breadcrumbs = breadcrumbs,
-            parentId = domainFolder.parentId.map(_.toString)
-          )
-        )
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
@@ -760,7 +749,8 @@ trait ConverterService {
 
       domain.Folder(
         id = existing.id,
-        data = existing.data,
+        resources = existing.resources,
+        subfolders = existing.subfolders,
         feideId = existing.feideId,
         parentId = existing.parentId,
         isFavorite = existing.isFavorite,

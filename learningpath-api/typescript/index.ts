@@ -44,10 +44,11 @@ export interface IFolder {
   status: string
   isFavorite: boolean
   breadcrumbs: string[]
-  data: IFolderData[]
+  subfolders: IFolderData[]
+  resources: IResource[]
 }
 
-export type IFolderData = (IResource | IFolder)
+export type IFolderData = IFolder
 
 export interface IIntroduction {
   introduction: string

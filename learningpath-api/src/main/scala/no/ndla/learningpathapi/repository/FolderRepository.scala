@@ -48,7 +48,7 @@ trait FolderRepository {
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
-        document.toFullFolder(newId, feideId, parentId)
+        document.toFullFolder(newId, feideId, parentId, List.empty, List.empty)
       }
 
     def insertResource(
@@ -228,8 +228,11 @@ trait FolderRepository {
           def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
             case Some(children) =>
               val childrenWithTheirChildrenFolders =
-                children.sortBy(_.id.toString).map(child => Left(injectChildrenRecursively(child)))
-              current.copy(data = childrenWithTheirChildrenFolders ++ current.data)
+                children
+                  .sortBy(_.id.toString)
+                  .map(child => injectChildrenRecursively(child))
+
+              current.copy(subfolders = childrenWithTheirChildrenFolders)
             case None => current
           }
           injectChildrenRecursively(mainParent).some
@@ -258,7 +261,7 @@ trait FolderRepository {
         .one(rs => DBFolder.fromResultSet(s => s"f_$s")(rs))
         .toMany(rs => DBResource.fromResultSetOpt(rs).sequence)
         .map((folder, resources) =>
-          resources.toList.sequence.flatMap(resources => folder.map(f => f.copy(data = resources.map(Right(_)))))
+          resources.toList.sequence.flatMap(resources => folder.map(f => f.copy(resources = resources)))
         )
         .list()
         .sequence

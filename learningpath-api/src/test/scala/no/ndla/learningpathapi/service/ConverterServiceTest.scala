@@ -493,8 +493,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected1 = domain.FolderDocument(
       name = "kenkaku",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
+      isFavorite = false
     )
 
     service.toDomainFolderDocument(newFolder1).get should be(expected1)
@@ -531,7 +530,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List(Right(resource))
+      resources = List(resource),
+      subfolders = List.empty
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -540,7 +540,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData2",
       status = domain.FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -549,7 +550,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData3",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List(Left(folderData1))
+      subfolders = List(folderData1),
+      resources = List.empty
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -558,7 +560,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = domain.FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List(Left(folderData2), Left(folderData3), Right(resource))
+      subfolders = List(folderData2, folderData3),
+      resources = List(resource)
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
@@ -572,7 +575,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = "private",
       isFavorite = false,
-      data = List(apiResource),
+      resources = List(apiResource),
+      subfolders = List(),
       breadcrumbs = List("mainFolder", "folderData3", "folderData1"),
       parentId = Some(subFolder3UUID.toString)
     )
@@ -581,7 +585,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData2",
       status = "public",
       isFavorite = false,
-      data = List.empty,
+      resources = List.empty,
+      subfolders = List.empty,
       breadcrumbs = List("mainFolder", "folderData2"),
       parentId = Some(mainFolderUUID.toString)
     )
@@ -590,7 +595,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData3",
       status = "private",
       isFavorite = false,
-      data = List(apiData1),
+      subfolders = List(apiData1),
+      resources = List(),
       breadcrumbs = List("mainFolder", "folderData3"),
       parentId = Some(mainFolderUUID.toString)
     )
@@ -599,7 +605,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      data = List(apiData2, apiData3, apiResource),
+      subfolders = List(apiData2, apiData3),
+      resources = List(apiResource),
       breadcrumbs = List("mainFolder"),
       parentId = None
     )
@@ -619,7 +626,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
     val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("public"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)

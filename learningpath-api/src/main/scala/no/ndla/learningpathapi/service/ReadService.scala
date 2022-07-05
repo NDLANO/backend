@@ -181,8 +181,7 @@ trait ReadService {
       val favoriteFolder = domain.FolderDocument(
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
-        isFavorite = true,
-        data = List.empty
+        isFavorite = true
       )
       folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
@@ -236,10 +235,10 @@ trait ReadService {
       .folderWithId(folderId)
       .flatMap(folder => {
         val folderResources =
-          if (shouldIncludeResources) folderRepository.getFolderResources(folderId).map(_.map(_.asRight))
+          if (shouldIncludeResources) folderRepository.getFolderResources(folderId)
           else Success(List.empty)
 
-        folderResources.map(res => folder.copy(data = res))
+        folderResources.map(res => folder.copy(resources = res))
       })
 
     def getSingleFolderWithContent(

@@ -128,14 +128,14 @@ object TestData {
     name = "",
     status = domain.FolderStatus.PRIVATE,
     isFavorite = false,
-    data = List.empty
+    subfolders = List.empty,
+    resources = List.empty
   )
 
   val baseFolderDocument: FolderDocument = FolderDocument(
     isFavorite = false,
     name = "some-name",
-    status = FolderStatus.PUBLIC,
-    data = List.empty
+    status = FolderStatus.PUBLIC
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
@@ -147,7 +147,8 @@ object TestData {
     name = "",
     status = "",
     isFavorite = false,
-    data = List.empty,
+    subfolders = List.empty,
+    resources = List.empty,
     breadcrumbs = List.empty,
     parentId = None
   )
