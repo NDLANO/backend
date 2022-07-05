@@ -87,8 +87,6 @@ class DraftApiClientTest
   test("that dumping drafts returns drafts in serializable format") {
     setupArticles()
 
-    val today = DateParser.fromUnixTime(0)
-
     AuthUser.setHeader(s"Bearer $exampleToken")
     val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
