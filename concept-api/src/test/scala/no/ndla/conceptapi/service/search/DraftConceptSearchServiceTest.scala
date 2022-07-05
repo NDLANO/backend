@@ -14,9 +14,9 @@ import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.Success
 
 class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -69,7 +69,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     None
   )
 
-  val today: DateTime = DateTime.now()
+  val today: LocalDateTime = LocalDateTime.now()
 
   val concept1: Concept = TestData.sampleConcept.copy(
     id = Option(1),
@@ -157,7 +157,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
-    updated = DateTime.now().minusDays(1).toDate,
+    updated = LocalDateTime.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
     status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED)),
     updatedBy = Seq("Test1"),

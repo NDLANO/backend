@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -22,8 +22,8 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],
     @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[Set[String]],
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date,
-    @(ApiModelProperty @field)(description = "When the concept was created") created: Date,
+    @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the concept was created") created: LocalDateTime,
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,
     @(ApiModelProperty @field)(description = "List of people that edited the concept") updatedBy: Seq[String],
     @(ApiModelProperty @field)(description = "Describes the license of the concept") license: Option[String],

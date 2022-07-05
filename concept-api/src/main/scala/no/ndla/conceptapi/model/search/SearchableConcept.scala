@@ -9,7 +9,7 @@ package no.ndla.conceptapi.model.search
 
 import no.ndla.conceptapi.model.domain
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class SearchableConcept(
     id: Long,
@@ -19,7 +19,7 @@ case class SearchableConcept(
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     subjectIds: Seq[String],
-    lastUpdated: DateTime,
+    lastUpdated: LocalDateTime,
     status: Status,
     updatedBy: Seq[String],
     license: Option[String],
@@ -27,6 +27,6 @@ case class SearchableConcept(
     embedResourcesAndIds: List[EmbedValues],
     visualElement: SearchableLanguageValues,
     articleIds: Seq[Long],
-    created: DateTime,
+    created: LocalDateTime,
     source: Option[String]
 )

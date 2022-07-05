@@ -12,6 +12,7 @@ import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, DBConcept}
 import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.postgresql.util.PGobject
 import scalikejdbc._
 import org.json4s.native.Serialization.{read, write}
@@ -23,7 +24,7 @@ trait PublishedConceptRepository {
   val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends LazyLogging with Repository[Concept] {
-    implicit val formats: Formats = Concept.repositorySerializer
+    implicit val formats: Formats = Concept.repositorySerializer ++ JavaTimeSerializers.all
 
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()

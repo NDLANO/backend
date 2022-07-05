@@ -11,12 +11,12 @@ import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class Concept(
@@ -26,8 +26,8 @@ case class Concept(
     content: Seq[ConceptContent],
     copyright: Option[Copyright],
     source: Option[String],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: Seq[String],
     metaImage: Seq[ConceptMetaImage],
     tags: Seq[ConceptTags],
@@ -51,7 +51,7 @@ trait DBConcept {
       fromResultSet(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-      implicit val formats: Formats = this.repositorySerializer
+      implicit val formats: Formats = this.repositorySerializer ++ JavaTimeSerializers.all
 
       val id       = rs.long(lp.c("id"))
       val revision = rs.int(lp.c("revision"))
@@ -60,8 +60,8 @@ trait DBConcept {
       val meta = read[Concept](jsonStr)
 
       new Concept(
-        Some(id),
-        Some(revision),
+        id = Some(id),
+        revision = Some(revision),
         meta.title,
         meta.content,
         meta.copyright,
@@ -78,7 +78,7 @@ trait DBConcept {
       )
     }
 
-    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ConceptStatus)
+    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ConceptStatus) ++ JavaTimeSerializers.all
 
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Concept](
