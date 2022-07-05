@@ -10,7 +10,7 @@ package no.ndla.searchapi.model.domain.draft
 import no.ndla.searchapi.model.domain.article
 import no.ndla.searchapi.model.domain.draft
 import no.ndla.searchapi.model.domain.{Content, Tag, Title}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class Draft(
     id: Option[Long],
@@ -25,10 +25,10 @@ case class Draft(
     introduction: Seq[article.ArticleIntroduction],
     metaDescription: Seq[article.MetaDescription],
     metaImage: Seq[article.ArticleMetaImage],
-    created: DateTime,
-    updated: DateTime,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
-    published: DateTime,
+    published: LocalDateTime,
     articleType: article.LearningResourceType.Value,
     notes: List[EditorNote],
     previousVersionsNotes: List[EditorNote],

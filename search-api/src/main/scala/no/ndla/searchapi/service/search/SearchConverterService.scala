@@ -601,7 +601,7 @@ trait SearchConverterService {
         score = hit.score,
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableArticle.contexts),
-        lastUpdated = searchableArticle.lastUpdated.toDate,
+        lastUpdated = searchableArticle.lastUpdated,
         license = Some(searchableArticle.license),
         revisions = Seq.empty
       )
@@ -649,7 +649,7 @@ trait SearchConverterService {
         score = hit.score,
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableDraft.contexts),
-        lastUpdated = searchableDraft.lastUpdated.toDate,
+        lastUpdated = searchableDraft.lastUpdated,
         license = searchableDraft.license,
         revisions = revisions
       )
@@ -698,7 +698,7 @@ trait SearchConverterService {
         score = hit.score,
         highlights = getHighlights(hit.highlight),
         paths = getPathsFromContext(searchableLearningPath.contexts),
-        lastUpdated = searchableLearningPath.lastUpdated.toDate,
+        lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
         revisions = Seq.empty
       )

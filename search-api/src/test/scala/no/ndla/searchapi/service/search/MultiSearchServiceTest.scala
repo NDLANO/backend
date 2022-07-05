@@ -18,7 +18,7 @@ import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.scalatest.Outcome
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class MultiSearchServiceTest
@@ -893,7 +893,7 @@ class MultiSearchServiceTest
       )
     val hits = results.results
     results.totalCount should be(1)
-    hits.head.lastUpdated should be(a[Date])
+    hits.head.lastUpdated should be(a[LocalDateTime])
     hits.head.license should be(Some("publicdomain"))
   }
 }

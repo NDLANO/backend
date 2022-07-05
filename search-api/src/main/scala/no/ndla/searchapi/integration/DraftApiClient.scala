@@ -7,10 +7,12 @@
 
 package no.ndla.searchapi.integration
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, Author, SearchParams, article}
+import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -37,7 +39,7 @@ trait DraftApiClient {
       getAgreementCopyright(agreementId).nonEmpty
 
     def getAgreementCopyright(agreementId: Long): Option[article.Copyright] = {
-      implicit val formats     = org.json4s.DefaultFormats
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
       val request: HttpRequest = Http(s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString))
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright.toDomainCopyright)
@@ -52,8 +54,8 @@ trait DraftApiClient {
         processors: Seq[Author],
         rightsholders: Seq[Author],
         agreementId: Option[Long],
-        validFrom: Option[Date],
-        validTo: Option[Date]
+        validFrom: Option[LocalDateTime],
+        validTo: Option[LocalDateTime]
     ) {
 
       def toDomainCopyright: article.Copyright = {
@@ -68,8 +70,8 @@ trait DraftApiClient {
         title: String,
         content: String,
         copyright: ApiCopyright,
-        created: Date,
-        updated: Date,
+        created: LocalDateTime,
+        updated: LocalDateTime,
         updatedBy: String
     )
   }

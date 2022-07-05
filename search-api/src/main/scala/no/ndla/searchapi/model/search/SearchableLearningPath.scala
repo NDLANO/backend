@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.Copyright
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class SearchableLearningPath(
     id: Long,
@@ -20,7 +20,7 @@ case class SearchableLearningPath(
     duration: Option[Int],
     status: String,
     verificationStatus: String,
-    lastUpdated: DateTime,
+    lastUpdated: LocalDateTime,
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     learningsteps: List[SearchableLearningStep],

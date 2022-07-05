@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.domain.learningpath
 
 import no.ndla.searchapi.model.domain.{Content, Tag, Title}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class LearningPath(
     id: Option[Long],
@@ -21,7 +21,7 @@ case class LearningPath(
     duration: Option[Int],
     status: LearningPathStatus.Value,
     verificationStatus: LearningPathVerificationStatus.Value,
-    lastUpdated: DateTime,
+    lastUpdated: LocalDateTime,
     tags: List[Tag],
     owner: String,
     copyright: Copyright,

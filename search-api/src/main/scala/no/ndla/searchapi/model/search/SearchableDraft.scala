@@ -10,7 +10,7 @@ package no.ndla.searchapi.model.search
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.article.ArticleMetaImage
 import no.ndla.searchapi.model.domain.draft.RevisionMeta
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class SearchableDraft(
     id: Long,
@@ -20,7 +20,7 @@ case class SearchableDraft(
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,
-    lastUpdated: DateTime,
+    lastUpdated: LocalDateTime,
     license: Option[String],
     authors: List[String],
     articleType: String,

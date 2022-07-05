@@ -8,11 +8,11 @@
 package no.ndla.searchapi.model.api.learningpath
 
 import no.ndla.searchapi.model.api.Title
-import org.joda.time.DateTime
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
+import java.time.LocalDateTime
 
 @ApiModel(description = "Summary of meta information for a learningpath")
 case class LearningPathSummary(
@@ -29,7 +29,9 @@ case class LearningPathSummary(
       description = "The publishing status of the learningpath.",
       allowableValues = "PUBLISHED,PRIVATE,NOT_LISTED"
     ) status: String,
-    @(ApiModelProperty @field)(description = "The date when this learningpath was last updated.") lastUpdated: DateTime,
+    @(ApiModelProperty @field)(
+      description = "The date when this learningpath was last updated."
+    ) lastUpdated: LocalDateTime,
     @(ApiModelProperty @field)(description = "Searchable tags for the learningpath") tags: LearningPathTags,
     @(ApiModelProperty @field)(description = "The contributors of this learningpath") copyright: Copyright,
     @(ApiModelProperty @field)(description = "A list of available languages for this audio") supportedLanguages: Seq[
