@@ -333,16 +333,19 @@ class FolderRepositoryTest
     )
     repository.createFolderResourceConnection(insertedMain.get.id, insertedResource.get.id).get
 
-    val expectedResult = insertedMain.get.copy(
-      data = List(
-        Left(
-          insertedChild1.get.copy(
-            data = List(
-              Left(insertedChild3.get)
-            )
+    val expectedFolders = List(
+      Left(insertedChild2.get),
+      Left(
+        insertedChild1.get.copy(
+          data = List(
+            Left(insertedChild3.get)
           )
-        ),
-        Left(insertedChild2.get),
+        )
+      )
+    ).sortBy { case Left(ch) => ch.id.toString }
+
+    val expectedResult = insertedMain.get.copy(
+      data = expectedFolders ++ List(
         Right(insertedResource.get)
       )
     )

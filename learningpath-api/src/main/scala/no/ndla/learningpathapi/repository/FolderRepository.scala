@@ -227,7 +227,8 @@ trait FolderRepository {
           val byPid = rest.groupBy(_.parentId)
           def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
             case Some(children) =>
-              val childrenWithTheirChildrenFolders = children.map(child => Left(injectChildrenRecursively(child)))
+              val childrenWithTheirChildrenFolders =
+                children.sortBy(_.id.toString).map(child => Left(injectChildrenRecursively(child)))
               current.copy(data = childrenWithTheirChildrenFolders ++ current.data)
             case None => current
           }
