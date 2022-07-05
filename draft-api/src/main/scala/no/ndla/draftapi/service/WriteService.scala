@@ -20,7 +20,12 @@ import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.model.domain.{Article, _}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service.search.{AgreementIndexService, ArticleIndexService, GrepCodesIndexService, TagIndexService}
+import no.ndla.draftapi.service.search.{
+  AgreementIndexService,
+  ArticleIndexService,
+  GrepCodesIndexService,
+  TagIndexService
+}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
@@ -320,21 +325,32 @@ trait WriteService {
       val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
       val deleted = oldRevisions
         .filterNot(old => newIds.contains(old.id))
-        .map(del => domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, LocalDateTime.now()))
+        .map(del =>
+          domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, LocalDateTime.now())
+        )
 
       val notes = updatedArticle.revisionMeta.flatMap {
         case rm if !oldIds.contains(rm.id) && rm.status == RevisionStatus.Revised =>
           domain
-            .EditorNote(s"Lagt til og fullført revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now())
+            .EditorNote(
+              s"Lagt til og fullført revisjon ${rm.note}.",
+              user.id,
+              updatedArticle.status,
+              LocalDateTime.now()
+            )
             .some
         case rm if !oldIds.contains(rm.id) =>
           domain.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now()).some
         case rm =>
           oldRevisions.find(_.id == rm.id) match {
             case Some(old) if old.status != rm.status && rm.status == RevisionStatus.Revised =>
-              domain.EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now()).some
+              domain
+                .EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now())
+                .some
             case Some(old) if old != rm =>
-              domain.EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now()).some
+              domain
+                .EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, LocalDateTime.now())
+                .some
             case _ => None
           }
       }

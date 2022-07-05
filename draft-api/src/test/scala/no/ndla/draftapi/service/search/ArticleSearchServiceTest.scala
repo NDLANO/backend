@@ -123,10 +123,20 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     created = today.minusDays(40),
     updated = today.minusDays(35),
     notes = Seq(
-      EditorNote("kakemonster", TestData.userWithWriteAccess.id, Status(ArticleStatus.DRAFT, Set.empty), LocalDateTime.now())
+      EditorNote(
+        "kakemonster",
+        TestData.userWithWriteAccess.id,
+        Status(ArticleStatus.DRAFT, Set.empty),
+        LocalDateTime.now()
+      )
     ),
     previousVersionsNotes = Seq(
-      EditorNote("kyllingkanon", TestData.userWithWriteAccess.id, Status(ArticleStatus.DRAFT, Set.empty), LocalDateTime.now())
+      EditorNote(
+        "kyllingkanon",
+        TestData.userWithWriteAccess.id,
+        Status(ArticleStatus.DRAFT, Set.empty),
+        LocalDateTime.now()
+      )
     ),
     grepCodes = Seq("KM1234")
   )

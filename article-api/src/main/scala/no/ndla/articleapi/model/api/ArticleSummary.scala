@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.model.api
 
-
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
