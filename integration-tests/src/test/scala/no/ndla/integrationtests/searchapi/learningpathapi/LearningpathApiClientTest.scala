@@ -7,6 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.learningpathapi
 
+import no.ndla.common.DateParser
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
@@ -18,9 +19,8 @@ import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{learningpathapi, searchapi}
 import org.eclipse.jetty.server.Server
-import org.joda.time.DateTime
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import scala.concurrent.duration.Duration
@@ -38,8 +38,7 @@ class LearningpathApiClientTest
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      new EnumNameSerializer(LearningResourceType) ++ JavaTimeSerializers.all
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
@@ -72,7 +71,8 @@ class LearningpathApiClientTest
     (1 to 10)
       .map(id => {
         learningpathApi.componentRegistry.learningPathRepository.insert(
-          learningpathapi.TestData.sampleDomainLearningPath.copy(id = Some(id), lastUpdated = new DateTime(0).toDate)
+          learningpathapi.TestData.sampleDomainLearningPath
+            .copy(id = Some(id), lastUpdated = DateParser.fromUnixTime(0))
         )
       })
   }
@@ -84,24 +84,21 @@ class LearningpathApiClientTest
   test("that dumping learningpaths returns learningpaths in serializable format") {
     setupLearningPaths()
 
-    val today = new DateTime(0)
-    withFrozenTime(today) {
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val learningPathApiClient = new LearningPathApiClient(learningpathApiBaseUrl)
 
-      AuthUser.setHeader(s"Bearer $exampleToken")
-      val learningPathApiClient = new LearningPathApiClient(learningpathApiBaseUrl)
+    implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+    val chunks                                = learningPathApiClient.getChunks[domain.learningpath.LearningPath].toList
+    val fetchedLearningPath                   = Await.result(chunks.head, Duration.Inf).get.head
 
-      implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-      val chunks              = learningPathApiClient.getChunks[domain.learningpath.LearningPath].toList
-      val fetchedLearningPath = Await.result(chunks.head, Duration.Inf).get.head
+    val searchable =
+      searchConverterService.asSearchableLearningPath(fetchedLearningPath, searchapi.TestData.taxonomyTestBundle)
 
-      val searchable =
-        searchConverterService.asSearchableLearningPath(fetchedLearningPath, searchapi.TestData.taxonomyTestBundle)
-
-      searchable.isSuccess should be(true)
-      searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))
-      searchable.get.description.languageValues should be(Seq(LanguageValue("nb", "deskripsjon")))
-      searchable.get.learningsteps.head.title.languageValues should be(Seq(LanguageValue("nb", "Step1Title")))
-      searchable.get.learningsteps.last.title.languageValues should be(Seq(LanguageValue("nb", "Step2Title")))
-    }
+    searchable.isSuccess should be(true)
+    searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))
+    searchable.get.description.languageValues should be(Seq(LanguageValue("nb", "deskripsjon")))
+    searchable.get.learningsteps.head.title.languageValues should be(Seq(LanguageValue("nb", "Step1Title")))
+    searchable.get.learningsteps.last.title.languageValues should be(Seq(LanguageValue("nb", "Step2Title")))
   }
+
 }
