@@ -1510,7 +1510,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(readService.getSubFoldersRecursively(eqTo(folder), eqTo(false))(any)).thenReturn(Success(folderWithChildren))
+    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any))
+      .thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(any)(any))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
     when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
@@ -1523,7 +1524,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any)
-    verify(readService, times(1)).getSubFoldersRecursively(eqTo(folder), eqTo(false))(any)
+    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any)
   }
 
   test("that a user with access can not delete Favorite folder") {
@@ -1560,7 +1561,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder2Id))(any)
     verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any)
-    verify(readService, times(0)).getSubFoldersRecursively(any, any)(any)
+    verify(readService, times(0)).getSingleFolderWithContent(any, any, any)(any)
   }
 
   test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
@@ -1582,7 +1583,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(readService.getSubFoldersRecursively(eqTo(folder), eqTo(false))(any)).thenReturn(Success(folderWithChildren))
+    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any))
+      .thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(any)(any)).thenReturn(Success(any))
 
     val x = service.deleteFolder(mainFolderId, Some("token"))
@@ -1593,7 +1595,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(0)).deleteResource(any)(any)
-    verify(readService, times(1)).getSubFoldersRecursively(eqTo(folder), eqTo(false))(any)
+    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any)
   }
 
   test("that deleteConnection only deletes connection when there are several references to a resource") {

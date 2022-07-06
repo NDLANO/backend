@@ -8,6 +8,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.{DBFolderResource, FolderDocument, FolderStatus, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -16,7 +17,9 @@ import scalikejdbc._
 
 import java.net.Socket
 import java.time.LocalDateTime
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
+import cats.implicits._
 
 class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)
@@ -233,6 +236,119 @@ class FolderRepositoryTest
     val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
     results.isSuccess should be(true)
     results.get.length should be(2)
+  }
+
+  test("Building tree-structure of folders works as expected") {
+    val base =
+      domain.Folder(
+        id = UUID.randomUUID(),
+        feideId = "feide",
+        parentId = None,
+        name = "name",
+        status = FolderStatus.PUBLIC,
+        isFavorite = false,
+        data = List.empty
+      )
+
+    val mainParent = base.copy(
+      id = UUID.randomUUID(),
+      parentId = None
+    )
+
+    val child1 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = mainParent.id.some
+    )
+
+    val child2 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = mainParent.id.some
+    )
+
+    val nestedChild1 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = child1.id.some
+    )
+
+    val expectedResult = mainParent.copy(
+      data = List(
+        Left(
+          child1.copy(
+            data = List(
+              Left(nestedChild1)
+            )
+          )
+        ),
+        Left(child2.copy())
+      )
+    )
+
+    repository.buildTreeStructureFromListOfChildren(List(mainParent, child1, child2, nestedChild1)) should be(
+      Some(expectedResult)
+    )
+  }
+
+  test("inserting and fetching nested folders with resources works as expected") {
+    val base =
+      domain.Folder(
+        id = UUID.randomUUID(),
+        feideId = "feide",
+        parentId = None,
+        name = "name",
+        status = FolderStatus.PUBLIC,
+        isFavorite = false,
+        data = List.empty
+      )
+
+    val mainParent = base.copy(
+      id = UUID.randomUUID(),
+      parentId = None
+    )
+
+    val child1 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = mainParent.id.some
+    )
+
+    val child2 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = mainParent.id.some
+    )
+
+    val nestedChild1 = base.copy(
+      id = UUID.randomUUID(),
+      parentId = child1.id.some
+    )
+
+    val insertedMain   = repository.insertFolder("feide", None, mainParent.toDocument())
+    val insertedChild1 = repository.insertFolder("feide", insertedMain.get.id.some, child1.toDocument())
+    val insertedChild2 = repository.insertFolder("feide", insertedMain.get.id.some, child2.toDocument())
+    val insertedChild3 = repository.insertFolder("feide", insertedChild1.get.id.some, nestedChild1.toDocument())
+    val insertedResource = repository.insertResource(
+      "feide",
+      "/testPath",
+      "resourceType",
+      LocalDateTime.now(),
+      ResourceDocument(List())
+    )
+    repository.createFolderResourceConnection(insertedMain.get.id, insertedResource.get.id).get
+
+    val expectedResult = insertedMain.get.copy(
+      data = List(
+        Left(
+          insertedChild1.get.copy(
+            data = List(
+              Left(insertedChild3.get)
+            )
+          )
+        ),
+        Left(insertedChild2.get),
+        Right(insertedResource.get)
+      )
+    )
+
+    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.get.id)(ReadOnlyAutoSession)
+    result should be(Success(Some(expectedResult)))
   }
 
 }
