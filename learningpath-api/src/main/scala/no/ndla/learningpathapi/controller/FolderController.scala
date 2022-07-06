@@ -24,7 +24,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
-import org.scalatra.ScalatraServlet
+import org.scalatra.{ScalatraServlet, NoContent}
 
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
@@ -48,6 +48,7 @@ trait FolderController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
+    val response204 = ResponseMessage(204, "No content", None)
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access not granted", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
@@ -171,20 +172,23 @@ trait FolderController {
     delete(
       "/:folder_id",
       operation(
-        apiOperation[Long]("removeFolder")
+        apiOperation[Unit]("removeFolder")
           .summary("Remove folder from user folders")
           .description("Remove folder from user folders")
           .parameters(
             asHeaderParam(feideToken),
             asPathParam(folderId)
           )
-          .responseMessages(response400, response403, response404, response500, response502)
+          .responseMessages(response204, response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => {
         updateService.deleteFolder(id, requestFeideToken)
-      })
+      }) match {
+        case Success(_)  => NoContent()
+        case Failure(ex) => errorHandler(ex)
+      }
     }
 
     get(
@@ -257,7 +261,7 @@ trait FolderController {
     delete(
       "/:folder_id/resources/:resource_id",
       operation(
-        apiOperation[Resource]("DeleteResource")
+        apiOperation[Unit]("DeleteResource")
           .summary("Delete selected resource")
           .description("Delete selected resource")
           .parameters(
@@ -265,7 +269,7 @@ trait FolderController {
             asPathParam(folderId),
             asPathParam(resourceId)
           )
-          .responseMessages(response400, response403, response404, response500, response502)
+          .responseMessages(response204, response400, response403, response404, response500, response502)
           .authorizations("oauth2")
       )
     ) {
@@ -273,7 +277,10 @@ trait FolderController {
         uuidParam(this.resourceId.paramName).flatMap(resourceId => {
           updateService.deleteConnection(folderId, resourceId, requestFeideToken)
         })
-      })
+      }) match {
+        case Success(_)  => NoContent()
+        case Failure(ex) => errorHandler(ex)
+      }
     }
   }
 }
