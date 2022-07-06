@@ -142,9 +142,8 @@ trait FolderController {
     ) {
       val newFolder = extract[NewFolder](request.body)
       updateService.newFolder(newFolder, requestFeideToken) match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(folder) =>
-          folder
+        case Failure(ex)     => errorHandler(ex)
+        case Success(folder) => folder
       }
     }
 
@@ -219,7 +218,7 @@ trait FolderController {
     post(
       "/:folder_id/resources/?",
       operation(
-        apiOperation[Unit]("createFolderResource")
+        apiOperation[Resource]("createFolderResource")
           .summary("Creates new folder resource")
           .description("Creates new folder resource")
           .parameters(
