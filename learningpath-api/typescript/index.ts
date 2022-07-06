@@ -5,6 +5,11 @@ export interface IAuthor {
   name: string
 }
 
+export interface IBreadcrumb {
+  id: string
+  name: string
+}
+
 export interface IConfigMeta {
   key: string
   value: string
@@ -43,7 +48,8 @@ export interface IFolder {
   name: string
   status: string
   isFavorite: boolean
-  breadcrumbs: string[]
+  parentId?: string
+  breadcrumbs: IBreadcrumb[]
   subfolders: IFolderData[]
   resources: IResource[]
 }
@@ -169,6 +175,7 @@ export interface INewResource {
   resourceType: string
   path: string
   tags?: string[]
+  resourceId?: number
 }
 
 export interface IResource {
@@ -177,6 +184,7 @@ export interface IResource {
   path: string
   created: string
   tags: string[]
+  resourceId?: number
 }
 
 export interface ISearchResultV2 {
@@ -199,4 +207,5 @@ export interface IUpdatedFolder {
 
 export interface IUpdatedResource {
   tags?: string[]
+  resourceId?: number
 }
