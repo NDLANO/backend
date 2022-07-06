@@ -28,9 +28,10 @@ trait SearchApiClient {
 
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends LazyLogging {
 
-    private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
-    private val SearchEndpoint   = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
-    private val indexTimeout     = 1000 * 60
+    private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
+    private val SearchEndpoint          = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
+    private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
+    private val indexTimeout            = 1000 * 60
 
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
@@ -84,9 +85,20 @@ trait SearchApiClient {
       }
     }
 
-    def articlesWhereUsed(articleId: Long): Seq[SearchHit] = {
+    def draftsWhereUsed(articleId: Long): Seq[SearchHit] = {
       get[SearchResults](
         SearchEndpoint,
+        "embed-resource" -> "content-link,related-content",
+        "embed-id"       -> s"${articleId}"
+      ) match {
+        case Success(value) => value.results
+        case Failure(_)     => Seq.empty
+      }
+    }
+
+    def publishedWhereUsed(articleId: Long): Seq[SearchHit] = {
+      get[SearchResults](
+        SearchEndpointPublished,
         "embed-resource" -> "content-link,related-content",
         "embed-id"       -> s"${articleId}"
       ) match {
