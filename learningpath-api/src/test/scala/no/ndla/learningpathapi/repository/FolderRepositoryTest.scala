@@ -321,34 +321,37 @@ class FolderRepositoryTest
       parentId = child1.id.some
     )
 
-    val insertedMain   = repository.insertFolder("feide", None, mainParent.toDocument())
-    val insertedChild1 = repository.insertFolder("feide", insertedMain.get.id.some, child1.toDocument())
-    val insertedChild2 = repository.insertFolder("feide", insertedMain.get.id.some, child2.toDocument())
-    val insertedChild3 = repository.insertFolder("feide", insertedChild1.get.id.some, nestedChild1.toDocument())
-    val insertedResource = repository.insertResource(
-      "feide",
-      "/testPath",
-      "resourceType",
-      LocalDateTime.now(),
-      ResourceDocument(List(), None)
-    )
-    repository.createFolderResourceConnection(insertedMain.get.id, insertedResource.get.id).get
+    val insertedMain   = repository.insertFolder("feide", None, mainParent.toDocument()).failIfFailure
+    val insertedChild1 = repository.insertFolder("feide", insertedMain.id.some, child1.toDocument()).failIfFailure
+    val insertedChild2 = repository.insertFolder("feide", insertedMain.id.some, child2.toDocument()).failIfFailure
+    val insertedChild3 =
+      repository.insertFolder("feide", insertedChild1.id.some, nestedChild1.toDocument()).failIfFailure
+    val insertedResource = repository
+      .insertResource(
+        "feide",
+        "/testPath",
+        "resourceType",
+        LocalDateTime.now(),
+        ResourceDocument(List(), None)
+      )
+      .failIfFailure
+    repository.createFolderResourceConnection(insertedMain.id, insertedResource.id).failIfFailure
 
     val expectedSubfolders = List(
-      insertedChild2.get,
-      insertedChild1.get.copy(
+      insertedChild2,
+      insertedChild1.copy(
         subfolders = List(
-          insertedChild3.get
+          insertedChild3
         )
       )
     )
 
-    val expectedResult = insertedMain.get.copy(
+    val expectedResult = insertedMain.copy(
       subfolders = expectedSubfolders.sortBy(_.id.toString),
-      resources = List(insertedResource.get)
+      resources = List(insertedResource)
     )
 
-    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.get.id)(ReadOnlyAutoSession)
+    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
     result should be(Success(Some(expectedResult)))
   }
 
