@@ -173,7 +173,7 @@ class FolderRepositoryTest
       resource1.path,
       resource1.resourceType,
       resource1.created,
-      ResourceDocument(resource1.tags)
+      ResourceDocument(resource1.tags, resource1.resourceId)
     )
     val correct =
       repository.resourceWithPathAndTypeAndFeideId(path = "pathernity test", resourceType = "type", feideId = "feide-1")
@@ -330,7 +330,7 @@ class FolderRepositoryTest
       "/testPath",
       "resourceType",
       LocalDateTime.now(),
-      ResourceDocument(List())
+      ResourceDocument(List(), None)
     )
     repository.createFolderResourceConnection(insertedMain.get.id, insertedResource.get.id).get
 

@@ -774,7 +774,8 @@ trait ConverterService {
     }
 
     def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
-      val tags = updated.tags.getOrElse(existing.tags)
+      val tags       = updated.tags.getOrElse(existing.tags)
+      val resourceId = updated.resourceId.orElse(existing.resourceId)
 
       domain.Resource(
         id = existing.id,
@@ -782,12 +783,14 @@ trait ConverterService {
         resourceType = existing.resourceType,
         path = existing.path,
         created = existing.created,
-        tags = tags
+        tags = tags,
+        resourceId = resourceId
       )
     }
 
     def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
-      val tags = newResource.tags.getOrElse(existing.tags)
+      val tags       = newResource.tags.getOrElse(existing.tags)
+      val resourceId = newResource.resourceId.orElse(existing.resourceId)
 
       domain.Resource(
         id = existing.id,
@@ -795,7 +798,8 @@ trait ConverterService {
         resourceType = existing.resourceType,
         path = existing.path,
         created = existing.created,
-        tags = tags
+        tags = tags,
+        resourceId = resourceId
       )
     }
 
@@ -804,6 +808,7 @@ trait ConverterService {
       val path         = domainResource.path
       val created      = domainResource.created
       val tags         = domainResource.tags
+      val resourceId   = domainResource.resourceId
 
       Success(
         api.Resource(
@@ -811,14 +816,18 @@ trait ConverterService {
           resourceType = resourceType,
           path = path,
           created = created,
-          tags = tags
+          tags = tags,
+          resourceId = resourceId
         )
       )
     }
 
     def toDomainResource(newResource: api.NewResource): ResourceDocument = {
       val tags = newResource.tags.getOrElse(List.empty)
-      ResourceDocument(tags = tags)
+      ResourceDocument(
+        tags = tags,
+        resourceId = newResource.resourceId
+      )
     }
 
     def domainToApiModel[Domain, Api](

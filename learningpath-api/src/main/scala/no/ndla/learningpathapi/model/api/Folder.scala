@@ -61,15 +61,24 @@ case class Resource(
     @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "When the resource was created") created: LocalDateTime,
-    @(ApiModelProperty @field)(description = "List of tags") tags: List[String]
+    @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
+    @(ApiModelProperty @field)(
+      description = "The id of the resource, useful for fetching metadata for the resource"
+    ) resourceId: Option[Long]
 )
 
 case class NewResource(
     @(ApiModelProperty @field)(description = "Type of the resource. (Article, Learningpath)") resourceType: String,
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]]
+    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
+    @(ApiModelProperty @field)(
+      description = "The id of the resource, useful for fetching metadata for the resource"
+    ) resourceId: Option[Long]
 )
 
 case class UpdatedResource(
-    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]]
+    @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
+    @(ApiModelProperty @field)(
+      description = "The id of the resource, useful for fetching metadata for the resource"
+    ) resourceId: Option[Long]
 )
