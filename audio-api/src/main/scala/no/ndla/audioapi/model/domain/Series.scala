@@ -48,8 +48,7 @@ trait DBSeries {
   this: Props =>
 
   object Series extends SQLSyntaxSupport[Series] {
-    val jsonEncoder: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-
+    val jsonEncoder: Formats = DefaultFormats
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Series](
         ignore("id") orElse

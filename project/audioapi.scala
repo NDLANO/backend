@@ -12,7 +12,6 @@ object audioapi extends Module {
     Seq(
       scalaTsi,
       scalaUri,
-      jodaTime,
       enumeratum,
       "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
       "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",

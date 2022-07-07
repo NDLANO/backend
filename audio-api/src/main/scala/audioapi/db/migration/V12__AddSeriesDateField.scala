@@ -17,7 +17,7 @@ import scalikejdbc.{DB, DBSession, _}
 import java.time.LocalDateTime
 
 class V12__AddSeriesDateField extends BaseJavaMigration {
-  private implicit val formats: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+  private implicit val formats: Formats = DefaultFormats
   private val dateToUse                 = LocalDateTime.now()
   private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
 
