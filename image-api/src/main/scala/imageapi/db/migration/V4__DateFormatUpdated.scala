@@ -8,19 +8,20 @@
 package imageapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.DateParser
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s._
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class V4__DateFormatUpdated extends BaseJavaMigration with LazyLogging {
   // There was a bug in the dateformat of V3__AddUpdatedColoums had days as DD and the 'Z' got stored as +0000 not as 'Z'.
-  implicit val formats = org.json4s.DefaultFormats
-  val timeService      = new TimeService2()
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  val timeService               = new TimeService2()
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)
@@ -67,8 +68,7 @@ class TimeService2() {
 
   def nowAsString(): String = {
     val currentTime = LocalDateTime.now()
-    val formatter   = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-    currentTime.format(formatter)
+    DateParser.dateToString(currentTime, withMillis = false)
   }
 
 }

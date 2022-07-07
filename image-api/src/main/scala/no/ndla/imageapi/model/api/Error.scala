@@ -20,7 +20,7 @@ case class Error(
     @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
     @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: String =
-      DateParser.dateToString(LocalDateTime.now(), withMillis = true)
+      DateParser.dateToString(LocalDateTime.now(), withMillis = false)
 )
 
 trait ErrorHelpers {

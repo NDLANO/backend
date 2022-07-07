@@ -22,7 +22,6 @@ import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepVa
 import cats.implicits._
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
@@ -358,7 +357,7 @@ trait UpdateService {
     def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: UserInfo): Try[config.ConfigMeta] = {
 
       writeOrAccessDenied(userInfo.isAdmin, "Only administrators can edit configuration.") {
-        ConfigMeta(configKey, value.value, LocalDateTime.now(), userInfo.userId).validate.flatMap(newConfigValue => {
+        ConfigMeta(configKey, value.value, clock.now(), userInfo.userId).validate.flatMap(newConfigValue => {
           configRepository.updateConfigParam(newConfigValue).map(converterService.asApiConfig)
         })
       }

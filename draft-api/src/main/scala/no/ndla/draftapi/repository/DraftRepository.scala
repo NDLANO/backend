@@ -13,17 +13,17 @@ import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.service.Clock
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
-  this: DataSource with DBArticle with ErrorHelpers =>
+  this: DataSource with DBArticle with ErrorHelpers with Clock =>
   val draftRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging with Repository[Article] {
@@ -90,9 +90,7 @@ trait DraftRepository {
             val articleRevision                 = article.revision.getOrElse(0) + 1
             val copiedArticle = article.copy(
               notes = user
-                .map(u =>
-                  EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, LocalDateTime.now())
-                )
+                .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, clock.now()))
                 .toList,
               previousVersionsNotes = article.previousVersionsNotes ++ article.notes
             )
