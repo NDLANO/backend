@@ -13,12 +13,13 @@ import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.ValidationException
+import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.util.Date
+import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
@@ -249,7 +250,12 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
 
     val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
-    res.errors.head.message should equal("Article is in use in these article(s) 1 (Title)")
+    res.errors should equal(
+      Seq(
+        ValidationMessage("status.current", "Article is in use in these draft(s) 1 (Title)"),
+        ValidationMessage("status.current", "Article is in use in these published article(s) 1 (Title)")
+      )
+    )
   }
 
   test("unpublishArticle should fail if article is used in a learningstep with a taxonomy-url") {
