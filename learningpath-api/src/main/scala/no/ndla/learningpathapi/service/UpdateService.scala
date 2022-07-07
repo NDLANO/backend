@@ -371,7 +371,6 @@ trait UpdateService {
             case Success(learningPath) =>
               learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
                 case None =>
-                  None
                   Failure(
                     NotFoundException(s"LearningStep with id $learningStepId in learningPath $learningPathId not found")
                   )
@@ -557,7 +556,7 @@ trait UpdateService {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
         _              <- folder.canDelete(feideId)
-        folderWithData <- readService.getSubFoldersRecursively(folder, includeResources = false)
+        folderWithData <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = false)
         deleted        <- deleteRecursively(folderWithData, feideId)
       } yield deleted
     }

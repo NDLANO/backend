@@ -51,9 +51,9 @@ trait DBResource {
   this: Props =>
 
   object DBResource extends SQLSyntaxSupport[Resource] {
-    implicit val formats         = DefaultFormats
-    override val tableName       = "resources"
-    lazy override val schemaName = Some(props.MetaSchema)
+    implicit val formats: Formats = DefaultFormats
+    override val tableName        = "resources"
+    lazy override val schemaName  = Some(props.MetaSchema)
 
     val JSonSerializer = FieldSerializer[Resource](
       ignore("id") orElse
@@ -61,22 +61,23 @@ trait DBResource {
         ignore("created")
     )
 
-    def fromResultSetOpt(ls: ResultName[Resource])(rs: WrappedResultSet): Try[Option[Resource]] =
-      rs.get[Option[UUID]](ls.c("id")).traverse(_ => fromResultSet(ls)(rs))
-
     def fromResultSet(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Try[Resource] =
       fromResultSet(lp.resultName)(rs)
+    def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Try[Resource] =
+      fromResultSet(s => lp.c(s))(rs)
+    def fromResultSet(rs: WrappedResultSet): Try[Resource] =
+      fromResultSet(s => s)(rs)
+    def fromResultSetOpt(rs: WrappedResultSet): Try[Option[Resource]] =
+      rs.get[Option[UUID]]("resource_id").traverse(_ => fromResultSet(rs))
 
-    def fromResultSetOpt(lp: SyntaxProvider[Resource])(rs: WrappedResultSet): Try[Option[Resource]] =
-      fromResultSetOpt(lp.resultName)(rs)
-
-    def fromResultSet(lp: ResultName[Resource])(rs: WrappedResultSet): Try[Resource] = {
-      val metaData     = read[ResourceDocument](rs.string(lp.c("document")))
-      val id           = rs.get[Try[UUID]](lp.c("id"))
-      val feideId      = rs.string(lp.c("feide_id"))
-      val created      = rs.localDateTime(lp.c("created"))
-      val path         = rs.string(lp.c("path"))
-      val resourceType = rs.string(lp.c("resource_type"))
+    def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[Resource] = {
+      val jsonString   = rs.string(colNameWrapper("document"))
+      val metaData     = read[ResourceDocument](jsonString)
+      val id           = rs.get[Try[UUID]](colNameWrapper("id"))
+      val feideId      = rs.string(colNameWrapper("feide_id"))
+      val created      = rs.localDateTime(colNameWrapper("created"))
+      val path         = rs.string(colNameWrapper("path"))
+      val resourceType = rs.string(colNameWrapper("resource_type"))
 
       id.map(id => metaData.toFullResource(id, path, resourceType, feideId, created))
     }
@@ -105,7 +106,16 @@ case class Folder(
     status: FolderStatus.Value,
     isFavorite: Boolean,
     data: List[FolderData]
-) extends FolderContent
+) extends FolderContent {
+  def toDocument(): FolderDocument = {
+    FolderDocument(
+      isFavorite = isFavorite,
+      name = name,
+      status = status,
+      data = data
+    )
+  }
+}
 
 trait DBFolder {
   this: Props =>
@@ -121,18 +131,16 @@ trait DBFolder {
         ignore("parentId")
     )
 
-    def fromResultSetOpt(ls: ResultName[Folder])(rs: WrappedResultSet): Try[Option[Folder]] =
-      rs.get[Option[UUID]](ls.c("id")).traverse(_ => fromResultSet(ls)(rs))
-
     def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] =
-      fromResultSet(lp.resultName)(rs)
+      fromResultSet((s: String) => lp.resultName.c(s))(rs)
 
-    def fromResultSet(lp: ResultName[Folder])(rs: WrappedResultSet): Try[Folder] = {
-      val metaData = read[FolderDocument](rs.string(lp.c("document")))
-      val id       = rs.get[Try[UUID]](lp.c("id"))
-      val feideId  = rs.string(lp.c("feide_id"))
-      val parentId = rs.get[Option[UUID]](lp.c("parent_id"))
+    def fromResultSet(rs: WrappedResultSet): Try[Folder] = fromResultSet((s: String) => s)(rs)
 
+    def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[Folder] = {
+      val metaData = read[FolderDocument](rs.string(colNameWrapper("document")))
+      val id       = rs.get[Try[UUID]](colNameWrapper("id"))
+      val feideId  = rs.string(colNameWrapper("feide_id"))
+      val parentId = rs.get[Option[UUID]](colNameWrapper("parent_id"))
       id.map(id =>
         metaData.toFullFolder(
           id,
@@ -141,6 +149,7 @@ trait DBFolder {
         )
       )
     }
+
   }
 }
 
