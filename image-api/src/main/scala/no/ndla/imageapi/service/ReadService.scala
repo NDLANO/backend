@@ -30,7 +30,6 @@ trait ReadService {
     with ImageStorageService
     with TagSearchService
     with SearchConverterService
-    with Clock
     with User
     with DBImageFile
     with DBImageMetaInformation

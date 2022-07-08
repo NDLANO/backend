@@ -11,6 +11,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.Clock
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._

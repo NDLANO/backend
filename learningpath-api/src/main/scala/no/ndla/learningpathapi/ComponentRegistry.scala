@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.Clock
 import no.ndla.learningpathapi.controller.{
   ConfigController,
   CorrelationIdSupport,

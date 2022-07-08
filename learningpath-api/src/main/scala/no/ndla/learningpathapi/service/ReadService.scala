@@ -24,7 +24,7 @@ import no.ndla.learningpathapi.model.domain.{
   _
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
-import scalikejdbc.{DBSession}
+import scalikejdbc.DBSession
 
 import java.util.UUID
 import scala.annotation.tailrec

@@ -11,10 +11,9 @@ package no.ndla.learningpathapi.validation
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.service.Clock
 import no.ndla.mapping.License.PublicDomain
 
-class LearningPathValidatorTest extends UnitSuite with Clock with TestEnvironment {
+class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningPathValidator = _
 

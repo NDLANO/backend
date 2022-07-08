@@ -20,6 +20,7 @@ import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, L
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import cats.implicits._
+import no.ndla.common.Clock
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.time.LocalDateTime

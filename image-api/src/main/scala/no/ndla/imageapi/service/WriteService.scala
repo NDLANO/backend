@@ -10,6 +10,7 @@ package no.ndla.imageapi.service
 
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Clock
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._

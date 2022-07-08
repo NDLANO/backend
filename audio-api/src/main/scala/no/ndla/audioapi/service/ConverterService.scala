@@ -16,6 +16,7 @@ import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
+import no.ndla.common.Clock
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense

@@ -24,7 +24,7 @@ import no.ndla.audioapi.model.api.{
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
-import no.ndla.audioapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
@@ -42,7 +42,6 @@ trait SeriesController {
     with SeriesSearchService
     with Role
     with User
-    with Clock
     with SearchConverterService
     with ConverterService
     with Props

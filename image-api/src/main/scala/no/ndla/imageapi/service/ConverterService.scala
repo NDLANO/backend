@@ -29,6 +29,7 @@ import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 import cats.implicits._
+import no.ndla.common.Clock
 
 import scala.util.{Failure, Success, Try}
 

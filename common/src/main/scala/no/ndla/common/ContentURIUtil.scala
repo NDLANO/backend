@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA common.
+ * Copyright (C) 2022 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.common
 
 import scala.util.{Failure, Try}
