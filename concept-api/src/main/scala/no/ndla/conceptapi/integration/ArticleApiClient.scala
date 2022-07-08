@@ -51,7 +51,7 @@ trait ArticleApiClient {
     }
 
     def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats
       ndlaClient.fetchWithForwardedAuth[T](
         Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout)
       )

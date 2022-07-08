@@ -770,7 +770,7 @@ trait ConverterService {
 
     def addNote(article: domain.Article, noteText: String, user: UserInfo): domain.Article = {
       article.copy(
-        notes = article.notes :+ domain.EditorNote(noteText, user.id, article.status, LocalDateTime.now())
+        notes = article.notes :+ domain.EditorNote(noteText, user.id, article.status, clock.now())
       )
     }
 

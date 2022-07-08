@@ -95,7 +95,6 @@ trait SearchApiClient {
           new EnumNameSerializer(EmbedType) +
           new EnumNameSerializer(LearningResourceType) +
           new EnumNameSerializer(Availability) ++
-          org.json4s.ext.JodaTimeSerializers.all ++
           JavaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
     }

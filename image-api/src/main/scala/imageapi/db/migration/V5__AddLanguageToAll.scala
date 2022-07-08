@@ -11,6 +11,7 @@ import no.ndla.language.Language
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
@@ -18,7 +19,8 @@ import scalikejdbc.{DB, DBSession, _}
 import java.time.LocalDateTime
 
 class V5__AddLanguageToAll extends BaseJavaMigration {
-  implicit val formats: Formats = org.json4s.DefaultFormats + FieldSerializer[V5_ImageMetaInformation](ignore("id"))
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats + FieldSerializer[V5_ImageMetaInformation](ignore("id")) ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

@@ -321,101 +321,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
-  test("That getFolder returns folder, subFolders and resources") {
-    val created        = clock.now()
-    val mainFolderUUID = UUID.randomUUID()
-    val subFolder1UUID = UUID.randomUUID()
-    val subFolder2UUID = UUID.randomUUID()
-    val resource1UUID  = UUID.randomUUID()
-
-    val mainFolder = domain.Folder(
-      id = mainFolderUUID,
-      feideId = "FEIDE",
-      parentId = None,
-      name = "mainFolder",
-      status = FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val subFolder1 = domain.Folder(
-      id = subFolder1UUID,
-      feideId = "",
-      parentId = Some(mainFolderUUID),
-      name = "subFolder1",
-      status = FolderStatus.PUBLIC,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val subFolder2 = domain.Folder(
-      id = subFolder2UUID,
-      feideId = "",
-      parentId = Some(mainFolderUUID),
-      name = "subFolder2",
-      status = FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val resource1 = domain.Resource(
-      id = resource1UUID,
-      feideId = "",
-      resourceType = "article",
-      path = "/subject/1/topic/1/resource/4",
-      created = created,
-      tags = List.empty
-    )
-
-    val expected = api.Folder(
-      id = mainFolderUUID.toString,
-      name = "mainFolder",
-      status = "private",
-      isFavorite = false,
-      breadcrumbs = List("mainFolder"),
-      data = List(
-        api.Resource(
-          id = resource1UUID.toString,
-          resourceType = "article",
-          tags = List.empty,
-          path = "/subject/1/topic/1/resource/4",
-          created = created
-        ),
-        api.Folder(
-          id = subFolder1UUID.toString,
-          name = "subFolder1",
-          status = "public",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder1")
-        ),
-        api.Folder(
-          id = subFolder2UUID.toString,
-          name = "subFolder2",
-          status = "private",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder2")
-        )
-      )
-    )
-
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
-    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
-    when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
-      .thenReturn(Success(List(subFolder1, subFolder2)))
-    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder1UUID)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder2UUID)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(eqTo(mainFolderUUID))(any)).thenReturn(Success(List(resource1)))
-    when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
-
-    val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
-    result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
-    verify(folderRepository, times(3)).getFolderResources(any)(any)
-  }
-
   test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
     val created        = clock.now()
     val mainFolderUUID = UUID.randomUUID()
@@ -469,13 +374,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       isFavorite = false,
       breadcrumbs = List("mainFolder"),
       data = List(
-        api.Resource(
-          id = resource1UUID.toString,
-          resourceType = "article",
-          tags = List.empty,
-          path = "/subject/1/topic/1/resource/4",
-          created = created
-        ),
         api.Folder(
           id = subFolder1UUID.toString,
           name = "subFolder1",
@@ -491,7 +389,22 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           data = List.empty,
           isFavorite = false,
           breadcrumbs = List("mainFolder", "subFolder2")
+        ),
+        api.Resource(
+          id = resource1UUID.toString,
+          resourceType = "article",
+          tags = List.empty,
+          path = "/subject/1/topic/1/resource/4",
+          created = created
         )
+      )
+    )
+
+    val whgaterh = mainFolder.copy(
+      data = List(
+        Left(subFolder1),
+        Left(subFolder2),
+        Right(resource1)
       )
     )
 
@@ -504,85 +417,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(eqTo(mainFolderUUID))(any)).thenReturn(Success(List(resource1)))
     when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(any)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any)(any)).thenReturn(Success(Some(whgaterh)))
 
-    val Success(result) = service.getFolder(mainFolderUUID, true, true, None)
-    result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
-    verify(folderRepository, times(3)).getFolderResources(any)(any)
-  }
-
-  test("That setting includeResources to false in getFolders returns only folder and subFolders") {
-    val mainFolderUUID = UUID.randomUUID()
-    val subFolder1UUID = UUID.randomUUID()
-    val subFolder2UUID = UUID.randomUUID()
-
-    val mainFolder = domain.Folder(
-      id = mainFolderUUID,
-      feideId = "FEIDE",
-      parentId = None,
-      name = "mainFolder",
-      status = FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val subFolder1 = domain.Folder(
-      id = subFolder1UUID,
-      feideId = "",
-      parentId = Some(mainFolderUUID),
-      name = "subFolder1",
-      status = FolderStatus.PUBLIC,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val subFolder2 = domain.Folder(
-      id = subFolder2UUID,
-      feideId = "",
-      parentId = Some(mainFolderUUID),
-      name = "subFolder2",
-      status = FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
-    )
-
-    val expected = api.Folder(
-      id = mainFolderUUID.toString,
-      name = "mainFolder",
-      status = "private",
-      isFavorite = false,
-      breadcrumbs = List("mainFolder"),
-      data = List(
-        api.Folder(
-          id = subFolder1UUID.toString,
-          name = "subFolder1",
-          status = "public",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder1")
-        ),
-        api.Folder(
-          id = subFolder2UUID.toString,
-          name = "subFolder2",
-          status = "private",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder2")
-        )
-      )
-    )
-
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDE"))
-    when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
-    when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
-      .thenReturn(Success(List(subFolder1, subFolder2)))
-    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder1UUID)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(eqTo(Some(subFolder2UUID)))(any)).thenReturn(Success(List.empty))
-
-    val Success(result) = service.getFolder(mainFolderUUID, true, false, None)
-    result should be(expected)
-    verify(folderRepository, times(3)).foldersWithParentID(any)(any)
-    verify(folderRepository, times(0)).getFolderResources(any)(any)
+    val result = service.getSingleFolder(mainFolderUUID, true, true, None)
+    result should be(Success(expected))
   }
 
   test("That user with no access doesn't get the treat") {
@@ -590,48 +428,23 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFolderAndChildrenSubfolders(any)(any)).thenReturn(Success(Some(emptyDomainFolder)))
 
-    val result = service.getFolder(mainFolderUUID, true, false, None)
-    result.isFailure should be(true)
+    val result = service.getSingleFolder(mainFolderUUID, true, false, None)
+    result should be(Failure(AccessDeniedException("You do not have access to this entity.")))
     verify(folderRepository, times(0)).foldersWithParentID(any)(any)
     verify(folderRepository, times(0)).getFolderResources(any)(any)
-  }
-
-  test("That getFolders returns favorite folder if it exist") {
-    val feideId              = "yee boiii"
-    val folderUUID           = UUID.randomUUID()
-    val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
-    val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
-    val favoriteApiFolder =
-      emptyApiFolder.copy(
-        id = folderUUID.toString,
-        name = "favorite",
-        status = "private",
-        isFavorite = true,
-        breadcrumbs = List("favorite")
-      )
-
-    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
-      .thenReturn(Success(List(folderWithId, folderWithId, favoriteDomainFolder)))
-
-    val result = service.getFolders(false, false, Some("token"))
-    result.isSuccess should be(true)
-    result.get.length should be(3)
-    result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
-
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
   }
 
   test("That getFolders creates favorite folder if favorite does not exist ") {
     val feideId              = "yee boiii"
     val folderUUID           = UUID.randomUUID()
+    val favoriteUUID         = UUID.randomUUID()
     val folderWithId         = emptyDomainFolder.copy(id = folderUUID)
-    val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
+    val favoriteDomainFolder = folderWithId.copy(id = favoriteUUID, name = "favorite", isFavorite = true)
     val favoriteApiFolder =
       emptyApiFolder.copy(
-        id = folderUUID.toString,
+        id = favoriteUUID.toString,
         name = "favorite",
         status = "private",
         isFavorite = true,
@@ -642,11 +455,12 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
+    when(folderRepository.folderWithId(eqTo(folderUUID))(any)).thenReturn(Success(folderWithId))
+    when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
 
     val result = service.getFolders(false, false, Some("token"))
-    result.isSuccess should be(true)
     result.get.length should be(3)
-    result.get.find(e => e.name.equals("favorite")).get should be(favoriteApiFolder)
+    result.get.find(_.name == "favorite").get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
     verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
@@ -657,13 +471,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(created)
 
     val feideId              = "yee boiii"
-    val randomUUID           = UUID.randomUUID()
-    val folderWithId         = emptyDomainFolder.copy(id = randomUUID)
-    val favoriteDomainFolder = folderWithId.copy(name = "favorite", isFavorite = true)
-    val domainResource       = emptyDomainResource.copy(id = randomUUID, created = created)
+    val favoriteId           = UUID.randomUUID()
+    val resourceId           = UUID.randomUUID()
+    val folderId             = UUID.randomUUID()
+    val folderWithId         = emptyDomainFolder.copy(id = folderId)
+    val favoriteDomainFolder = folderWithId.copy(id = favoriteId, name = "favorite", isFavorite = true)
+    val domainResource       = emptyDomainResource.copy(id = resourceId, created = created)
     val favoriteApiFolder =
       emptyApiFolder.copy(
-        id = randomUUID.toString,
+        id = favoriteId.toString,
         name = "favorite",
         status = "private",
         isFavorite = true,
@@ -671,7 +487,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val apiResource =
       api.Resource(
-        id = randomUUID.toString,
+        id = resourceId.toString,
         resourceType = "",
         path = "",
         created = created,
@@ -684,96 +500,25 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
+
+    when(folderRepository.folderWithId(eqTo(folderWithId.id))(any)).thenReturn(Success(folderWithId))
+    when(folderRepository.folderWithId(eqTo(favoriteId))(any)).thenReturn(Success(favoriteDomainFolder))
+
     when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getFolderResources(any)(any))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
 
     val result = service.getFolders(false, true, Some("token"))
-    result.isSuccess should be(true)
     result.get.length should be(3)
-    result.get.find(e => e.name.equals("favorite")).get should be(
+    result.get.find(e => e.name == "favorite").get should be(
       favoriteApiFolder.copy(data = List(apiResource, apiResource))
     )
-    result.get.exists(f => f.data.length.equals(2))
-    result.get.exists(f => f.data.length.equals(1))
+    result.get.exists(f => f.data.length == 2)
+    result.get.exists(f => f.data.length == 1)
     result.get.exists(f => f.data.isEmpty)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
     verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
     verify(folderRepository, times(3)).getFolderResources(any)(any)
-  }
-
-  test("That getFolders includes resources and subfolders when both flag are set to true") {
-    val created = clock.now()
-    when(clock.now()).thenReturn(created)
-
-    val feideId              = "yee boiii"
-    val UUID1                = UUID.randomUUID()
-    val UUID2                = UUID.randomUUID()
-    val UUID3                = UUID.randomUUID()
-    val UUID4                = UUID.randomUUID()
-    val UUID5                = UUID.randomUUID()
-    val folderId1            = emptyDomainFolder.copy(id = UUID1)
-    val folderId2            = emptyDomainFolder.copy(id = UUID2)
-    val folderId3            = emptyDomainFolder.copy(id = UUID3)
-    val folderId4            = emptyDomainFolder.copy(id = UUID4)
-    val favoriteDomainFolder = folderId1.copy(id = UUID5, name = "favorite", isFavorite = true)
-    val domainResource       = emptyDomainResource.copy(id = UUID1, created = created)
-    val favoriteApiFolder =
-      emptyApiFolder.copy(
-        id = UUID5.toString,
-        name = "favorite",
-        status = "private",
-        isFavorite = true,
-        breadcrumbs = List("favorite")
-      )
-    val apiResource =
-      api.Resource(
-        id = UUID1.toString,
-        resourceType = "",
-        path = "",
-        created = created,
-        tags = List.empty
-      )
-    val folderResourcesResponse1 = Success(List(domainResource, domainResource))
-    val folderResourcesResponse2 = Success(List(domainResource))
-    val folderResourcesResponse3 = Success(List.empty)
-
-    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
-      .thenReturn(Success(List(folderId1, folderId2)))
-    when(folderRepository.foldersWithParentID(eqTo(Some(UUID1)))(any)).thenReturn(Success(List(folderId3)))
-    when(folderRepository.foldersWithParentID(eqTo(Some(UUID2)))(any)).thenReturn(Success(List(folderId4)))
-    when(folderRepository.foldersWithParentID(eqTo(Some(UUID3)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(eqTo(Some(UUID4)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithParentID(eqTo(Some(UUID5)))(any)).thenReturn(Success(List.empty))
-    when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getFolderResources(eqTo(UUID1))(any)).thenReturn(folderResourcesResponse1)
-    when(folderRepository.getFolderResources(eqTo(UUID2))(any)).thenReturn(folderResourcesResponse2)
-    when(folderRepository.getFolderResources(eqTo(UUID3))(any)).thenReturn(folderResourcesResponse3)
-    when(folderRepository.getFolderResources(eqTo(UUID4))(any)).thenReturn(folderResourcesResponse3)
-    when(folderRepository.getFolderResources(eqTo(UUID5))(any)).thenReturn(folderResourcesResponse1)
-
-    val result = service.getFolders(true, true, Some("token"))
-    result.isSuccess should be(true)
-    result.get.length should be(3)
-    result.get.find(e => e.name.equals("favorite")).get should be(
-      favoriteApiFolder.copy(data = List(apiResource, apiResource))
-    )
-
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(5)).foldersWithParentID(any)(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID1)))(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID2)))(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID3)))(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID4)))(any)
-    verify(folderRepository, times(1)).foldersWithParentID(eqTo(Some(UUID5)))(any)
-    verify(folderRepository, times(5)).getFolderResources(any)(any)
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID1))(any)
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID2))(any)
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID3))(any)
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID4))(any)
-    verify(folderRepository, times(1)).getFolderResources(eqTo(UUID5))(any)
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
   }
 }

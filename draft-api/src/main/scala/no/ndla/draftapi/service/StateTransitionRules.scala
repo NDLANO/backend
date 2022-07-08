@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import java.time.LocalDateTime
 import cats.effect.IO
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
@@ -37,6 +36,7 @@ import scala.util.{Failure, Success, Try}
 trait StateTransitionRules {
   this: WriteService
     with DraftRepository
+    with Clock
     with ArticleApiClient
     with TaxonomyApiClient
     with LearningpathApiClient
@@ -243,7 +243,7 @@ trait StateTransitionRules {
                 "Status endret",
                 if (isImported) "System" else user.id,
                 newStatus,
-                LocalDateTime.now()
+                clock.now()
               )
             else current.notes
           val convertedArticle = current.copy(status = newStatus, notes = newEditorNotes)
@@ -293,11 +293,16 @@ trait StateTransitionRules {
     }
 
     private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[domain.Article]): Try[domain.Article] =
-      (searchApiClient.articlesWhereUsed(articleId), learningPathsUsingArticle(articleId)) match {
-        case (Nil, Nil) => callback
-        case (articlesUsingArticle, pathsUsingArticle) =>
+      (
+        searchApiClient.draftsWhereUsed(articleId),
+        searchApiClient.publishedWhereUsed(articleId),
+        learningPathsUsingArticle(articleId)
+      ) match {
+        case (Nil, Nil, Nil) => callback
+        case (draftsUsingArticle, publishedUsingArticle, pathsUsingArticle) =>
           val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
-          val articleIds      = articlesUsingArticle.map(art => s"${art.id} (${art.title.title})")
+          val draftsIds       = draftsUsingArticle.map(art => s"${art.id} (${art.title.title})")
+          val publishedIds    = publishedUsingArticle.map(art => s"${art.id} (${art.title.title})")
           def errorMessage(ids: Seq[_], msg: String): Option[ValidationMessage] =
             Option.when(ids.nonEmpty)(ValidationMessage("status.current", msg))
 
@@ -305,11 +310,17 @@ trait StateTransitionRules {
             learningPathIds,
             s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article"
           )
-          val articleMessage = errorMessage(
-            articleIds,
-            s"Article is in use in these article(s) ${articleIds.mkString(", ")}"
+          val draftMessage = errorMessage(
+            draftsIds,
+            s"Article is in use in these draft(s) ${draftsIds.mkString(", ")}"
           )
-          Failure(new ValidationException(errors = learningPathMessage.toSeq ++ articleMessage.toSeq))
+          val publishedMessage = errorMessage(
+            publishedIds,
+            s"Article is in use in these published article(s) ${publishedIds.mkString(", ")}"
+          )
+          Failure(
+            new ValidationException(errors = learningPathMessage.toSeq ++ draftMessage.toSeq ++ publishedMessage.toSeq)
+          )
       }
 
   }

@@ -33,7 +33,6 @@ object Dependencies {
     val TestContainersV       = "1.15.1"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
-    lazy val jodaTime = "joda-time"     % "joda-time" % "2.10"
 
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres    = "org.postgresql"   % "postgresql"  % PostgresV

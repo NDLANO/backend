@@ -220,10 +220,70 @@ trait FolderRepository {
       foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId")
     }
 
+    private[repository] def buildTreeStructureFromListOfChildren(folders: List[Folder]): Option[Folder] =
+      folders match {
+        case Nil => None
+        case mainParent :: rest =>
+          val byPid = rest.groupBy(_.parentId)
+          def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
+            case Some(children) =>
+              val childrenWithTheirChildrenFolders = children.map(child => Left(injectChildrenRecursively(child)))
+              current.copy(data = childrenWithTheirChildrenFolders ++ current.data)
+            case None => current
+          }
+          injectChildrenRecursively(mainParent).some
+      }
+
+    /** A flat list of the folder with `id` as well as its children folders. The folders in the list comes with
+      * connected resources in the `data` list.
+      */
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
+      sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
+            WITH RECURSIVE childs AS (
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, document AS f_document
+                FROM ${DBFolder.table} parent
+                WHERE id = $id
+                UNION ALL
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.document AS f_document
+                FROM ${DBFolder.table} child
+                JOIN childs AS parent ON parent.f_id = child.parent_id
+            )
+            SELECT * FROM childs
+            LEFT JOIN folder_resources fr ON fr.folder_id = f_id
+            LEFT JOIN ${DBResource.table} r ON r.id = fr.resource_id;
+         """
+        // We prefix the `folders` columns with `f_` to separate them
+        // from the `folder_resources` columns  (both here and in sql).
+        .one(rs => DBFolder.fromResultSet(s => s"f_$s")(rs))
+        .toMany(rs => DBResource.fromResultSetOpt(rs).sequence)
+        .map((folder, resources) =>
+          resources.toList.sequence.flatMap(resources => folder.map(f => f.copy(data = resources.map(Right(_)))))
+        )
+        .list()
+        .sequence
+    }.flatten.map(buildTreeStructureFromListOfChildren)
+
+    def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
+      sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
+            WITH RECURSIVE childs AS (
+                SELECT id, parent_id, feide_id, document
+                FROM ${DBFolder.table} parent
+                WHERE id = $id
+                UNION ALL
+                SELECT child.id, child.parent_id, child.feide_id, child.document
+                FROM ${DBFolder.table} child
+                JOIN childs AS parent ON parent.id = child.parent_id
+            )
+            SELECT * FROM childs;
+         """
+        .map(rs => DBFolder.fromResultSet(rs))
+        .list()
+        .sequence
+    }.flatten.map(buildTreeStructureFromListOfChildren)
+
     def foldersWithParentID(parentId: Option[UUID])(implicit
         session: DBSession = ReadOnlyAutoSession
-    ): Try[List[Folder]] =
-      foldersWhere(sqls"f.parent_id=$parentId")
+    ): Try[List[Folder]] = foldersWhere(sqls"f.parent_id=$parentId")
 
     def getFolderResources(
         folderId: UUID

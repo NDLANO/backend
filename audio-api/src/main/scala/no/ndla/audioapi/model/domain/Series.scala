@@ -11,6 +11,7 @@ package no.ndla.audioapi.model.domain
 import no.ndla.audioapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer.ignore
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.native.Serialization
 import scalikejdbc._
@@ -48,8 +49,7 @@ trait DBSeries {
   this: Props =>
 
   object Series extends SQLSyntaxSupport[Series] {
-    val jsonEncoder: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-
+    val jsonEncoder: Formats = DefaultFormats ++ JavaTimeSerializers.all
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Series](
         ignore("id") orElse

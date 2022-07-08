@@ -13,12 +13,13 @@ import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.ValidationException
+import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
+import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
@@ -174,7 +175,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
 
     when(learningpathApiClient.getLearningpathsWithPaths(Seq.empty)).thenReturn(Success(Seq.empty))
-    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq.empty)
+    when(searchApiClient.draftsWhereUsed(any[Long])).thenReturn(Seq.empty)
+    when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(taxonomyApiClient.queryResource(any[Long])).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(any[Long])).thenReturn(Success(List.empty))
     when(articleApiClient.unpublishArticle(any[Article])).thenReturn(Success(expectedArticle))
@@ -244,10 +246,16 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
     when(learningpathApiClient.getLearningpathsWithPaths(any[Seq[String]]))
       .thenReturn(Success(Seq.empty))
-    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
+    when(searchApiClient.draftsWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
+    when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
 
     val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
-    res.errors.head.message should equal("Article is in use in these article(s) 1 (Title)")
+    res.errors should equal(
+      Seq(
+        ValidationMessage("status.current", "Article is in use in these draft(s) 1 (Title)"),
+        ValidationMessage("status.current", "Article is in use in these published article(s) 1 (Title)")
+      )
+    )
   }
 
   test("unpublishArticle should fail if article is used in a learningstep with a taxonomy-url") {
@@ -284,7 +292,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
-    when(searchApiClient.articlesWhereUsed(any[Long])).thenReturn(Seq.empty)
+    when(searchApiClient.draftsWhereUsed(any[Long])).thenReturn(Seq.empty)
+    when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq.empty)
 
     val res = StateTransitionRules.unpublishArticle(article, false)
     res.isSuccess should be(true)

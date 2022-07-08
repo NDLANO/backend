@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.validation
 
-import no.ndla.common.DateParser
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
@@ -24,15 +23,6 @@ trait ContentValidator {
   class ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
-
-    def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
-      Try(DateParser.fromString(dateString)) match {
-        case Success(_) => Seq.empty
-        case Failure(_) =>
-          Seq(ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
-      }
-
-    }
 
     def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =

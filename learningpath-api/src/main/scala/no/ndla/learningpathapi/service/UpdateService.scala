@@ -23,7 +23,6 @@ import cats.implicits._
 import no.ndla.common.Clock
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
@@ -359,7 +358,7 @@ trait UpdateService {
     def updateConfig(configKey: ConfigKey, value: UpdateConfigValue, userInfo: UserInfo): Try[config.ConfigMeta] = {
 
       writeOrAccessDenied(userInfo.isAdmin, "Only administrators can edit configuration.") {
-        ConfigMeta(configKey, value.value, LocalDateTime.now(), userInfo.userId).validate.flatMap(newConfigValue => {
+        ConfigMeta(configKey, value.value, clock.now(), userInfo.userId).validate.flatMap(newConfigValue => {
           configRepository.updateConfigParam(newConfigValue).map(converterService.asApiConfig)
         })
       }
@@ -373,7 +372,6 @@ trait UpdateService {
             case Success(learningPath) =>
               learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
                 case None =>
-                  None
                   Failure(
                     NotFoundException(s"LearningStep with id $learningStepId in learningPath $learningPathId not found")
                   )
@@ -559,7 +557,7 @@ trait UpdateService {
         feideId        <- feideApiClient.getUserFeideID(feideAccessToken)
         folder         <- folderRepository.folderWithId(id)
         _              <- folder.canDelete(feideId)
-        folderWithData <- readService.getSubFoldersRecursively(folder, includeResources = false)
+        folderWithData <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = false)
         deleted        <- deleteRecursively(folderWithData, feideId)
       } yield deleted
     }

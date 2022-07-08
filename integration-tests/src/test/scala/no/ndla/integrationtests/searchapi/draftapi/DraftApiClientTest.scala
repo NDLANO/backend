@@ -38,8 +38,7 @@ class DraftApiClientTest
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      new EnumNameSerializer(LearningResourceType)
 
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService

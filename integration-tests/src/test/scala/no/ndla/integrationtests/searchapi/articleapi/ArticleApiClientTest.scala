@@ -40,8 +40,7 @@ class ArticleApiClientTest
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) +
-      new EnumNameSerializer(Availability) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      new EnumNameSerializer(Availability)
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService

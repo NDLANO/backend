@@ -18,6 +18,7 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.NdlaSearchException
 import org.apache.logging.log4j.ThreadContext
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
 import org.postgresql.util.PSQLException
@@ -31,7 +32,7 @@ trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>
 
   abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     import props._
 
     before() {
