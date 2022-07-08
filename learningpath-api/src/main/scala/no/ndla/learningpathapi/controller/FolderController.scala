@@ -182,12 +182,11 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      uuidParam(this.folderId.paramName).flatMap(id => {
-        updateService.deleteFolder(id, requestFeideToken)
-      }) match {
-        case Success(_)  => NoContent()
-        case Failure(ex) => errorHandler(ex)
-      }
+      uuidParam(this.folderId.paramName)
+        .flatMap(id => {
+          updateService.deleteFolder(id, requestFeideToken)
+        })
+        .map(_ => NoContent())
     }
 
     get(
@@ -272,14 +271,13 @@ trait FolderController {
           .authorizations("oauth2")
       )
     ) {
-      uuidParam(this.folderId.paramName).flatMap(folderId => {
-        uuidParam(this.resourceId.paramName).flatMap(resourceId => {
-          updateService.deleteConnection(folderId, resourceId, requestFeideToken)
+      uuidParam(this.folderId.paramName)
+        .flatMap(folderId => {
+          uuidParam(this.resourceId.paramName).flatMap(resourceId => {
+            updateService.deleteConnection(folderId, resourceId, requestFeideToken)
+          })
         })
-      }) match {
-        case Success(_)  => NoContent()
-        case Failure(ex) => errorHandler(ex)
-      }
+        .map(_ => NoContent())
     }
   }
 }
