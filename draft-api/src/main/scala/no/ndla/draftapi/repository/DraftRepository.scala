@@ -13,7 +13,7 @@ import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain._
-import no.ndla.draftapi.service.Clock
+import no.ndla.common.Clock
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write

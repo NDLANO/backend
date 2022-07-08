@@ -8,6 +8,7 @@
 package no.ndla.draftapi.service
 
 import cats.effect.IO
+import no.ndla.common.Clock
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain
