@@ -332,7 +332,7 @@ class FolderRepositoryTest
         "/testPath",
         "resourceType",
         LocalDateTime.now(),
-        ResourceDocument(List(), None)
+        ResourceDocument(List(), 1)
       )
       .failIfFailure
     repository.createFolderResourceConnection(insertedMain.id, insertedResource.id).failIfFailure

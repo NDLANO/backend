@@ -747,7 +747,7 @@ trait ConverterService {
 
     def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
       val tags       = updated.tags.getOrElse(existing.tags)
-      val resourceId = updated.resourceId.orElse(existing.resourceId)
+      val resourceId = updated.resourceId.getOrElse(existing.resourceId)
 
       domain.Resource(
         id = existing.id,
@@ -761,8 +761,7 @@ trait ConverterService {
     }
 
     def mergeResource(existing: domain.Resource, newResource: api.NewResource): domain.Resource = {
-      val tags       = newResource.tags.getOrElse(existing.tags)
-      val resourceId = newResource.resourceId.orElse(existing.resourceId)
+      val tags = newResource.tags.getOrElse(existing.tags)
 
       domain.Resource(
         id = existing.id,
@@ -771,7 +770,7 @@ trait ConverterService {
         path = existing.path,
         created = existing.created,
         tags = tags,
-        resourceId = resourceId
+        resourceId = newResource.resourceId
       )
     }
 

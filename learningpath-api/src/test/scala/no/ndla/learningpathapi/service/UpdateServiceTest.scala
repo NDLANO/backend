@@ -1703,7 +1703,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = None)
+    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = 1)
     val resource =
       domain.Resource(
         id = resourceId,
@@ -1712,7 +1712,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "",
         created = created,
         tags = List.empty,
-        resourceId = None
+        resourceId = 1
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
@@ -1742,7 +1742,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = None)
+    val newResource  = api.NewResource(resourceType = "", path = resourcePath, tags = None, resourceId = 1)
     val resource =
       domain.Resource(
         id = resourceId,
@@ -1751,7 +1751,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "",
         created = created,
         tags = List.empty,
-        resourceId = None
+        resourceId = 1
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))

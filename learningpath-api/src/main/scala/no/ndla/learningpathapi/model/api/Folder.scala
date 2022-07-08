@@ -64,7 +64,7 @@ case class Resource(
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
     @(ApiModelProperty @field)(
       description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: Option[Long]
+    ) resourceId: Long
 )
 
 case class NewResource(
@@ -73,7 +73,7 @@ case class NewResource(
     @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
     @(ApiModelProperty @field)(
       description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: Option[Long]
+    ) resourceId: Long
 )
 
 case class UpdatedResource(

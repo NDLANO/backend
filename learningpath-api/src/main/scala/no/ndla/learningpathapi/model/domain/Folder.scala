@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import scala.util.Try
 import cats.implicits._
 
-case class ResourceDocument(tags: List[String], resourceId: Option[Long]) {
+case class ResourceDocument(tags: List[String], resourceId: Long) {
   def toFullResource(
       id: UUID,
       path: String,
@@ -46,7 +46,7 @@ case class Resource(
     path: String,
     resourceType: String,
     tags: List[String],
-    resourceId: Option[Long]
+    resourceId: Long
 ) extends FeideContent
 
 trait DBResource {

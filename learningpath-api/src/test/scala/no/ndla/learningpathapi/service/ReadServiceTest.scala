@@ -367,7 +367,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       path = "/subject/1/topic/1/resource/4",
       created = created,
       tags = List.empty,
-      resourceId = None
+      resourceId = 1
     )
 
     val expected = api.Folder(
@@ -384,7 +384,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           tags = List.empty,
           path = "/subject/1/topic/1/resource/4",
           created = created,
-          resourceId = None
+          resourceId = 1
         )
       ),
       subfolders = List(
@@ -511,7 +511,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "",
         created = created,
         tags = List.empty,
-        resourceId = None
+        resourceId = 1
       )
     val folderResourcesResponse1 = Success(List(domainResource, domainResource))
     val folderResourcesResponse2 = Success(List(domainResource))

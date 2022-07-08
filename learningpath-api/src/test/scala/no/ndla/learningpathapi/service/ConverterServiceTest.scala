@@ -522,7 +522,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = None
+        resourceId = 1
       )
     val folderData1 = domain.Folder(
       id = subFolder1UUID,
@@ -570,7 +570,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       tags = List("a", "b", "c"),
       created = created,
       path = "/subject/1/topic/1/resource/4",
-      resourceId = None
+      resourceId = 1
     )
     val apiData1 = api.Folder(
       id = subFolder1UUID.toString,
@@ -675,7 +675,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = None
+        resourceId = 1
       )
     val expected =
       api.Resource(
@@ -684,7 +684,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = None
+        resourceId = 1
       )
 
     service.toApiResource(existing) should be(Success(expected))
@@ -698,16 +698,16 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "audio",
         path = "/subject/1/topic/1/resource/4",
         tags = Some(List("a", "b")),
-        resourceId = None
+        resourceId = 1
       )
     val newResource2 =
-      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = None)
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = 2)
     val expected1 =
       domain.ResourceDocument(
         tags = List("a", "b"),
-        resourceId = None
+        resourceId = 1
       )
-    val expected2 = expected1.copy(tags = List.empty)
+    val expected2 = expected1.copy(tags = List.empty, resourceId = 2)
 
     service.toDomainResource(newResource1) should be(expected1)
     service.toDomainResource(newResource2) should be(expected2)
