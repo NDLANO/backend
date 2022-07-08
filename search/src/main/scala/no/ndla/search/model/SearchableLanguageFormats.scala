@@ -76,13 +76,11 @@ object SearchableLanguageFormats {
     defaultFormats(false) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      org.json4s.ext.JodaTimeSerializers.all ++
       JavaTimeSerializers.all
 
   val JSonFormatsWithMillis: Formats =
     defaultFormats(true) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      org.json4s.ext.JodaTimeSerializers.all ++
       JavaTimeSerializers.all
 }

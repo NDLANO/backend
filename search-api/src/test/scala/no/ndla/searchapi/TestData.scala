@@ -23,7 +23,7 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy._
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.LocalDateTime
 
 object TestData {
 
@@ -49,7 +49,7 @@ object TestData {
     Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None, None)
   private val copyrighted =
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
-  val today: DateTime = new DateTime().withMillisOfSecond(0).withZone(DateTimeZone.UTC)
+  val today: LocalDateTime = LocalDateTime.now().withNano(0)
 
   val sampleArticleTitle         = ArticleApiTitle("tittell", "nb")
   val sampleArticleVisualElement = ArticleApiVisualElement("""<embed data-resource="image">""", "nb")
@@ -231,10 +231,10 @@ object TestData {
   )
 
   val sampleArticleWithByNcSa: Article =
-    sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright, published = DateTime.now())
+    sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright, published = LocalDateTime.now())
 
   val sampleArticleWithCopyrighted: Article =
-    sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = DateTime.now())
+    sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = LocalDateTime.now())
 
   val article1: Article = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
@@ -551,10 +551,10 @@ object TestData {
     Seq(ArticleIntroduction("This is an introduction", "en")),
     Seq(MetaDescription("meta", "en")),
     Seq.empty,
-    DateTime.now().minusDays(4),
-    DateTime.now().minusDays(2),
+    LocalDateTime.now().minusDays(4),
+    LocalDateTime.now().minusDays(2),
     "ndalId54321",
-    DateTime.now().minusDays(2),
+    LocalDateTime.now().minusDays(2),
     LearningResourceType.Article,
     List.empty,
     List.empty,
@@ -639,7 +639,7 @@ object TestData {
         "kakemonster",
         "ndalId54321",
         Status(ArticleStatus.DRAFT, Set.empty),
-        today.minusDays(30).toDate
+        today.minusDays(30)
       )
     ),
     previousVersionsNotes = List(
@@ -647,7 +647,7 @@ object TestData {
         "kultgammeltnotat",
         "ndalId12345",
         Status(ArticleStatus.DRAFT, Set.empty),
-        today.minusDays(31).toDate
+        today.minusDays(31)
       )
     ),
     grepCodes = Seq("K456")

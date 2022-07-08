@@ -8,6 +8,7 @@
 package no.ndla.integrationtests.searchapi.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.common.DateParser
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
@@ -18,9 +19,8 @@ import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
 import org.eclipse.jetty.server.Server
-import org.joda.time.DateTime
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import scala.concurrent.duration.Duration
@@ -41,7 +41,7 @@ class ArticleApiClientTest
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) +
       new EnumNameSerializer(Availability) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      JavaTimeSerializers.all
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
@@ -85,9 +85,9 @@ class ArticleApiClientTest
             .updateArticleFromDraftApi(
               td.sampleDomainArticle.copy(
                 id = Some(id),
-                updated = new DateTime(0).toDate,
-                created = new DateTime(0).toDate,
-                published = new DateTime(0).toDate
+                updated = DateParser.fromUnixTime(0),
+                created = DateParser.fromUnixTime(0),
+                published = DateParser.fromUnixTime(0)
               ),
               List(s"1$id")
             )
@@ -101,21 +101,18 @@ class ArticleApiClientTest
   test("that dumping articles returns articles in serializable format") {
     dataFixer.setupArticles()
 
-    val today = new DateTime(0)
-    withFrozenTime(today) {
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
 
-      AuthUser.setHeader(s"Bearer $exampleToken")
-      val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
+    implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+    val chunks                                = articleApiClient.getChunks[domain.article.Article].toList
+    val fetchedArticle                        = Await.result(chunks.head, Duration.Inf).get.head
+    val searchable = searchConverterService
+      .asSearchableArticle(fetchedArticle, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
 
-      implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-      val chunks                                = articleApiClient.getChunks[domain.article.Article].toList
-      val fetchedArticle                        = Await.result(chunks.head, Duration.Inf).get.head
-      val searchable = searchConverterService
-        .asSearchableArticle(fetchedArticle, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
+    searchable.isSuccess should be(true)
+    searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))
+    searchable.get.content.languageValues should be(Seq(LanguageValue("nb", "content")))
 
-      searchable.isSuccess should be(true)
-      searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))
-      searchable.get.content.languageValues should be(Seq(LanguageValue("nb", "content")))
-    }
   }
 }

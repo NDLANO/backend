@@ -11,10 +11,9 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
@@ -23,8 +22,8 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   lazy val controller           = new InternController
   addServlet(controller, "/*")
 
-  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
   val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
     1,

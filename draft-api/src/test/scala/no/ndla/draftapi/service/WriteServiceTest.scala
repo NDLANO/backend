@@ -15,7 +15,6 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{HtmlTagRules, ValidationMessage}
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -24,15 +23,15 @@ import scalikejdbc.DBSession
 
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import java.util.{Date, UUID}
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today: Date     = DateTime.now().toDate
-  val yesterday: Date = DateTime.now().minusDays(1).toDate
-  val service         = new WriteService()
+  val today: LocalDateTime     = LocalDateTime.now()
+  val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
+  val service                  = new WriteService()
 
   val articleId   = 13
   val agreementId = 14
@@ -504,112 +503,107 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That articles are cloned with reasonable values") {
-    val yesterday = new DateTime().minusDays(1)
-    val today     = new DateTime()
+    val yesterday = LocalDateTime.now().minusDays(1)
+    val today     = LocalDateTime.now()
 
-    when(clock.now()).thenReturn(today.toDate)
+    when(clock.now()).thenReturn(today)
 
-    withFrozenTime(today) {
-      val article =
-        TestData.sampleDomainArticle.copy(
-          id = Some(5),
-          title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
-          status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
-          updated = yesterday.toDate,
-          created = yesterday.minusDays(1).toDate,
-          published = yesterday.toDate
-        )
-
-      val userinfo = UserInfo("somecoolid", Set.empty)
-
-      val newId = 1231.toLong
-      when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
-        .thenReturn(Success(newId))
-
-      val expectedInsertedArticle = article.copy(
-        id = Some(newId),
-        title = Seq(domain.ArticleTitle("Tittel (Kopi)", "nb"), domain.ArticleTitle("Title (Kopi)", "en")),
-        revision = Some(1),
-        updated = today.toDate,
-        created = today.toDate,
-        published = today.toDate,
-        updatedBy = userinfo.id,
-        status = Status(ArticleStatus.DRAFT, Set.empty),
-        notes = article.notes ++
-          converterService
-            .newNotes(
-              Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
-              userinfo,
-              Status(ArticleStatus.DRAFT, Set.empty)
-            )
-            .get
-      )
-      when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-      when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-        i.getArgument[Article](0)
+    val article =
+      TestData.sampleDomainArticle.copy(
+        id = Some(5),
+        title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
+        status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
+        updated = yesterday,
+        created = yesterday.minusDays(1),
+        published = yesterday
       )
 
-      service.copyArticleFromId(5, userinfo, "*", true, true)
+    val userinfo = UserInfo("somecoolid", Set.empty)
 
-      val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
-      verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
-      val insertedArticle = cap.getValue
-      insertedArticle should be(expectedInsertedArticle)
-    }
+    val newId = 1231.toLong
+    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+      .thenReturn(Success(newId))
+
+    val expectedInsertedArticle = article.copy(
+      id = Some(newId),
+      title = Seq(domain.ArticleTitle("Tittel (Kopi)", "nb"), domain.ArticleTitle("Title (Kopi)", "en")),
+      revision = Some(1),
+      updated = today,
+      created = today,
+      published = today,
+      updatedBy = userinfo.id,
+      status = Status(ArticleStatus.DRAFT, Set.empty),
+      notes = article.notes ++
+        converterService
+          .newNotes(
+            Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
+            userinfo,
+            Status(ArticleStatus.DRAFT, Set.empty)
+          )
+          .get
+    )
+    when(draftRepository.withId(anyLong)).thenReturn(Some(article))
+    when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
+      i.getArgument[Article](0)
+    )
+
+    service.copyArticleFromId(5, userinfo, "*", true, true)
+
+    val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
+    val insertedArticle = cap.getValue
+    insertedArticle should be(expectedInsertedArticle)
   }
 
   test("That articles are cloned without title postfix if flag is false") {
-    val yesterday = new DateTime().minusDays(1)
-    val today     = new DateTime()
+    val yesterday = LocalDateTime.now().minusDays(1)
+    val today     = LocalDateTime.now().withNano(0)
 
-    when(clock.now()).thenReturn(today.toDate)
+    when(clock.now()).thenReturn(today)
 
-    withFrozenTime(today) {
-      val article =
-        TestData.sampleDomainArticle.copy(
-          id = Some(5),
-          title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
-          status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
-          updated = yesterday.toDate,
-          created = yesterday.minusDays(1).toDate,
-          published = yesterday.toDate
-        )
+    val article = TestData.sampleDomainArticle.copy(
+      id = Some(5),
+      title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
+      status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
+      updated = yesterday,
+      created = yesterday.minusDays(1),
+      published = yesterday
+    )
 
-      val userinfo = UserInfo("somecoolid", Set.empty)
+    val userinfo = UserInfo("somecoolid", Set.empty)
 
-      val newId = 1231.toLong
-      when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
-        .thenReturn(Success(newId))
+    val newId = 1231.toLong
+    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+      .thenReturn(Success(newId))
 
-      val expectedInsertedArticle = article.copy(
-        id = Some(newId),
-        revision = Some(1),
-        updated = today.toDate,
-        created = today.toDate,
-        published = today.toDate,
-        updatedBy = userinfo.id,
-        status = Status(ArticleStatus.DRAFT, Set.empty),
-        notes = article.notes ++
-          converterService
-            .newNotes(
-              Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
-              userinfo,
-              Status(ArticleStatus.DRAFT, Set.empty)
-            )
-            .get
-      )
-      when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-      when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-        i.getArgument[Article](0)
-      )
+    val expectedInsertedArticle = article.copy(
+      id = Some(newId),
+      revision = Some(1),
+      updated = today,
+      created = today,
+      published = today,
+      updatedBy = userinfo.id,
+      status = Status(ArticleStatus.DRAFT, Set.empty),
+      notes = article.notes ++
+        converterService
+          .newNotes(
+            Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
+            userinfo,
+            Status(ArticleStatus.DRAFT, Set.empty)
+          )
+          .get
+    )
+    when(draftRepository.withId(anyLong)).thenReturn(Some(article))
+    when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
+      i.getArgument[Article](0)
+    )
 
-      service.copyArticleFromId(5, userinfo, "*", true, false)
+    service.copyArticleFromId(5, userinfo, "*", true, false)
 
-      val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
-      verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
-      val insertedArticle = cap.getValue
-      insertedArticle should be(expectedInsertedArticle)
-    }
+    val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
+    val insertedArticle = cap.getValue
+    insertedArticle should be(expectedInsertedArticle)
   }
 
   test("article status should not be updated if only notes are changed") {

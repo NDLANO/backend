@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.service
 
+import no.ndla.common.DateParser
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.NewArticleMetaImage
 import no.ndla.draftapi.model.domain.ArticleStatus._
@@ -15,7 +16,6 @@ import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.validation.{ResourceType, TagAttributes, ValidationException}
-import org.joda.time.DateTime
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
 
@@ -91,8 +91,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should use created and updated dates from parameter list if defined") {
     val apiArticle = TestData.newArticle
-    val created    = new DateTime("2016-12-06T16:20:05Z").toDate
-    val updated    = new DateTime("2017-03-07T21:18:19Z").toDate
+    val created    = DateParser.fromString("2016-12-06T16:20:05.000Z")
+    val updated    = DateParser.fromString("2017-03-07T21:18:19.000Z")
 
     val Success(result) =
       service.toDomainArticle(1, apiArticle, List.empty, TestData.userWithWriteAccess, Some(created), Some(updated))

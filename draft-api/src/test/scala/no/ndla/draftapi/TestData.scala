@@ -14,9 +14,8 @@ import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
-import org.joda.time.{DateTime, DateTimeZone}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 object TestData {
 
@@ -59,7 +58,7 @@ object TestData {
     None,
     None
   )
-  val today: Date = new DateTime().toDate
+  val today: LocalDateTime = LocalDateTime.now()
 
   val (articleId, externalId) = (1, "751234")
 
@@ -88,10 +87,10 @@ object TestData {
     introduction = None,
     metaDescription = Some(api.ArticleMetaDescription("metaDesc", "nb")),
     None,
-    created = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
-    updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
+    created = LocalDateTime.of(2017, 1, 1, 12, 15, 32),
+    updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
     updatedBy = "me",
-    published = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
+    published = LocalDateTime.of(2017, 4, 1, 12, 15, 32),
     articleType = "standard",
     supportedLanguages = Seq("nb"),
     Seq.empty,
@@ -268,10 +267,10 @@ object TestData {
     Seq(ArticleIntroduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
-    DateTime.now().minusDays(4).withMillisOfSecond(0).toDate,
-    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+    LocalDateTime.now().minusDays(4).withNano(0),
+    LocalDateTime.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
-    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+    LocalDateTime.now().minusDays(2).withNano(0),
     ArticleType.TopicArticle,
     Seq.empty,
     Seq.empty,
@@ -296,10 +295,10 @@ object TestData {
     Seq(ArticleIntroduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
-    DateTime.now().minusDays(4).withMillisOfSecond(0).toDate,
-    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+    LocalDateTime.now().minusDays(4).withNano(0),
+    LocalDateTime.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
-    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
+    LocalDateTime.now().minusDays(2).withNano(0),
     ArticleType.Standard,
     Seq.empty,
     Seq.empty,
@@ -474,10 +473,10 @@ object TestData {
     None,
     Some(api.ArticleMetaDescription("so meta", "en")),
     None,
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
+    LocalDateTime.now().minusDays(4),
+    LocalDateTime.now().minusDays(2),
     "ndalId54321",
-    DateTime.now().minusDays(2).toDate,
+    LocalDateTime.now().minusDays(2),
     "standard",
     Seq("en"),
     Seq.empty,
@@ -502,8 +501,8 @@ object TestData {
     "title",
     "content",
     api.Copyright(Some(api.License("publicdomain", None, None)), Some(""), Seq(), List(), List(), None, None, None),
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
+    LocalDateTime.now().minusDays(4),
+    LocalDateTime.now().minusDays(2),
     "ndalId54321"
   )
 
@@ -512,8 +511,8 @@ object TestData {
     title = "Title",
     content = "Content",
     copyright = byNcSaCopyright,
-    created = DateTime.now().minusDays(4).toDate,
-    updated = DateTime.now().minusDays(2).toDate,
+    created = LocalDateTime.now().minusDays(4),
+    updated = LocalDateTime.now().minusDays(2),
     updatedBy = userWithWriteAccess.id
   )
 
@@ -522,8 +521,8 @@ object TestData {
     title = "Title",
     content = "Content",
     copyright = Copyright(Some(CC_BY_SA.toString), Some("Origin"), List(), List(), List(), None, None, None),
-    created = DateTime.now().minusDays(4).toDate,
-    updated = DateTime.now().minusDays(2).toDate,
+    created = LocalDateTime.now().minusDays(4),
+    updated = LocalDateTime.now().minusDays(2),
     updatedBy = userWithWriteAccess.id
   )
 

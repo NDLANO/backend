@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.service
 
-import java.util.Date
 import cats.effect.IO
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
@@ -37,6 +36,7 @@ import scala.util.{Failure, Success, Try}
 trait StateTransitionRules {
   this: WriteService
     with DraftRepository
+    with Clock
     with ArticleApiClient
     with TaxonomyApiClient
     with LearningpathApiClient
@@ -243,7 +243,7 @@ trait StateTransitionRules {
                 "Status endret",
                 if (isImported) "System" else user.id,
                 newStatus,
-                new Date()
+                clock.now()
               )
             else current.notes
           val convertedArticle = current.copy(status = newStatus, notes = newEditorNotes)

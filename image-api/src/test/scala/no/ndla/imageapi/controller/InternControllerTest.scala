@@ -13,10 +13,12 @@ import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Model
 import no.ndla.imageapi.model.{api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
-import org.joda.time.{DateTime, DateTimeZone}
+import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization._
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
@@ -24,7 +26,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   override val converterService = new ConverterService
   lazy val controller           = new InternController
   addServlet(controller, "/*")
-  val updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val BySa = getLicense(CC_BY.toString).get
 
@@ -101,7 +103,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
-    implicit val formats = org.json4s.DefaultFormats
+    implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
     get("/extern/123") {

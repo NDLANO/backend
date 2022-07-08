@@ -13,7 +13,6 @@ import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.model.{Iso639, WithLanguage}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
-import org.joda.time.format.ISODateTimeFormat
 
 import scala.util.{Failure, Success, Try}
 
@@ -24,16 +23,6 @@ trait ContentValidator {
   class ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
-
-    def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
-      val parser = ISODateTimeFormat.dateOptionalTimeParser()
-      Try(parser.parseDateTime(dateString)) match {
-        case Success(_) => Seq.empty
-        case Failure(_) =>
-          Seq(ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
-      }
-
-    }
 
     def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =

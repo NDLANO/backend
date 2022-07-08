@@ -119,7 +119,7 @@ trait ConverterService {
         ApplicationUrl.get + searchableArticle.id.toString,
         searchableArticle.license,
         searchableArticle.articleType,
-        lastUpdated.toDate,
+        lastUpdated,
         supportedLanguages,
         searchableArticle.grepCodes,
         availability

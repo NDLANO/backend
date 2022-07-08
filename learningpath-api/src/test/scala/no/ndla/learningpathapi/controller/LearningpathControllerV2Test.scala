@@ -15,19 +15,20 @@ import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
-import org.json4s.DefaultFormats
+import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import java.util.Date
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val formats: Formats             = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
   val copyright = api.Copyright(api.License("by-sa", None, None), List())
@@ -42,7 +43,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
     None,
     None,
     "",
-    new Date(),
+    LocalDateTime.now(),
     api.LearningPathTags(Seq(), "nb"),
     copyright,
     List("nb"),

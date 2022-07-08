@@ -11,13 +11,16 @@ import no.ndla.articleapi.ArticleApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V9__TranslateUntranslatedAuthors(props: ArticleApiProperties) extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
+  implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](
+    ignore("id") orElse ignore("revision")
+  ) ++ JavaTimeSerializers.all
 
   override def migrate(context: Context) = {
     val db = DB(context.getConnection)

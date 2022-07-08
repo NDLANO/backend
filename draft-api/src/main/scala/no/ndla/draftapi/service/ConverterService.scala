@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.DateParser
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -21,13 +22,11 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.jsoup.nodes.Element
 
-import java.util.{Date, UUID}
+import java.time.LocalDateTime
+import java.util.UUID
 import scala.jdk.CollectionConverters._
-import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -42,8 +41,8 @@ trait ConverterService {
         newArticle: api.NewArticle,
         externalIds: List[String],
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date]
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[domain.Article] = {
       val domainTitles = Seq(domain.ArticleTitle(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
@@ -55,8 +54,6 @@ trait ConverterService {
         case _   => domain.Status(DRAFT, Set(IMPORTED))
       }
 
-      val oldCreatedDate  = oldNdlaCreatedDate.map(date => new DateTime(date).toDate)
-      val oldUpdatedDate  = oldNdlaUpdatedDate.map(date => new DateTime(date).toDate)
       val newAvailability = Availability.valueOf(newArticle.availability).getOrElse(Availability.everyone)
       val revisionMeta = newArticle.revisionMeta match {
         case Some(revs) if revs.nonEmpty =>
@@ -86,10 +83,10 @@ trait ConverterService {
             .toSeq,
           metaImage =
             newArticle.metaImage.map(meta => toDomainMetaImage(meta, newArticle.language)).filterNot(_.isEmpty).toSeq,
-          created = oldCreatedDate.getOrElse(clock.now()),
-          updated = oldUpdatedDate.getOrElse(clock.now()),
+          created = oldNdlaCreatedDate.getOrElse(clock.now()),
+          updated = oldNdlaUpdatedDate.getOrElse(clock.now()),
           updatedBy = user.id,
-          published = oldUpdatedDate.getOrElse(
+          published = oldNdlaUpdatedDate.getOrElse(
             newArticle.published.getOrElse(clock.now())
           ), // If import use old updated. Else use new published or now
           articleType = ArticleType.valueOfOrError(newArticle.articleType),
@@ -126,7 +123,7 @@ trait ConverterService {
     private[service] def newNotes(notes: Seq[String], user: UserInfo, status: Status): Try[Seq[EditorNote]] = {
       notes match {
         case Nil                  => Success(Seq.empty)
-        case l if !l.contains("") => Success(l.map(domain.EditorNote(_, user.id, status, new DateTime().toDate)))
+        case l if !l.contains("") => Success(l.map(domain.EditorNote(_, user.id, status, clock.now())))
         case _ =>
           Failure(
             new ValidationException(errors = Seq(ValidationMessage("notes", "A note can not be an empty string")))
@@ -191,9 +188,8 @@ trait ConverterService {
       domain.ArticleMetaImage(metaImage.id, metaImage.alt, language)
 
     def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
-      val parser    = ISODateTimeFormat.dateOptionalTimeParser()
-      val validFrom = newCopyright.validFrom.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
-      val validTo   = newCopyright.validTo.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
+      val validFrom = newCopyright.validFrom.map(date => DateParser.fromString(date))
+      val validTo   = newCopyright.validTo.map(date => DateParser.fromString(date))
 
       val apiCopyright = api.Copyright(
         newCopyright.license,
@@ -587,8 +583,8 @@ trait ConverterService {
         article: api.UpdatedArticle,
         isImported: Boolean,
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date]
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[domain.Article] = {
       val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
       val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
@@ -680,8 +676,8 @@ trait ConverterService {
         article: api.UpdatedArticle,
         isImported: Boolean,
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date]
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[domain.Article] = {
       val createdDate = oldNdlaCreatedDate.getOrElse(clock.now())
       val updatedDate = oldNdlaUpdatedDate.getOrElse(clock.now())
@@ -774,7 +770,7 @@ trait ConverterService {
 
     def addNote(article: domain.Article, noteText: String, user: UserInfo): domain.Article = {
       article.copy(
-        notes = article.notes :+ domain.EditorNote(noteText, user.id, article.status, new Date())
+        notes = article.notes :+ domain.EditorNote(noteText, user.id, article.status, clock.now())
       )
     }
 

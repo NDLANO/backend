@@ -17,7 +17,7 @@ import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.AuthUser
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.scalatra._
 
 import javax.servlet.http.HttpServletRequest
@@ -40,7 +40,7 @@ trait InternController {
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
         Json4s.serializer(StepStatus) +
-        new EnumNameSerializer(EmbedType)
+        new EnumNameSerializer(EmbedType) ++ JavaTimeSerializers.all
 
     def requireClientId(implicit request: HttpServletRequest): String = {
       AuthUser.getClientId match {

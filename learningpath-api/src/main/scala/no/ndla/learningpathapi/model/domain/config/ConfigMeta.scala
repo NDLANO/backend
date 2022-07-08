@@ -12,16 +12,17 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain.ValidationException
 import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import scalikejdbc.{WrappedResultSet, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class ConfigMeta(
     key: ConfigKey,
     value: String,
-    updatedAt: Date,
+    updatedAt: LocalDateTime,
     updatedBy: String
 ) {
 
@@ -46,8 +47,7 @@ trait DBConfigMeta {
   this: Props =>
   object DBConfigMeta extends SQLSyntaxSupport[ConfigMeta] {
     implicit val formats: Formats = org.json4s.DefaultFormats +
-      Json4s.serializer(ConfigKey) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      Json4s.serializer(ConfigKey) ++ JavaTimeSerializers.all
 
     override val tableName  = "configtable"
     override val schemaName = Some(props.MetaSchema)

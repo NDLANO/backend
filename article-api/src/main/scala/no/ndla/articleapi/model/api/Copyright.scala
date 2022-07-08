@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.model.api
 
-import java.util.Date
-
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 @ApiModel(description = "Description of copyright information")
@@ -22,6 +21,6 @@ case class Copyright(
     @(ApiModelProperty @field)(description = "List of processors") processors: Seq[Author],
     @(ApiModelProperty @field)(description = "List of rightsholders") rightsholders: Seq[Author],
     @(ApiModelProperty @field)(description = "Reference to agreement id") agreementId: Option[Long],
-    @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[Date],
-    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[Date]
+    @(ApiModelProperty @field)(description = "Date from which the copyright is valid") validFrom: Option[LocalDateTime],
+    @(ApiModelProperty @field)(description = "Date to which the copyright is valid") validTo: Option[LocalDateTime]
 )

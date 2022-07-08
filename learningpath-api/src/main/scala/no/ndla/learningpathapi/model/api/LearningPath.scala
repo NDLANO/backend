@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.model.api
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
@@ -29,7 +29,7 @@ case class LearningPathV2(
     @(ApiModelProperty @field)(description = "The duration of the learningpath in minutes") duration: Option[Int],
     @(ApiModelProperty @field)(description = "The publishing status of the learningpath", allowableValues = "PUBLISHED,PRIVATE,UNLISTED,SUBMITTED") status: String,
     @(ApiModelProperty @field)(description = "Verification status", allowableValues = "CREATED_BY_NDLA,VERIFIED_BY_NDLA,EXTERNAL") verificationStatus: String,
-    @(ApiModelProperty @field)(description = "The date when this learningpath was last updated.") lastUpdated: Date,
+    @(ApiModelProperty @field)(description = "The date when this learningpath was last updated.") lastUpdated: LocalDateTime,
     @(ApiModelProperty @field)(description = "Searchable tags for the learningpath") tags: LearningPathTags,
     @(ApiModelProperty @field)(description = "Describes the copyright information for the learningpath") copyright: Copyright,
     @(ApiModelProperty @field)(description = "True if authenticated user may edit this learningpath") canEdit: Boolean,

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api._
@@ -122,8 +122,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[List[String]],
           any[Seq[String]],
           any[UserInfo],
-          any[Option[Date]],
-          any[Option[Date]],
+          any[Option[LocalDateTime]],
+          any[Option[LocalDateTime]],
           any[Option[String]]
         )
     )
@@ -203,8 +203,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
-        any[Option[Date]],
-        any[Option[Date]],
+        any[Option[LocalDateTime]],
+        any[Option[LocalDateTime]],
         any[Option[String]]
       )
     )
@@ -223,8 +223,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
-        any[Option[Date]],
-        any[Option[Date]],
+        any[Option[LocalDateTime]],
+        any[Option[LocalDateTime]],
         any[Option[String]]
       )
     )
@@ -356,8 +356,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           any[List[String]],
           any[Seq[String]],
           any[UserInfo],
-          any[Option[Date]],
-          any[Option[Date]],
+          any[Option[LocalDateTime]],
+          any[Option[LocalDateTime]],
           any[Option[String]]
         )
     )
@@ -382,8 +382,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
-        any[Option[Date]],
-        any[Option[Date]],
+        any[Option[LocalDateTime]],
+        any[Option[LocalDateTime]],
         any[Option[String]]
       )
     }
@@ -396,8 +396,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
-        any[Option[Date]],
-        any[Option[Date]],
+        any[Option[LocalDateTime]],
+        any[Option[LocalDateTime]],
         any[Option[String]]
       )
     }
@@ -410,8 +410,8 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
-        any[Option[Date]],
-        any[Option[Date]],
+        any[Option[LocalDateTime]],
+        any[Option[LocalDateTime]],
         any[Option[String]]
       )
     }

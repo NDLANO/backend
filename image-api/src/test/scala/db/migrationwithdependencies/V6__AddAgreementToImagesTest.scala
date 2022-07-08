@@ -10,12 +10,13 @@ package db.migrationwithdependencies
 import imageapi.db.migration.{V5_Author, V5_ImageMetaInformation}
 import imageapi.db.migrationwithdependencies.{V6_ImageMetaInformation, V6__AddAgreementToImages}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 
 class V6__AddAgreementToImagesTest extends UnitSuite with TestEnvironment {
 
   val migration        = new V6__AddAgreementToImages(props)
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   test("That author is converted to new format correctly") {
     val oldFormatString =

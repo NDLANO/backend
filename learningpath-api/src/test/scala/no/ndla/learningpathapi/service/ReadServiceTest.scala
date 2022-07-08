@@ -15,7 +15,8 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import scalikejdbc.DBSession
 
-import java.util.{Date, UUID}
+import java.time.LocalDateTime
+import java.util.UUID
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -42,7 +43,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PUBLISHED_OWNER.userId,
     copyright
@@ -59,7 +60,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PRIVATE_OWNER.userId,
     copyright
@@ -321,7 +322,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
-    val created        = clock.nowLocalDateTime()
+    val created        = clock.now()
     val mainFolderUUID = UUID.randomUUID()
     val subFolder1UUID = UUID.randomUUID()
     val subFolder2UUID = UUID.randomUUID()
@@ -486,8 +487,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
-    val created = clock.nowLocalDateTime()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    val created = clock.now()
+    when(clock.now()).thenReturn(created)
 
     val feideId              = "yee boiii"
     val favoriteId           = UUID.randomUUID()

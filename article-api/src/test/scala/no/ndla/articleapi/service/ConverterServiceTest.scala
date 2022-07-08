@@ -12,7 +12,6 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import org.joda.time.DateTime
 
 import java.time.LocalDateTime
 import scala.util.Success
@@ -77,8 +76,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val from = DateTime.now().minusDays(5).toDate
-    val to   = DateTime.now().plusDays(10).toDate
+    val from = LocalDateTime.now().minusDays(5)
+    val to   = LocalDateTime.now().plusDays(10)
     val agreementCopyright = api.Copyright(
       api.License("gnu", Some("gpl"), None),
       "http://tjohei.com/",

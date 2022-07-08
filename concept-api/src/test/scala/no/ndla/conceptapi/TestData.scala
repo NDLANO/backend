@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 object TestData {
 
@@ -29,8 +29,8 @@ object TestData {
   val userWithNoRoles     = UserInfo("unit test", Set.empty)
   val userWithWriteAccess = UserInfo("unit test", Set(Role.WRITE))
 
-  val today     = DateTime.now().minusDays(0).toDate
-  val yesterday = DateTime.now().minusDays(1).toDate
+  val today     = LocalDateTime.now().minusDays(0)
+  val yesterday = LocalDateTime.now().minusDays(1)
 
   val visualElementString =
     """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
@@ -85,8 +85,8 @@ object TestData {
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     source = None,
-    created = DateTime.now().minusDays(4).toDate,
-    updated = DateTime.now().minusDays(2).toDate,
+    created = LocalDateTime.now().minusDays(4),
+    updated = LocalDateTime.now().minusDays(2),
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),

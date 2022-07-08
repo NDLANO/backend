@@ -10,8 +10,7 @@ object scalatestsuitelib extends Module {
     "org.mockito"       %% "mockito-scala-scalatest" % MockitoV,
     "org.testcontainers" % "elasticsearch"           % TestContainersV,
     "org.testcontainers" % "testcontainers"          % TestContainersV,
-    "org.testcontainers" % "postgresql"              % TestContainersV,
-    jodaTime
+    "org.testcontainers" % "postgresql"              % TestContainersV
   ) ++ database ++ vulnerabilityOverrides
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(

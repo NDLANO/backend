@@ -9,7 +9,7 @@ package no.ndla.conceptapi.model.api.listing
 
 import no.ndla.language.model.LanguageField
 
-import java.util.Date
+import java.time.LocalDateTime
 
 case class Cover(
     id: Option[Long],
@@ -21,7 +21,7 @@ case class Cover(
     labels: Seq[CoverLanguageLabels],
     articleApiId: Long,
     updatedBy: String,
-    updated: Date,
+    updated: LocalDateTime,
     theme: String
 ) {
   lazy val supportedLanguages: Set[String] =

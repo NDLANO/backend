@@ -11,7 +11,7 @@ import com.scalatsi._
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 import scala.annotation.unused
 
@@ -27,7 +27,7 @@ case class AudioSummary(
     @(ApiModelProperty @field)(description = "A manuscript for the audio") manuscript: Option[Manuscript],
     @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
     @(ApiModelProperty @field)(description = "Series that the audio is part of") series: Option[SeriesSummary],
-    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: Date
+    @(ApiModelProperty @field)(description = "The time and date of last update") lastUpdated: LocalDateTime
 )
 // format: on
 object AudioSummary {

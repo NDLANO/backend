@@ -14,6 +14,7 @@ import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger, SwaggerSupport}
@@ -32,7 +33,7 @@ trait RawController {
 
   class RawController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     import props.ValidMimeTypes
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "API for accessing image files from ndla.no."
 
     registerModel[Error]()

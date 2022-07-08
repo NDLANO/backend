@@ -15,9 +15,9 @@ import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.Success
 
 class ArticleSearchServiceTest
@@ -78,7 +78,7 @@ class ArticleSearchServiceTest
       None
     )
 
-  val today = DateTime.now()
+  val today = LocalDateTime.now()
 
   val article1 = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
@@ -88,8 +88,8 @@ class ArticleSearchServiceTest
       ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
     ),
     tags = List(ArticleTag(List("fugl"), "nb")),
-    created = today.minusDays(4).toDate,
-    updated = today.minusDays(3).toDate,
+    created = today.minusDays(4),
+    updated = today.minusDays(3),
     metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
     grepCodes = Seq("KV123", "KV456")
   )
@@ -100,8 +100,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     tags = List(ArticleTag(List("fugl"), "nb")),
-    created = today.minusDays(4).toDate,
-    updated = today.minusDays(2).toDate,
+    created = today.minusDays(4),
+    updated = today.minusDays(2),
     grepCodes = Seq("KV123", "KV456")
   )
 
@@ -111,8 +111,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Donald Duck", "nb")),
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     tags = List(ArticleTag(List("and"), "nb")),
-    created = today.minusDays(4).toDate,
-    updated = today.minusDays(1).toDate,
+    created = today.minusDays(4),
+    updated = today.minusDays(1),
     grepCodes = Seq("KV456")
   )
 
@@ -123,8 +123,8 @@ class ArticleSearchServiceTest
     content =
       List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
     tags = List(ArticleTag(List("supermann"), "nb")),
-    created = today.minusDays(4).toDate,
-    updated = today.toDate
+    created = today.minusDays(4),
+    updated = today
   )
 
   val article5 = TestData.sampleArticleWithPublicDomain.copy(
@@ -133,8 +133,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Hulken", "nb")),
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
     tags = List(ArticleTag(List("hulk"), "nb")),
-    created = today.minusDays(40).toDate,
-    updated = today.minusDays(35).toDate
+    created = today.minusDays(40),
+    updated = today.minusDays(35)
   )
 
   val article6 = TestData.sampleArticleWithPublicDomain.copy(
@@ -148,8 +148,8 @@ class ArticleSearchServiceTest
       )
     ),
     tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), "nb")),
-    created = today.minusDays(30).toDate,
-    updated = today.minusDays(25).toDate
+    created = today.minusDays(30),
+    updated = today.minusDays(25)
   )
 
   val article7 = TestData.sampleArticleWithPublicDomain.copy(
@@ -158,8 +158,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
     tags = List(ArticleTag(List("yggdrasil"), "nb")),
-    created = today.minusDays(20).toDate,
-    updated = today.minusDays(15).toDate
+    created = today.minusDays(20),
+    updated = today.minusDays(15)
   )
 
   val article8 = TestData.sampleArticleWithPublicDomain.copy(
@@ -168,8 +168,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     tags = List(ArticleTag(List("baldur"), "nb")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
   )
 
@@ -179,8 +179,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = List(ArticleTag(List("baldur"), "nb")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
   )
 
@@ -190,8 +190,8 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Engulsk", "en")),
     content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
     tags = List(ArticleTag(List("englando"), "en")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
   )
 
@@ -206,8 +206,8 @@ class ArticleSearchServiceTest
     metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
   )
 
@@ -218,8 +218,8 @@ class ArticleSearchServiceTest
     metaDescription = List(ArticleMetaDescription("lærer", "nb")),
     content = List(ArticleContent("<p>Lærer</p>", "nb")),
     tags = List(ArticleTag(List("lærer"), "nb")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,
     availability = Availability.teacher
   )
@@ -231,8 +231,8 @@ class ArticleSearchServiceTest
     metaDescription = List(ArticleMetaDescription("student", "nb")),
     content = List(ArticleContent("<p>Student</p>", "nb")),
     tags = List(ArticleTag(List("student"), "nb")),
-    created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate,
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,
     availability = Availability.everyone
   )

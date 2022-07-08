@@ -8,6 +8,7 @@
 package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
+import no.ndla.common.DateParser
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
@@ -19,7 +20,6 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
-import org.joda.time.DateTime
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger}
@@ -503,8 +503,8 @@ trait DraftController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val externalId         = paramAsListOfString("externalId")
-        val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(new DateTime(_).toDate)
-        val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(new DateTime(_).toDate)
+        val oldNdlaCreatedDate = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
+        val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
         val externalSubjectids = paramAsListOfString("externalSubjectIds")
         val importId           = paramOrNone("importId")
         extract[NewArticle](request.body).flatMap(
@@ -536,8 +536,8 @@ trait DraftController {
       doOrAccessDenied(userInfo.canWrite) {
         val externalId                         = paramAsListOfString("externalId")
         val externalSubjectIds                 = paramAsListOfString("externalSubjectIds")
-        val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(new DateTime(_).toDate)
-        val oldNdlaUpdatedDate                 = paramOrNone("oldNdlaUpdatedDate").map(new DateTime(_).toDate)
+        val oldNdlaCreateddDate                = paramOrNone("oldNdlaCreatedDate").map(DateParser.fromString)
+        val oldNdlaUpdatedDate                 = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
         val importId                           = paramOrNone("importId")
         val id                                 = long(this.articleId.paramName)
         val updateArticle: Try[UpdatedArticle] = extract[UpdatedArticle](request.body)

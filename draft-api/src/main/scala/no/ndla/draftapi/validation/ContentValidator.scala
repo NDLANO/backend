@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.validation
 
+import no.ndla.common.DateParser
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -17,7 +18,6 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
-import org.joda.time.format.ISODateTimeFormat
 
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
@@ -62,8 +62,7 @@ trait ContentValidator {
     }
 
     def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
-      val parser = ISODateTimeFormat.dateOptionalTimeParser()
-      Try(parser.parseDateTime(dateString)) match {
+      Try(DateParser.fromString(dateString)) match {
         case Success(_) => Seq.empty
         case Failure(_) => Seq(ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
       }

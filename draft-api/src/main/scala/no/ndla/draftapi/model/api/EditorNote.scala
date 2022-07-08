@@ -6,7 +6,7 @@
  */
 
 package no.ndla.draftapi.model.api
-import java.util.Date
+import java.time.LocalDateTime
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -17,5 +17,5 @@ case class EditorNote(
     @(ApiModelProperty @field)(description = "Editorial note") note: String,
     @(ApiModelProperty @field)(description = "User which saved the note") user: String,
     @(ApiModelProperty @field)(description = "Status of article at saved time") status: Status,
-    @(ApiModelProperty @field)(description = "Timestamp of when note was saved") timestamp: Date
+    @(ApiModelProperty @field)(description = "Timestamp of when note was saved") timestamp: LocalDateTime
 )

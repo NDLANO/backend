@@ -12,13 +12,12 @@ import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
 import java.io.InputStream
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -52,14 +51,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     seriesId = None
   )
 
-  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
-  val created: Date = new DateTime(2017, 3, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
   val someAudio: Audio = Audio(newFileName1, "audio/mp3", 1024, "en")
 
   val domainAudioMeta: domain.AudioMetaInformation =
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio, None)
-  val updated1: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated1: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val publicDomain: domain.Copyright = domain.Copyright(
     "publicdomain",

@@ -13,6 +13,7 @@ import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import scalaj.http.Http
 
 import scala.util.{Failure, Success, Try}
@@ -61,7 +62,7 @@ trait ConceptApiClient {
     private[integration] def get[T](path: String, timeout: Int, params: (String, String)*)(implicit
         mf: Manifest[T]
     ): Try[T] = {
-      implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+      implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
         Http((conceptBaseUrl / path).toString)
           .timeout(timeout, timeout)

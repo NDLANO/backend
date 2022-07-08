@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.model.domain
 
-import java.util.Date
 import no.ndla.articleapi.Props
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
@@ -35,10 +34,10 @@ case class Article(
     introduction: Seq[ArticleIntroduction],
     metaDescription: Seq[ArticleMetaDescription],
     metaImage: Seq[ArticleMetaImage],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
-    published: Date,
+    published: LocalDateTime,
     articleType: String,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],

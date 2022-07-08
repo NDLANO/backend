@@ -8,15 +8,15 @@
 
 package no.ndla.articleapi.service
 
-import java.util.Date
+import java.time.LocalDateTime
 
 trait Clock {
   val clock: SystemClock
 
   class SystemClock {
 
-    def now(): Date = {
-      new Date()
+    def now(): LocalDateTime = {
+      LocalDateTime.now()
     }
   }
 }

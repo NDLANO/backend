@@ -18,15 +18,15 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
-import org.joda.time.{DateTime, DateTimeZone}
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
 import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnvironment {
@@ -103,12 +103,14 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
   test("That GET / returns body and 200 when image exists") {
 
-    val date = new DateTime()
-      .withZone(DateTimeZone.UTC)
-      .withDate(2021, 4, 1)
-      .withHourOfDay(12)
-      .withMinuteOfHour(34)
-      .withSecondOfMinute(56)
+    val date = LocalDateTime
+      .now()
+      .withYear(2021)
+      .withMonth(4)
+      .withDayOfMonth(1)
+      .withHour(12)
+      .withMinute(34)
+      .withSecond(56)
 
     val imageSummary = api.ImageMetaSummary(
       "4",
@@ -122,7 +124,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       Seq("nb"),
       Some("yes"),
       None,
-      date.toDate,
+      date,
       123,
       "image/jpg",
       None
@@ -147,8 +149,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   }
 
   test("That GET /<id> returns body and 200 when image exists") {
-    implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl                               = "http://test.test/1"
+    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val testUrl                   = "http://test.test/1"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -162,8 +164,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   }
 
   test("That GET /<id> returns body with agreement license and authors") {
-    implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl                               = "http://test.test/1"
+    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val testUrl                   = "http://test.test/1"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -178,8 +180,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
   }
 
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
-    implicit val formats: DefaultFormats.type = DefaultFormats
-    val testUrl                               = "http://test.test/1"
+    implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    val testUrl                   = "http://test.test/1"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}]},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = JsonParser.parse(expectedBody).extract[api.ImageMetaInformationV2]
@@ -231,8 +233,8 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
       tags = tags,
       captions = captions,
       updatedBy = "updatedBy",
-      updated = new Date(),
-      created = new Date(),
+      updated = LocalDateTime.now(),
+      created = LocalDateTime.now(),
       createdBy = "createdBy",
       modelReleased = ModelReleasedStatus.YES,
       editorNotes = Seq.empty

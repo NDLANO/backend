@@ -12,9 +12,9 @@ import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.Success
 
 class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
@@ -69,15 +69,15 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     None
   )
 
-  val today: DateTime = DateTime.now()
+  val today: LocalDateTime = LocalDateTime.now()
 
   val sampleAgreement = new Agreement(
     Some(1),
     "title",
     "content",
     byNcSa,
-    today.minusDays(2).toDate,
-    today.minusDays(4).toDate,
+    LocalDateTime.now().minusDays(2),
+    LocalDateTime.now().minusDays(4),
     "ndla1234"
   )
 

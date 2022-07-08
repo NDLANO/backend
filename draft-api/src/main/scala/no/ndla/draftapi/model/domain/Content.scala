@@ -17,7 +17,7 @@ import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 sealed trait Content {
@@ -37,10 +37,10 @@ case class Article(
     introduction: Seq[ArticleIntroduction],
     metaDescription: Seq[ArticleMetaDescription],
     metaImage: Seq[ArticleMetaImage],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
-    published: Date,
+    published: LocalDateTime,
     articleType: ArticleType,
     notes: Seq[EditorNote],
     previousVersionsNotes: Seq[EditorNote],
@@ -110,8 +110,8 @@ case class Agreement(
     title: String,
     content: String,
     copyright: Copyright,
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String
 ) extends Content
 
@@ -158,7 +158,11 @@ trait DBArticle {
   }
 
   object DBAgreement extends SQLSyntaxSupport[Agreement] {
-    implicit val formats    = org.json4s.DefaultFormats
+    val JSonSerializer: Formats = org.json4s.DefaultFormats +
+      FieldSerializer[Agreement](ignore("id")) ++
+      JavaTimeSerializers.all
+
+    implicit val formats    = JSonSerializer
     override val tableName  = "agreementdata"
     override val schemaName = Some(props.MetaSchema)
 
@@ -176,10 +180,6 @@ trait DBArticle {
         updatedBy = meta.updatedBy
       )
     }
-
-    val JSonSerializer = FieldSerializer[Agreement](
-      ignore("id")
-    )
 
   }
 

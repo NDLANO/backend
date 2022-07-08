@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 import no.ndla.audioapi.Props
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
@@ -19,7 +19,7 @@ import scala.annotation.meta.field
 case class Error(
     @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: Date = new Date()
+    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: LocalDateTime = LocalDateTime.now()
 )
 
 trait ErrorHelpers {

@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.domain.article
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import no.ndla.searchapi.model.domain.Author
 
@@ -18,6 +18,6 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )

@@ -8,10 +8,9 @@
 
 package no.ndla.articleapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
-import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
@@ -29,10 +28,10 @@ case class ArticleV2(
     @(ApiModelProperty @field)(description = "A meta image for the article") metaImage: Option[ArticleMetaImage],
     @(ApiModelProperty @field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
     @(ApiModelProperty @field)(description = "Meta description for the article") metaDescription: ArticleMetaDescription,
-    @(ApiModelProperty @field)(description = "When the article was created") created: Date,
-    @(ApiModelProperty @field)(description = "When the article was last updated") updated: Date,
+    @(ApiModelProperty @field)(description = "When the article was created") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime,
     @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
-    @(ApiModelProperty @field)(description = "When the article was last published") published: Date,
+    @(ApiModelProperty @field)(description = "When the article was last published") published: LocalDateTime,
     @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],

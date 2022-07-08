@@ -11,14 +11,15 @@ import com.typesafe.scalalogging.LazyLogging
 import imageapi.db.migration.V5_Author
 import no.ndla.imageapi.ImageApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.DefaultFormats
+import org.json4s.ext.JavaTimeSerializers
+import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
 class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
   // Some contributors were not translated V6
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   import props.{
     oldCreatorTypes,
     creatorTypes,

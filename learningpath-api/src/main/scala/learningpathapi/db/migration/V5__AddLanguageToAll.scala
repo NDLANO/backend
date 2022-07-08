@@ -17,7 +17,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class V5__AddLanguageToAll extends BaseJavaMigration {
 
@@ -114,7 +114,7 @@ case class V5_LearningPath(
     duration: Option[Int],
     status: LearningPathStatus.Value,
     verificationStatus: LearningPathVerificationStatus.Value,
-    lastUpdated: Date,
+    lastUpdated: LocalDateTime,
     tags: Seq[V5_LearningPathTags],
     owner: String,
     copyright: Copyright,

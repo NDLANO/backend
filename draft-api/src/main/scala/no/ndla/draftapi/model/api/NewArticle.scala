@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 import scala.annotation.meta.field
 
@@ -16,7 +16,7 @@ import scala.annotation.meta.field
 case class NewArticle(
     @(ApiModelProperty @field)(description = "The chosen language") language: String,
     @(ApiModelProperty @field)(description = "The title of the article") title: String,
-    @(ApiModelProperty @field)(description = "The date the article is published") published: Option[Date],
+    @(ApiModelProperty @field)(description = "The date the article is published") published: Option[LocalDateTime],
     @(ApiModelProperty @field)(description = "The content of the article") content: Option[String],
     @(ApiModelProperty @field)(description = "Searchable tags") tags: Seq[String],
     @(ApiModelProperty @field)(description = "An introduction") introduction: Option[String],

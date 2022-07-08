@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.common.DateParser
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
@@ -26,7 +27,7 @@ import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
-import java.util.{Date, UUID}
+import java.util.UUID
 import scala.util.{Failure, Success}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
@@ -152,7 +153,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     domain.LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PUBLISHED_OWNER.userId,
     copyright,
@@ -170,7 +171,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     domain.LearningPathStatus.PUBLISHED,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PUBLISHED_OWNER.userId,
     copyright,
@@ -188,7 +189,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     domain.LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PRIVATE_OWNER.userId,
     copyright,
@@ -206,7 +207,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     domain.LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PRIVATE_OWNER.userId,
     copyright,
@@ -224,7 +225,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(1),
     domain.LearningPathStatus.DELETED,
     LearningPathVerificationStatus.EXTERNAL,
-    new Date(),
+    LocalDateTime.now(),
     List(),
     PRIVATE_OWNER.userId,
     copyright,
@@ -552,7 +553,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       i.getArgument[LearningPath](0)
     )
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
-    when(clock.now()).thenReturn(new Date(0))
+    when(clock.now()).thenReturn(DateParser.fromUnixTime(0))
 
     val expected = PUBLISHED_LEARNINGPATH.copy(
       message = None,
@@ -577,7 +578,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       i.getArgument[LearningPath](0)
     )
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
-    when(clock.now()).thenReturn(new Date(0))
+    when(clock.now()).thenReturn(LocalDateTime.MIN)
 
     service.updateLearningPathStatusV2(
       PUBLISHED_ID,
@@ -792,7 +793,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.update(any[domain.LearningPath])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[domain.LearningPath](0)
     )
-    val updatedDate = new Date(0)
+    val updatedDate = DateParser.fromUnixTime(0)
     when(clock.now()).thenReturn(updatedDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
@@ -1113,7 +1114,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("Owner updates step of published should update status to UNLISTED") {
-    val newDate          = new Date(648000000)
+    val newDate          = DateParser.fromUnixTime(648000000)
     val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
@@ -1142,7 +1143,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("owner updates published path should update status to unlisted") {
-    val newDate = new Date(648000000)
+    val newDate = DateParser.fromUnixTime(648000000)
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(Some(STEP1))
@@ -1168,7 +1169,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("owner updates step private should not update status") {
-    val newDate          = new Date(648000000)
+    val newDate          = DateParser.fromUnixTime(648000000)
     val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
@@ -1196,7 +1197,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("admin updates step should not update status") {
-    val newDate          = new Date(648000000)
+    val newDate          = DateParser.fromUnixTime(648000000)
     val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
@@ -1233,7 +1234,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That basic-information unique per learningpath is reset in newFromExistingV2") {
-    val now = new Date()
+    val now = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
@@ -1259,7 +1260,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That isBasedOn is not sat if the existing learningpath is PRIVATE") {
-    val now = new Date()
+    val now = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH_NO_STEPS))
@@ -1284,7 +1285,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That isBasedOn is sat if the existing learningpath is PUBLISHED") {
-    val now = new Date()
+    val now = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH_NO_STEPS))
@@ -1309,7 +1310,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That all editable fields are overridden if specified in input in newFromExisting") {
-    val now = new Date()
+    val now = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
@@ -1361,7 +1362,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That learningsteps are copied but with basic information reset in newFromExistingV2") {
-    val now = new Date()
+    val now = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
@@ -1391,7 +1392,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That delete message field deletes admin message") {
-    val newDate = new Date()
+    val newDate = LocalDateTime.now()
     val originalLearningPath =
       PUBLISHED_LEARNINGPATH.copy(message = Some(Message("You need to fix some stuffs", "kari", clock.now())))
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(originalLearningPath))
@@ -1697,7 +1698,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that createNewResourceOrUpdateExisting creates a resource if it does not already exist") {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
 
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
@@ -1736,7 +1737,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     "that createNewResourceOrUpdateExisting updates a resource and creates new connection if the resource already exist"
   ) {
     val created = LocalDateTime.now()
-    when(clock.nowLocalDateTime()).thenReturn(created)
+    when(clock.now()).thenReturn(created)
 
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()

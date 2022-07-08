@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.service
 
-import java.util.Date
 import java.time.LocalDateTime
 
 trait Clock {
@@ -16,11 +15,7 @@ trait Clock {
 
   class SystemClock {
 
-    def now(): Date = {
-      new Date()
-    }
-
-    def nowLocalDateTime(): LocalDateTime = {
+    def now(): LocalDateTime = {
       LocalDateTime.now()
     }
   }

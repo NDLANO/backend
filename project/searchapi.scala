@@ -12,7 +12,6 @@ object searchapi extends Module {
     Seq(
       scalaTsi,
       scalaUri,
-      jodaTime,
       enumeratum,
       "org.jsoup"           % "jsoup"                           % "1.11.3",
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",

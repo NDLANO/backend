@@ -11,14 +11,14 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.json4s.{DefaultFormats, Formats}
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability)
+  implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
 
   val author = Author("forfatter", "Henrik")
 

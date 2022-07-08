@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta, DBConfigMeta}
 import org.json4s.Formats
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -23,7 +24,7 @@ trait ConfigRepository {
   val configRepository: ConfigRepository
 
   class ConfigRepository extends LazyLogging {
-    implicit val formats: Formats = DBConfigMeta.formats
+    implicit val formats: Formats = DBConfigMeta.formats ++ JavaTimeSerializers.all
     implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
       ParameterBinderFactory[ConfigMeta] { value => (stmt, idx) =>
         {

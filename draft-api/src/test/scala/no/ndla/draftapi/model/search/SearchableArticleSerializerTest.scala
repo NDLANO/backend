@@ -10,10 +10,11 @@ package no.ndla.draftapi.model.search
 import no.ndla.draftapi.model.domain.ArticleStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.{read, writePretty}
+
+import java.time.LocalDateTime
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
@@ -28,7 +29,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     tags = SearchableLanguageList(
       List(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))
     ),
-    lastUpdated = new DateTime(2018, 2, 22, 13, 0, 51, DateTimeZone.UTC).withMillisOfSecond(0),
+    lastUpdated = LocalDateTime.of(2018, 2, 22, 13, 0, 51),
     license = Some("by-sa"),
     authors = Seq("Jonas Natty"),
     notes = Seq("jak"),

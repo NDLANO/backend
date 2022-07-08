@@ -16,9 +16,9 @@ import no.ndla.learningpathapi.model.domain.{Description, _}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 
+import java.time.LocalDateTime
 import scala.util.Success
 
 class SearchServiceTest
@@ -90,11 +90,11 @@ class SearchServiceTest
 
       doReturn(api.Author("Forfatter", "En eier"), Nil: _*).when(converterService).asAuthor(any[NdlaUserName])
 
-      val today      = new DateTime().toDate
-      val yesterday  = new DateTime().minusDays(1).toDate
-      val tomorrow   = new DateTime().plusDays(1).toDate
-      val tomorrowp1 = new DateTime().plusDays(2).toDate
-      val tomorrowp2 = new DateTime().plusDays(3).toDate
+      val today      = LocalDateTime.now()
+      val yesterday  = LocalDateTime.now().minusDays(1)
+      val tomorrow   = LocalDateTime.now().plusDays(1)
+      val tomorrowp1 = LocalDateTime.now().plusDays(2)
+      val tomorrowp2 = LocalDateTime.now().plusDays(3)
 
       val activeStep = DefaultLearningStep.copy(
         id = Some(1),

@@ -13,10 +13,10 @@ import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
-import org.joda.time.DateTime
 import org.scalatest.Outcome
 import scalikejdbc._
 
+import java.time.LocalDateTime
 import java.net.Socket
 import scala.util.{Failure, Success, Try}
 
@@ -335,75 +335,72 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("published, then copied article keeps old notes in hidden field and notes is emptied") {
-    val timeToFreeze = new DateTime().withMillisOfSecond(0)
-    withFrozenTime(timeToFreeze) {
-      val status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)
-      val prevNotes1 = Seq(
-        domain.EditorNote("Note1", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note2", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note3", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note4", "SomeId", status, new DateTime().toDate)
-      )
+    val now = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(now)
+    val status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty)
+    val prevNotes1 = Seq(
+      domain.EditorNote("Note1", "SomeId", status, now),
+      domain.EditorNote("Note2", "SomeId", status, now),
+      domain.EditorNote("Note3", "SomeId", status, now),
+      domain.EditorNote("Note4", "SomeId", status, now)
+    )
 
-      val prevNotes2 = Seq(
-        domain.EditorNote("Note5", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note6", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note7", "SomeId", status, new DateTime().toDate),
-        domain.EditorNote("Note8", "SomeId", status, new DateTime().toDate)
-      )
-      val draftArticle1 = TestData.sampleDomainArticle.copy(
-        status = domain.Status(domain.ArticleStatus.UNPUBLISHED, Set.empty),
-        revision = Some(3),
-        notes = prevNotes1
-      )
+    val prevNotes2 = Seq(
+      domain.EditorNote("Note5", "SomeId", status, now),
+      domain.EditorNote("Note6", "SomeId", status, now),
+      domain.EditorNote("Note7", "SomeId", status, now),
+      domain.EditorNote("Note8", "SomeId", status, now)
+    )
+    val draftArticle1 = TestData.sampleDomainArticle.copy(
+      status = domain.Status(domain.ArticleStatus.UNPUBLISHED, Set.empty),
+      revision = Some(3),
+      notes = prevNotes1
+    )
 
-      val inserted = repository.insert(draftArticle1)
-      val fetched  = repository.withId(inserted.id.get).get
-      fetched.notes should be(prevNotes1)
-      fetched.previousVersionsNotes should be(Seq.empty)
+    val inserted = repository.insert(draftArticle1)
+    val fetched  = repository.withId(inserted.id.get).get
+    fetched.notes should be(prevNotes1)
+    fetched.previousVersionsNotes should be(Seq.empty)
 
-      val toPublish1      = inserted.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
-      val updatedArticle1 = repository.updateArticle(toPublish1).get
+    val toPublish1      = inserted.copy(status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty))
+    val updatedArticle1 = repository.updateArticle(toPublish1).get
 
-      updatedArticle1.notes should be(prevNotes1)
-      updatedArticle1.previousVersionsNotes should be(Seq.empty)
+    updatedArticle1.notes should be(prevNotes1)
+    updatedArticle1.previousVersionsNotes should be(Seq.empty)
 
-      val copiedArticle1 = repository.storeArticleAsNewVersion(updatedArticle1, None).get
-      copiedArticle1.notes should be(Seq.empty)
-      copiedArticle1.previousVersionsNotes should be(prevNotes1)
+    val copiedArticle1 = repository.storeArticleAsNewVersion(updatedArticle1, None).get
+    copiedArticle1.notes should be(Seq.empty)
+    copiedArticle1.previousVersionsNotes should be(prevNotes1)
 
-      val draftArticle2 = copiedArticle1.copy(
-        status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty),
-        notes = prevNotes2
-      )
-      val updatedArticle2 = repository.updateArticle(draftArticle2).get
-      updatedArticle2.notes should be(prevNotes2)
-      updatedArticle2.previousVersionsNotes should be(prevNotes1)
+    val draftArticle2 = copiedArticle1.copy(
+      status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty),
+      notes = prevNotes2
+    )
+    val updatedArticle2 = repository.updateArticle(draftArticle2).get
+    updatedArticle2.notes should be(prevNotes2)
+    updatedArticle2.previousVersionsNotes should be(prevNotes1)
 
-      val copiedArticle2 = repository.storeArticleAsNewVersion(updatedArticle2, None).get
-      copiedArticle2.notes should be(Seq.empty)
-      copiedArticle2.previousVersionsNotes should be(prevNotes1 ++ prevNotes2)
-    }
+    val copiedArticle2 = repository.storeArticleAsNewVersion(updatedArticle2, None).get
+    copiedArticle2.notes should be(Seq.empty)
+    copiedArticle2.previousVersionsNotes should be(prevNotes1 ++ prevNotes2)
 
   }
 
   test("copied article should have new note about copying if user present") {
-    val timeToFreeze = new DateTime().withMillisOfSecond(0)
-    withFrozenTime(timeToFreeze) {
-      val draftArticle1 = TestData.sampleDomainArticle.copy(
-        status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty),
-        notes = Seq.empty
-      )
-      repository.insert(draftArticle1)
+    val now = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(now)
 
-      val copiedArticle1 =
-        repository.storeArticleAsNewVersion(draftArticle1, Some(UserInfo("user-id", Set(Role.WRITE)))).get
-      copiedArticle1.notes.length should be(1)
-      copiedArticle1.notes.head.user should be("user-id")
-      copiedArticle1.previousVersionsNotes should be(Seq.empty)
+    val draftArticle1 = TestData.sampleDomainArticle.copy(
+      status = domain.Status(domain.ArticleStatus.DRAFT, Set.empty),
+      notes = Seq.empty
+    )
+    repository.insert(draftArticle1)
 
-    }
-
+    val copiedArticle1 =
+      repository.storeArticleAsNewVersion(draftArticle1, Some(UserInfo("user-id", Set(Role.WRITE)))).get
+    copiedArticle1.notes.length should be(1)
+    copiedArticle1.notes.head.user should be("user-id")
+    copiedArticle1.previousVersionsNotes should be(Seq.empty)
   }
 
   test("withId parse relatedContent correctly") {

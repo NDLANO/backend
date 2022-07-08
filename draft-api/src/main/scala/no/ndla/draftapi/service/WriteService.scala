@@ -35,7 +35,7 @@ import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
-import java.util.Date
+import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
@@ -203,8 +203,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date],
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
     ): Try[api.Article] = {
       val newNotes      = "Opprettet artikkel." +: newArticle.notes
@@ -325,21 +325,30 @@ trait WriteService {
       val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
       val deleted = oldRevisions
         .filterNot(old => newIds.contains(old.id))
-        .map(del => domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, new Date()))
+        .map(del => domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, clock.now()))
 
       val notes = updatedArticle.revisionMeta.flatMap {
         case rm if !oldIds.contains(rm.id) && rm.status == RevisionStatus.Revised =>
           domain
-            .EditorNote(s"Lagt til og fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date())
+            .EditorNote(
+              s"Lagt til og fullført revisjon ${rm.note}.",
+              user.id,
+              updatedArticle.status,
+              clock.now()
+            )
             .some
         case rm if !oldIds.contains(rm.id) =>
-          domain.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+          domain.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now()).some
         case rm =>
           oldRevisions.find(_.id == rm.id) match {
             case Some(old) if old.status != rm.status && rm.status == RevisionStatus.Revised =>
-              domain.EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+              domain
+                .EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
+                .some
             case Some(old) if old != rm =>
-              domain.EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, new Date()).some
+              domain
+                .EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
+                .some
             case _ => None
           }
       }
@@ -425,8 +434,8 @@ trait WriteService {
             revision = None,
             notes = Seq.empty,
             editorLabels = Seq.empty,
-            created = new Date(0),
-            updated = new Date(0),
+            created = LocalDateTime.MIN,
+            updated = LocalDateTime.MIN,
             updatedBy = "",
             availability = domain.Availability.everyone,
             grepCodes = Seq.empty,
@@ -527,8 +536,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date],
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
     ): Try[api.Article] =
       draftRepository.withId(articleId) match {
@@ -564,8 +573,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date],
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
     ): Try[api.Article] = {
 
@@ -606,8 +615,8 @@ trait WriteService {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         user: UserInfo,
-        oldNdlaCreatedDate: Option[Date],
-        oldNdlaUpdatedDate: Option[Date],
+        oldNdlaCreatedDate: Option[LocalDateTime],
+        oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
     ): Try[api.Article] =
       for {

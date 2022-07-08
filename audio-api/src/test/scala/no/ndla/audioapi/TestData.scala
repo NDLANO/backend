@@ -10,14 +10,13 @@ package no.ndla.audioapi
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
-import org.joda.time.DateTime
 
-import java.util.Date
+import java.time.LocalDateTime
 
 object TestData {
 
-  val today: DateTime     = new DateTime().minusDays(1)
-  val yesterday: DateTime = new DateTime()
+  val today: LocalDateTime     = LocalDateTime.now().minusDays(1)
+  val yesterday: LocalDateTime = LocalDateTime.now()
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
@@ -50,8 +49,8 @@ object TestData {
     copyright = sampleCopyright,
     tags = Seq(domain.Tag(Seq("Some", "Tags"), "nb")),
     updatedBy = "someuser",
-    updated = new Date(),
-    created = new Date(),
+    updated = LocalDateTime.now(),
+    created = LocalDateTime.now(),
     podcastMeta = Seq.empty,
     audioType = AudioType.Standard,
     manuscript = Seq.empty,
@@ -78,8 +77,8 @@ object TestData {
     copyright = sampleCopyright,
     tags = Seq(domain.Tag(Seq("PODCAST", "påddkæst"), "nb")),
     updatedBy = "someuser",
-    updated = new Date(),
-    created = new Date(),
+    updated = LocalDateTime.now(),
+    created = LocalDateTime.now(),
     podcastMeta = Seq(
       domain.PodcastMeta(
         introduction = "Intro",

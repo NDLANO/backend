@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.domain.article
 
 import no.ndla.searchapi.model.domain.article.RelatedContentLink.RelatedContent
 import no.ndla.searchapi.model.domain.{Content, Tag, Title}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class Article(
     id: Option[Long],
@@ -23,10 +23,10 @@ case class Article(
     introduction: Seq[ArticleIntroduction],
     metaDescription: Seq[MetaDescription],
     metaImage: Seq[ArticleMetaImage],
-    created: DateTime,
-    updated: DateTime,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
-    published: DateTime,
+    published: LocalDateTime,
     articleType: LearningResourceType.Value,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import java.util.Date
+import java.time.LocalDateTime
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -21,7 +21,7 @@ case class Agreement(
     @(ApiModelProperty @field)(
       description = "Describes the copyright information for the agreement"
     ) copyright: Copyright,
-    @(ApiModelProperty @field)(description = "When the agreement was created") created: Date,
-    @(ApiModelProperty @field)(description = "When the agreement was last updated") updated: Date,
+    @(ApiModelProperty @field)(description = "When the agreement was created") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the agreement was last updated") updated: LocalDateTime,
     @(ApiModelProperty @field)(description = "By whom the agreement was last updated") updatedBy: String
 )

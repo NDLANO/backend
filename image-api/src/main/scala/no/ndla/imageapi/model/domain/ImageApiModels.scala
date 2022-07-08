@@ -11,7 +11,7 @@ package no.ndla.imageapi.model.domain
 import no.ndla.language.model.LanguageField
 import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 case class ImageTitle(title: String, language: String) extends LanguageField[String] {
@@ -47,12 +47,12 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )
 case class License(license: String, description: String, url: Option[String])
 case class Author(`type`: String, name: String)
-case class EditorNote(timeStamp: Date, updatedBy: String, note: String)
+case class EditorNote(timeStamp: LocalDateTime, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 
 object ModelReleasedStatus extends Enumeration {

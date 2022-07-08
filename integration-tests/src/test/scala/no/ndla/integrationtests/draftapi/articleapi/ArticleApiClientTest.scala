@@ -9,6 +9,7 @@ package no.ndla.integrationtests.draftapi.articleapi
 
 import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.common.DateParser
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta, RevisionStatus}
@@ -16,12 +17,11 @@ import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
-import org.joda.time.DateTime
 import org.json4s.Formats
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.time.LocalDateTime
-import java.util.{Date, UUID}
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
@@ -80,10 +80,10 @@ class ArticleApiClientTest
     introduction = Seq(),
     metaDescription = Seq(domain.ArticleMetaDescription("Meta Description", "nb")),
     metaImage = Seq(),
-    created = new Date(0),
-    updated = new Date(0),
+    created = DateParser.fromUnixTime(0),
+    updated = DateParser.fromUnixTime(0),
     updatedBy = "updatedBy",
-    published = new Date(0),
+    published = DateParser.fromUnixTime(0),
     articleType = domain.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
@@ -117,9 +117,9 @@ class ArticleApiClientTest
             .updateArticleFromDraftApi(
               td.sampleDomainArticle.copy(
                 id = Some(id),
-                updated = new DateTime(0).toDate,
-                created = new DateTime(0).toDate,
-                published = new DateTime(0).toDate
+                updated = DateParser.fromUnixTime(0),
+                created = DateParser.fromUnixTime(0),
+                published = DateParser.fromUnixTime(0)
               ),
               List(s"1$id")
             )

@@ -7,8 +7,9 @@
 
 package no.ndla.imageapi.model.api
 
-import java.text.SimpleDateFormat
-import java.util.Date
+import no.ndla.common.DateParser
+
+import java.time.LocalDateTime
 import no.ndla.imageapi.Props
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
@@ -19,7 +20,7 @@ case class Error(
     @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
     @(ApiModelProperty @field)(description = "Description of the error") description: String,
     @(ApiModelProperty @field)(description = "When the error occurred") occurredAt: String =
-      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date())
+      DateParser.dateToString(LocalDateTime.now(), withMillis = false)
 )
 
 trait ErrorHelpers {

@@ -10,7 +10,7 @@ package draftapi.db.migration
 import enumeratum.Json4s
 import no.ndla.draftapi.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.jsoup.Jsoup
@@ -19,7 +19,7 @@ import org.jsoup.nodes.TextNode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 import java.util.UUID.randomUUID
 
 class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
@@ -72,7 +72,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
 
   def convertTopicArticle(document: String): String = {
     implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V16__ArticleStatus) + Json4s
-      .serializer(ArticleType)
+      .serializer(ArticleType) ++ JavaTimeSerializers.all
 
     val oldArticle       = parse(document)
     val extractedArticle = oldArticle.extract[V16__Article]
@@ -97,7 +97,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
         s"Embed plassert før første tekst har blitt slettet og gjort om til visuelt element, dersom det var mulig. Status har blitt endret til 'Til kvalitetssikring'.",
         "System",
         extractedArticle.status,
-        new Date()
+        LocalDateTime.now()
       )
 
       val updatedArticle = oldArticle
@@ -154,7 +154,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
 
   case class V16__Status(current: V16__ArticleStatus.Value, other: Set[V16__ArticleStatus.Value])
   case class V16__Content(content: String, language: String)
-  case class V16__EditorNote(note: String, user: String, status: V16__Status, timestamp: Date)
+  case class V16__EditorNote(note: String, user: String, status: V16__Status, timestamp: LocalDateTime)
   case class V16__VisualElement(resource: String, language: String)
   case class V16__Article(
       content: Seq[V16__Content],

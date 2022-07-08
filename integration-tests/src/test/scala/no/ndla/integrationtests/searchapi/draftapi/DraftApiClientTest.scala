@@ -7,6 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.draftapi
 
+import no.ndla.common.DateParser
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
@@ -18,9 +19,8 @@ import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{draftapi, searchapi}
 import org.eclipse.jetty.server.Server
-import org.joda.time.DateTime
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import scala.concurrent.duration.Duration
@@ -39,7 +39,7 @@ class DraftApiClientTest
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) ++
-      org.json4s.ext.JodaTimeSerializers.all
+      JavaTimeSerializers.all
 
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService
@@ -73,9 +73,9 @@ class DraftApiClientTest
         draftApi.componentRegistry.draftRepository.insert(
           draftapi.TestData.sampleDomainArticle.copy(
             id = Some(id),
-            updated = new DateTime(0).toDate,
-            created = new DateTime(0).toDate,
-            published = new DateTime(0).toDate
+            updated = DateParser.fromUnixTime(0),
+            created = DateParser.fromUnixTime(0),
+            published = DateParser.fromUnixTime(0)
           )
         )
       })
@@ -87,25 +87,22 @@ class DraftApiClientTest
   test("that dumping drafts returns drafts in serializable format") {
     setupArticles()
 
-    val today = new DateTime(0)
-    withFrozenTime(today) {
+    AuthUser.setHeader(s"Bearer $exampleToken")
+    val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
-      AuthUser.setHeader(s"Bearer $exampleToken")
-      val draftApiClient = new DraftApiClient(draftApiBaseUrl)
+    implicit val ec  = ExecutionContext.global
+    val chunks       = draftApiClient.getChunks[domain.draft.Draft].toList
+    val fetchedDraft = Await.result(chunks.head, Duration.Inf).get.head
+    val searchable = searchConverterService
+      .asSearchableDraft(
+        fetchedDraft,
+        searchapi.TestData.taxonomyTestBundle,
+        Some(searchapi.TestData.emptyGrepBundle)
+      )
 
-      implicit val ec  = ExecutionContext.global
-      val chunks       = draftApiClient.getChunks[domain.draft.Draft].toList
-      val fetchedDraft = Await.result(chunks.head, Duration.Inf).get.head
-      val searchable = searchConverterService
-        .asSearchableDraft(
-          fetchedDraft,
-          searchapi.TestData.taxonomyTestBundle,
-          Some(searchapi.TestData.emptyGrepBundle)
-        )
+    searchable.isSuccess should be(true)
+    searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))
+    searchable.get.content.languageValues should be(Seq(LanguageValue("nb", "content")))
 
-      searchable.isSuccess should be(true)
-      searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))
-      searchable.get.content.languageValues should be(Seq(LanguageValue("nb", "content")))
-    }
   }
 }

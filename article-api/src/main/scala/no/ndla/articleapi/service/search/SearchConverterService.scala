@@ -15,7 +15,6 @@ import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.DateTime
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
@@ -54,7 +53,7 @@ trait SearchConverterService {
           )
         ),
         tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        lastUpdated = new DateTime(articleWithAgreement.updated),
+        lastUpdated = articleWithAgreement.updated,
         license = articleWithAgreement.copyright.license,
         authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
           .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),

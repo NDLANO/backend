@@ -16,8 +16,7 @@ import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
-
-import java.util.Date
+import java.time.LocalDateTime
 
 case class AudioMetaInformation(
     id: Option[Long],
@@ -27,8 +26,8 @@ case class AudioMetaInformation(
     copyright: Copyright,
     tags: Seq[Tag],
     updatedBy: String,
-    updated: Date,
-    created: Date,
+    updated: LocalDateTime,
+    created: LocalDateTime,
     podcastMeta: Seq[PodcastMeta],
     audioType: AudioType.Value = AudioType.Standard,
     manuscript: Seq[Manuscript],
@@ -66,8 +65,8 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )
 case class Author(`type`: String, name: String)
 case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {

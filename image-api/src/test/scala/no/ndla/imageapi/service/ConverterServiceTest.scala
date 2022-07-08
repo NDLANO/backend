@@ -12,9 +12,8 @@ import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
-import org.joda.time.{DateTime, DateTimeZone}
 
-import java.util.Date
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
@@ -22,7 +21,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val converterService = new ConverterService
 
-  val updated: Date = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val someDims = Some(ImageDimensions(100, 100))
   val full     = new ImageFileData(1, "/123.png", 200, "image/png", someDims, "nb", 5)
@@ -138,8 +137,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asApiImageMetaInformationWithApplicationUrlV2 returns with agreement copyright features") {
-    val from = DateTime.now().minusDays(5).toDate()
-    val to   = DateTime.now().plusDays(10).toDate()
+    val from = LocalDateTime.now().minusDays(5)
+    val to   = LocalDateTime.now().plusDays(10)
     val agreementCopyright = api.Copyright(
       api.License("gnu", "gpl", None),
       "http://tjohei.com/",

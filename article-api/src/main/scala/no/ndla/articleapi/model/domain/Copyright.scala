@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model.domain
 
-import java.util.Date
+import java.time.LocalDateTime
 
 case class Copyright(
     license: String,
@@ -17,6 +17,6 @@ case class Copyright(
     processors: Seq[Author],
     rightsholders: Seq[Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )

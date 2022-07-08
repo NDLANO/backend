@@ -7,8 +7,8 @@
 
 package no.ndla.conceptapi.service
 
-import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.DateParser
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
@@ -90,8 +90,8 @@ trait WriteService {
         (concept: domain.Concept) =>
           concept.copy(
             revision = None,
-            created = new Date(0),
-            updated = new Date(0)
+            created = DateParser.fromUnixTime(0),
+            updated = DateParser.fromUnixTime(0)
           )
       withComparableValues(existing) != withComparableValues(changed)
     }

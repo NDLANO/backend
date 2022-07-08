@@ -8,6 +8,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.DateParser
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -15,7 +16,6 @@ import no.ndla.tag.IntegrationTest
 import org.scalatest.Outcome
 import scalikejdbc.{DB, _}
 
-import java.util.Date
 import scala.util.{Failure, Try}
 
 @IntegrationTest
@@ -72,7 +72,7 @@ class ConfigRepositoryTest
     val newConfig = ConfigMeta(
       key = ConfigKey.IsWriteRestricted,
       value = "true",
-      updatedAt = new Date(0),
+      updatedAt = DateParser.fromUnixTime(0),
       updatedBy = "ndlaUser1"
     )
 
@@ -86,7 +86,7 @@ class ConfigRepositoryTest
     val originalConfig = ConfigMeta(
       key = ConfigKey.IsWriteRestricted,
       value = "true",
-      updatedAt = new Date(0),
+      updatedAt = DateParser.fromUnixTime(0),
       updatedBy = "ndlaUser1"
     )
 
@@ -97,7 +97,7 @@ class ConfigRepositoryTest
     val updatedConfig = ConfigMeta(
       key = ConfigKey.IsWriteRestricted,
       value = "false",
-      updatedAt = new Date(10000),
+      updatedAt = DateParser.fromUnixTime(10000),
       updatedBy = "ndlaUser2"
     )
 

@@ -10,20 +10,19 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import org.joda.time.DateTime
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today: Date     = DateTime.now().toDate
-  val yesterday: Date = DateTime.now().minusDays(1).toDate
-  val service         = new WriteService()
+  val today: LocalDateTime     = LocalDateTime.now()
+  val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
+  val service                  = new WriteService()
 
   val articleId = 13
 

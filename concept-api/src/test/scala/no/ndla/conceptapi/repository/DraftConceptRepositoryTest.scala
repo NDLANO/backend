@@ -8,9 +8,9 @@
 package no.ndla.conceptapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.DateParser
 
 import java.net.Socket
-import java.util.Date
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import scalikejdbc.DB
@@ -255,8 +255,8 @@ class DraftConceptRepositoryTest
     val art1 = domainConcept.copy(
       revision = None,
       content = Seq(domain.ConceptContent("Originalpls", "nb")),
-      created = new Date(0),
-      updated = new Date(0)
+      created = DateParser.fromUnixTime(0),
+      updated = DateParser.fromUnixTime(0)
     )
 
     val insertedConcept = repository.insert(art1)
@@ -285,18 +285,18 @@ class DraftConceptRepositoryTest
   test("That getByPage returns all concepts in database") {
     val con1 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Hei", "nb")),
-      updated = new Date(0),
-      created = new Date(0)
+      updated = DateParser.fromUnixTime(0),
+      created = DateParser.fromUnixTime(0)
     )
     val con2 = domainConcept.copy(
       content = Seq(domain.ConceptContent("På", "nb")),
-      updated = new Date(0),
-      created = new Date(0)
+      updated = DateParser.fromUnixTime(0),
+      created = DateParser.fromUnixTime(0)
     )
     val con3 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Deg", "nb")),
-      updated = new Date(0),
-      created = new Date(0)
+      updated = DateParser.fromUnixTime(0),
+      created = DateParser.fromUnixTime(0)
     )
 
     val ins1 = repository.insert(con1)

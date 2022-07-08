@@ -12,7 +12,6 @@ object draftapi extends Module {
     Seq(
       scalaTsi,
       scalaUri,
-      jodaTime,
       enumeratum,
       enumeratumJson4s,
       "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",

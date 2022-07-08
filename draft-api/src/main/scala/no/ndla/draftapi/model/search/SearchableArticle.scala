@@ -8,7 +8,7 @@
 package no.ndla.draftapi.model.search
 
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class SearchableArticle(
     id: Long,
@@ -17,7 +17,7 @@ case class SearchableArticle(
     visualElement: SearchableLanguageValues,
     introduction: SearchableLanguageValues,
     tags: SearchableLanguageList,
-    lastUpdated: DateTime,
+    lastUpdated: LocalDateTime,
     license: Option[String],
     authors: Seq[String],
     articleType: String,

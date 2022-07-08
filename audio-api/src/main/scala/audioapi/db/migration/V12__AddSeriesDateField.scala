@@ -8,16 +8,18 @@
 package audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.joda.time.DateTime
 import org.json4s.JsonAST.JField
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction, Formats, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
+import java.time.LocalDateTime
+
 class V12__AddSeriesDateField extends BaseJavaMigration {
-  private implicit val formats: Formats = DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-  private val dateToUse                 = new DateTime()
+  private implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+  private val dateToUse                 = LocalDateTime.now()
   private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
 
   override def migrate(context: Context): Unit = {

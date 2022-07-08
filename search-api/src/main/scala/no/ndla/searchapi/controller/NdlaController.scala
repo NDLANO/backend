@@ -50,7 +50,6 @@ trait NdlaController {
         new EnumNameSerializer(EmbedType) +
         new EnumNameSerializer(LearningResourceType) +
         new EnumNameSerializer(Availability) ++
-        org.json4s.ext.JodaTimeSerializers.all ++
         JavaTimeSerializers.all
 
     private val currentTimeBeforeRequest = new ThreadLocal[Long]

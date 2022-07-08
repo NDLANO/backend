@@ -18,7 +18,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
@@ -138,7 +138,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("doTransition should publish the article when transitioning to PUBLISHED") {
     val expectedStatus  = domain.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, new Date()))
+    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(converterService.getEmbeddedConceptIds(any[Article])).thenReturn(Seq.empty)
@@ -171,7 +171,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("doTransition should unpublish the article when transitioning to UNPUBLISHED") {
     val expectedStatus  = domain.Status(UNPUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, new Date()))
+    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
 
     when(learningpathApiClient.getLearningpathsWithPaths(Seq.empty)).thenReturn(Success(Seq.empty))
@@ -383,7 +383,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val h5pId           = "123-kulid-123"
     val h5pPaths        = Seq(s"/resource/$h5pId")
     val expectedStatus  = domain.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, new Date()))
+    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(converterService.getEmbeddedConceptIds(any[Article])).thenReturn(Seq.empty)

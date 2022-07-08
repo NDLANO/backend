@@ -7,26 +7,26 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.DateParser
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import org.joda.time.DateTime
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today: Date        = DateTime.now().toDate
-  val yesterday: Date    = DateTime.now().minusDays(1).toDate
-  val service            = new WriteService()
-  val conceptId          = 13
-  val userInfo: UserInfo = UserInfo.SystemUser
+  val today: LocalDateTime     = LocalDateTime.now()
+  val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
+  val service                  = new WriteService()
+  val conceptId                = 13
+  val userInfo: UserInfo       = UserInfo.SystemUser
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
@@ -190,8 +190,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val conceptToUpdate = domainConcept.copy(
       revision = Some(951),
       title = Seq(domain.ConceptTitle("Yolo", "en")),
-      updated = new Date(0),
-      created = new Date(0)
+      updated = DateParser.fromUnixTime(0),
+      created = DateParser.fromUnixTime(0)
     )
 
     mockWithConcept(conceptToUpdate)

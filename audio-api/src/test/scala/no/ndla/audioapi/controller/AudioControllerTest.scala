@@ -83,8 +83,8 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         None,
         None,
         None,
-        TestData.yesterday.toDate,
-        TestData.today.toDate
+        TestData.yesterday,
+        TestData.today
       )
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Success(sampleAudioMeta))
 

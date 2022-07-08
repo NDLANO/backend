@@ -9,7 +9,6 @@ package no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.domain.Availability
 
 import java.time.LocalDateTime
-import java.util.Date
 
 case class ArticleApiArticle(
     revision: Option[Int],
@@ -22,10 +21,10 @@ case class ArticleApiArticle(
     introduction: Seq[ArticleApiIntroduction],
     metaDescription: Seq[ArticleApiMetaDescription],
     metaImage: Seq[ArticleApiMetaImage],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
-    published: Date,
+    published: LocalDateTime,
     articleType: String,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
@@ -49,6 +48,6 @@ case class ArticleApiCopyright(
     processors: Seq[ArticleApiAuthor],
     rightsholders: Seq[ArticleApiAuthor],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )

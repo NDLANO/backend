@@ -16,7 +16,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMigration {
   import props._
@@ -154,8 +154,8 @@ case class V7_Copyright(
     processors: Seq[V8_Author],
     rightsholders: Seq[V8_Author],
     agreement: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )
 case class V7_Article(
     id: Option[Long],
@@ -169,8 +169,8 @@ case class V7_Article(
     introduction: Seq[V8_ArticleIntroduction],
     metaDescription: Seq[V8_ArticleMetaDescription],
     metaImageId: Option[String],
-    created: Date,
-    updated: Date,
+    created: LocalDateTime,
+    updated: LocalDateTime,
     updatedBy: String,
     articleType: String
 )

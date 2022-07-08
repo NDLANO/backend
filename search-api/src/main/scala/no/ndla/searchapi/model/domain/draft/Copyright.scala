@@ -8,7 +8,7 @@
 package no.ndla.searchapi.model.domain.draft
 
 import no.ndla.searchapi.model.domain.Author
-import org.joda.time.DateTime
+import java.time.LocalDateTime
 
 case class Copyright(
     license: Option[String],
@@ -17,6 +17,6 @@ case class Copyright(
     processors: List[Author],
     rightsholders: List[Author],
     agreementId: Option[Long],
-    validFrom: Option[DateTime],
-    validTo: Option[DateTime]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )

@@ -19,7 +19,6 @@ import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods._
@@ -53,7 +52,7 @@ trait SearchConverterService {
           ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
         ),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        lastUpdated = new DateTime(ai.updated),
+        lastUpdated = ai.updated,
         license = ai.copyright.flatMap(_.license),
         authors = ai.copyright
           .map(copy => copy.creators ++ copy.processors ++ copy.rightsholders)

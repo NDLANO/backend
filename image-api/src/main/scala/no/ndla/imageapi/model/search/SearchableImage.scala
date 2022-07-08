@@ -11,7 +11,7 @@ import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation}
 import no.ndla.language.model.WithLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
-import java.util.Date
+import java.time.LocalDateTime
 
 case class SearchableImage(
     id: Long,
@@ -21,7 +21,7 @@ case class SearchableImage(
     tags: SearchableLanguageList,
     contributors: Seq[String],
     license: String,
-    lastUpdated: Date,
+    lastUpdated: LocalDateTime,
     defaultTitle: Option[String],
     modelReleased: Option[String],
     editorNotes: Seq[String],

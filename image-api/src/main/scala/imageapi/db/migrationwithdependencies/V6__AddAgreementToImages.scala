@@ -11,11 +11,12 @@ import com.typesafe.scalalogging.LazyLogging
 import imageapi.db.migration._
 import no.ndla.imageapi.ImageApiProperties
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-import java.util.Date
+import java.time.LocalDateTime
 
 class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
   import props.{
@@ -27,7 +28,7 @@ class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigrat
     rightsholderTypes
   }
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -126,8 +127,8 @@ case class V6_Copyright(
     processors: Seq[V5_Author],
     rightsholders: Seq[V5_Author],
     agreementId: Option[Long],
-    validFrom: Option[Date],
-    validTo: Option[Date]
+    validFrom: Option[LocalDateTime],
+    validTo: Option[LocalDateTime]
 )
 case class V6_ImageMetaInformation(
     id: Option[Long],
@@ -140,5 +141,5 @@ case class V6_ImageMetaInformation(
     tags: Seq[V5_ImageTag],
     captions: Seq[V5_ImageCaption],
     updatedBy: String,
-    updated: Date
+    updated: LocalDateTime
 )

@@ -12,7 +12,7 @@ import com.scalatsi._
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
-import java.util.Date
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 import scala.annotation.unused
 
@@ -30,8 +30,8 @@ case class AudioMetaInformation(
     @(ApiModelProperty @field)(description = "Meta information about podcast, only applicable if audioType is 'podcast'.") podcastMeta: Option[PodcastMeta],
     @(ApiModelProperty @field)(description = "Meta information about series if the audio is a podcast and a part of a series.") series: Option[Series],
     @(ApiModelProperty @field)(description = "Manuscript for the audio") manuscript: Option[Manuscript],
-    @(ApiModelProperty @field)(description = "The time of creation for the audio-file") created: Date,
-    @(ApiModelProperty @field)(description = "The time of last update for the audio-file") updated: Date
+    @(ApiModelProperty @field)(description = "The time of creation for the audio-file") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "The time of last update for the audio-file") updated: LocalDateTime
 )
 // format: on
 

@@ -18,7 +18,6 @@ import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, g
 import no.ndla.mapping.ISO639
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
@@ -149,7 +148,7 @@ trait SearchConverterService {
         metaImage = c.metaImage,
         tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         subjectIds = c.subjectIds.toSeq,
-        lastUpdated = new DateTime(c.updated),
+        lastUpdated = c.updated,
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
@@ -159,7 +158,7 @@ trait SearchConverterService {
           c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
         ),
         articleIds = c.articleIds,
-        created = new DateTime(c.created),
+        created = c.created,
         source = c.source
       )
     }
@@ -210,14 +209,14 @@ trait SearchConverterService {
         tags = tag,
         subjectIds = subjectIds,
         supportedLanguages = supportedLanguages,
-        lastUpdated = searchableConcept.lastUpdated.toDate,
+        lastUpdated = searchableConcept.lastUpdated,
         status = toApiStatus(searchableConcept.status),
         updatedBy = searchableConcept.updatedBy,
         license = searchableConcept.license,
         copyright = copyright,
         visualElement = visualElement,
         articleIds = searchableConcept.articleIds,
-        created = searchableConcept.created.toDate,
+        created = searchableConcept.created,
         source = searchableConcept.source
       )
     }
