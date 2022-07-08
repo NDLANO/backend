@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.Clock
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,

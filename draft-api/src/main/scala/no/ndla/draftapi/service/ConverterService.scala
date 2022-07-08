@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.DateParser
+import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient

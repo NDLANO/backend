@@ -18,7 +18,6 @@ import scala.util.{Failure, Try}
 
 trait ImportService {
   this: ConverterService
-    with Clock
     with User
     with WriteService
     with DraftConceptRepository

@@ -11,6 +11,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo

@@ -26,10 +26,8 @@ trait WriteService {
     with ConverterService
     with ContentValidator
     with ArticleIndexService
-    with Clock
     with User
     with ReadService
-    with ArticleIndexService
     with SearchApiClient =>
   val writeService: WriteService
 

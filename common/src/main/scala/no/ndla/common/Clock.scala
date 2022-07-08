@@ -1,11 +1,12 @@
 /*
- * Part of NDLA image-api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA common.
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.imageapi.service
+package no.ndla.common
 
 import java.time.LocalDateTime
 

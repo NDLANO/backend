@@ -30,17 +30,11 @@ import no.ndla.conceptapi.service.search.{
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{
-  Clock,
-  ConverterService,
-  ImportService,
-  ReadService,
-  StateTransitionRules,
-  WriteService
-}
+import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService, StateTransitionRules, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
+import no.ndla.common.Clock
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment

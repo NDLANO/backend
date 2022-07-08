@@ -21,6 +21,7 @@ import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
+import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar

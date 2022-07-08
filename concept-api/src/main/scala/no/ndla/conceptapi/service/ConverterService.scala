@@ -10,6 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
+import no.ndla.common.Clock
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException

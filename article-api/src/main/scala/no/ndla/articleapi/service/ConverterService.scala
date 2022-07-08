@@ -18,6 +18,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.common.Clock
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense

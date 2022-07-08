@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common
 
 import scala.jdk.CollectionConverters.MapHasAsScala

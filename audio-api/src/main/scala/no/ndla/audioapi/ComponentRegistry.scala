@@ -25,6 +25,7 @@ import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
+import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 

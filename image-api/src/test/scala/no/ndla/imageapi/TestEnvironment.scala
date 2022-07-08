@@ -10,6 +10,7 @@ package no.ndla.imageapi
 
 import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.Clock
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
   BaseImageController,
