@@ -458,20 +458,21 @@ trait UpdateService {
         folderId: UUID,
         newResource: api.NewResource,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[_] =
+    ): Try[api.Resource] =
       for {
         feideId <- feideApiClient.getUserFeideID(feideAccessToken)
         _ <- folderRepository
           .folderWithFeideId(folderId, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
-        _ <- createNewResourceOrUpdateExisting(newResource, folderId, feideId)
-      } yield ()
+        insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, feideId)
+        converted         <- converterService.toApiResource(insertedOrUpdated)
+      } yield converted
 
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
         folderId: UUID,
         feideId: FeideID
-    ): Try[_] =
+    ): Try[domain.Resource] =
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
         .flatMap {
@@ -486,13 +487,13 @@ trait UpdateService {
                 document
               )
               _ <- folderRepository.createFolderResourceConnection(folderId, inserted.id)
-            } yield ()
+            } yield inserted
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)
             for {
-              _ <- folderRepository.updateResource(mergedResource)
-              _ <- connectIfNotConnected(folderId, mergedResource.id)
-            } yield ()
+              updated <- folderRepository.updateResource(mergedResource)
+              _       <- connectIfNotConnected(folderId, mergedResource.id)
+            } yield updated
         }
 
     private def connectIfNotConnected(folderId: UUID, resourceId: UUID): Try[Unit] =

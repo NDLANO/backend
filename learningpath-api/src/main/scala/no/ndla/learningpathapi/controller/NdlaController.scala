@@ -56,7 +56,7 @@ trait NdlaController {
 
     // This lets us return Try[T] and handle errors automatically, otherwise return 200 OK :^)
     val tryRenderer: RenderPipeline = {
-      case Success(value) => Ok(value)
+      case Success(value) => value
       case Failure(ex) =>
         Try(errorHandler(ex)) match {
           case Failure(ex: HaltException) => renderHaltException(ex)
