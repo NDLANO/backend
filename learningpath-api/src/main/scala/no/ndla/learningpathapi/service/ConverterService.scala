@@ -694,62 +694,39 @@ trait ConverterService {
         FolderDocument(
           name = newFolder.name,
           status = newStatus,
-          isFavorite = newFavorite,
-          data = List.empty
+          isFavorite = newFavorite
         )
       )
     }
 
-    private def toApiFolderData(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
-      def loop(domainData: domain.FolderData, crumbs: List[String]): Try[api.FolderData] = {
-        domainData match {
-          case Right(resource) =>
-            Success(
-              api.Resource(
-                id = resource.id.toString,
-                resourceType = resource.resourceType,
-                path = resource.path,
-                created = resource.created,
-                tags = resource.tags
-              )
-            )
-          case Left(folder) =>
-            folder.data
-              .traverse(d => {
-                val newCrumbs = d.swap.map(n => crumbs :+ n.name).getOrElse(crumbs)
-                loop(d, newCrumbs)
-              })
-              .map(subFolders =>
-                api.Folder(
-                  id = folder.id.toString,
-                  name = folder.name,
-                  status = folder.status.toString,
-                  isFavorite = folder.isFavorite,
-                  data = subFolders,
-                  breadcrumbs = crumbs
-                )
-              )
-        }
-      }
-      loop(domainData, crumbs)
-    }
-
-    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[String]): Try[api.Folder] = {
-      domainFolder.data
+    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[api.Breadcrumb]): Try[api.Folder] = {
+      def loop(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = folder.subfolders
         .traverse(folder => {
-          val newCrumbs = folder.swap.map(n => breadcrumbs :+ n.name).getOrElse(breadcrumbs)
-          toApiFolderData(folder, newCrumbs)
-        })
-        .map(folderData =>
-          api.Folder(
-            id = domainFolder.id.toString,
-            name = domainFolder.name,
-            status = domainFolder.status.toString,
-            isFavorite = domainFolder.isFavorite,
-            data = folderData,
-            breadcrumbs = breadcrumbs
+          val newCrumb = api.Breadcrumb(
+            id = folder.id.toString,
+            name = folder.name
           )
+          val newCrumbs = crumbs :+ newCrumb
+          loop(folder, newCrumbs)
+        })
+        .flatMap(subFolders =>
+          folder.resources
+            .traverse(toApiResource)
+            .map(resources => {
+              api.Folder(
+                id = folder.id.toString,
+                name = folder.name,
+                status = folder.status.toString,
+                isFavorite = folder.isFavorite,
+                subfolders = subFolders,
+                resources = resources,
+                breadcrumbs = crumbs,
+                parentId = folder.parentId.map(_.toString)
+              )
+            })
         )
+
+      loop(domainFolder, breadcrumbs)
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
@@ -758,7 +735,8 @@ trait ConverterService {
 
       domain.Folder(
         id = existing.id,
-        data = existing.data,
+        resources = existing.resources,
+        subfolders = existing.subfolders,
         feideId = existing.feideId,
         parentId = existing.parentId,
         isFavorite = existing.isFavorite,
@@ -768,7 +746,8 @@ trait ConverterService {
     }
 
     def mergeResource(existing: domain.Resource, updated: api.UpdatedResource): domain.Resource = {
-      val tags = updated.tags.getOrElse(existing.tags)
+      val tags       = updated.tags.getOrElse(existing.tags)
+      val resourceId = updated.resourceId.getOrElse(existing.resourceId)
 
       domain.Resource(
         id = existing.id,
@@ -776,7 +755,8 @@ trait ConverterService {
         resourceType = existing.resourceType,
         path = existing.path,
         created = existing.created,
-        tags = tags
+        tags = tags,
+        resourceId = resourceId
       )
     }
 
@@ -789,7 +769,8 @@ trait ConverterService {
         resourceType = existing.resourceType,
         path = existing.path,
         created = existing.created,
-        tags = tags
+        tags = tags,
+        resourceId = newResource.resourceId
       )
     }
 
@@ -798,6 +779,7 @@ trait ConverterService {
       val path         = domainResource.path
       val created      = domainResource.created
       val tags         = domainResource.tags
+      val resourceId   = domainResource.resourceId
 
       Success(
         api.Resource(
@@ -805,14 +787,18 @@ trait ConverterService {
           resourceType = resourceType,
           path = path,
           created = created,
-          tags = tags
+          tags = tags,
+          resourceId = resourceId
         )
       )
     }
 
     def toDomainResource(newResource: api.NewResource): ResourceDocument = {
       val tags = newResource.tags.getOrElse(List.empty)
-      ResourceDocument(tags = tags)
+      ResourceDocument(
+        tags = tags,
+        resourceId = newResource.resourceId
+      )
     }
 
     def domainToApiModel[Domain, Api](

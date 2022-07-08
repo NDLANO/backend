@@ -118,7 +118,8 @@ object TestData {
     resourceType = "",
     path = "",
     created = LocalDateTime.now(),
-    tags = List.empty
+    tags = List.empty,
+    resourceId = 1
   )
 
   val emptyDomainFolder: domain.Folder = domain.Folder(
@@ -128,18 +129,19 @@ object TestData {
     name = "",
     status = domain.FolderStatus.PRIVATE,
     isFavorite = false,
-    data = List.empty
+    subfolders = List.empty,
+    resources = List.empty
   )
 
   val baseFolderDocument: FolderDocument = FolderDocument(
     isFavorite = false,
     name = "some-name",
-    status = FolderStatus.PUBLIC,
-    data = List.empty
+    status = FolderStatus.PUBLIC
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
-    tags = List.empty
+    tags = List.empty,
+    resourceId = 1
   )
 
   val emptyApiFolder: api.Folder = api.Folder(
@@ -147,8 +149,10 @@ object TestData {
     name = "",
     status = "",
     isFavorite = false,
-    data = List.empty,
-    breadcrumbs = List.empty
+    subfolders = List.empty,
+    resources = List.empty,
+    breadcrumbs = List.empty,
+    parentId = None
   )
 
 }

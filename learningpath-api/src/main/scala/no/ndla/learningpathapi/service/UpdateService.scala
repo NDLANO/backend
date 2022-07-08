@@ -542,12 +542,11 @@ trait UpdateService {
     }
 
     def deleteRecursively(folder: domain.Folder, feideId: FeideID)(implicit session: DBSession): Try[UUID] = {
-      folder.data
-        .traverse {
-          case Left(childFolder)    => deleteRecursively(childFolder, feideId)
-          case Right(childResource) => deleteResourceIfNoConnection(childResource.id)
-        }
-        .flatMap(_ => folderRepository.deleteFolder(folder.id))
+      for {
+        _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(res.id))
+        _ <- folder.subfolders.traverse(childFolder => deleteRecursively(childFolder, feideId))
+        _ <- folderRepository.deleteFolder(folder.id)
+      } yield folder.id
     }
 
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {

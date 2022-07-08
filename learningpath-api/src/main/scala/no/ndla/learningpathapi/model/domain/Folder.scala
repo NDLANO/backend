@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import scala.util.Try
 import cats.implicits._
 
-case class ResourceDocument(tags: List[String]) {
+case class ResourceDocument(tags: List[String], resourceId: Long) {
   def toFullResource(
       id: UUID,
       path: String,
@@ -34,7 +34,8 @@ case class ResourceDocument(tags: List[String]) {
       path = path,
       resourceType = resourceType,
       tags = tags,
-      created = created
+      created = created,
+      resourceId = resourceId
     )
 }
 
@@ -44,7 +45,8 @@ case class Resource(
     created: LocalDateTime,
     path: String,
     resourceType: String,
-    tags: List[String]
+    tags: List[String],
+    resourceId: Long
 ) extends FeideContent
 
 trait DBResource {
@@ -84,8 +86,14 @@ trait DBResource {
   }
 }
 
-case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value, data: List[FolderData]) {
-  def toFullFolder(id: UUID, feideId: FeideID, parentId: Option[UUID]): Folder = {
+case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value) {
+  def toFullFolder(
+      id: UUID,
+      feideId: FeideID,
+      parentId: Option[UUID],
+      resources: List[Resource],
+      subfolders: List[Folder]
+  ): Folder = {
     Folder(
       id = id,
       feideId = feideId,
@@ -93,7 +101,8 @@ case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatu
       name = name,
       status = status,
       isFavorite = isFavorite,
-      data = data
+      resources = resources,
+      subfolders = subfolders
     )
   }
 }
@@ -105,16 +114,14 @@ case class Folder(
     name: String,
     status: FolderStatus.Value,
     isFavorite: Boolean,
-    data: List[FolderData]
+    subfolders: List[Folder],
+    resources: List[Resource]
 ) extends FolderContent {
-  def toDocument(): FolderDocument = {
-    FolderDocument(
-      isFavorite = isFavorite,
-      name = name,
-      status = status,
-      data = data
-    )
-  }
+  def toDocument(): FolderDocument = FolderDocument(
+    isFavorite = isFavorite,
+    name = name,
+    status = status
+  )
 }
 
 trait DBFolder {
@@ -143,13 +150,14 @@ trait DBFolder {
       val parentId = rs.get[Option[UUID]](colNameWrapper("parent_id"))
       id.map(id =>
         metaData.toFullFolder(
-          id,
-          feideId,
-          parentId
+          id = id,
+          feideId = feideId,
+          parentId = parentId,
+          resources = List.empty,
+          subfolders = List.empty
         )
       )
     }
-
   }
 }
 
