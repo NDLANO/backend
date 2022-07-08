@@ -20,7 +20,7 @@ import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
 import org.eclipse.jetty.server.Server
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import scala.concurrent.duration.Duration
@@ -40,7 +40,8 @@ class ArticleApiClientTest
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
       new EnumNameSerializer(LearningResourceType) +
-      new EnumNameSerializer(Availability)
+      new EnumNameSerializer(Availability) ++
+      JavaTimeSerializers.all
 
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
