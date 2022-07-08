@@ -175,7 +175,7 @@ export interface INewResource {
   resourceType: string
   path: string
   tags?: string[]
-  resourceId?: number
+  resourceId: number
 }
 
 export interface IResource {
@@ -184,7 +184,7 @@ export interface IResource {
   path: string
   created: string
   tags: string[]
-  resourceId?: number
+  resourceId: number
 }
 
 export interface ISearchResultV2 {
