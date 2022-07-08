@@ -150,11 +150,11 @@ trait DBFolder {
       val parentId = rs.get[Option[UUID]](colNameWrapper("parent_id"))
       id.map(id =>
         metaData.toFullFolder(
-          id,
-          feideId,
-          parentId,
-          List.empty,
-          List.empty
+          id = id,
+          feideId = feideId,
+          parentId = parentId,
+          resources = List.empty,
+          subfolders = List.empty
         )
       )
     }

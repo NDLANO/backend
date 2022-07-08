@@ -48,7 +48,13 @@ trait FolderRepository {
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
-        document.toFullFolder(newId, feideId, parentId, List.empty, List.empty)
+        document.toFullFolder(
+          id = newId,
+          feideId = feideId,
+          parentId = parentId,
+          resources = List.empty,
+          subfolders = List.empty
+        )
       }
 
     def insertResource(

@@ -699,15 +699,15 @@ trait ConverterService {
       )
     }
 
-    private def toApiFolderData(domainData: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = {
+    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[api.Breadcrumb]): Try[api.Folder] = {
       def loop(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[api.Folder] = folder.subfolders
-        .traverse(d => {
+        .traverse(folder => {
           val newCrumb = api.Breadcrumb(
-            id = d.id.toString,
-            name = d.name
+            id = folder.id.toString,
+            name = folder.name
           )
           val newCrumbs = crumbs :+ newCrumb
-          loop(d, newCrumbs)
+          loop(folder, newCrumbs)
         })
         .flatMap(subFolders =>
           folder.resources
@@ -726,35 +726,7 @@ trait ConverterService {
             })
         )
 
-      loop(domainData, crumbs)
-    }
-
-    def toApiFolder(domainFolder: domain.Folder, breadcrumbs: List[api.Breadcrumb]): Try[api.Folder] = {
-      domainFolder.subfolders
-        .traverse(folder => {
-          val newCrumb = api.Breadcrumb(
-            id = folder.id.toString,
-            name = folder.name
-          )
-          val newCrumbs = breadcrumbs :+ newCrumb
-          toApiFolderData(folder, newCrumbs)
-        })
-        .flatMap(subfolders => {
-          domainFolder.resources
-            .traverse(toApiResource)
-            .map(resources => {
-              api.Folder(
-                id = domainFolder.id.toString,
-                name = domainFolder.name,
-                status = domainFolder.status.toString,
-                isFavorite = domainFolder.isFavorite,
-                subfolders = subfolders,
-                resources = resources,
-                breadcrumbs = breadcrumbs,
-                parentId = domainFolder.parentId.map(_.toString)
-              )
-            })
-        })
+      loop(domainFolder, breadcrumbs)
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
