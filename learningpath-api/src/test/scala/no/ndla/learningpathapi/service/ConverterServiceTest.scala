@@ -492,8 +492,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected1 = domain.FolderDocument(
       name = "kenkaku",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
-      data = List.empty
+      isFavorite = false
     )
 
     service.toDomainFolderDocument(newFolder1).get should be(expected1)
@@ -521,7 +520,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "concept",
         path = "/subject/1/topic/1/resource/4",
         created = created,
-        tags = List("a", "b", "c")
+        tags = List("a", "b", "c"),
+        resourceId = 1
       )
     val folderData1 = domain.Folder(
       id = subFolder1UUID,
@@ -530,7 +530,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List(Right(resource))
+      resources = List(resource),
+      subfolders = List.empty
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -539,7 +540,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData2",
       status = domain.FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -548,7 +550,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData3",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List(Left(folderData1))
+      subfolders = List(folderData1),
+      resources = List.empty
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -557,49 +560,72 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = domain.FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List(Left(folderData2), Left(folderData3), Right(resource))
+      subfolders = List(folderData2, folderData3),
+      resources = List(resource)
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
       resourceType = "concept",
       tags = List("a", "b", "c"),
       created = created,
-      path = "/subject/1/topic/1/resource/4"
+      path = "/subject/1/topic/1/resource/4",
+      resourceId = 1
     )
     val apiData1 = api.Folder(
       id = subFolder1UUID.toString,
       name = "folderData1",
       status = "private",
       isFavorite = false,
-      data = List(apiResource),
-      breadcrumbs = List("mainFolder", "folderData3", "folderData1")
+      resources = List(apiResource),
+      subfolders = List(),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3"),
+        api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
+      ),
+      parentId = Some(subFolder3UUID.toString)
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
       name = "folderData2",
       status = "public",
       isFavorite = false,
-      data = List.empty,
-      breadcrumbs = List("mainFolder", "folderData2")
+      resources = List.empty,
+      subfolders = List.empty,
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
+      ),
+      parentId = Some(mainFolderUUID.toString)
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
       name = "folderData3",
       status = "private",
       isFavorite = false,
-      data = List(apiData1),
-      breadcrumbs = List("mainFolder", "folderData3")
+      subfolders = List(apiData1),
+      resources = List(),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+        api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
+      ),
+      parentId = Some(mainFolderUUID.toString)
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      data = List(apiData2, apiData3, apiResource),
-      breadcrumbs = List("mainFolder")
+      subfolders = List(apiData2, apiData3),
+      resources = List(apiResource),
+      breadcrumbs = List(
+        api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
+      ),
+      parentId = None
     )
 
-    val Success(result) = service.toApiFolder(mainFolder, List("mainFolder"))
+    val Success(result) =
+      service.toApiFolder(mainFolder, List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")))
     result should be(expected)
   }
 
@@ -614,7 +640,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
     val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("public"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
@@ -646,7 +673,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "article",
         path = "/subject/1/topic/1/resource/4",
         created = created,
-        tags = List("a", "b", "c")
+        tags = List("a", "b", "c"),
+        resourceId = 1
       )
     val expected =
       api.Resource(
@@ -654,7 +682,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "article",
         path = "/subject/1/topic/1/resource/4",
         created = created,
-        tags = List("a", "b", "c")
+        tags = List("a", "b", "c"),
+        resourceId = 1
       )
 
     service.toApiResource(existing) should be(Success(expected))
@@ -667,15 +696,17 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       api.NewResource(
         resourceType = "audio",
         path = "/subject/1/topic/1/resource/4",
-        tags = Some(List("a", "b"))
+        tags = Some(List("a", "b")),
+        resourceId = 1
       )
     val newResource2 =
-      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None)
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = 2)
     val expected1 =
       domain.ResourceDocument(
-        tags = List("a", "b")
+        tags = List("a", "b"),
+        resourceId = 1
       )
-    val expected2 = expected1.copy(tags = List.empty)
+    val expected2 = expected1.copy(tags = List.empty, resourceId = 2)
 
     service.toDomainResource(newResource1) should be(expected1)
     service.toDomainResource(newResource2) should be(expected2)

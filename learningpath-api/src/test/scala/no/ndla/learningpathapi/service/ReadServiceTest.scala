@@ -335,7 +335,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
 
     val subFolder1 = domain.Folder(
@@ -345,7 +346,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
 
     val subFolder2 = domain.Folder(
@@ -355,7 +357,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
       isFavorite = false,
-      data = List.empty
+      subfolders = List.empty,
+      resources = List.empty
     )
 
     val resource1 = domain.Resource(
@@ -364,7 +367,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       resourceType = "article",
       path = "/subject/1/topic/1/resource/4",
       created = created,
-      tags = List.empty
+      tags = List.empty,
+      resourceId = 1
     )
 
     val expected = api.Folder(
@@ -372,39 +376,55 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = "public",
       isFavorite = false,
-      breadcrumbs = List("mainFolder"),
-      data = List(
-        api.Folder(
-          id = subFolder1UUID.toString,
-          name = "subFolder1",
-          status = "public",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder1")
-        ),
-        api.Folder(
-          id = subFolder2UUID.toString,
-          name = "subFolder2",
-          status = "private",
-          data = List.empty,
-          isFavorite = false,
-          breadcrumbs = List("mainFolder", "subFolder2")
-        ),
+      breadcrumbs = List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
+      parentId = None,
+      resources = List(
         api.Resource(
           id = resource1UUID.toString,
           resourceType = "article",
           tags = List.empty,
           path = "/subject/1/topic/1/resource/4",
-          created = created
+          created = created,
+          resourceId = 1
+        )
+      ),
+      subfolders = List(
+        api.Folder(
+          id = subFolder1UUID.toString,
+          name = "subFolder1",
+          status = "public",
+          subfolders = List.empty,
+          resources = List.empty,
+          isFavorite = false,
+          breadcrumbs = List(
+            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
+          ),
+          parentId = Some(mainFolderUUID.toString)
+        ),
+        api.Folder(
+          id = subFolder2UUID.toString,
+          name = "subFolder2",
+          status = "private",
+          resources = List.empty,
+          subfolders = List.empty,
+          isFavorite = false,
+          breadcrumbs = List(
+            api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
+            api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
+          ),
+          parentId = Some(mainFolderUUID.toString)
         )
       )
     )
 
     val whgaterh = mainFolder.copy(
-      data = List(
-        Left(subFolder1),
-        Left(subFolder2),
-        Right(resource1)
+      subfolders = List(
+        subFolder1,
+        subFolder2
+      ),
+      resources = List(
+        resource1
       )
     )
 
@@ -448,7 +468,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         name = "favorite",
         status = "private",
         isFavorite = true,
-        breadcrumbs = List("favorite")
+        breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
@@ -483,7 +503,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         name = "favorite",
         status = "private",
         isFavorite = true,
-        breadcrumbs = List("favorite")
+        breadcrumbs = List(api.Breadcrumb(id = favoriteId.toString, name = "favorite"))
       )
     val apiResource =
       api.Resource(
@@ -491,7 +511,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "",
         path = "",
         created = created,
-        tags = List.empty
+        tags = List.empty,
+        resourceId = 1
       )
     val folderResourcesResponse1 = Success(List(domainResource, domainResource))
     val folderResourcesResponse2 = Success(List(domainResource))
@@ -508,14 +529,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(any)(any))
       .thenReturn(folderResourcesResponse1, folderResourcesResponse2, folderResourcesResponse3)
 
-    val result = service.getFolders(false, true, Some("token"))
+    val result = service.getFolders(includeSubfolders = false, includeResources = true, Some("token"))
     result.get.length should be(3)
     result.get.find(e => e.name == "favorite").get should be(
-      favoriteApiFolder.copy(data = List(apiResource, apiResource))
+      favoriteApiFolder.copy(resources = List(apiResource, apiResource))
     )
-    result.get.exists(f => f.data.length == 2)
-    result.get.exists(f => f.data.length == 1)
-    result.get.exists(f => f.data.isEmpty)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
     verify(folderRepository, times(1)).insertFolder(any, any, any)(any)

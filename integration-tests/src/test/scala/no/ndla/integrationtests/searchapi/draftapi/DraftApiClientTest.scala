@@ -20,7 +20,7 @@ import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{draftapi, searchapi}
 import org.eclipse.jetty.server.Server
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import scala.concurrent.duration.Duration
@@ -38,7 +38,8 @@ class DraftApiClientTest
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(StepStatus) +
       new EnumNameSerializer(EmbedType) +
-      new EnumNameSerializer(LearningResourceType)
+      new EnumNameSerializer(LearningResourceType) ++
+      JavaTimeSerializers.all
 
   override val ndlaClient             = new NdlaClient
   override val searchConverterService = new SearchConverterService

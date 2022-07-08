@@ -15,6 +15,7 @@ import org.scalatest.matchers.should.Matchers
 import java.io.IOException
 import java.net.ServerSocket
 import scala.util.Properties.{propOrNone, setProp}
+import scala.util.{Try, Success, Failure}
 
 abstract class UnitTestSuite
     extends AnyFunSuite
@@ -66,5 +67,14 @@ abstract class UnitTestSuite
       }
     }
     throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
+  }
+
+  // Adds method to `Try`s in tests that will fail the test if a `Try` is `Failure`
+  // and return the result if it is a `Success`
+  implicit class failableTry[T](result: Try[T]) {
+    def failIfFailure: T = result match {
+      case Success(r)  => r
+      case Failure(ex) => fail("Failure gotten when Success was expected :^)", ex)
+    }
   }
 }

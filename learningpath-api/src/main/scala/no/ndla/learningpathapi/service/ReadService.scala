@@ -181,28 +181,37 @@ trait ReadService {
       val favoriteFolder = domain.FolderDocument(
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
-        isFavorite = true,
-        data = List.empty
+        isFavorite = true
       )
       folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
 
-    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[String]] = {
+    def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {
       @tailrec
-      def getParentRecursively(folder: domain.Folder, crumbs: List[String]): Try[List[String]] = {
+      def getParentRecursively(folder: domain.Folder, crumbs: List[api.Breadcrumb]): Try[List[api.Breadcrumb]] = {
         folder.parentId match {
           case None => Success(crumbs)
           case Some(parentId) =>
             folderRepository.folderWithId(parentId) match {
               case Failure(ex) => Failure(ex)
-              case Success(p)  => getParentRecursively(p, p.name +: crumbs)
+              case Success(p) =>
+                val newCrumb = api.Breadcrumb(
+                  id = p.id.toString,
+                  name = p.name
+                )
+                getParentRecursively(p, newCrumb +: crumbs)
             }
         }
       }
 
       getParentRecursively(folder, List.empty) match {
-        case Failure(ex)    => Failure(ex)
-        case Success(value) => Success(value :+ folder.name)
+        case Failure(ex) => Failure(ex)
+        case Success(value) =>
+          val newCrumb = api.Breadcrumb(
+            id = folder.id.toString,
+            name = folder.name
+          )
+          Success(value :+ newCrumb)
       }
     }
 
@@ -236,10 +245,10 @@ trait ReadService {
       .folderWithId(folderId)
       .flatMap(folder => {
         val folderResources =
-          if (shouldIncludeResources) folderRepository.getFolderResources(folderId).map(_.map(_.asRight))
+          if (shouldIncludeResources) folderRepository.getFolderResources(folderId)
           else Success(List.empty)
 
-        folderResources.map(res => folder.copy(data = res))
+        folderResources.map(res => folder.copy(resources = res))
       })
 
     def getSingleFolderWithContent(
@@ -279,7 +288,10 @@ trait ReadService {
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
-        apiFolders   <- converterService.domainToApiModel(withData, v => converterService.toApiFolder(v, List(v.name)))
+        apiFolders <- converterService.domainToApiModel(
+          withData,
+          v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)))
+        )
       } yield apiFolders
     }
   }

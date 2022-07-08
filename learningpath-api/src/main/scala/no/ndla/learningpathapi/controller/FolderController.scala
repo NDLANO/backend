@@ -188,7 +188,7 @@ trait FolderController {
     }
 
     get(
-      "/resources/",
+      "/resources/?",
       operation(
         apiOperation[List[Resource]]("fetchAllResources")
           .summary("Fetch all resources that belongs to a user")
@@ -213,7 +213,7 @@ trait FolderController {
     }
 
     post(
-      "/:folder_id/resources/",
+      "/:folder_id/resources/?",
       operation(
         apiOperation[Unit]("createFolderResource")
           .summary("Creates new folder resource")
