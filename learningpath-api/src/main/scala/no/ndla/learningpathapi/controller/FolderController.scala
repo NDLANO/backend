@@ -279,5 +279,21 @@ trait FolderController {
         })
         .map(_ => NoContent())
     }
+
+    delete(
+      "/nuke/?",
+      operation(
+        apiOperation[Unit]("DeleteAllUserData")
+          .summary("Delete all data connected to this user")
+          .description("Delete all data connected to this user")
+          .parameters(
+            asHeaderParam(feideToken)
+          )
+          .responseMessages(response204, response400, response403, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      updateService.deleteAllUserData(requestFeideToken).map(_ => NoContent())
+    }
   }
 }

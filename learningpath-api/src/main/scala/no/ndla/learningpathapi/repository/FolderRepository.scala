@@ -185,6 +185,24 @@ trait FolderRepository {
           Success(resourceId)
       }
 
+    def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Long] = {
+      Try(sql"delete from ${DBFolder.table} where feide_id = $feideId".update()) match {
+        case Failure(ex) => Failure(ex)
+        case Success(numRows) =>
+          logger.info(s"Deleted $numRows folders with feide_id = $feideId")
+          Success(numRows)
+      }
+    }
+
+    def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Long] = {
+      Try(sql"delete from ${DBResource.table} where feide_id = $feideId".update()) match {
+        case Failure(ex) => Failure(ex)
+        case Success(numRows) =>
+          logger.info(s"Deleted $numRows resources with feide_id = $feideId")
+          Success(numRows)
+      }
+    }
+
     def folderWithId(id: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Folder] =
       folderWhere(sqls"f.id=$id").flatMap {
         case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
