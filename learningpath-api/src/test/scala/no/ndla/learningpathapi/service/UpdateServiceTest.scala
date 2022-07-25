@@ -21,6 +21,7 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
+import no.ndla.learningpathapi.validation.TextValidatorTest
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.mockito.invocation.InvocationOnMock
@@ -1771,5 +1772,66 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
     verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
+  }
+
+  test("that folder is not created if depth limit is reached") {
+    val feideId   = "FEIDE"
+    val parentId  = UUID.randomUUID()
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(props.MaxFolderDepth))
+
+    val Failure(result: ValidationException) = service.newFolder(newFolder, Some(feideId))
+    result.errors.head.message should be(
+      s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
+    )
+
+    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+  }
+
+  test("that folder is created if depth count is below the limit") {
+    val feideId   = "FEIDE"
+    val folderId  = UUID.randomUUID()
+    val parentId  = UUID.randomUUID()
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+    val domainFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "asd",
+      status = domain.FolderStatus.PRIVATE,
+      isFavorite = false,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val apiFolder = api.Folder(
+      id = folderId.toString,
+      name = "asd",
+      status = "private",
+      isFavorite = false,
+      parentId = Some(parentId.toString),
+      breadcrumbs = List.empty,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val belowLimit = props.MaxFolderDepth - 2
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+
+    service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
+
+    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
   }
 }
