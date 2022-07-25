@@ -21,7 +21,6 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
-import no.ndla.learningpathapi.validation.TextValidatorTest
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.mockito.invocation.InvocationOnMock
