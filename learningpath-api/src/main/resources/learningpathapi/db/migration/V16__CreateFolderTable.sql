@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TABLE folders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     parent_id UUID NULL,
