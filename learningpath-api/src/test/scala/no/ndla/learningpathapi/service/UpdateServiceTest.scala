@@ -1515,21 +1515,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any))
+    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
       .thenReturn(Success(folderWithChildren))
     when(folderRepository.deleteFolder(any)(any))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
     when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
 
-    val x = service.deleteFolder(mainFolderId, Some("token"))
+    service.deleteFolder(mainFolderId, Some("token")) should be(Success(mainFolderId))
 
-    x.isSuccess should be(true)
     verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any)
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any)
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any)
-    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any)
+    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any)
   }
 
   test("that a user with access can not delete Favorite folder") {
@@ -1559,9 +1558,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
     when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
 
-    val x = service.deleteFolder(mainFolderId, Some("token"))
-    x.isFailure should be(true)
-    x should be(Failure(DeleteFavoriteException("Favorite folder can not be deleted")))
+    service.deleteFolder(mainFolderId, Some("token")) should be(
+      Failure(DeleteFavoriteException("Favorite folder can not be deleted"))
+    )
 
     verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any)
     verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any)
@@ -1591,21 +1590,23 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val correctFeideId = "FEIDE"
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(5))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any))
+    when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
       .thenReturn(Success(folderWithChildren))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(mainFolderId), eqTo(resourceId))(any))
+      .thenReturn(Success(resourceId))
     when(folderRepository.deleteFolder(any)(any)).thenReturn(Success(any))
 
-    val x = service.deleteFolder(mainFolderId, Some("token"))
+    service.deleteFolder(mainFolderId, Some("token")) should be(Success(mainFolderId))
 
-    x.isSuccess should be(true)
     verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any)
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any)
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(0)).deleteResource(any)(any)
-    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(false))(any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(any, any)(any)
+    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any)
   }
 
   test("that deleteConnection only deletes connection when there are several references to a resource") {
@@ -1639,13 +1640,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.folderWithId(folderId)).thenReturn(Success(folder))
-    when(folderRepository.resourceWithId(resourceId)).thenReturn(Success(resource))
-    when(folderRepository.folderResourceConnectionCount(resourceId)).thenReturn(Success(1))
-    when(folderRepository.deleteFolderResourceConnection(folderId, resourceId)).thenReturn(Success(resourceId))
-    when(folderRepository.deleteResource(resourceId)).thenReturn(Success(resourceId))
+    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(1))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any))
+      .thenReturn(Success(resourceId))
+    when(folderRepository.deleteResource(eqTo(resourceId))(any)).thenReturn(Success(resourceId))
 
-    service.deleteConnection(folderId, resourceId, None).isSuccess should be(true)
+    service.deleteConnection(folderId, resourceId, None) should be(Success(resourceId))
 
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
@@ -1771,6 +1773,79 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
     verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
+  }
+
+  test("that deleteFolder deletes correct number of folder-resource-connections and resources") {
+    val folder1Id   = UUID.randomUUID()
+    val folder2Id   = UUID.randomUUID()
+    val folder3Id   = UUID.randomUUID()
+    val resource1Id = UUID.randomUUID()
+    val resource2Id = UUID.randomUUID()
+    val resource3Id = UUID.randomUUID()
+    val resource1   = emptyDomainResource.copy(id = resource1Id, feideId = "FEIDEF")
+    val resource2   = emptyDomainResource.copy(id = resource2Id, feideId = "FEIDEF")
+    val resource3   = emptyDomainResource.copy(id = resource3Id, feideId = "FEIDEF")
+    val folder3 = emptyDomainFolder.copy(
+      id = folder3Id,
+      feideId = "FEIDEF",
+      resources = List(resource2, resource3),
+      subfolders = List.empty
+    )
+    val folder2 = emptyDomainFolder.copy(
+      id = folder2Id,
+      feideId = "FEIDEF",
+      resources = List(resource1, resource2),
+      subfolders = List(folder3)
+    )
+    val folder1 =
+      emptyDomainFolder.copy(
+        id = folder1Id,
+        feideId = "FEIDEF",
+        resources = List(resource1),
+        subfolders = List(folder2)
+      )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("FEIDEF"))
+    when(folderRepository.folderWithId(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1))
+    when(readService.getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(any[DBSession]))
+      .thenReturn(Success(folder1))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource1Id))(any[DBSession]))
+      .thenReturn(Success(2), Success(1))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(any[DBSession]))
+      .thenReturn(Success(resource1Id))
+    when(folderRepository.deleteResource(eqTo(resource1Id))(any[DBSession])).thenReturn(Success(resource1Id))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource2Id))(any[DBSession]))
+      .thenReturn(Success(2), Success(1))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(any[DBSession]))
+      .thenReturn(Success(resource2Id))
+    when(folderRepository.deleteResource(eqTo(resource2Id))(any[DBSession])).thenReturn(Success(resource2Id))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource3Id))(any[DBSession])).thenReturn(Success(1))
+    when(folderRepository.deleteResource(eqTo(resource3Id))(any[DBSession])).thenReturn(Success(resource3Id))
+    when(folderRepository.deleteFolder(eqTo(folder3Id))(any[DBSession])).thenReturn(Success(folder3Id))
+    when(folderRepository.deleteFolder(eqTo(folder2Id))(any[DBSession])).thenReturn(Success(folder2Id))
+    when(folderRepository.deleteFolder(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1Id))
+
+    service.deleteFolder(folder1Id, Some("FEIDEF")) should be(Success(folder1Id))
+
+    verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(any)
+    verify(folderRepository, times(5)).folderResourceConnectionCount(any)(any)
+    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource1Id))(any)
+    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource2Id))(any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resource3Id))(any)
+
+    verify(folderRepository, times(2)).deleteFolderResourceConnection(any, any)(any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(any)
+
+    verify(folderRepository, times(3)).deleteResource(any)(any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource1Id))(any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource2Id))(any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource3Id))(any)
+
+    verify(folderRepository, times(3)).deleteFolder(any)(any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder1Id))(any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder2Id))(any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder3Id))(any)
   }
 
   test("that folder is not created if depth limit is reached") {
