@@ -298,6 +298,24 @@ trait FolderRepository {
         .sequence
     }.flatten.map(data => buildTreeStructureFromListOfChildren(id, data))
 
+    def getFoldersDepth(parentId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Long] = Try {
+      sql"""
+           WITH RECURSIVE parents AS (
+                SELECT id AS f_id, parent_id AS f_parent_id, 0 dpth
+                FROM ${DBFolder.table} child
+                WHERE id = $parentId
+                UNION ALL
+                SELECT parent.id AS f_id, parent.parent_id AS f_parent_id, dpth +1
+                FROM ${DBFolder.table} parent
+                JOIN parents AS child ON child.f_parent_id = parent.id
+            )
+            SELECT * FROM parents ORDER BY parents.dpth DESC
+         """
+        .map(rs => rs.long("dpth"))
+        .first()
+        .getOrElse(0)
+    }
+
     def foldersWithParentID(parentId: Option[UUID])(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Try[List[Folder]] = foldersWhere(sqls"f.parent_id=$parentId")

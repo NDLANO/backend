@@ -442,12 +442,35 @@ trait UpdateService {
       }
     }
 
+    private def checkDepth(parentId: Option[UUID]): Try[Unit] = {
+      parentId match {
+        case None => Success(())
+        case Some(pid) =>
+          folderRepository.getFoldersDepth(pid) match {
+            case Failure(ex) => Failure(ex)
+            case Success(currentDepth) if currentDepth >= props.MaxFolderDepth =>
+              Failure(
+                new ValidationException(
+                  errors = List(
+                    ValidationMessage(
+                      "MAX_DEPTH_LIMIT_REACHED",
+                      s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
+                    )
+                  )
+                )
+              )
+            case _ => Success(())
+          }
+      }
+    }
+
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       for {
         feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
         document          <- converterService.toDomainFolderDocument(newFolder)
         parentId          <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         validatedParentId <- parentId.traverse(pid => validateParentId(pid, feideId))
+        _                 <- checkDepth(validatedParentId)
         inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document)
         crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api               <- converterService.toApiFolder(inserted, crumbs)

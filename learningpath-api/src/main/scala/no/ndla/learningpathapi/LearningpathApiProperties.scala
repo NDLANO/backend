@@ -32,6 +32,7 @@ class LearningpathApiProperties extends LazyLogging {
   def ContactUrl: String      = propOrElse("CONTACT_URL", "ndla.no")
   def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
   def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
+  def MaxFolderDepth: Long    = propOrElse("MAX_FOLDER_DEPTH", "5").toLong
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
