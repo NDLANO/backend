@@ -600,6 +600,14 @@ trait UpdateService {
         id       <- deleteResourceIfNoConnection(folderId, resourceId)
       } yield id
     }
+
+    def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
+      for {
+        feideId <- feideApiClient.getUserFeideID(feideAccessToken)
+        _       <- folderRepository.deleteAllUserFolders(feideId)
+        _       <- folderRepository.deleteAllUserResources(feideId)
+      } yield ()
+    }
   }
 
 }

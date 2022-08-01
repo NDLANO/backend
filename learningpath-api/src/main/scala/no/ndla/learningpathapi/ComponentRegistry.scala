@@ -17,7 +17,8 @@ import no.ndla.learningpathapi.controller.{
   HealthController,
   InternController,
   LearningpathControllerV2,
-  NdlaController
+  NdlaController,
+  UserController
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
@@ -43,6 +44,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with HealthController
     with ConfigController
     with FolderController
+    with UserController
     with LearningPathRepositoryComponent
     with ConfigRepository
     with FolderRepository
@@ -101,6 +103,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val internController         = new InternController
   lazy val configController         = new ConfigController
   lazy val folderController         = new FolderController
+  lazy val userController           = new UserController
   lazy val resourcesApp             = new ResourcesApp
   lazy val taxononyApiClient        = new TaxonomyApiClient
   lazy val ndlaClient               = new NdlaClient

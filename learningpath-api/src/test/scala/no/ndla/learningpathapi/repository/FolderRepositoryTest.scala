@@ -79,6 +79,20 @@ class FolderRepositoryTest
     }
   }
 
+  def folderCount(implicit session: DBSession = AutoSession): Long = {
+    sql"select count(id) from ${DBFolder.table}"
+      .map(rs => rs.long("count"))
+      .single()
+      .getOrElse(0)
+  }
+
+  def resourceCount(implicit session: DBSession = AutoSession): Long = {
+    sql"select count(id) from ${DBResource.table}"
+      .map(rs => rs.long("count"))
+      .single()
+      .getOrElse(0)
+  }
+
   def folderResourcesCount(implicit session: DBSession = AutoSession): Long = {
     sql"select count(folder_id) from ${DBFolderResource.table}"
       .map(rs => rs.long("count"))
@@ -353,6 +367,70 @@ class FolderRepositoryTest
 
     val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
     result should be(Success(Some(expectedResult)))
+  }
+
+  test("that deleteAllUserFolders works as expected") {
+    repository.insertFolder("feide1", None, TestData.baseFolderDocument)
+    repository.insertFolder("feide2", None, TestData.baseFolderDocument)
+    repository.insertFolder("feide3", None, TestData.baseFolderDocument)
+    repository.insertFolder("feide1", None, TestData.baseFolderDocument)
+    repository.insertFolder("feide2", None, TestData.baseFolderDocument)
+    repository.insertFolder("feide1", None, TestData.baseFolderDocument)
+
+    folderCount() should be(6)
+    repository.deleteAllUserFolders(feideId = "feide1") should be(Success(3))
+    folderCount() should be(3)
+  }
+
+  test("that deleteAllUserResources works as expected") {
+    val created = LocalDateTime.now()
+
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide2", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide3", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+
+    resourceCount() should be(6)
+    repository.deleteAllUserResources(feideId = "feide1") should be(Success(4))
+    resourceCount() should be(2)
+  }
+
+  test(
+    "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
+  ) {
+    val created = LocalDateTime.now()
+    val doc     = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC)
+
+    val folder1 = repository.insertFolder("feide1", None, doc)
+    val folder2 = repository.insertFolder("feide1", Some(folder1.get.id), doc)
+    val folder3 = repository.insertFolder("feide2", None, doc)
+
+    val resource1 = repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
+    val resource2 = repository.insertResource("feide1", "/path2", "type", created, TestData.baseResourceDocument)
+    val resource3 = repository.insertResource("feide1", "/path3", "type", created, TestData.baseResourceDocument)
+    val resource4 = repository.insertResource("feide2", "/path4", "type", created, TestData.baseResourceDocument)
+
+    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id)
+    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id)
+    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id)
+    repository.createFolderResourceConnection(folder3.get.id, resource4.get.id)
+
+    folderCount() should be(3)
+    resourceCount() should be(4)
+    folderResourcesCount() should be(5)
+
+    repository.deleteAllUserFolders(feideId = "feide1") should be(Success(2))
+    folderCount() should be(1)
+    resourceCount() should be(4)
+    folderResourcesCount() should be(1)
+
+    repository.deleteAllUserResources(feideId = "feide1") should be(Success(3))
+    folderCount() should be(1)
+    resourceCount() should be(1)
+    folderResourcesCount() should be(1)
   }
 
 }
