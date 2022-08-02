@@ -17,9 +17,10 @@ import org.scalatra.{ActionResult, HaltException, Ok, RenderPipeline, ScalatraSe
 
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
+import org.json4s.ext.JavaTimeSerializers
 
 trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
-  protected implicit override val jsonFormats: Formats = DefaultFormats
+  protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
   type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]
   def ndlaErrorHandler: NdlaErrorHandler
@@ -118,6 +119,10 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
   def booleanOrDefault(paramName: String, default: Boolean)(implicit request: HttpServletRequest): Boolean = {
     val paramValue = paramOrDefault(paramName, "")
     if (!isBoolean(paramValue)) default else paramValue.toBoolean
+  }
+
+  def booleanOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Boolean] = {
+    params.get(paramName).map(_.trim).filterNot(_.isEmpty).flatMap(_.toBooleanOption)
   }
 
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
