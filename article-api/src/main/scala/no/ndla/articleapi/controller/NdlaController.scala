@@ -15,7 +15,6 @@ import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ErrorHelpers,
 import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
@@ -26,6 +25,7 @@ import org.scalatra._
 
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>

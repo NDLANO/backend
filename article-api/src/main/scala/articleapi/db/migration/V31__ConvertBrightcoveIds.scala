@@ -9,7 +9,6 @@ package articleapi.db.migration
 
 import no.ndla.common.Environment.prop
 import no.ndla.network.model.HttpRequestException
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
 import org.json4s.{DefaultFormats, Formats}
@@ -29,6 +28,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 case class BrightcoveToken(access_token: String, expires_in: Long)
 case class StoredToken(accessToken: String, expiresAt: Long)

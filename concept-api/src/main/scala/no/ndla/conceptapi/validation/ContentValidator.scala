@@ -15,6 +15,8 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationMessage
+import no.ndla.scalatra.error.ValidationException
 
 trait ContentValidator {
   this: DraftConceptRepository with ConverterService =>

@@ -25,7 +25,6 @@ import no.ndla.draftapi.model.domain.emptySomeToNone
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -37,6 +36,7 @@ import org.scalatra.swagger.{ParamType, Parameter, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>
@@ -143,11 +143,8 @@ trait NdlaController {
     def long(paramName: String)(implicit request: HttpServletRequest): Long = {
       val paramValue = params(paramName)
       paramValue.forall(_.isDigit) match {
-        case true => paramValue.toLong
-        case false =>
-          throw new ValidationException(
-            errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
-          )
+        case true  => paramValue.toLong
+        case false => throw ValidationException(paramName, s"Invalid value for $paramName. Only digits are allowed.")
       }
     }
 
@@ -180,11 +177,7 @@ trait NdlaController {
         case None => List.empty
         case Some(_) =>
           if (!strings.forall(entry => entry.forall(_.isDigit))) {
-            throw new ValidationException(
-              errors = Seq(
-                ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
-              )
-            )
+            throw ValidationException(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
           }
           strings.map(_.toLong)
       }
@@ -198,7 +191,7 @@ trait NdlaController {
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
       Try { read[T](json) } match {
-        case Failure(e)    => Failure(new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage))))
+        case Failure(e)    => Failure(ValidationException("body", e.getMessage))
         case Success(data) => Success(data)
       }
     }
