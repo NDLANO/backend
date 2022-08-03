@@ -294,5 +294,16 @@ trait ReadService {
         )
       } yield apiFolders
     }
+
+    def getSharedFolder(id: UUID): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
+      for {
+        folderWithContent <- getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
+        _ <- if (folderWithContent.isShared) Success(()) else Failure(NotFoundException("Folder does not exist"))
+        folderAsTopFolder = folderWithContent.copy(parentId = None)
+        breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
+        converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs)
+      } yield converted
+    }
   }
 }
