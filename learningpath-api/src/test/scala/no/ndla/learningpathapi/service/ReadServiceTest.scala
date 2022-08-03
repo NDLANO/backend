@@ -539,4 +539,33 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
     verify(folderRepository, times(3)).getFolderResources(any)(any)
   }
+
+  test("That getSharedFolder returns a folder if the status is shared") {
+    val folderUUID   = UUID.randomUUID()
+    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
+    val apiFolder =
+      emptyApiFolder.copy(
+        id = folderUUID.toString,
+        name = "",
+        status = "shared",
+        isFavorite = false,
+        breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
+      )
+
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
+      .thenReturn(Success(Some(folderWithId)))
+
+    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
+  }
+
+  test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
+    val folderUUID   = UUID.randomUUID()
+    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
+
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
+      .thenReturn(Success(Some(folderWithId)))
+
+    val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID)
+    result.message should be("Folder does not exist")
+  }
 }

@@ -279,5 +279,21 @@ trait FolderController {
         })
         .map(_ => NoContent())
     }
+
+    get(
+      "/share/:folder_id",
+      operation(
+        apiOperation[Folder]("fetchSharedFolder")
+          .summary("Fetch a shared folder and all its content")
+          .description("Fetch a shared folder and all its content")
+          .parameters(
+            asPathParam(folderId)
+          )
+          .responseMessages(response400, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
+    }
   }
 }
