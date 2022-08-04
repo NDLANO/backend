@@ -17,6 +17,7 @@ case class SearchParams(
     @(ApiModelProperty @field)(description = "Return only images with titles, alt-texts or tags matching the specified query.") query: Option[String],
     @(ApiModelProperty @field)(description = "Return only images with provided license.") license: Option[String],
     @(ApiModelProperty @field)(description = "The ISO 639-1 language code describing language used in query-params") language: Option[String],
+    @(ApiModelProperty @field)(description = "Fallback to existing language if language is specified.") fallback: Option[Boolean],
     @(ApiModelProperty @field)(description = "Return only images with full size larger than submitted value in bytes.") minimumSize: Option[Int],
     @(ApiModelProperty @field)(description = "Return copyrighted images. May be omitted.") includeCopyrighted: Option[Boolean],
     @(ApiModelProperty @field)(description = """The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""") sort: Option[String],

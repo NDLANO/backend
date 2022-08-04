@@ -25,8 +25,8 @@ class ImageSearchServiceTest
     with UnitSuite
     with TestEnvironment
     with PrivateMethodTester {
-  import props.{DefaultPageSize, MaxPageSize}
   import TestData.searchSettings
+  import props.{DefaultPageSize, MaxPageSize}
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
@@ -45,10 +45,10 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage = new ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
-  val smallImage = new ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
+  val largeImage: ImageFileData = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
+  val smallImage: ImageFileData = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
 
-  val byNcSa = Copyright(
+  val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
     "Gotham City",
     List(Author("Forfatter", "DC Comics")),
@@ -59,7 +59,7 @@ class ImageSearchServiceTest
     None
   )
 
-  val publicDomain = Copyright(
+  val publicDomain: Copyright = Copyright(
     PublicDomain.toString,
     "Metropolis",
     List(Author("Forfatter", "Bruce Wayne")),
@@ -71,7 +71,7 @@ class ImageSearchServiceTest
   )
   val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
-  val agreement1Copyright = api.Copyright(
+  val agreement1Copyright: api.Copyright = api.Copyright(
     api.License("gnu", "gnustuff", Some("http://gnugnusen")),
     "Simsalabim",
     List(),
@@ -286,7 +286,7 @@ class ImageSearchServiceTest
 
   test("That search matches title") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Pingvinen"), language = Some("nb")))
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Pingvinen"), language = "nb"))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -294,7 +294,7 @@ class ImageSearchServiceTest
 
   test("That search matches id search") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = Some("nb")))
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("1")
@@ -309,7 +309,7 @@ class ImageSearchServiceTest
 
   test("That search matches tags") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("and"), language = Some("nb")))
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("and"), language = "nb"))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("3")
@@ -337,7 +337,7 @@ class ImageSearchServiceTest
       imageSearchService.matchingQuery(
         searchSettings.copy(
           query = Some("batmen AND bil"),
-          language = Some("nb"),
+          language = "nb",
           page = Some(1),
           pageSize = Some(10)
         )
@@ -347,7 +347,7 @@ class ImageSearchServiceTest
     val Success(search2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("batmen | pingvinen"),
-        language = Some("nb"),
+        language = "nb",
         page = Some(1),
         pageSize = Some(10)
       )
@@ -357,7 +357,7 @@ class ImageSearchServiceTest
     val Success(search3) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("bilde + -flaggermusmann"),
-        language = Some("nb"),
+        language = "nb",
         page = Some(1),
         pageSize = Some(10)
       )
@@ -367,7 +367,7 @@ class ImageSearchServiceTest
     val Success(search4) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("batmen + bil"),
-        language = Some("nb"),
+        language = "nb",
         page = Some(1),
         pageSize = Some(10)
       )
@@ -388,7 +388,7 @@ class ImageSearchServiceTest
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("urelatert"),
-        language = Some("*")
+        language = "*"
       )
     )
     searchResult1.totalCount should be(1)
@@ -400,7 +400,7 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("unrelated"),
-        language = Some("*"),
+        language = "*",
         sort = Sort.ByTitleDesc
       )
     )
@@ -414,7 +414,7 @@ class ImageSearchServiceTest
   test("Searching for unused languages should returned nothing") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("ait") // Arikem
+        language = "ait" // Arikem
       )
     )
     searchResult1.totalCount should be(0)
@@ -424,7 +424,7 @@ class ImageSearchServiceTest
     val Success(searchResult) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("unrelated"),
-        language = Some("en")
+        language = "en"
       )
     )
     searchResult.totalCount should be(1)
@@ -436,7 +436,7 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("nynoreg"),
-        language = Some("nn")
+        language = "nn"
       )
     )
     searchResult2.totalCount should be(1)
@@ -450,7 +450,7 @@ class ImageSearchServiceTest
     val Success(result) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("nynoreg"),
-        language = Some("nn")
+        language = "nn"
       )
     )
     result.totalCount should be(1)
@@ -504,7 +504,7 @@ class ImageSearchServiceTest
   test("That title search works as expected, and doesn't crash in combination with language") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("nb"),
+        language = "nb",
         sort = Sort.ByTitleDesc
       )
     )
@@ -517,7 +517,7 @@ class ImageSearchServiceTest
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("lillehjelper"),
-        language = Some("*")
+        language = "*"
       )
     )
 
@@ -527,7 +527,7 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("lillehjelper"),
-        language = Some("*")
+        language = "*"
       )
     )
 
@@ -538,7 +538,7 @@ class ImageSearchServiceTest
     import ModelReleasedStatus._
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("*"),
+        language = "*",
         modelReleased = Seq(NO)
       )
     )
@@ -547,7 +547,7 @@ class ImageSearchServiceTest
 
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("*"),
+        language = "*",
         modelReleased = Seq(NOT_APPLICABLE)
       )
     )
@@ -556,7 +556,7 @@ class ImageSearchServiceTest
 
     val Success(searchResult3) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("*"),
+        language = "*",
         modelReleased = Seq(YES)
       )
     )
@@ -565,7 +565,7 @@ class ImageSearchServiceTest
 
     val Success(searchResult4) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("*"),
+        language = "*",
         modelReleased = Seq.empty
       )
     )
@@ -574,7 +574,7 @@ class ImageSearchServiceTest
 
     val Success(searchResult5) = imageSearchService.matchingQuery(
       searchSettings.copy(
-        language = Some("*"),
+        language = "*",
         modelReleased = Seq(NO, NOT_APPLICABLE)
       )
     )
@@ -585,11 +585,37 @@ class ImageSearchServiceTest
 
   test("That search result includes updatedBy field") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = Some("nb")))
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"))
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.lastUpdated should be(updated)
 
+  }
+
+  test("Searching for languages with fallback should return result in specified language") {
+    val Success(searchResult1) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("urelatert"),
+        language = "und"
+      )
+    )
+    searchResult1.totalCount should be(1)
+    searchResult1.results.size should be(1)
+    searchResult1.results.head.id should be("5")
+    searchResult1.results.head.title.title should equal("Dette er et urelatert bilde")
+    searchResult1.results.head.title.language should equal("und")
+
+    val Success(searchResult2) = imageSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("unrelated"),
+        language = "en",
+      )
+    )
+    searchResult2.totalCount should be(1)
+    searchResult2.results.size should be(1)
+    searchResult2.results.head.id should be("5")
+    searchResult2.results.head.title.title should equal("This is a unrelated photo")
+    searchResult2.results.head.title.language should equal("en")
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

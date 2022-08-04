@@ -361,7 +361,8 @@ trait TestData {
     val searchSettings = SearchSettings(
       query = None,
       minimumSize = None,
-      language = None,
+      language = "*",
+      fallback = false,
       license = None,
       sort = Sort.ByIdAsc,
       page = None,

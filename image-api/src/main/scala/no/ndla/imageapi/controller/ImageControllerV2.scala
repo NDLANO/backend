@@ -76,7 +76,8 @@ trait ImageControllerV2 {
     private def search(
         minimumSize: Option[Int],
         query: Option[String],
-        language: Option[String],
+        language: String,
+        fallback: Boolean,
         license: Option[String],
         sort: Option[Sort],
         pageSize: Option[Int],
@@ -91,6 +92,7 @@ trait ImageControllerV2 {
             query = Some(searchString.trim),
             minimumSize = minimumSize,
             language = language,
+            fallback = fallback,
             license = license,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             page = page,
@@ -105,6 +107,7 @@ trait ImageControllerV2 {
             minimumSize = minimumSize,
             license = license,
             language = language,
+            fallback = fallback,
             sort = sort.getOrElse(Sort.ByTitleAsc),
             page = page,
             pageSize = pageSize,
@@ -133,6 +136,7 @@ trait ImageControllerV2 {
             asQueryParam(query),
             asQueryParam(minSize),
             asQueryParam(language),
+            asQueryParam(fallback),
             asQueryParam(license),
             asQueryParam(includeCopyrighted),
             asQueryParam(sort),
@@ -145,9 +149,10 @@ trait ImageControllerV2 {
       )
     ) {
       val scrollId = paramOrNone(this.scrollId.paramName)
-      val language = paramOrNone(this.language.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
+      scrollSearchOr(scrollId, language) {
         val minimumSize        = intOrNone(this.minSize.paramName)
         val query              = paramOrNone(this.query.paramName)
         val license            = params.get(this.license.paramName)
@@ -163,6 +168,7 @@ trait ImageControllerV2 {
           minimumSize,
           query,
           language,
+          fallback,
           license,
           sort,
           pageSize,
@@ -189,9 +195,10 @@ trait ImageControllerV2 {
       )
     ) {
       val searchParams = extract[SearchParams](request.body)
-      val language     = searchParams.language
+      val language     = searchParams.language.getOrElse(Language.AllLanguages)
+      val fallback     = searchParams.fallback.getOrElse(false)
 
-      scrollSearchOr(searchParams.scrollId, language.getOrElse(Language.AllLanguages)) {
+      scrollSearchOr(searchParams.scrollId, language) {
         val minimumSize        = searchParams.minimumSize
         val query              = searchParams.query
         val license            = searchParams.license
@@ -207,6 +214,7 @@ trait ImageControllerV2 {
           minimumSize,
           query,
           language,
+          fallback,
           license,
           sort,
           pageSize,
