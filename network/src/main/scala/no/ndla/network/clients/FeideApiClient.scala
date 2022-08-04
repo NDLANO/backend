@@ -1,17 +1,14 @@
 /*
- * Part of NDLA learningpath-api.
+ * Part of NDLA network.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.learningpathapi.integration
+package no.ndla.network.clients
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.learningpathapi.caching.Memoize
-import no.ndla.learningpathapi.model.domain.{AccessDeniedException, FeideAccessToken, FeideID}
-import no.ndla.network.NdlaClient
-import no.ndla.network.model.HttpRequestException
+import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -21,7 +18,6 @@ import scala.util.{Failure, Success, Try}
 case class FeideExtendedUserInfo(sub: String)
 
 trait FeideApiClient {
-  this: NdlaClient =>
   val feideApiClient: FeideApiClient
 
   class FeideApiClient extends LazyLogging {

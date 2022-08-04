@@ -36,6 +36,7 @@ import no.ndla.learningpathapi.validation.{
   UrlValidator
 }
 import no.ndla.network.NdlaClient
+import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
