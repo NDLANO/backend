@@ -1,12 +1,12 @@
 /*
- * Part of NDLA network.
+ * Part of NDLA common.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.network.secrets
+package no.ndla.common.secrets
 
 object PropertyKeys {
   val MetaUserNameKey = "META_USER_NAME"
