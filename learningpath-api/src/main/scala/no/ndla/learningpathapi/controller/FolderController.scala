@@ -281,7 +281,7 @@ trait FolderController {
     }
 
     get(
-      "/share/:folder_id",
+      "/shared/:folder_id",
       operation(
         apiOperation[Folder]("fetchSharedFolder")
           .summary("Fetch a shared folder and all its content")

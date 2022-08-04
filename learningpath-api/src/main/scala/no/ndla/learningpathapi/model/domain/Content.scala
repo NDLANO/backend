@@ -24,8 +24,8 @@ trait FolderContent extends FeideContent {
   def isFavorite: Boolean
   val feideId: FeideID
 
-  def isPublic: Boolean = this.status == FolderStatus.PUBLIC
-  def isShared: Boolean = this.status == FolderStatus.SHARED
+  def isPublic: Boolean  = this.status == FolderStatus.PUBLIC
+  def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
 
   def canDelete(feideId: FeideID): Try[_] = {
     isOwner(feideId) match {

@@ -540,9 +540,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(3)).getFolderResources(any)(any)
   }
 
-  test("That getSharedFolder returns a folder if the status is shared") {
-    val folderUUID   = UUID.randomUUID()
-    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
+  test("That getSharedFolder returns a folder if the status is shared or public") {
+    val folderUUID    = UUID.randomUUID()
+    val folderWithId  = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
+    val folderWithId2 = folderWithId.copy(status = FolderStatus.PUBLIC)
     val apiFolder =
       emptyApiFolder.copy(
         id = folderUUID.toString,
@@ -551,14 +552,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         isFavorite = false,
         breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
       )
+    val apiFolder2 = apiFolder.copy(status = "public")
 
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
-      .thenReturn(Success(Some(folderWithId)))
+      .thenReturn(Success(Some(folderWithId)), Success(Some(folderWithId2)))
 
     service.getSharedFolder(folderUUID) should be(Success(apiFolder))
+    service.getSharedFolder(folderUUID) should be(Success(apiFolder2))
   }
 
-  test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
+  test("That getSharedFolder returns a Failure Not Found if the status is not shared or public") {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
 
