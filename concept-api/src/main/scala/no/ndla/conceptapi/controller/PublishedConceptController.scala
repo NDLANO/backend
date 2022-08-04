@@ -207,7 +207,7 @@ trait PublishedConceptController {
           .responseMessages(response400, response500)
       )
     ) {
-      val body     = extract[ConceptSearchParams](request.body)
+      val body     = tryExtract[ConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
       val lang     = body.map(_.language).toOption.flatten
 

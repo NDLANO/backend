@@ -193,16 +193,17 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     }
   }
 
-  def tryExtract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
-    Try(read[T](json))
+  def tryExtract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): Try[T] = {
+    Try(read[T](json)(formats, mf))
+      .recoverWith(e => Failure(ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))))
   }
 
-  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
-    tryExtract[T](json) match {
+  def extract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): T = {
+    tryExtract[T](json)(formats, mf) match {
       case Success(data) => data
       case Failure(e) =>
         logger.error(e.getMessage, e)
-        throw ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))
+        throw e
     }
   }
 }
