@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
@@ -28,14 +27,10 @@ import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
-import org.scalatra.util.NotNothing
-import org.scalatra.{Created, NoContent, NotFound, Ok, ScalatraServlet}
-
-import scala.annotation.unused
+import org.scalatra.{Created, NoContent, NotFound, Ok}
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait LearningpathControllerV2 {
 
@@ -54,10 +49,7 @@ trait LearningpathControllerV2 {
 
   class LearningpathControllerV2(implicit val swagger: Swagger)
       extends NdlaController
-      with ScalatraServlet
-      with NativeJsonSupport
-      with SwaggerSupport
-      with LazyLogging
+      with NdlaSwaggerSupport
       with CorrelationIdSupport {
 
     import props.{
@@ -80,8 +72,6 @@ trait LearningpathControllerV2 {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
     val response502 = ResponseMessage(502, "Remote error", Some("Error"))
-
-    case class Param[T](paramName: String, description: String)
 
     private val articleId =
       Param[String]("article_id", "Id of the article to search with")
@@ -131,28 +121,6 @@ trait LearningpathControllerV2 {
     )
     private val verificationStatus =
       Param[Option[String]]("verificationStatus", "Return only learning paths that have this verification status.")
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
-
-    @unused
-    private def asFormParam[T: Manifest: NotNothing](param: Param[T]) =
-      formParam[T](param.paramName).description(param.description)
-
-    @unused
-    private def asFileParam(param: Param[_]) =
-      Parameter(
-        name = param.paramName,
-        `type` = ValueDataType("file"),
-        description = Some(param.description),
-        paramType = ParamType.Form
-      )
 
     /** Does a scroll with [[SearchService]] If no scrollId is specified execute the function @orFunction in the second
       * parameter list.

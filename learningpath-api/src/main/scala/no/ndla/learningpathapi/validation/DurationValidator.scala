@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.scalatra.error.ValidationMessage
 
 class DurationValidator {
   val DURATION_INVALID  = "Required value duration must be greater than 0."

@@ -25,6 +25,7 @@ import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.error.ValidationException
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
