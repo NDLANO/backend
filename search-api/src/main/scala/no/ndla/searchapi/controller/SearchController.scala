@@ -11,7 +11,7 @@ package no.ndla.searchapi.controller
 import no.ndla.language.Language.AllLanguages
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
-import no.ndla.searchapi.integration.{FeideApiClient, SearchApiClient}
+import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{
   AccessDeniedException,
   Error,
@@ -31,6 +31,7 @@ import no.ndla.searchapi.service.search.{
   SearchService
 }
 import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
+import no.ndla.network.clients.FeideApiClient
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -651,7 +652,7 @@ trait SearchController {
       requestFeideToken match {
         case None => Success(List.empty)
         case Some(token) =>
-          feideApiClient.getUser(token) match {
+          feideApiClient.getFeideUser(token) match {
             case Success(user) => Success(user.availabilities)
             case Failure(ex) =>
               logger.error(s"Error when fetching user from feide with accessToken '$token'")

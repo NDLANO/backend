@@ -9,12 +9,12 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.searchapi.auth.{Role, UserInfo}
-import no.ndla.searchapi.integration.FeideExtendedUserInfo
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.SearchParams
 import no.ndla.searchapi.model.domain.article.Availability
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.clients.FeideExtendedUserInfo
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.{LocalDateTime, Month}
@@ -190,7 +190,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     }
 
-    verify(feideApiClient, never).getUser(any)
+    verify(feideApiClient, never).getFeideUser(any)
   }
 
   test("That fetching feide user does happen token is supplied") {
@@ -201,7 +201,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       eduPersonPrimaryAffiliation = "employee"
     )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
-    when(feideApiClient.getUser(any)).thenReturn(Success(teacheruser))
+    when(feideApiClient.getFeideUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
     val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10)
@@ -218,7 +218,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     }
 
-    verify(feideApiClient, times(1)).getUser(eqTo(teacherToken))
+    verify(feideApiClient, times(1)).getFeideUser(eqTo(teacherToken))
   }
 
   test("That retrieving datetime strings from request works") {
