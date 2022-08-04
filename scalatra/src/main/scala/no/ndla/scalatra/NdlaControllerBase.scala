@@ -19,6 +19,9 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 import org.json4s.ext.JavaTimeSerializers
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
@@ -148,7 +151,8 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     }
   }
 
-  def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
+  def intOrDefault(paramName: String, default: Int)(implicit request: HttpServletRequest): Int =
+    intOrNone(paramName).getOrElse(default)
 
   def doubleInRange(paramName: String, from: Int, to: Int)(implicit request: HttpServletRequest): Option[Double] = {
     doubleOrNone(paramName) match {
@@ -191,6 +195,24 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
 
   def longOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Long] =
     paramOrNone(paramName).flatMap(p => Try(p.toLong).toOption)
+
+  protected val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  def paramAsDateOrNone(paramName: String)(implicit request: HttpServletRequest): Option[LocalDateTime] = {
+    paramOrNone(paramName).map(dateString => {
+      Try(LocalDateTime.parse(dateString, dateFormatter)) match {
+        case Success(date) => date
+        case Failure(_) =>
+          throw new ValidationException(
+            errors = Seq(
+              ValidationMessage(
+                paramName,
+                s"Invalid date passed. Expected format is \"${LocalDateTime.now().format(dateFormatter)}\""
+              )
+            )
+          )
+      }
+    })
+  }
 
   def tryExtract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): Try[T] = {
     Try(read[T](json)(formats, mf))
