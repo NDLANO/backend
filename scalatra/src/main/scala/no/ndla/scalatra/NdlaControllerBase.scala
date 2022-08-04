@@ -183,15 +183,14 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
       case None => List.empty
       case Some(_) =>
         if (!strings.forall(entry => entry.forall(_.isDigit))) {
-          throw new ValidationException(
-            errors = Seq(
-              ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
-            )
-          )
+          throw ValidationException(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
         }
         strings.map(_.toLong)
     }
   }
+
+  def longOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Long] =
+    paramOrNone(paramName).flatMap(p => Try(p.toLong).toOption)
 
   def tryExtract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): Try[T] = {
     Try(read[T](json)(formats, mf))

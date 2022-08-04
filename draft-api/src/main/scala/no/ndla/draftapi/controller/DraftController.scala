@@ -335,7 +335,7 @@ trait DraftController {
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        extract[ArticleSearchParams](request.body) match {
+        tryExtract[ArticleSearchParams](request.body) match {
           case Success(searchParams) =>
             val language = searchParams.language.getOrElse(Language.AllLanguages)
             scrollSearchOr(searchParams.scrollId, language) {
@@ -507,7 +507,7 @@ trait DraftController {
         val oldNdlaUpdatedDate = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
         val externalSubjectids = paramAsListOfString("externalSubjectIds")
         val importId           = paramOrNone("importId")
-        extract[NewArticle](request.body).flatMap(
+        tryExtract[NewArticle](request.body).flatMap(
           writeService
             .newArticle(_, externalId, externalSubjectids, userInfo, oldNdlaCreatedDate, oldNdlaUpdatedDate, importId)
         ) match {
@@ -540,7 +540,7 @@ trait DraftController {
         val oldNdlaUpdatedDate                 = paramOrNone("oldNdlaUpdatedDate").map(DateParser.fromString)
         val importId                           = paramOrNone("importId")
         val id                                 = long(this.articleId.paramName)
-        val updateArticle: Try[UpdatedArticle] = extract[UpdatedArticle](request.body)
+        val updateArticle: Try[UpdatedArticle] = tryExtract[UpdatedArticle](request.body)
 
         updateArticle.flatMap(
           writeService.updateArticle(
@@ -606,7 +606,7 @@ trait DraftController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val importValidate = booleanOrDefault("import_validate", default = false)
-        val updateArticle  = extract[UpdatedArticle](request.body)
+        val updateArticle  = tryExtract[UpdatedArticle](request.body)
 
         val validationMessage = updateArticle match {
           case Success(art) =>
@@ -728,7 +728,7 @@ trait DraftController {
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
       doOrAccessDenied(userInfo.canWrite) {
-        extract[Seq[PartialArticleFields]](request.body) match {
+        tryExtract[Seq[PartialArticleFields]](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(articleFieldsToUpdate) =>
             writeService.partialPublishAndConvertToApiArticle(
@@ -763,7 +763,7 @@ trait DraftController {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-        extract[PartialBulkArticles](request.body) match {
+        tryExtract[PartialBulkArticles](request.body) match {
           case Failure(ex) => errorHandler(ex)
           case Success(partialBulk) =>
             writeService.partialPublishMultiple(language, partialBulk) match {
