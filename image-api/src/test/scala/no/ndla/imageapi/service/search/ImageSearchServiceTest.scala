@@ -608,7 +608,7 @@ class ImageSearchServiceTest
     val Success(searchResult2) = imageSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("unrelated"),
-        language = "en",
+        language = "en"
       )
     )
     searchResult2.totalCount should be(1)
