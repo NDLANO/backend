@@ -163,6 +163,36 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     }
   }
 
+  val digitsOnlyError = (paramName: String) =>
+    Failure(
+      new ValidationException(
+        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+      )
+    )
+
+  def stringParamToLong(paramName: String, paramValue: String): Try[Long] = {
+    paramValue.forall(_.isDigit) match {
+      case true  => Try(paramValue.toLong).recoverWith(_ => digitsOnlyError(paramName))
+      case false => digitsOnlyError(paramName)
+    }
+  }
+
+  def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
+    val strings = paramAsListOfString(paramName)
+    strings.headOption match {
+      case None => List.empty
+      case Some(_) =>
+        if (!strings.forall(entry => entry.forall(_.isDigit))) {
+          throw new ValidationException(
+            errors = Seq(
+              ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
+            )
+          )
+        }
+        strings.map(_.toLong)
+    }
+  }
+
   def tryExtract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
     Try(read[T](json))
   }
