@@ -23,6 +23,7 @@ import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConve
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
@@ -46,7 +47,7 @@ trait DraftConceptController {
       with SwaggerSupport
       with LazyLogging {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     val applicationDescription                           = "This is the Api for concept drafts"
 
     after() {
