@@ -7,8 +7,8 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.Props
+import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
   Error,
   ErrorHelpers,
@@ -18,19 +18,17 @@ import no.ndla.conceptapi.model.api.{
 }
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.scalatra.error.ValidationException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
-import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
+import org.scalatra.swagger.ResponseMessage
 
 import java.nio.file.AccessDeniedException
-import no.ndla.scalatra.error.ValidationException
-import no.ndla.scalatra.NdlaControllerBase
-import no.ndla.scalatra.NdlaSwaggerSupport
-import org.scalatra.swagger.ResponseMessage
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>
