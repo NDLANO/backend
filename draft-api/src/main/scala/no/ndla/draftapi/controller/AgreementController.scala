@@ -16,7 +16,7 @@ import no.ndla.draftapi.service.search.{AgreementSearchService, SearchConverterS
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language.AllLanguages
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success}
@@ -34,7 +34,7 @@ trait AgreementController {
     with ErrorHelpers =>
   val agreementController: AgreementController
 
-  class AgreementController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class AgreementController(implicit val swagger: Swagger) extends NdlaController {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription                 = "API for accessing agreements."
@@ -188,7 +188,7 @@ trait AgreementController {
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val newAgreement = extract[NewAgreement](request.body)
+        val newAgreement = tryExtract[NewAgreement](request.body)
 
         newAgreement.flatMap(writeService.newAgreement(_, userInfo)) match {
           case Success(agreement) =>
@@ -218,7 +218,7 @@ trait AgreementController {
 
       doOrAccessDenied(userInfo.canWrite) {
         val agreementId      = long(this.agreementId.paramName)
-        val updatedAgreement = extract[UpdatedAgreement](request.body)
+        val updatedAgreement = tryExtract[UpdatedAgreement](request.body)
         updatedAgreement.flatMap(writeService.updateAgreement(agreementId, _, userInfo)) match {
           case Success(agreement) =>
             reindexClient.reindexAll()

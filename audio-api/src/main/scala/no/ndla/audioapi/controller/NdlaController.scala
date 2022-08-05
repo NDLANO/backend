@@ -8,9 +8,6 @@
 
 package no.ndla.audioapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
-
-import javax.servlet.http.HttpServletRequest
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api._
@@ -18,21 +15,16 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.NdlaSearchException
 import org.apache.logging.log4j.ThreadContext
-import org.json4s.ext.JavaTimeSerializers
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.native.Serialization.read
 import org.postgresql.util.PSQLException
 import org.scalatra._
-import org.scalatra.json.NativeJsonSupport
 import org.scalatra.servlet.SizeConstraintExceededException
 
-import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.NdlaControllerBase
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>
 
-  abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+  abstract class NdlaController extends NdlaControllerBase {
     import props._
 
     before() {
@@ -41,12 +33,6 @@ trait NdlaController {
       ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
-      logger.info(
-        "{} {}{}",
-        request.getMethod,
-        request.getRequestURI,
-        Option(request.getQueryString).map(s => s"?$s").getOrElse("")
-      )
     }
 
     after() {
@@ -57,7 +43,7 @@ trait NdlaController {
     }
 
     import ErrorHelpers._
-    error {
+    override def ndlaErrorHandler: NdlaErrorHandler = {
       case a: AccessDeniedException          => Forbidden(body = Error(ACCESS_DENIED, a.getMessage))
       case v: ValidationException            => BadRequest(body = ValidationError(VALIDATION, messages = v.errors))
       case hre: HttpRequestException         => BadGateway(Error(REMOTE_ERROR, hre.getMessage))
@@ -79,49 +65,6 @@ trait NdlaController {
         t.printStackTrace()
         logger.error(t.getMessage)
         InternalServerError(Error(GENERIC, GENERIC_DESCRIPTION))
-      }
-    }
-
-    private val tryRenderer: RenderPipeline = {
-      case Failure(ex)  => errorHandler(ex)
-      case Success(res) => res
-    }
-
-    override def renderPipeline = tryRenderer orElse super.renderPipeline
-
-    def long(paramName: String)(implicit request: HttpServletRequest): Long = {
-      val paramValue = params(paramName)
-      paramValue.forall(_.isDigit) match {
-        case true => paramValue.toLong
-        case false =>
-          throw new ValidationException(
-            errors = Seq(ValidationMessage("parameter", s"Invalid value for $paramName. Only digits are allowed."))
-          )
-      }
-    }
-
-    def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
-      params.get(paramName).map(_.trim).filterNot(_.isEmpty)
-    }
-
-    def booleanOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Boolean] = {
-      params.get(paramName).map(_.trim).filterNot(_.isEmpty).flatMap(_.toBooleanOption)
-    }
-
-    def intOrNone(name: String)(implicit request: HttpServletRequest): Option[Int] =
-      paramOrNone(name).flatMap(i => Try(i.toInt).toOption)
-
-    def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String =
-      paramOrNone(paramName).getOrElse(default)
-
-    def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
-
-    def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
-      Try(read[T](json)) match {
-        case Success(data) => data
-        case Failure(e) =>
-          logger.error(e.getMessage, e)
-          throw new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))
       }
     }
   }

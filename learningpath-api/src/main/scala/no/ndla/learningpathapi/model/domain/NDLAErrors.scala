@@ -8,10 +8,6 @@
 
 package no.ndla.learningpathapi.model.domain
 
-import no.ndla.learningpathapi.model.api.ValidationMessage
-
-class ValidationException(message: String = "Validation Error", val errors: Seq[ValidationMessage])
-    extends RuntimeException(message)
 case class AccessDeniedException(message: String, unauthorized: Boolean = false) extends RuntimeException(message)
 case class MultipleUniqueKeysException(message: String)                          extends RuntimeException(message)
 class OptimisticLockException(message: String)                                   extends RuntimeException(message)

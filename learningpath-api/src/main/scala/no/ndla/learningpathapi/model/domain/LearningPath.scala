@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.scalatra.error.{ValidationMessage, ValidationException}
 import no.ndla.learningpathapi.validation.DurationValidator
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}

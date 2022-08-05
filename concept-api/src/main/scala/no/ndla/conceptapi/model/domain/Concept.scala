@@ -9,7 +9,6 @@ package no.ndla.conceptapi.model.domain
 
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
@@ -18,6 +17,7 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 case class Concept(
     id: Option[Long],
@@ -102,9 +102,9 @@ object ConceptStatus extends Enumeration {
       case None =>
         val validStatuses = values.map(_.toString).mkString(", ")
         Failure(
-          new ValidationException(
-            errors =
-              Seq(ValidationMessage("status", s"'$s' is not a valid concept status. Must be one of $validStatuses"))
+          ValidationException(
+            "status",
+            s"'$s' is not a valid concept status. Must be one of $validStatuses"
           )
         )
     }

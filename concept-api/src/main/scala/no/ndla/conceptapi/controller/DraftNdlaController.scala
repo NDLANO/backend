@@ -72,7 +72,7 @@ trait DraftNdlaController {
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val body = extract[NewConcept](request.body)
+        val body = tryExtract[NewConcept](request.body)
         body.flatMap(concept => writeService.newConcept(concept, userInfo)) match {
           case Success(c)  => Created(c)
           case Failure(ex) => errorHandler(ex)
@@ -97,7 +97,7 @@ trait DraftNdlaController {
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val body      = extract[UpdatedConcept](request.body)
+        val body      = tryExtract[UpdatedConcept](request.body)
         val conceptId = long(this.conceptId.paramName)
         body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
           case Success(c)  => Ok(c)

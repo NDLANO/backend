@@ -9,7 +9,7 @@ package no.ndla.draftapi.validation
 
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ValidationException, ValidationMessage}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import no.ndla.mapping.License.CC_BY_SA
 
 import scala.util.Failure

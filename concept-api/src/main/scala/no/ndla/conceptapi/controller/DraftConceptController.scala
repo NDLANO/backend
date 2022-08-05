@@ -279,7 +279,7 @@ trait DraftConceptController {
           .responseMessages(response400, response500)
       )
     ) {
-      val body     = extract[DraftConceptSearchParams](request.body)
+      val body     = tryExtract[DraftConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
       val lang     = body.map(_.language).toOption.flatten
 

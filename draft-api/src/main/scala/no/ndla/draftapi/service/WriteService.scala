@@ -43,6 +43,7 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.jdk.CollectionConverters._
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: DraftRepository
@@ -690,13 +691,9 @@ trait WriteService {
 
     private[service] def getFileExtension(fileName: String): Try[String] = {
       val badExtensionError =
-        new ValidationException(
-          errors = Seq(
-            ValidationMessage(
-              "file",
-              s"The file must have one of the supported file extensions: '${props.supportedUploadExtensions.mkString(", ")}'"
-            )
-          )
+        ValidationException(
+          "file",
+          s"The file must have one of the supported file extensions: '${props.supportedUploadExtensions.mkString(", ")}'"
         )
 
       fileName.lastIndexOf(".") match {
