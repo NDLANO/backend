@@ -10,6 +10,7 @@ package no.ndla.draftapi.controller
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.draftapi.model.api.UpdatedArticle
 import org.scalatra.swagger.SwaggerEngine
+import org.json4s.DefaultFormats
 
 class NdlaControllerTest extends UnitSuite with TestEnvironment {
 
@@ -20,7 +21,8 @@ class NdlaControllerTest extends UnitSuite with TestEnvironment {
   }
 
   test("That extraction of request body parses relatedContent correctly") {
-    val updatedArticle = ndlaController.extract[UpdatedArticle]("""{"revision":2,"relatedContent":[1]}""").get
+    implicit val formats = DefaultFormats.withLong
+    val updatedArticle   = ndlaController.tryExtract[UpdatedArticle]("""{"revision":2,"relatedContent":[1]}""").get
 
     updatedArticle should be(TestData.blankUpdatedArticle.copy(revision = 2, relatedContent = Some(Seq(Right(1L)))))
 

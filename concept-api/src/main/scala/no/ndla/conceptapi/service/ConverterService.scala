@@ -14,8 +14,8 @@ import no.ndla.common.Clock
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Status}
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense

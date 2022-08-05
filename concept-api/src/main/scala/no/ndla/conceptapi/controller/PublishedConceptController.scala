@@ -20,6 +20,7 @@ import no.ndla.conceptapi.service.search.{
 }
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.language.Language
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
@@ -42,7 +43,7 @@ trait PublishedConceptController {
       with SwaggerSupport
       with LazyLogging {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     val applicationDescription = "This is the Api for concepts"
 
@@ -207,7 +208,7 @@ trait PublishedConceptController {
           .responseMessages(response400, response500)
       )
     ) {
-      val body     = extract[ConceptSearchParams](request.body)
+      val body     = tryExtract[ConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
       val lang     = body.map(_.language).toOption.flatten
 

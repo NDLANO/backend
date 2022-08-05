@@ -9,6 +9,7 @@ package no.ndla.validation
 
 import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
+import no.ndla.scalatra.error.ValidationMessage
 
 class EmbedTagRulesTest extends UnitSuite {
 

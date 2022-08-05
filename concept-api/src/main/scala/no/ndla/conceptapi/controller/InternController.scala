@@ -141,7 +141,7 @@ trait InternController {
     }
 
     post("/dump/draft-concept/") {
-      val concept = extract[Concept](request.body)
+      val concept = tryExtract[Concept](request.body)
       concept match {
         case Success(c) => Ok(draftConceptRepository.insert(c))
         case Failure(f) => errorHandler(f)

@@ -10,7 +10,6 @@ package no.ndla.draftapi.model.domain
 import enumeratum._
 import no.ndla.draftapi.Props
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization._
@@ -19,6 +18,7 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 sealed trait Content {
   def id: Option[Long]
@@ -72,10 +72,7 @@ object ArticleStatus extends Enumeration {
       case None =>
         val validStatuses = values.map(_.toString).mkString(", ")
         Failure(
-          new ValidationException(
-            errors =
-              Seq(ValidationMessage("status", s"'$s' is not a valid article status. Must be one of $validStatuses"))
-          )
+          ValidationException("status", s"'$s' is not a valid article status. Must be one of $validStatuses")
         )
     }
 
@@ -97,10 +94,9 @@ object ArticleType extends Enum[ArticleType] {
 
   def valueOfOrError(s: String): ArticleType =
     valueOf(s).getOrElse(
-      throw new ValidationException(
-        errors = List(
-          ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.")
-        )
+      throw ValidationException(
+        "articleType",
+        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
       )
     )
 }

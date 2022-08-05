@@ -9,9 +9,10 @@
 package no.ndla.learningpathapi.validation
 
 import io.lemonlabs.uri.Url
-import no.ndla.learningpathapi.model.api.{UpdatedLearningPathV2, ValidationMessage}
+import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.getLicense
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 trait LearningPathValidator {
   this: LanguageValidator with TitleValidator with TextValidator =>

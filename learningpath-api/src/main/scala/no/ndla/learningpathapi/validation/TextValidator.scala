@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.scalatra.error.ValidationMessage
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 

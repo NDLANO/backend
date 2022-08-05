@@ -7,7 +7,6 @@
 
 package no.ndla.conceptapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{
@@ -20,26 +19,25 @@ import no.ndla.conceptapi.model.api.{
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.{ResponseMessage, SwaggerSupport}
-import org.scalatra.util.NotNothing
 
 import java.nio.file.AccessDeniedException
-import javax.servlet.http.HttpServletRequest
-import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
+import no.ndla.scalatra.NdlaControllerBase
+import no.ndla.scalatra.NdlaSwaggerSupport
+import org.scalatra.swagger.ResponseMessage
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>
 
-  abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport with LazyLogging with SwaggerSupport {
+  abstract class NdlaController() extends NdlaControllerBase with NdlaSwaggerSupport {
     import props._
-    protected implicit val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     before() {
       contentType = formats("json")
@@ -47,12 +45,6 @@ trait NdlaController {
       ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
-      logger.info(
-        "{} {}{}",
-        request.getMethod,
-        request.getRequestURI,
-        Option(request.getQueryString).map(s => s"?$s").getOrElse("")
-      )
     }
 
     after() {
@@ -62,10 +54,8 @@ trait NdlaController {
       ApplicationUrl.clear()
     }
 
-    case class Param[T](paramName: String, description: String)
-
     import ErrorHelpers._
-    error {
+    override def ndlaErrorHandler: NdlaErrorHandler = {
       case a: AccessDeniedException => Forbidden(body = Error(ACCESS_DENIED, a.getMessage))
       case v: ValidationException =>
         BadRequest(body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
@@ -152,21 +142,6 @@ trait NdlaController {
     protected val exactTitleMatch =
       Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
 
-    protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-    protected def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-    protected def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
-
-    def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
-      Try { read[T](json) } match {
-        case Failure(e) =>
-          Failure(new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage))))
-        case Success(data) => Success(data)
-      }
-    }
-
     def doOrAccessDenied(hasAccess: Boolean)(w: => Any): Any = {
       if (hasAccess) {
         w
@@ -174,63 +149,5 @@ trait NdlaController {
         errorHandler(new AccessDeniedException("Missing user/client-id or role"))
       }
     }
-
-    def long(paramName: String)(implicit request: HttpServletRequest): Long = {
-      val paramValue = params(paramName)
-      paramValue.forall(_.isDigit) match {
-        case true => paramValue.toLong
-        case false =>
-          throw new ValidationException(
-            errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
-          )
-      }
-    }
-
-    private def emptySomeToNone(lang: Option[String]): Option[String] = {
-      lang.filter(_.nonEmpty)
-    }
-
-    def intOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Int] =
-      paramOrNone(paramName).flatMap(p => Try(p.toInt).toOption)
-
-    def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
-
-    def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
-      params.get(paramName).map(_.trim).filterNot(_.isEmpty())
-    }
-
-    def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {
-      paramOrNone(paramName).getOrElse(default)
-    }
-
-    def booleanOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Boolean] =
-      paramOrNone(paramName).flatMap(p => Try(p.toBoolean).toOption)
-
-    def booleanOrDefault(paramName: String, default: Boolean)(implicit request: HttpServletRequest): Boolean =
-      booleanOrNone(paramName).getOrElse(default)
-
-    def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
-      emptySomeToNone(params.get(paramName)) match {
-        case None        => List.empty
-        case Some(param) => param.split(",").toList.map(_.trim)
-      }
-    }
-
-    def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
-      val strings = paramAsListOfString(paramName)
-      strings.headOption match {
-        case None => List.empty
-        case Some(_) =>
-          if (!strings.forall(entry => entry.forall(_.isDigit))) {
-            throw new ValidationException(
-              errors = Seq(
-                ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
-              )
-            )
-          }
-          strings.map(_.toLong)
-      }
-    }
-
   }
 }

@@ -29,6 +29,7 @@ import scalikejdbc.DBSession
 import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.error.ValidationException
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
