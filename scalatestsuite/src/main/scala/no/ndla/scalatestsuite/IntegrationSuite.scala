@@ -8,7 +8,7 @@
 package no.ndla.scalatestsuite
 
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import no.ndla.network.secrets.PropertyKeys
+import no.ndla.common.secrets.PropertyKeys
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.elasticsearch.ElasticsearchContainer

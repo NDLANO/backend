@@ -9,32 +9,64 @@ package no.ndla.network.clients
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
+import no.ndla.common.model.domain.Availability
+import no.ndla.common.errors.AccessDeniedException
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
-case class FeideExtendedUserInfo(sub: String)
+case class FeideOpenIdUserInfo(sub: String)
+
+case class FeideExtendedUserInfo(
+    displayName: String,
+    eduPersonAffiliation: Seq[String],
+    eduPersonPrimaryAffiliation: String
+) {
+
+  def isTeacher: Boolean = {
+    this.eduPersonAffiliation.contains("staff") ||
+    this.eduPersonAffiliation.contains("faculty") ||
+    this.eduPersonAffiliation.contains("employee")
+  }
+
+  def availabilities: List[Availability.Value] = {
+    if (this.isTeacher) {
+      List(
+        Availability.everyone,
+        Availability.teacher
+      )
+    } else {
+      List.empty
+    }
+  }
+}
 
 trait FeideApiClient {
   val feideApiClient: FeideApiClient
 
   class FeideApiClient extends LazyLogging {
 
-    private val userInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
-    private val feideTimeout     = 1000 * 30
+    private val feideTimeout           = 1000 * 30
+    private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
+    private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
 
-    private def getUser(accessToken: String): Try[FeideExtendedUserInfo] = {
+    private def getOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
+      getUser[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
+    def getFeideUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
+      getUser[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
+
+    private def getUser[T](accessToken: FeideAccessToken, endpoint: String): Try[T] = {
       val request =
-        Http(userInfoEndpoint)
+        Http(endpoint)
           .timeout(feideTimeout, feideTimeout)
           .header("Authorization", s"Bearer $accessToken")
 
       implicit val formats: DefaultFormats.type = DefaultFormats
       for {
         response <- doRequest(request)
-        parsed   <- parseResponse[FeideExtendedUserInfo](response)
+        parsed   <- parseResponse[T](response)
       } yield parsed
     }
 
@@ -69,7 +101,7 @@ trait FeideApiClient {
             AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
           )
         case Some(accessToken) =>
-          this.getUser(accessToken) match {
+          this.getOpenIdUser(accessToken) match {
             case Failure(ex: HttpRequestException) =>
               val code = ex.httpResponse.map(_.code)
               if (code.contains(403) || code.contains(401)) {
@@ -84,10 +116,6 @@ trait FeideApiClient {
           }
       }
     }
-
-    private val getUserFeideIDMemoize = Memoize(getUserFeideIDUncached)
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] =
-      getUserFeideIDMemoize(feideAccessToken)
 
   }
 

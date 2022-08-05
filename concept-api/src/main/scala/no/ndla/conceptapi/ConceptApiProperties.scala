@@ -9,7 +9,7 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
-import no.ndla.network.secrets.PropertyKeys
+import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
