@@ -20,6 +20,8 @@ import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.apache.logging.log4j.ThreadContext
+import org.json4s.ext.JavaTimeSerializers
+import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
@@ -35,7 +37,7 @@ trait NdlaController {
 
   abstract class NdlaController() extends NdlaControllerBase with NdlaSwaggerSupport {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     before() {
       contentType = formats("json")
