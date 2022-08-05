@@ -8,11 +8,12 @@
 package no.ndla.conceptapi.validation
 
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{Author, Copyright}
 
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.error.ValidationException
+import no.ndla.scalatra.error.ValidationMessage
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService

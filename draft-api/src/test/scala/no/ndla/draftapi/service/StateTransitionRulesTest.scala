@@ -13,7 +13,7 @@ import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.ArticleStatus._
 import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ValidationException, ValidationMessage}
+import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession

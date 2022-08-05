@@ -32,6 +32,7 @@ import no.ndla.network.ApplicationUrl
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 trait ConverterService {
   this: ImageApiClientComponent
@@ -180,7 +181,7 @@ trait ConverterService {
 
     private def extractImageId(url: String): Option[String] = {
       learningPathValidator.validateCoverPhoto(url) match {
-        case Some(err) => throw new ValidationException(errors = Seq(err))
+        case Some(err) => throw ValidationException(errors = Seq(err))
         case _         =>
       }
 
@@ -680,8 +681,9 @@ trait ConverterService {
         case Some(Success(uuid)) => Success(uuid)
         case _ =>
           Failure(
-            new ValidationException(
-              errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
+            ValidationException(
+              paramName,
+              s"Invalid value for $paramName. Only UUID's allowed."
             )
           )
       }

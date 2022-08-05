@@ -9,6 +9,7 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.language.Language.AllLanguages
+import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.{FeideApiClient, SearchApiClient}
@@ -34,14 +35,12 @@ import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.util.NotNothing
+import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit.MINUTES
 import javax.servlet.http.HttpServletRequest
-import scala.annotation.unused
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
@@ -60,7 +59,7 @@ trait SearchController {
     with Props =>
   val searchController: SearchController
 
-  class SearchController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class SearchController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
@@ -216,16 +215,6 @@ trait SearchController {
       )
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-
-    @unused
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
 
     get(
       "/group/",

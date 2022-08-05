@@ -14,11 +14,13 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
-import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}
+import no.ndla.validation.TextValidator
 
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
+import no.ndla.scalatra.error.ValidationMessage
 
 trait ContentValidator {
   this: DraftApiClient with Props =>

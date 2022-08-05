@@ -22,6 +22,8 @@ import no.ndla.validation._
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationMessage
+import no.ndla.scalatra.error.ValidationException
 
 trait ContentValidator {
   this: DraftRepository with ConverterService with ArticleApiClient with Props =>

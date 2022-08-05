@@ -8,16 +8,14 @@
 
 package no.ndla.oembedproxy.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
+import no.ndla.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport, SwaggerSupportSyntax}
-import org.scalatra.util.NotNothing
 import org.scalatra._
+import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
 
@@ -26,10 +24,8 @@ trait OEmbedProxyController {
   val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController(implicit val swagger: Swagger)
-      extends ScalatraServlet
-      with NativeJsonSupport
-      with SwaggerSupport
-      with LazyLogging
+      extends NdlaControllerBase
+      with NdlaSwaggerSupport
       with CorrelationIdSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
@@ -47,31 +43,18 @@ trait OEmbedProxyController {
       ResponseMessage(501, "Provider Not Supported", Some("Error"))
     val response502: ResponseMessage = ResponseMessage(502, "Bad Gateway", Some("Error"))
 
-    case class Param(paramName: String, description: String)
-
     private val correlationId =
-      Param("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
+      Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
     private val urlParam =
-      Param("url", "The URL to retrieve embedding information for")
+      Param[String]("url", "The URL to retrieve embedding information for")
     private val maxWidth =
-      Param("maxwidth", "The maximum width of the embedded resource")
+      Param[Option[String]]("maxwidth", "The maximum width of the embedded resource")
     private val maxHeight =
-      Param("maxheight", "The maximum height of the embedded resource")
-
-    protected def asQueryParam[T: Manifest: NotNothing](param: Param): SwaggerSupportSyntax.ParameterBuilder[T] =
-      queryParam[T](param.paramName).description(param.description)
-    protected def asHeaderParam[T: Manifest: NotNothing](param: Param): SwaggerSupportSyntax.ParameterBuilder[T] =
-      headerParam[T](param.paramName).description(param.description)
+      Param[Option[String]]("maxheight", "The maximum height of the embedded resource")
 
     before() {
       contentType = formats("json")
       ApplicationUrl.set(request)
-      logger.info(
-        "{} {}{}",
-        request.getMethod,
-        request.getRequestURI,
-        Option(request.getQueryString).map(s => s"?$s").getOrElse("")
-      )
     }
 
     after() {
@@ -80,7 +63,7 @@ trait OEmbedProxyController {
 
     import ErrorHelpers._
 
-    error {
+    override def ndlaErrorHandler: NdlaErrorHandler = {
       case pme: ParameterMissingException =>
         BadRequest(Error(PARAMETER_MISSING, pme.getMessage))
       case pnse: ProviderNotSupportedException =>
@@ -108,10 +91,10 @@ trait OEmbedProxyController {
           .summary("Returns oEmbed information for a given url.")
           .description("Returns oEmbed information for a given url.")
           .parameters(
-            asHeaderParam[Option[String]](correlationId),
-            asQueryParam[String](urlParam),
-            asQueryParam[Option[String]](maxWidth),
-            asQueryParam[Option[String]](maxHeight)
+            asHeaderParam(correlationId),
+            asQueryParam(urlParam),
+            asQueryParam(maxWidth),
+            asQueryParam(maxHeight)
           )
           .responseMessages(response400, response401, response500, response501, response502)
       )

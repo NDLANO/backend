@@ -17,9 +17,9 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: ArticleRepository

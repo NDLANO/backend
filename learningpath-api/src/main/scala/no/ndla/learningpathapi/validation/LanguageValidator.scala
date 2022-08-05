@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.learningpathapi.model.api.ValidationMessage
+import no.ndla.scalatra.error.ValidationMessage
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 
 trait LanguageValidator {

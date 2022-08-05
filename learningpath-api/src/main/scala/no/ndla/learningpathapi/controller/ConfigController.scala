@@ -7,7 +7,6 @@
 
 package no.ndla.learningpathapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationError
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
@@ -15,27 +14,21 @@ import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.util.NotNothing
-import org.scalatra.{BadRequest, ScalatraServlet}
+import org.scalatra.swagger.ResponseMessage
 
-import scala.annotation.unused
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.NdlaSwaggerSupport
+import org.json4s.ext.JavaTimeSerializers
+import org.scalatra.swagger.Swagger
+import org.scalatra.BadRequest
 
 trait ConfigController {
 
   this: ReadService with UpdateService with NdlaController with Props with CorrelationIdSupport =>
   val configController: ConfigController
 
-  class ConfigController(implicit val swagger: Swagger)
-      extends NdlaController
-      with ScalatraServlet
-      with NativeJsonSupport
-      with SwaggerSupport
-      with LazyLogging
-      with CorrelationIdSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+  class ConfigController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription =
       "API for changing configuration parameters for learningpaths from ndla.no."
@@ -57,22 +50,6 @@ trait ConfigController {
         "config_key",
         s"""Key of configuration value. Can only be one of '${ConfigKey.values.mkString("', '")}'""".stripMargin
       )
-
-    case class Param[T](paramName: String, description: String)
-
-    @unused
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
-
-    @unused
-    private def asFormParam[T: Manifest: NotNothing](param: Param[T]) =
-      formParam[T](param.paramName).description(param.description)
 
     post(
       "/:config_key",
