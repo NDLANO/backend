@@ -14,16 +14,14 @@ import no.ndla.common.Clock
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Status}
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
-import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
-import org.json4s.Formats
 import org.jsoup.nodes.Element
 
 import scala.jdk.CollectionConverters._
@@ -35,8 +33,6 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
     import props.externalApiUrls
-
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
       val isLanguageNeutral =
