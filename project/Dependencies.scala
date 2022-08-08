@@ -28,7 +28,7 @@ object Dependencies {
     val ScalaTsiV             = "0.6.0"
     val Http4sV               = "0.21.33"
     val RhoV                  = "0.21.0"
-    val CirceV                = "0.13.0"
+    val CirceV                = "0.14.2"
     val ScalikeJDBCV          = "4.0.0-RC2"
     val TestContainersV       = "1.15.1"
     val JsoupV                = "1.15.2"
