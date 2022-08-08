@@ -31,6 +31,7 @@ object Dependencies {
     val CirceV                = "0.13.0"
     val ScalikeJDBCV          = "4.0.0-RC2"
     val TestContainersV       = "1.15.1"
+    val JsoupV                = "1.15.2"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
 

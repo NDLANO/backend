@@ -25,7 +25,7 @@ object imageapi extends Module {
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV,
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
-      "org.jsoup"           % "jsoup"                           % "1.11.3",
+      "org.jsoup"           % "jsoup"                           % JsoupV,
       "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
       "org.jrobin"          % "jrobin"                          % "1.5.9", // This is needed for javamelody graphing
       "org.imgscalr"        % "imgscalr-lib"                    % "4.2",
