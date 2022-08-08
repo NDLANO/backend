@@ -18,7 +18,7 @@ object Dependencies {
     val AwsSdkV               = "1.12.276"
     val MockitoV              = "1.16.49"
     val Elastic4sV            = "7.16.3"
-    val JacksonV              = "2.13.1"
+    val JacksonV              = "2.13.3"
     val CatsEffectV           = "2.1.2"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.3"
