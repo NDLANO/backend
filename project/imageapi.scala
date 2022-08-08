@@ -30,9 +30,9 @@ object imageapi extends Module {
       "org.jrobin"          % "jrobin"                          % "1.5.9", // This is needed for javamelody graphing
       "org.imgscalr"        % "imgscalr-lib"                    % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
-      "com.twelvemonkeys.imageio" % "imageio-core" % "3.4.1",
-      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.4.1",
-      "commons-io"                % "commons-io"   % "2.6"
+      "com.twelvemonkeys.imageio" % "imageio-core" % "3.8.2",
+      "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.8.2",
+      "commons-io"                % "commons-io"   % "2.11.0"
     ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
   )
 
