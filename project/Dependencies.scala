@@ -24,7 +24,7 @@ object Dependencies {
     val Json4SV               = "4.0.3"
     val JavaxServletV         = "4.0.1"
     val FlywayV               = "7.5.3"
-    val PostgresV             = "42.3.5"
+    val PostgresV             = "42.4.1"
     val ScalaTsiV             = "0.6.0"
     val Http4sV               = "0.21.21"
     val RhoV                  = "0.21.0"
