@@ -7,8 +7,10 @@
 
 package no.ndla.searchapi.model.domain.article
 
+import no.ndla.common.model.domain.Availability
 import no.ndla.searchapi.model.domain.article.RelatedContentLink.RelatedContent
 import no.ndla.searchapi.model.domain.{Content, Tag, Title}
+
 import java.time.LocalDateTime
 
 case class Article(
