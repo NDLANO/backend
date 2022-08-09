@@ -27,7 +27,8 @@ object TestData {
     sort = Sort.ByTitleAsc,
     shouldScroll = false,
     audioType = None,
-    seriesFilter = None
+    seriesFilter = None,
+    fallback = false
   )
 
   val sampleCopyright: Copyright = domain.Copyright(

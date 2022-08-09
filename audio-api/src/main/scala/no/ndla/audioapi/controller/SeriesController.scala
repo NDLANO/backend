@@ -129,7 +129,8 @@ trait SeriesController {
             asQueryParam(sort),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
-            asQueryParam(scrollId)
+            asQueryParam(scrollId),
+            asQueryParam(fallback)
           )
           .responseMessages(response404, response500)
       )

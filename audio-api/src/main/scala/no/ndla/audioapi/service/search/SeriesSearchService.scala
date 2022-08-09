@@ -52,12 +52,21 @@ trait SeriesSearchService {
 
       val fullSearch = settings.query match {
         case Some(query) =>
+          val languageSearch = (field: String, boost: Float) => {
+            languageSpecificSearch(
+              field,
+              settings.language,
+              query,
+              boost,
+              settings.fallback
+            )
+          }
           boolQuery()
             .must(
               boolQuery()
                 .should(
-                  languageSpecificSearch("titles", settings.language, query, 2, settings.fallback),
-                  languageSpecificSearch("descriptions", settings.language, query, 1, settings.fallback),
+                  languageSearch("titles", 2),
+                  languageSearch("descriptions", 1),
                   idsQuery(query)
                 )
             )
