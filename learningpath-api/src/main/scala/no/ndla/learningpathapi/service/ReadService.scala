@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import cats.implicits._
+import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
@@ -39,6 +40,10 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+
+    private val getUserFeideIDMemoize = Memoize(feideApiClient.getUserFeideID)
+    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] =
+      getUserFeideIDMemoize(feideAccessToken)
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -169,7 +174,7 @@ trait ReadService {
 
     def getAllResources(size: Int, feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
-        feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId            <- this.getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
@@ -223,7 +228,7 @@ trait ReadService {
     ): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId           <- this.getUserFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.hasReadAccess(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
@@ -284,7 +289,7 @@ trait ReadService {
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId      <- this.getUserFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
