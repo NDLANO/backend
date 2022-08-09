@@ -9,11 +9,12 @@ package no.ndla.integrationtests.searchapi.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.Availability
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
-import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
+import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, UnitSuite}
