@@ -10,6 +10,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.Availability
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._

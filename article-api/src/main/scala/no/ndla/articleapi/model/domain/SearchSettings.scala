@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.model.domain
 
+import no.ndla.common.model.domain.Availability
+
 case class SearchSettings(
     query: Option[String],
     withIdIn: List[Long],
