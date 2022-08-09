@@ -10,7 +10,8 @@ package no.ndla.imageapi.model.domain
 case class SearchSettings(
     query: Option[String],
     minimumSize: Option[Int],
-    language: Option[String],
+    language: String,
+    fallback: Boolean,
     license: Option[String],
     sort: Sort,
     page: Option[Int],

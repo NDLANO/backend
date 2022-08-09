@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
@@ -24,7 +25,6 @@ import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.read
-import cats.implicits._
 
 import scala.util.{Failure, Success, Try}
 
@@ -102,10 +102,7 @@ trait ImageSearchService {
       val fullSearch = settings.query match {
         case None => boolQuery()
         case Some(query) =>
-          val language = settings.language match {
-            case Some(lang) if Iso639.get(lang).isSuccess => lang
-            case _                                        => "*"
-          }
+          val language = if (settings.fallback) "*" else settings.language
 
           val queries = Seq(
             simpleStringQuery(query).field(s"titles.$language", 2),
@@ -144,11 +141,15 @@ trait ImageSearchService {
         case _ => None
       }
 
-      val (languageFilter, searchLanguage) = settings.language match {
-        case Some(lang) if Iso639.get(lang).isSuccess =>
-          (Some(existsQuery(s"titles.$lang")), lang)
-        case _ => (None, "*")
-      }
+      val (languageFilter, searchLanguage) =
+        if (Iso639.get(settings.language).isSuccess) {
+          if (settings.fallback)
+            (None, "*")
+          else
+            (Some(existsQuery(s"titles.${settings.language}")), settings.language)
+        } else {
+          (None, "*")
+        }
 
       val modelReleasedFilter = Option.when(settings.modelReleased.nonEmpty)(
         boolQuery().should(settings.modelReleased.map(mrs => termQuery("modelReleased", mrs.toString)))
@@ -182,7 +183,7 @@ trait ImageSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, searchLanguage).map(hits => {
+            getHits(response.result, settings.language).map(hits => {
               SearchResult(
                 response.result.totalHits,
                 Some(settings.page.getOrElse(1)),
