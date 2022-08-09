@@ -10,9 +10,10 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{Article, Availability, Copyright, RevisionMeta, RevisionStatus}
+import no.ndla.draftapi.model.domain.{Article, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
