@@ -8,6 +8,7 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
 import no.ndla.draftapi.model.domain.RevisionMeta
@@ -34,7 +35,7 @@ trait ArticleApiClient {
     private val deleteTimeout    = 1000 * 10 // 10 seconds
     private val timeout          = 1000 * 15
     private implicit val format: Formats =
-      DefaultFormats.withLong + new EnumNameSerializer(domain.Availability) ++ JavaTimeSerializers.all
+      DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
 
     def partialPublishArticle(
         id: Long,
@@ -136,7 +137,7 @@ trait ArticleApiClient {
   }
 
   case class PartialPublishArticle(
-      availability: Option[api.Availability.Value],
+      availability: Option[Availability.Value],
       grepCodes: Option[Seq[String]],
       license: Option[String],
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
@@ -168,8 +169,8 @@ trait ArticleApiClient {
       )
     def withMetaDescription(meta: Seq[domain.ArticleMetaDescription]): PartialPublishArticle =
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
-    def withAvailability(availability: domain.Availability.Value): PartialPublishArticle =
-      copy(availability = converterService.toApiAvailability(availability).some)
+    def withAvailability(availability: Availability.Value): PartialPublishArticle =
+      copy(availability = availability.some)
 
     def withEarliestRevisionDate(revisionMeta: Seq[RevisionMeta]): PartialPublishArticle = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)

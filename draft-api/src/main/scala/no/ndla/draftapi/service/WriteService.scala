@@ -13,6 +13,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
@@ -438,7 +439,7 @@ trait WriteService {
             created = LocalDateTime.MIN,
             updated = LocalDateTime.MIN,
             updatedBy = "",
-            availability = domain.Availability.everyone,
+            availability = Availability.everyone,
             grepCodes = Seq.empty,
             copyright = article.copyright.map(e => e.copy(license = None)),
             metaDescription = Seq.empty,

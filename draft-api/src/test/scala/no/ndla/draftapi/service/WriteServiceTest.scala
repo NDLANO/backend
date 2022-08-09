@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.service
 
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
@@ -1002,7 +1003,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val expectedPartialPublishFields = PartialPublishArticle(
-      availability = Some(api.Availability.everyone),
+      availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
@@ -1011,7 +1012,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revisionDate = Right(Some(tomorrow))
     )
     val expectedPartialPublishFieldsLangEN = PartialPublishArticle(
-      availability = Some(api.Availability.everyone),
+      availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq.empty),
@@ -1020,7 +1021,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revisionDate = Right(Some(tomorrow))
     )
     val expectedPartialPublishFieldsLangALL = PartialPublishArticle(
-      availability = Some(api.Availability.everyone),
+      availability = Some(Availability.everyone),
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(

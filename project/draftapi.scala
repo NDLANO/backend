@@ -37,7 +37,8 @@ object draftapi extends Module {
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
     imports = Seq(
       "no.ndla.draftapi.model.api._",
-      "no.ndla.draftapi.model.api.TSTypes._"
+      "no.ndla.draftapi.model.api.TSTypes._",
+      "no.ndla.common.model.domain.Availability"
     ),
     exports = Seq(
       "Agreement",

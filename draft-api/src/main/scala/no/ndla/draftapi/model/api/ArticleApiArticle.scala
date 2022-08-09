@@ -6,7 +6,8 @@
  */
 
 package no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.domain.Availability
+
+import no.ndla.common.model.domain.Availability
 
 import java.time.LocalDateTime
 

@@ -8,6 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.NewArticleMetaImage
 import no.ndla.draftapi.model.domain.ArticleStatus._
