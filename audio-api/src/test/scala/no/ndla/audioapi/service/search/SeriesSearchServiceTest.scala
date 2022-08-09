@@ -58,21 +58,30 @@ class SeriesSearchServiceTest
     page = None,
     pageSize = None,
     sort = Sort.ByIdAsc,
-    shouldScroll = false
+    shouldScroll = false,
+    fallback = false
   )
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-
+  override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
       seriesIndexService.createIndexWithName(props.SeriesSearchIndex)
-      seriesToIndex.map(s => seriesIndexService.indexDocument(s).get)
-
-      blockUntil(() => seriesSearchService.countDocuments == seriesToIndex.size)
     }
   }
 
+  override def afterEach(): Unit = {
+    if (elasticSearchContainer.isSuccess) {
+      seriesIndexService.deleteIndexAndAlias()
+    }
+  }
+
+  def indexAndWait(series: Seq[domain.Series]): Unit = {
+    series.map(s => seriesIndexService.indexDocument(s).get)
+    blockUntil(() => seriesIndexService.countDocuments == series.size)
+  }
+
   test("That query search works as expected") {
+    indexAndWait(seriesToIndex)
+
     val Success(result1) = seriesSearchService.matchingQuery(settings.copy(query = Some("tiger")))
     result1.results.map(_.id) should be(Seq(2))
 
@@ -88,6 +97,8 @@ class SeriesSearchServiceTest
   }
 
   test("That descriptions are searchable") {
+    indexAndWait(seriesToIndex)
+
     val Success(result1) = seriesSearchService.matchingQuery(settings.copy(query = Some("megabeskrivelse")))
     result1.results.map(_.id) should be(Seq(1))
 
@@ -95,6 +106,54 @@ class SeriesSearchServiceTest
       seriesSearchService.matchingQuery(settings.copy(query = Some("description"), language = Some("en")))
     result2.results.map(_.id) should be(Seq(1))
 
+  }
+
+  test("That fallback searching includes languages outside the search") {
+    val seriesToIndex = Seq(
+      TestData.SampleSeries.copy(
+        id = 1,
+        title = Seq(domain.Title("Lyd med epler", "nb"), domain.Title("Sound with apples", "en")),
+        description = Seq(domain.Description("megabeskrivelse", "nb"), domain.Description("giant description", "en"))
+      ),
+      TestData.SampleSeries.copy(
+        id = 2,
+        title = Seq(domain.Title("Lyd med tiger", "nb")),
+        description = Seq(domain.Description("megabeskrivelse", "nb"))
+      ),
+      TestData.SampleSeries.copy(
+        id = 3,
+        title = Seq(domain.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix")),
+        description = Seq(domain.Description("descriptos", "mix"))
+      )
+    )
+    indexAndWait(seriesToIndex)
+
+    val Success(result1) = seriesSearchService.matchingQuery(
+      settings.copy(
+        query = None,
+        fallback = true,
+        language = Some("nb"),
+        sort = Sort.ByRelevanceDesc
+      )
+    )
+    result1.results.length should be(seriesToIndex.length)
+    result1.results.map(_.id) should be(Seq(1, 2, 3))
+    result1.results.head.title.language should be("nb")
+    result1.results.last.title.language should be("mix")
+
+    val Success(result2) = seriesSearchService.matchingQuery(
+      settings.copy(
+        query = None,
+        fallback = true,
+        language = Some("en"),
+        sort = Sort.ByRelevanceDesc
+      )
+    )
+    result2.results.length should be(seriesToIndex.length)
+    result2.results.map(_.id) should be(Seq(1, 2, 3))
+    result2.results.head.title.language should be("en")
+    result2.results(1).title.language should be("nb")
+    result2.results.last.title.language should be("mix")
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

@@ -53,10 +53,10 @@ trait AudioSearchService {
             .must(
               boolQuery()
                 .should(
-                  languageSpecificSearch("titles", settings.language, query, 2),
-                  languageSpecificSearch("tags", settings.language, query, 1),
-                  languageSpecificSearch("manuscript", settings.language, query, 1),
-                  languageSpecificSearch("podcastMetaIntroduction", settings.language, query, 1),
+                  languageSpecificSearch("titles", settings.language, query, 2, fallback = false),
+                  languageSpecificSearch("tags", settings.language, query, 1, fallback = false),
+                  languageSpecificSearch("manuscript", settings.language, query, 1, fallback = false),
+                  languageSpecificSearch("podcastMetaIntroduction", settings.language, query, 1, fallback = false),
                   idsQuery(query)
                 )
             )

@@ -56,8 +56,8 @@ trait SeriesSearchService {
             .must(
               boolQuery()
                 .should(
-                  languageSpecificSearch("titles", settings.language, query, 2),
-                  languageSpecificSearch("descriptions", settings.language, query, 1),
+                  languageSpecificSearch("titles", settings.language, query, 2, settings.fallback),
+                  languageSpecificSearch("descriptions", settings.language, query, 1, settings.fallback),
                   idsQuery(query)
                 )
             )
@@ -74,7 +74,9 @@ trait SeriesSearchService {
 
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(AllLanguages) => (None, "*")
-        case Some(lang)                => (Some(existsQuery(s"titles.$lang")), lang)
+        case Some(lang) =>
+          if (settings.fallback) (None, lang)
+          else (Some(existsQuery(s"titles.$lang")), lang)
       }
 
       val filters        = List(languageFilter)
