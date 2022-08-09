@@ -25,7 +25,7 @@ object audioapi extends Module {
       "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV,
-      "org.jsoup"           % "jsoup"                           % "1.11.3",
+      "org.jsoup"           % "jsoup"                           % JsoupV,
       "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "org.typelevel"      %% "cats-effect"                     % CatsEffectV

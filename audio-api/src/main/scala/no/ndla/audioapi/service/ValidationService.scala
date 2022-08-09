@@ -17,7 +17,7 @@ import no.ndla.audioapi.model.domain._
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
-import org.jsoup.safety.Whitelist
+import org.jsoup.safety.Safelist
 import org.scalatra.servlet.FileItem
 
 import java.awt.image.BufferedImage
@@ -329,7 +329,7 @@ trait ValidationService {
     }
 
     private def containsNoHtml(fieldPath: String, text: String): Option[ValidationMessage] = {
-      if (Jsoup.isValid(text, Whitelist.none())) {
+      if (Jsoup.isValid(text, Safelist.none())) {
         None
       } else {
         Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))

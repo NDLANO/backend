@@ -14,7 +14,7 @@ import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.jsoup.Jsoup
-import org.jsoup.safety.Whitelist
+import org.jsoup.safety.Safelist
 import org.scalatra.servlet.FileItem
 
 import scala.util.{Failure, Success, Try}
@@ -162,7 +162,7 @@ trait ValidationService {
     }
 
     private def containsNoHtml(fieldPath: String, text: String): Option[ValidationMessage] = {
-      if (Jsoup.isValid(text, Whitelist.none())) {
+      if (Jsoup.isValid(text, Safelist.none())) {
         None
       } else {
         Some(ValidationMessage(fieldPath, "The content contains illegal html-characters. No HTML is allowed"))

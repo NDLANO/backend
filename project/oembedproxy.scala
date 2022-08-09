@@ -15,7 +15,7 @@ object oembedproxy extends Module {
       "javax.servlet"     % "javax.servlet-api"       % "3.1.0"    % "container;provided;test",
       "org.json4s"       %% "json4s-native"           % Json4SV,
       "org.scalaj"       %% "scalaj-http"             % "2.4.2",
-      "org.jsoup"         % "jsoup"                   % "1.11.3",
+      "org.jsoup"         % "jsoup"                   % JsoupV,
       "org.scalatest"    %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"      %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"      %% "mockito-scala-scalatest" % MockitoV   % "test"

@@ -23,7 +23,7 @@ object draftapi extends Module {
       "com.amazonaws"       % "aws-java-sdk-s3"                 % AwsSdkV,
       "org.scalaj"         %% "scalaj-http"                     % "2.4.2",
       "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "org.jsoup"           % "jsoup"                           % "1.11.3",
+      "org.jsoup"           % "jsoup"                           % JsoupV,
       "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
