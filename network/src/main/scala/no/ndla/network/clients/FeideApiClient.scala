@@ -31,14 +31,14 @@ case class FeideExtendedUserInfo(
     this.eduPersonAffiliation.contains("employee")
   }
 
-  def availabilities: List[Availability.Value] = {
+  def availabilities: Seq[Availability.Value] = {
     if (this.isTeacher) {
-      List(
+      Seq(
         Availability.everyone,
         Availability.teacher
       )
     } else {
-      List.empty
+      Seq(Availability.everyone)
     }
   }
 }
@@ -53,11 +53,11 @@ trait FeideApiClient {
     private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
 
     private def getOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
-      getUser[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
-    def getFeideUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
-      getUser[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
+      fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
+    def getUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
+      fetchAndParse[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
 
-    private def getUser[T](accessToken: FeideAccessToken, endpoint: String): Try[T] = {
+    private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: String)(implicit mf: Manifest[T]): Try[T] = {
       val request =
         Http(endpoint)
           .timeout(feideTimeout, feideTimeout)
@@ -94,7 +94,7 @@ trait FeideApiClient {
       })
     }
 
-    def getUserFeideIDUncached(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
+    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
       feideAccessToken match {
         case None =>
           Failure(
