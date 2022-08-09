@@ -33,11 +33,11 @@ import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
-import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
-import org.scalatra.util.NotNothing
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.NdlaSwaggerSupport
+import org.json4s.ext.JavaTimeSerializers
 
 trait AudioController {
   this: AudioRepository
@@ -56,10 +56,11 @@ trait AudioController {
   class AudioController(implicit val swagger: Swagger)
       extends NdlaController
       with FileUploadSupport
-      with SwaggerSupport {
+      with NdlaSwaggerSupport {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
-    protected val applicationDescription                 = "Services for accessing audio."
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats + new EnumNameSerializer(AudioType) ++ JavaTimeSerializers.all
+    protected val applicationDescription = "Services for accessing audio."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -73,8 +74,6 @@ trait AudioController {
     val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
     val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    case class Param[T](paramName: String, description: String)
 
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
@@ -124,32 +123,6 @@ trait AudioController {
         |'false' will return only audios that are NOT a part of a series.
         |Not specifying will return both audios that are a part of a series and not.""".stripMargin
     )
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
-    private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
-      val className = manifest[T].runtimeClass.getSimpleName
-      val modelOpt  = models.get(className)
-
-      modelOpt match {
-        case Some(value) =>
-          formParam(param.paramName, value).description(param.description)
-        case None =>
-          logger.error(s"${param.paramName} could not be resolved as object formParam, doing regular formParam.")
-          formParam[T](param.paramName).description(param.description)
-      }
-    }
-    private def asFileParam(param: Param[_]) =
-      Parameter(
-        name = param.paramName,
-        `type` = ValueDataType("file"),
-        description = Some(param.description),
-        paramType = ParamType.Form
-      )
 
     /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.

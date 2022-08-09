@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.model.api.{
   Folder,
   NewFolder,
@@ -21,25 +20,19 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger._
-import org.scalatra.util.NotNothing
-import org.scalatra.{ScalatraServlet, NoContent}
+import org.scalatra.NoContent
 
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait FolderController {
   this: ReadService with UpdateService with ConverterService with NdlaController =>
   val folderController: FolderController
 
-  class FolderController(implicit val swagger: Swagger)
-      extends NdlaController
-      with ScalatraServlet
-      with NativeJsonSupport
-      with SwaggerSupport
-      with LazyLogging {
+  class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
@@ -55,8 +48,6 @@ trait FolderController {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
     val response502 = ResponseMessage(502, "Remote error", Some("Error"))
 
-    case class Param[T](paramName: String, description: String)
-
     private val folderId   = Param[UUID]("folder_id", "UUID of the folder.")
     private val resourceId = Param[UUID]("resource_id", "UUID of the resource.")
     private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
@@ -66,15 +57,6 @@ trait FolderController {
       Param[Option[Boolean]]("include-resources", "Choose if resources should be included in the response")
     private val includeSubfolders =
       Param[Option[Boolean]]("include-subfolders", "Choose if sub-folders should be included in the response")
-
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
 
     private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
       request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))

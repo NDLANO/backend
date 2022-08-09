@@ -29,6 +29,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationException
+import no.ndla.scalatra.error.ValidationMessage
 
 trait ConverterService {
   this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService with Props =>
@@ -125,10 +127,7 @@ trait ConverterService {
       notes match {
         case Nil                  => Success(Seq.empty)
         case l if !l.contains("") => Success(l.map(domain.EditorNote(_, user.id, status, clock.now())))
-        case _ =>
-          Failure(
-            new ValidationException(errors = Seq(ValidationMessage("notes", "A note can not be an empty string")))
-          )
+        case _                    => Failure(ValidationException("notes", "A note can not be an empty string"))
       }
     }
 
@@ -632,8 +631,7 @@ trait ConverterService {
           val articleWithNewContent = article.copy(content = newContent)
           articleWithNewContent.language match {
             case None if languageFieldIsDefined(articleWithNewContent) =>
-              val error = ValidationMessage("language", "This field must be specified when updating language fields")
-              Failure(new ValidationException(errors = Seq(error)))
+              Failure(ValidationException("language", "This field must be specified when updating language fields"))
             case None       => Success(partiallyConverted)
             case Some(lang) => Success(mergeArticleLanguageFields(partiallyConverted, articleWithNewContent, lang))
           }

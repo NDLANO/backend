@@ -9,11 +9,11 @@ package no.ndla.draftapi.model.api
 
 import java.time.LocalDateTime
 
-import no.ndla.validation.ValidationMessage
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
+import no.ndla.scalatra.error.ValidationMessage
 
 @ApiModel(description = "Information about validation errors")
 case class ValidationError(

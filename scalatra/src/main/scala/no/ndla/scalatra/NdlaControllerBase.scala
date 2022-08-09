@@ -17,9 +17,13 @@ import org.scalatra.{ActionResult, HaltException, Ok, RenderPipeline, ScalatraSe
 
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
+import org.json4s.ext.JavaTimeSerializers
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
-  protected implicit override val jsonFormats: Formats = DefaultFormats
+  protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
   type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]
   def ndlaErrorHandler: NdlaErrorHandler
@@ -120,6 +124,10 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     if (!isBoolean(paramValue)) default else paramValue.toBoolean
   }
 
+  def booleanOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Boolean] = {
+    params.get(paramName).map(_.trim).filterNot(_.isEmpty).flatMap(_.toBooleanOption)
+  }
+
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
@@ -143,7 +151,8 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     }
   }
 
-  def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
+  def intOrDefault(paramName: String, default: Int)(implicit request: HttpServletRequest): Int =
+    intOrNone(paramName).getOrElse(default)
 
   def doubleInRange(paramName: String, from: Int, to: Int)(implicit request: HttpServletRequest): Option[Double] = {
     doubleOrNone(paramName) match {
@@ -158,16 +167,64 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     }
   }
 
-  def tryExtract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
-    Try(read[T](json))
+  val digitsOnlyError = (paramName: String) =>
+    Failure(
+      new ValidationException(
+        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+      )
+    )
+
+  def stringParamToLong(paramName: String, paramValue: String): Try[Long] = {
+    paramValue.forall(_.isDigit) match {
+      case true  => Try(paramValue.toLong).recoverWith(_ => digitsOnlyError(paramName))
+      case false => digitsOnlyError(paramName)
+    }
   }
 
-  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
-    tryExtract[T](json) match {
+  def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
+    val strings = paramAsListOfString(paramName)
+    strings.headOption match {
+      case None => List.empty
+      case Some(_) =>
+        if (!strings.forall(entry => entry.forall(_.isDigit))) {
+          throw ValidationException(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")
+        }
+        strings.map(_.toLong)
+    }
+  }
+
+  def longOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Long] =
+    paramOrNone(paramName).flatMap(p => Try(p.toLong).toOption)
+
+  protected val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  def paramAsDateOrNone(paramName: String)(implicit request: HttpServletRequest): Option[LocalDateTime] = {
+    paramOrNone(paramName).map(dateString => {
+      Try(LocalDateTime.parse(dateString, dateFormatter)) match {
+        case Success(date) => date
+        case Failure(_) =>
+          throw new ValidationException(
+            errors = Seq(
+              ValidationMessage(
+                paramName,
+                s"Invalid date passed. Expected format is \"${LocalDateTime.now().format(dateFormatter)}\""
+              )
+            )
+          )
+      }
+    })
+  }
+
+  def tryExtract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): Try[T] = {
+    Try(read[T](json)(formats, mf))
+      .recoverWith(e => Failure(ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))))
+  }
+
+  def extract[T](json: String)(implicit formats: Formats, mf: scala.reflect.Manifest[T]): T = {
+    tryExtract[T](json)(formats, mf) match {
       case Success(data) => data
       case Failure(e) =>
         logger.error(e.getMessage, e)
-        throw ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))
+        throw e
     }
   }
 }

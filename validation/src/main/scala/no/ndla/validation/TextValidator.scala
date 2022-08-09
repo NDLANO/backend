@@ -9,9 +9,10 @@ package no.ndla.validation
 
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.jsoup.Jsoup
-import org.jsoup.safety.Whitelist
+import org.jsoup.safety.Safelist
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import no.ndla.scalatra.error.ValidationMessage
 
 class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =
@@ -72,7 +73,7 @@ class TextValidator(allowHtml: Boolean) {
       text: String,
       requiredToOptional: Map[String, Seq[String]]
   ): Seq[ValidationMessage] = {
-    val whiteList = new Whitelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
+    val whiteList = new Safelist().addTags(HtmlTagRules.allLegalTags.toSeq: _*)
 
     HtmlTagRules.allLegalTags
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)
@@ -92,7 +93,7 @@ class TextValidator(allowHtml: Boolean) {
   }
 
   private def validateNoHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
-    Jsoup.isValid(text, Whitelist.none()) match {
+    Jsoup.isValid(text, Safelist.none()) match {
       case true  => None
       case false => Some(ValidationMessage(fieldPath, IllegalContentInPlainText))
     }

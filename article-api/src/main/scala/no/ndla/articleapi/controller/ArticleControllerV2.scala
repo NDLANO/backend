@@ -18,12 +18,12 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.language.Language.AllLanguages
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.util.NotNothing
+import org.scalatra.swagger.{ResponseMessage, Swagger}
 import org.scalatra.{NotFound, Ok}
 
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait ArticleControllerV2 {
   this: ReadService
@@ -39,7 +39,7 @@ trait ArticleControllerV2 {
 
   import props._
 
-  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "Services for accessing articles from NDLA."
 
@@ -102,15 +102,6 @@ trait ArticleControllerV2 {
     )
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.

@@ -16,12 +16,13 @@ import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
-import no.ndla.validation.{ResourceType, TagAttributes, ValidationException}
+import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
 
 import java.util.UUID
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.error.ValidationException
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 

@@ -28,11 +28,12 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.validation.{ValidationException, ValidationMessage}
 
 import scala.collection.mutable
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationMessage
+import no.ndla.scalatra.error.ValidationException
 
 trait StateTransitionRules {
   this: WriteService

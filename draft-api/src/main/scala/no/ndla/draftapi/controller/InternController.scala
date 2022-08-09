@@ -238,7 +238,7 @@ trait InternController {
     }
 
     post("/dump/article/?") {
-      extract[domain.Article](request.body) match {
+      tryExtract[domain.Article](request.body) match {
         case Failure(ex) => errorHandler(ex)
         case Success(article) =>
           writeService.insertDump(article) match {

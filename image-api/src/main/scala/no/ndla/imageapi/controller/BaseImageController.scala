@@ -43,42 +43,49 @@ trait BaseImageController {
     val response413: ResponseMessage = ResponseMessage(413, "File too big", Some("Error"))
     val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    protected val correlationId =
+    protected val correlationId: Param[Option[String]] =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
-    protected val query =
+    protected val query: Param[Option[String]] =
       Param[Option[String]]("query", "Return only images with titles, alt-texts or tags matching the specified query.")
-    protected val minSize =
+    protected val minSize: Param[Option[Int]] =
       Param[Option[Int]]("minimum-size", "Return only images with full size larger than submitted value in bytes.")
-    protected val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-    protected val license  = Param[Option[String]]("license", "Return only images with provided license.")
-    protected val includeCopyrighted =
+    protected val language: Param[Option[String]] =
+      Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+    protected val fallback: Param[Option[Boolean]] =
+      Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
+    protected val license: Param[Option[String]] =
+      Param[Option[String]]("license", "Return only images with provided license.")
+    protected val includeCopyrighted: Param[Option[Boolean]] =
       Param[Option[Boolean]]("includeCopyrighted", "Return copyrighted images. May be omitted.")
-    protected val sort = Param[Option[String]](
+    protected val sort: Param[Option[String]] = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
-    protected val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
-    protected val pageSize = Param[Option[Int]](
+    protected val pageNo: Param[Option[Int]] =
+      Param[Option[Int]]("page", "The page number of the search hits to display.")
+    protected val pageSize: Param[Option[Int]] = Param[Option[Int]](
       "page-size",
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
     )
-    protected val imageId      = Param[String]("image_id", "Image_id of the image that needs to be fetched.")
-    protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
-    protected val externalId   = Param[String]("external_id", "External node id of the image that needs to be fetched.")
-    protected val metadata = Param[NewImageMetaInformationV2](
+    protected val imageId: Param[String] = Param[String]("image_id", "Image_id of the image that needs to be fetched.")
+    protected val pathLanguage: Param[String] =
+      Param[String]("language", "The ISO 639-1 language code describing language.")
+    protected val externalId: Param[String] =
+      Param[String]("external_id", "External node id of the image that needs to be fetched.")
+    protected val metadata: Param[NewImageMetaInformationV2] = Param[NewImageMetaInformationV2](
       "metadata",
       """The metadata for the image file to submit.""".stripMargin
     )
 
-    protected val updateMetadata = Param[UpdateImageMetaInformation](
+    protected val updateMetadata: Param[UpdateImageMetaInformation] = Param[UpdateImageMetaInformation](
       "metadata",
       """The metadata for the image file to submit.""".stripMargin
     )
-    protected val file = Param("file", "The image file(s) to upload")
+    protected val file: Param[Nothing] = Param("file", "The image file(s) to upload")
 
-    protected val scrollId = Param[Option[String]](
+    protected val scrollId: Param[Option[String]] = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
@@ -88,7 +95,7 @@ trait BaseImageController {
          |""".stripMargin
     )
 
-    protected val modelReleased = Param[Option[Seq[String]]](
+    protected val modelReleased: Param[Option[Seq[String]]] = Param[Option[Seq[String]]](
       "model-released",
       s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
           .mkString(",")}"

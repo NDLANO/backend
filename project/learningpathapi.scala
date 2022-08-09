@@ -24,7 +24,7 @@ object learningpathapi extends Module {
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalaj"         %% "scalaj-http"                     % "2.4.2",
       "org.typelevel"      %% "cats-effect"                     % CatsEffectV,
-      "org.jsoup"           % "jsoup"                           % "1.11.3",
+      "org.jsoup"           % "jsoup"                           % JsoupV,
       "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,

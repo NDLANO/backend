@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.learningpathapi._
-import no.ndla.learningpathapi.model.api.ValidationMessage
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.scalatra.error.ValidationMessage
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 

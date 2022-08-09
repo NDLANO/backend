@@ -16,7 +16,6 @@ import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import no.ndla.validation.ValidationException
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
 import org.json4s.native.Serialization.write
@@ -25,6 +24,7 @@ import scalaj.http.Http
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Try}
+import no.ndla.scalatra.error.ValidationException
 
 trait ArticleApiClient {
   this: NdlaClient with ConverterService with Props =>

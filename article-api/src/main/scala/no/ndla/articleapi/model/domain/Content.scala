@@ -10,7 +10,6 @@ package no.ndla.articleapi.model.domain
 
 import no.ndla.articleapi.Props
 import no.ndla.common.model.domain.Availability
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
@@ -18,6 +17,7 @@ import org.json4s.native.Serialization._
 import scalikejdbc._
 
 import java.time.LocalDateTime
+import no.ndla.scalatra.error.ValidationException
 
 sealed trait Content {
   def id: Option[Long]
@@ -87,10 +87,9 @@ object ArticleType extends Enumeration {
 
   def valueOfOrError(s: String): ArticleType.Value =
     valueOf(s).getOrElse(
-      throw new ValidationException(
-        errors = List(
-          ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.")
-        )
+      throw ValidationException(
+        "articleType",
+        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
       )
     )
 }

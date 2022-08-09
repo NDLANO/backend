@@ -11,13 +11,13 @@ import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
 import no.ndla.draftapi.service.WriteService
-import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NoContent
 import org.scalatra.servlet.FileUploadSupport
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
+import no.ndla.scalatra.error.ValidationException
 
 trait FileController {
   this: WriteService with User with NdlaController =>
@@ -64,7 +64,7 @@ trait FileController {
             }
           case None =>
             errorHandler(
-              new ValidationException(errors = Seq(ValidationMessage("file", "The request must contain a file")))
+              ValidationException("file", "The request must contain a file")
             )
         }
       }
@@ -93,10 +93,9 @@ trait FileController {
             }
           case None =>
             errorHandler(
-              new ValidationException(
-                errors = Seq(
-                  ValidationMessage(this.filePath.paramName, "The request must contain a file path query parameter")
-                )
+              ValidationException(
+                this.filePath.paramName,
+                "The request must contain a file path query parameter"
               )
             )
         }

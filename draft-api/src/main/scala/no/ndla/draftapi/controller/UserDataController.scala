@@ -62,7 +62,7 @@ trait UserDataController {
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
-        val updatedUserData = extract[UpdatedUserData](request.body)
+        val updatedUserData = tryExtract[UpdatedUserData](request.body)
         updatedUserData.flatMap(userData => writeService.updateUserData(userData, userInfo)) match {
           case Success(data)      => Ok(data)
           case Failure(exception) => errorHandler(exception)

@@ -15,7 +15,7 @@ import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{HtmlTagRules, ValidationMessage}
+import no.ndla.validation.{HtmlTagRules}
 import org.mockito.ArgumentMatchers._
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
+import no.ndla.scalatra.error.ValidationMessage
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService

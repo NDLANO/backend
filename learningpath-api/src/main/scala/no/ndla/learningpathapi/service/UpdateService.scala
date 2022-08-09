@@ -24,6 +24,7 @@ import no.ndla.common.Clock
 import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.network.clients.FeideApiClient
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
+import no.ndla.scalatra.error.ValidationException
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -434,13 +435,9 @@ trait UpdateService {
         case Failure(_: NotFoundException) =>
           val paramName = "parentId"
           Failure(
-            new ValidationException(
-              errors = List(
-                ValidationMessage(
-                  paramName,
-                  s"Invalid value for $paramName. The UUID specified does not exist or is not writable by you."
-                )
-              )
+            ValidationException(
+              paramName,
+              s"Invalid value for $paramName. The UUID specified does not exist or is not writable by you."
             )
           )
         case Failure(ex) => Failure(ex)
@@ -456,13 +453,9 @@ trait UpdateService {
             case Failure(ex) => Failure(ex)
             case Success(currentDepth) if currentDepth >= props.MaxFolderDepth =>
               Failure(
-                new ValidationException(
-                  errors = List(
-                    ValidationMessage(
-                      "MAX_DEPTH_LIMIT_REACHED",
-                      s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
-                    )
-                  )
+                ValidationException(
+                  "MAX_DEPTH_LIMIT_REACHED",
+                  s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
                 )
               )
             case _ => Success(())
