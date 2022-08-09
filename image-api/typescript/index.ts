@@ -110,6 +110,7 @@ export interface ISearchParams {
   query?: string
   license?: string
   language?: string
+  fallback?: boolean
   minimumSize?: number
   includeCopyrighted?: boolean
   sort?: string
