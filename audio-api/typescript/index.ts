@@ -125,6 +125,7 @@ export interface ISearchParams {
   scrollId?: string
   audioType?: string
   filterBySeries?: boolean
+  fallback?: boolean
 }
 
 export interface ISeries {
@@ -144,6 +145,7 @@ export interface ISeriesSearchParams {
   pageSize?: number
   sort?: string
   scrollId?: string
+  fallback?: boolean
 }
 
 export interface ISeriesSummary {
