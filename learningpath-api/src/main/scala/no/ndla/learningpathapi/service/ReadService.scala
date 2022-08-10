@@ -41,9 +41,7 @@ trait ReadService {
 
   class ReadService {
 
-    private val getUserFeideIDMemoize = Memoize(feideApiClient.getUserFeideID)
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] =
-      getUserFeideIDMemoize(feideAccessToken)
+    private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -174,7 +172,7 @@ trait ReadService {
 
     def getAllResources(size: Int, feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
-        feideId            <- this.getUserFeideID(feideAccessToken)
+        feideId            <- getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
@@ -228,7 +226,7 @@ trait ReadService {
     ): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId           <- this.getUserFeideID(feideAccessToken)
+        feideId           <- getUserFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.hasReadAccess(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
@@ -289,7 +287,7 @@ trait ReadService {
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- this.getUserFeideID(feideAccessToken)
+        feideId      <- getUserFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)

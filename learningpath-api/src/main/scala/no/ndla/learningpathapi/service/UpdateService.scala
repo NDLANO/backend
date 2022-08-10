@@ -47,9 +47,7 @@ trait UpdateService {
 
   class UpdateService {
 
-    private val getUserFeideIDMemoize = Memoize(feideApiClient.getUserFeideID)
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] =
-      getUserFeideIDMemoize(feideAccessToken)
+    private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def updateTaxonomyForLearningPath(
         pathId: Long,
@@ -465,7 +463,7 @@ trait UpdateService {
 
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       for {
-        feideId           <- this.getUserFeideID(feideAccessToken)
+        feideId           <- getUserFeideID(feideAccessToken)
         document          <- converterService.toDomainFolderDocument(newFolder)
         parentId          <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         validatedParentId <- parentId.traverse(pid => validateParentId(pid, feideId))
@@ -482,7 +480,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.Resource] =
       for {
-        feideId <- this.getUserFeideID(feideAccessToken)
+        feideId <- getUserFeideID(feideAccessToken)
         _ <- folderRepository
           .folderWithFeideId(folderId, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
@@ -530,7 +528,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Folder] = {
       for {
-        feideId        <- this.getUserFeideID(feideAccessToken)
+        feideId        <- getUserFeideID(feideAccessToken)
         existingFolder <- folderRepository.folderWithId(id)
         _              <- existingFolder.isOwner(feideId)
         converted = converterService.mergeFolder(existingFolder, updatedFolder)
@@ -546,7 +544,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Resource] = {
       for {
-        feideId          <- this.getUserFeideID(feideAccessToken)
+        feideId          <- getUserFeideID(feideAccessToken)
         existingResource <- folderRepository.resourceWithId(id)
         _                <- existingResource.isOwner(feideId)
         converted = converterService.mergeResource(existingResource, updatedResource)
@@ -576,7 +574,7 @@ trait UpdateService {
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId         <- this.getUserFeideID(feideAccessToken)
+        feideId         <- getUserFeideID(feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
         _               <- folder.canDelete(feideId)
         folderWithData  <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
@@ -591,7 +589,7 @@ trait UpdateService {
     ): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId  <- this.getUserFeideID(feideAccessToken)
+        feideId  <- getUserFeideID(feideAccessToken)
         folder   <- folderRepository.folderWithId(folderId)
         _        <- folder.isOwner(feideId)
         resource <- folderRepository.resourceWithId(resourceId)
@@ -602,7 +600,7 @@ trait UpdateService {
 
     def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
       for {
-        feideId <- this.getUserFeideID(feideAccessToken)
+        feideId <- getUserFeideID(feideAccessToken)
         _       <- folderRepository.deleteAllUserFolders(feideId)
         _       <- folderRepository.deleteAllUserResources(feideId)
       } yield ()
