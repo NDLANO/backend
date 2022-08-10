@@ -11,15 +11,16 @@ import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
-import com.sksamuel.elastic4s.requests.searches.queries.Query
+import com.sksamuel.elastic4s.requests.searches.queries.{Query, SimpleStringQuery}
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.SearchResult
 import no.ndla.audioapi.model.Sort
+import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
@@ -52,13 +53,28 @@ trait SearchService {
         searchField: String,
         language: Option[String],
         query: String,
-        boost: Float
+        boost: Float,
+        fallback: Boolean
     ): Query = {
+      val searchLanguage = language match {
+        case Some(lang) if Iso639.get(lang).isSuccess => lang
+        case _                                        => Language.AllLanguages
+      }
+
+      if (searchLanguage == Language.AllLanguages || fallback) {
+        SearchLanguage.languageAnalyzers.foldLeft(SimpleStringQuery(query))((acc, cur) => {
+          val languageTag = cur.languageTag.toString
+          val fieldBoost  = if (languageTag == searchLanguage) boost + 1 else boost
+          acc.field(s"$searchField.$languageTag", fieldBoost)
+        })
+      } else {
+        simpleStringQuery(query).field(s"$searchField.$searchLanguage", boost)
+      }
+
       language match {
         case Some(lang) if Iso639.get(lang).isSuccess =>
           simpleStringQuery(query).field(s"$searchField.$lang", boost)
-        case _ =>
-          simpleStringQuery(query).field(s"$searchField.*", boost)
+        case _ => simpleStringQuery(query).field(s"$searchField.*", boost)
       }
     }
 
@@ -67,13 +83,10 @@ trait SearchService {
     def getHits(response: SearchResponse, language: String): Try[Seq[T]] = {
       response.totalHits match {
         case count if count > 0 =>
-          val resultArray = response.hits.hits.toList
-
-          resultArray.traverse(result => {
+          response.hits.hits.toList.traverse(result => {
             val matchedLanguage = language match {
-              case AllLanguages =>
-                searchConverterService.getLanguageFromHit(result).getOrElse(language)
-              case _ => language
+              case AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+              case _            => language
             }
 
             hitToApiModel(result.sourceAsString, matchedLanguage)

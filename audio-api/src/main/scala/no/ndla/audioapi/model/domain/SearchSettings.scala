@@ -18,5 +18,6 @@ case class SearchSettings(
     sort: Sort,
     shouldScroll: Boolean,
     audioType: Option[AudioType.Value],
-    seriesFilter: Option[Boolean]
+    seriesFilter: Option[Boolean],
+    fallback: Boolean
 )

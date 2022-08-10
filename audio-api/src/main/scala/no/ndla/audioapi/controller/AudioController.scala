@@ -123,6 +123,7 @@ trait AudioController {
         |'false' will return only audios that are NOT a part of a series.
         |Not specifying will return both audios that are a part of a series and not.""".stripMargin
     )
+    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
     /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -160,7 +161,8 @@ trait AudioController {
             asQueryParam(pageSize),
             asQueryParam(scrollId),
             asQueryParam(audioType),
-            asQueryParam(seriesFilter)
+            asQueryParam(seriesFilter),
+            asQueryParam(fallback)
           )
           .responseMessages(response404, response500)
       )
@@ -177,6 +179,7 @@ trait AudioController {
         val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
         val atype        = paramOrNone(audioType.paramName)
         val seriesFilter = booleanOrNone(this.seriesFilter.paramName)
+        val fallback     = booleanOrDefault(this.fallback.paramName, default = false)
 
         search(
           query,
@@ -187,7 +190,8 @@ trait AudioController {
           page,
           shouldScroll,
           atype,
-          seriesFilter
+          seriesFilter,
+          fallback
         )
       }
     }
@@ -219,7 +223,8 @@ trait AudioController {
           searchParams.page,
           shouldScroll,
           searchParams.audioType,
-          searchParams.filterBySeries
+          searchParams.filterBySeries,
+          searchParams.fallback.getOrElse(false)
         )
       }
     }
@@ -233,7 +238,8 @@ trait AudioController {
         page: Option[Int],
         shouldScroll: Boolean,
         audioType: Option[String],
-        seriesFilter: Option[Boolean]
+        seriesFilter: Option[Boolean],
+        fallback: Boolean
     ) = {
       val searchSettings = query match {
         case Some(q) =>
@@ -246,7 +252,8 @@ trait AudioController {
             sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
             shouldScroll = shouldScroll,
             audioType = audioType.flatMap(AudioType.valueOf),
-            seriesFilter = seriesFilter
+            seriesFilter = seriesFilter,
+            fallback = fallback
           )
 
         case None =>
@@ -259,7 +266,8 @@ trait AudioController {
             sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
             shouldScroll = shouldScroll,
             audioType = audioType.flatMap(AudioType.valueOf),
-            seriesFilter = seriesFilter
+            seriesFilter = seriesFilter,
+            fallback = fallback
           )
       }
 

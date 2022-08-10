@@ -16,6 +16,7 @@ import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
+import no.ndla.language.Language.AllLanguages
 import no.ndla.search.Elastic4sClient
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s._
@@ -49,14 +50,23 @@ trait AudioSearchService {
 
       val fullSearch = settings.query match {
         case Some(query) =>
+          val languageSearch = (field: String, boost: Float) =>
+            languageSpecificSearch(
+              field,
+              settings.language,
+              query,
+              boost,
+              fallback = settings.fallback
+            )
+
           boolQuery()
             .must(
               boolQuery()
                 .should(
-                  languageSpecificSearch("titles", settings.language, query, 2),
-                  languageSpecificSearch("tags", settings.language, query, 1),
-                  languageSpecificSearch("manuscript", settings.language, query, 1),
-                  languageSpecificSearch("podcastMetaIntroduction", settings.language, query, 1),
+                  languageSearch("titles", 2),
+                  languageSearch("tags", 1),
+                  languageSearch("manuscript", 1),
+                  languageSearch("podcastMetaIntroduction", 1),
                   idsQuery(query)
                 )
             )
@@ -80,8 +90,10 @@ trait AudioSearchService {
       }
 
       val (languageFilter, searchLanguage) = settings.language match {
-        case Some(lang) => (Some(existsQuery(s"titles.$lang")), lang)
-        case _          => (None, "*")
+        case None | Some(AllLanguages) => (None, "*")
+        case Some(lang) =>
+          if (settings.fallback) (None, lang)
+          else (Some(existsQuery(s"titles.$lang")), lang)
       }
 
       val audioTypeFilter = settings.audioType match {

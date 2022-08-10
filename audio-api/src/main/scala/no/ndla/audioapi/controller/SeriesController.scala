@@ -26,14 +26,11 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.scalatra.NdlaSwaggerSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
-import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger._
-import org.scalatra.util.NotNothing
-
-import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
@@ -51,7 +48,7 @@ trait SeriesController {
   class SeriesController(implicit val swagger: Swagger)
       extends NdlaController
       with FileUploadSupport
-      with SwaggerSupport {
+      with NdlaSwaggerSupport {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription                 = "Services for accessing audio."
@@ -68,8 +65,6 @@ trait SeriesController {
     val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
     val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    case class Param[T](paramName: String, description: String)
 
     private val seriesId = Param[String]("series_id", "Id of series.")
     private val correlationId =
@@ -99,36 +94,7 @@ trait SeriesController {
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
          |""".stripMargin
     )
-
-    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
-      queryParam[T](param.paramName).description(param.description)
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
-      headerParam[T](param.paramName).description(param.description)
-    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
-      pathParam[T](param.paramName).description(param.description)
-
-    @unused
-    private def asObjectFormParam[T: Manifest: NotNothing](param: Param[T]) = {
-      val className = manifest[T].runtimeClass.getSimpleName
-      val modelOpt  = models.get(className)
-
-      modelOpt match {
-        case Some(value) =>
-          formParam(param.paramName, value).description(param.description)
-        case None =>
-          logger.error(s"${param.paramName} could not be resolved as object formParam, doing regular formParam.")
-          formParam[T](param.paramName).description(param.description)
-      }
-    }
-
-    @unused
-    private def asFileParam(param: Param[_]) =
-      Parameter(
-        name = param.paramName,
-        `type` = ValueDataType("file"),
-        description = Some(param.description),
-        paramType = ParamType.Form
-      )
+    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
     /** Does a scroll with [[SeriesSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -163,7 +129,8 @@ trait SeriesController {
             asQueryParam(sort),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
-            asQueryParam(scrollId)
+            asQueryParam(scrollId),
+            asQueryParam(fallback)
           )
           .responseMessages(response404, response500)
       )
@@ -177,8 +144,9 @@ trait SeriesController {
         val pageSize     = paramOrNone(this.pageSize.paramName).flatMap(ps => Try(ps.toInt).toOption)
         val page         = paramOrNone(this.pageNo.paramName).flatMap(idx => Try(idx.toInt).toOption)
         val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+        val fallback     = booleanOrDefault(this.fallback.paramName, default = false)
 
-        search(query, language, sort, pageSize, page, shouldScroll)
+        search(query, language, sort, pageSize, page, shouldScroll, fallback)
       }
     }
 
@@ -204,8 +172,9 @@ trait SeriesController {
         val pageSize     = searchParams.pageSize
         val page         = searchParams.page
         val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+        val fallback     = searchParams.fallback.getOrElse(false)
 
-        search(query, language, sort, pageSize, page, shouldScroll)
+        search(query, language, sort, pageSize, page, shouldScroll, fallback)
       }
     }
 
@@ -215,7 +184,8 @@ trait SeriesController {
         sort: Option[String],
         pageSize: Option[Int],
         page: Option[Int],
-        shouldScroll: Boolean
+        shouldScroll: Boolean,
+        fallback: Boolean
     ) = {
       val searchSettings = query match {
         case Some(q) =>
@@ -225,7 +195,8 @@ trait SeriesController {
             page = page,
             pageSize = pageSize,
             sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc),
-            shouldScroll = shouldScroll
+            shouldScroll = shouldScroll,
+            fallback = fallback
           )
 
         case None =>
@@ -235,7 +206,8 @@ trait SeriesController {
             page = page,
             pageSize = pageSize,
             sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc),
-            shouldScroll = shouldScroll
+            shouldScroll = shouldScroll,
+            fallback = fallback
           )
       }
 

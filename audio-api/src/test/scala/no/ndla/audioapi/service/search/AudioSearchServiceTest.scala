@@ -573,6 +573,40 @@ class AudioSearchServiceTest
 
   }
 
+  test("That fallback searching includes audios with languages outside the search") {
+    val Success(result1) = audioSearchService.matchingQuery(
+      searchSettings.copy(
+        query = None,
+        fallback = true,
+        language = Some("en"),
+        sort = Sort.ByIdAsc
+      )
+    )
+    result1.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
+    result1.results(0).title.language should be("nb")
+    result1.results(1).title.language should be("nb")
+    result1.results(2).title.language should be("en")
+    result1.results(3).title.language should be("nb")
+    result1.results(4).title.language should be("en")
+    result1.results(5).title.language should be("pt-br")
+
+    val Success(result2) = audioSearchService.matchingQuery(
+      searchSettings.copy(
+        query = None,
+        fallback = true,
+        language = Some("nb"),
+        sort = Sort.ByIdAsc
+      )
+    )
+    result2.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
+    result2.results(0).title.language should be("nb")
+    result2.results(1).title.language should be("nb")
+    result2.results(2).title.language should be("nb")
+    result2.results(3).title.language should be("nb")
+    result2.results(4).title.language should be("nb")
+    result2.results(5).title.language should be("pt-br")
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done    = false
