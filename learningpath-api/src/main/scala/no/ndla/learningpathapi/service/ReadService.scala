@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import cats.implicits._
-import no.ndla.learningpathapi.integration.FeideApiClient
+import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
@@ -23,6 +23,7 @@ import no.ndla.learningpathapi.model.domain.{
   _
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
+import no.ndla.network.clients.FeideApiClient
 import scalikejdbc.DBSession
 
 import java.util.UUID
@@ -39,6 +40,8 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+
+    private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -169,7 +172,7 @@ trait ReadService {
 
     def getAllResources(size: Int, feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
       for {
-        feideId            <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId            <- getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
@@ -223,7 +226,7 @@ trait ReadService {
     ): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId           <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId           <- getUserFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.hasReadAccess(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
@@ -284,7 +287,7 @@ trait ReadService {
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- feideApiClient.getUserFeideID(feideAccessToken)
+        feideId      <- getUserFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
@@ -293,6 +296,17 @@ trait ReadService {
           v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)))
         )
       } yield apiFolders
+    }
+
+    def getSharedFolder(id: UUID): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
+      for {
+        folderWithContent <- getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
+        _ <- if (!folderWithContent.isPrivate) Success(()) else Failure(NotFoundException("Folder does not exist"))
+        folderAsTopFolder = folderWithContent.copy(parentId = None)
+        breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
+        converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs)
+      } yield converted
     }
   }
 }

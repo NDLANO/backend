@@ -8,12 +8,13 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.common.model.domain.Availability
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{AccessDeniedException, Error, ErrorHelpers, TaxonomyException}
-import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
+import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext

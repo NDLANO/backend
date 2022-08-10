@@ -12,6 +12,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.Availability
 
 import java.time.LocalDateTime
 import scala.util.Success
@@ -234,7 +235,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val partialArticle =
       api.PartialPublishArticle(
-        availability = Some(api.Availability.teacher),
+        availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(Seq(api.ArticleMetaDescription("nyDesc", "nb"))),
@@ -280,7 +281,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val revisionDate = LocalDateTime.now()
     val partialArticle =
       api.PartialPublishArticle(
-        availability = Some(api.Availability.teacher),
+        availability = Some(Availability.teacher),
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(

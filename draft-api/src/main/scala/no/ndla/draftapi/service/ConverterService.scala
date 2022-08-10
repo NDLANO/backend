@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.Availability
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -732,14 +733,6 @@ trait ConverterService {
               revisionMeta = updatedRevisionMeta
             )
           )
-      }
-    }
-
-    def toApiAvailability(availability: domain.Availability.Value): api.Availability.Value = {
-      availability match {
-        case domain.Availability.everyone => api.Availability.everyone
-        case domain.Availability.teacher  => api.Availability.teacher
-        case _                            => api.Availability.everyone
       }
     }
 

@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi
 
-import no.ndla.network.secrets.PropertyKeys
+import no.ndla.common.secrets.PropertyKeys
 import no.ndla.scalatestsuite.UnitTestSuite
 
 trait UnitSuite extends UnitTestSuite {

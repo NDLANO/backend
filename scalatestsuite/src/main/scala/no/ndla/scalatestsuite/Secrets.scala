@@ -1,12 +1,12 @@
 /*
- * Part of NDLA network.
- * Copyright (C) 2016 NDLA
+ * Part of NDLA scalatestsuite.
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.network.secrets
+package no.ndla.scalatestsuite
 
 object PropertyKeys {
   val MetaUserNameKey = "META_USER_NAME"

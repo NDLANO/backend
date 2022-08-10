@@ -9,8 +9,9 @@ package no.ndla.articleapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.{Article, ArticleType, Availability}
+import no.ndla.articleapi.model.domain.{Article, ArticleType}
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.common.model.domain.Availability
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}

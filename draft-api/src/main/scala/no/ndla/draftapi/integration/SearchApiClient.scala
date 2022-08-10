@@ -9,6 +9,7 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService

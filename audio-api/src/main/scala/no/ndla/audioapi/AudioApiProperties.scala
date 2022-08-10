@@ -11,7 +11,7 @@ package no.ndla.audioapi
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
 import no.ndla.network.{AuthUser, Domains}
-import no.ndla.network.secrets.PropertyKeys
+import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties._
 

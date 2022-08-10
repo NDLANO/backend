@@ -9,10 +9,11 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.language.Language.AllLanguages
+import no.ndla.common.model.domain.Availability
 import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
-import no.ndla.searchapi.integration.{FeideApiClient, SearchApiClient}
+import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{
   AccessDeniedException,
   Error,
@@ -21,7 +22,7 @@ import no.ndla.searchapi.model.api.{
   SearchResults,
   ValidationError
 }
-import no.ndla.searchapi.model.domain.article.{Availability, LearningResourceType}
+import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
@@ -32,6 +33,7 @@ import no.ndla.searchapi.service.search.{
   SearchService
 }
 import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
+import no.ndla.network.clients.FeideApiClient
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -641,7 +643,7 @@ trait SearchController {
         case None => Success(List.empty)
         case Some(token) =>
           feideApiClient.getUser(token) match {
-            case Success(user) => Success(user.availabilities)
+            case Success(user) => Success(user.availabilities.toList)
             case Failure(ex) =>
               logger.error(s"Error when fetching user from feide with accessToken '$token'")
               Failure(ex)

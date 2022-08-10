@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi
 
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}

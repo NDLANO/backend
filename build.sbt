@@ -124,8 +124,8 @@ lazy val `search-api` = Module.setup(
 
 // Libraries
 lazy val common         = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite)))
-lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib, deps = Seq(network))
-lazy val network        = Module.setup(project in file("./network/"), networklib)
+lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib)
+lazy val network        = Module.setup(project in file("./network/"), networklib, deps = Seq(common))
 lazy val language       = Module.setup(project in file("./language/"), languagelib)
 lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
 lazy val validation     = Module.setup(project in file("./validation/"), validationlib, deps = Seq(scalatra))

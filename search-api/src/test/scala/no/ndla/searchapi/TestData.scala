@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi
 
+import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain
@@ -23,6 +24,7 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy._
+
 import java.time.LocalDateTime
 
 object TestData {

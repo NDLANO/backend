@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi
 
 import no.ndla.scalatestsuite.UnitTestSuite
-import no.ndla.network.secrets.PropertyKeys
+import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties.setProp
 

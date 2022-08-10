@@ -9,6 +9,7 @@ package no.ndla.draftapi.model.api
 
 import com.scalatsi.TypescriptType.TSNull
 import com.scalatsi._
+import no.ndla.common.model.domain.Availability
 
 /** The `scala-tsi` plugin is not always able to derive the types that are used in `Seq` or other generic types.
   * Therefore we need to explicitly load the case classes here. This is only necessary if the `sbt generateTypescript`

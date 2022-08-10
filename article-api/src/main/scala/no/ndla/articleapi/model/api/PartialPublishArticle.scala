@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.model.api
 
+import no.ndla.common.model.domain.Availability
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import java.time.LocalDateTime

@@ -8,28 +8,7 @@
 
 package no.ndla.learningpathapi.model.domain
 
-import java.util.UUID
 import scala.util.{Failure, Success, Try}
-
-trait Content {
-  def id: Option[UUID]
-  def feideId: FeideID
-
-  def doIfIdExists[T](func: UUID => T): Try[T] = {
-    this.id match {
-      case None     => Failure(MissingIdException("Entity did not have id when expected. This is a bug."))
-      case Some(id) => Success(func(id))
-    }
-  }
-
-  def doFlatIfIdExists[T](func: UUID => Try[T]): Try[T] = {
-    this.id match {
-      case None     => Failure(MissingIdException("Entity did not have id when expected. This is a bug."))
-      case Some(id) => func(id)
-    }
-  }
-
-}
 
 trait FeideContent {
   val feideId: FeideID
@@ -45,7 +24,8 @@ trait FolderContent extends FeideContent {
   def isFavorite: Boolean
   val feideId: FeideID
 
-  def isPublic: Boolean = this.status == FolderStatus.PUBLIC
+  def isPublic: Boolean  = this.status == FolderStatus.PUBLIC
+  def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
 
   def canDelete(feideId: FeideID): Try[_] = {
     isOwner(feideId) match {

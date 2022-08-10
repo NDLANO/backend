@@ -9,8 +9,6 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleIds, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
@@ -33,10 +31,7 @@ trait ArticleControllerV2 {
     with ArticleSearchService
     with SearchConverterService
     with ConverterService
-    with Role
-    with User
     with ContentValidator
-    with FeideApiClient
     with Props
     with ErrorHelpers
     with NdlaController =>

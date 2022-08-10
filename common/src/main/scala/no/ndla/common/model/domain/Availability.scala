@@ -1,11 +1,11 @@
 /*
- * Part of NDLA article-api.
- * Copyright (C) 2021 NDLA
+ * Part of NDLA common.
+ * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.searchapi.model.domain.article
+package no.ndla.common.model.domain
 
 object Availability extends Enumeration {
   val everyone, teacher = Value

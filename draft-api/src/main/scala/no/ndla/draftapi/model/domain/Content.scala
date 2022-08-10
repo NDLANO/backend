@@ -8,6 +8,7 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
+import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._

@@ -175,10 +175,9 @@ trait ConverterService {
     }
 
     def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
-      val newAvailability =
-        partialArticle.availability.map(toDomainAvailability).getOrElse(existingArticle.availability)
-      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
-      val newLicense   = partialArticle.license.getOrElse(existingArticle.copyright.license)
+      val newAvailability = partialArticle.availability.getOrElse(existingArticle.availability)
+      val newGrepCodes    = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+      val newLicense      = partialArticle.license.getOrElse(existingArticle.copyright.license)
 
       val newMeta = partialArticle.metaDescription match {
         case Some(metaDesc) =>
@@ -211,22 +210,6 @@ trait ConverterService {
         tags = newTags,
         revisionDate = newRevisionDate
       )
-    }
-
-    def toApiAvailability(availability: domain.Availability.Value): api.Availability.Value = {
-      availability match {
-        case domain.Availability.everyone => api.Availability.everyone
-        case domain.Availability.teacher  => api.Availability.teacher
-        case _                            => api.Availability.everyone
-      }
-    }
-
-    private def toDomainAvailability(availability: api.Availability.Value): domain.Availability.Value = {
-      availability match {
-        case api.Availability.everyone => domain.Availability.everyone
-        case api.Availability.teacher  => domain.Availability.teacher
-        case _                         => domain.Availability.everyone
-      }
     }
 
     private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
