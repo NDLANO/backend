@@ -9,6 +9,7 @@ package draftapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.errors.ValidationException
 import no.ndla.network.model.HttpRequestException
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
@@ -21,7 +22,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalaj.http.{Http, HttpRequest, HttpResponse}
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
@@ -29,7 +30,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 case class BrightcoveToken(access_token: String, expires_in: Long)
 case class StoredToken(accessToken: String, expiresAt: Long)

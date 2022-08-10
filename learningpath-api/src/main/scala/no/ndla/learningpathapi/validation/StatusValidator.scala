@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.scalatra.error.ValidationMessage
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus, StepStatus}
 
 class StatusValidator {

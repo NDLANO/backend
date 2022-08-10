@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi.validation
 
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.learningpathapi.Props
-import no.ndla.scalatra.error.ValidationMessage
 
 trait UrlValidator {
   this: Props with TextValidator =>

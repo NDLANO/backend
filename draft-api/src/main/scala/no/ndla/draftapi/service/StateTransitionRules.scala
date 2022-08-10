@@ -9,6 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.IO
 import no.ndla.common.Clock
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain
@@ -32,8 +33,6 @@ import no.ndla.draftapi.validation.ContentValidator
 import scala.collection.mutable
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationMessage
-import no.ndla.scalatra.error.ValidationException
 
 trait StateTransitionRules {
   this: WriteService

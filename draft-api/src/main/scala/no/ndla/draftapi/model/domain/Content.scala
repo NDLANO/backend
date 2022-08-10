@@ -8,6 +8,7 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.language.Language.getSupportedLanguages
@@ -19,7 +20,6 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 sealed trait Content {
   def id: Option[Long]

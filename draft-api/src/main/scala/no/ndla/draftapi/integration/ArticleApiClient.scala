@@ -8,6 +8,7 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
@@ -24,7 +25,6 @@ import scalaj.http.Http
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Try}
-import no.ndla.scalatra.error.ValidationException
 
 trait ArticleApiClient {
   this: NdlaClient with ConverterService with Props =>

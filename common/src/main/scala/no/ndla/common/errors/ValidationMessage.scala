@@ -1,12 +1,12 @@
 /*
- * Part of NDLA scalatra.
+ * Part of NDLA common.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.scalatra.error
+package no.ndla.common.errors
 
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty

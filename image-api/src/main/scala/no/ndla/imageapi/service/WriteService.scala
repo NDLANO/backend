@@ -11,6 +11,7 @@ package no.ndla.imageapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Clock
+import no.ndla.common.errors.ValidationException
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._
@@ -24,7 +25,6 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.mergeLanguageFields
-import no.ndla.scalatra.error.ValidationException
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream

@@ -10,7 +10,7 @@ package no.ndla.searchapi.controller
 
 import no.ndla.language.Language.AllLanguages
 import no.ndla.common.model.domain.Availability
-import no.ndla.scalatra.NdlaSwaggerSupport
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient

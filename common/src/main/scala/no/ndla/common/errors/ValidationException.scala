@@ -1,12 +1,12 @@
 /*
- * Part of NDLA scalatra.
+ * Part of NDLA common.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.scalatra.error
+package no.ndla.common.errors
 
 case class ValidationException(
     message: String = "Validation Error",

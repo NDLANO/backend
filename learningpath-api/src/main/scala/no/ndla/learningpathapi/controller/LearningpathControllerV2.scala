@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
@@ -30,7 +31,6 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
 import org.scalatra.{Created, NoContent, NotFound, Ok}
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait LearningpathControllerV2 {
 

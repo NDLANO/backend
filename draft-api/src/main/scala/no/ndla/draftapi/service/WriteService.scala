@@ -13,6 +13,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -44,7 +45,6 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.jdk.CollectionConverters._
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: DraftRepository

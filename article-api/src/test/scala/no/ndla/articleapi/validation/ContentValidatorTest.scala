@@ -10,8 +10,8 @@ package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.mapping.License.{CC_BY_SA, NA}
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 import scala.util.Failure
 

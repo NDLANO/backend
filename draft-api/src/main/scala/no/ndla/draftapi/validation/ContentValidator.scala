@@ -8,6 +8,7 @@
 package no.ndla.draftapi.validation
 
 import no.ndla.common.DateParser
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -22,8 +23,6 @@ import no.ndla.validation._
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationMessage
-import no.ndla.scalatra.error.ValidationException
 
 trait ContentValidator {
   this: DraftRepository with ConverterService with ArticleApiClient with Props =>

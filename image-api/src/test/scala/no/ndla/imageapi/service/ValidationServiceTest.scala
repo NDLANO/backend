@@ -7,10 +7,10 @@
 
 package no.ndla.imageapi.service
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.scalatra.servlet.FileItem
 
 import java.time.LocalDateTime

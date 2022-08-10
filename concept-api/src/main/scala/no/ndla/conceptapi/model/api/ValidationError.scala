@@ -7,13 +7,13 @@
 
 package no.ndla.conceptapi.model.api
 
+import no.ndla.common.errors.ValidationMessage
 import java.time.LocalDateTime
 
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
-import no.ndla.scalatra.error.ValidationMessage
 
 @ApiModel(description = "Information about validation errors")
 case class ValidationError(

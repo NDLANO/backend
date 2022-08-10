@@ -11,6 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api._
+import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.NdlaSearchException
@@ -18,8 +19,6 @@ import org.apache.logging.log4j.ThreadContext
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.servlet.SizeConstraintExceededException
-
-import no.ndla.scalatra.NdlaControllerBase
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>

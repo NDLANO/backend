@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationError
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
@@ -17,7 +18,6 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.ResponseMessage
 
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.scalatra.swagger.Swagger
 import org.scalatra.BadRequest

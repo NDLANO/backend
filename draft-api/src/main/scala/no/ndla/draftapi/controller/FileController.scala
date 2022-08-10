@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api._
@@ -17,7 +18,6 @@ import org.scalatra.servlet.FileUploadSupport
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 trait FileController {
   this: WriteService with User with NdlaController =>

@@ -8,12 +8,12 @@
 
 package no.ndla.imageapi.service
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
-import no.ndla.scalatra.error.ValidationException
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession

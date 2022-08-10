@@ -11,15 +11,15 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ErrorHelpers, NotFoundException, ValidationError}
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
-import no.ndla.scalatra.error.ValidationException
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>

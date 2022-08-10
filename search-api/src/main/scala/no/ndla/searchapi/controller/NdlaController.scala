@@ -9,8 +9,8 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{AccessDeniedException, Error, ErrorHelpers, TaxonomyException}

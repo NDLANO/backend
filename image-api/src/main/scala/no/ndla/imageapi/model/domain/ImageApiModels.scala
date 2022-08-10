@@ -8,8 +8,8 @@
 
 package no.ndla.imageapi.model.domain
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}

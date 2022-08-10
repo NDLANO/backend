@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
@@ -22,7 +23,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage

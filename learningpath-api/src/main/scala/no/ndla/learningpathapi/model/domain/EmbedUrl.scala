@@ -8,8 +8,8 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.LanguageField
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
   override def value: String    = url

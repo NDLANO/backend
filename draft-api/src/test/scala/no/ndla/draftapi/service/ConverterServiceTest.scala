@@ -8,6 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.NewArticleMetaImage
@@ -22,7 +23,6 @@ import org.mockito.invocation.InvocationOnMock
 
 import java.util.UUID
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 

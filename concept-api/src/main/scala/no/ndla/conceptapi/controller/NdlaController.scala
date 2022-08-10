@@ -7,6 +7,8 @@
 
 package no.ndla.conceptapi.controller
 
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
@@ -18,8 +20,6 @@ import no.ndla.conceptapi.model.api.{
 }
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.scalatra.error.ValidationException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers

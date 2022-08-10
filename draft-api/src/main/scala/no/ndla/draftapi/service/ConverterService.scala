@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
@@ -29,8 +30,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
-import no.ndla.scalatra.error.ValidationMessage
 
 trait ConverterService {
   this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService with Props =>

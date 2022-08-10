@@ -12,7 +12,6 @@ import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
-import no.ndla.scalatra.error.ValidationMessage
 
 class TextValidator(allowHtml: Boolean) {
   private def IllegalContentInBasicText =

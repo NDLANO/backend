@@ -1,15 +1,15 @@
 /*
- * Part of NDLA scalatra.
+ * Part of NDLA common.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.scalatra
+package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport

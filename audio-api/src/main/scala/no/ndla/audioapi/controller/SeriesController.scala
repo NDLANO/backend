@@ -25,8 +25,8 @@ import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language
-import no.ndla.scalatra.NdlaSwaggerSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}

@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.errors.ValidationException
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
@@ -29,7 +30,6 @@ import scalikejdbc.DBSession
 import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _

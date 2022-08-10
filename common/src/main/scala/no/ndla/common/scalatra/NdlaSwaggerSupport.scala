@@ -1,12 +1,12 @@
 /*
- * Part of NDLA scalatra.
+ * Part of NDLA common.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.scalatra
+package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatra.swagger.DataType.ValueDataType

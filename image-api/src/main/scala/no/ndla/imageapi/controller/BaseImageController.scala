@@ -8,10 +8,10 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.api.{Error, NewImageMetaInformationV2, UpdateImageMetaInformation, ValidationError}
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ModelReleasedStatus, Sort}
-import no.ndla.scalatra.NdlaSwaggerSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger._
