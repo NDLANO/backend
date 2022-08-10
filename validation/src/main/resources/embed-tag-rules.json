@@ -35,7 +35,8 @@
         "data-type"
       ],
       "optional": [
-        [ "data-caption" ]
+        [ "data-caption" ],
+        [ "data-alt" ]
       ]
     },
     "nrk": {
@@ -65,7 +66,8 @@
         "data-player"
       ],
       "optional": [
-        [ "data-title" ]
+        [ "data-title" ],
+        [ "data-alt" ]
       ]
     },
     "image": {
@@ -94,12 +96,12 @@
     },
     "concept": {
       "requiredNonEmpty": [
-        "data-content-id",
+        "data-content-id"
       ],
       "required": [
         "data-resource",
         "data-content-id",
-        "data-type",
+        "data-type"
       ],
       "optional": [
         ["data-link-text"]
@@ -148,7 +150,6 @@
         "www.vg.no",
         "livestream.com",
         ".*.livestream.com",
-        "channel9.msdn.com",
         "tomknudsen.no",
         "www.tomknudsen.no",
         "geogebra.org",
@@ -161,7 +162,6 @@
         "miljostatus.no",
         "phet.colorado.edu",
         "static.nrk.no",
-        "e.issuu.com",
         "lab.concord.org",
         ".*.worldbank.org",
         "worldbank.org",
