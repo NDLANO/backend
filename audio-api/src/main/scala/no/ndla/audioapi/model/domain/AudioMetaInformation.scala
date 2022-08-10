@@ -12,10 +12,11 @@ import no.ndla.audioapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
-import org.json4s.ext.EnumNameSerializer
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
+
 import java.time.LocalDateTime
 
 case class AudioMetaInformation(
@@ -80,7 +81,7 @@ trait DBAudioMetaInformation {
     override val tableName                  = "audiodata"
     override val schemaName: Option[String] = Some(props.MetaSchema)
 
-    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType)
+    val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(AudioType) ++ JavaTimeSerializers.all
 
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[AudioMetaInformation](
