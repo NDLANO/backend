@@ -86,7 +86,7 @@ trait DBResource {
   }
 }
 
-case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatus.Value) {
+case class FolderDocument(name: String, status: FolderStatus.Value) {
   def toFullFolder(
       id: UUID,
       feideId: FeideID,
@@ -100,7 +100,6 @@ case class FolderDocument(isFavorite: Boolean, name: String, status: FolderStatu
       parentId = parentId,
       name = name,
       status = status,
-      isFavorite = isFavorite,
       resources = resources,
       subfolders = subfolders
     )
@@ -113,12 +112,10 @@ case class Folder(
     parentId: Option[UUID],
     name: String,
     status: FolderStatus.Value,
-    isFavorite: Boolean,
     subfolders: List[Folder],
     resources: List[Resource]
 ) extends FolderContent {
   def toDocument(): FolderDocument = FolderDocument(
-    isFavorite = isFavorite,
     name = name,
     status = status
   )

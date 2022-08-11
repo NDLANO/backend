@@ -1532,45 +1532,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(readService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any)
   }
 
-  test("that a user with access can not delete Favorite folder") {
-    val correctFeideId = "FEIDE"
-    val mainFolderId   = UUID.randomUUID()
-    val subFolder1Id   = UUID.randomUUID()
-    val subFolder2Id   = UUID.randomUUID()
-    val resourceId     = UUID.randomUUID()
-    val folderWithChildren =
-      emptyDomainFolder.copy(
-        id = mainFolderId,
-        feideId = "FEIDE",
-        isFavorite = true,
-        subfolders = List(
-          emptyDomainFolder.copy(id = subFolder1Id),
-          emptyDomainFolder.copy(id = subFolder2Id)
-        ),
-        resources = List(
-          emptyDomainResource.copy(id = resourceId)
-        )
-      )
-
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
-    when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0))
-    when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(any)(any[DBSession]))
-      .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
-    when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
-
-    service.deleteFolder(mainFolderId, Some("token")) should be(
-      Failure(DeleteFavoriteException("Favorite folder can not be deleted"))
-    )
-
-    verify(folderRepository, times(0)).deleteFolder(eqTo(mainFolderId))(any)
-    verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder1Id))(any)
-    verify(folderRepository, times(0)).deleteFolder(eqTo(subFolder2Id))(any)
-    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any)
-    verify(readService, times(0)).getSingleFolderWithContent(any, any, any)(any)
-  }
-
   test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
     val mainFolderId = UUID.randomUUID()
     val subFolder1Id = UUID.randomUUID()
@@ -1880,7 +1841,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(parentId),
       name = "asd",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
       subfolders = List.empty,
       resources = List.empty
     )
@@ -1888,7 +1848,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       id = folderId.toString,
       name = "asd",
       status = "private",
-      isFavorite = false,
       parentId = Some(parentId.toString),
       breadcrumbs = List.empty,
       subfolders = List.empty,

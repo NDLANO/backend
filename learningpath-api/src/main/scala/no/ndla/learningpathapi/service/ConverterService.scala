@@ -690,14 +690,12 @@ trait ConverterService {
     }
 
     def toDomainFolderDocument(newFolder: api.NewFolder): Try[domain.FolderDocument] = {
-      val newStatus   = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-      val newFavorite = false
+      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
 
       Success(
         FolderDocument(
           name = newFolder.name,
-          status = newStatus,
-          isFavorite = newFavorite
+          status = newStatus
         )
       )
     }
@@ -720,7 +718,6 @@ trait ConverterService {
                 id = folder.id.toString,
                 name = folder.name,
                 status = folder.status.toString,
-                isFavorite = folder.isFavorite,
                 subfolders = subFolders,
                 resources = resources,
                 breadcrumbs = crumbs,
@@ -742,7 +739,6 @@ trait ConverterService {
         subfolders = existing.subfolders,
         feideId = existing.feideId,
         parentId = existing.parentId,
-        isFavorite = existing.isFavorite,
         name = name,
         status = status
       )
