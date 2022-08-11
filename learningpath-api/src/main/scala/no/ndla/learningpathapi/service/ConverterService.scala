@@ -12,7 +12,13 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
-import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSearchLanguage, mergeLanguageFields}
+import no.ndla.language.Language.{
+  AllLanguages,
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getSearchLanguage,
+  mergeLanguageFields
+}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.{LearningPathStatus => _, _}

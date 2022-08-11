@@ -1,5 +1,6 @@
 package no.ndla.validation
 
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
 
 class HtmlValidatorTest extends UnitSuite {

@@ -7,6 +7,7 @@
 
 package no.ndla.validation
 
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist

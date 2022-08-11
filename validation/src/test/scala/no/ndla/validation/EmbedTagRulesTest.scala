@@ -7,6 +7,7 @@
 
 package no.ndla.validation
 
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
 import no.ndla.validation.TagRules.Condition
 
