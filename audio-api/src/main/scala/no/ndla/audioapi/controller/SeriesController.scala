@@ -27,10 +27,12 @@ import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchServ
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.scalatra.NdlaSwaggerSupport
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger._
+
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
@@ -50,7 +52,7 @@ trait SeriesController {
       with FileUploadSupport
       with NdlaSwaggerSupport {
     import props._
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "Services for accessing audio."
 
     // Additional models used in error responses
