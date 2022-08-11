@@ -21,6 +21,8 @@ import scalikejdbc.{DB, DBSession, _}
 class V35__AddDataTypeToIframeEmbed extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
+  protected val resource = "iframe"
+
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
@@ -83,10 +85,9 @@ class V35__AddDataTypeToIframeEmbed extends BaseJavaMigration {
       .select("embed")
       .forEach(embed => {
         val dataResource = embed.attr("data-resource")
-        val isIframe     = dataResource == "iframe"
         val hasType      = embed.hasAttr("data-type")
 
-        if (isIframe && !hasType) {
+        if (dataResource == resource && !hasType) {
           embed.attr("data-type", "iframe")
         }
       })

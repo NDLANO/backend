@@ -13,10 +13,12 @@
       "required": [
         "data-resource",
         "data-url"
+        "data-type"
       ],
       "optional": [
         [ "data-caption" ],
-        [ "data-title" ]
+        [ "data-title" ],
+        [ "data-imageid" ]
       ]
     },
     "error": {

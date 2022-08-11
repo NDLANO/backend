@@ -236,7 +236,8 @@ class EmbedTagValidatorTest extends UnitSuite {
     val tag = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource -> ResourceType.ExternalContent.toString,
-        TagAttributes.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik"
+        TagAttributes.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik",
+        TagAttributes.DataType     -> "iframe"
       )
     )
     embedTagValidator.validate("content", tag).size should be(0)
