@@ -39,10 +39,6 @@ trait ImageRepository {
       }
     }
 
-    def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      imageMetaInformationWhere(sqls"im.metadata is not null order by random() limit 1")
-    }
-
     def withExternalId(externalId: String): Option[ImageMetaInformation] = {
       DB readOnly { implicit session =>
         imageMetaInformationWhere(sqls"im.external_id = $externalId")
@@ -57,21 +53,6 @@ trait ImageRepository {
       val imageId =
         sql"insert into imagemetadata(metadata) values (${dataObject})".updateAndReturnGeneratedKey()
       imageMeta.copy(id = Some(imageId))
-    }
-
-    def insertWithExternalId(imageMetaInformation: ImageMetaInformation, externalId: String): ImageMetaInformation = {
-      val json = write(imageMetaInformation)
-
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(json)
-
-      DB localTx { implicit session =>
-        val imageId =
-          sql"insert into imagemetadata(external_id, metadata) values(${externalId}, ${dataObject})"
-            .updateAndReturnGeneratedKey()
-        imageMetaInformation.copy(id = Some(imageId))
-      }
     }
 
     def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
