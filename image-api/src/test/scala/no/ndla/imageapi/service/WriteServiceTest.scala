@@ -115,10 +115,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Success(newFileName))
     val expectedImage =
-      domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
+      domain.UploadedImage(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)))
 
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenReturn(Success(expectedImage))
-    val result = writeService.uploadImage(1, fileMock1, "nb")
+    val result = writeService.uploadImage(fileMock1)
     verify(imageStorage, times(1)).uploadFromStream(any[InputStream], any[String], any[String], any[Long])
 
     result should equal(
@@ -131,13 +130,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Failure(new RuntimeException))
 
-    writeService.uploadImage(1, fileMock1, "nb").isFailure should be(true)
+    writeService.uploadImage(fileMock1).isFailure should be(true)
   }
 
   test("storeNewImage should return Failure if upload failes") {
     when(validationService.validateImageFile(any[FileItem])).thenReturn(None)
     when(imageStorage.uploadFromStream(any[InputStream], any[String], any[String], any[Long]))
       .thenReturn(Failure(new RuntimeException))
+    when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[ImageMetaInformation](0))
+    })
 
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
   }
@@ -411,7 +413,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
     when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(any)).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[ImageMetaInformation](0)
+      Success(i.getArgument[ImageMetaInformation](0))
     )
     when(validationService.validate(any[ImageMetaInformation], any[Option[ImageMetaInformation]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
@@ -501,7 +503,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      i.getArgument[domain.ImageMetaInformation](0)
+      Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -517,21 +519,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
 
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      val imageId  = i.getArgument[Long](0)
-      val fileName = i.getArgument[String](1)
-      val doc      = i.getArgument[domain.ImageFileDataDocument](2)
-      val image    = doc.toFull(5, fileName, imageId)
-      Success(image)
-    })
-
     val expectedResult =
       dbImage.copy(
         titles = Seq(domain.ImageTitle("new title", "nb")),
         images = Seq(
           image.copy(id = 1, language = "nn"),
           image.copy(
-            id = 5,
+            id = 2,
             fileName = "randomstring.jpg",
             size = 1337,
             dimensions = Some(domain.ImageDimensions(189, 60)),
@@ -551,7 +545,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(any)
-    verify(imageRepository, times(1)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
   }
 
   test("That uploading image for a new language just adds a new one") {
@@ -597,7 +591,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      i.getArgument[domain.ImageMetaInformation](0)
+      Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -685,7 +679,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      i.getArgument[domain.ImageMetaInformation](0)
+      Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
@@ -756,7 +750,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      i.getArgument[domain.ImageMetaInformation](0)
+      Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
