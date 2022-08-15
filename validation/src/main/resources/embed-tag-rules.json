@@ -18,7 +18,7 @@
       "optional": [
         [ "data-caption" ],
         [ "data-title" ],
-        [ "data-imageid" ]
+        [ "data-imageid", "data-caption", "data-title" ]
       ]
     },
     "error": {
