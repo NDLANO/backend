@@ -687,6 +687,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       i.getArgument[domain.ImageMetaInformation](0)
     })
+    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
@@ -717,6 +718,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
   }
 
   test("Deleting language version should not delete file if it used by more languages") {
@@ -756,6 +758,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       i.getArgument[domain.ImageMetaInformation](0)
     })
+    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
@@ -786,5 +789,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
   }
 }

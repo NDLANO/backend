@@ -90,6 +90,14 @@ trait ImageRepository {
       sql"delete from imagemetadata where id = ${imageId}".update()
     }
 
+    def deleteImageFileMeta(imageId: Long, language: String)(implicit session: DBSession = AutoSession): Try[Int] = {
+      Try(sql"""
+            delete from imagefiledata
+            where image_meta_id = $imageId
+            and metadata->>'language' = $language
+         """.update())
+    }
+
     def minMaxId: (Long, Long) = {
       DB readOnly { implicit session =>
         sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from imagemetadata"
