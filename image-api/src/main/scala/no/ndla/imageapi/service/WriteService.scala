@@ -63,17 +63,23 @@ trait WriteService {
         case None          => Success(None)
       }
     }
-    private def deleteFileForLanguageIfUnused(images: Seq[ImageFileData], language: String): Try[_] = {
+
+    private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[_] = {
       val imageFileToDelete = images.find(_.language == language)
       imageFileToDelete match {
         case Some(fileToDelete) =>
-          val imageIsUsedOtherwhere =
-            images.filterNot(_.language == language).exists(_.fileName == fileToDelete.fileName)
+          val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language)
+          val otherLangs            = images.filterNot(_.language == language)
+          val imageIsUsedOtherwhere = otherLangs.exists(_.fileName == fileToDelete.fileName)
+
           if (!imageIsUsedOtherwhere) {
-            imageStorage.deleteObject(fileToDelete.fileName)
+            for {
+              _ <- imageStorage.deleteObject(fileToDelete.fileName)
+              _ <- deletedMeta
+            } yield ()
           } else {
             logger.info("Image is used by other languages. Skipping file delete")
-            Success(())
+            deletedMeta
           }
         case None =>
           logger.warn("Deleting language for image without imagefile. This is weird.")
@@ -95,7 +101,7 @@ trait WriteService {
           if (isLastLanguage) {
             deleteImageAndFiles(imageId).map(_ => None)
           } else {
-            deleteFileForLanguageIfUnused(existing.images, language).flatMap(_ =>
+            deleteFileForLanguageIfUnused(imageId, existing.images, language).flatMap(_ =>
               updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
             )
           }
@@ -109,8 +115,10 @@ trait WriteService {
     def deleteImageAndFiles(imageId: Long): Try[Long] = {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
-          val metaDeleted  = imageRepository.delete(imageId)
-          val filesDeleted = toDelete.images.traverse(image => imageStorage.deleteObject(image.fileName))
+          val metaDeleted = imageRepository.delete(imageId)
+          val filesDeleted = toDelete.images.traverse(image => {
+            imageStorage.deleteObject(image.fileName)
+          })
           val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
           if (metaDeleted < 1) {
