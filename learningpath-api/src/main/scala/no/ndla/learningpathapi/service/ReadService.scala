@@ -183,8 +183,7 @@ trait ReadService {
     ): Try[domain.Folder] = {
       val favoriteFolder = domain.FolderDocument(
         name = FavoriteFolderDefaultName,
-        status = domain.FolderStatus.PRIVATE,
-        isFavorite = true
+        status = domain.FolderStatus.PRIVATE
       )
       folderRepository.insertFolder(feideId, None, favoriteFolder)
     }
@@ -235,9 +234,8 @@ trait ReadService {
     }
 
     private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
-      val maybeFavorite = folders.find(_.isFavorite)
       for {
-        favorite <- if (maybeFavorite.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
+        favorite <- if (folders.isEmpty) createFavorite(feideId).map(_.some) else Success(None)
         combined = favorite.toList ++ folders
       } yield combined
     }

@@ -492,8 +492,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val expected1 = domain.FolderDocument(
       name = "kenkaku",
-      status = domain.FolderStatus.PRIVATE,
-      isFavorite = false
+      status = domain.FolderStatus.PRIVATE
     )
 
     service.toDomainFolderDocument(newFolder1).get should be(expected1)
@@ -530,7 +529,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(subFolder3UUID),
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
       resources = List(resource),
       subfolders = List.empty
     )
@@ -540,7 +538,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(mainFolderUUID),
       name = "folderData2",
       status = domain.FolderStatus.PUBLIC,
-      isFavorite = false,
       subfolders = List.empty,
       resources = List.empty
     )
@@ -550,7 +547,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(mainFolderUUID),
       name = "folderData3",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
       subfolders = List(folderData1),
       resources = List.empty
     )
@@ -560,7 +556,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = None,
       name = "mainFolder",
       status = domain.FolderStatus.PUBLIC,
-      isFavorite = false,
       subfolders = List(folderData2, folderData3),
       resources = List(resource)
     )
@@ -576,7 +571,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       id = subFolder1UUID.toString,
       name = "folderData1",
       status = "private",
-      isFavorite = false,
       resources = List(apiResource),
       subfolders = List(),
       breadcrumbs = List(
@@ -590,7 +584,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       id = subFolder2UUID.toString,
       name = "folderData2",
       status = "public",
-      isFavorite = false,
       resources = List.empty,
       subfolders = List.empty,
       breadcrumbs = List(
@@ -603,7 +596,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       id = subFolder3UUID.toString,
       name = "folderData3",
       status = "private",
-      isFavorite = false,
       subfolders = List(apiData1),
       resources = List(),
       breadcrumbs = List(
@@ -616,7 +608,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       id = mainFolderUUID.toString,
       name = "mainFolder",
       status = "public",
-      isFavorite = false,
       subfolders = List(apiData2, apiData3),
       resources = List(apiResource),
       breadcrumbs = List(
@@ -640,7 +631,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(parentUUID),
       name = "folderData1",
       status = domain.FolderStatus.PRIVATE,
-      isFavorite = false,
       subfolders = List.empty,
       resources = List.empty
     )

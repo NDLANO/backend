@@ -19,7 +19,6 @@ case class Folder(
     @(ApiModelProperty @field)(description = "UUID of the folder") id: String,
     @(ApiModelProperty @field)(description = "Folder name") name: String,
     @(ApiModelProperty @field)(description = "Folder status") status: String,
-    @(ApiModelProperty @field)(description = "Folder favorite flag") isFavorite: Boolean,
     @(ApiModelProperty @field)(description = "UUID of parent folder") parentId: Option[String],
     @(ApiModelProperty @field)(description = "List of parent folders to resource") breadcrumbs: List[Breadcrumb],
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
