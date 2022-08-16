@@ -9,9 +9,9 @@
 package no.ndla.imageapi.service
 
 import cats.implicits._
-import no.ndla.common.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Clock
+import no.ndla.common.implicits._
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._
@@ -24,7 +24,7 @@ import no.ndla.imageapi.model.api.{
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
-import no.ndla.language.Language.mergeLanguageFields
+import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.scalatra.error.ValidationException
 import org.scalatra.servlet.FileItem
 
@@ -188,7 +188,7 @@ trait WriteService {
     private[service] def mergeImages(
         existing: ImageMetaInformation,
         toMerge: UpdateImageMetaInformation
-    ): ImageMetaInformation = {
+    ): Try[ImageMetaInformation] = {
       val now    = clock.now()
       val userId = authUser.userOrClientid()
 
@@ -222,7 +222,30 @@ trait WriteService {
         else existing.editorNotes
       }
 
-      newImageMeta.copy(editorNotes = newEditorNotes)
+      insertImageCopyIfNoImage(existing.images, toMerge.language).map(newImages =>
+        newImageMeta.copy(
+          images = newImages,
+          editorNotes = newEditorNotes
+        )
+      )
+    }
+
+    private def insertImageCopyIfNoImage(
+        images: Seq[domain.ImageFileData],
+        language: String
+    ): Try[Seq[domain.ImageFileData]] = {
+      if (images.exists(_.language == language)) {
+        Success(images)
+      } else {
+        sortByLanguagePriority(images).headOption match {
+          case Some(imageToCopy) =>
+            val document = imageToCopy.toDocument().copy(language = language)
+            imageRepository
+              .insertImageFile(imageToCopy.imageMetaId, imageToCopy.fileName, document)
+              .map(inserted => images :+ inserted)
+          case None => Failure(ImageCopyException("Could not find any imagefilemeta when attempting copy."))
+        }
+      }
     }
 
     private def mergeTags(existing: Seq[domain.ImageTag], updated: Seq[domain.ImageTag]): Seq[domain.ImageTag] = {
@@ -298,10 +321,11 @@ trait WriteService {
             case _ => Success(oldImage)
           }
 
-          maybeOverwrittenImage.flatMap(moi => {
-            val newImage = mergeImages(moi, updateMeta)
-            updateAndIndexImage(imageId, newImage, oldImage.some)
-          })
+          for {
+            overwritten <- maybeOverwrittenImage
+            newImage    <- mergeImages(overwritten, updateMeta)
+            indexed     <- updateAndIndexImage(imageId, newImage, oldImage.some)
+          } yield indexed
       }
     }
 

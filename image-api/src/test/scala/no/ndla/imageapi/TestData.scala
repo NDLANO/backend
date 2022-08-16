@@ -34,7 +34,7 @@ trait TestData {
       titles = List(ImageTitle("Elg i busk", "nb")),
       alttexts = List(ImageAltText("Elg i busk", "nb")),
       images = Seq(
-        new ImageFileData(
+        ImageFileData(
           id = 123,
           fileName = "Elg.jpg",
           size = 2865539,
