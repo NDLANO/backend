@@ -14,6 +14,8 @@ import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain._
 import no.ndla.common.Clock
+import no.ndla.common.model.domain.{ArticleTag, EditorNote}
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi.model.domain._
+import no.ndla.common.model.domain._
 import no.ndla.draftapi.model.search._
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.draftapi.TestData

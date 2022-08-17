@@ -8,13 +8,27 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{
+  ArticleTitle,
+  ArticleTag,
+  ArticleContent,
+  ArticleMetaDescription,
+  Availability,
+  ArticleIntroduction,
+  Author,
+  ArticleMetaImage,
+  RequiredLibrary,
+  RelatedContentLink,
+  Status,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.ArticleStatus.{DRAFT, PUBLISHED}
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
-import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PUBLISHED}
-import no.ndla.draftapi.model.domain._
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.domain.Agreement
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers._
@@ -92,7 +106,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val arg = invocation.getArgument[Agreement](0)
       Try(arg)
     })
-    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[domain.Article])).thenAnswer((i: InvocationOnMock) => {
+    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Article])).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[Long](0))
     })
   }
@@ -513,7 +527,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article =
       TestData.sampleDomainArticle.copy(
         id = Some(5),
-        title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
+        title = Seq(ArticleTitle("Tittel", "nb"), ArticleTitle("Title", "en")),
         status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
         updated = yesterday,
         created = yesterday.minusDays(1),
@@ -528,7 +542,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedInsertedArticle = article.copy(
       id = Some(newId),
-      title = Seq(domain.ArticleTitle("Tittel (Kopi)", "nb"), domain.ArticleTitle("Title (Kopi)", "en")),
+      title = Seq(ArticleTitle("Tittel (Kopi)", "nb"), ArticleTitle("Title (Kopi)", "en")),
       revision = Some(1),
       updated = today,
       created = today,
@@ -565,7 +579,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val article = TestData.sampleDomainArticle.copy(
       id = Some(5),
-      title = Seq(domain.ArticleTitle("Tittel", "nb"), domain.ArticleTitle("Title", "en")),
+      title = Seq(ArticleTitle("Tittel", "nb"), ArticleTitle("Title", "en")),
       status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
       updated = yesterday,
       created = yesterday.minusDays(1),
@@ -895,8 +909,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       """<embed data-alt="Kul alt2" data-path="/files/resources/abc456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf">"""
     val embed3 =
       """<embed data-alt="Kul alt3" data-path="/files/resources/abc789.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf">"""
-    val contentNb = domain.ArticleContent(s"<section><h1>Hei</h1>$embed1$embed2</section>", "nb")
-    val contentEn = domain.ArticleContent(s"<section><h1>Hello</h1>$embed1$embed3</section>", "en")
+    val contentNb = ArticleContent(s"<section><h1>Hei</h1>$embed1$embed2</section>", "nb")
+    val contentEn = ArticleContent(s"<section><h1>Hello</h1>$embed1$embed3</section>", "en")
 
     val expectedEmbed1 =
       """<embed data-alt="Kul alt1" data-path="/files/resources/new123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
@@ -907,8 +921,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedEmbed4 =
       """<embed data-alt="Kul alt3" data-path="/files/resources/new101112.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf">"""
 
-    val expectedNb = domain.ArticleContent(s"<section><h1>Hei</h1>$expectedEmbed1$expectedEmbed2</section>", "nb")
-    val expectedEn = domain.ArticleContent(s"<section><h1>Hello</h1>$expectedEmbed3$expectedEmbed4</section>", "en")
+    val expectedNb = ArticleContent(s"<section><h1>Hei</h1>$expectedEmbed1$expectedEmbed2</section>", "nb")
+    val expectedEn = ArticleContent(s"<section><h1>Hello</h1>$expectedEmbed3$expectedEmbed4</section>", "en")
 
     val result = service.contentWithClonedFiles(List(contentNb, contentEn))
 
@@ -1057,7 +1071,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateArticle updates relatedContent") {
     val apiRelatedContent1    = api.RelatedContentLink("url1", "title1")
-    val domainRelatedContent1 = domain.RelatedContentLink("url1", "title1")
+    val domainRelatedContent1 = RelatedContentLink("url1", "title1")
     val relatedContent2       = 2
 
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
@@ -1111,7 +1125,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revision = 1,
       revisionMeta = Some(Seq(revised))
     )
-    val domainRev = domain.RevisionMeta(
+    val domainRev = RevisionMeta(
       id = UUID.fromString(savedRevision.id.get),
       revisionDate = savedRevision.revisionDate,
       note = savedRevision.note,
@@ -1198,7 +1212,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
 
-    val captor: ArgumentCaptor[domain.Article] = ArgumentCaptor.forClass(classOf[domain.Article])
+    val captor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
     articlePassedToUpdate.notes.head.note should be("Artikkelen har blitt delpublisert")
@@ -1227,7 +1241,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    val captor: ArgumentCaptor[domain.Article] = ArgumentCaptor.forClass(classOf[domain.Article])
+    val captor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
 
@@ -1257,21 +1271,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val nbMeta = ArticleMetaDescription("Meta nb", "nb")
 
     val article1 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(nnMeta, nbMeta)
     )
     val article2 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(nnMeta, nbMeta)
     )
     service.shouldPartialPublish(Some(article1), article2) should be(Set.empty)
 
     val article3 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(nnMeta, nbMeta)
     )
     val article4 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(nbMeta, nnMeta)
     )
     service.shouldPartialPublish(Some(article3), article4) should be(Set.empty)
@@ -1281,7 +1295,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("shouldPartialPublish returns set of changed fields") {
 
     val article1 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(
         ArticleMetaDescription("Meta nn", "nn"),
         ArticleMetaDescription("Meta nb", "nb")
@@ -1292,7 +1306,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val article2 = TestData.sampleDomainArticle.copy(
-      status = domain.Status(DRAFT, Set(PUBLISHED)),
+      status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(
         ArticleMetaDescription("Ny Meta nn", "nn"),
         ArticleMetaDescription("Meta nb", "nb")

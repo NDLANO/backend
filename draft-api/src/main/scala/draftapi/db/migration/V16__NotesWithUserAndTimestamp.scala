@@ -7,8 +7,10 @@
 
 package draftapi.db.migration
 
+import no.ndla.common.model.domain.{EditorNote, Status}
+import no.ndla.common.model.domain.draft.ArticleStatus
+
 import java.time.LocalDateTime
-import no.ndla.draftapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}

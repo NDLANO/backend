@@ -7,7 +7,8 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi.model.domain.{ArticleStatus, EditorNote, Status}
+import no.ndla.common.model.domain.{EditorNote, Status}
+import no.ndla.common.model.domain.draft.ArticleStatus
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {

@@ -9,10 +9,11 @@ package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.{Agreement, SearchResult}
 import no.ndla.draftapi.model.search._
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -30,9 +31,10 @@ trait SearchConverterService {
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
+    implicit val formats: Formats =
+      SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.ArticleStatus)
 
-    def asSearchableArticle(ai: Article): SearchableArticle = {
+    def asSearchableArticle(ai: common.draft.Article): SearchableArticle = {
 
       val defaultTitle = ai.title
         .sortBy(title => {
@@ -72,12 +74,12 @@ trait SearchConverterService {
     def hitAsArticleSummary(hitString: String, language: String): api.ArticleSummary = {
       val searchableArticle = read[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => domain.ArticleTitle(lv.value, lv.language))
+      val titles = searchableArticle.title.languageValues.map(lv => common.ArticleTitle(lv.value, lv.language))
       val introductions =
-        searchableArticle.introduction.languageValues.map(lv => domain.ArticleIntroduction(lv.value, lv.language))
+        searchableArticle.introduction.languageValues.map(lv => common.ArticleIntroduction(lv.value, lv.language))
       val visualElements =
-        searchableArticle.visualElement.languageValues.map(lv => domain.VisualElement(lv.value, lv.language))
-      val tags  = searchableArticle.tags.languageValues.map(lv => domain.ArticleTag(lv.value, lv.language))
+        searchableArticle.visualElement.languageValues.map(lv => common.VisualElement(lv.value, lv.language))
+      val tags  = searchableArticle.tags.languageValues.map(lv => common.ArticleTag(lv.value, lv.language))
       val notes = searchableArticle.notes
       val users = searchableArticle.users
 
@@ -188,7 +190,7 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def asSearchableTags(article: domain.Article): Seq[SearchableTag] = {
+    def asSearchableTags(article: common.draft.Article): Seq[SearchableTag] = {
       article.tags.flatMap(articleTags =>
         articleTags.tags.map(tag =>
           SearchableTag(
@@ -199,7 +201,7 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableGrepCodes(article: domain.Article): Seq[SearchableGrepCode] =
+    def asSearchableGrepCodes(article: common.draft.Article): Seq[SearchableGrepCode] =
       article.grepCodes.map(code => SearchableGrepCode(code))
   }
 }

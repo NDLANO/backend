@@ -8,7 +8,8 @@
 package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.draftapi.model.domain._
+import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY_SA
 

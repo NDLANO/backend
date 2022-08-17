@@ -7,12 +7,12 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{ArticleStatus, DBArticle, ReindexResult}
+import no.ndla.draftapi.model.domain.{DBArticle, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -238,7 +238,7 @@ trait InternController {
     }
 
     post("/dump/article/?") {
-      tryExtract[domain.Article](request.body) match {
+      tryExtract[Article](request.body) match {
         case Failure(ex) => errorHandler(ex)
         case Success(article) =>
           writeService.insertDump(article) match {

@@ -1,11 +1,11 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA common.
  * Copyright (C) 2021 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.draftapi.model.domain
+package no.ndla.common.model.domain
 
 case class RelatedContentLink(title: String, url: String)

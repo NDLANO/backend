@@ -8,11 +8,12 @@
 package no.ndla.draftapi.service
 
 import io.lemonlabs.uri.{Path, Url}
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
   ArticleSearchService,
@@ -66,7 +67,7 @@ trait ReadService {
         .reverse
     }
 
-    private[service] def addUrlsOnEmbedResources(article: domain.Article): domain.Article = {
+    private[service] def addUrlsOnEmbedResources(article: common.draft.Article): common.draft.Article = {
       val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
       val visualElementWithUrls =
         article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))

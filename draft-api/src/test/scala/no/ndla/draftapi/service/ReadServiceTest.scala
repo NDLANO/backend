@@ -7,8 +7,8 @@
 
 package no.ndla.draftapi.service
 
+import no.ndla.common.model.domain.{ArticleContent, ArticleTag, VisualElement}
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession

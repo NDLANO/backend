@@ -7,8 +7,9 @@
 
 package draftapi.db.migrationwithdependencies
 
+import no.ndla.common.model.domain.draft.Article
 import no.ndla.draftapi.{DraftApiProperties, Props}
-import no.ndla.draftapi.model.domain.{Article, DBArticle}
+import no.ndla.draftapi.model.domain.DBArticle
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}

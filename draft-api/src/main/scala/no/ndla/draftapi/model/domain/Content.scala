@@ -8,10 +8,9 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
-import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType, Copyright, RevisionStatus, Content}
 import no.ndla.draftapi.Props
-import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization._
@@ -19,88 +18,55 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
 import java.time.LocalDateTime
-import scala.util.{Failure, Success, Try}
 
-sealed trait Content {
-  def id: Option[Long]
-}
-
-case class Article(
-    id: Option[Long],
-    revision: Option[Int],
-    status: Status,
-    title: Seq[ArticleTitle],
-    content: Seq[ArticleContent],
-    copyright: Option[Copyright],
-    tags: Seq[ArticleTag],
-    requiredLibraries: Seq[RequiredLibrary],
-    visualElement: Seq[VisualElement],
-    introduction: Seq[ArticleIntroduction],
-    metaDescription: Seq[ArticleMetaDescription],
-    metaImage: Seq[ArticleMetaImage],
-    created: LocalDateTime,
-    updated: LocalDateTime,
-    updatedBy: String,
-    published: LocalDateTime,
-    articleType: ArticleType,
-    notes: Seq[EditorNote],
-    previousVersionsNotes: Seq[EditorNote],
-    editorLabels: Seq[String],
-    grepCodes: Seq[String],
-    conceptIds: Seq[Long],
-    availability: Availability.Value = Availability.everyone,
-    relatedContent: Seq[RelatedContent],
-    revisionMeta: Seq[RevisionMeta]
-) extends Content {
-
-  def supportedLanguages: Seq[String] =
-    getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
-}
+//trait Content {
+//  def id: Option[Long]
+//}
 
 object ArticleStatusAction extends Enumeration {
   val UPDATE: ArticleStatusAction.Value = Value
 }
 
-object ArticleStatus extends Enumeration {
+//object ArticleStatus extends Enumeration {
+//
+//  val IMPORTED, DRAFT, PUBLISHED, PROPOSAL, QUEUED_FOR_PUBLISHING, USER_TEST, AWAITING_QUALITY_ASSURANCE,
+//      QUEUED_FOR_LANGUAGE, TRANSLATED, QUALITY_ASSURED, QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED,
+//      AWAITING_UNPUBLISHING, UNPUBLISHED, AWAITING_ARCHIVING, ARCHIVED = Value
+//
+//  def valueOfOrError(s: String): Try[ArticleStatus.Value] =
+//    valueOf(s) match {
+//      case Some(st) => Success(st)
+//      case None =>
+//        val validStatuses = values.map(_.toString).mkString(", ")
+//        Failure(
+//          ValidationException("status", s"'$s' is not a valid article status. Must be one of $validStatuses")
+//        )
+//    }
+//
+//  def valueOf(s: String): Option[ArticleStatus.Value] = values.find(_.toString == s.toUpperCase)
+//}
 
-  val IMPORTED, DRAFT, PUBLISHED, PROPOSAL, QUEUED_FOR_PUBLISHING, USER_TEST, AWAITING_QUALITY_ASSURANCE,
-      QUEUED_FOR_LANGUAGE, TRANSLATED, QUALITY_ASSURED, QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED,
-      AWAITING_UNPUBLISHING, UNPUBLISHED, AWAITING_ARCHIVING, ARCHIVED = Value
-
-  def valueOfOrError(s: String): Try[ArticleStatus.Value] =
-    valueOf(s) match {
-      case Some(st) => Success(st)
-      case None =>
-        val validStatuses = values.map(_.toString).mkString(", ")
-        Failure(
-          ValidationException("status", s"'$s' is not a valid article status. Must be one of $validStatuses")
-        )
-    }
-
-  def valueOf(s: String): Option[ArticleStatus.Value] = values.find(_.toString == s.toUpperCase)
-}
-
-sealed abstract class ArticleType(override val entryName: String) extends EnumEntry {
-  override def toString: String = super.toString
-}
-
-object ArticleType extends Enum[ArticleType] {
-  case object Standard     extends ArticleType("standard")
-  case object TopicArticle extends ArticleType("topic-article")
-
-  val values: IndexedSeq[ArticleType] = findValues
-
-  def all: Seq[String]                        = ArticleType.values.map(_.entryName)
-  def valueOf(s: String): Option[ArticleType] = ArticleType.withNameOption(s)
-
-  def valueOfOrError(s: String): ArticleType =
-    valueOf(s).getOrElse(
-      throw ValidationException(
-        "articleType",
-        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
-      )
-    )
-}
+//sealed abstract class ArticleType(override val entryName: String) extends EnumEntry {
+//  override def toString: String = super.toString
+//}
+//
+//object ArticleType extends Enum[ArticleType] {
+//  case object Standard     extends ArticleType("standard")
+//  case object TopicArticle extends ArticleType("topic-article")
+//
+//  val values: IndexedSeq[ArticleType] = findValues
+//
+//  def all: Seq[String]                        = ArticleType.values.map(_.entryName)
+//  def valueOf(s: String): Option[ArticleType] = ArticleType.withNameOption(s)
+//
+//  def valueOfOrError(s: String): ArticleType =
+//    valueOf(s).getOrElse(
+//      throw ValidationException(
+//        "articleType",
+//        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
+//      )
+//    )
+//}
 
 case class Agreement(
     id: Option[Long],

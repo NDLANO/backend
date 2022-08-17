@@ -9,7 +9,9 @@ package draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
 import no.ndla.draftapi.{DraftApiProperties, Props}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.DBArticle
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.Status
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer

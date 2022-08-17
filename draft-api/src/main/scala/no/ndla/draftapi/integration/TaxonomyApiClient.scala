@@ -10,8 +10,9 @@ package no.ndla.draftapi.integration
 import cats.Traverse
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.ArticleTitle
+import no.ndla.common.model.domain.draft.Article
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.domain.{Article, ArticleTitle}
 import no.ndla.language.Language
 import no.ndla.network.NdlaClient
 import org.json4s.jackson.Serialization.write

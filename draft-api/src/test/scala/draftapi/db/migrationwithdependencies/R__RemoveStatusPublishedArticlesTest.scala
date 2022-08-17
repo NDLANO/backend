@@ -7,7 +7,8 @@
 
 package draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.model.domain.{ArticleStatus, Status}
+import no.ndla.common.model.domain.Status
+import no.ndla.common.model.domain.draft.ArticleStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class R__RemoveStatusPublishedArticlesTest extends UnitSuite with TestEnvironment {

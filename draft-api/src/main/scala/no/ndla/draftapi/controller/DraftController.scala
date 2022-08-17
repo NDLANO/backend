@@ -9,11 +9,11 @@ package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.draft.{ArticleStatus, ArticleType}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
-import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{ArticleStatus, ArticleType, SearchSettings, Sort}
+import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
@@ -578,7 +578,7 @@ trait DraftController {
       doOrAccessDenied(userInfo.canWrite) {
         val id         = long(this.articleId.paramName)
         val isImported = booleanOrDefault("import_publish", default = false)
-        domain.ArticleStatus
+        ArticleStatus
           .valueOfOrError(params(this.statuss.paramName))
           .flatMap(writeService.updateArticleStatus(_, id, userInfo, isImported)) match {
           case Success(a)  => a

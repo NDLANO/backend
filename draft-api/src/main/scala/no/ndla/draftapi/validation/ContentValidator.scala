@@ -9,6 +9,18 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  ArticleTag,
+  ArticleTitle,
+  Author,
+  RequiredLibrary,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Article, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -33,13 +45,6 @@ trait ContentValidator {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
-
-    def validate(content: Content): Try[Content] = {
-      content match {
-        case article: Article     => validateArticle(article)
-        case agreement: Agreement => validateAgreement(agreement)
-      }
-    }
 
     def validateAgreement(
         agreement: Agreement,

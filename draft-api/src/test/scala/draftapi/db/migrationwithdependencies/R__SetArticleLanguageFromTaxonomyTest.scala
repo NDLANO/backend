@@ -7,7 +7,7 @@
 
 package draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.model.domain.ArticleTag
+import no.ndla.common.model.domain.ArticleTag
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class R__SetArticleLanguageFromTaxonomyTest extends UnitSuite with TestEnvironment {

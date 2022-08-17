@@ -8,11 +8,11 @@
 package no.ndla.draftapi.controller
 
 import java.time.LocalDateTime
+import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.ArticleStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api._
-import no.ndla.draftapi.model.domain.ArticleStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
-import no.ndla.draftapi.model.domain.{ArticleType, SearchSettings, Sort}
+import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
@@ -49,7 +49,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("/<article_id> should return 404 if the article was not found withId") {
-    when(readService.withId(articleId, lang)).thenReturn(Failure(NotFoundException("not found yo")))
+    when(readService.withId(articleId, lang)).thenReturn(Failure(api.NotFoundException("not found yo")))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(404)
@@ -66,22 +66,22 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     val creativeCommonlicenses =
       getLicenses
         .filter(_.license.toString.startsWith("by"))
-        .map(l => License(l.license.toString, Option(l.description), l.url))
+        .map(l => api.License(l.license.toString, Option(l.description), l.url))
         .toSet
 
     get("/test/licenses/", "filter" -> "by") {
       status should equal(200)
-      val convertedBody = read[Set[License]](body)
+      val convertedBody = read[Set[api.License]](body)
       convertedBody should equal(creativeCommonlicenses)
     }
   }
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
-    val allLicenses = getLicenses.map(l => License(l.license.toString, Option(l.description), l.url)).toSet
+    val allLicenses = getLicenses.map(l => api.License(l.license.toString, Option(l.description), l.url)).toSet
 
     get("/test/licenses/") {
       status should equal(200)
-      val convertedBody = read[Set[License]](body)
+      val convertedBody = read[Set[api.License]](body)
       convertedBody should equal(allLicenses)
     }
   }
@@ -102,7 +102,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           page = 1,
           pageSize = 4,
           sort = Sort.ByTitleAsc,
-          articleTypes = ArticleType.all
+          articleTypes = common.draft.ArticleType.all
         )
       )
     }
@@ -118,7 +118,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(
       writeService
         .newArticle(
-          any[NewArticle],
+          any[api.NewArticle],
           any[List[String]],
           any[Seq[String]],
           any[UserInfo],
@@ -208,7 +208,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[Option[String]]
       )
     )
-      .thenReturn(Failure(new AccessDeniedException("Not today")))
+      .thenReturn(Failure(new api.AccessDeniedException("Not today")))
 
     patch("/test/123", body = write(TestData.sampleApiUpdateArticle)) {
       status should equal(403)
@@ -219,7 +219,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(
       writeService.updateArticle(
         any[Long],
-        any[UpdatedArticle],
+        any[api.UpdatedArticle],
         any[List[String]],
         any[Seq[String]],
         any[UserInfo],
@@ -235,7 +235,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("PUT /:id/validate/ should return 204 if user has required permissions") {
-    when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean])).thenReturn(Success(ContentId(1)))
+    when(contentValidator.validateArticleApiArticle(any[Long], any[Boolean])).thenReturn(Success(api.ContentId(1)))
     put("/test/1/validate/") {
       status should equal(200)
     }
@@ -352,7 +352,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
       writeService
         .updateArticle(
           eqTo(1.toLong),
-          any[UpdatedArticle],
+          any[api.UpdatedArticle],
           any[List[String]],
           any[Seq[String]],
           any[UserInfo],

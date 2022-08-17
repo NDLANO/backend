@@ -12,8 +12,8 @@ import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.domain.{Article, ArticleStatus}
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats

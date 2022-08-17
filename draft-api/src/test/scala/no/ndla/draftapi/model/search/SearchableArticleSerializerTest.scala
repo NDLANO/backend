@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.search
 
-import no.ndla.draftapi.model.domain.ArticleStatus
+import no.ndla.common.model.domain.draft.ArticleStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s.Formats

@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.model.domain
 
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.service.SideEffect.SideEffect
 

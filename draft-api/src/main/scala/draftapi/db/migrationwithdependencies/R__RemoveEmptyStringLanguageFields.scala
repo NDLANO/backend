@@ -7,8 +7,8 @@
 
 package draftapi.db.migrationwithdependencies
 
+import no.ndla.common.model.domain.draft.Article
 import no.ndla.draftapi.{DraftApiProperties, Props}
-import no.ndla.draftapi.model.domain
 import no.ndla.draftapi.model.domain.DBArticle
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
@@ -68,7 +68,7 @@ class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
   def convertArticle(document: String): String = {
     implicit val formats = DBArticle.jsonEncoder
 
-    val oldArticle = Serialization.read[domain.Article](document)
+    val oldArticle = Serialization.read[Article](document)
     val newArticle = oldArticle.copy(
       content = oldArticle.content.filterNot(_.isEmpty),
       introduction = oldArticle.introduction.filterNot(_.isEmpty),

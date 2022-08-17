@@ -9,12 +9,23 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.DateParser
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  Availability,
+  ArticleIntroduction,
+  ArticleTitle,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  ArticleTag,
+  EditorNote,
+  RequiredLibrary,
+  Status,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.ArticleStatus._
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api.NewArticleMetaImage
-import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain._
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -106,7 +117,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = None, title = Some("kakemonster"))
     val res =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -124,7 +135,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"), title = Some("kakemonster"))
     val Success(res) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -381,7 +392,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -465,7 +476,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -489,10 +500,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Some("kakemonster"),
       notes = Some(Seq("fleibede"))
     )
-    val existingNotes = Seq(EditorNote("swoop", "", domain.Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -501,7 +512,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -510,7 +521,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -519,7 +530,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res4) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -548,10 +559,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"))
     val updatedArticleWithNotes =
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"), notes = Some(Seq("fleibede")))
-    val existingNotes = Seq(EditorNote("swoop", "", domain.Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -560,7 +571,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("nb")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -569,7 +580,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithoutNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -676,7 +687,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toDomainArticle(UpdateArticle) should update metaImage correctly") {
 
     val beforeUpdate = TestData.sampleDomainArticle.copy(
-      metaImage = Seq(domain.ArticleMetaImage("1", "Hei", "nb"), domain.ArticleMetaImage("2", "Hej", "nn"))
+      metaImage = Seq(ArticleMetaImage("1", "Hei", "nb"), ArticleMetaImage("2", "Hej", "nn"))
     )
 
     val Success(res1) = service.toDomainArticle(
@@ -707,8 +718,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    res1.metaImage should be(Seq(domain.ArticleMetaImage("2", "Hej", "nn")))
-    res2.metaImage should be(Seq(domain.ArticleMetaImage("2", "Hej", "nn"), domain.ArticleMetaImage("1", "Hola", "nb")))
+    res1.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn")))
+    res2.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn"), ArticleMetaImage("1", "Hola", "nb")))
     res3.metaImage should be(beforeUpdate.metaImage)
   }
 
@@ -742,7 +753,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     res1.metaImage should be(Seq.empty)
-    res2.metaImage should be(Seq(domain.ArticleMetaImage("1", "Hola", "nb")))
+    res2.metaImage should be(Seq(ArticleMetaImage("1", "Hola", "nb")))
     res3.metaImage should be(Seq.empty)
   }
 
@@ -750,7 +761,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val embed1 =
       """<embed data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
     val existingArticle = TestData.sampleDomainArticle.copy(
-      content = Seq(domain.ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
+      content = Seq(ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
     )
 
     val newContent = s"<section><h1>Hello</h1>$embed1</section>"
@@ -786,17 +797,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedPaths = Seq(enPath1, enPath2, nbPath1, nbPath2, vePath1, vePath2).sorted
 
-    val articleContentNb = domain.ArticleContent(
+    val articleContentNb = ArticleContent(
       s"""<section><h1>Heisann</h1><embed data-path="$nbPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$nbPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "nb"
     )
-    val articleContentEn = domain.ArticleContent(
+    val articleContentEn = ArticleContent(
       s"""<section><h1>Hello</h1><embed data-path="$enPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$enPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "en"
     )
 
-    val visualElementNb = domain.VisualElement(s"""<embed data-path="$vePath1" data-resource="h5p" />""", "nb")
-    val visualElementEn = domain.VisualElement(s"""<embed data-path="$vePath2" data-resource="h5p" />""", "en")
+    val visualElementNb = VisualElement(s"""<embed data-path="$vePath1" data-resource="h5p" />""", "nb")
+    val visualElementEn = VisualElement(s"""<embed data-path="$vePath2" data-resource="h5p" />""", "en")
 
     val article = TestData.sampleDomainArticle.copy(
       id = Some(1),

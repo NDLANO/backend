@@ -8,6 +8,16 @@
 package draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  ArticleTag,
+  ArticleTitle,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.languageOrUnknown

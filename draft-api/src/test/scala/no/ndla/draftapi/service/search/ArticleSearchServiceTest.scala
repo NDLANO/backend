@@ -7,9 +7,11 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.domain._
+import no.ndla.common.model.domain.draft._
+import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain._
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory

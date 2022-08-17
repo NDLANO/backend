@@ -12,8 +12,8 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain.{Content, ReindexResult}
+import no.ndla.draftapi.Props
+import no.ndla.draftapi.model.domain.ReindexResult
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
@@ -24,7 +24,7 @@ import cats.implicits._
 trait IndexService {
   this: Elastic4sClient with BaseIndexService with Props =>
 
-  trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with LazyLogging {
+  trait IndexService[D, T <: AnyRef] extends BaseIndexService with LazyLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
     val repository: Repository[D]
 

@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.draftapi.TestData.agreementSearchSettings
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.domain._

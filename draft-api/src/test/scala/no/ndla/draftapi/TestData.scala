@@ -7,12 +7,11 @@
 
 package no.ndla.draftapi
 
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.ArticleStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}
-import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA, CC_BY_SA}
 
@@ -37,22 +36,22 @@ object TestData {
   val userWithPublishAccess: UserInfo = UserInfo("unit test", Set(Role.WRITE, Role.PUBLISH))
   val userWithAdminAccess: UserInfo   = UserInfo("unit test", Set(Role.WRITE, Role.PUBLISH, Role.ADMIN))
 
-  val publicDomainCopyright: Copyright =
-    Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
-  private val byNcSaCopyright = Copyright(
+  val publicDomainCopyright: common.draft.Copyright =
+    common.draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
+  private val byNcSaCopyright = common.draft.Copyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(common.Author("Forfatter", "DC Comics")),
     List(),
     List(),
     None,
     None,
     None
   )
-  private val copyrighted = Copyright(
+  private val copyrighted = common.draft.Copyright(
     Some("copyrighted"),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(common.Author("Forfatter", "Clark Kent")),
     List(),
     List(),
     None,
@@ -255,114 +254,86 @@ object TestData {
     Seq.empty
   )
 
-  val sampleTopicArticle: Article = Article(
+  val sampleTopicArticle: common.draft.Article = common.draft.Article(
     Option(1),
     Option(1),
-    domain.Status(DRAFT, Set.empty),
-    Seq(ArticleTitle("test", "en")),
-    Seq(ArticleContent("<section><div>test</div></section>", "en")),
+    common.Status(DRAFT, Set.empty),
+    Seq(common.ArticleTitle("test", "en")),
+    Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
     Seq.empty,
     Seq.empty,
-    Seq(VisualElement("image", "en")),
-    Seq(ArticleIntroduction("This is an introduction", "en")),
+    Seq(common.VisualElement("image", "en")),
+    Seq(common.ArticleIntroduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
     LocalDateTime.now().minusDays(4).withNano(0),
     LocalDateTime.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
     LocalDateTime.now().minusDays(2).withNano(0),
-    ArticleType.TopicArticle,
+    common.draft.ArticleType.TopicArticle,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Availability.everyone,
+    common.Availability.everyone,
     Seq.empty,
     Seq.empty
   )
 
-  val sampleArticleWithPublicDomain: Article = Article(
+  val sampleArticleWithPublicDomain: common.draft.Article = common.draft.Article(
     Option(1),
     Option(1),
-    domain.Status(DRAFT, Set.empty),
-    Seq(ArticleTitle("test", "en")),
-    Seq(ArticleContent("<section><div>test</div></section>", "en")),
+    common.Status(DRAFT, Set.empty),
+    Seq(common.ArticleTitle("test", "en")),
+    Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Seq(ArticleIntroduction("This is an introduction", "en")),
+    Seq(common.ArticleIntroduction("This is an introduction", "en")),
     Seq.empty,
     Seq.empty,
     LocalDateTime.now().minusDays(4).withNano(0),
     LocalDateTime.now().minusDays(2).withNano(0),
     userWithWriteAccess.id,
     LocalDateTime.now().minusDays(2).withNano(0),
-    ArticleType.Standard,
+    common.draft.ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Availability.everyone,
+    common.Availability.everyone,
     Seq.empty,
-    RevisionMeta.default
+    common.draft.RevisionMeta.default
   )
 
-  val sampleDomainArticle: Article = Article(
+  val sampleDomainArticle: common.draft.Article = common.draft.Article(
     Option(articleId),
     Option(2),
-    domain.Status(DRAFT, Set.empty),
-    Seq(ArticleTitle("title", "nb")),
-    Seq(ArticleContent("content", "nb")),
-    Some(Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    common.Status(DRAFT, Set.empty),
+    Seq(common.ArticleTitle("title", "nb")),
+    Seq(common.ArticleContent("content", "nb")),
+    Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Seq(ArticleMetaDescription("meta description", "nb")),
-    Seq.empty,
-    today,
-    today,
-    "ndalId54321",
-    today,
-    ArticleType.Standard,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Availability.everyone,
-    Seq.empty,
-    Seq.empty
-  )
-
-  val sampleDomainArticle2: Article = Article(
-    None,
-    None,
-    domain.Status(DRAFT, Set.empty),
-    Seq(ArticleTitle("test", "en")),
-    Seq(ArticleContent("<article><div>test</div></article>", "en")),
-    Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
+    Seq(common.ArticleMetaDescription("meta description", "nb")),
     Seq.empty,
     today,
     today,
     "ndalId54321",
     today,
-    ArticleType.Standard,
+    common.draft.ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Availability.everyone,
+    common.Availability.everyone,
     Seq.empty,
     Seq.empty
   )
@@ -400,16 +371,18 @@ object TestData {
     None
   )
 
-  val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
-  val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
+  val sampleArticleWithByNcSa: common.draft.Article =
+    sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
+  val sampleArticleWithCopyrighted: common.draft.Article =
+    sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
-  val sampleDomainArticleWithHtmlFault: Article = Article(
+  val sampleDomainArticleWithHtmlFault: common.draft.Article = common.draft.Article(
     Option(articleId),
     Option(2),
-    domain.Status(DRAFT, Set.empty),
-    Seq(ArticleTitle("test", "en")),
+    common.Status(DRAFT, Set.empty),
+    Seq(common.ArticleTitle("test", "en")),
     Seq(
-      ArticleContent(
+      common.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
       |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
       |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
@@ -418,24 +391,24 @@ object TestData {
         "en"
       )
     ),
-    Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Seq(ArticleMetaDescription("meta description", "nb")),
+    Seq(common.ArticleMetaDescription("meta description", "nb")),
     Seq.empty,
     today,
     today,
     "ndalId54321",
     today,
-    ArticleType.Standard,
+    common.draft.ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
     Seq.empty,
-    Availability.everyone,
+    common.Availability.everyone,
     Seq.empty,
     Seq.empty
   )
@@ -489,10 +462,10 @@ object TestData {
     Seq.empty
   )
 
-  val (nodeId, nodeId2)         = ("1234", "4321")
-  val sampleTitle: ArticleTitle = ArticleTitle("title", "en")
+  val (nodeId, nodeId2)                = ("1234", "4321")
+  val sampleTitle: common.ArticleTitle = common.ArticleTitle("title", "en")
 
-  val visualElement: VisualElement = VisualElement(
+  val visualElement: common.VisualElement = common.VisualElement(
     s"""<embed data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
     "nb"
   )
@@ -507,7 +480,7 @@ object TestData {
     "ndalId54321"
   )
 
-  val sampleDomainAgreement: Agreement = Agreement(
+  val sampleDomainAgreement: domain.Agreement = domain.Agreement(
     id = Some(1),
     title = "Title",
     content = "Content",
@@ -517,17 +490,18 @@ object TestData {
     updatedBy = userWithWriteAccess.id
   )
 
-  val sampleBySaDomainAgreement: Agreement = Agreement(
+  val sampleBySaDomainAgreement: domain.Agreement = domain.Agreement(
     id = Some(1),
     title = "Title",
     content = "Content",
-    copyright = Copyright(Some(CC_BY_SA.toString), Some("Origin"), List(), List(), List(), None, None, None),
+    copyright =
+      common.draft.Copyright(Some(CC_BY_SA.toString), Some("Origin"), List(), List(), List(), None, None, None),
     created = LocalDateTime.now().minusDays(4),
     updated = LocalDateTime.now().minusDays(2),
     updatedBy = userWithWriteAccess.id
   )
 
-  val emptyDomainUserData: UserData =
+  val emptyDomainUserData: domain.UserData =
     domain.UserData(id = None, userId = "", savedSearches = None, latestEditedArticles = None, favoriteSubjects = None)
 
   val emptyApiUserData: api.UserData =
@@ -547,40 +521,40 @@ object TestData {
       None
     )
   )
-  val statusWithAwaitingPublishing          = Set(ArticleStatus.DRAFT, ArticleStatus.QUEUED_FOR_PUBLISHING)
-  val statusWithPublished: Status           = domain.Status(ArticleStatus.PUBLISHED, Set.empty)
-  val statusWithDraft: Status               = domain.Status(ArticleStatus.DRAFT, Set.empty)
-  val statusWithProposal: Status            = domain.Status(ArticleStatus.PROPOSAL, Set.empty)
-  val statusWithUserTest: Status            = domain.Status(ArticleStatus.USER_TEST, Set.empty)
-  val statusWithAwaitingQA: Status          = domain.Status(ArticleStatus.AWAITING_QUALITY_ASSURANCE, Set.empty)
-  val statusWithQueuedForPublishing: Status = domain.Status(ArticleStatus.QUEUED_FOR_PUBLISHING, Set.empty)
+  val statusWithAwaitingPublishing                 = Set(DRAFT, QUEUED_FOR_PUBLISHING)
+  val statusWithPublished: common.Status           = common.Status(PUBLISHED, Set.empty)
+  val statusWithDraft: common.Status               = common.Status(DRAFT, Set.empty)
+  val statusWithProposal: common.Status            = common.Status(PROPOSAL, Set.empty)
+  val statusWithUserTest: common.Status            = common.Status(USER_TEST, Set.empty)
+  val statusWithAwaitingQA: common.Status          = common.Status(AWAITING_QUALITY_ASSURANCE, Set.empty)
+  val statusWithQueuedForPublishing: common.Status = common.Status(QUEUED_FOR_PUBLISHING, Set.empty)
 
   val sampleLearningPath: LearningPath = LearningPath(1, Title("Title", "nb"))
 
   val sampleApiGrepCodesSearchResult: GrepCodesSearchResult = api.GrepCodesSearchResult(10, 1, 1, Seq("a", "b"))
   val sampleApiTagsSearchResult: TagsSearchResult           = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 
-  val searchSettings: SearchSettings = SearchSettings(
+  val searchSettings: domain.SearchSettings = domain.SearchSettings(
     query = None,
     withIdIn = List.empty,
     searchLanguage = "nb",
     license = None,
     page = 1,
     pageSize = 10,
-    sort = Sort.ByIdAsc,
+    sort = domain.Sort.ByIdAsc,
     articleTypes = Seq.empty,
     fallback = false,
     grepCodes = Seq.empty,
     shouldScroll = false
   )
 
-  val agreementSearchSettings: AgreementSearchSettings = AgreementSearchSettings(
+  val agreementSearchSettings: domain.AgreementSearchSettings = domain.AgreementSearchSettings(
     query = None,
     withIdIn = List.empty,
     license = None,
     page = 1,
     pageSize = 10,
-    sort = Sort.ByIdAsc,
+    sort = domain.Sort.ByIdAsc,
     shouldScroll = false
   )
 }
