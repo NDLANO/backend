@@ -128,7 +128,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       EditorNote(
         "kakemonster",
         TestData.userWithWriteAccess.id,
-        Status(ArticleStatus.DRAFT, Set.empty),
+        Status(DraftStatus.DRAFT, Set.empty),
         LocalDateTime.now()
       )
     ),
@@ -136,7 +136,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
       EditorNote(
         "kyllingkanon",
         TestData.userWithWriteAccess.id,
-        Status(ArticleStatus.DRAFT, Set.empty),
+        Status(DraftStatus.DRAFT, Set.empty),
         LocalDateTime.now()
       )
     ),

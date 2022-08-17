@@ -11,8 +11,8 @@ import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
-import no.ndla.common.model.domain.draft.ArticleStatus._
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
@@ -211,8 +211,8 @@ trait StateTransitionRules {
     // format: on
 
     private def getTransition(
-        from: ArticleStatus.Value,
-        to: ArticleStatus.Value,
+        from: DraftStatus.Value,
+        to: DraftStatus.Value,
         user: UserInfo,
         current: Draft
     ): Option[StateTransition] = {
@@ -223,7 +223,7 @@ trait StateTransitionRules {
 
     private[service] def doTransitionWithoutSideEffect(
         current: Draft,
-        to: ArticleStatus.Value,
+        to: DraftStatus.Value,
         user: UserInfo,
         isImported: Boolean
     ): (Try[Draft], Seq[SideEffect]) = {
@@ -260,7 +260,7 @@ trait StateTransitionRules {
 
     def doTransition(
         current: Draft,
-        to: ArticleStatus.Value,
+        to: DraftStatus.Value,
         user: UserInfo,
         isImported: Boolean
     ): IO[Try[Draft]] = {

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.search
 
-import no.ndla.common.model.domain.draft.ArticleStatus
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s.Formats
@@ -17,7 +17,7 @@ import org.json4s.native.Serialization.{read, writePretty}
 import java.time.LocalDateTime
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
+  implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(DraftStatus)
 
   val searchableArticle1 = SearchableArticle(
     id = 10.toLong,
@@ -38,7 +38,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     users = Seq("ndalId54321"),
     previousNotes = Seq("Søte", "Jordbær"),
     grepCodes = Seq("KM1337", "KM5432"),
-    status = SearchableStatus(ArticleStatus.PUBLISHED, Set.empty)
+    status = SearchableStatus(DraftStatus.PUBLISHED, Set.empty)
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

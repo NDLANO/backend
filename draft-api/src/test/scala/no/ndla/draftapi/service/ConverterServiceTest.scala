@@ -22,8 +22,8 @@ import no.ndla.common.model.domain.{
   Status,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType}
-import no.ndla.common.model.domain.draft.ArticleStatus._
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -163,44 +163,44 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
     val articleId: Long = 1
     val article: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.DRAFT, Set()))
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.DRAFT, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
-    noTrans(DRAFT.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should contain(ArticleStatus.ARCHIVED.toString)
+    noTrans(DRAFT.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PROPOSAL.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(USER_TEST.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(TRANSLATED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_UNPUBLISHING.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(UNPUBLISHED.toString) should contain(DraftStatus.ARCHIVED.toString)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
 
     val articleId: Long = 1
     val article: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.PUBLISHED, Set()))
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
 
-    noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
+    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
@@ -209,24 +209,24 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
-        status = Status(ArticleStatus.DRAFT, Set(ArticleStatus.PUBLISHED))
+        status = Status(DraftStatus.DRAFT, Set(DraftStatus.PUBLISHED))
       )
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
-    noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(PROPOSAL.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(USER_TEST.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(TRANSLATED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(UNPUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED)
+    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
   }
 
   test("stateTransitionsToApi should return different number of transitions based on access") {
@@ -253,7 +253,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should have transitions from all statuses if admin") {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    adminTrans.size should be(ArticleStatus.values.size)
+    adminTrans.size should be(DraftStatus.values.size)
   }
 
   test("stateTransitionsToApi should have transitions in inserted order") {
@@ -282,12 +282,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("newNotes should fail if empty strings are recieved") {
     service
-      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(ArticleStatus.PROPOSAL, Set.empty))
+      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(DraftStatus.PROPOSAL, Set.empty))
       .isFailure should be(true)
   }
 
   test("Merging language fields of article should not delete not updated fields") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
     val art = Draft(
       id = Some(3),
       revision = Some(4),
@@ -325,7 +325,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should replace every field correctly") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
     val art = Draft(
       id = Some(3),
       revision = Some(4),
@@ -409,7 +409,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should merge every field correctly") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
     val art = Draft(
       id = Some(3),
       revision = Some(4),
@@ -546,7 +546,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should not be able to go to ARCHIVED if published") {
-    val status  = Status(ArticleStatus.DRAFT, other = Set(ArticleStatus.PUBLISHED))
+    val status  = Status(DraftStatus.DRAFT, other = Set(DraftStatus.PUBLISHED))
     val article = TestData.sampleDomainArticle.copy(status = status)
     val Failure(res: IllegalStatusStateTransition) =
       service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false).unsafeRunSync()

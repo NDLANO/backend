@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
@@ -36,7 +36,7 @@ trait SearchApiClient {
 
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(ArticleStatus) +
+        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(Availability) +
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) ++

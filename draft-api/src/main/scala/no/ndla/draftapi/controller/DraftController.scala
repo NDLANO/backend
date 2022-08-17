@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.draft.{ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{DraftStatus, ArticleType}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
@@ -392,9 +392,9 @@ trait DraftController {
 
       val article       = readService.withId(articleId, language, fallback)
       val currentOption = article.map(_.status.current).toOption
-      val isPublicStatus = currentOption.contains(ArticleStatus.USER_TEST.toString) ||
-        currentOption.contains(ArticleStatus.QUALITY_ASSURED_DELAYED.toString) ||
-        currentOption.contains(ArticleStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
+      val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
+        currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
+        currentOption.contains(DraftStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
       doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
         article match {
           case Success(a)  => a
@@ -578,7 +578,7 @@ trait DraftController {
       doOrAccessDenied(userInfo.canWrite) {
         val id         = long(this.articleId.paramName)
         val isImported = booleanOrDefault("import_publish", default = false)
-        ArticleStatus
+        DraftStatus
           .valueOfOrError(params(this.statuss.paramName))
           .flatMap(writeService.updateArticleStatus(_, id, userInfo, isImported)) match {
           case Success(a)  => a

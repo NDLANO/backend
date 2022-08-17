@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import java.time.LocalDateTime
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.ArticleStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
+import no.ndla.common.model.domain.draft.DraftStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}

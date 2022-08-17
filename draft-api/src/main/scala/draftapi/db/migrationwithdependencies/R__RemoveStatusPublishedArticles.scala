@@ -10,7 +10,7 @@ package draftapi.db.migrationwithdependencies
 import enumeratum.Json4s
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.draftapi.model.domain.DBArticle
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
 import no.ndla.common.model.domain.Status
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
@@ -26,7 +26,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + Json4s.serializer(ArticleType)
+    org.json4s.DefaultFormats + new EnumNameSerializer(DraftStatus) + Json4s.serializer(ArticleType)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
 
@@ -70,8 +70,8 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
   }
 
   def updateStatus(status: Status): Status = {
-    if (status.current == ArticleStatus.PUBLISHED) {
-      val newOther: Set[ArticleStatus.Value] = status.other.filter(value => value == ArticleStatus.IMPORTED)
+    if (status.current == DraftStatus.PUBLISHED) {
+      val newOther: Set[DraftStatus.Value] = status.other.filter(value => value == DraftStatus.IMPORTED)
       status.copy(other = newOther)
     } else status
   }

@@ -9,7 +9,7 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.ArticleStatus._
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}

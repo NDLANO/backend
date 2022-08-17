@@ -17,7 +17,7 @@ import no.ndla.common.model.domain.{
   ArticleTitle,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.languageOrUnknown
@@ -41,7 +41,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats = org.json4s.DefaultFormats +
-    new EnumNameSerializer(ArticleStatus) +
+    new EnumNameSerializer(DraftStatus) +
     Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout     = 20 * 1000 // 20 Seconds

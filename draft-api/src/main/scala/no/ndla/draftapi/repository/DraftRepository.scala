@@ -15,7 +15,7 @@ import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, Not
 import no.ndla.draftapi.model.domain._
 import no.ndla.common.Clock
 import no.ndla.common.model.domain.{ArticleTag, EditorNote}
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
@@ -233,7 +233,7 @@ trait DraftRepository {
               """
       )
 
-    def idsWithStatus(status: ArticleStatus.Value)(implicit session: DBSession = AutoSession): Try[List[ArticleIds]] = {
+    def idsWithStatus(status: DraftStatus.Value)(implicit session: DBSession = AutoSession): Try[List[ArticleIds]] = {
       val ar = DBArticle.syntax("ar")
       Try(
         sql"select article_id, external_id from ${DBArticle
@@ -364,7 +364,7 @@ trait DraftRepository {
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Draft] =
       articlesWhere(
-        sqls"ar.id between $min and $max and ar.document#>>'{status,current}' <> ${ArticleStatus.ARCHIVED.toString}"
+        sqls"ar.id between $min and $max and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}"
       ).toList
 
     private def articleWhere(

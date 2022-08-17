@@ -32,7 +32,7 @@ trait SearchConverterService {
 
   class SearchConverterService extends LazyLogging {
     implicit val formats: Formats =
-      SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.ArticleStatus)
+      SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.DraftStatus)
 
     def asSearchableArticle(ai: common.draft.Draft): SearchableArticle = {
 

@@ -12,8 +12,8 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.draft.ArticleStatus
-import no.ndla.common.model.domain.draft.ArticleStatus.{DRAFT, IMPORTED}
+import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, IMPORTED}
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -289,7 +289,7 @@ trait ConverterService {
     }
 
     def updateStatus(
-        status: ArticleStatus.Value,
+        status: DraftStatus.Value,
         article: common.draft.Draft,
         user: UserInfo,
         isImported: Boolean

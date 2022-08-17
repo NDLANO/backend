@@ -7,6 +7,6 @@
 
 package no.ndla.common.model.domain
 
-import no.ndla.common.model.domain.draft.ArticleStatus
+import no.ndla.common.model.domain.draft.DraftStatus
 
-case class Status(current: ArticleStatus.Value, other: Set[ArticleStatus.Value])
+case class Status(current: DraftStatus.Value, other: Set[DraftStatus.Value])

@@ -14,9 +14,9 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.draft.ArticleStatus
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
@@ -241,7 +241,7 @@ trait WriteService {
     }
 
     def updateArticleStatus(
-        status: ArticleStatus.Value,
+        status: DraftStatus.Value,
         id: Long,
         user: UserInfo,
         isImported: Boolean
@@ -526,7 +526,7 @@ trait WriteService {
         val newStatusIfUndefined = if (oldStatus == PUBLISHED) PROPOSAL else oldStatus
 
         updatedApiArticle.status
-          .map(ArticleStatus.valueOfOrError)
+          .map(DraftStatus.valueOfOrError)
           .getOrElse(Success(newStatusIfUndefined))
           .flatMap(newStatus =>
             converterService

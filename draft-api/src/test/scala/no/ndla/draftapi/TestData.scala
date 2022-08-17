@@ -8,7 +8,7 @@
 package no.ndla.draftapi
 
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.ArticleStatus._
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
 import no.ndla.draftapi.model.api.{GrepCodesSearchResult, NewAgreement, NewArticle, TagsSearchResult, UpdatedArticle}

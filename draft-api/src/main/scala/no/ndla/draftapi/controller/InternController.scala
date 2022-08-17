@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -158,7 +158,7 @@ trait InternController {
     }
 
     get("/ids") {
-      paramOrNone("status").map(ArticleStatus.valueOfOrError) match {
+      paramOrNone("status").map(DraftStatus.valueOfOrError) match {
         case Some(Success(status)) => draftRepository.idsWithStatus(status).getOrElse(List.empty)
         case Some(Failure(ex))     => errorHandler(ex)
         case None                  => draftRepository.getAllIds

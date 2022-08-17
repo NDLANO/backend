@@ -22,8 +22,8 @@ import no.ndla.common.model.domain.{
   Status,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.ArticleStatus.{DRAFT, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
+import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PUBLISHED}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
@@ -459,7 +459,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val articleToUpdate = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
     val user            = UserInfo("Pelle", Set(Role.WRITE))
     val updatedArticle = converterService
-      .updateStatus(ArticleStatus.PROPOSAL, articleToUpdate, user, isImported = false)
+      .updateStatus(DraftStatus.PROPOSAL, articleToUpdate, user, isImported = false)
       .attempt
       .unsafeRunSync()
       .toTry
@@ -478,7 +478,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.indexDocument(any[Draft])).thenReturn(Success(updatedAndInserted))
     when(searchApiClient.indexDraft(any[Draft])).thenReturn(updatedAndInserted)
 
-    service.updateArticleStatus(ArticleStatus.PROPOSAL, 10, user, isImported = false)
+    service.updateArticleStatus(DraftStatus.PROPOSAL, 10, user, isImported = false)
 
     val argCap1: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
@@ -528,7 +528,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleDomainArticle.copy(
         id = Some(5),
         title = Seq(ArticleTitle("Tittel", "nb"), ArticleTitle("Title", "en")),
-        status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
+        status = Status(DraftStatus.PUBLISHED, Set(DraftStatus.IMPORTED)),
         updated = yesterday,
         created = yesterday.minusDays(1),
         published = yesterday
@@ -548,13 +548,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       published = today,
       updatedBy = userinfo.id,
-      status = Status(ArticleStatus.DRAFT, Set.empty),
+      status = Status(DraftStatus.DRAFT, Set.empty),
       notes = article.notes ++
         converterService
           .newNotes(
             Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
             userinfo,
-            Status(ArticleStatus.DRAFT, Set.empty)
+            Status(DraftStatus.DRAFT, Set.empty)
           )
           .get
     )
@@ -580,7 +580,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleDomainArticle.copy(
       id = Some(5),
       title = Seq(ArticleTitle("Tittel", "nb"), ArticleTitle("Title", "en")),
-      status = Status(ArticleStatus.PUBLISHED, Set(ArticleStatus.IMPORTED)),
+      status = Status(DraftStatus.PUBLISHED, Set(DraftStatus.IMPORTED)),
       updated = yesterday,
       created = yesterday.minusDays(1),
       published = yesterday
@@ -599,13 +599,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       published = today,
       updatedBy = userinfo.id,
-      status = Status(ArticleStatus.DRAFT, Set.empty),
+      status = Status(DraftStatus.DRAFT, Set.empty),
       notes = article.notes ++
         converterService
           .newNotes(
             Seq("Opprettet artikkel, som kopi av artikkel med id: '5'."),
             userinfo,
-            Status(ArticleStatus.DRAFT, Set.empty)
+            Status(DraftStatus.DRAFT, Set.empty)
           )
           .get
     )
@@ -785,7 +785,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     result1.status.current should not be (existing.status.current.toString)
-    result1.status.current should be(ArticleStatus.PROPOSAL.toString)
+    result1.status.current should be(DraftStatus.PROPOSAL.toString)
     result1.status.other.sorted should not be (existing.status.other.map(_.toString).toSeq.sorted)
     result1.notes.head.note should not be ("Artikkelen har blitt delpublisert")
   }
@@ -844,7 +844,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     result1.status.current should not be (existing.status.current.toString)
-    result1.status.current should be(ArticleStatus.PROPOSAL.toString)
+    result1.status.current should be(DraftStatus.PROPOSAL.toString)
     result1.status.other.sorted should not be (existing.status.other.map(_.toString).toSeq.sorted)
 
     result1.availability should be(Availability.teacher.toString)

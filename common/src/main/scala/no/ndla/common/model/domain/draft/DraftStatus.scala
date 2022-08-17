@@ -11,13 +11,13 @@ import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-object ArticleStatus extends Enumeration {
+object DraftStatus extends Enumeration {
 
   val IMPORTED, DRAFT, PUBLISHED, PROPOSAL, QUEUED_FOR_PUBLISHING, USER_TEST, AWAITING_QUALITY_ASSURANCE,
       QUEUED_FOR_LANGUAGE, TRANSLATED, QUALITY_ASSURED, QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED,
       AWAITING_UNPUBLISHING, UNPUBLISHED, AWAITING_ARCHIVING, ARCHIVED = Value
 
-  def valueOfOrError(s: String): Try[ArticleStatus.Value] =
+  def valueOfOrError(s: String): Try[DraftStatus.Value] =
     valueOf(s) match {
       case Some(st) => Success(st)
       case None =>
@@ -27,5 +27,5 @@ object ArticleStatus extends Enumeration {
         )
     }
 
-  def valueOf(s: String): Option[ArticleStatus.Value] = values.find(_.toString == s.toUpperCase)
+  def valueOf(s: String): Option[DraftStatus.Value] = values.find(_.toString == s.toUpperCase)
 }
