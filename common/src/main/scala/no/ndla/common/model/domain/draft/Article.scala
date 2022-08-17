@@ -19,15 +19,12 @@ import no.ndla.common.model.domain.{
   ArticleTag,
   ArticleTitle,
   Availability,
+  Content,
   EditorNote,
   RelatedContent,
   RequiredLibrary,
   Status,
   VisualElement
-}
-
-trait Content {
-  def id: Option[Long]
 }
 
 case class Article(
