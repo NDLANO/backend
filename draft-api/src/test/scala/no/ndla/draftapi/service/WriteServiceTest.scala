@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.{
   VisualElement
 }
 import no.ndla.common.model.domain.draft.ArticleStatus.{DRAFT, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
@@ -52,10 +52,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val articleId   = 13
   val agreementId = 14
 
-  val article: Article =
+  val article: Draft =
     TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
 
-  val topicArticle: Article =
+  val topicArticle: Draft =
     TestData.sampleTopicArticle.copy(id = Some(articleId), created = yesterday, updated = yesterday)
   val agreement: Agreement = TestData.sampleDomainAgreement.copy(id = Some(agreementId))
 
@@ -72,33 +72,33 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.withId(articleId)).thenReturn(Option(article))
     when(agreementRepository.withId(agreementId)).thenReturn(Option(agreement))
-    when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      Try(invocation.getArgument[Article](0))
+    when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgument[Draft](0))
     )
-    when(tagIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      Try(invocation.getArgument[Article](0))
+    when(tagIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgument[Draft](0))
     )
-    when(grepCodesIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      Try(invocation.getArgument[Article](0))
+    when(grepCodesIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgument[Draft](0))
     )
     when(agreementIndexService.indexDocument(any[Agreement])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Agreement](0))
     )
-    when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      invocation.getArgument[Article](0)
+    when(readService.addUrlsOnEmbedResources(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
+      invocation.getArgument[Draft](0)
     )
-    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
     when(contentValidator.validateAgreement(any[Agreement], any[Seq[ValidationMessage]])).thenReturn(Success(agreement))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
-    when(draftRepository.updateArticle(any[Article], any[Boolean])(any[DBSession]))
+    when(draftRepository.updateArticle(any[Draft], any[Boolean])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
-        val arg = invocation.getArgument[Article](0)
+        val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
-    when(draftRepository.storeArticleAsNewVersion(any[Article], any[Option[UserInfo]])(any[DBSession]))
+    when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
-        val arg = invocation.getArgument[Article](0)
+        val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
 
@@ -106,14 +106,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val arg = invocation.getArgument[Agreement](0)
       Try(arg)
     })
-    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Article])).thenAnswer((i: InvocationOnMock) => {
+    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Draft])).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[Long](0))
     })
   }
 
   test("newArticle should insert a given article") {
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
-    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
     when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(1: Long))
 
@@ -122,9 +122,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .isSuccess should be(true)
 
     verify(draftRepository, times(1)).newEmptyArticle()
-    verify(draftRepository, times(0)).insert(any[Article])(any)
-    verify(draftRepository, times(1)).updateArticle(any[Article], any[Boolean])(any)
-    verify(articleIndexService, times(1)).indexDocument(any[Article])
+    verify(draftRepository, times(0)).insert(any[Draft])(any)
+    verify(draftRepository, times(1)).updateArticle(any[Draft], any[Boolean])(any)
+    verify(articleIndexService, times(1)).indexDocument(any[Draft])
   }
 
   test("newAgreement should insert a given Agreement") {
@@ -364,7 +364,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     {
       val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithQueuedForPublishing)
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
-      when(contentValidator.validateArticle(any[Article])).thenReturn(Success(existing))
+      when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(existing))
       when(articleApiClient.validateArticle(any[ArticleApiArticle], any[Boolean])).thenAnswer((i: InvocationOnMock) => {
         Success(i.getArgument[ArticleApiArticle](0))
       })
@@ -393,7 +393,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         id = Some(3),
         title = Seq(ArticleTitle("title", "nb"), ArticleTitle("title", "nn"))
       )
-    val articleCaptor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val articleCaptor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
     service.deleteLanguage(article.id.get, "nn", UserInfo("asdf", Set()))
@@ -473,15 +473,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
 
     when(draftRepository.withId(10)).thenReturn(Some(articleToUpdate))
-    when(draftRepository.updateArticle(any[Article], eqTo(false))(any)).thenReturn(Success(updatedAndInserted))
+    when(draftRepository.updateArticle(any[Draft], eqTo(false))(any)).thenReturn(Success(updatedAndInserted))
 
-    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexDraft(any[Article])).thenReturn(updatedAndInserted)
+    when(articleIndexService.indexDocument(any[Draft])).thenReturn(Success(updatedAndInserted))
+    when(searchApiClient.indexDraft(any[Draft])).thenReturn(updatedAndInserted)
 
     service.updateArticleStatus(ArticleStatus.PROPOSAL, 10, user, isImported = false)
 
-    val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
-    val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val argCap1: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
+    val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
     verify(searchApiClient, times(1)).indexDraft(argCap2.capture())
@@ -512,7 +512,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
     service.updateArticle(1, updatedArticle, List(), List(), TestData.userWithPublishAccess, None, None, None)
 
-    val argCap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val argCap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     verify(contentValidator, times(1)).validateArticle(argCap.capture())
     val captured = argCap.getValue
     captured.content should equal(nbArticle.content)
@@ -559,13 +559,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Article](0)
+    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
+      i.getArgument[Draft](0)
     )
 
     service.copyArticleFromId(5, userinfo, "*", true, true)
 
-    val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
     val insertedArticle = cap.getValue
     insertedArticle should be(expectedInsertedArticle)
@@ -610,13 +610,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Article])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Article](0)
+    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
+      i.getArgument[Draft](0)
     )
 
     service.copyArticleFromId(5, userinfo, "*", true, false)
 
-    val cap: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
     val insertedArticle = cap.getValue
     insertedArticle should be(expectedInsertedArticle)
@@ -891,8 +891,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     updated.get.notes.length should be(1)
 
-    verify(draftRepository, never).updateArticle(any[Article], anyBoolean)(any[DBSession])
-    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Article], any[Option[UserInfo]])(any[DBSession])
+    verify(draftRepository, never).updateArticle(any[Draft], anyBoolean)(any[DBSession])
+    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]])(any[DBSession])
   }
 
   test("contentWithClonedFiles clones files as expected") {
@@ -1131,7 +1131,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       note = savedRevision.note,
       status = RevisionStatus.fromString(savedRevision.status, RevisionStatus.NeedsRevision)
     )
-    val another: Article = article.copy(revisionMeta = Seq(domainRev))
+    val another: Draft = article.copy(revisionMeta = Seq(domainRev))
     when(draftRepository.withId(articleId)).thenReturn(Option(another))
 
     val updated2 = service.updateArticle(
@@ -1212,7 +1212,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
 
-    val captor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
     articlePassedToUpdate.notes.head.note should be("Artikkelen har blitt delpublisert")
@@ -1241,7 +1241,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    val captor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
     val articlePassedToUpdate = captor.getValue
 
@@ -1344,7 +1344,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     when(draftRepository.withId(3)).thenReturn(Some(article3))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(3)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+    verify(draftRepository, times(3)).updateArticle(any[Draft], any[Boolean])(any[DBSession])
   }
 
   test("copyRevisionDates does nothing if revisionMeta is empty") {
@@ -1364,7 +1364,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     when(draftRepository.withId(3)).thenReturn(Some(article3))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(0)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+    verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(any[DBSession])
   }
 
   test("copyRevisionDates skips empty contentUris") {
@@ -1387,6 +1387,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(1)).thenReturn(Some(article1))
     when(draftRepository.withId(2)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(2)).updateArticle(any[Article], any[Boolean])(any[DBSession])
+    verify(draftRepository, times(2)).updateArticle(any[Draft], any[Boolean])(any[DBSession])
   }
 }

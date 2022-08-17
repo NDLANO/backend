@@ -67,7 +67,7 @@ trait ReadService {
         .reverse
     }
 
-    private[service] def addUrlsOnEmbedResources(article: common.draft.Article): common.draft.Article = {
+    private[service] def addUrlsOnEmbedResources(article: common.draft.Draft): common.draft.Draft = {
       val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
       val visualElementWithUrls =
         article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))

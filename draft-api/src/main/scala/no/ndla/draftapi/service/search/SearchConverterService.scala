@@ -34,7 +34,7 @@ trait SearchConverterService {
     implicit val formats: Formats =
       SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.ArticleStatus)
 
-    def asSearchableArticle(ai: common.draft.Article): SearchableArticle = {
+    def asSearchableArticle(ai: common.draft.Draft): SearchableArticle = {
 
       val defaultTitle = ai.title
         .sortBy(title => {
@@ -190,7 +190,7 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def asSearchableTags(article: common.draft.Article): Seq[SearchableTag] = {
+    def asSearchableTags(article: common.draft.Draft): Seq[SearchableTag] = {
       article.tags.flatMap(articleTags =>
         articleTags.tags.map(tag =>
           SearchableTag(
@@ -201,7 +201,7 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableGrepCodes(article: common.draft.Article): Seq[SearchableGrepCode] =
+    def asSearchableGrepCodes(article: common.draft.Draft): Seq[SearchableGrepCode] =
       article.grepCodes.map(code => SearchableGrepCode(code))
   }
 }

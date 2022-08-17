@@ -73,7 +73,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
 
   val today: LocalDateTime = LocalDateTime.now()
 
-  val article1: Article = TestData.sampleArticleWithByNcSa.copy(
+  val article1: Draft = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(ArticleTitle("Batmen er på vift med en bil", "nb")),
     introduction = List(ArticleIntroduction("Batmen", "nb")),
@@ -85,7 +85,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today.minusDays(3)
   )
 
-  val article2: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article2: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(ArticleTitle("Pingvinen er ute og går", "nb")),
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
@@ -95,7 +95,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today.minusDays(2)
   )
 
-  val article3: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article3: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(3),
     title = List(ArticleTitle("Donald Duck kjører bil", "nb")),
     introduction = List(ArticleIntroduction("Donald Duck", "nb")),
@@ -105,7 +105,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today.minusDays(1)
   )
 
-  val article4: Article = TestData.sampleArticleWithCopyrighted.copy(
+  val article4: Draft = TestData.sampleArticleWithCopyrighted.copy(
     id = Option(4),
     title = List(ArticleTitle("Superman er ute og flyr", "nb")),
     introduction = List(ArticleIntroduction("Superman", "nb")),
@@ -116,7 +116,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today
   )
 
-  val article5: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article5: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(5),
     title = List(ArticleTitle("Hulken løfter biler", "nb")),
     introduction = List(ArticleIntroduction("Hulken", "nb")),
@@ -143,7 +143,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     grepCodes = Seq("KM1234")
   )
 
-  val article6: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article6: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(6),
     title = List(ArticleTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
@@ -158,7 +158,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today.minusDays(25)
   )
 
-  val article7: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article7: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(7),
     title = List(ArticleTitle("Yggdrasil livets tre", "nb")),
     introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
@@ -168,7 +168,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     updated = today.minusDays(15)
   )
 
-  val article8: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article8: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(8),
     title = List(ArticleTitle("Baldur har mareritt", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
@@ -179,7 +179,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     articleType = ArticleType.TopicArticle
   )
 
-  val article9: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article9: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(9),
     title = List(ArticleTitle("Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
@@ -190,7 +190,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     articleType = ArticleType.TopicArticle
   )
 
-  val article10: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article10: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(10),
     title = List(ArticleTitle("This article is in english", "en")),
     introduction = List(ArticleIntroduction("Engulsk", "en")),
@@ -201,7 +201,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     articleType = ArticleType.TopicArticle
   )
 
-  val article11: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article11: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(11),
     title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en"), ArticleTitle("Baloi", "biz")),
     introduction = List(

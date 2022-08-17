@@ -17,7 +17,7 @@ import no.ndla.common.model.domain.{
   ArticleTitle,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.languageOrUnknown
@@ -29,7 +29,7 @@ import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalaj.http.Http
-import scalikejdbc.{DBSession, _}
+import scalikejdbc._
 
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
@@ -150,13 +150,13 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
 
   }
 
-  def convertArticle(articleId: Long, externalId: Option[Long])(implicit session: DBSession): Option[Article] = {
+  def convertArticle(articleId: Long, externalId: Option[Long])(implicit session: DBSession): Option[Draft] = {
     val externalTags = externalId.map(fetchArticleTags).getOrElse(Seq())
     val oldArticle   = fetchArticleInfo(articleId)
     convertArticleLanguage(oldArticle, externalTags)
   }
 
-  def fetchArticleInfo(articleId: Long)(implicit session: DBSession): Option[Article] = {
+  def fetchArticleInfo(articleId: Long)(implicit session: DBSession): Option[Draft] = {
     val ar = DBArticle.syntax("ar")
     val withId =
       sqls"ar.id=${articleId.toInt} ORDER BY revision DESC LIMIT 1"
@@ -165,7 +165,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
       .single()
   }
 
-  def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[ArticleTag]): Option[Article] = {
+  def convertArticleLanguage(oldArticle: Option[Draft], externalTags: Seq[ArticleTag]): Option[Draft] = {
     val contentLanguages = oldArticle.map(_.content).getOrElse(Seq()).map(content => content.language)
     oldArticle.map(article =>
       article.copy(
@@ -222,7 +222,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def updateArticle(article: Article)(implicit session: DBSession): Long = {
+  def updateArticle(article: Draft)(implicit session: DBSession): Long = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))

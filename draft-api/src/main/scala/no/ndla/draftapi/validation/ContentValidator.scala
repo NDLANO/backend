@@ -20,7 +20,7 @@ import no.ndla.common.model.domain.{
   RequiredLibrary,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Article, Copyright, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -75,7 +75,7 @@ trait ContentValidator {
 
     }
 
-    def validateArticle(article: Article): Try[Article] = {
+    def validateArticle(article: Draft): Try[Draft] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c)) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
         article.metaDescription.flatMap(m => validateMetaDescription(m)) ++

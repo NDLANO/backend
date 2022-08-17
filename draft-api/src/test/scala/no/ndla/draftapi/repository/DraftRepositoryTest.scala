@@ -9,7 +9,7 @@ package no.ndla.draftapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
 import no.ndla.draftapi._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.domain._
@@ -39,7 +39,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     super.withFixture(test)
   }
 
-  val sampleArticle: Article = TestData.sampleArticleWithByNcSa
+  val sampleArticle: Draft = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {

@@ -11,7 +11,7 @@ import cats.Traverse
 import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.model.domain.ArticleTitle
-import no.ndla.common.model.domain.draft.Article
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.language.Language
 import no.ndla.network.NdlaClient
@@ -31,7 +31,7 @@ trait TaxonomyApiClient {
     private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
-    def updateTaxonomyIfExists(articleId: Long, article: Article): Try[Long] = {
+    def updateTaxonomyIfExists(articleId: Long, article: Draft): Try[Long] = {
       for {
         resources <- queryResource(articleId)
         _         <- updateTaxonomy[Resource](resources, article.title, updateResourceTitleAndTranslations)

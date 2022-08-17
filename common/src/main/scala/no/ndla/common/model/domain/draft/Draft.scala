@@ -27,7 +27,7 @@ import no.ndla.common.model.domain.{
   VisualElement
 }
 
-case class Article(
+case class Draft(
     id: Option[Long],
     revision: Option[Int],
     status: Status,

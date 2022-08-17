@@ -11,7 +11,7 @@ import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
 import no.ndla.common.model.domain.draft.ArticleStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
@@ -55,12 +55,12 @@ trait StateTransitionRules {
     // Import implicits to clean up SideEffect creation where we don't need all parameters
     import SideEffect.implicits._
 
-    private[service] val checkIfArticleIsInUse: SideEffect = (article: Article) =>
+    private[service] val checkIfArticleIsInUse: SideEffect = (article: Draft) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1)) {
         Success(article)
       }
 
-    private[service] val unpublishArticle: SideEffect = (article: Article) =>
+    private[service] val unpublishArticle: SideEffect = (article: Draft) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1)) {
         article.id match {
           case Some(id) =>
@@ -72,7 +72,7 @@ trait StateTransitionRules {
         }
       }
 
-    private val validateArticleApiArticle: SideEffect = (article: Article, isImported: Boolean) => {
+    private val validateArticleApiArticle: SideEffect = (article: Draft, isImported: Boolean) => {
       val articleApiArticle = converterService.toArticleApiArticle(article)
       articleApiClient.validateArticle(articleApiArticle, isImported).map(_ => article)
     }
@@ -214,7 +214,7 @@ trait StateTransitionRules {
         from: ArticleStatus.Value,
         to: ArticleStatus.Value,
         user: UserInfo,
-        current: Article
+        current: Draft
     ): Option[StateTransition] = {
       StateTransitions
         .find(transition => transition.from == from && transition.to == to)
@@ -222,11 +222,11 @@ trait StateTransitionRules {
     }
 
     private[service] def doTransitionWithoutSideEffect(
-        current: Article,
+        current: Draft,
         to: ArticleStatus.Value,
         user: UserInfo,
         isImported: Boolean
-    ): (Try[Article], Seq[SideEffect]) = {
+    ): (Try[Draft], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user, current) match {
         case Some(t) =>
           val currentToOther = if (t.addCurrentStateToOthersOnTransition) Set(current.status.current) else Set()
@@ -259,11 +259,11 @@ trait StateTransitionRules {
     }
 
     def doTransition(
-        current: Article,
+        current: Draft,
         to: ArticleStatus.Value,
         user: UserInfo,
         isImported: Boolean
-    ): IO[Try[Article]] = {
+    ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       IO {
         convertedArticle.flatMap(articleBeforeSideEffect => {
@@ -294,7 +294,7 @@ trait StateTransitionRules {
       }
     }
 
-    private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[Article]): Try[Article] =
+    private def doIfArticleIsNotInUse(articleId: Long)(callback: => Try[Draft]): Try[Draft] =
       (
         searchApiClient.draftsWhereUsed(articleId),
         searchApiClient.publishedWhereUsed(articleId),

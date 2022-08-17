@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.model.domain.draft.Article
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
@@ -23,13 +23,13 @@ trait GrepCodesIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val grepCodesIndexService: GrepCodesIndexService
 
-  class GrepCodesIndexService extends LazyLogging with IndexService[Article, SearchableGrepCode] {
-    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
-    override val documentType: String            = props.DraftGrepCodesSearchDocument
-    override val searchIndex: String             = props.DraftGrepCodesSearchIndex
-    override val repository: Repository[Article] = draftRepository
+  class GrepCodesIndexService extends LazyLogging with IndexService[Draft, SearchableGrepCode] {
+    implicit val formats: Formats              = SearchableLanguageFormats.JSonFormats
+    override val documentType: String          = props.DraftGrepCodesSearchDocument
+    override val searchIndex: String           = props.DraftGrepCodesSearchIndex
+    override val repository: Repository[Draft] = draftRepository
 
-    override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {
+    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
       val grepCodes = searchConverterService.asSearchableGrepCodes(domainModel)
 
       grepCodes.map(code => {

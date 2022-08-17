@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.model.domain.draft.Article
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
@@ -23,13 +23,13 @@ trait TagIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val tagIndexService: TagIndexService
 
-  class TagIndexService extends LazyLogging with IndexService[Article, SearchableTag] {
-    implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
-    override val documentType: String            = props.DraftTagSearchDocument
-    override val searchIndex: String             = props.DraftTagSearchIndex
-    override val repository: Repository[Article] = draftRepository
+  class TagIndexService extends LazyLogging with IndexService[Draft, SearchableTag] {
+    implicit val formats: Formats              = SearchableLanguageFormats.JSonFormats
+    override val documentType: String          = props.DraftTagSearchDocument
+    override val searchIndex: String           = props.DraftTagSearchIndex
+    override val repository: Repository[Draft] = draftRepository
 
-    override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {
+    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
       val tags = searchConverterService.asSearchableTags(domainModel)
 
       tags.map(t => {

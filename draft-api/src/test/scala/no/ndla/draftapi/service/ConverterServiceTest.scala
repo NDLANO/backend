@@ -22,7 +22,7 @@ import no.ndla.common.model.domain.{
   Status,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType}
 import no.ndla.common.model.domain.draft.ArticleStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -162,7 +162,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
     val articleId: Long = 1
-    val article: Article =
+    val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.DRAFT, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
@@ -183,7 +183,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
 
     val articleId: Long = 1
-    val article: Article =
+    val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.PUBLISHED, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
@@ -206,7 +206,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
 
     val articleId = 1
-    val article: Article =
+    val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
         status = Status(ArticleStatus.DRAFT, Set(ArticleStatus.PUBLISHED))
@@ -288,7 +288,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("Merging language fields of article should not delete not updated fields") {
     val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -326,7 +326,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("mergeArticleLanguageFields should replace every field correctly") {
     val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -354,7 +354,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       revisionMeta = Seq.empty
     )
 
-    val expectedArticle = Article(
+    val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -410,7 +410,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("mergeArticleLanguageFields should merge every field correctly") {
     val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -438,7 +438,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       revisionMeta = Seq.empty
     )
 
-    val expectedArticle = Article(
+    val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.domain
 
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.service.SideEffect.SideEffect
 
@@ -31,7 +31,7 @@ case class StateTransition(
   def require(roles: Set[Role.Value], ignoreIf: Option[IgnoreFunction] = None): StateTransition =
     copy(requiredRoles = roles, ignoreRolesIf = ignoreIf.map(requiredRoles -> _))
 
-  def hasRequiredRoles(user: UserInfo, article: Option[Article]): Boolean = {
+  def hasRequiredRoles(user: UserInfo, article: Option[Draft]): Boolean = {
     val ignore = ignoreRolesIf match {
       case Some((oldRoles, ignoreFunc)) => ignoreFunc(article, this) && user.hasRoles(oldRoles)
       case None                         => false

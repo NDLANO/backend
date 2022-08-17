@@ -7,7 +7,7 @@
 
 package draftapi.db.migrationwithdependencies
 
-import no.ndla.common.model.domain.draft.Article
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.draftapi.model.domain.DBArticle
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -15,7 +15,7 @@ import org.json4s.Extraction.decompose
 import org.json4s.jackson.Serialization
 import org.json4s.native.JsonMethods.{compact, render}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
     extends BaseJavaMigration
@@ -68,7 +68,7 @@ class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
   def convertArticle(document: String): String = {
     implicit val formats = DBArticle.jsonEncoder
 
-    val oldArticle = Serialization.read[Article](document)
+    val oldArticle = Serialization.read[Draft](document)
     val newArticle = oldArticle.copy(
       content = oldArticle.content.filterNot(_.isEmpty),
       introduction = oldArticle.introduction.filterNot(_.isEmpty),

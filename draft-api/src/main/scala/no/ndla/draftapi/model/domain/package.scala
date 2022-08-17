@@ -6,7 +6,7 @@
  */
 package no.ndla.draftapi.model
 
-import no.ndla.common.model.domain.draft.Article
+import no.ndla.common.model.domain.draft.Draft
 
 package object domain {
 
@@ -14,5 +14,5 @@ package object domain {
     lang.filter(_.nonEmpty)
   }
 
-  type IgnoreFunction = (Option[Article], StateTransition) => Boolean
+  type IgnoreFunction = (Option[Draft], StateTransition) => Boolean
 }

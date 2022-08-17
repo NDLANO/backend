@@ -49,11 +49,11 @@ trait ArticleApiClient {
 
     def updateArticle(
         id: Long,
-        article: common.draft.Article,
+        article: common.draft.Draft,
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[common.draft.Article] = {
+    ): Try[common.draft.Draft] = {
 
       val articleApiArticle = converterService.toArticleApiArticle(article)
       postWithData[api.ArticleApiArticle, api.ArticleApiArticle](
@@ -65,7 +65,7 @@ trait ArticleApiClient {
       ).map(_ => article)
     }
 
-    def unpublishArticle(article: common.draft.Article): Try[common.draft.Article] = {
+    def unpublishArticle(article: common.draft.Draft): Try[common.draft.Draft] = {
       val id = article.id.get
       post[ContentId](s"$InternalEndpoint/article/$id/unpublish/").map(_ => article)
     }

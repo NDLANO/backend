@@ -254,7 +254,7 @@ object TestData {
     Seq.empty
   )
 
-  val sampleTopicArticle: common.draft.Article = common.draft.Article(
+  val sampleTopicArticle: common.draft.Draft = common.draft.Draft(
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
@@ -282,7 +282,7 @@ object TestData {
     Seq.empty
   )
 
-  val sampleArticleWithPublicDomain: common.draft.Article = common.draft.Article(
+  val sampleArticleWithPublicDomain: common.draft.Draft = common.draft.Draft(
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
@@ -310,7 +310,7 @@ object TestData {
     common.draft.RevisionMeta.default
   )
 
-  val sampleDomainArticle: common.draft.Article = common.draft.Article(
+  val sampleDomainArticle: common.draft.Draft = common.draft.Draft(
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),
@@ -371,12 +371,12 @@ object TestData {
     None
   )
 
-  val sampleArticleWithByNcSa: common.draft.Article =
+  val sampleArticleWithByNcSa: common.draft.Draft =
     sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
-  val sampleArticleWithCopyrighted: common.draft.Article =
+  val sampleArticleWithCopyrighted: common.draft.Draft =
     sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
-  val sampleDomainArticleWithHtmlFault: common.draft.Article = common.draft.Article(
+  val sampleDomainArticleWithHtmlFault: common.draft.Draft = common.draft.Draft(
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),

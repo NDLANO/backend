@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
@@ -25,13 +25,13 @@ trait ArticleIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends LazyLogging with IndexService[Article, SearchableArticle] {
+  class ArticleIndexService extends LazyLogging with IndexService[Draft, SearchableArticle] {
     implicit val formats: Formats     = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(ArticleStatus)
     override val documentType: String = props.DraftSearchDocument
     override val searchIndex: String  = props.DraftSearchIndex
-    override val repository: Repository[Article] = draftRepository
+    override val repository: Repository[Draft] = draftRepository
 
-    override def createIndexRequests(domainModel: Article, indexName: String): Seq[IndexRequest] = {
+    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
       val source = write(searchConverterService.asSearchableArticle(domainModel))
       Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
     }

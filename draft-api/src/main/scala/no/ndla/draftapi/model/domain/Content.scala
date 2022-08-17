@@ -9,7 +9,7 @@ package no.ndla.draftapi.model.domain
 
 import enumeratum._
 import no.ndla.common.model.domain.{Availability, Content}
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus, ArticleType, Copyright, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus, ArticleType, Copyright, RevisionStatus}
 import no.ndla.draftapi.Props
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
@@ -40,7 +40,7 @@ case class UserData(
 trait DBArticle {
   this: Props =>
 
-  object DBArticle extends SQLSyntaxSupport[Article] {
+  object DBArticle extends SQLSyntaxSupport[Draft] {
 
     val jsonEncoder: Formats = DefaultFormats.withLong +
       new EnumNameSerializer(ArticleStatus) +
@@ -51,7 +51,7 @@ trait DBArticle {
       JavaTypesSerializers.all
 
     val repositorySerializer = jsonEncoder +
-      FieldSerializer[Article](
+      FieldSerializer[Draft](
         ignore("id") orElse
           ignore("revision")
       )
@@ -59,11 +59,11 @@ trait DBArticle {
     override val tableName       = "articledata"
     override lazy val schemaName = Some(props.MetaSchema)
 
-    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
+    def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
-    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
+    def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
       implicit val formats = jsonEncoder
-      val meta             = read[Article](rs.string(lp.c("document")))
+      val meta             = read[Draft](rs.string(lp.c("document")))
       meta.copy(
         id = Some(rs.long(lp.c("article_id"))),
         revision = Some(rs.int(lp.c("revision")))

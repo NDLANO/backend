@@ -45,7 +45,7 @@ trait ConverterService {
         user: UserInfo,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
-    ): Try[common.draft.Article] = {
+    ): Try[common.draft.Draft] = {
       val domainTitles = Seq(common.ArticleTitle(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttributes(content), newArticle.language))
@@ -64,7 +64,7 @@ trait ConverterService {
       }
 
       newNotes(newArticle.notes, user, status).map(notes =>
-        common.draft.Article(
+        common.draft.Draft(
           id = Some(newArticleId),
           revision = None,
           status,
@@ -220,7 +220,7 @@ trait ConverterService {
       )
     }
 
-    def getEmbeddedConceptIds(article: common.draft.Article): Seq[Long] = {
+    def getEmbeddedConceptIds(article: common.draft.Draft): Seq[Long] = {
       val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
         val conceptSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.Concept}]"
@@ -238,7 +238,7 @@ trait ConverterService {
       conceptIds
     }
 
-    def getEmbeddedH5PPaths(article: common.draft.Article): Seq[String] = {
+    def getEmbeddedH5PPaths(article: common.draft.Draft): Seq[String] = {
       val getH5PEmbeds = (htmlElements: Seq[Element]) => {
         htmlElements.flatMap(elem => {
           val h5pSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.H5P}]"
@@ -290,12 +290,12 @@ trait ConverterService {
 
     def updateStatus(
         status: ArticleStatus.Value,
-        article: common.draft.Article,
+        article: common.draft.Draft,
         user: UserInfo,
         isImported: Boolean
-    ): IO[Try[common.draft.Article]] = StateTransitionRules.doTransition(article, status, user, isImported)
+    ): IO[Try[common.draft.Draft]] = StateTransitionRules.doTransition(article, status, user, isImported)
 
-    def toApiArticle(article: common.draft.Article, language: String, fallback: Boolean = false): Try[api.Article] = {
+    def toApiArticle(article: common.draft.Draft, language: String, fallback: Boolean = false): Try[api.Article] = {
       val isLanguageNeutral =
         article.supportedLanguages.contains(UnknownLanguage.toString) && article.supportedLanguages.length == 1
 
@@ -455,10 +455,10 @@ trait ConverterService {
     }
 
     def deleteLanguage(
-        article: common.draft.Article,
+        article: common.draft.Draft,
         language: String,
         userInfo: UserInfo
-    ): Try[common.draft.Article] = {
+    ): Try[common.draft.Draft] = {
       val title               = article.title.filter(_.language != language)
       val content             = article.content.filter(_.language != language)
       val articleIntroduction = article.introduction.filter(_.language != language)
@@ -484,13 +484,13 @@ trait ConverterService {
       }
     }
 
-    def getNextRevision(article: common.draft.Article): Option[common.draft.RevisionMeta] = getNextRevision(
+    def getNextRevision(article: common.draft.Draft): Option[common.draft.RevisionMeta] = getNextRevision(
       article.revisionMeta
     )
     def getNextRevision(revisions: Seq[common.draft.RevisionMeta]): Option[common.draft.RevisionMeta] =
       revisions.filterNot(_.status == common.draft.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
-    def toArticleApiArticle(article: common.draft.Article): api.ArticleApiArticle = {
+    def toArticleApiArticle(article: common.draft.Draft): api.ArticleApiArticle = {
       api.ArticleApiArticle(
         revision = article.revision,
         title = article.title.map(t => api.ArticleApiTitle(t.title, t.language)),
@@ -573,7 +573,7 @@ trait ConverterService {
         isNewLanguage: Boolean,
         user: UserInfo,
         article: api.UpdatedArticle,
-        toMergeInto: common.draft.Article
+        toMergeInto: common.draft.Draft
     ): Try[Seq[common.EditorNote]] = {
       val newLanguageEditorNote =
         if (isNewLanguage) Seq(s"Ny språkvariant '${article.language.getOrElse("und")}' ble lagt til.")
@@ -588,13 +588,13 @@ trait ConverterService {
     }
 
     def toDomainArticle(
-        toMergeInto: common.draft.Article,
+        toMergeInto: common.draft.Draft,
         article: api.UpdatedArticle,
         isImported: Boolean,
         user: UserInfo,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
-    ): Try[common.draft.Article] = {
+    ): Try[common.draft.Draft] = {
       val isNewLanguage = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
       val createdDate   = if (isImported) oldNdlaCreatedDate.getOrElse(toMergeInto.created) else toMergeInto.created
       val updatedDate   = if (isImported) oldNdlaUpdatedDate.getOrElse(clock.now()) else clock.now()
@@ -649,10 +649,10 @@ trait ConverterService {
     }
 
     private[service] def mergeArticleLanguageFields(
-        toMergeInto: common.draft.Article,
+        toMergeInto: common.draft.Draft,
         updatedArticle: api.UpdatedArticle,
         lang: String
-    ): common.draft.Article = {
+    ): common.draft.Draft = {
       val updatedTitles           = updatedArticle.title.toSeq.map(t => toDomainTitle(api.ArticleTitle(t, lang)))
       val updatedContents         = updatedArticle.content.toSeq.map(c => toDomainContent(api.ArticleContent(c, lang)))
       val updatedTags             = updatedArticle.tags.flatMap(tags => toDomainTag(tags, lang)).toSeq
@@ -687,7 +687,7 @@ trait ConverterService {
         user: UserInfo,
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
-    ): Try[common.draft.Article] = {
+    ): Try[common.draft.Draft] = {
       val createdDate = oldNdlaCreatedDate.getOrElse(clock.now())
       val updatedDate = oldNdlaUpdatedDate.getOrElse(clock.now())
 
@@ -716,7 +716,7 @@ trait ConverterService {
           val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
           mergedNotes.map(notes =>
-            common.draft.Article(
+            common.draft.Draft(
               id = Some(id),
               revision = Some(1),
               status = status,
@@ -751,7 +751,7 @@ trait ConverterService {
 
     private[service] def _stateTransitionsToApi(
         user: UserInfo,
-        article: Option[common.draft.Article]
+        article: Option[common.draft.Draft]
     ): Map[String, Seq[String]] = {
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
         from.toString -> to
@@ -775,7 +775,7 @@ trait ConverterService {
       api.GrepCodesSearchResult(result.totalCount, result.page.getOrElse(1), result.pageSize, result.results)
     }
 
-    def addNote(article: common.draft.Article, noteText: String, user: UserInfo): common.draft.Article = {
+    def addNote(article: common.draft.Draft, noteText: String, user: UserInfo): common.draft.Draft = {
       article.copy(
         notes = article.notes :+ common.EditorNote(noteText, user.id, article.status, clock.now())
       )

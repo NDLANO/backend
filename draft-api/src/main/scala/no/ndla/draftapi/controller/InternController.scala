@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.model.domain.draft.{Article, ArticleStatus}
+import no.ndla.common.model.domain.draft.{Draft, ArticleStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -238,7 +238,7 @@ trait InternController {
     }
 
     post("/dump/article/?") {
-      tryExtract[Article](request.body) match {
+      tryExtract[Draft](request.body) match {
         case Failure(ex) => errorHandler(ex)
         case Success(article) =>
           writeService.insertDump(article) match {
