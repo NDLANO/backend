@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.repository
 
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model.domain._
@@ -39,10 +40,6 @@ trait ImageRepository {
       }
     }
 
-    def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-      imageMetaInformationWhere(sqls"im.metadata is not null order by random() limit 1")
-    }
-
     def withExternalId(externalId: String): Option[ImageMetaInformation] = {
       DB readOnly { implicit session =>
         imageMetaInformationWhere(sqls"im.external_id = $externalId")
@@ -55,39 +52,44 @@ trait ImageRepository {
       dataObject.setValue(write(imageMeta))
 
       val imageId =
-        sql"insert into imagemetadata(metadata) values (${dataObject})".updateAndReturnGeneratedKey()
+        sql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
       imageMeta.copy(id = Some(imageId))
-    }
-
-    def insertWithExternalId(imageMetaInformation: ImageMetaInformation, externalId: String): ImageMetaInformation = {
-      val json = write(imageMetaInformation)
-
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(json)
-
-      DB localTx { implicit session =>
-        val imageId =
-          sql"insert into imagemetadata(external_id, metadata) values(${externalId}, ${dataObject})"
-            .updateAndReturnGeneratedKey()
-        imageMetaInformation.copy(id = Some(imageId))
-      }
     }
 
     def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
         session: DBSession = AutoSession
-    ): ImageMetaInformation = {
-      val json       = write(imageMetaInformation)
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(json)
-
-      sql"update imagemetadata set metadata = ${dataObject} where id = ${id}".update()
-      imageMetaInformation.copy(id = Some(id))
+    ): Try[ImageMetaInformation] = {
+      Try {
+        val json       = write(imageMetaInformation)
+        val dataObject = new PGobject()
+        dataObject.setType("jsonb")
+        dataObject.setValue(json)
+        sql"update imagemetadata set metadata = $dataObject where id = $id".update()
+      }.flatMap(_ =>
+        imageMetaInformation.images
+          .map(updateImageFileMeta)
+          .sequence
+          .map(_ => imageMetaInformation.copy(id = Some(id)))
+      )
     }
 
-    def delete(imageId: Long)(implicit session: DBSession = AutoSession) = {
-      sql"delete from imagemetadata where id = ${imageId}".update()
+    private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[_] =
+      Try {
+        val dataObject = new PGobject()
+        dataObject.setType("jsonb")
+        val jsonString = write(imageFileData.toDocument())
+        dataObject.setValue(jsonString)
+        sql"""
+            update imagefiledata
+            set file_name=${imageFileData.fileName},
+                metadata=$dataObject
+            where id=${imageFileData.id}
+         """
+          .update()
+      }
+
+    def delete(imageId: Long)(implicit session: DBSession = AutoSession): Int = {
+      sql"delete from imagemetadata where id = $imageId".update()
     }
 
     def deleteImageFileMeta(imageId: Long, language: String)(implicit session: DBSession = AutoSession): Try[Int] = {
