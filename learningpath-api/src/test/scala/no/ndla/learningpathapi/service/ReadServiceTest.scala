@@ -13,6 +13,7 @@ import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
+import no.ndla.common.errors.AccessDeniedException
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime

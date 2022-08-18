@@ -24,6 +24,7 @@ import no.ndla.learningpathapi.model.domain.{
 }
 import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
 import no.ndla.network.clients.FeideApiClient
+import no.ndla.common.errors.AccessDeniedException
 import scalikejdbc.DBSession
 
 import java.util.UUID

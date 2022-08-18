@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import no.ndla.common.errors.AccessDeniedException
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
