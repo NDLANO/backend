@@ -13,12 +13,13 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{AccessDeniedException, ArticleSummaryV2, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.language.Language.languageOrUnknown
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.HttpRequestException
