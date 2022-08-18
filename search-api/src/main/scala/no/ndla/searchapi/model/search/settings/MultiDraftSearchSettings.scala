@@ -7,9 +7,9 @@
 
 package no.ndla.searchapi.model.search.settings
 
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 
 import java.time.LocalDateTime
 
@@ -29,7 +29,7 @@ case class MultiDraftSearchSettings(
     learningResourceTypes: List[LearningResourceType.Value],
     supportedLanguages: List[String],
     relevanceIds: List[String],
-    statusFilter: List[ArticleStatus.Value],
+    statusFilter: List[DraftStatus.Value],
     userFilter: List[String],
     grepCodes: List[String],
     shouldScroll: Boolean,

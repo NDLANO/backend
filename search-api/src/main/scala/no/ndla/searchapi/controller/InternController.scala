@@ -10,13 +10,14 @@ package no.ndla.searchapi.controller
 import no.ndla.network.model.RequestInfo
 
 import java.util.concurrent.{Executors, TimeUnit}
+import no.ndla.common.model.domain.Content
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.article.Article
-import no.ndla.searchapi.model.domain.draft.Draft
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{Content, ReindexResult}
+import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.service.search.{ArticleIndexService, DraftIndexService, IndexService, LearningPathIndexService}
 import org.scalatra._
 

@@ -9,6 +9,8 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
+import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
@@ -22,7 +24,6 @@ import no.ndla.searchapi.model.api.learningpath.LearningPathSummary
 import no.ndla.search.{SearchLanguage, model}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain.article.{LearningResourceType, _}
-import no.ndla.searchapi.model.domain.draft.Draft
 import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep, StepType}
 import no.ndla.searchapi.model.grep._
 import no.ndla.searchapi.model.search._
@@ -318,10 +319,11 @@ trait SearchConverterService {
           draft.copyright.map(_.rightsholders).toList
       ).flatten.map(_.name)
 
-      val notes: List[String] = draft.notes.map(_.note)
+      val notes: List[String] = draft.notes.map(_.note).toList
       val users: List[String] =
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
-      val nextRevision = draft.revisionMeta.filter(_.status == "needs-revision").sortBy(_.revisionDate).headOption
+      val nextRevision =
+        draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
 
       Success(
         SearchableDraft(
@@ -346,14 +348,14 @@ trait SearchConverterService {
           lastUpdated = draft.updated,
           license = draft.copyright.flatMap(_.license),
           authors = authors,
-          articleType = draft.articleType.toString,
+          articleType = draft.articleType.entryName,
           metaImage = draft.metaImage.toList,
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           notes = notes,
           contexts = taxonomyForDraft.getOrElse(List.empty),
           users = users.distinct,
-          previousVersionsNotes = draft.previousVersionsNotes.map(_.note),
+          previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
@@ -633,7 +635,8 @@ trait SearchConverterService {
       val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
-      val revisions          = searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status))
+      val revisions =
+        searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status.entryName))
 
       MultiSearchSummary(
         id = searchableDraft.id,

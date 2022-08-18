@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.article.ArticleMetaImage
 import java.time.LocalDateTime
 
 case class SearchableArticle(

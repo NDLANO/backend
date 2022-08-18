@@ -7,6 +7,6 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
-import no.ndla.searchapi.model.domain.Author
+import no.ndla.common.model.domain.Author
 
 case class Copyright(license: String, contributors: Seq[Author])

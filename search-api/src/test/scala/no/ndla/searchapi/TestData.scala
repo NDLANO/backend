@@ -7,13 +7,26 @@
 
 package no.ndla.searchapi
 
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  Author,
+  Availability,
+  EditorNote,
+  Status,
+  Tag,
+  Title,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft
+import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.domain.draft.{ArticleStatus, Draft, Status}
 import no.ndla.searchapi.model.domain.learningpath.{
   Description,
   LearningPath,
@@ -491,7 +504,7 @@ object TestData {
   val emptyDomainDraft: Draft = Draft(
     id = None,
     revision = None,
-    status = draft.Status(draft.ArticleStatus.DRAFT, Set.empty),
+    status = Status(DraftStatus.DRAFT, Set.empty),
     title = Seq.empty,
     content = Seq.empty,
     copyright = None,
@@ -505,17 +518,21 @@ object TestData {
     updated = today,
     updatedBy = "",
     published = today,
-    articleType = LearningResourceType.Article,
+    articleType = ArticleType.Standard,
     notes = List.empty,
     previousVersionsNotes = List.empty,
+    editorLabels = Seq.empty,
     grepCodes = Seq.empty,
-    Seq.empty
+    conceptIds = Seq.empty,
+    availability = Availability.everyone,
+    relatedContent = Seq.empty,
+    revisionMeta = Seq.empty
   )
 
-  val draftStatus         = draft.Status(draft.ArticleStatus.DRAFT, Set.empty)
-  val importedDraftStatus = draft.Status(draft.ArticleStatus.DRAFT, Set(draft.ArticleStatus.IMPORTED))
+  val draftStatus         = Status(DraftStatus.DRAFT, Set.empty)
+  val importedDraftStatus = Status(DraftStatus.DRAFT, Set(DraftStatus.IMPORTED))
 
-  val draftPublicDomainCopyright: domain.draft.Copyright =
+  val draftPublicDomainCopyright: draft.Copyright =
     draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
 
   val draftByNcSaCopyright = draft.Copyright(
@@ -541,27 +558,31 @@ object TestData {
   )
 
   val sampleDraftWithPublicDomain = Draft(
-    Option(1),
-    Option(1),
-    draftStatus,
-    Seq(Title("test", "en")),
-    Seq(ArticleContent("<section><div>test</div></section>", "en")),
-    Some(draftPublicDomainCopyright),
-    Seq.empty,
-    Seq.empty,
-    Seq(VisualElement("image", "en")),
-    Seq(ArticleIntroduction("This is an introduction", "en")),
-    Seq(MetaDescription("meta", "en")),
-    Seq.empty,
-    LocalDateTime.now().minusDays(4),
-    LocalDateTime.now().minusDays(2),
-    "ndalId54321",
-    LocalDateTime.now().minusDays(2),
-    LearningResourceType.Article,
-    List.empty,
-    List.empty,
-    Seq.empty,
-    Seq.empty
+    id = Option(1),
+    revision = Option(1),
+    status = draftStatus,
+    title = Seq(Title("test", "en")),
+    content = Seq(ArticleContent("<section><div>test</div></section>", "en")),
+    copyright = Some(draftPublicDomainCopyright),
+    tags = Seq.empty,
+    requiredLibraries = Seq.empty,
+    visualElement = Seq(VisualElement("image", "en")),
+    introduction = Seq(ArticleIntroduction("This is an introduction", "en")),
+    metaDescription = Seq(ArticleMetaDescription("meta", "en")),
+    metaImage = Seq.empty,
+    created = LocalDateTime.now().minusDays(4),
+    updated = LocalDateTime.now().minusDays(2),
+    updatedBy = "ndalId54321",
+    published = LocalDateTime.now().minusDays(2),
+    articleType = ArticleType.Standard,
+    notes = List.empty,
+    previousVersionsNotes = List.empty,
+    editorLabels = Seq.empty,
+    grepCodes = Seq.empty,
+    conceptIds = Seq.empty,
+    availability = Availability.everyone,
+    relatedContent = Seq.empty,
+    revisionMeta = Seq.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -637,18 +658,18 @@ object TestData {
     created = today.minusDays(40),
     updated = today.minusDays(35),
     notes = List(
-      draft.EditorNote(
+      EditorNote(
         "kakemonster",
         "ndalId54321",
-        Status(ArticleStatus.DRAFT, Set.empty),
+        Status(DraftStatus.DRAFT, Set.empty),
         today.minusDays(30)
       )
     ),
     previousVersionsNotes = List(
-      draft.EditorNote(
+      EditorNote(
         "kultgammeltnotat",
         "ndalId12345",
-        Status(ArticleStatus.DRAFT, Set.empty),
+        Status(DraftStatus.DRAFT, Set.empty),
         today.minusDays(31)
       )
     ),
@@ -694,7 +715,7 @@ object TestData {
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draft9: Draft = TestData.sampleDraftWithPublicDomain.copy(
@@ -707,12 +728,12 @@ object TestData {
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draft10: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(10),
-    status = draft.Status(draft.ArticleStatus.PROPOSAL, Set.empty),
+    status = Status(DraftStatus.PROPOSAL, Set.empty),
     title = List(Title("This article is in english", "en")),
     introduction = List(ArticleIntroduction("Engulsk", "en")),
     metaDescription = List.empty,
@@ -722,21 +743,21 @@ object TestData {
     metaImage = List(ArticleMetaImage("123", "alt", "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draft11: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(11),
-    status = draft.Status(draft.ArticleStatus.PROPOSAL, Set.empty),
+    status = Status(DraftStatus.PROPOSAL, Set.empty),
     title = List(Title("Katter", "nb"), Title("Cats", "en")),
     introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
-    metaDescription = List(MetaDescription("hurr dirr ima sheep", "en")),
+    metaDescription = List(ArticleMetaDescription("hurr dirr ima sheep", "en")),
     visualElement = List.empty,
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draft12: Draft = TestData.sampleDraftWithPublicDomain.copy(
@@ -744,7 +765,7 @@ object TestData {
     status = importedDraftStatus,
     title = List(Title("Ekstrastoff", "nb")),
     introduction = List(ArticleIntroduction("Ekstra", "nb")),
-    metaDescription = List(MetaDescription("", "nb")),
+    metaDescription = List(ArticleMetaDescription("", "nb")),
     content = List(
       ArticleContent(
         "<section><p>artikkeltekst med fire deler</p><embed data-resource=\"concept\" data-resource_id=\"222\" /><embed data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"/><embed data-resource=\"image\" data-resource_id=\"55\"/><embed data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\" /><embed data-videoid=\"77\" data-resource=\"video\"  /><embed data-resource=\"video\" data-resource_id=\"66\"  /><embed data-resource=\"video\"  data-url=\"http://test.test\" />",
@@ -755,14 +776,14 @@ object TestData {
     tags = List(Tag(List(""), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.Article
+    articleType = ArticleType.Standard
   )
 
   val draft13: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(13),
     title = List(Title("Luringen", "nb"), Title("English title", "en"), Title("Chhattisgarhi title", "hne")),
     introduction = List(ArticleIntroduction("Luringen", "nb")),
-    metaDescription = List(MetaDescription("", "nb")),
+    metaDescription = List(ArticleMetaDescription("", "nb")),
     content = List(
       ArticleContent("<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>", "nb"),
       ArticleContent("Header <embed data-resource_id=\"222\" /><embed data-resource=\"concept\" />", "en"),
@@ -776,22 +797,22 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     updatedBy = "someotheruser",
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draft14: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(14),
     title = List(Title("Slettet", "nb")),
     introduction = List(ArticleIntroduction("Slettet", "nb")),
-    metaDescription = List(MetaDescription("", "nb")),
+    metaDescription = List(ArticleMetaDescription("", "nb")),
     content = List(ArticleContent("", "nb")),
     visualElement = List.empty,
     tags = List(Tag(List(""), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.Article,
+    articleType = ArticleType.Standard,
     status = Status(
-      current = ArticleStatus.ARCHIVED,
+      current = DraftStatus.ARCHIVED,
       other = Set.empty
     )
   )
@@ -800,7 +821,7 @@ object TestData {
     id = Option(15),
     title = List(Title("Engler og demoner", "nb")),
     introduction = List(ArticleIntroduction("Religion", "nb")),
-    metaDescription = List(MetaDescription("metareligion", "nb")),
+    metaDescription = List(ArticleMetaDescription("metareligion", "nb")),
     content = List(
       ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
       ArticleContent("<p>Christianity!</p>", "en")
@@ -809,7 +830,7 @@ object TestData {
     tags = List(Tag(List("engel"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle
+    articleType = ArticleType.TopicArticle
   )
 
   val draftsToIndex: List[Draft] = List(

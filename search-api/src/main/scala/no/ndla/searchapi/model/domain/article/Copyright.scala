@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.domain.article
 
 import java.time.LocalDateTime
 
-import no.ndla.searchapi.model.domain.Author
+import no.ndla.common.model.domain.Author
 
 case class Copyright(
     license: String,

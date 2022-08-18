@@ -7,7 +7,8 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
-import no.ndla.searchapi.model.domain.{Content, Tag, Title}
+import no.ndla.common.model.domain.{Tag, Title, Content}
+
 import java.time.LocalDateTime
 
 case class LearningPath(

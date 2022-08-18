@@ -7,16 +7,17 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.domain.ArticleContent
+import no.ndla.common.model.domain.draft.{RevisionMeta, RevisionStatus}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.domain.draft.RevisionMeta
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
+import java.util.UUID
 import scala.util.{Failure, Success}
 
 class MultiDraftSearchServiceAtomicTest
@@ -110,6 +111,9 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("That sorting by revision date sorts by the earliest 'needs-revision'") {
+//    implicit val formats: Formats =
+//      SearchableLanguageFormats.JSonFormatsWithMillis ++ JavaTypesSerializers.all + Json4s.serializer(RevisionStatus)
+
     val today     = LocalDateTime.now().withNano(0)
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)
@@ -118,22 +122,22 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today,
           note = "note",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           tomorrow,
           note = "note",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday,
           note = "note",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -141,10 +145,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday.minusDays(10),
           note = "note",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -152,10 +156,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday,
           note = "note",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         )
       )
     )
@@ -196,22 +200,22 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today,
           note = "apekatt",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           tomorrow,
           note = "note",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday,
           note = "note",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -219,10 +223,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday.minusDays(10),
           note = "kinakål",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -230,10 +234,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           yesterday,
           note = "trylleformel",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         )
       )
     )
@@ -264,16 +268,16 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today.plusDays(1),
           note = "apekatt",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         ),
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today.plusDays(10),
           note = "note",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -281,10 +285,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today.minusDays(10),
           note = "kinakål",
-          status = "revised"
+          status = RevisionStatus.Revised
         )
       )
     )
@@ -292,10 +296,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       revisionMeta = Seq(
         RevisionMeta(
-          id = "id",
+          id = UUID.randomUUID(),
           today.minusDays(10),
           note = "trylleformel",
-          status = "needs-revision"
+          status = RevisionStatus.NeedsRevision
         )
       )
     )

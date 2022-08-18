@@ -9,13 +9,13 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{AccessDeniedException, Error, ErrorHelpers, TaxonomyException}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.Formats
@@ -31,7 +31,7 @@ trait NdlaController {
   abstract class NdlaController extends NdlaControllerBase {
     protected implicit override val jsonFormats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(ArticleStatus) +
+        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(LearningPathStatus) +
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
