@@ -14,7 +14,7 @@ import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain._
 import no.ndla.common.Clock
-import no.ndla.common.model.domain.{ArticleTag, EditorNote}
+import no.ndla.common.model.domain.{Tag, EditorNote}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import org.json4s.Formats
 import org.json4s.native.JsonMethods._
@@ -337,16 +337,16 @@ trait DraftRepository {
         .list()
     }
 
-    def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
+    def allTags(implicit session: DBSession = AutoSession): Seq[Tag] = {
       val allTags = sql"""select document->>'tags' from ${DBArticle.table} where document is not NULL"""
         .map(rs => rs.string(1))
         .list()
 
       allTags
-        .flatMap(tag => parse(tag).extract[List[ArticleTag]])
+        .flatMap(tag => parse(tag).extract[List[Tag]])
         .groupBy(_.language)
         .map { case (language, tags) =>
-          ArticleTag(tags.flatMap(_.tags), language)
+          Tag(tags.flatMap(_.tags), language)
         }
         .toList
     }

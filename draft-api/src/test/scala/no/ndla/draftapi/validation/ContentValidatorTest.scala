@@ -72,7 +72,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if title contains HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(ArticleTitle(validDocument, "nb"))
+      title = Seq(Title(validDocument, "nb"))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -80,13 +80,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if title contains plain text") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(ArticleTitle("title", "nb"))
+      title = Seq(Title("title", "nb"))
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("A" * 257, "nb")))
+    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("A" * 257, "nb")))
     val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
 
     ex.errors.length should be(1)
@@ -94,7 +94,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle should fail if the title is empty") {
-    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("", "nb")))
+    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("", "nb")))
     val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
 
     ex.errors.length should be(1)
@@ -102,7 +102,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle should fail if the title is whitespace") {
-    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("  ", "nb")))
+    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("  ", "nb")))
     val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
 
     ex.errors.length should be(1)
@@ -130,13 +130,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with plaintext tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("vann", "snø", "sol"), "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("vann", "snø", "sol"), "nb")))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in tags") {
     val article =
-      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
@@ -213,7 +213,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("tittele", "und")))
+    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("tittele", "und")))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 

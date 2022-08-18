@@ -147,7 +147,7 @@ trait ArticleApiClient {
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
-    def withTags(tags: Seq[common.ArticleTag], language: String): PartialPublishArticle =
+    def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticle =
       copy(tags =
         tags
           .find(t => t.language == language)
@@ -155,7 +155,7 @@ trait ArticleApiClient {
           .map(t => api.ArticleTag(t.tags, t.language))
           .some
       )
-    def withTags(tags: Seq[common.ArticleTag]): PartialPublishArticle =
+    def withTags(tags: Seq[common.Tag]): PartialPublishArticle =
       copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
     def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
       copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)

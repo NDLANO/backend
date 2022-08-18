@@ -14,8 +14,8 @@ import no.ndla.common.model.domain.{
   ArticleIntroduction,
   ArticleMetaDescription,
   ArticleMetaImage,
-  ArticleTag,
-  ArticleTitle,
+  Tag,
+  Title,
   Author,
   RequiredLibrary,
   VisualElement
@@ -180,7 +180,7 @@ trait ContentValidator {
         validateLanguage("language", content.language)
     }
 
-    private def validateTitles(titles: Seq[ArticleTitle]): Seq[ValidationMessage] = {
+    private def validateTitles(titles: Seq[Title]): Seq[ValidationMessage] = {
       if (titles.isEmpty)
         Seq(
           ValidationMessage(
@@ -229,7 +229,7 @@ trait ContentValidator {
         NoHtmlValidator.validate("author.name", author.name).toList
     }
 
-    private def validateTags(tags: Seq[ArticleTag]) = {
+    private def validateTags(tags: Seq[Tag]) = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(NoHtmlValidator.validate("tags", _)).toList :::
           validateLanguage("language", tagList.language).toList

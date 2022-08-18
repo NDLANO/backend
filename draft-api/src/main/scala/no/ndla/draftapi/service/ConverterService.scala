@@ -46,7 +46,7 @@ trait ConverterService {
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime]
     ): Try[common.draft.Draft] = {
-      val domainTitles = Seq(common.ArticleTitle(newArticle.title, newArticle.language))
+      val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttributes(content), newArticle.language))
         .toSeq
@@ -154,17 +154,17 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(articleTitle: api.ArticleTitle): common.ArticleTitle =
-      common.ArticleTitle(articleTitle.title, articleTitle.language)
+    def toDomainTitle(articleTitle: api.ArticleTitle): common.Title =
+      common.Title(articleTitle.title, articleTitle.language)
 
     def toDomainContent(articleContent: api.ArticleContent): common.ArticleContent = {
       common.ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
     }
 
-    def toDomainTag(tag: api.ArticleTag): common.ArticleTag = common.ArticleTag(tag.tags, tag.language)
+    def toDomainTag(tag: api.ArticleTag): common.Tag = common.Tag(tag.tags, tag.language)
 
-    def toDomainTag(tag: Seq[String], language: String): Option[common.ArticleTag] =
-      if (tag.nonEmpty) Some(common.ArticleTag(tag, language)) else None
+    def toDomainTag(tag: Seq[String], language: String): Option[common.Tag] =
+      if (tag.nonEmpty) Some(common.Tag(tag, language)) else None
 
     def toDomainVisualElement(visual: api.VisualElement): common.VisualElement = {
       common.VisualElement(removeUnknownEmbedTagAttributes(visual.visualElement), visual.language)
@@ -377,7 +377,7 @@ trait ConverterService {
     def toApiStatus(status: common.Status): api.Status =
       api.Status(status.current.toString, status.other.map(_.toString).toSeq)
 
-    def toApiArticleTitle(title: common.ArticleTitle): api.ArticleTitle = api.ArticleTitle(title.title, title.language)
+    def toApiArticleTitle(title: common.Title): api.ArticleTitle = api.ArticleTitle(title.title, title.language)
 
     def toApiArticleContent(content: common.ArticleContent): api.ArticleContent =
       api.ArticleContent(content.content, content.language)
@@ -419,7 +419,7 @@ trait ConverterService {
 
     }
 
-    def toApiArticleTag(tag: common.ArticleTag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
+    def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
 
     def toApiRequiredLibrary(required: common.RequiredLibrary): api.RequiredLibrary = {
       api.RequiredLibrary(required.mediaType, required.name, required.url)
@@ -720,10 +720,10 @@ trait ConverterService {
               id = Some(id),
               revision = Some(1),
               status = status,
-              title = article.title.map(t => common.ArticleTitle(t, lang)).toSeq,
+              title = article.title.map(t => common.Title(t, lang)).toSeq,
               content = article.content.map(c => common.ArticleContent(c, lang)).toSeq,
               copyright = article.copyright.map(toDomainCopyright),
-              tags = article.tags.toSeq.map(tags => common.ArticleTag(tags, lang)),
+              tags = article.tags.toSeq.map(tags => common.Tag(tags, lang)),
               requiredLibraries = article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).toSeq.flatten,
               visualElement = article.visualElement.map(v => toDomainVisualElement(v, lang)).toSeq,
               introduction = article.introduction.map(i => toDomainIntroduction(i, lang)).toSeq,

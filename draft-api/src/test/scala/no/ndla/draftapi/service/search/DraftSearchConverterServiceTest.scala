@@ -19,13 +19,13 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleArticle                   = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles = List(
-    ArticleTitle("Bokmål tittel", "nb"),
-    ArticleTitle("Nynorsk tittel", "nn"),
-    ArticleTitle("English title", "en"),
-    ArticleTitle("Titre francais", "fr"),
-    ArticleTitle("Deutsch titel", "de"),
-    ArticleTitle("Titulo espanol", "es"),
-    ArticleTitle("Nekonata titolo", "und")
+    Title("Bokmål tittel", "nb"),
+    Title("Nynorsk tittel", "nn"),
+    Title("English title", "en"),
+    Title("Titre francais", "fr"),
+    Title("Deutsch titel", "de"),
+    Title("Titulo espanol", "es"),
+    Title("Nekonata titolo", "und")
   )
 
   val articles = Seq(
@@ -39,13 +39,13 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val articleTags = Seq(
-    ArticleTag(Seq("fugl", "fisk"), "nb"),
-    ArticleTag(Seq("fugl", "fisk"), "nn"),
-    ArticleTag(Seq("bird", "fish"), "en"),
-    ArticleTag(Seq("got", "tired"), "fr"),
-    ArticleTag(Seq("of", "translating"), "de"),
-    ArticleTag(Seq("all", "of"), "es"),
-    ArticleTag(Seq("the", "words"), "und")
+    Tag(Seq("fugl", "fisk"), "nb"),
+    Tag(Seq("fugl", "fisk"), "nn"),
+    Tag(Seq("bird", "fish"), "en"),
+    Tag(Seq("got", "tired"), "fr"),
+    Tag(Seq("of", "translating"), "de"),
+    Tag(Seq("all", "of"), "es"),
+    Tag(Seq("the", "words"), "und")
   )
 
   test("That asSearchableArticle converts titles with correct language") {
@@ -115,7 +115,7 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageList.languageValues.find(_.language == lang).get.value
   }
 
-  private def titleForLang(titles: Seq[ArticleTitle], lang: String = "und"): String = {
+  private def titleForLang(titles: Seq[Title], lang: String = "und"): String = {
     titles.find(_.language == lang).get.title
   }
 
@@ -123,7 +123,7 @@ class DraftSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     articles.find(_.language == lang).get.content
   }
 
-  private def tagsForLang(tags: Seq[ArticleTag], lang: String = "und") = {
+  private def tagsForLang(tags: Seq[Tag], lang: String = "und") = {
     tags.find(_.language == lang).get.tags
   }
 }

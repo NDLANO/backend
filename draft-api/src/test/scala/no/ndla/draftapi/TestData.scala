@@ -258,7 +258,7 @@ object TestData {
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
-    Seq(common.ArticleTitle("test", "en")),
+    Seq(common.Title("test", "en")),
     Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
     Seq.empty,
@@ -286,7 +286,7 @@ object TestData {
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
-    Seq(common.ArticleTitle("test", "en")),
+    Seq(common.Title("test", "en")),
     Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
     Seq.empty,
@@ -314,7 +314,7 @@ object TestData {
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),
-    Seq(common.ArticleTitle("title", "nb")),
+    Seq(common.Title("title", "nb")),
     Seq(common.ArticleContent("content", "nb")),
     Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     Seq.empty,
@@ -380,7 +380,7 @@ object TestData {
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),
-    Seq(common.ArticleTitle("test", "en")),
+    Seq(common.Title("test", "en")),
     Seq(
       common.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
@@ -462,8 +462,8 @@ object TestData {
     Seq.empty
   )
 
-  val (nodeId, nodeId2)                = ("1234", "4321")
-  val sampleTitle: common.ArticleTitle = common.ArticleTitle("title", "en")
+  val (nodeId, nodeId2)         = ("1234", "4321")
+  val sampleTitle: common.Title = common.Title("title", "en")
 
   val visualElement: common.VisualElement = common.VisualElement(
     s"""<embed data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",

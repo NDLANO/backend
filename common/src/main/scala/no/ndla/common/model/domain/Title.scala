@@ -9,7 +9,7 @@ package no.ndla.common.model.domain
 
 import no.ndla.language.model.LanguageField
 
-case class ArticleTitle(title: String, language: String) extends LanguageField[String] {
+case class Title(title: String, language: String) extends LanguageField[String] {
   override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty
 }

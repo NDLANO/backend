@@ -34,7 +34,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article1 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      ArticleTag(
+      Tag(
         Seq("test", "testing", "testemer"),
         "nb"
       )
@@ -43,7 +43,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article2 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      ArticleTag(
+      Tag(
         Seq("test"),
         "en"
       )
@@ -52,11 +52,11 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article3 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      ArticleTag(
+      Tag(
         Seq("hei", "test", "testing"),
         "nb"
       ),
-      ArticleTag(
+      Tag(
         Seq("test"),
         "en"
       )
@@ -65,7 +65,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article4 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      ArticleTag(
+      Tag(
         Seq("kyllingfilet", "filetkylling"),
         "nb"
       )
