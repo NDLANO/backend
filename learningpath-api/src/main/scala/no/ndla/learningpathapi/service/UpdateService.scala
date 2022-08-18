@@ -428,9 +428,9 @@ trait UpdateService {
         case t: Throwable => throw t
       }
     }
-    private def validateParentId(parentId: UUID, feideId: FeideID): Try[UUID] = {
-      folderRepository.folderWithFeideId(parentId, feideId) match {
-        case Failure(_: NotFoundException) =>
+    private def validateParentId(parentId: Option[UUID], parent: Option[domain.Folder]): Try[Option[UUID]] =
+      (parentId, parent) match {
+        case (Some(_), None) =>
           val paramName = "parentId"
           Failure(
             ValidationException(
@@ -438,10 +438,8 @@ trait UpdateService {
               s"Invalid value for $paramName. The UUID specified does not exist or is not writable by you."
             )
           )
-        case Failure(ex) => Failure(ex)
-        case Success(_)  => Success(parentId)
+        case _ => Success(parentId)
       }
-    }
 
     private def checkDepth(parentId: Option[UUID]): Try[Unit] = {
       parentId match {
@@ -461,16 +459,54 @@ trait UpdateService {
       }
     }
 
+    private def getParentAndSiblings(
+        maybeParentId: Option[UUID],
+        feideId: FeideID
+    ): Try[Option[(domain.Folder, Seq[domain.Folder])]] = maybeParentId match {
+      case None => Success(None)
+      case Some(parentId) =>
+        folderRepository.folderWithFeideId(parentId, feideId) match {
+          case Failure(_: NotFoundException) => Success(None)
+          case Failure(ex)                   => Failure(ex)
+          case Success(parent) =>
+            folderRepository
+              .foldersWithFeideAndParentID(parentId.some, feideId)
+              .map(siblings => Some((parent, siblings)))
+        }
+    }
+
+    private def validateSiblingNames(
+        newFolder: NewFolder,
+        maybeParentAndSiblings: Option[(domain.Folder, Seq[domain.Folder])]
+    ): Try[Unit] = {
+      maybeParentAndSiblings
+        .map { case (_, siblings) =>
+          val hasNameDuplicate = siblings.map(_.name).exists(_.toLowerCase == newFolder.name.toLowerCase)
+          if (hasNameDuplicate) {
+            Failure(ValidationException("name", s"The folder name must be unique within its parent."))
+          } else Success(())
+        }
+        .getOrElse(Success(()))
+    }
+
+    private def validateNewFolder(newFolder: NewFolder, feideId: FeideID): Try[(NewFolder, Option[UUID])] = {
+      for {
+        parentId <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
+        maybeParentAndSiblings <- getParentAndSiblings(parentId, feideId)
+        validatedParentId      <- validateParentId(parentId, maybeParentAndSiblings.map(_._1))
+        _                      <- validateSiblingNames(newFolder, maybeParentAndSiblings)
+        _                      <- checkDepth(validatedParentId)
+      } yield (newFolder, validatedParentId)
+    }
+
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       for {
-        feideId           <- getUserFeideID(feideAccessToken)
-        document          <- converterService.toDomainFolderDocument(newFolder)
-        parentId          <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
-        validatedParentId <- parentId.traverse(pid => validateParentId(pid, feideId))
-        _                 <- checkDepth(validatedParentId)
-        inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document)
-        crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
-        api               <- converterService.toApiFolder(inserted, crumbs)
+        feideId                <- getUserFeideID(feideAccessToken)
+        document               <- converterService.toDomainFolderDocument(newFolder)
+        (_, validatedParentId) <- validateNewFolder(newFolder, feideId)
+        inserted               <- folderRepository.insertFolder(feideId, validatedParentId, document)
+        crumbs                 <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+        api                    <- converterService.toApiFolder(inserted, crumbs)
       } yield api
     }
 
