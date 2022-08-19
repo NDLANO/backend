@@ -19,7 +19,7 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639

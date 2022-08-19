@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.model.domain
 
+import no.ndla.common.model.domain.VisualElement
+
 case class ArticleSummary(
     id: Long,
     title: Seq[ArticleTitle],

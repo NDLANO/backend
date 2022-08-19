@@ -13,6 +13,7 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.VisualElement
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
