@@ -13,7 +13,7 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.VisualElement
+import no.ndla.common.model.domain.{Tag, VisualElement}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
@@ -42,8 +42,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val articleContent2 = ArticleContent(content2, "und")
 
-  val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), "nb")
-  val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), "en")
+  val nbTags = Tag(Seq("a", "b", "c", "a", "b", "a"), "nb")
+  val enTags = Tag(Seq("d", "e", "f", "d", "e", "d"), "en")
   when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
 
   override val readService      = new ReadService

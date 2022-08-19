@@ -10,7 +10,7 @@ package no.ndla.articleapi.model.domain
 
 import no.ndla.articleapi.Props
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{Availability, VisualElement}
+import no.ndla.common.model.domain.{Availability, Tag, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
@@ -30,7 +30,7 @@ case class Article(
     title: Seq[ArticleTitle],
     content: Seq[ArticleContent],
     copyright: Copyright,
-    tags: Seq[ArticleTag],
+    tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
     introduction: Seq[ArticleIntroduction],

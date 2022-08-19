@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Author, Availability}
+import no.ndla.common.model.domain.{Author, Availability, Tag}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
@@ -89,7 +89,7 @@ class ArticleSearchServiceTest
     content = List(
       ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
     ),
-    tags = List(ArticleTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(3),
     metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
@@ -101,7 +101,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("Pingvinen er ute og går", "nb")),
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    tags = List(ArticleTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(2),
     grepCodes = Seq("KV123", "KV456")
@@ -112,7 +112,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("Donald Duck kjører bil", "nb")),
     introduction = List(ArticleIntroduction("Donald Duck", "nb")),
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(ArticleTag(List("and"), "nb")),
+    tags = List(Tag(List("and"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(1),
     grepCodes = Seq("KV456")
@@ -124,7 +124,7 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Superman", "nb")),
     content =
       List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(ArticleTag(List("supermann"), "nb")),
+    tags = List(Tag(List("supermann"), "nb")),
     created = today.minusDays(4),
     updated = today
   )
@@ -134,7 +134,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("Hulken løfter biler", "nb")),
     introduction = List(ArticleIntroduction("Hulken", "nb")),
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(ArticleTag(List("hulk"), "nb")),
+    tags = List(Tag(List("hulk"), "nb")),
     created = today.minusDays(40),
     updated = today.minusDays(35)
   )
@@ -149,7 +149,7 @@ class ArticleSearchServiceTest
         "nb"
       )
     ),
-    tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), "nb")),
+    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
     created = today.minusDays(30),
     updated = today.minusDays(25)
   )
@@ -159,7 +159,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("Yggdrasil livets tre", "nb")),
     introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(ArticleTag(List("yggdrasil"), "nb")),
+    tags = List(Tag(List("yggdrasil"), "nb")),
     created = today.minusDays(20),
     updated = today.minusDays(15)
   )
@@ -169,7 +169,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("Baldur har mareritt", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(ArticleTag(List("baldur"), "nb")),
+    tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -180,7 +180,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("En Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(ArticleTag(List("baldur"), "nb")),
+    tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -191,7 +191,7 @@ class ArticleSearchServiceTest
     title = List(ArticleTitle("This article is in english", "en")),
     introduction = List(ArticleIntroduction("Engulsk", "en")),
     content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
-    tags = List(ArticleTag(List("englando"), "en")),
+    tags = List(Tag(List("englando"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -207,7 +207,7 @@ class ArticleSearchServiceTest
     ),
     metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
+    tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -219,7 +219,7 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Lærer", "nb")),
     metaDescription = List(ArticleMetaDescription("lærer", "nb")),
     content = List(ArticleContent("<p>Lærer</p>", "nb")),
-    tags = List(ArticleTag(List("lærer"), "nb")),
+    tags = List(Tag(List("lærer"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,
@@ -232,7 +232,7 @@ class ArticleSearchServiceTest
     introduction = List(ArticleIntroduction("Student", "nb")),
     metaDescription = List(ArticleMetaDescription("student", "nb")),
     content = List(ArticleContent("<p>Student</p>", "nb")),
-    tags = List(ArticleTag(List("student"), "nb")),
+    tags = List(Tag(List("student"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,

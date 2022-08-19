@@ -10,7 +10,7 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Author, Availability, VisualElement}
+import no.ndla.common.model.domain.{Author, Availability, Tag, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
@@ -129,7 +129,7 @@ trait TestData {
       Seq(ArticleTitle("test", "en")),
       Seq(ArticleContent("<section><div>test</div></section>", "en")),
       publicDomainCopyright,
-      Seq(ArticleTag(Seq("a", "b", "c"), "en")),
+      Seq(Tag(Seq("a", "b", "c"), "en")),
       Seq(),
       Seq(VisualElement("image", "en")),
       Seq(ArticleIntroduction("This is an introduction", "en")),
@@ -153,7 +153,7 @@ trait TestData {
       Seq(ArticleTitle("title", "nb")),
       Seq(ArticleContent("content", "nb")),
       Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None, None),
-      Seq(ArticleTag(Seq("tag"), "nb")),
+      Seq(Tag(Seq("tag"), "nb")),
       Seq(),
       Seq(),
       Seq(),

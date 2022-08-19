@@ -11,6 +11,7 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.Tag
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.mockito.invocation.InvocationOnMock
 
@@ -39,14 +40,14 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Nekonata artikolo", "und")
   )
 
-  val articleTags: Seq[ArticleTag] = Seq(
-    ArticleTag(Seq("fugl", "fisk"), "nb"),
-    ArticleTag(Seq("fugl", "fisk"), "nn"),
-    ArticleTag(Seq("bird", "fish"), "en"),
-    ArticleTag(Seq("got", "tired"), "fr"),
-    ArticleTag(Seq("of", "translating"), "de"),
-    ArticleTag(Seq("all", "of"), "es"),
-    ArticleTag(Seq("the", "words"), "und")
+  val articleTags: Seq[Tag] = Seq(
+    Tag(Seq("fugl", "fisk"), "nb"),
+    Tag(Seq("fugl", "fisk"), "nn"),
+    Tag(Seq("bird", "fish"), "en"),
+    Tag(Seq("got", "tired"), "fr"),
+    Tag(Seq("of", "translating"), "de"),
+    Tag(Seq("all", "of"), "es"),
+    Tag(Seq("the", "words"), "und")
   )
 
   override def beforeAll(): Unit = {
@@ -138,7 +139,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     articles.find(_.language == lang).get.content
   }
 
-  private def tagsForLang(tags: Seq[ArticleTag], lang: String = "und") = {
+  private def tagsForLang(tags: Seq[Tag], lang: String = "und") = {
     tags.find(_.language == lang).get.tags
   }
 }

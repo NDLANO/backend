@@ -11,7 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 
@@ -121,13 +121,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with plaintext tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("vann", "snø", "sol"), "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("vann", "snø", "sol"), "nb")))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in tags") {
     val article =
-      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
@@ -258,7 +258,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validation should fail if not imported and tags are < 3") {
     val Failure(res0: ValidationException) = contentValidator.validateArticle(
-      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a", "b"), "nb")))
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b"), "nb")))
     )
 
     res0.errors should be(
@@ -268,7 +268,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val Failure(res1: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b"), "en"))
+          tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b"), "en"))
         )
       )
 
@@ -279,7 +279,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val Failure(res2: ValidationException) =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+          tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))
         )
       )
     res2.errors.sortBy(_.field) should be(
@@ -292,7 +292,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val res3 =
       contentValidator.validateArticle(
         TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+          tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b", "c"), "nn"))
         )
       )
     res3.isSuccess should be(true)
@@ -301,7 +301,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("imported articles should pass validation for amount of tags") {
     val res0 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(
-        tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))
+        tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))
       ),
       isImported = true
     )
@@ -309,14 +309,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     val res1 =
       contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a"), "en"))),
+        TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a"), "en"))),
         isImported = true
       )
     res1.isSuccess should be(true)
 
     val Failure(res2: ValidationException) =
       contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
+        TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
         isImported = true
       )
     res2.errors should be(
