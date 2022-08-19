@@ -8,7 +8,7 @@
 package articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Tag, VisualElement}
+import no.ndla.common.model.domain.{Tag, Title, VisualElement}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
@@ -169,7 +169,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     Tag(distinctTags, language)
   }
 
-  def copyArticleTitle(field: ArticleTitle): ArticleTitle = {
+  def copyArticleTitle(field: Title): Title = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 

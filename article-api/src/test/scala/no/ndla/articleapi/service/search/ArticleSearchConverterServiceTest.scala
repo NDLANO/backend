@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.mockito.invocation.InvocationOnMock
 
@@ -21,13 +21,13 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles = List(
-    ArticleTitle("Bokmål tittel", "nb"),
-    ArticleTitle("Nynorsk tittel", "nn"),
-    ArticleTitle("English title", "en"),
-    ArticleTitle("Titre francais", "fr"),
-    ArticleTitle("Deutsch titel", "de"),
-    ArticleTitle("Titulo espanol", "es"),
-    ArticleTitle("Nekonata titolo", "und")
+    Title("Bokmål tittel", "nb"),
+    Title("Nynorsk tittel", "nn"),
+    Title("English title", "en"),
+    Title("Titre francais", "fr"),
+    Title("Deutsch titel", "de"),
+    Title("Titulo espanol", "es"),
+    Title("Nekonata titolo", "und")
   )
 
   val articles: Seq[ArticleContent] = Seq(
@@ -131,7 +131,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageList.languageValues.find(_.language == lang).get.value
   }
 
-  private def titleForLang(titles: Seq[ArticleTitle], lang: String = "und"): String = {
+  private def titleForLang(titles: Seq[Title], lang: String = "und"): String = {
     titles.find(_.language == lang).get.title
   }
 

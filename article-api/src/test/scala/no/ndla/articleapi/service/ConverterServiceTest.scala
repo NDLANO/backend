@@ -12,7 +12,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.{Author, Availability, Tag}
+import no.ndla.common.model.domain.{Author, Availability, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
 import java.time.LocalDateTime
@@ -21,7 +21,7 @@ import scala.util.Success
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service         = new ConverterService
-  val contentTitle    = ArticleTitle("", "und")
+  val contentTitle    = Title("", "und")
   val author          = Author("forfatter", "Henrik")
   val tag             = Tag(List("asdf"), "nb")
   val requiredLibrary = RequiredLibrary("", "", "")
@@ -50,7 +50,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toApiArticleV2 returns sorted supportedLanguages") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(
-      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ ArticleTitle("hehe", "und")),
+      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb"
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))

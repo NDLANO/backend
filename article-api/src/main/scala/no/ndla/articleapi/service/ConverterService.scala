@@ -19,7 +19,7 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
-import no.ndla.common.model.domain.{Author, Tag, VisualElement}
+import no.ndla.common.model.domain.{Author, Tag, Title, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -90,7 +90,7 @@ trait ConverterService {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
       val searchableArticle         = read[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
+      val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
       val introductions =
         searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions =
@@ -255,8 +255,8 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
-      ArticleTitle(articleTitle.title, articleTitle.language)
+    def toDomainTitle(articleTitle: api.ArticleTitle): Title = {
+      Title(articleTitle.title, articleTitle.language)
     }
 
     def toDomainContent(articleContent: api.ArticleContentV2): ArticleContent = {
@@ -429,7 +429,7 @@ trait ConverterService {
       }
     }
 
-    def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
+    def toApiArticleTitle(title: Title): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }
 

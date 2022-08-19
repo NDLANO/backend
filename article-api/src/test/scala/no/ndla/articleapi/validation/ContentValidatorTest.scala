@@ -11,7 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 
@@ -79,7 +79,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if title contains HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(ArticleTitle(validDocument, "nb"))
+      title = Seq(Title(validDocument, "nb"))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -87,13 +87,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if title contains plain text") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(ArticleTitle("title", "nb"))
+      title = Seq(Title("title", "nb"))
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("A" * 257, "nb")))
+    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("A" * 257, "nb")))
     val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
 
     ex.errors.length should be(1)
@@ -224,7 +224,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("tittele", "und")))
+    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("tittele", "und")))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
