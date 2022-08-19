@@ -10,6 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
+import no.ndla.common.model.domain.Tag
 import no.ndla.common.Clock
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
@@ -89,7 +90,7 @@ trait ConverterService {
       )
     }
 
-    def toApiTags(tags: domain.ConceptTags) = {
+    def toApiTags(tags: Tag) = {
       api.ConceptTags(
         tags.tags,
         tags.language
@@ -181,8 +182,8 @@ trait ConverterService {
       )
     }
 
-    private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
-      if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
+    private def toDomainTags(tags: Seq[String], language: String): Seq[Tag] =
+      if (tags.isEmpty) Seq.empty else Seq(Tag(tags, language))
 
     def toDomainConcept(
         toMergeInto: domain.Concept,
@@ -196,7 +197,7 @@ trait ConverterService {
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
 
-      val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
+      val domainTags = updateConcept.tags.map(t => Tag(t, updateConcept.language)).toSeq
 
       val domainVisualElement =
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq

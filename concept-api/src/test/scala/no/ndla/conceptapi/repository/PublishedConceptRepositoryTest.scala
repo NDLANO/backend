@@ -11,6 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.DateParser
 
 import java.net.Socket
+import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi._
 import no.ndla.conceptapi.model.domain
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -155,20 +156,20 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
       TestData.domainConcept.copy(
         id = Some(1),
         tags = Seq(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("konge", "bror"), "nb"),
+          common.Tag(Seq("konge", "brur"), "nn"),
+          common.Tag(Seq("king", "bro"), "en"),
+          common.Tag(Seq("zing", "xiongdi"), "zh")
         )
       )
     val concept2 =
       TestData.domainConcept.copy(
         id = Some(2),
         tags = Seq(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+          common.Tag(Seq("konge", "lol", "meme"), "nb"),
+          common.Tag(Seq("konge", "lel", "meem"), "nn"),
+          common.Tag(Seq("king", "lul", "maymay"), "en"),
+          common.Tag(Seq("zing", "kek", "mimi"), "zh")
         )
       )
     val concept3 =
@@ -184,16 +185,16 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     repository.everyTagFromEveryConcept should be(
       List(
         List(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("konge", "bror"), "nb"),
+          common.Tag(Seq("konge", "brur"), "nn"),
+          common.Tag(Seq("king", "bro"), "en"),
+          common.Tag(Seq("zing", "xiongdi"), "zh")
         ),
         List(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+          common.Tag(Seq("konge", "lol", "meme"), "nb"),
+          common.Tag(Seq("konge", "lel", "meem"), "nn"),
+          common.Tag(Seq("king", "lul", "maymay"), "en"),
+          common.Tag(Seq("zing", "kek", "mimi"), "zh")
         )
       )
     )

@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi
 
+import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
@@ -71,7 +72,7 @@ object TestData {
     updated = today,
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
@@ -89,7 +90,7 @@ object TestData {
     updated = LocalDateTime.now().minusDays(2),
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
+    tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
@@ -107,7 +108,7 @@ object TestData {
     updated = today,
     updatedBy = Seq(""),
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
+    tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb"), common.Tag(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,

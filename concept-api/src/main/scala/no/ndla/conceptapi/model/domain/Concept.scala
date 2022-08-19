@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.common.model.domain.Tag
 import no.ndla.common.errors.ValidationException
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
@@ -30,7 +31,7 @@ case class Concept(
     updated: LocalDateTime,
     updatedBy: Seq[String],
     metaImage: Seq[ConceptMetaImage],
-    tags: Seq[ConceptTags],
+    tags: Seq[Tag],
     subjectIds: Set[String],
     articleIds: Seq[Long],
     status: Status,

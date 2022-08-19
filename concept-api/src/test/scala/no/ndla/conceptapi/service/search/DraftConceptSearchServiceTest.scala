@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
+import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
@@ -145,7 +146,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     copyright = Some(byNcSa),
     title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = Seq(ConceptTags(Seq("stor", "klovn"), "nb")),
+    tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     subjectIds = Set("urn:subject:1", "urn:subject:100"),
     status = Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
     metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en"))
@@ -156,7 +157,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     copyright = Some(byNcSa),
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
-    tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
+    tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     updated = LocalDateTime.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
     status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED)),

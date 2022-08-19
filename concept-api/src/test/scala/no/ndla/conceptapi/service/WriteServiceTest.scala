@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
@@ -165,7 +166,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         id = Some(3.toLong),
         title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")),
         content = Seq(ConceptContent("Innhold", "nb"), ConceptContent("Innhald", "nn")),
-        tags = Seq(ConceptTags(Seq("tag"), "nb"), ConceptTags(Seq("tag"), "nn")),
+        tags = Seq(Tag(Seq("tag"), "nb"), Tag(Seq("tag"), "nn")),
         visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
         metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), ConceptMetaImage("1", "Hei", "nn"))
       )
