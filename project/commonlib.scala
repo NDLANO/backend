@@ -10,7 +10,8 @@ object commonlib extends Module {
       enumeratumJson4s,
       "org.json4s"   %% "json4s-native"     % Json4SV,
       "org.json4s"   %% "json4s-ext"        % Json4SV,
-      "javax.servlet" % "javax.servlet-api" % JavaxServletV
+      "javax.servlet" % "javax.servlet-api" % JavaxServletV,
+      "org.scala-lang" % "scala-compiler" % ScalaV
     ) ++ scalatra
   )
   override lazy val settings: Seq[Def.Setting[_]] = Seq(

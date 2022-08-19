@@ -12,6 +12,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits._
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._
@@ -24,7 +25,7 @@ import no.ndla.imageapi.model.api.{
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
-import no.ndla.language.Language.mergeLanguageFields
+import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -63,17 +64,23 @@ trait WriteService {
         case None          => Success(None)
       }
     }
-    private def deleteFileForLanguageIfUnused(images: Seq[ImageFileData], language: String): Try[_] = {
+
+    private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[_] = {
       val imageFileToDelete = images.find(_.language == language)
       imageFileToDelete match {
         case Some(fileToDelete) =>
-          val imageIsUsedOtherwhere =
-            images.filterNot(_.language == language).exists(_.fileName == fileToDelete.fileName)
+          val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language)
+          val otherLangs            = images.filterNot(_.language == language)
+          val imageIsUsedOtherwhere = otherLangs.exists(_.fileName == fileToDelete.fileName)
+
           if (!imageIsUsedOtherwhere) {
-            imageStorage.deleteObject(fileToDelete.fileName)
+            for {
+              _ <- imageStorage.deleteObject(fileToDelete.fileName)
+              _ <- deletedMeta
+            } yield ()
           } else {
             logger.info("Image is used by other languages. Skipping file delete")
-            Success(())
+            deletedMeta
           }
         case None =>
           logger.warn("Deleting language for image without imagefile. This is weird.")
@@ -95,9 +102,8 @@ trait WriteService {
           if (isLastLanguage) {
             deleteImageAndFiles(imageId).map(_ => None)
           } else {
-            deleteFileForLanguageIfUnused(existing.images, language).flatMap(_ =>
-              updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
-            )
+            deleteFileForLanguageIfUnused(imageId, existing.images, language).?
+            updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
           }
 
         case Some(_) =>
@@ -109,20 +115,17 @@ trait WriteService {
     def deleteImageAndFiles(imageId: Long): Try[Long] = {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
-          val metaDeleted  = imageRepository.delete(imageId)
-          val filesDeleted = toDelete.images.traverse(image => imageStorage.deleteObject(image.fileName))
+          val metaDeleted = imageRepository.delete(imageId)
+          val filesDeleted = toDelete.images.traverse(image => {
+            imageStorage.deleteObject(image.fileName)
+          })
           val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
           if (metaDeleted < 1) {
             Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
           } else if (filesDeleted.isFailure) {
             Failure(new ImageStorageException("Something went wrong when deleting image file from storage."))
-          } else {
-            indexDeleted match {
-              case Success(deleteId) => Success(deleteId)
-              case Failure(ex)       => Failure(ex)
-            }
-          }
+          } else { indexDeleted }
         case None =>
           Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
       }
@@ -134,54 +137,39 @@ trait WriteService {
         case _                       =>
       }
 
-      val toInsert = converterService.asDomainImageMetaInformationV2(newImage) match {
-        case Failure(ex)        => return Failure(ex)
-        case Success(converted) => converted
-      }
+      val toInsert = converterService.asDomainImageMetaInformationV2(newImage).?
+      validationService.validate(toInsert, None).?
+      val insertedMeta       = Try(imageRepository.insert(toInsert)).?
+      val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
+      val imageId            = insertedMeta.id.toTry(missingIdException).?
 
-      validationService.validate(toInsert, None) match {
-        case Failure(e) => return Failure(e)
-        case _          =>
-      }
+      val uploadedImage = uploadImage(file).?
 
-      val insertedMeta = Try(imageRepository.insert(toInsert)) match {
-        case Success(meta) => meta
-        case Failure(e)    => return Failure(e)
-      }
-
-      val imageId = insertedMeta.id match {
-        case Some(id) => id
-        case None     => return Failure(MissingIdException("Could not find id of stored metadata. This is a bug."))
-      }
-
-      val imageMeta = uploadImage(imageId, file, newImage.language) match {
-        case Failure(e) => return Failure(e)
-        case Success(image) =>
-          insertedMeta.copy(
-            images = Seq(image)
-          )
-      }
+      val imageDocument = converterService.toImageDocument(uploadedImage, newImage.language)
+      val image         = imageRepository.insertImageFile(imageId, uploadedImage.fileName, imageDocument).?
+      val imageMeta     = insertedMeta.copy(images = Seq(image))
 
       val deleteUploadedImages = (reason: Throwable) => {
         logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
         imageMeta.images.traverse(image => imageStorage.deleteObject(image.fileName))
       }
 
-      imageIndexService.indexDocument(imageMeta) match {
-        case Success(_) =>
-        case Failure(e) =>
+      imageIndexService
+        .indexDocument(imageMeta)
+        .recoverWith { e =>
           deleteUploadedImages(e)
-          imageRepository.delete(imageMeta.id.get)
-          return Failure(e)
-      }
+          imageRepository.delete(imageId)
+          Failure(e)
+        }
+        .?
 
       tagIndexService.indexDocument(imageMeta) match {
         case Success(_) => Success(imageMeta)
         case Failure(e) =>
           deleteUploadedImages(e)
-          imageIndexService.deleteDocument(imageMeta.id.get)
-          tagIndexService.deleteDocument(imageMeta.id.get)
-          imageRepository.delete(imageMeta.id.get)
+          imageIndexService.deleteDocument(imageId)
+          tagIndexService.deleteDocument(imageId)
+          imageRepository.delete(imageId)
           Failure(e)
       }
     }
@@ -200,7 +188,7 @@ trait WriteService {
     private[service] def mergeImages(
         existing: ImageMetaInformation,
         toMerge: UpdateImageMetaInformation
-    ): ImageMetaInformation = {
+    ): Try[ImageMetaInformation] = {
       val now    = clock.now()
       val userId = authUser.userOrClientid()
 
@@ -234,7 +222,30 @@ trait WriteService {
         else existing.editorNotes
       }
 
-      newImageMeta.copy(editorNotes = newEditorNotes)
+      insertImageCopyIfNoImage(existing.images, toMerge.language).map(newImages =>
+        newImageMeta.copy(
+          images = newImages,
+          editorNotes = newEditorNotes
+        )
+      )
+    }
+
+    private def insertImageCopyIfNoImage(
+        images: Seq[domain.ImageFileData],
+        language: String
+    ): Try[Seq[domain.ImageFileData]] = {
+      if (images.exists(_.language == language)) {
+        Success(images)
+      } else {
+        sortByLanguagePriority(images).headOption match {
+          case Some(imageToCopy) =>
+            val document = imageToCopy.toDocument().copy(language = language)
+            imageRepository
+              .insertImageFile(imageToCopy.imageMetaId, imageToCopy.fileName, document)
+              .map(inserted => images :+ inserted)
+          case None => Failure(ImageCopyException("Could not find any imagefilemeta when attempting copy."))
+        }
+      }
     }
 
     private def mergeTags(existing: Seq[domain.ImageTag], updated: Seq[domain.ImageTag]): Seq[domain.ImageTag] = {
@@ -248,8 +259,8 @@ trait WriteService {
         oldImage: Option[ImageMetaInformation]
     ): Try[ImageMetaInformation] = {
       for {
-        validated <- validationService.validate(image, oldImage)
-        updated = imageRepository.update(validated, imageId)
+        validated     <- validationService.validate(image, oldImage)
+        updated       <- imageRepository.update(validated, imageId)
         indexed       <- imageIndexService.indexDocument(updated)
         indexedByTags <- tagIndexService.indexDocument(indexed)
       } yield indexedByTags
@@ -260,19 +271,38 @@ trait WriteService {
         newFile: FileItem,
         oldImage: ImageMetaInformation,
         language: String
-    ): Try[ImageMetaInformation] =
-      uploadImage(imageId, newFile, language).flatMap(uploadedImage => {
-        val imageForLang  = oldImage.images.find(_.language == language)
-        val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
-        imageForLang match {
-          case Some(existingImage) if !allOtherPaths.contains(existingImage.fileName) =>
-            val clonedImage = uploadedImage.copy(fileName = existingImage.fileName)
-            imageStorage
-              .cloneObject(uploadedImage.fileName, existingImage.fileName)
-              .map(_ => converterService.withNewImage(oldImage, clonedImage, language))
-          case _ => Success(converterService.withNewImage(oldImage, uploadedImage, language))
-        }
-      })
+    ): Try[ImageMetaInformation] = {
+      val imageForLang  = oldImage.images.find(_.language == language)
+      val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
+
+      val uploaded = uploadImage(newFile).?
+
+      val imageFileFrom = (existingImageFileMeta: ImageFileData) => {
+        domain.ImageFileData(
+          id = existingImageFileMeta.id,
+          fileName = uploaded.fileName,
+          size = uploaded.size,
+          contentType = uploaded.contentType,
+          dimensions = uploaded.dimensions,
+          language = existingImageFileMeta.language,
+          imageMetaId = existingImageFileMeta.imageMetaId
+        )
+      }
+
+      val imageFileData = (imageForLang match {
+        case Some(existingImage) if !allOtherPaths.contains(existingImage.fileName) =>
+          // Put new image file at old path if no other languages use it
+          val clonedImage = imageFileFrom(existingImage).copy(fileName = existingImage.fileName)
+          imageStorage.cloneObject(uploaded.fileName, existingImage.fileName).?
+          Success(clonedImage)
+        case Some(existingImage) => Success(imageFileFrom(existingImage))
+        case None =>
+          val doc = converterService.toImageDocument(uploaded, language)
+          imageRepository.insertImageFile(imageId, uploaded.fileName, doc)
+      }).?
+
+      Success(converterService.withNewImage(oldImage, imageFileData, language))
+    }
 
     private[service] def updateImageAndFile(
         imageId: Long,
@@ -291,10 +321,11 @@ trait WriteService {
             case _ => Success(oldImage)
           }
 
-          maybeOverwrittenImage.flatMap(moi => {
-            val newImage = mergeImages(moi, updateMeta)
-            updateAndIndexImage(imageId, newImage, oldImage.some)
-          })
+          for {
+            overwritten <- maybeOverwrittenImage
+            newImage    <- mergeImages(overwritten, updateMeta)
+            indexed     <- updateAndIndexImage(imageId, newImage, oldImage.some)
+          } yield indexed
       }
     }
 
@@ -340,22 +371,10 @@ trait WriteService {
         .map(filePath => UploadedImage(filePath, file.size, contentType, dimensions))
     }
 
-    private def uploadAndInsertImage(
-        imageId: Long,
-        file: FileItem,
-        fileName: String,
-        language: String
-    ): Try[ImageFileData] = {
-      uploadImageWithName(file, fileName).flatMap(s3Uploaded => {
-        val imageDocument = converterService.toImageDocument(s3Uploaded, language)
-        imageRepository.insertImageFile(imageId, s3Uploaded.fileName, imageDocument)
-      })
-    }
-
-    private[service] def uploadImage(imageId: Long, file: FileItem, language: String): Try[ImageFileData] = {
+    private[service] def uploadImage(file: FileItem): Try[UploadedImage] = {
       val extension = getFileExtension(file.name).getOrElse("")
       val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
-      uploadAndInsertImage(imageId, file, fileName, language)
+      uploadImageWithName(file, fileName)
     }
 
     private[service] def randomFileName(extension: String, length: Int = 12): String = {

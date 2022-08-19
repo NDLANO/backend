@@ -576,7 +576,7 @@ trait UpdateService {
       for {
         feideId         <- getUserFeideID(feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
-        _               <- folder.canDelete(feideId)
+        _               <- folder.isOwner(feideId)
         folderWithData  <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
       } yield deletedFolderId

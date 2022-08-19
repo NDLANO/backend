@@ -1,0 +1,1 @@
+update folders set document = document - 'isFavorite'

@@ -47,7 +47,6 @@ export interface IFolder {
   id: string
   name: string
   status: string
-  isFavorite: boolean
   parentId?: string
   breadcrumbs: IBreadcrumb[]
   subfolders: IFolderData[]

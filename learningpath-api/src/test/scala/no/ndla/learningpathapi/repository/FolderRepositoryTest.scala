@@ -219,7 +219,7 @@ class FolderRepositoryTest
 
   test("that getFolderResources works as expected") {
     val created = LocalDateTime.now()
-    val doc     = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC)
+    val doc     = FolderDocument(name = "some name", status = FolderStatus.PUBLIC)
 
     val folder1 = repository.insertFolder("feide", None, doc)
     val folder2 = repository.insertFolder("feide", Some(folder1.get.id), doc)
@@ -260,7 +260,6 @@ class FolderRepositoryTest
         parentId = None,
         name = "name",
         status = FolderStatus.PUBLIC,
-        isFavorite = false,
         resources = List.empty,
         subfolders = List.empty
       )
@@ -310,7 +309,6 @@ class FolderRepositoryTest
         parentId = None,
         name = "name",
         status = FolderStatus.PUBLIC,
-        isFavorite = false,
         subfolders = List.empty,
         resources = List.empty
       )
@@ -401,7 +399,7 @@ class FolderRepositoryTest
     "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
   ) {
     val created = LocalDateTime.now()
-    val doc     = FolderDocument(isFavorite = false, name = "some name", status = FolderStatus.PUBLIC)
+    val doc     = FolderDocument(name = "some name", status = FolderStatus.PUBLIC)
 
     val folder1 = repository.insertFolder("feide1", None, doc)
     val folder2 = repository.insertFolder("feide1", Some(folder1.get.id), doc)
