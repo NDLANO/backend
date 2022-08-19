@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
@@ -75,7 +75,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept1: Concept = TestData.sampleConcept.copy(
     id = Option(1),
     copyright = Some(publicDomain),
-    title = List(ConceptTitle("Batmen er på vift med en bil", "nb")),
+    title = List(Title("Batmen er på vift med en bil", "nb")),
     content =
       List(ConceptContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb"))
   )
@@ -83,7 +83,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept2: Concept = TestData.sampleConcept.copy(
     id = Option(2),
     copyright = Some(publicDomain),
-    title = List(ConceptTitle("Pingvinen er ute og går", "nb")),
+    title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     updatedBy = Seq("test1")
   )
@@ -91,7 +91,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept3: Concept = TestData.sampleConcept.copy(
     id = Option(3),
     copyright = Some(copyrighted),
-    title = List(ConceptTitle("Donald Duck kjører bil", "nb")),
+    title = List(Title("Donald Duck kjører bil", "nb")),
     content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     updatedBy = Seq("test1", "test2")
   )
@@ -99,7 +99,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept4: Concept = TestData.sampleConcept.copy(
     id = Option(4),
     copyright = Some(copyrighted),
-    title = List(ConceptTitle("Superman er ute og flyr", "nb")),
+    title = List(Title("Superman er ute og flyr", "nb")),
     content =
       List(ConceptContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb"))
   )
@@ -107,7 +107,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept5: Concept = TestData.sampleConcept.copy(
     id = Option(5),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Hulken løfter biler", "nb")),
+    title = List(Title("Hulken løfter biler", "nb")),
     content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
     updatedBy = Seq("test2")
   )
@@ -115,7 +115,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept6: Concept = TestData.sampleConcept.copy(
     id = Option(6),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
+    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
     content = List(
       ConceptContent(
         "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
@@ -127,7 +127,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept7: Concept = TestData.sampleConcept.copy(
     id = Option(7),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Yggdrasil livets tre", "nb")),
+    title = List(Title("Yggdrasil livets tre", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
     updatedBy = Seq("Test1", "test1")
   )
@@ -135,7 +135,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept8: Concept = TestData.sampleConcept.copy(
     id = Option(8),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Baldur har mareritt", "nb")),
+    title = List(Title("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     subjectIds = Set("urn:subject:10"),
     status = Status(current = ConceptStatus.QUALITY_ASSURED, other = Set.empty)
@@ -144,7 +144,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept9: Concept = TestData.sampleConcept.copy(
     id = Option(9),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
+    title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     subjectIds = Set("urn:subject:1", "urn:subject:100"),
@@ -155,7 +155,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept10: Concept = TestData.sampleConcept.copy(
     id = Option(10),
     copyright = Some(byNcSa),
-    title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
+    title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     updated = LocalDateTime.now().minusDays(1),
@@ -173,14 +173,14 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   val concept11: Concept = TestData.sampleConcept.copy(
     id = Option(11),
     copyright = Some(publicDomain),
-    title = List(ConceptTitle("englando", "en"), ConceptTitle("zemba title", "dhm")),
+    title = List(Title("englando", "en"), Title("zemba title", "dhm")),
     content = List(ConceptContent("englandocontent", "en"), ConceptContent("zenba content", "dhm"))
   )
 
   val concept12: Concept = TestData.sampleConcept.copy(
     id = Option(12),
     copyright = Some(publicDomain),
-    title = List(ConceptTitle("deleted", "en"), ConceptTitle("slettet", "nb")),
+    title = List(Title("deleted", "en"), Title("slettet", "nb")),
     content = List(ConceptContent("deleted", "en"), ConceptContent("slettet", "nb")),
     status = Status(current = ConceptStatus.ARCHIVED, other = Set.empty)
   )

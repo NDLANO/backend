@@ -96,9 +96,9 @@ class DraftConceptRepositoryTest
   }
 
   test("Inserting and fetching with listing id works as expected") {
-    val concept1 = domainConcept.copy(title = Seq(domain.ConceptTitle("Really good title", "nb")))
-    val concept2 = domainConcept.copy(title = Seq(domain.ConceptTitle("Not so bad title", "nb")))
-    val concept3 = domainConcept.copy(title = Seq(domain.ConceptTitle("Whatchu doin", "nb")))
+    val concept1 = domainConcept.copy(title = Seq(common.Title("Really good title", "nb")))
+    val concept2 = domainConcept.copy(title = Seq(common.Title("Not so bad title", "nb")))
+    val concept3 = domainConcept.copy(title = Seq(common.Title("Whatchu doin", "nb")))
 
     val insertedConcept1 = repository.insertwithListingId(concept1, 55555)
     val insertedConcept2 = repository.insertwithListingId(concept2, 66666)

@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, Copyright, SearchResult}
 import no.ndla.conceptapi.model.search._
@@ -167,7 +167,7 @@ trait SearchConverterService {
     def hitAsConceptSummary(hitString: String, language: String): api.ConceptSummary = {
 
       val searchableConcept = read[SearchableConcept](hitString)
-      val titles   = searchableConcept.title.languageValues.map(lv => domain.ConceptTitle(lv.value, lv.language))
+      val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
       val tags     = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
       val visualElements =

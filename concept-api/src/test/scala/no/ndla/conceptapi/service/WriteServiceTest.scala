@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
@@ -164,7 +164,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val concept =
       TestData.sampleNbDomainConcept.copy(
         id = Some(3.toLong),
-        title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")),
+        title = Seq(Title("title", "nb"), Title("title", "nn")),
         content = Seq(ConceptContent("Innhold", "nb"), ConceptContent("Innhald", "nn")),
         tags = Seq(Tag(Seq("tag"), "nb"), Tag(Seq("tag"), "nn")),
         visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
@@ -190,7 +190,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val conceptToUpdate = domainConcept.copy(
       revision = Some(951),
-      title = Seq(domain.ConceptTitle("Yolo", "en")),
+      title = Seq(Title("Yolo", "en")),
       updated = DateParser.fromUnixTime(0),
       created = DateParser.fromUnixTime(0)
     )
@@ -207,7 +207,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(draftConceptRepository).update(conceptCaptor.capture())(any[DBSession])
 
     conceptCaptor.getValue.revision should be(Some(951))
-    conceptCaptor.getValue.title should be(Seq(domain.ConceptTitle(updatedTitle, "en")))
+    conceptCaptor.getValue.title should be(Seq(Title(updatedTitle, "en")))
   }
 
 }

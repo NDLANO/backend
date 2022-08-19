@@ -7,8 +7,9 @@
 
 package conceptapi.db.migration
 
+import no.ndla.common.model.domain.Title
 import no.ndla.conceptapi.model.api.{ConceptContent, ConceptTags}
-import no.ndla.conceptapi.model.domain.{ConceptMetaImage, ConceptTitle, VisualElement}
+import no.ndla.conceptapi.model.domain.{ConceptMetaImage, VisualElement}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
@@ -105,7 +106,7 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
   def convertToNewConcept(document: String): String = {
     val concept = parse(document)
     val titles = (concept \ "title")
-      .extract[Seq[ConceptTitle]]
+      .extract[Seq[Title]]
       .map(t => {
         if (t.language == "unknown")
           t.copy(language = "und")

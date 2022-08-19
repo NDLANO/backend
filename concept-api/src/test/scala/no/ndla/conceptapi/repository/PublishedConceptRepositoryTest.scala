@@ -77,19 +77,19 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     val consistentDate = DateParser.fromUnixTime(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
-      title = Seq(domain.ConceptTitle("Yes", "nb")),
+      title = Seq(common.Title("Yes", "nb")),
       created = consistentDate,
       updated = consistentDate
     )
     val concept2 = TestData.domainConcept.copy(
       id = Some(10),
-      title = Seq(domain.ConceptTitle("No", "nb")),
+      title = Seq(common.Title("No", "nb")),
       created = consistentDate,
       updated = consistentDate
     )
     val concept3 = TestData.domainConcept.copy(
       id = Some(11),
-      title = Seq(domain.ConceptTitle("Yolo", "nb")),
+      title = Seq(common.Title("Yolo", "nb")),
       created = consistentDate,
       updated = consistentDate
     )
@@ -108,13 +108,13 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
     val consistentDate = DateParser.fromUnixTime(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
-      title = Seq(domain.ConceptTitle("Yes", "nb")),
+      title = Seq(common.Title("Yes", "nb")),
       created = consistentDate,
       updated = consistentDate
     )
     val concept2 = TestData.domainConcept.copy(
       id = Some(11),
-      title = Seq(domain.ConceptTitle("Yolo", "nb")),
+      title = Seq(common.Title("Yolo", "nb")),
       created = consistentDate,
       updated = consistentDate
     )
