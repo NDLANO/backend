@@ -8,9 +8,10 @@
 package no.ndla.searchapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
+import enumeratum.Json4s
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -19,7 +20,7 @@ import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, SearchParams}
 import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import scalaj.http.Http
 
 import scala.concurrent.Await
@@ -96,7 +97,9 @@ trait SearchApiClient {
           new EnumNameSerializer(EmbedType) +
           new EnumNameSerializer(LearningResourceType) +
           new EnumNameSerializer(Availability) ++
-          JavaTimeSerializers.all
+          JavaTimeSerializers.all ++
+          JavaTypesSerializers.all +
+          Json4s.serializer(ArticleType)
       ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
     }
 

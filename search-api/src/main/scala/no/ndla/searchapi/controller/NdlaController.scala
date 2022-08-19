@@ -8,8 +8,9 @@
 
 package no.ndla.searchapi.controller
 
+import enumeratum.Json4s
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus}
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -19,7 +20,7 @@ import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.scalatra._
 
 import scala.util.{Failure, Success}
@@ -39,7 +40,9 @@ trait NdlaController {
         new EnumNameSerializer(EmbedType) +
         new EnumNameSerializer(LearningResourceType) +
         new EnumNameSerializer(Availability) ++
-        JavaTimeSerializers.all
+        JavaTimeSerializers.all ++
+        JavaTypesSerializers.all +
+        Json4s.serializer(ArticleType)
 
     before() {
       contentType = formats("json")
