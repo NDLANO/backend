@@ -12,6 +12,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument

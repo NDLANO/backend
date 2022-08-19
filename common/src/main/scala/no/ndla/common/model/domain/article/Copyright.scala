@@ -1,13 +1,14 @@
 /*
- * Part of NDLA article-api.
- * Copyright (C) 2016 NDLA
+ * Part of NDLA common.
+ * Copyright (C) 2017 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.articleapi.model.domain
+package no.ndla.common.model.domain.article
 
+import no.ndla.common.model.domain.Author
 import java.time.LocalDateTime
 
 case class Copyright(

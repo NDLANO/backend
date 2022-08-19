@@ -12,6 +12,7 @@ import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite

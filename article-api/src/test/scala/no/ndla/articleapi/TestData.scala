@@ -11,6 +11,7 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 
