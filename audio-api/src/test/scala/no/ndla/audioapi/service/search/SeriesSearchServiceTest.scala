@@ -133,7 +133,7 @@ class SeriesSearchServiceTest
         query = None,
         fallback = true,
         language = Some("nb"),
-        sort = Sort.ByRelevanceDesc
+        sort = Sort.ByIdAsc
       )
     )
     result1.results.length should be(seriesToIndex.length)
@@ -146,7 +146,7 @@ class SeriesSearchServiceTest
         query = None,
         fallback = true,
         language = Some("en"),
-        sort = Sort.ByRelevanceDesc
+        sort = Sort.ByIdAsc
       )
     )
     result2.results.length should be(seriesToIndex.length)
