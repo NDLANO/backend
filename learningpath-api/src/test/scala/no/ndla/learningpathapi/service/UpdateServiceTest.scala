@@ -1917,4 +1917,51 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
   }
+
+  test("that folder is not updated if name already exists as a sibling") {
+    val feideId      = "FEIDE"
+    val folderId     = UUID.randomUUID()
+    val parentId     = UUID.randomUUID()
+    val updateFolder = api.UpdatedFolder(name = Some("asd"), status = None)
+
+    val existingFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "noe unikt",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val siblingFolder = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "aSd",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val belowLimit = props.MaxFolderDepth - 2
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
+    when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List(siblingFolder)))
+    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
+
+    service.updateFolder(folderId, updateFolder, Some(feideId)) should be(
+      Failure(
+        ValidationException("name", s"The folder name must be unique within its parent.")
+      )
+    )
+
+    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
+  }
 }

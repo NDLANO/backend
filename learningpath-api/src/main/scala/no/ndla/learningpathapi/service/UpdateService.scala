@@ -476,12 +476,12 @@ trait UpdateService {
     }
 
     private def validateSiblingNames(
-        newFolder: NewFolder,
+        name: String,
         maybeParentAndSiblings: Option[(domain.Folder, Seq[domain.Folder])]
     ): Try[Unit] = {
       maybeParentAndSiblings
         .map { case (_, siblings) =>
-          val hasNameDuplicate = siblings.map(_.name).exists(_.toLowerCase == newFolder.name.toLowerCase)
+          val hasNameDuplicate = siblings.map(_.name).exists(_.toLowerCase == name.toLowerCase)
           if (hasNameDuplicate) {
             Failure(ValidationException("name", s"The folder name must be unique within its parent."))
           } else Success(())
@@ -489,26 +489,24 @@ trait UpdateService {
         .getOrElse(Success(()))
     }
 
-    private def validateNewFolder(newFolder: NewFolder, feideId: FeideID): Try[(NewFolder, Option[UUID])] = {
+    private def validateFolder(folderName: String, parentId: Option[String], feideId: FeideID): Try[Option[UUID]] =
       for {
-        parentId <- newFolder.parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
+        parentId               <- parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
         maybeParentAndSiblings <- getParentAndSiblings(parentId, feideId)
         validatedParentId      <- validateParentId(parentId, maybeParentAndSiblings.map(_._1))
-        _                      <- validateSiblingNames(newFolder, maybeParentAndSiblings)
+        _                      <- validateSiblingNames(folderName, maybeParentAndSiblings)
         _                      <- checkDepth(validatedParentId)
-      } yield (newFolder, validatedParentId)
-    }
+      } yield validatedParentId
 
-    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
+    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
       for {
-        feideId                <- getUserFeideID(feideAccessToken)
-        document               <- converterService.toDomainFolderDocument(newFolder)
-        (_, validatedParentId) <- validateNewFolder(newFolder, feideId)
-        inserted               <- folderRepository.insertFolder(feideId, validatedParentId, document)
-        crumbs                 <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
-        api                    <- converterService.toApiFolder(inserted, crumbs)
+        feideId           <- getUserFeideID(feideAccessToken)
+        document          <- converterService.toDomainFolderDocument(newFolder)
+        validatedParentId <- validateFolder(newFolder.name, newFolder.parentId, feideId)
+        inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document)
+        crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+        api               <- converterService.toApiFolder(inserted, crumbs)
       } yield api
-    }
 
     def newFolderResourceConnection(
         folderId: UUID,
@@ -562,17 +560,16 @@ trait UpdateService {
         id: UUID,
         updatedFolder: UpdatedFolder,
         feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[api.Folder] = {
-      for {
-        feideId        <- getUserFeideID(feideAccessToken)
-        existingFolder <- folderRepository.folderWithId(id)
-        _              <- existingFolder.isOwner(feideId)
-        converted = converterService.mergeFolder(existingFolder, updatedFolder)
-        updated <- folderRepository.updateFolder(id, feideId, converted)
-        crumbs  <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
-        api     <- converterService.toApiFolder(updated, crumbs)
-      } yield api
-    }
+    ): Try[api.Folder] = for {
+      feideId        <- getUserFeideID(feideAccessToken)
+      existingFolder <- folderRepository.folderWithId(id)
+      _              <- existingFolder.isOwner(feideId)
+      converted = converterService.mergeFolder(existingFolder, updatedFolder)
+      _       <- validateFolder(converted.name, converted.parentId.map(_.toString), feideId)
+      updated <- folderRepository.updateFolder(id, feideId, converted)
+      crumbs  <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
+      api     <- converterService.toApiFolder(updated, crumbs)
+    } yield api
 
     def updateResource(
         id: UUID,
