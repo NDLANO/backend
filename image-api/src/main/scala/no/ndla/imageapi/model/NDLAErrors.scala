@@ -10,8 +10,6 @@ package no.ndla.imageapi.model
 
 class ImageNotFoundException(message: String) extends RuntimeException(message)
 
-class AccessDeniedException(message: String) extends RuntimeException(message)
-
 class ImportException(message: String) extends RuntimeException(message)
 
 case class InvalidUrlException(message: String) extends RuntimeException(message)
