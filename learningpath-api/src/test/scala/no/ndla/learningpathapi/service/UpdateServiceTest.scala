@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._

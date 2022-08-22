@@ -10,7 +10,8 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DataSource
-import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ErrorHelpers, NotFoundException, ValidationError}
+import no.ndla.articleapi.model.api.{Error, ErrorHelpers, NotFoundException, ValidationError}
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}

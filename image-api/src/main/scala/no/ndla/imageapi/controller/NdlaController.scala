@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model._

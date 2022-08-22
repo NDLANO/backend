@@ -8,20 +8,14 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.language.Language.AllLanguages
 import no.ndla.common.model.domain.Availability
 import no.ndla.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient
-import no.ndla.searchapi.model.api.{
-  AccessDeniedException,
-  Error,
-  GroupSearchResult,
-  MultiSearchResult,
-  SearchResults,
-  ValidationError
-}
+import no.ndla.searchapi.model.api.{Error, GroupSearchResult, MultiSearchResult, SearchResults, ValidationError}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}

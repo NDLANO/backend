@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi.model.domain
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
 import scala.util.{Failure, Success}
