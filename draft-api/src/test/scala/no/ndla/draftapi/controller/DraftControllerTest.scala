@@ -7,6 +7,8 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.errors.AccessDeniedException
+
 import java.time.LocalDateTime
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
@@ -208,7 +210,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[Option[String]]
       )
     )
-      .thenReturn(Failure(new AccessDeniedException("Not today")))
+      .thenReturn(Failure(AccessDeniedException("Not today")))
 
     patch("/test/123", body = write(TestData.sampleApiUpdateArticle)) {
       status should equal(403)
