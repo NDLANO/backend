@@ -7,7 +7,7 @@
 
 package no.ndla.audioapi.auth
 
-import no.ndla.audioapi.model.api.AccessDeniedException
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait Role {
@@ -18,7 +18,7 @@ trait Role {
 
     def assertHasRole(role: String): Unit = {
       if (!AuthUser.hasRole(role))
-        throw new AccessDeniedException("User is missing required role to perform this operation")
+        throw AccessDeniedException("User is missing required role to perform this operation")
     }
   }
 
