@@ -32,9 +32,12 @@ trait FolderRepository {
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
 
-    def insertFolder(feideId: FeideID, parentId: Option[UUID], document: FolderDocument)(implicit
-        session: DBSession = AutoSession
-    ): Try[Folder] =
+    def insertFolder(
+        feideId: FeideID,
+        parentId: Option[UUID],
+        document: FolderDocument,
+        rank: Option[Int]
+    )(implicit session: DBSession = AutoSession): Try[Folder] =
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
@@ -43,8 +46,8 @@ trait FolderRepository {
         val newId = UUID.randomUUID()
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, document)
-        values ($newId, $parentId, $feideId, $dataObject)
+        insert into ${DBFolder.table} (id, parent_id, feide_id, document, rank)
+        values ($newId, $parentId, $feideId, $dataObject, $rank)
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
@@ -53,7 +56,8 @@ trait FolderRepository {
           feideId = feideId,
           parentId = parentId,
           resources = List.empty,
-          subfolders = List.empty
+          subfolders = List.empty,
+          rank = rank
         )
       }
 
@@ -76,14 +80,19 @@ trait FolderRepository {
         """.update()
 
       logger.info(s"Inserted new resource with id: $newId")
-      document.toFullResource(newId, path, resourceType, feideId, created)
+      document.toFullResource(newId, path, resourceType, feideId, created, None)
     }
 
-    def createFolderResourceConnection(folderId: UUID, resourceId: UUID)(implicit
-        session: DBSession = AutoSession
-    ): Try[Unit] = Try {
-      sql"insert into ${DBFolderResource.table} (folder_id, resource_id) values ($folderId, $resourceId)".update()
+    def createFolderResourceConnection(
+        folderId: UUID,
+        resourceId: UUID,
+        rank: Int
+    )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
+      sql"insert into ${DBFolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
+        .update()
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
+
+      FolderResource(folderId = folderId, resourceId = resourceId, rank = rank)
     }
 
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
@@ -136,15 +145,38 @@ trait FolderRepository {
       )
     }
 
-    def isConnected(folderId: UUID, resourceId: UUID)(implicit session: DBSession = AutoSession): Try[Boolean] = {
-      val count: Try[Long] = Try(
-        sql"select count(*) from ${DBFolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
-          .map(rs => rs.long("count"))
+    def getConnection(folderId: UUID, resourceId: UUID)(implicit
+        session: DBSession = AutoSession
+    ): Try[Option[FolderResource]] = {
+      Try(
+        sql"select resource_id, folder_id, rank from ${DBFolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
+          .map(rs => {
+            for {
+              resourceId <- rs.get[Try[UUID]]("resource_id")
+              folderId   <- rs.get[Try[UUID]]("folder_id")
+              rank = rs.int("rank")
+            } yield FolderResource(resourceId, folderId, rank)
+          })
           .single()
-          .getOrElse(0)
       )
+        .map(_.sequence)
+        .flatten
+    }
 
-      count.map(c => c > 0)
+    def getConnections(folderId: UUID)(implicit session: DBSession = AutoSession): Try[List[FolderResource]] = {
+      Try(
+        sql"select resource_id, folder_id, rank from ${DBFolderResource.table} where folder_id=$folderId"
+          .map(rs => {
+            for {
+              resourceId <- rs.get[Try[UUID]]("resource_id")
+              folderId   <- rs.get[Try[UUID]]("folder_id")
+              rank = rs.int("rank")
+            } yield FolderResource(folderId, resourceId, rank)
+          })
+          .list()
+      )
+        .map(_.sequence)
+        .flatten
     }
 
     def deleteFolder(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
@@ -275,11 +307,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, document AS f_document
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, document AS f_document, rank AS f_rank
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.document AS f_document
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.document AS f_document, child.rank AS f_rank
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
             )
@@ -290,7 +322,7 @@ trait FolderRepository {
         // We prefix the `folders` columns with `f_` to separate them
         // from the `folder_resources` columns  (both here and in sql).
         .one(rs => DBFolder.fromResultSet(s => s"f_$s")(rs))
-        .toMany(rs => DBResource.fromResultSetOpt(rs).sequence)
+        .toMany(rs => DBResource.fromResultSetOpt(rs, withConnection = true).sequence)
         .map((folder, resources) =>
           resources.toList.sequence.flatMap(resources => folder.map(f => f.copy(resources = resources)))
         )
@@ -343,12 +375,14 @@ trait FolderRepository {
     )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = Try {
       val fr = DBFolderResource.syntax("fr")
       val r  = DBResource.syntax("r")
-      sql"""select ${r.result.*} from ${DBFolderResource.as(fr)}
+      sql"""select ${r.result.*}, ${fr.result.*} from ${DBFolderResource.as(fr)}
             left join ${DBResource.as(r)}
-                on ${fr.resource_id} = ${r.id}
-            where ${fr.folder_id} = $folderId;
+                on ${fr.resourceId} = ${r.id}
+            where ${fr.folderId} = $folderId;
            """
-        .map(DBResource.fromResultSet(r))
+        .one(DBResource.fromResultSet(r, withConnection = false))
+        .toOne(rs => DBFolderResource.fromResultSet(fr)(rs).toOption)
+        .map((resource, connection) => resource.map(_.copy(connection = connection)))
         .list()
         .sequence
     }.flatten
@@ -378,7 +412,7 @@ trait FolderRepository {
     )(implicit session: DBSession): Try[List[Resource]] = Try {
       val r = DBResource.syntax("r")
       sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
-        .map(DBResource.fromResultSet(r))
+        .map(DBResource.fromResultSet(r, withConnection = false))
         .list()
         .sequence
     }.flatten
@@ -388,9 +422,44 @@ trait FolderRepository {
     )(implicit session: DBSession): Try[Option[Resource]] = Try {
       val r = DBResource.syntax("r")
       sql"select ${r.result.*} from ${DBResource.as(r)} where $whereClause"
-        .map(DBResource.fromResultSet(r))
+        .map(DBResource.fromResultSet(r, withConnection = false))
         .single()
         .sequence
     }.flatten
+
+    def setFolderRank(folderId: UUID, rank: Int, feideId: FeideID)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        sql"""
+          update ${DBFolder.table}
+          set rank=$rank
+          where id=$folderId and feide_id=$feideId
+      """
+          .update()
+      } match {
+        case Failure(ex) => Failure(ex)
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated rank for folder with id $folderId")
+          Success(())
+        case Success(count) =>
+          Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+      }
+    }
+
+    def setResourceConnectionRank(folderId: UUID, resourceId: UUID, rank: Int)(implicit session: DBSession): Try[Unit] =
+      Try {
+        sql"""
+          update ${DBFolderResource.table}
+          set rank=$rank
+          where folder_id=$folderId and resource_id=$resourceId
+      """.update()
+      } match {
+        case Failure(ex) => Failure(ex)
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated rank for folder-resource connection with folderId $folderId and resourceId $resourceId")
+          Success(())
+        case Success(count) =>
+          Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+      }
+
   }
 }

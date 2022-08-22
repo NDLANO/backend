@@ -15,7 +15,14 @@ import no.ndla.learningpathapi.model.api.{config, _}
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.learningpathapi.model.domain.{LearningPathStatus, UserInfo, LearningPath => _, LearningStep => _, _}
+import no.ndla.learningpathapi.model.domain.{
+  Folder,
+  LearningPathStatus,
+  UserInfo,
+  LearningPath => _,
+  LearningStep => _,
+  _
+}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,
   FolderRepository,
@@ -26,10 +33,11 @@ import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import cats.implicits._
 import no.ndla.common.Clock
+import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.network.clients.FeideApiClient
-import scalikejdbc.{DBSession, ReadOnlyAutoSession}
+import scalikejdbc.{DB, DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -56,12 +64,12 @@ trait UpdateService {
     private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def updateTaxonomyForLearningPath(
-        pathId: Long,
-        createResourceIfMissing: Boolean,
-        language: String,
-        fallback: Boolean,
-        userInfo: UserInfo
-    ): Try[LearningPathV2] = {
+                                       pathId: Long,
+                                       createResourceIfMissing: Boolean,
+                                       language: String,
+                                       fallback: Boolean,
+                                       userInfo: UserInfo
+                                     ): Try[LearningPathV2] = {
       writeOrAccessDenied(userInfo.isWriter) {
         readService.withIdAndAccessGranted(pathId, userInfo) match {
           case Failure(ex) => Failure(ex)
@@ -82,16 +90,16 @@ trait UpdateService {
       )(w)
 
     private[service] def writeOrAccessDenied[T](
-        willExecute: Boolean,
-        reason: String = "You do not have permission to perform this action."
-    )(w: => Try[T]): Try[T] =
+                                                 willExecute: Boolean,
+                                                 reason: String = "You do not have permission to perform this action."
+                                               )(w: => Try[T]): Try[T] =
       if (willExecute) w
       else Failure(AccessDeniedException(reason))
 
     def newFromExistingV2(id: Long, newLearningPath: NewCopyLearningPathV2, owner: UserInfo): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
-          case None              => Failure(NotFoundException("Could not find learningpath to copy."))
+          case None => Failure(NotFoundException("Could not find learningpath to copy."))
           case Some(Failure(ex)) => Failure(ex)
           case Some(Success(existing)) =>
             val toInsert = converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
@@ -119,10 +127,10 @@ trait UpdateService {
       }
 
     def updateLearningPathV2(
-        id: Long,
-        learningPathToUpdate: UpdatedLearningPathV2,
-        owner: UserInfo
-    ): Try[LearningPathV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+                              id: Long,
+                              learningPathToUpdate: UpdatedLearningPathV2,
+                              owner: UserInfo
+                            ): Try[LearningPathV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       learningPathValidator.validate(learningPathToUpdate)
 
       withId(id).flatMap(_.canEditLearningpath(owner)) match {
@@ -160,12 +168,12 @@ trait UpdateService {
     }
 
     def updateLearningPathStatusV2(
-        learningPathId: Long,
-        status: LearningPathStatus.Value,
-        owner: UserInfo,
-        language: String,
-        message: Option[String] = None
-    ): Try[LearningPathV2] =
+                                    learningPathId: Long,
+                                    status: LearningPathStatus.Value,
+                                    owner: UserInfo,
+                                    language: String,
+                                    message: Option[String] = None
+                                  ): Try[LearningPathV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId, includeDeleted = true).flatMap(_.canSetStatus(status, owner)) match {
           case Failure(ex) => Failure(ex)
@@ -176,7 +184,7 @@ trait UpdateService {
             validatedLearningPath.flatMap(valid => {
               val newMessage = message match {
                 case Some(msg) if owner.isAdmin => Some(domain.Message(msg, owner.userId, clock.now()))
-                case _                          => valid.message
+                case _ => valid.message
               }
 
               val updatedLearningPath = learningPathRepository.update(
@@ -211,16 +219,16 @@ trait UpdateService {
     }
 
     def addLearningStepV2(
-        learningPathId: Long,
-        newLearningStep: NewLearningStepV2,
-        owner: UserInfo
-    ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+                           learningPathId: Long,
+                           newLearningStep: NewLearningStepV2,
+                           owner: UserInfo
+                         ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
           case Failure(ex) => Failure(ex)
           case Success(learningPath) =>
             val validated = for {
-              newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath)
+              newStep <- converterService.asDomainLearningStep(newLearningStep, learningPath)
               validated <- learningStepValidator.validate(newStep)
             } yield validated
 
@@ -230,7 +238,7 @@ trait UpdateService {
                 val (insertedStep, updatedPath) = inTransaction { implicit session =>
                   val insertedStep =
                     learningPathRepository.insertLearningStep(newStep)
-                  val toUpdate    = converterService.insertLearningStep(learningPath, insertedStep, owner)
+                  val toUpdate = converterService.insertLearningStep(learningPath, insertedStep, owner)
                   val updatedPath = learningPathRepository.update(toUpdate)
 
                   (insertedStep, updatedPath)
@@ -252,11 +260,11 @@ trait UpdateService {
     }
 
     def updateLearningStepV2(
-        learningPathId: Long,
-        learningStepId: Long,
-        learningStepToUpdate: UpdatedLearningStepV2,
-        owner: UserInfo
-    ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+                              learningPathId: Long,
+                              learningStepId: Long,
+                              learningStepToUpdate: UpdatedLearningStepV2,
+                              owner: UserInfo
+                            ): Try[LearningStepV2] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
         case Failure(ex) => Failure(ex)
         case Success(learningPath) =>
@@ -269,7 +277,7 @@ trait UpdateService {
               )
             case Some(existing) =>
               val validated = for {
-                toUpdate  <- converterService.mergeLearningSteps(existing, learningStepToUpdate)
+                toUpdate <- converterService.mergeLearningSteps(existing, learningStepToUpdate)
                 validated <- learningStepValidator.validate(toUpdate, allowUnknownLanguage = true)
               } yield validated
 
@@ -282,7 +290,7 @@ trait UpdateService {
                     val updatedStep =
                       learningPathRepository.updateLearningStep(toUpdate)
                     val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep, owner)
-                    val updatedPath  = learningPathRepository.update(pathToUpdate)
+                    val updatedPath = learningPathRepository.update(pathToUpdate)
 
                     (updatedStep, updatedPath)
                   }
@@ -304,11 +312,11 @@ trait UpdateService {
     }
 
     def updateLearningStepStatusV2(
-        learningPathId: Long,
-        learningStepId: Long,
-        newStatus: StepStatus,
-        owner: UserInfo
-    ): Try[LearningStepV2] =
+                                    learningPathId: Long,
+                                    learningStepId: Long,
+                                    newStatus: StepStatus,
+                                    owner: UserInfo
+                                  ): Try[LearningStepV2] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
           case Failure(ex) => Failure(ex)
@@ -344,7 +352,7 @@ trait UpdateService {
                         .contains(step.id)
                     ) ++ stepsWithChangedSeqNo
 
-                  val lp          = converterService.insertLearningSteps(learningPath, newLearningSteps, owner)
+                  val lp = converterService.insertLearningSteps(learningPath, newLearningSteps, owner)
                   val updatedPath = learningPathRepository.update(lp)
 
                   stepsWithChangedSeqNo.foreach(learningPathRepository.updateLearningStep)
@@ -390,7 +398,7 @@ trait UpdateService {
                   learningPath.validateSeqNo(seqNo)
 
                   val from = learningStep.seqNo
-                  val to   = seqNo
+                  val to = seqNo
                   val toUpdate = learningPath.learningsteps
                     .getOrElse(Seq.empty)
                     .filter(step => rangeToUpdate(from, to).contains(step.seqNo))
@@ -421,7 +429,7 @@ trait UpdateService {
 
       lpOpt match {
         case Some(learningPath) => Success(learningPath)
-        case None               => Failure(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
+        case None => Failure(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
       }
     }
 
@@ -434,6 +442,7 @@ trait UpdateService {
         case t: Throwable => throw t
       }
     }
+
     private def validateParentId(parentId: Option[UUID], parent: Option[domain.Folder]): Try[Option[UUID]] =
       (parentId, parent) match {
         case (Some(_), None) =>
@@ -465,28 +474,29 @@ trait UpdateService {
       }
     }
 
-    private def getParentAndSiblings(
-        maybeParentId: Option[UUID],
-        feideId: FeideID
-    ): Try[Option[(domain.Folder, Seq[domain.Folder])]] = maybeParentId match {
+    private def getFolderWithDirectChildren(
+                                             maybeParentId: Option[UUID],
+                                             feideId: FeideID
+                                           ): Try[Option[FolderAndDirectChildren]] = maybeParentId match {
       case None => Success(None)
       case Some(parentId) =>
         folderRepository.folderWithFeideId(parentId, feideId) match {
           case Failure(_: NotFoundException) => Success(None)
-          case Failure(ex)                   => Failure(ex)
+          case Failure(ex) => Failure(ex)
           case Success(parent) =>
-            folderRepository
-              .foldersWithFeideAndParentID(parentId.some, feideId)
-              .map(siblings => Some((parent, siblings)))
+            for {
+              siblingFolders <- folderRepository.foldersWithFeideAndParentID(parentId.some, feideId)
+              siblingResources <- folderRepository.getConnections(parentId)
+            } yield Some(FolderAndDirectChildren(parent, siblingFolders, siblingResources))
         }
     }
 
     private def validateSiblingNames(
-        name: String,
-        maybeParentAndSiblings: Option[(domain.Folder, Seq[domain.Folder])]
-    ): Try[Unit] = {
+                                      name: String,
+                                      maybeParentAndSiblings: Option[FolderAndDirectChildren]
+                                    ): Try[Unit] = {
       maybeParentAndSiblings
-        .map { case (_, siblings) =>
+        .map { case FolderAndDirectChildren(_, siblings, _) =>
           val hasNameDuplicate = siblings.map(_.name).exists(_.toLowerCase == name.toLowerCase)
           if (hasNameDuplicate) {
             Failure(ValidationException("name", s"The folder name must be unique within its parent."))
@@ -495,44 +505,61 @@ trait UpdateService {
         .getOrElse(Success(()))
     }
 
-    private def validateFolder(folderName: String, parentId: Option[String], feideId: FeideID): Try[Option[UUID]] =
-      for {
-        parentId               <- parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
-        maybeParentAndSiblings <- getParentAndSiblings(parentId, feideId)
-        validatedParentId      <- validateParentId(parentId, maybeParentAndSiblings.map(_._1))
-        _                      <- validateSiblingNames(folderName, maybeParentAndSiblings)
-        _                      <- checkDepth(validatedParentId)
-      } yield validatedParentId
+    private def getMaybeParentId(parentId: Option[String]): Try[Option[UUID]] = {
+      parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
+    }
+
+    private def validateFolder(
+                                folderName: String,
+                                parentId: Option[UUID],
+                                maybeParentAndSiblings: Option[FolderAndDirectChildren]
+                              ): Try[Option[UUID]] = for {
+      validatedParentId <- validateParentId(parentId, maybeParentAndSiblings.map(_.folder))
+      _ <- validateSiblingNames(folderName, maybeParentAndSiblings)
+      _ <- checkDepth(validatedParentId)
+    } yield validatedParentId
+
+    private def getNextRank(siblings: Option[FolderAndDirectChildren]): Option[Int] = siblings.map {
+      case FolderAndDirectChildren(_, siblingFolders, siblingResources) =>
+        (siblingFolders.length + siblingResources.length) + 1
+    }
 
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
       for {
-        feideId           <- getUserFeideID(feideAccessToken)
-        document          <- converterService.toDomainFolderDocument(newFolder)
-        validatedParentId <- validateFolder(newFolder.name, newFolder.parentId, feideId)
-        inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document)
-        crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
-        api               <- converterService.toApiFolder(inserted, crumbs)
+        feideId <- getUserFeideID(feideAccessToken)
+        document <- converterService.toDomainFolderDocument(newFolder)
+        parentId <- getMaybeParentId(newFolder.parentId)
+        maybeSiblings <- getFolderWithDirectChildren(parentId, feideId)
+        nextRank <- Try(getNextRank(maybeSiblings)) // `Try` for align
+        validatedParentId <- validateFolder(newFolder.name, parentId, maybeSiblings)
+        inserted <- folderRepository.insertFolder(feideId, validatedParentId, document, nextRank)
+        crumbs <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+        api <- converterService.toApiFolder(inserted, crumbs)
       } yield api
 
     def newFolderResourceConnection(
-        folderId: UUID,
-        newResource: api.NewResource,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Resource] =
+                                     folderId: UUID,
+                                     newResource: api.NewResource,
+                                     feideAccessToken: Option[FeideAccessToken]
+                                   ): Try[api.Resource] =
       for {
         feideId <- getUserFeideID(feideAccessToken)
         _ <- folderRepository
           .folderWithFeideId(folderId, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
-        insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, feideId)
-        converted         <- converterService.toApiResource(insertedOrUpdated)
+        siblings <- getFolderWithDirectChildren(folderId.some, feideId)
+        insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
+        (resource, connection) = insertedOrUpdated
+        converted <- converterService.toApiResource(resource, connection)
       } yield converted
 
     private[service] def createNewResourceOrUpdateExisting(
-        newResource: api.NewResource,
-        folderId: UUID,
-        feideId: FeideID
-    ): Try[domain.Resource] =
+                                                            newResource: api.NewResource,
+                                                            folderId: UUID,
+                                                            siblings: Option[FolderAndDirectChildren],
+                                                            feideId: FeideID
+                                                          ): Try[(domain.Resource, domain.FolderResource)] = {
+      val rank = getNextRank(siblings).getOrElse(1)
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
         .flatMap {
@@ -546,59 +573,62 @@ trait UpdateService {
                 clock.now(),
                 document
               )
-              _ <- folderRepository.createFolderResourceConnection(folderId, inserted.id)
-            } yield inserted
+              connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank)
+            } yield (inserted, connection)
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)
             for {
               updated <- folderRepository.updateResource(mergedResource)
-              _       <- connectIfNotConnected(folderId, mergedResource.id)
-            } yield updated
+              connection <- connectIfNotConnected(folderId, mergedResource.id, rank)
+            } yield (updated, connection)
         }
+    }
 
-    private def connectIfNotConnected(folderId: UUID, resourceId: UUID): Try[Unit] =
-      folderRepository.isConnected(folderId, resourceId).map {
-        case false => folderRepository.createFolderResourceConnection(folderId, resourceId)
-        case true  => Success(())
+    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int): Try[FolderResource] =
+      folderRepository.getConnection(folderId, resourceId) match {
+        case Success(Some(connection)) => Success(connection)
+        case Success(None) => folderRepository.createFolderResourceConnection(folderId, resourceId, rank)
+        case Failure(ex) => Failure(ex)
       }
 
     def updateFolder(
-        id: UUID,
-        updatedFolder: UpdatedFolder,
-        feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[api.Folder] = for {
-      feideId        <- getUserFeideID(feideAccessToken)
+                      id: UUID,
+                      updatedFolder: UpdatedFolder,
+                      feideAccessToken: Option[FeideAccessToken]
+                    ): Try[api.Folder] = for {
+      feideId <- getUserFeideID(feideAccessToken)
       existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(feideId)
-      converted = converterService.mergeFolder(existingFolder, updatedFolder)
-      _       <- validateFolder(converted.name, converted.parentId.map(_.toString), feideId)
+      _ <- existingFolder.isOwner(feideId)
+      converted <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
+      maybeSiblings <- getFolderWithDirectChildren(converted.parentId, feideId)
+      _ <- validateFolder(converted.name, converted.parentId, maybeSiblings)
       updated <- folderRepository.updateFolder(id, feideId, converted)
-      crumbs  <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
-      api     <- converterService.toApiFolder(updated, crumbs)
+      crumbs <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
+      api <- converterService.toApiFolder(updated, crumbs)
     } yield api
 
     def updateResource(
-        id: UUID,
-        updatedResource: UpdatedResource,
-        feideAccessToken: Option[FeideAccessToken] = None
-    ): Try[api.Resource] = {
+                        id: UUID,
+                        updatedResource: UpdatedResource,
+                        feideAccessToken: Option[FeideAccessToken] = None
+                      ): Try[api.Resource] = {
       for {
-        feideId          <- getUserFeideID(feideAccessToken)
+        feideId <- getUserFeideID(feideAccessToken)
         existingResource <- folderRepository.resourceWithId(id)
-        _                <- existingResource.isOwner(feideId)
+        _ <- existingResource.isOwner(feideId)
         converted = converterService.mergeResource(existingResource, updatedResource)
         updated <- folderRepository.updateResource(converted)
-        api     <- converterService.toApiResource(updated)
+        api <- converterService.toApiResource(updated)
       } yield api
     }
 
     private def deleteResourceIfNoConnection(folderId: UUID, resourceId: UUID)(implicit
-        session: DBSession
+                                                                               session: DBSession
     ): Try[UUID] = {
       folderRepository.folderResourceConnectionCount(resourceId) match {
-        case Failure(exception)           => Failure(exception)
+        case Failure(exception) => Failure(exception)
         case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
-        case Success(_)                   => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
+        case Success(_) => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
       }
     }
 
@@ -613,58 +643,98 @@ trait UpdateService {
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId         <- getUserFeideID(feideAccessToken)
-        folder          <- folderRepository.folderWithId(id)
-        _               <- folder.isOwner(feideId)
-        folderWithData  <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
+        feideId <- getUserFeideID(feideAccessToken)
+        folder <- folderRepository.folderWithId(id)
+        _ <- folder.isOwner(feideId)
+        folderWithData <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
       } yield deletedFolderId
     }
 
     def deleteConnection(
-        folderId: UUID,
-        resourceId: UUID,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[UUID] = {
+                          folderId: UUID,
+                          resourceId: UUID,
+                          feideAccessToken: Option[FeideAccessToken]
+                        ): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId  <- getUserFeideID(feideAccessToken)
-        folder   <- folderRepository.folderWithId(folderId)
-        _        <- folder.isOwner(feideId)
+        feideId <- getUserFeideID(feideAccessToken)
+        folder <- folderRepository.folderWithId(folderId)
+        _ <- folder.isOwner(feideId)
         resource <- folderRepository.resourceWithId(resourceId)
-        _        <- resource.isOwner(feideId)
-        id       <- deleteResourceIfNoConnection(folderId, resourceId)
+        _ <- resource.isOwner(feideId)
+        id <- deleteResourceIfNoConnection(folderId, resourceId)
       } yield id
     }
 
     def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
       for {
         feideId <- getUserFeideID(feideAccessToken)
-        _       <- folderRepository.deleteAllUserFolders(feideId)
-        _       <- folderRepository.deleteAllUserResources(feideId)
-        _       <- userRepository.deleteUser(feideId)
+        _ <- folderRepository.deleteAllUserFolders(feideId)
+        _ <- folderRepository.deleteAllUserResources(feideId)
+        _ <- userRepository.deleteUser(feideId)
       } yield ()
     }
 
     private[service] def getFeideUserOrFail(feideId: FeideID): Try[domain.FeideUser] = {
       userRepository.userWithFeideId(feideId) match {
-        case Failure(ex)         => Failure(ex)
-        case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
+        case Failure(ex) => Failure(ex)
+        case Success(None) => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
         case Success(Some(user)) => Success(user)
       }
     }
 
     def updateFeideUserData(
-        updatedUser: api.UpdatedFeideUser,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.FeideUser] = {
+                             updatedUser: api.UpdatedFeideUser,
+                             feideAccessToken: Option[FeideAccessToken]
+                           ): Try[api.FeideUser] = {
       for {
-        feideId          <- getUserFeideID(feideAccessToken)
+        feideId <- getUserFeideID(feideAccessToken)
         existingUserData <- getFeideUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
         api = converterService.toApiUserData(updated)
       } yield api
+    }
+  }
+
+  def sortFolder(
+                  folderId: UUID,
+                  sortRequest: FolderSortRequest,
+                  feideAccessToken: Option[FeideAccessToken]
+                ): Try[Unit] = {
+    val feideId = getUserFeideID(feideAccessToken).?
+    getFolderWithDirectChildren(folderId.some, feideId) match {
+      case Failure(ex) => Failure(ex)
+      case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
+      case Success(Some(FolderAndDirectChildren(_, folderChildren, resourceChildren))) =>
+        val rankables: Seq[Rankable] = folderChildren ++ resourceChildren
+        val allIds = rankables.map(_.sortId)
+        val hasEveryId = allIds.forall(sortRequest.sortedIds.contains)
+        if (!hasEveryId || allIds.size != sortRequest.sortedIds.size)
+          return Failure(
+            ValidationException(
+              "ids",
+              "You need to supply _every_ direct child of the folder when sorting. Both resources and folders."
+            )
+          )
+
+        DB.localTx { session =>
+          sortRequest.sortedIds
+            .mapWithIndex((x, idx) => {
+              val newRank = idx + 1
+              val found = rankables.find(r => x == r.sortId)
+              found match {
+                case Some(Folder(folderId, _, _, _, _, _, _, _)) =>
+                  folderRepository.setFolderRank(folderId, newRank, feideId)(session)
+                case Some(FolderResource(folderId, resourceId, _)) =>
+                  folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
+                case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
+              }
+            })
+            .sequence
+            .map(_ => ())
+        }
     }
   }
 

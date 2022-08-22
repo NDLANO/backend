@@ -722,7 +722,8 @@ trait ConverterService {
                 subfolders = subFolders,
                 resources = resources,
                 breadcrumbs = crumbs,
-                parentId = folder.parentId.map(_.toString)
+                parentId = folder.parentId.map(_.toString),
+                rank = folder.rank
               )
             })
         )
@@ -741,7 +742,8 @@ trait ConverterService {
         feideId = existing.feideId,
         parentId = existing.parentId,
         name = name,
-        status = status
+        status = status,
+        rank = existing.rank
       )
     }
 
@@ -756,7 +758,8 @@ trait ConverterService {
         path = existing.path,
         created = existing.created,
         tags = tags,
-        resourceId = resourceId
+        resourceId = resourceId,
+        connection = None
       )
     }
 
@@ -770,8 +773,24 @@ trait ConverterService {
         path = existing.path,
         created = existing.created,
         tags = tags,
-        resourceId = newResource.resourceId
+        resourceId = newResource.resourceId,
+        connection = existing.connection
       )
+    }
+
+    def toApiResource(domainResource: domain.Resource, connection: domain.FolderResource): Try[api.Resource] = {
+      Success(
+        api.Resource(
+          id = domainResource.id.toString,
+          resourceType = domainResource.resourceType,
+          path = domainResource.path,
+          created = domainResource.created,
+          tags = domainResource.tags,
+          resourceId = domainResource.resourceId,
+          rank = connection.rank.some
+        )
+      )
+
     }
 
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
@@ -788,7 +807,8 @@ trait ConverterService {
           path = path,
           created = created,
           tags = tags,
-          resourceId = resourceId
+          resourceId = resourceId,
+          rank = domainResource.connection.map(_.rank)
         )
       )
     }

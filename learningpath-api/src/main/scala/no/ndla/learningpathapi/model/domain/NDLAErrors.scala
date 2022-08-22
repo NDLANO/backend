@@ -22,3 +22,4 @@ case class InvalidOembedResponse(message: String)         extends RuntimeExcepti
 case class MissingIdException(message: String)            extends RuntimeException(message)
 case class DeleteFavoriteException(message: String)       extends RuntimeException(message)
 case class NDLASQLException(message: String)              extends RuntimeException(message)
+case class FolderSortException(message: String)           extends RuntimeException(message)

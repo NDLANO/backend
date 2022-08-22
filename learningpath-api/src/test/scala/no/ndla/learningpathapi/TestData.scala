@@ -119,7 +119,8 @@ object TestData {
     path = "",
     created = LocalDateTime.now(),
     tags = List.empty,
-    resourceId = 1
+    resourceId = 1,
+    connection = None
   )
 
   val emptyDomainFolder: domain.Folder = domain.Folder(
@@ -129,7 +130,8 @@ object TestData {
     name = "",
     status = domain.FolderStatus.PRIVATE,
     subfolders = List.empty,
-    resources = List.empty
+    resources = List.empty,
+    rank = None
   )
 
   val baseFolderDocument: FolderDocument = FolderDocument(
@@ -149,7 +151,8 @@ object TestData {
     subfolders = List.empty,
     resources = List.empty,
     breadcrumbs = List.empty,
-    parentId = None
+    parentId = None,
+    rank = None
   )
 
 }

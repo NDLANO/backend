@@ -177,7 +177,10 @@ trait ReadService {
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 
-    def getAllResources(size: Int, feideAccessToken: Option[FeideAccessToken] = None): Try[List[api.Resource]] = {
+    def getAllResources(
+        size: Int,
+        feideAccessToken: Option[FeideAccessToken] = None
+    ): Try[List[api.Resource]] = {
       for {
         feideId            <- getUserFeideID(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId, size)
@@ -192,7 +195,7 @@ trait ReadService {
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE
       )
-      folderRepository.insertFolder(feideId, None, favoriteFolder)
+      folderRepository.insertFolder(feideId, None, favoriteFolder, None)
     }
 
     def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {

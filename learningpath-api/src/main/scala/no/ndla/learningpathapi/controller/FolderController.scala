@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{
   Folder,
+  FolderSortRequest,
   NewFolder,
   NewResource,
   Resource,
@@ -22,7 +23,7 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
-import org.scalatra.NoContent
+import org.scalatra.{NoContent, Ok}
 
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
@@ -276,6 +277,29 @@ trait FolderController {
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
+    }
+
+    put(
+      "/:folder_id/sort",
+      operation(
+        apiOperation[Folder]("sortFolderContent")
+          .summary("Decide order of ids in a folder")
+          .description("Decide order of ids in a folder")
+          .parameters(
+            bodyParam[FolderSortRequest]
+          )
+      )
+    ) {
+      val sorted = for {
+        folderId    <- uuidParam(this.folderId.paramName)
+        sortRequest <- tryExtract[FolderSortRequest](request.body)
+        sorted      <- updateService.sortFolder(folderId, sortRequest, requestFeideToken)
+      } yield sorted
+
+      sorted match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(_)  => Ok()
+      }
     }
   }
 }

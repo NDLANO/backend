@@ -19,20 +19,3 @@ trait FeideContent {
     else Failure(AccessDeniedException("You do not have access to this entity."))
   }
 }
-
-trait FolderContent extends FeideContent {
-  def status: FolderStatus.Value
-  val feideId: FeideID
-
-  def isPublic: Boolean  = this.status == FolderStatus.PUBLIC
-  def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
-
-  def hasReadAccess(feideId: FeideID): Try[_] = {
-    if (isPublic) {
-      Success(this)
-    } else {
-      isOwner(feideId)
-    }
-  }
-
-}
