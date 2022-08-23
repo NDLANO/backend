@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.model.api.ValidationError
+import no.ndla.learningpathapi.model.api.{MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -39,6 +39,40 @@ trait UserController {
 
     private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
       request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
+    }
+
+    get(
+      "/",
+      operation(
+        apiOperation[MyNDLAUser]("GetMyNDLAUserData")
+          .summary("Get user data")
+          .description("Get user data")
+          .parameters(
+            asHeaderParam(feideToken)
+          )
+          .responseMessages(response403, response500)
+          .authorizations("oauth2")
+      )
+    ) {
+      readService.getMyNDLAUserData(requestFeideToken)
+    }
+
+    patch(
+      "/",
+      operation(
+        apiOperation[MyNDLAUser]("UpdateMyNDLAUserData")
+          .summary("Update user data")
+          .description("Update user data")
+          .parameters(
+            asHeaderParam(feideToken),
+            bodyParam[UpdatedMyNDLAUser]
+          )
+          .responseMessages(response403, response500)
+          .authorizations("oauth2")
+      )
+    ) {
+      val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
+      updateService.updateUserData(updatedUserData, requestFeideToken)
     }
 
     delete(

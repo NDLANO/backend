@@ -792,6 +792,16 @@ trait ConverterService {
       )
     }
 
+    def toApiUserData(domainUserData: domain.MyNDLAUser): api.MyNDLAUser = {
+      api.MyNDLAUser(id = domainUserData.id, favoriteSubjects = domainUserData.favoriteSubjects)
+    }
+
+    def mergeUserData(domainUserData: domain.MyNDLAUser, updatedUser: api.UpdatedMyNDLAUser): domain.MyNDLAUser = {
+      val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
+
+      domain.MyNDLAUser(id = domainUserData.id, feideId = domainUserData.feideId, favoriteSubjects = favoriteSubjects)
+    }
+
     def toDomainResource(newResource: api.NewResource): ResourceDocument = {
       val tags = newResource.tags.getOrElse(List.empty)
       ResourceDocument(

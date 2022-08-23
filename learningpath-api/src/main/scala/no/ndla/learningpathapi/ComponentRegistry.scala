@@ -22,9 +22,21 @@ import no.ndla.learningpathapi.controller.{
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
-import no.ndla.learningpathapi.model.domain.{DBFolder, DBFolderResource, DBLearningPath, DBLearningStep, DBResource}
+import no.ndla.learningpathapi.model.domain.{
+  DBFolder,
+  DBFolderResource,
+  DBLearningPath,
+  DBLearningStep,
+  DBMyNDLAUser,
+  DBResource
+}
 import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
-import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{
+  ConfigRepository,
+  FolderRepository,
+  LearningPathRepositoryComponent,
+  UserRepository
+}
 import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
@@ -49,6 +61,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with LearningPathRepositoryComponent
     with ConfigRepository
     with FolderRepository
+    with UserRepository
     with ReadService
     with UpdateService
     with SearchConverterServiceComponent
@@ -74,6 +87,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBFolder
     with DBResource
     with DBFolderResource
+    with DBMyNDLAUser
     with TextValidator
     with UrlValidator
     with CorrelationIdSupport
@@ -93,6 +107,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val learningPathRepository   = new LearningPathRepository
   lazy val configRepository         = new ConfigRepository
   lazy val folderRepository         = new FolderRepository
+  lazy val userRepository           = new UserRepository
   lazy val readService              = new ReadService
   lazy val updateService            = new UpdateService
   lazy val searchConverterService   = new SearchConverterService
