@@ -69,7 +69,7 @@ object Dependencies {
       "org.apache.logging.log4j"    % "log4j-slf4j-impl" % Log4JV,
       "com.typesafe.scala-logging" %% "scala-logging"    % ScalaLoggingV,
       "org.slf4j"                   % "slf4j-api"        % "1.7.32",
-      // We need jackson stuff to load `log4j2.yaml`
+      // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,
       "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % JacksonV
