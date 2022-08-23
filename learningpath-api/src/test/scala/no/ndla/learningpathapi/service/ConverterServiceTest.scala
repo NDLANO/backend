@@ -726,4 +726,26 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
   }
+
+  test("That toApiUserData works correctly") {
+    val domainUserData   = domain.MyNDLAUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
+    val expectedUserData = api.MyNDLAUser(id = 42, Seq("a", "b"))
+
+    service.toApiUserData(domainUserData) should be(expectedUserData)
+  }
+
+  test("That mergeUserData works correctly") {
+    val domainUserData   = domain.MyNDLAUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
+    val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None)
+    val updatedUserData2 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty))
+    val updatedUserData3 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("x", "y", "z")))
+
+    val expectedUserData1 = domain.MyNDLAUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
+    val expectedUserData2 = domain.MyNDLAUser(id = 42, feideId = "feide", favoriteSubjects = Seq.empty)
+    val expectedUserData3 = domain.MyNDLAUser(id = 42, feideId = "feide", favoriteSubjects = Seq("x", "y", "z"))
+
+    service.mergeUserData(domainUserData, updatedUserData1) should be(expectedUserData1)
+    service.mergeUserData(domainUserData, updatedUserData2) should be(expectedUserData2)
+    service.mergeUserData(domainUserData, updatedUserData3) should be(expectedUserData3)
+  }
 }
