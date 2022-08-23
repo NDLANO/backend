@@ -33,6 +33,7 @@ trait UserController {
     registerModel[Error]()
 
     val response403: ResponseMessage = ResponseMessage(403, "Access not granted", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not Found", Some("Error"))
     val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
@@ -67,7 +68,7 @@ trait UserController {
             asHeaderParam(feideToken),
             bodyParam[UpdatedMyNDLAUser]
           )
-          .responseMessages(response403, response500)
+          .responseMessages(response403, response404, response500)
           .authorizations("oauth2")
       )
     ) {
