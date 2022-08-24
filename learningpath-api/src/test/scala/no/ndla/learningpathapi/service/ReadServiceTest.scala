@@ -538,10 +538,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.message should be("Folder does not exist")
   }
 
-  test("That getMyNDLAUserData creates new UserData if no user exist") {
+  test("That getFeideUserData creates new UserData if no user exist") {
     val feideId        = "feide"
     val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
-    val apiUserData    = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"))
+    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
@@ -554,10 +554,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(userRepository, times(1)).insertUser(any, any)(any)
   }
 
-  test("That getMyNDLAUserData returns already created user if it exists") {
+  test("That getFeideUserData returns already created user if it exists") {
     val feideId        = "feide"
     val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
-    val apiUserData    = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"))
+    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))

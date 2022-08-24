@@ -26,7 +26,7 @@ import no.ndla.learningpathapi.model.domain.{
   DBFolderResource,
   DBLearningPath,
   DBLearningStep,
-  DBMyNDLAUser,
+  DBFeideUser,
   DBResource
 }
 import no.ndla.learningpathapi.repository.{
@@ -80,7 +80,7 @@ trait TestEnvironment
     with DBFolder
     with DBResource
     with DBFolderResource
-    with DBMyNDLAUser
+    with DBFeideUser
     with NdlaController
     with CorrelationIdSupport
     with ErrorHelpers

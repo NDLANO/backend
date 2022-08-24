@@ -323,7 +323,7 @@ trait ReadService {
       }
     }
 
-    def getFeideUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.MyNDLAUser] = {
+    def getFeideUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.FeideUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
         userData <- getOrCreateFeideUserIfNotExist(feideId)

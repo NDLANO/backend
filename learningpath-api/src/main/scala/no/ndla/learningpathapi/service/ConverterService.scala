@@ -792,11 +792,11 @@ trait ConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.FeideUser): api.MyNDLAUser = {
-      api.MyNDLAUser(id = domainUserData.id, favoriteSubjects = domainUserData.favoriteSubjects)
+    def toApiUserData(domainUserData: domain.FeideUser): api.FeideUser = {
+      api.FeideUser(id = domainUserData.id, favoriteSubjects = domainUserData.favoriteSubjects)
     }
 
-    def mergeUserData(domainUserData: domain.FeideUser, updatedUser: api.UpdatedMyNDLAUser): domain.FeideUser = {
+    def mergeUserData(domainUserData: domain.FeideUser, updatedUser: api.UpdatedFeideUser): domain.FeideUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
 
       domain.FeideUser(id = domainUserData.id, feideId = domainUserData.feideId, favoriteSubjects = favoriteSubjects)

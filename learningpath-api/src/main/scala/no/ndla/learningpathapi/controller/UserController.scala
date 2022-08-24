@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.learningpathapi.model.api.{MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
+import no.ndla.learningpathapi.model.api.{FeideUser, UpdatedFeideUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -45,7 +45,7 @@ trait UserController {
     get(
       "/",
       operation(
-        apiOperation[MyNDLAUser]("GetFeideUser")
+        apiOperation[FeideUser]("GetFeideUser")
           .summary("Get user data")
           .description("Get user data")
           .parameters(
@@ -61,18 +61,18 @@ trait UserController {
     patch(
       "/",
       operation(
-        apiOperation[MyNDLAUser]("UpdateFeideUser")
+        apiOperation[FeideUser]("UpdateFeideUser")
           .summary("Update user data")
           .description("Update user data")
           .parameters(
             asHeaderParam(feideToken),
-            bodyParam[UpdatedMyNDLAUser]
+            bodyParam[UpdatedFeideUser]
           )
           .responseMessages(response403, response404, response500)
           .authorizations("oauth2")
       )
     ) {
-      val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
+      val updatedUserData = extract[UpdatedFeideUser](request.body)
       updateService.updateFeideUserData(updatedUserData, requestFeideToken)
     }
 

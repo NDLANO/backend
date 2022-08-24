@@ -33,10 +33,10 @@ case class FeideUser(id: Long, feideId: FeideID, favoriteSubjects: Seq[String]) 
   )
 }
 
-trait DBMyNDLAUser {
+trait DBFeideUser {
   this: Props =>
 
-  object DBMyNDLAUser extends SQLSyntaxSupport[FeideUser] {
+  object DBFeideUser extends SQLSyntaxSupport[FeideUser] {
     implicit val jsonEncoder: Formats            = DefaultFormats
     override val tableName                       = "feide_users"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)

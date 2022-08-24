@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.{
-  DBMyNDLAUser,
+  DBFeideUser,
   FeideUser,
   FeideUserDocument,
   NDLASQLException,
@@ -27,11 +27,11 @@ import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession, scalikejdbcSQLI
 import scala.util.{Failure, Success, Try}
 
 trait UserRepository {
-  this: DataSource with DBMyNDLAUser =>
+  this: DataSource with DBFeideUser =>
   val userRepository: UserRepository
 
   class UserRepository extends LazyLogging {
-    implicit val formats: Formats = DBMyNDLAUser.repositorySerializer
+    implicit val formats: Formats = DBFeideUser.repositorySerializer
 
     def getSession(readOnly: Boolean): DBSession =
       if (readOnly) ReadOnlyAutoSession
@@ -46,7 +46,7 @@ trait UserRepository {
         dataObject.setValue(write(document))
 
         val userId = sql"""
-        insert into ${DBMyNDLAUser.table} (feide_id, document)
+        insert into ${DBFeideUser.table} (feide_id, document)
         values ($feideId, $dataObject)
         """.updateAndReturnGeneratedKey()
 
@@ -66,7 +66,7 @@ trait UserRepository {
         dataObject.setValue(write(user))
 
         sql"""
-        update ${DBMyNDLAUser.table}
+        update ${DBFeideUser.table}
                   set document=$dataObject
                   where feide_id=$feideId
         """.update()
@@ -80,7 +80,7 @@ trait UserRepository {
       }
 
     def deleteUser(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[FeideID] = {
-      Try(sql"delete from ${DBMyNDLAUser.table} where feide_id = $feideId".update()) match {
+      Try(sql"delete from ${DBFeideUser.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) if numRows != 1 =>
           Failure(NotFoundException(s"User with feide_id $feideId does not exist"))
@@ -94,9 +94,9 @@ trait UserRepository {
       folderWhere(sqls"u.feide_id=$feideId")
 
     private def folderWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[FeideUser]] = Try {
-      val u = DBMyNDLAUser.syntax("u")
-      sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
-        .map(DBMyNDLAUser.fromResultSet(u))
+      val u = DBFeideUser.syntax("u")
+      sql"select ${u.result.*} from ${DBFeideUser.as(u)} where $whereClause"
+        .map(DBFeideUser.fromResultSet(u))
         .single()
     }
 

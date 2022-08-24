@@ -656,9 +656,9 @@ trait UpdateService {
     }
 
     def updateFeideUserData(
-        updatedUser: api.UpdatedMyNDLAUser,
+        updatedUser: api.UpdatedFeideUser,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.MyNDLAUser] = {
+    ): Try[api.FeideUser] = {
       for {
         feideId          <- getUserFeideID(feideAccessToken)
         existingUserData <- getFeideUserOrFail(feideId)
