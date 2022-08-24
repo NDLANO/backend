@@ -1964,4 +1964,51 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
     verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
   }
+
+  test("That deleteAllUserData works as expected") {
+    val feideId = "feide"
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.deleteAllUserFolders(any)(any)).thenReturn(Success(1))
+    when(folderRepository.deleteAllUserResources(any)(any)).thenReturn(Success(1))
+    when(userRepository.deleteUser(any)(any)).thenReturn(Success(""))
+
+    service.deleteAllUserData(Some(feideId)) should be(Success(()))
+
+    verify(folderRepository, times(1)).deleteAllUserFolders(any)(any)
+    verify(folderRepository, times(1)).deleteAllUserResources(any)(any)
+    verify(userRepository, times(1)).deleteUser(any)(any)
+  }
+
+  test("That updateUserData updates user if user exist") {
+    val feideId         = "feide"
+    val userBefore      = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("h", "b"))
+    val updatedUserData = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("r", "e")))
+    val userAfterMerge  = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val expected        = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
+    when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
+
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(Success(expected))
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(1)).updateUser(any, any)(any)
+  }
+
+  test("That updateUserData fails if user does not exist") {
+    val feideId         = "feide"
+    val updatedUserData = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("r", "e")))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
+
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(
+      Failure(NotFoundException(s"User with feide_id $feideId was not found"))
+    )
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(0)).updateUser(any, any)(any)
+  }
 }
