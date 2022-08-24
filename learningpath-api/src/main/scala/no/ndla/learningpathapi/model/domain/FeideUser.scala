@@ -14,12 +14,12 @@ import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-case class MyNDLAUserDocument(favoriteSubjects: Seq[String]) {
+case class FeideUserDocument(favoriteSubjects: Seq[String]) {
   def toFullUser(
       id: Long,
       feideId: FeideID
-  ): MyNDLAUser = {
-    MyNDLAUser(
+  ): FeideUser = {
+    FeideUser(
       id = id,
       feideId = feideId,
       favoriteSubjects = favoriteSubjects
@@ -27,8 +27,8 @@ case class MyNDLAUserDocument(favoriteSubjects: Seq[String]) {
   }
 }
 
-case class MyNDLAUser(id: Long, feideId: FeideID, favoriteSubjects: Seq[String]) {
-  def toDocument: MyNDLAUserDocument = MyNDLAUserDocument(
+case class FeideUser(id: Long, feideId: FeideID, favoriteSubjects: Seq[String]) {
+  def toDocument: FeideUserDocument = FeideUserDocument(
     favoriteSubjects = favoriteSubjects
   )
 }
@@ -36,23 +36,23 @@ case class MyNDLAUser(id: Long, feideId: FeideID, favoriteSubjects: Seq[String])
 trait DBMyNDLAUser {
   this: Props =>
 
-  object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
+  object DBMyNDLAUser extends SQLSyntaxSupport[FeideUser] {
     implicit val jsonEncoder: Formats            = DefaultFormats
-    override val tableName                       = "my_ndla_users"
+    override val tableName                       = "feide_users"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
-    val repositorySerializer: Formats = jsonEncoder + FieldSerializer[MyNDLAUser](
+    val repositorySerializer: Formats = jsonEncoder + FieldSerializer[FeideUser](
       ignore("id") orElse
         ignore("feideId")
     )
 
-    def fromResultSet(lp: SyntaxProvider[MyNDLAUser])(rs: WrappedResultSet): MyNDLAUser =
+    def fromResultSet(lp: SyntaxProvider[FeideUser])(rs: WrappedResultSet): FeideUser =
       fromResultSet((s: String) => lp.resultName.c(s))(rs)
 
-    def fromResultSet(rs: WrappedResultSet): MyNDLAUser = fromResultSet((s: String) => s)(rs)
+    def fromResultSet(rs: WrappedResultSet): FeideUser = fromResultSet((s: String) => s)(rs)
 
-    def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): MyNDLAUser = {
-      val metaData = read[MyNDLAUserDocument](rs.string(colNameWrapper("document")))
+    def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): FeideUser = {
+      val metaData = read[FeideUserDocument](rs.string(colNameWrapper("document")))
       val id       = rs.long(colNameWrapper("id"))
       val feideId  = rs.string(colNameWrapper("feide_id"))
 

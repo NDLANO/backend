@@ -540,15 +540,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     val feideId        = "feide"
-    val domainUserData = domain.MyNDLAUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
     val apiUserData    = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"))
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
-    when(userRepository.insertUser(eqTo(feideId), any[domain.MyNDLAUserDocument])(any))
+    when(userRepository.insertUser(eqTo(feideId), any[domain.FeideUserDocument])(any))
       .thenReturn(Success(domainUserData))
 
-    service.getMyNDLAUserData(Some(feideId)) should be(Success(apiUserData))
+    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
 
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
@@ -556,13 +556,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists") {
     val feideId        = "feide"
-    val domainUserData = domain.MyNDLAUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
     val apiUserData    = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"))
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
-    service.getMyNDLAUserData(Some(feideId)) should be(Success(apiUserData))
+    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
 
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)

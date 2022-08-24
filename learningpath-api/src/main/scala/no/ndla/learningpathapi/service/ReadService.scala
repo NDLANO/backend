@@ -314,8 +314,8 @@ trait ReadService {
       } yield converted
     }
 
-    private[service] def getOrCreateUserIfNotExist(feideId: FeideID): Try[domain.MyNDLAUser] = {
-      val emptyUserData = domain.MyNDLAUserDocument(favoriteSubjects = Seq.empty)
+    private[service] def getOrCreateFeideUserIfNotExist(feideId: FeideID): Try[domain.FeideUser] = {
+      val emptyUserData = domain.FeideUserDocument(favoriteSubjects = Seq.empty)
 
       userRepository.userWithFeideId(feideId).flatMap {
         case None        => userRepository.insertUser(feideId, emptyUserData)
@@ -323,10 +323,10 @@ trait ReadService {
       }
     }
 
-    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.MyNDLAUser] = {
+    def getFeideUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.MyNDLAUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        userData <- getOrCreateUserIfNotExist(feideId)
+        userData <- getOrCreateFeideUserIfNotExist(feideId)
         api = converterService.toApiUserData(userData)
       } yield api
     }

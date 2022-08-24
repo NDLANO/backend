@@ -45,7 +45,7 @@ trait UserController {
     get(
       "/",
       operation(
-        apiOperation[MyNDLAUser]("GetMyNDLAUserData")
+        apiOperation[MyNDLAUser]("GetFeideUser")
           .summary("Get user data")
           .description("Get user data")
           .parameters(
@@ -55,13 +55,13 @@ trait UserController {
           .authorizations("oauth2")
       )
     ) {
-      readService.getMyNDLAUserData(requestFeideToken)
+      readService.getFeideUserData(requestFeideToken)
     }
 
     patch(
       "/",
       operation(
-        apiOperation[MyNDLAUser]("UpdateMyNDLAUserData")
+        apiOperation[MyNDLAUser]("UpdateFeideUser")
           .summary("Update user data")
           .description("Update user data")
           .parameters(
@@ -73,7 +73,7 @@ trait UserController {
       )
     ) {
       val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
-      updateService.updateUserData(updatedUserData, requestFeideToken)
+      updateService.updateFeideUserData(updatedUserData, requestFeideToken)
     }
 
     delete(

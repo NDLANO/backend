@@ -647,7 +647,7 @@ trait UpdateService {
       } yield ()
     }
 
-    private[service] def getUserDataOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {
+    private[service] def getFeideUserOrFail(feideId: FeideID): Try[domain.FeideUser] = {
       userRepository.userWithFeideId(feideId) match {
         case Failure(ex)         => Failure(ex)
         case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
@@ -655,13 +655,13 @@ trait UpdateService {
       }
     }
 
-    def updateUserData(
+    def updateFeideUserData(
         updatedUser: api.UpdatedMyNDLAUser,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.MyNDLAUser] = {
       for {
         feideId          <- getUserFeideID(feideAccessToken)
-        existingUserData <- getUserDataOrFail(feideId)
+        existingUserData <- getFeideUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
         api = converterService.toApiUserData(updated)

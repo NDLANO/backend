@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.{
   DBMyNDLAUser,
-  MyNDLAUser,
-  MyNDLAUserDocument,
+  FeideUser,
+  FeideUserDocument,
   NDLASQLException,
   NotFoundException
 }
@@ -37,9 +37,9 @@ trait UserRepository {
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
 
-    def insertUser(feideId: FeideID, document: MyNDLAUserDocument)(implicit
+    def insertUser(feideId: FeideID, document: FeideUserDocument)(implicit
         session: DBSession = AutoSession
-    ): Try[MyNDLAUser] =
+    ): Try[FeideUser] =
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
@@ -50,16 +50,16 @@ trait UserRepository {
         values ($feideId, $dataObject)
         """.updateAndReturnGeneratedKey()
 
-        logger.info(s"Inserted new folder with id: $userId")
+        logger.info(s"Inserted new user with id: $userId")
         document.toFullUser(
           id = userId,
           feideId = feideId
         )
       }
 
-    def updateUser(feideId: FeideID, user: MyNDLAUser)(implicit
+    def updateUser(feideId: FeideID, user: FeideUser)(implicit
         session: DBSession = AutoSession
-    ): Try[MyNDLAUser] =
+    ): Try[FeideUser] =
       Try {
         val dataObject = new PGobject()
         dataObject.setType("jsonb")
@@ -73,7 +73,7 @@ trait UserRepository {
       } match {
         case Failure(ex) => Failure(ex)
         case Success(count) if count == 1 =>
-          logger.info(s"Updated folder with feide_id $feideId")
+          logger.info(s"Updated user with feide_id $feideId")
           Success(user)
         case Success(count) =>
           Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
@@ -90,10 +90,10 @@ trait UserRepository {
       }
     }
 
-    def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[MyNDLAUser]] =
+    def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FeideUser]] =
       folderWhere(sqls"u.feide_id=$feideId")
 
-    private def folderWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = Try {
+    private def folderWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[FeideUser]] = Try {
       val u = DBMyNDLAUser.syntax("u")
       sql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
         .map(DBMyNDLAUser.fromResultSet(u))

@@ -1983,16 +1983,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That updateUserData updates user if user exist") {
     val feideId         = "feide"
-    val userBefore      = domain.MyNDLAUser(id = 42, feideId = feideId, favoriteSubjects = Seq("h", "b"))
+    val userBefore      = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("h", "b"))
     val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
-    val userAfterMerge  = domain.MyNDLAUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val userAfterMerge  = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
     val expected        = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"))
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
 
-    service.updateUserData(updatedUserData, Some(feideId)) should be(Success(expected))
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(Success(expected))
 
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).updateUser(any, any)(any)
@@ -2005,7 +2005,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
 
-    service.updateUserData(updatedUserData, Some(feideId)) should be(
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(
       Failure(NotFoundException(s"User with feide_id $feideId was not found"))
     )
 
