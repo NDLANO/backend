@@ -16,7 +16,12 @@ import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.learningpathapi.model.domain.{LearningPathStatus, UserInfo, LearningPath => _, LearningStep => _, _}
-import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{
+  ConfigRepository,
+  FolderRepository,
+  LearningPathRepositoryComponent,
+  UserRepository
+}
 import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import cats.implicits._
@@ -35,6 +40,7 @@ trait UpdateService {
     with ReadService
     with ConfigRepository
     with FolderRepository
+    with UserRepository
     with ConverterService
     with SearchIndexService
     with Clock
@@ -637,7 +643,29 @@ trait UpdateService {
         feideId <- getUserFeideID(feideAccessToken)
         _       <- folderRepository.deleteAllUserFolders(feideId)
         _       <- folderRepository.deleteAllUserResources(feideId)
+        _       <- userRepository.deleteUser(feideId)
       } yield ()
+    }
+
+    private[service] def getFeideUserOrFail(feideId: FeideID): Try[domain.FeideUser] = {
+      userRepository.userWithFeideId(feideId) match {
+        case Failure(ex)         => Failure(ex)
+        case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
+        case Success(Some(user)) => Success(user)
+      }
+    }
+
+    def updateFeideUserData(
+        updatedUser: api.UpdatedFeideUser,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[api.FeideUser] = {
+      for {
+        feideId          <- getUserFeideID(feideAccessToken)
+        existingUserData <- getFeideUserOrFail(feideId)
+        combined = converterService.mergeUserData(existingUserData, updatedUser)
+        updated <- userRepository.updateUser(feideId, combined)
+        api = converterService.toApiUserData(updated)
+      } yield api
     }
   }
 

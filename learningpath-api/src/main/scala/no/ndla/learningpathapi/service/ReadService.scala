@@ -22,7 +22,12 @@ import no.ndla.learningpathapi.model.domain.{
   LearningPathTags => _,
   _
 }
-import no.ndla.learningpathapi.repository.{ConfigRepository, FolderRepository, LearningPathRepositoryComponent}
+import no.ndla.learningpathapi.repository.{
+  ConfigRepository,
+  FolderRepository,
+  LearningPathRepositoryComponent,
+  UserRepository
+}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.common.errors.AccessDeniedException
 import scalikejdbc.DBSession
@@ -37,6 +42,7 @@ trait ReadService {
     with FeideApiClient
     with ConfigRepository
     with ConverterService
+    with UserRepository
     with FolderRepository =>
   val readService: ReadService
 
@@ -306,6 +312,23 @@ trait ReadService {
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
         converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs)
       } yield converted
+    }
+
+    private[service] def getOrCreateFeideUserIfNotExist(feideId: FeideID): Try[domain.FeideUser] = {
+      val emptyUserData = domain.FeideUserDocument(favoriteSubjects = Seq.empty)
+
+      userRepository.userWithFeideId(feideId).flatMap {
+        case None        => userRepository.insertUser(feideId, emptyUserData)
+        case Some(value) => Success(value)
+      }
+    }
+
+    def getFeideUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.FeideUser] = {
+      for {
+        feideId  <- getUserFeideID(feideAccessToken)
+        userData <- getOrCreateFeideUserIfNotExist(feideId)
+        api = converterService.toApiUserData(userData)
+      } yield api
     }
   }
 }
