@@ -8,7 +8,7 @@
 package no.ndla.articleapi.auth
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.AccessDeniedException
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait Role {

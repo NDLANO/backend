@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.auth
 
-import no.ndla.imageapi.model.AccessDeniedException
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
 trait User {
@@ -22,7 +22,8 @@ trait User {
         AuthUser.get.get
       } else if (AuthUser.getClientId.isDefined) {
         AuthUser.getClientId.get
-      } else throw new AccessDeniedException("User id or Client id required to perform this operation")
+      } else
+        throw AccessDeniedException("User id or Client id required to perform this operation", unauthorized = true)
     }
 
   }

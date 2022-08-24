@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource

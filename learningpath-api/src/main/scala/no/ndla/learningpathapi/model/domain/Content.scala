@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.errors.AccessDeniedException
 import scala.util.{Failure, Success, Try}
 
 trait FeideContent {

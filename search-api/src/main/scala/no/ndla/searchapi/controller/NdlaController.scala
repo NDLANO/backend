@@ -9,13 +9,14 @@
 package no.ndla.searchapi.controller
 
 import enumeratum.Json4s
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus}
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{AccessDeniedException, Error, ErrorHelpers, TaxonomyException}
+import no.ndla.searchapi.model.api.{Error, ErrorHelpers, TaxonomyException}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext

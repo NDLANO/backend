@@ -71,7 +71,6 @@ case class ArticlePublishException(message: String)    extends RuntimeException(
 case class ArticleVersioningException(message: String) extends RuntimeException(message)
 
 class ArticleStatusException(message: String)            extends RuntimeException(message)
-class AccessDeniedException(message: String)             extends RuntimeException(message)
 case class OperationNotAllowedException(message: String) extends RuntimeException(message)
 case class CloneFileException(message: String)           extends RuntimeException(message)
 case class H5PException(message: String)                 extends RuntimeException(message)

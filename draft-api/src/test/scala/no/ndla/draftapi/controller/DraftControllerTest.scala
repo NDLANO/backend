@@ -8,6 +8,7 @@
 package no.ndla.draftapi.controller
 
 import java.time.LocalDateTime
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.DraftStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
@@ -208,7 +209,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
         any[Option[String]]
       )
     )
-      .thenReturn(Failure(new api.AccessDeniedException("Not today")))
+      .thenReturn(Failure(AccessDeniedException("Not today")))
 
     patch("/test/123", body = write(TestData.sampleApiUpdateArticle)) {
       status should equal(403)
