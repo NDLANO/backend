@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.model.domain
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.Title
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.Props
 import org.json4s.FieldSerializer._

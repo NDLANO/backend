@@ -12,6 +12,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,
@@ -63,8 +64,8 @@ trait ConverterService {
       domain.Description(description.description, description.language)
     }
 
-    def asTitle(title: api.Title): domain.Title = {
-      domain.Title(title.title, title.language)
+    def asTitle(title: api.Title): common.Title = {
+      common.Title(title.title, title.language)
     }
 
     def asLearningPathTags(tags: api.LearningPathTags): domain.LearningPathTags = {
@@ -211,7 +212,7 @@ trait ConverterService {
       val titles = updated.title match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.Title(value, updated.language))
+          Seq(common.Title(value, updated.language))
       }
 
       val descriptions = updated.description match {
@@ -273,7 +274,7 @@ trait ConverterService {
           None,
           learningPath.id,
           newSeqNo,
-          Seq(domain.Title(newLearningStep.title, newLearningStep.language)),
+          Seq(common.Title(newLearningStep.title, newLearningStep.language)),
           description,
           embedUrl,
           StepType.valueOfOrError(newLearningStep.`type`),
@@ -302,7 +303,7 @@ trait ConverterService {
       val titles = updated.title match {
         case None => existing.title
         case Some(value) =>
-          mergeLanguageFields(existing.title, Seq(domain.Title(value, updated.language)))
+          mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
       }
 
       val descriptions = updated.description match {
@@ -344,7 +345,7 @@ trait ConverterService {
         newLearningPath: NewCopyLearningPathV2,
         user: UserInfo
     ): LearningPath = {
-      val oldTitle = Seq(domain.Title(newLearningPath.title, newLearningPath.language))
+      val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
 
       val oldDescription = newLearningPath.description match {
         case None => Seq.empty
@@ -403,7 +404,7 @@ trait ConverterService {
         None,
         None,
         None,
-        Seq(domain.Title(newLearningPath.title, newLearningPath.language)),
+        Seq(common.Title(newLearningPath.title, newLearningPath.language)),
         Seq(domain.Description(newLearningPath.description, newLearningPath.language)),
         newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
         newLearningPath.duration,
@@ -599,7 +600,7 @@ trait ConverterService {
         None
     }
 
-    def asApiTitle(title: domain.Title): api.Title = {
+    def asApiTitle(title: common.Title): api.Title = {
       api.Title(title.title, title.language)
     }
 

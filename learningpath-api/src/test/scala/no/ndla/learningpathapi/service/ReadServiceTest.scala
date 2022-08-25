@@ -14,6 +14,7 @@ import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.model.domain.Title
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
