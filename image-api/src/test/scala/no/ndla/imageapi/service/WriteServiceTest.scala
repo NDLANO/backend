@@ -9,6 +9,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.model.api._
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
@@ -368,7 +369,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
       copyright = domain
-        .Copyright("testLic", "test", List(domain.Author("Opphavsmann", "Testerud")), List(), List(), None, None, None),
+        .Copyright("testLic", "test", List(common.Author("Opphavsmann", "Testerud")), List(), List(), None, None, None),
       tags = List(domain.ImageTag(List("a", "b", "c"), "nb")),
       captions = List(domain.ImageCaption("Caption", "nb")),
       modelReleased = ModelReleasedStatus.NO,

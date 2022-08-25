@@ -9,6 +9,7 @@
 package no.ndla.imageapi.model.domain
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.Author
 import no.ndla.language.model.LanguageField
 
 import java.time.LocalDateTime
@@ -51,7 +52,6 @@ case class Copyright(
     validTo: Option[LocalDateTime]
 )
 case class License(license: String, description: String, url: Option[String])
-case class Author(`type`: String, name: String)
 case class EditorNote(timeStamp: LocalDateTime, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 

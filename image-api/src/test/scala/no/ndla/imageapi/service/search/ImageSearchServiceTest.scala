@@ -7,6 +7,7 @@
 
 package no.ndla.imageapi.service.search
 
+import no.ndla.common.model.domain.Author
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}

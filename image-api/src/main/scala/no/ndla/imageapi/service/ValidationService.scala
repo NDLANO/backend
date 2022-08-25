@@ -8,6 +8,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.Author
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._

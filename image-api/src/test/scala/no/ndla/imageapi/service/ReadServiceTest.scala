@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.service
 
+import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -93,9 +94,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       copyright = domain.Copyright(
         TestData.ByNcSa,
         "http://www.scanpix.no",
-        List(domain.Author("Fotograf", "Test Testesen")),
-        List(domain.Author("Redaksjonelt", "Kåre Knegg")),
-        List(domain.Author("Leverandør", "Leverans Leveransensen")),
+        List(common.Author("Fotograf", "Test Testesen")),
+        List(common.Author("Redaksjonelt", "Kåre Knegg")),
+        List(common.Author("Leverandør", "Leverans Leveransensen")),
         Some(1),
         None,
         None
@@ -141,9 +142,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       copyright = domain.Copyright(
         TestData.ByNcSa,
         "http://www.scanpix.no",
-        List(domain.Author("Fotograf", "Test Testesen")),
-        List(domain.Author("Redaksjonelt", "Kåre Knegg")),
-        List(domain.Author("Leverandør", "Leverans Leveransensen")),
+        List(common.Author("Fotograf", "Test Testesen")),
+        List(common.Author("Redaksjonelt", "Kåre Knegg")),
+        List(common.Author("Leverandør", "Leverans Leveransensen")),
         Some(1),
         None,
         None
