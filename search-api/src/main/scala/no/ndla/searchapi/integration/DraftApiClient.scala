@@ -8,9 +8,10 @@
 package no.ndla.searchapi.integration
 
 import java.time.LocalDateTime
+import no.ndla.common.model.domain.Author
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, Author, SearchParams, article}
+import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, SearchParams, article}
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 

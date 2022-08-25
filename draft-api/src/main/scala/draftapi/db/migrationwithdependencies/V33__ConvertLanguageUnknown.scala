@@ -7,13 +7,14 @@
 
 package draftapi.db.migrationwithdependencies
 
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.{DraftApiProperties, Props}
-import no.ndla.draftapi.model.domain.{Article, DBArticle}
+import no.ndla.draftapi.model.domain.DBArticle
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 class V33__ConvertLanguageUnknown(properties: DraftApiProperties) extends BaseJavaMigration with DBArticle with Props {
   override val props: DraftApiProperties = properties
@@ -67,7 +68,7 @@ class V33__ConvertLanguageUnknown(properties: DraftApiProperties) extends BaseJa
 
   private[migrationwithdependencies] def convertArticleUpdate(document: String): String = {
     val oldArticle       = parse(document)
-    val extractedArticle = oldArticle.extract[Article]
+    val extractedArticle = oldArticle.extract[Draft]
     val title = extractedArticle.title.map(t => {
       if (t.language == "unknown")
         t.copy(language = "und")

@@ -8,19 +8,20 @@
 
 package no.ndla.searchapi.controller
 
+import enumeratum.Json4s
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus, RevisionStatus}
+import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{Error, ErrorHelpers, TaxonomyException}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.Formats
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.scalatra._
 
 import scala.util.{Failure, Success}
@@ -32,7 +33,7 @@ trait NdlaController {
   abstract class NdlaController extends NdlaControllerBase {
     protected implicit override val jsonFormats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(ArticleStatus) +
+        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(LearningPathStatus) +
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
@@ -40,7 +41,10 @@ trait NdlaController {
         new EnumNameSerializer(EmbedType) +
         new EnumNameSerializer(LearningResourceType) +
         new EnumNameSerializer(Availability) ++
-        JavaTimeSerializers.all
+        JavaTimeSerializers.all ++
+        JavaTypesSerializers.all +
+        Json4s.serializer(ArticleType) +
+        Json4s.serializer(RevisionStatus)
 
     before() {
       contentType = formats("json")

@@ -8,7 +8,7 @@
 package draftapi.db.migration
 
 import enumeratum.Json4s
-import no.ndla.draftapi.model.domain.RevisionStatus
+import no.ndla.common.model.domain.draft.RevisionStatus
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}

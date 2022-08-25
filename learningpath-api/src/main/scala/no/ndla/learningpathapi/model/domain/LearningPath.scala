@@ -8,9 +8,9 @@
 
 package no.ndla.learningpathapi.model.domain
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.learningpathapi.Props
-import no.ndla.scalatra.error.{ValidationMessage, ValidationException}
 import no.ndla.learningpathapi.validation.DurationValidator
 import no.ndla.common.errors.AccessDeniedException
 import org.json4s.FieldSerializer._

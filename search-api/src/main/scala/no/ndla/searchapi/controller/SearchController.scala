@@ -11,13 +11,13 @@ package no.ndla.searchapi.controller
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.language.Language.AllLanguages
 import no.ndla.common.model.domain.Availability
-import no.ndla.scalatra.NdlaSwaggerSupport
+import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{Error, GroupSearchResult, MultiSearchResult, SearchResults, ValidationError}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
@@ -166,7 +166,7 @@ trait SearchController {
       "draft-status",
       s"""List of statuses to filter by.
          |A draft only needs to have one of the available statuses to be included in result (OR).
-         |Supported values are ${ArticleStatus.values.mkString(", ")}.""".stripMargin
+         |Supported values are ${DraftStatus.values.mkString(", ")}.""".stripMargin
     )
 
     private val includeOtherStatuses =
@@ -483,7 +483,7 @@ trait SearchController {
         learningResourceTypes = contextTypes.flatMap(LearningResourceType.valueOf),
         supportedLanguages = supportedLanguagesFilter,
         relevanceIds = relevances,
-        statusFilter = statusFilter.flatMap(ArticleStatus.valueOf),
+        statusFilter = statusFilter.flatMap(DraftStatus.valueOf),
         userFilter = userFilter,
         grepCodes = grepCodes,
         shouldScroll = shouldScroll,

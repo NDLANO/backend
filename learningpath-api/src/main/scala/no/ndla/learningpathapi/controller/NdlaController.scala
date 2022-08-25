@@ -8,6 +8,8 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.scalatra.NdlaControllerBase
 import javax.servlet.http.HttpServletRequest
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport}
@@ -23,9 +25,7 @@ import org.scalatra._
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.NdlaControllerBase
 import no.ndla.learningpathapi.model.api.ValidationError
-import no.ndla.scalatra.error.ValidationException
 
 trait NdlaController {
   this: DataSource with ErrorHelpers with CorrelationIdSupport with ConverterService =>

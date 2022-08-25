@@ -8,14 +8,13 @@
 package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{draftapi, searchapi}
 import org.eclipse.jetty.server.Server
@@ -32,7 +31,7 @@ class DraftApiClientTest
     with searchapi.TestEnvironment {
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
-      new EnumNameSerializer(ArticleStatus) +
+      new EnumNameSerializer(DraftStatus) +
       new EnumNameSerializer(LearningPathStatus) +
       new EnumNameSerializer(LearningPathVerificationStatus) +
       new EnumNameSerializer(StepType) +
@@ -91,7 +90,7 @@ class DraftApiClientTest
     val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
     implicit val ec  = ExecutionContext.global
-    val chunks       = draftApiClient.getChunks[domain.draft.Draft].toList
+    val chunks       = draftApiClient.getChunks[Draft].toList
     val fetchedDraft = Await.result(chunks.head, Duration.Inf).get.head
     val searchable = searchConverterService
       .asSearchableDraft(

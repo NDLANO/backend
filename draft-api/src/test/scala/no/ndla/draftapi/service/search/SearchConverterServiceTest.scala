@@ -7,7 +7,8 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi.model.domain.{ArticleStatus, EditorNote, Status}
+import no.ndla.common.model.domain.{EditorNote, Status}
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -15,7 +16,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That converting to searchable article creates list of users") {
     val article = TestData.sampleDomainArticle.copy(
-      notes = Seq(EditorNote("Note", "user", Status(ArticleStatus.DRAFT, Set.empty), TestData.today))
+      notes = Seq(EditorNote("Note", "user", Status(DraftStatus.DRAFT, Set.empty), TestData.today))
     )
     val converted = service.asSearchableArticle(article)
     converted.notes should be(Seq("Note"))

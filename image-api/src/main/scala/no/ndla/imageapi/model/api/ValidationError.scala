@@ -8,8 +8,8 @@
 
 package no.ndla.imageapi.model.api
 
+import no.ndla.common.errors.ValidationMessage
 import java.time.LocalDateTime
-import no.ndla.scalatra.error.ValidationMessage
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

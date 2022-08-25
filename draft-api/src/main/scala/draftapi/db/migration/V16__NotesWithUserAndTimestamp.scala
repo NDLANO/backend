@@ -7,20 +7,22 @@
 
 package draftapi.db.migration
 
+import no.ndla.common.model.domain.{EditorNote, Status}
+import no.ndla.common.model.domain.draft.DraftStatus
+
 import java.time.LocalDateTime
-import no.ndla.draftapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 import scala.util.{Success, Try}
 
 class V16__NotesWithUserAndTimestamp extends BaseJavaMigration {
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) ++ JavaTimeSerializers.all
+    org.json4s.DefaultFormats + new EnumNameSerializer(DraftStatus) ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

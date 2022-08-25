@@ -8,11 +8,11 @@
 
 package no.ndla.oembedproxy.controller
 
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
-import no.ndla.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.swagger.{ResponseMessage, Swagger}

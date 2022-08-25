@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
@@ -14,7 +15,6 @@ import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.TestEnvironment
 import org.scalatest.Outcome
 
@@ -77,7 +77,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       draftsToIndex.filter(_.title.map(_.language).contains(language))
     }
     x.filter(!_.copyright.flatMap(_.license).contains("copyrighted"))
-      .filterNot(_.status.current == ArticleStatus.ARCHIVED)
+      .filterNot(_.status.current == DraftStatus.ARCHIVED)
   }
 
   private def expectedAllPublicLearningPaths(language: String) = {
@@ -673,7 +673,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(ArticleStatus.PROPOSAL)
+        statusFilter = List(DraftStatus.PROPOSAL)
       )
     )
     search1.results.map(_.id) should be(Seq(10, 11))
@@ -682,7 +682,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(ArticleStatus.IMPORTED)
+        statusFilter = List(DraftStatus.IMPORTED)
       )
     )
     search2.results.map(_.id) should be(Seq())
@@ -691,7 +691,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(ArticleStatus.IMPORTED),
+        statusFilter = List(DraftStatus.IMPORTED),
         includeOtherStatuses = true
       )
     )
@@ -703,7 +703,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val expectedIds        = (expectedArticleIds).sorted
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(ArticleStatus.PROPOSAL))
+      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.PROPOSAL))
     )
     search1.results.map(_.id) should be(expectedIds)
 
@@ -759,7 +759,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val query = Some("Slettet")
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = query, withIdIn = List(14), statusFilter = List(ArticleStatus.ARCHIVED))
+        multiDraftSearchSettings.copy(query = query, withIdIn = List(14), statusFilter = List(DraftStatus.ARCHIVED))
       )
     val Success(search2) =
       multiDraftSearchService.matchingQuery(

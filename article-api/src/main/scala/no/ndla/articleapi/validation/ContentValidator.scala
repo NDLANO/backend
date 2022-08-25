@@ -11,6 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
@@ -19,8 +20,6 @@ import no.ndla.validation.TextValidator
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
-import no.ndla.scalatra.error.ValidationMessage
 
 trait ContentValidator {
   this: DraftApiClient with Props =>

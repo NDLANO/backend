@@ -26,11 +26,10 @@ import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.validation.{LearningPathValidator, LearningStepValidator}
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.network.clients.FeideApiClient
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
-import no.ndla.scalatra.error.ValidationException
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}

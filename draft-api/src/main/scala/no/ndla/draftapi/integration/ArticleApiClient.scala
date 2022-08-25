@@ -8,11 +8,12 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
-import no.ndla.draftapi.model.domain.RevisionMeta
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -24,7 +25,6 @@ import scalaj.http.Http
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Try}
-import no.ndla.scalatra.error.ValidationException
 
 trait ArticleApiClient {
   this: NdlaClient with ConverterService with Props =>
@@ -49,11 +49,11 @@ trait ArticleApiClient {
 
     def updateArticle(
         id: Long,
-        article: domain.Article,
+        article: common.draft.Draft,
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[domain.Article] = {
+    ): Try[common.draft.Draft] = {
 
       val articleApiArticle = converterService.toArticleApiArticle(article)
       postWithData[api.ArticleApiArticle, api.ArticleApiArticle](
@@ -65,7 +65,7 @@ trait ArticleApiClient {
       ).map(_ => article)
     }
 
-    def unpublishArticle(article: domain.Article): Try[domain.Article] = {
+    def unpublishArticle(article: common.draft.Draft): Try[common.draft.Draft] = {
       val id = article.id.get
       post[ContentId](s"$InternalEndpoint/article/$id/unpublish/").map(_ => article)
     }
@@ -147,7 +147,7 @@ trait ArticleApiClient {
   ) {
     def withLicense(license: Option[String]): PartialPublishArticle  = copy(license = license)
     def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticle = copy(grepCodes = grepCodes.some)
-    def withTags(tags: Seq[domain.ArticleTag], language: String): PartialPublishArticle =
+    def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticle =
       copy(tags =
         tags
           .find(t => t.language == language)
@@ -155,11 +155,11 @@ trait ArticleApiClient {
           .map(t => api.ArticleTag(t.tags, t.language))
           .some
       )
-    def withTags(tags: Seq[domain.ArticleTag]): PartialPublishArticle =
+    def withTags(tags: Seq[common.Tag]): PartialPublishArticle =
       copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
-    def withRelatedContent(relatedContent: Seq[domain.RelatedContent]): PartialPublishArticle =
+    def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
       copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)
-    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription], language: String): PartialPublishArticle =
+    def withMetaDescription(meta: Seq[common.ArticleMetaDescription], language: String): PartialPublishArticle =
       copy(metaDescription =
         meta
           .find(m => m.language == language)
@@ -167,12 +167,12 @@ trait ArticleApiClient {
           .toSeq
           .some
       )
-    def withMetaDescription(meta: Seq[domain.ArticleMetaDescription]): PartialPublishArticle =
+    def withMetaDescription(meta: Seq[common.ArticleMetaDescription]): PartialPublishArticle =
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
     def withAvailability(availability: Availability.Value): PartialPublishArticle =
       copy(availability = availability.some)
 
-    def withEarliestRevisionDate(revisionMeta: Seq[RevisionMeta]): PartialPublishArticle = {
+    def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticle = {
       val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev = earliestRevisionDate match {
         case Some(value) => Right(Some(value))

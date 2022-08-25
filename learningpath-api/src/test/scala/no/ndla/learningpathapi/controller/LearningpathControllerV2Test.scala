@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.{Resource, Topic}
 import no.ndla.learningpathapi.model.api.SearchResultV2
@@ -25,7 +26,6 @@ import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 

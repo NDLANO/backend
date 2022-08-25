@@ -12,14 +12,14 @@ import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.network.model.RequestInfo
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
-import no.ndla.searchapi.model.domain.{SearchResult, draft}
+import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 import java.time.{LocalDateTime, ZoneOffset}
@@ -223,10 +223,10 @@ trait MultiDraftSearchService {
       )
     }
 
-    private def draftStatusFilter(statuses: Seq[draft.ArticleStatus.Value], includeOthers: Boolean): Some[BoolQuery] = {
+    private def draftStatusFilter(statuses: Seq[DraftStatus.Value], includeOthers: Boolean): Some[BoolQuery] = {
       if (statuses.isEmpty) {
         Some(
-          boolQuery().not(termQuery("draftStatus.current", ArticleStatus.ARCHIVED.toString))
+          boolQuery().not(termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString))
         )
       } else {
         val draftStatuses =

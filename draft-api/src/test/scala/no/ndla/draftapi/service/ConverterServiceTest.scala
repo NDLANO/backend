@@ -8,12 +8,24 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  Availability,
+  ArticleIntroduction,
+  Title,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  Tag,
+  EditorNote,
+  RequiredLibrary,
+  Status,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api.NewArticleMetaImage
-import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain._
-import no.ndla.draftapi.model.{api, domain}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -22,7 +34,6 @@ import org.mockito.invocation.InvocationOnMock
 
 import java.util.UUID
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.error.ValidationException
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -50,7 +61,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toApiArticle returns sorted supportedLanguages") {
     when(draftRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticle(
-      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ ArticleTitle("hehe", "und")),
+      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb"
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
@@ -106,7 +117,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = None, title = Some("kakemonster"))
     val res =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -124,7 +135,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"), title = Some("kakemonster"))
     val Success(res) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -151,71 +162,71 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
     val articleId: Long = 1
-    val article: Article =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.DRAFT, Set()))
+    val article: Draft =
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.DRAFT, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
-    noTrans(DRAFT.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should contain(ArticleStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should contain(ArticleStatus.ARCHIVED.toString)
+    noTrans(DRAFT.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PROPOSAL.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(USER_TEST.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(TRANSLATED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_UNPUBLISHING.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(UNPUBLISHED.toString) should contain(DraftStatus.ARCHIVED.toString)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
 
     val articleId: Long = 1
-    val article: Article =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(ArticleStatus.PUBLISHED, Set()))
+    val article: Draft =
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
 
-    noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (ArticleStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED.toString)
+    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
   }
 
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
 
     val articleId = 1
-    val article: Article =
+    val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
-        status = Status(ArticleStatus.DRAFT, Set(ArticleStatus.PUBLISHED))
+        status = Status(DraftStatus.DRAFT, Set(DraftStatus.PUBLISHED))
       )
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
-    noTrans(IMPORTED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(DRAFT.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(PROPOSAL.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(USER_TEST.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(TRANSLATED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(PUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (ArticleStatus.ARCHIVED)
-    noTrans(UNPUBLISHED.toString) should not contain (ArticleStatus.ARCHIVED)
+    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
   }
 
   test("stateTransitionsToApi should return different number of transitions based on access") {
@@ -242,7 +253,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should have transitions from all statuses if admin") {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    adminTrans.size should be(ArticleStatus.values.size)
+    adminTrans.size should be(DraftStatus.values.size)
   }
 
   test("stateTransitionsToApi should have transitions in inserted order") {
@@ -271,20 +282,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("newNotes should fail if empty strings are recieved") {
     service
-      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(ArticleStatus.PROPOSAL, Set.empty))
+      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(DraftStatus.PROPOSAL, Set.empty))
       .isFailure should be(true)
   }
 
   test("Merging language fields of article should not delete not updated fields") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
-      title = Seq(ArticleTitle("Title test", "nb")),
+      title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
       copyright = TestData.sampleArticleWithByNcSa.copyright,
-      tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb")),
+      tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
       introduction = Seq(ArticleIntroduction("introduction", "nb")),
@@ -314,15 +325,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should replace every field correctly") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
-      title = Seq(ArticleTitle("Title test", "nb")),
+      title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
       copyright = TestData.sampleArticleWithByNcSa.copyright,
-      tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb")),
+      tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
       introduction = Seq(ArticleIntroduction("introduction", "nb")),
@@ -343,14 +354,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       revisionMeta = Seq.empty
     )
 
-    val expectedArticle = Article(
+    val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
-      title = Seq(ArticleTitle("NyTittel", "nb")),
+      title = Seq(Title("NyTittel", "nb")),
       content = Seq(ArticleContent("NyContent", "nb")),
       copyright = TestData.sampleArticleWithByNcSa.copyright,
-      tags = Seq(ArticleTag(Seq("1", "2", "3"), "nb")),
+      tags = Seq(Tag(Seq("1", "2", "3"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("NyVisualElement", "nb")),
       introduction = Seq(ArticleIntroduction("NyIntro", "nb")),
@@ -381,7 +392,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -398,15 +409,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should merge every field correctly") {
-    val status = Status(ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
-    val art = Article(
+    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val art = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
-      title = Seq(ArticleTitle("Title test", "nb")),
+      title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
       copyright = TestData.sampleArticleWithByNcSa.copyright,
-      tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb")),
+      tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
       introduction = Seq(ArticleIntroduction("introduction", "nb")),
@@ -427,14 +438,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       revisionMeta = Seq.empty
     )
 
-    val expectedArticle = Article(
+    val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
-      title = Seq(ArticleTitle("Title test", "nb"), ArticleTitle("NyTittel", "en")),
+      title = Seq(Title("Title test", "nb"), Title("NyTittel", "en")),
       content = Seq(ArticleContent("Content test", "nb"), ArticleContent("NyContent", "en")),
       copyright = TestData.sampleArticleWithByNcSa.copyright,
-      tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("1", "2", "3"), "en")),
+      tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("1", "2", "3"), "en")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb"), VisualElement("NyVisualElement", "en")),
       introduction = Seq(ArticleIntroduction("introduction", "nb"), ArticleIntroduction("NyIntro", "en")),
@@ -465,7 +476,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Some(Seq("1", "2", "3")),
       introduction = Some("NyIntro"),
       metaDescription = Some("NyMeta"),
-      metaImage = Right(Some(NewArticleMetaImage("321", "NyAlt"))),
+      metaImage = Right(Some(api.NewArticleMetaImage("321", "NyAlt"))),
       visualElement = Some("NyVisualElement"),
       copyright = None,
       requiredLibraries = None,
@@ -489,10 +500,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Some("kakemonster"),
       notes = Some(Seq("fleibede"))
     )
-    val existingNotes = Seq(EditorNote("swoop", "", domain.Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -501,7 +512,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -510,7 +521,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -519,7 +530,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res4) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -535,7 +546,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should not be able to go to ARCHIVED if published") {
-    val status  = Status(ArticleStatus.DRAFT, other = Set(ArticleStatus.PUBLISHED))
+    val status  = Status(DraftStatus.DRAFT, other = Set(DraftStatus.PUBLISHED))
     val article = TestData.sampleDomainArticle.copy(status = status)
     val Failure(res: IllegalStatusStateTransition) =
       service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false).unsafeRunSync()
@@ -548,10 +559,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"))
     val updatedArticleWithNotes =
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"), notes = Some(Seq("fleibede")))
-    val existingNotes = Seq(EditorNote("swoop", "", domain.Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -560,7 +571,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("nb")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -569,7 +580,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = domain.Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
         updatedArticleWithoutNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -676,7 +687,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("toDomainArticle(UpdateArticle) should update metaImage correctly") {
 
     val beforeUpdate = TestData.sampleDomainArticle.copy(
-      metaImage = Seq(domain.ArticleMetaImage("1", "Hei", "nb"), domain.ArticleMetaImage("2", "Hej", "nn"))
+      metaImage = Seq(ArticleMetaImage("1", "Hei", "nb"), ArticleMetaImage("2", "Hej", "nn"))
     )
 
     val Success(res1) = service.toDomainArticle(
@@ -707,8 +718,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    res1.metaImage should be(Seq(domain.ArticleMetaImage("2", "Hej", "nn")))
-    res2.metaImage should be(Seq(domain.ArticleMetaImage("2", "Hej", "nn"), domain.ArticleMetaImage("1", "Hola", "nb")))
+    res1.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn")))
+    res2.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn"), ArticleMetaImage("1", "Hola", "nb")))
     res3.metaImage should be(beforeUpdate.metaImage)
   }
 
@@ -742,7 +753,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     res1.metaImage should be(Seq.empty)
-    res2.metaImage should be(Seq(domain.ArticleMetaImage("1", "Hola", "nb")))
+    res2.metaImage should be(Seq(ArticleMetaImage("1", "Hola", "nb")))
     res3.metaImage should be(Seq.empty)
   }
 
@@ -750,7 +761,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val embed1 =
       """<embed data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
     val existingArticle = TestData.sampleDomainArticle.copy(
-      content = Seq(domain.ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
+      content = Seq(ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
     )
 
     val newContent = s"<section><h1>Hello</h1>$embed1</section>"
@@ -786,17 +797,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedPaths = Seq(enPath1, enPath2, nbPath1, nbPath2, vePath1, vePath2).sorted
 
-    val articleContentNb = domain.ArticleContent(
+    val articleContentNb = ArticleContent(
       s"""<section><h1>Heisann</h1><embed data-path="$nbPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$nbPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "nb"
     )
-    val articleContentEn = domain.ArticleContent(
+    val articleContentEn = ArticleContent(
       s"""<section><h1>Hello</h1><embed data-path="$enPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$enPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "en"
     )
 
-    val visualElementNb = domain.VisualElement(s"""<embed data-path="$vePath1" data-resource="h5p" />""", "nb")
-    val visualElementEn = domain.VisualElement(s"""<embed data-path="$vePath2" data-resource="h5p" />""", "en")
+    val visualElementNb = VisualElement(s"""<embed data-path="$vePath1" data-resource="h5p" />""", "nb")
+    val visualElementEn = VisualElement(s"""<embed data-path="$vePath2" data-resource="h5p" />""", "en")
 
     val article = TestData.sampleDomainArticle.copy(
       id = Some(1),

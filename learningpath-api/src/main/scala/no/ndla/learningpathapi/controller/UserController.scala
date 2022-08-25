@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{FeideUser, UpdatedFeideUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
@@ -16,7 +17,6 @@ import org.scalatra.swagger._
 import org.scalatra.NoContent
 
 import javax.servlet.http.HttpServletRequest
-import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait UserController {
   this: ReadService with UpdateService with ConverterService with NdlaController =>

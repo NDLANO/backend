@@ -7,9 +7,9 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.domain.ArticleMetaImage
+import no.ndla.common.model.domain.draft.RevisionMeta
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.article.ArticleMetaImage
-import no.ndla.searchapi.model.domain.draft.RevisionMeta
 import java.time.LocalDateTime
 
 case class SearchableDraft(

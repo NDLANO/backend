@@ -7,7 +7,8 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{
@@ -25,9 +26,6 @@ import org.apache.logging.log4j.ThreadContext
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
-import no.ndla.scalatra.error.ValidationException
-import no.ndla.scalatra.NdlaSwaggerSupport
-import no.ndla.scalatra.NdlaControllerBase
 
 trait NdlaController {
   this: Props with ErrorHelpers with DataSource =>

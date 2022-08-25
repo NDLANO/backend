@@ -1,7 +1,7 @@
 package no.ndla.validation
 
+import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
-import no.ndla.scalatra.error.ValidationMessage
 
 class HtmlValidatorTest extends UnitSuite {
   val htmlValidator = new TextValidator(allowHtml = true)

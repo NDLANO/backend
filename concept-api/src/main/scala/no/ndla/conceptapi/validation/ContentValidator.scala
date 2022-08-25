@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.validation
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
@@ -15,8 +16,6 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationMessage
-import no.ndla.scalatra.error.ValidationException
 
 trait ContentValidator {
   this: DraftConceptRepository with ConverterService =>

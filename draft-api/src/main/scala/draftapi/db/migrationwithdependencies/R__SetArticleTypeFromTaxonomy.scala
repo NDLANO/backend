@@ -7,7 +7,7 @@
 
 package draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.model.domain.ArticleType
+import no.ndla.common.model.domain.draft.ArticleType
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats

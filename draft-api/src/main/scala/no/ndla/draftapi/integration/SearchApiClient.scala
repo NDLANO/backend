@@ -10,8 +10,8 @@ package no.ndla.draftapi.integration
 import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType, RevisionStatus}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
@@ -36,18 +36,18 @@ trait SearchApiClient {
 
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(ArticleStatus) +
+        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(Availability) +
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) ++
         JavaTimeSerializers.all ++
         JavaTypesSerializers.all
 
-    def indexDraft(draft: Article): Article = {
+    def indexDraft(draft: Draft): Draft = {
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
 
-      val future = postWithData[Article, Article](s"$InternalEndpoint/draft/", draft)
+      val future = postWithData[Draft, Draft](s"$InternalEndpoint/draft/", draft)
       future.onComplete {
         case Success(Success(_)) =>
           logger.info(

@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._
@@ -17,7 +18,6 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 case class Concept(
     id: Option[Long],

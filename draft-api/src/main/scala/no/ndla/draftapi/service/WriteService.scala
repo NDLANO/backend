@@ -13,13 +13,13 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PROPOSAL, PUBLISHED}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
-import no.ndla.draftapi.model.api._
-import no.ndla.draftapi.model.domain.ArticleStatus.{DRAFT, PROPOSAL, PUBLISHED}
-import no.ndla.draftapi.model.domain.{Article, _}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -44,7 +44,6 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.jdk.CollectionConverters._
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 trait WriteService {
   this: DraftRepository
@@ -67,7 +66,7 @@ trait WriteService {
 
   class WriteService extends LazyLogging {
 
-    def insertDump(article: domain.Article): Try[domain.Article] = {
+    def insertDump(article: common.draft.Draft): Try[common.draft.Draft] = {
       draftRepository
         .newEmptyArticle()
         .map(newId => {
@@ -78,7 +77,7 @@ trait WriteService {
         })
     }
 
-    private def indexArticle(article: domain.Article): Try[domain.Article] = {
+    private def indexArticle(article: common.draft.Draft): Try[common.draft.Draft] = {
       searchApiClient.indexDraft(article)
 
       for {
@@ -96,11 +95,11 @@ trait WriteService {
         usePostFix: Boolean
     ): Try[api.Article] = {
       draftRepository.withId(articleId) match {
-        case None => Failure(NotFoundException(s"Article with id '$articleId' was not found in database."))
+        case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
         case Some(article) =>
           for {
             newId <- draftRepository.newEmptyArticle()
-            status = domain.Status(DRAFT, Set.empty)
+            status = common.Status(DRAFT, Set.empty)
             notes <- converterService.newNotes(
               Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
               userInfo,
@@ -128,7 +127,7 @@ trait WriteService {
       }
     }
 
-    def contentWithClonedFiles(contents: List[domain.ArticleContent]): Try[List[domain.ArticleContent]] = {
+    def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
       contents.toList.traverse(content => {
         val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
         val embeds = doc.select(s"embed[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
@@ -148,7 +147,8 @@ trait WriteService {
             // Jsoup is mutable and we use it here to update the embeds data-path with the cloned file
             fileEmbed.attr(TagAttributes.DataPath.toString, newPath)
           })
-        case None => Failure(CloneFileException(s"Could not get ${TagAttributes.DataPath} of file embed '$fileEmbed'."))
+        case None =>
+          Failure(api.CloneFileException(s"Could not get ${TagAttributes.DataPath} of file embed '$fileEmbed'."))
       }
     }
 
@@ -165,7 +165,7 @@ trait WriteService {
         user: UserInfo
     ): Try[api.Agreement] = {
       agreementRepository.withId(agreementId) match {
-        case None => Failure(NotFoundException(s"Agreement with id $agreementId does not exist"))
+        case None => Failure(api.NotFoundException(s"Agreement with id $agreementId does not exist"))
         case Some(existing) =>
           val toUpdate = existing.copy(
             title = updatedAgreement.title.getOrElse(existing.title),
@@ -218,9 +218,9 @@ trait WriteService {
       )
       val updateFunction = externalIds match {
         case Nil =>
-          (a: domain.Article) => draftRepository.updateArticle(a, false)
+          (a: common.draft.Draft) => draftRepository.updateArticle(a, false)
         case nids =>
-          (a: domain.Article) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
+          (a: common.draft.Draft) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
       }
 
       for {
@@ -241,13 +241,13 @@ trait WriteService {
     }
 
     def updateArticleStatus(
-        status: domain.ArticleStatus.Value,
+        status: DraftStatus.Value,
         id: Long,
         user: UserInfo,
         isImported: Boolean
     ): Try[api.Article] = {
       draftRepository.withId(id) match {
-        case None => Failure(NotFoundException(s"No article with id $id was found"))
+        case None => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
             convertedArticle <- converterService
@@ -268,10 +268,10 @@ trait WriteService {
     }
 
     private def updateArticleAndStoreAsNewIfPublished(
-        article: domain.Article,
+        article: common.draft.Draft,
         isImported: Boolean,
         statusWasUpdated: Boolean
-    ): Try[domain.Article] = {
+    ): Try[common.draft.Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED && !isImported
       draftRepository.updateArticle(article, isImported) match {
         case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
@@ -281,12 +281,12 @@ trait WriteService {
     }
 
     private def updateArticleWithExternalAndStoreAsNewIfPublished(
-        article: domain.Article,
+        article: common.draft.Draft,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         importId: Option[String],
         statusWasUpdated: Boolean
-    ): Try[domain.Article] = {
+    ): Try[common.draft.Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
       draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
         case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
@@ -297,7 +297,7 @@ trait WriteService {
 
     /** Determines which repository function(s) should be called and calls them */
     private def performArticleUpdate(
-        article: domain.Article,
+        article: common.draft.Draft,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         isImported: Boolean,
@@ -305,7 +305,7 @@ trait WriteService {
         shouldOnlyCopy: Boolean,
         user: UserInfo,
         statusWasUpdated: Boolean
-    ): Try[domain.Article] =
+    ): Try[common.draft.Draft] =
       if (shouldOnlyCopy) {
         draftRepository.storeArticleAsNewVersion(article, Some(user))
       } else {
@@ -322,17 +322,21 @@ trait WriteService {
         }
       }
 
-    def addRevisionDateNotes(user: UserInfo, updatedArticle: Article, oldArticle: Option[Article]): Article = {
+    def addRevisionDateNotes(
+        user: UserInfo,
+        updatedArticle: common.draft.Draft,
+        oldArticle: Option[common.draft.Draft]
+    ): common.draft.Draft = {
       val oldRevisions = oldArticle.map(a => a.revisionMeta).getOrElse(Seq.empty)
       val oldIds       = oldRevisions.map(rm => rm.id).toSet
       val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
       val deleted = oldRevisions
         .filterNot(old => newIds.contains(old.id))
-        .map(del => domain.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, clock.now()))
+        .map(del => common.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, clock.now()))
 
       val notes = updatedArticle.revisionMeta.flatMap {
-        case rm if !oldIds.contains(rm.id) && rm.status == RevisionStatus.Revised =>
-          domain
+        case rm if !oldIds.contains(rm.id) && rm.status == common.draft.RevisionStatus.Revised =>
+          common
             .EditorNote(
               s"Lagt til og fullført revisjon ${rm.note}.",
               user.id,
@@ -341,15 +345,15 @@ trait WriteService {
             )
             .some
         case rm if !oldIds.contains(rm.id) =>
-          domain.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now()).some
+          common.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now()).some
         case rm =>
           oldRevisions.find(_.id == rm.id) match {
-            case Some(old) if old.status != rm.status && rm.status == RevisionStatus.Revised =>
-              domain
+            case Some(old) if old.status != rm.status && rm.status == common.draft.RevisionStatus.Revised =>
+              common
                 .EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
                 .some
             case Some(old) if old != rm =>
-              domain
+              common
                 .EditorNote(s"Endret revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
                 .some
             case _ => None
@@ -360,17 +364,17 @@ trait WriteService {
     }
 
     private def updateArticle(
-        toUpdate: domain.Article,
+        toUpdate: common.draft.Draft,
         importId: Option[String],
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         language: Option[String],
         isImported: Boolean,
         shouldAlwaysCopy: Boolean,
-        oldArticle: Option[domain.Article],
+        oldArticle: Option[common.draft.Draft],
         user: UserInfo,
         statusWasUpdated: Boolean
-    ): Try[domain.Article] = {
+    ): Try[common.draft.Draft] = {
       val articleToValidate = language match {
         case Some(language) => getArticleOnLanguage(toUpdate, language)
         case None           => toUpdate
@@ -398,7 +402,7 @@ trait WriteService {
         )
         _ = partialPublishIfNeeded(
           domainArticle,
-          PartialArticleFields.values,
+          api.PartialArticleFields.values,
           language.getOrElse(Language.AllLanguages)
         )
         _ <- indexArticle(domainArticle)
@@ -406,15 +410,17 @@ trait WriteService {
       } yield domainArticle
     }
 
-    private def updateTaxonomyForArticle(article: domain.Article) = {
+    private def updateTaxonomyForArticle(article: common.draft.Draft) = {
       article.id match {
         case Some(id) => taxonomyApiClient.updateTaxonomyIfExists(id, article).map(_ => article)
         case None =>
-          Failure(ArticleVersioningException("Article supplied to taxonomy update did not have an id. This is a bug."))
+          Failure(
+            api.ArticleVersioningException("Article supplied to taxonomy update did not have an id. This is a bug.")
+          )
       }
     }
 
-    private def getArticleOnLanguage(article: domain.Article, language: String): domain.Article = {
+    private def getArticleOnLanguage(article: common.draft.Draft, language: String): common.draft.Draft = {
       article.copy(
         content = article.content.filter(_.language == language),
         introduction = article.introduction.filter(_.language == language),
@@ -429,10 +435,10 @@ trait WriteService {
     /** Article status should not be updated if notes and/or editorLabels are the only changes */
 
     /** Update 2021: Nor should the status be updated if only any of PartialArticleFields.Value has changed */
-    def shouldUpdateStatus(changedArticle: domain.Article, existingArticle: domain.Article): Boolean = {
+    def shouldUpdateStatus(changedArticle: common.draft.Draft, existingArticle: common.draft.Draft): Boolean = {
       // Function that sets values we don't want to include when comparing articles to check if we should update status
       val withComparableValues =
-        (article: domain.Article) =>
+        (article: common.draft.Draft) =>
           article.copy(
             revision = None,
             notes = Seq.empty,
@@ -440,7 +446,7 @@ trait WriteService {
             created = LocalDateTime.MIN,
             updated = LocalDateTime.MIN,
             updatedBy = "",
-            availability = Availability.everyone,
+            availability = common.Availability.everyone,
             grepCodes = Seq.empty,
             copyright = article.copyright.map(e => e.copy(license = None)),
             metaDescription = Seq.empty,
@@ -464,16 +470,16 @@ trait WriteService {
     /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
       * article-api cares about.
       */
-    private def compareRevisionDates(oldArticle: domain.Article, newArticle: domain.Article): Boolean = {
+    private def compareRevisionDates(oldArticle: common.draft.Draft, newArticle: common.draft.Draft): Boolean = {
       converterService.getNextRevision(oldArticle) != converterService.getNextRevision(newArticle)
     }
 
     private def compareField(
-        field: PartialArticleFields,
-        old: domain.Article,
-        changed: domain.Article
-    ): Option[PartialArticleFields] = {
-      import PartialArticleFields._
+        field: api.PartialArticleFields,
+        old: common.draft.Draft,
+        changed: common.draft.Draft
+    ): Option[api.PartialArticleFields] = {
+      import api.PartialArticleFields._
       val shouldInclude = field match {
         case `availability`    => old.availability != changed.availability
         case `grepCodes`       => old.grepCodes != changed.grepCodes
@@ -489,17 +495,17 @@ trait WriteService {
 
     /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
     private[service] def shouldPartialPublish(
-        existingArticle: Option[domain.Article],
-        changedArticle: domain.Article
-    ): Set[PartialArticleFields] = {
+        existingArticle: Option[common.draft.Draft],
+        changedArticle: common.draft.Draft
+    ): Set[api.PartialArticleFields] = {
       val isPublished =
-        changedArticle.status.current == ArticleStatus.PUBLISHED ||
-          changedArticle.status.other.contains(ArticleStatus.PUBLISHED)
+        changedArticle.status.current == PUBLISHED ||
+          changedArticle.status.other.contains(PUBLISHED)
 
       if (isPublished) {
         val changedFields = existingArticle
-          .map(e => PartialArticleFields.values.flatMap(field => compareField(field, e, changedArticle)))
-          .getOrElse(PartialArticleFields.values)
+          .map(e => api.PartialArticleFields.values.flatMap(field => compareField(field, e, changedArticle)))
+          .getOrElse(api.PartialArticleFields.values)
 
         changedFields.toSet
       } else {
@@ -508,11 +514,11 @@ trait WriteService {
     }
 
     private def updateStatusIfNeeded(
-        convertedArticle: domain.Article,
-        existingArticle: domain.Article,
+        convertedArticle: common.draft.Draft,
+        existingArticle: common.draft.Draft,
         updatedApiArticle: api.UpdatedArticle,
         user: UserInfo
-    ): Try[domain.Article] = {
+    ): Try[common.draft.Draft] = {
       if (!shouldUpdateStatus(convertedArticle, existingArticle)) {
         Success(convertedArticle)
       } else {
@@ -520,7 +526,7 @@ trait WriteService {
         val newStatusIfUndefined = if (oldStatus == PUBLISHED) PROPOSAL else oldStatus
 
         updatedApiArticle.status
-          .map(ArticleStatus.valueOfOrError)
+          .map(DraftStatus.valueOfOrError)
           .getOrElse(Success(newStatusIfUndefined))
           .flatMap(newStatus =>
             converterService
@@ -567,11 +573,11 @@ trait WriteService {
             importId
           )
         case None =>
-          Failure(NotFoundException(s"Article with id $articleId does not exist"))
+          Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
       }
 
     private def updateExistingArticle(
-        existing: domain.Article,
+        existing: common.draft.Draft,
         updatedApiArticle: api.UpdatedArticle,
         externalIds: List[String],
         externalSubjectIds: Seq[String],
@@ -660,7 +666,7 @@ trait WriteService {
       draftRepository.withId(id) match {
         case Some(article) =>
           article.title.size match {
-            case 1 => Failure(OperationNotAllowedException("Only one language left"))
+            case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
             case _ =>
               converterService
                 .deleteLanguage(article, language, userInfo)
@@ -671,7 +677,7 @@ trait WriteService {
                     )
                 )
           }
-        case None => Failure(NotFoundException("Article does not exist"))
+        case None => Failure(api.NotFoundException("Article does not exist"))
       }
 
     }
@@ -719,7 +725,7 @@ trait WriteService {
       if (fileStorage.resourceWithPathExists(filePath)) {
         fileStorage.deleteResourceWithPath(filePath)
       } else {
-        Failure(NotFoundException(s"Could not find file with file path '$filePath' in storage."))
+        Failure(api.NotFoundException(s"Could not find file with file path '$filePath' in storage."))
       }
     }
 
@@ -782,14 +788,14 @@ trait WriteService {
     }
 
     private[service] def partialArticleFieldsUpdate(
-        article: domain.Article,
-        articleFieldsToUpdate: Seq[PartialArticleFields],
+        article: common.draft.Draft,
+        articleFieldsToUpdate: Seq[api.PartialArticleFields],
         language: String
     ): PartialPublishArticle = {
       val isAllLanguage  = language == Language.AllLanguages
       val initialPartial = PartialPublishArticle.empty()
 
-      import PartialArticleFields._
+      import api.PartialArticleFields._
       articleFieldsToUpdate.distinct.foldLeft(initialPartial)((partial, field) => {
         field match {
           case `availability`                     => partial.withAvailability(article.availability)
@@ -807,7 +813,7 @@ trait WriteService {
 
     def partialPublishAndConvertToApiArticle(
         id: Long,
-        fieldsToPublish: Seq[PartialArticleFields],
+        fieldsToPublish: Seq[api.PartialArticleFields],
         language: String,
         fallback: Boolean
     ): Try[api.Article] =
@@ -817,21 +823,21 @@ trait WriteService {
 
     def partialPublish(
         id: Long,
-        articleFieldsToUpdate: Seq[PartialArticleFields],
+        articleFieldsToUpdate: Seq[api.PartialArticleFields],
         language: String
-    ): (Long, Try[domain.Article]) =
+    ): (Long, Try[common.draft.Draft]) =
       draftRepository.withId(id) match {
-        case None => id -> Failure(NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
+        case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
         case Some(article) =>
           partialPublish(article, articleFieldsToUpdate, language)
           id -> Success(article)
       }
 
     private def partialPublishIfNeeded(
-        article: domain.Article,
-        articleFieldsToUpdate: Seq[PartialArticleFields],
+        article: common.draft.Draft,
+        articleFieldsToUpdate: Seq[api.PartialArticleFields],
         language: String
-    ): Future[Try[domain.Article]] = {
+    ): Future[Try[common.draft.Draft]] = {
       if (articleFieldsToUpdate.nonEmpty)
         partialPublish(article, articleFieldsToUpdate, language)
       else
@@ -839,10 +845,10 @@ trait WriteService {
     }
 
     private def partialPublish(
-        article: domain.Article,
-        fieldsToPublish: Seq[PartialArticleFields],
+        article: common.draft.Draft,
+        fieldsToPublish: Seq[api.PartialArticleFields],
         language: String
-    ): Future[Try[domain.Article]] = {
+    ): Future[Try[common.draft.Draft]] = {
       article.id match {
         case None =>
           Future.successful(
@@ -871,7 +877,10 @@ trait WriteService {
       }
     }
 
-    def partialPublishMultiple(language: String, partialBulk: PartialBulkArticles): Try[MultiPartialPublishResult] = {
+    def partialPublishMultiple(
+        language: String,
+        partialBulk: api.PartialBulkArticles
+    ): Try[api.MultiPartialPublishResult] = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
       val requestInfo = RequestInfo()
 
@@ -895,12 +904,12 @@ trait WriteService {
           val failures = res.collect {
             case (id, Failure(ex)) => {
               logger.error(s"Partial publishing ${id} failed with ${ex.getMessage}", ex)
-              PartialPublishFailure(id, ex.getMessage)
+              api.PartialPublishFailure(id, ex.getMessage)
             }
           }
 
           Success(
-            MultiPartialPublishResult(
+            api.MultiPartialPublishResult(
               successes = successes,
               failures = failures
             )
@@ -908,7 +917,7 @@ trait WriteService {
       }
     }
 
-    private def getRevisionMetaForUrn(topic: Topic): Seq[domain.RevisionMeta] = {
+    private def getRevisionMetaForUrn(topic: Topic): Seq[common.draft.RevisionMeta] = {
       topic.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -925,7 +934,7 @@ trait WriteService {
 
     def copyRevisionDates(publicId: String): Try[Unit] = {
       taxonomyApiClient.getNode(publicId) match {
-        case Failure(_) => Failure(NotFoundException(s"No topics with id ${publicId}"))
+        case Failure(_) => Failure(api.NotFoundException(s"No topics with id ${publicId}"))
         case Success(topic) =>
           val revisionMeta = getRevisionMetaForUrn(topic)
           if (revisionMeta.nonEmpty) {
@@ -939,7 +948,7 @@ trait WriteService {
       }
     }
 
-    def setRevisions(entity: Taxonomy[_], revisions: Seq[domain.RevisionMeta]): Try[_] = {
+    def setRevisions(entity: Taxonomy[_], revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -959,7 +968,7 @@ trait WriteService {
       })
     }
 
-    def updateArticleWithRevisions(articleId: Long, revisions: Seq[domain.RevisionMeta]): Try[_] = {
+    def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
       draftRepository
         .withId(articleId)
         .traverse(article => {

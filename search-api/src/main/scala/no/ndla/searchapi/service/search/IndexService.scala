@@ -14,12 +14,13 @@ import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.Content
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api.ElasticIndexingException
-import no.ndla.searchapi.model.domain.{Content, ReindexResult}
+import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 

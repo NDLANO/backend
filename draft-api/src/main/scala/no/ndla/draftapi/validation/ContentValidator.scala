@@ -8,6 +8,19 @@
 package no.ndla.draftapi.validation
 
 import no.ndla.common.DateParser
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  Tag,
+  Title,
+  Author,
+  RequiredLibrary,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Draft, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -22,8 +35,6 @@ import no.ndla.validation._
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationMessage
-import no.ndla.scalatra.error.ValidationException
 
 trait ContentValidator {
   this: DraftRepository with ConverterService with ArticleApiClient with Props =>
@@ -34,13 +45,6 @@ trait ContentValidator {
     import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator   = new TextValidator(allowHtml = true)
-
-    def validate(content: Content): Try[Content] = {
-      content match {
-        case article: Article     => validateArticle(article)
-        case agreement: Agreement => validateAgreement(agreement)
-      }
-    }
 
     def validateAgreement(
         agreement: Agreement,
@@ -71,7 +75,7 @@ trait ContentValidator {
 
     }
 
-    def validateArticle(article: Article): Try[Article] = {
+    def validateArticle(article: Draft): Try[Draft] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c)) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
         article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
@@ -176,7 +180,7 @@ trait ContentValidator {
         validateLanguage("language", content.language)
     }
 
-    private def validateTitles(titles: Seq[ArticleTitle]): Seq[ValidationMessage] = {
+    private def validateTitles(titles: Seq[Title]): Seq[ValidationMessage] = {
       if (titles.isEmpty)
         Seq(
           ValidationMessage(
@@ -225,7 +229,7 @@ trait ContentValidator {
         NoHtmlValidator.validate("author.name", author.name).toList
     }
 
-    private def validateTags(tags: Seq[ArticleTag]) = {
+    private def validateTags(tags: Seq[Tag]) = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(NoHtmlValidator.validate("tags", _)).toList :::
           validateLanguage("language", tagList.language).toList

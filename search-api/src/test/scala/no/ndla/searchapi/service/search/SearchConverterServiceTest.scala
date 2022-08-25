@@ -7,10 +7,10 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
-import no.ndla.searchapi.model.domain.article.{Article, ArticleContent}
-import no.ndla.searchapi.model.domain.{Tag, Title}
+import no.ndla.searchapi.model.domain.article.Article
 import no.ndla.searchapi.model.grep.{GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy._

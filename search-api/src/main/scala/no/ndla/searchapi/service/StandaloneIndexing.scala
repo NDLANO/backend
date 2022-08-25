@@ -8,7 +8,8 @@ package no.ndla.searchapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
-import no.ndla.searchapi.model.domain.{Content, ReindexResult}
+import no.ndla.common.model.domain.Content
+import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization

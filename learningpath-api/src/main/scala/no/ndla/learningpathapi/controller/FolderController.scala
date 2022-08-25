@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{
   Folder,
   NewFolder,
@@ -26,7 +27,6 @@ import org.scalatra.NoContent
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
-import no.ndla.scalatra.NdlaSwaggerSupport
 
 trait FolderController {
   this: ReadService with UpdateService with ConverterService with NdlaController =>

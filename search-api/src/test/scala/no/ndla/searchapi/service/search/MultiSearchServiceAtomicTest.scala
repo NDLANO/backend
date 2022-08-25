@@ -7,10 +7,10 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.domain.ArticleContent
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData.blockUntil
-import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome

@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.learningpathapi.model.domain._
 
 import scala.util.{Failure, Success, Try}

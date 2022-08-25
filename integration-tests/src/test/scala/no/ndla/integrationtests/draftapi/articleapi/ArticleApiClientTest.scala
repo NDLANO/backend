@@ -10,10 +10,8 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.model.api.ContentId
-import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{Article, Copyright, RevisionMeta, RevisionStatus}
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -57,10 +55,10 @@ class ArticleApiClientTest
   val idResponse: ContentId     = ContentId(1)
   override val converterService = new ConverterService
 
-  val testCopyright: Copyright = domain.Copyright(
+  val testCopyright: common.draft.Copyright = common.draft.Copyright(
     Some("CC-BY-SA-4.0"),
     Some("Origin"),
-    Seq(domain.Author("Writer", "John doe")),
+    Seq(common.Author("Writer", "John doe")),
     Seq.empty,
     Seq.empty,
     None,
@@ -68,37 +66,37 @@ class ArticleApiClientTest
     None
   )
 
-  val testArticle: Article = domain.Article(
+  val testArticle: common.draft.Draft = common.draft.Draft(
     id = Some(1),
     revision = Some(1),
-    status = domain.Status(domain.ArticleStatus.PUBLISHED, Set.empty),
-    title = Seq(domain.ArticleTitle("Title", "nb")),
-    content = Seq(domain.ArticleContent("Content", "nb")),
+    status = common.Status(common.draft.DraftStatus.PUBLISHED, Set.empty),
+    title = Seq(common.Title("Title", "nb")),
+    content = Seq(common.ArticleContent("Content", "nb")),
     copyright = Some(testCopyright),
-    tags = Seq(domain.ArticleTag(List("Tag1", "Tag2", "Tag3"), "nb")),
+    tags = Seq(common.Tag(List("Tag1", "Tag2", "Tag3"), "nb")),
     requiredLibraries = Seq(),
     visualElement = Seq(),
     introduction = Seq(),
-    metaDescription = Seq(domain.ArticleMetaDescription("Meta Description", "nb")),
+    metaDescription = Seq(common.ArticleMetaDescription("Meta Description", "nb")),
     metaImage = Seq(),
     created = DateParser.fromUnixTime(0),
     updated = DateParser.fromUnixTime(0),
     updatedBy = "updatedBy",
     published = DateParser.fromUnixTime(0),
-    articleType = domain.ArticleType.Standard,
+    articleType = common.draft.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
     editorLabels = Seq.empty,
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
-    availability = Availability.everyone,
+    availability = common.Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq(
-      RevisionMeta(
+      common.draft.RevisionMeta(
         id = UUID.randomUUID(),
         note = "Revision",
         revisionDate = LocalDateTime.now(),
-        status = RevisionStatus.NeedsRevision
+        status = common.draft.RevisionStatus.NeedsRevision
       )
     )
   )
@@ -172,7 +170,7 @@ class ArticleApiClientTest
 
   test("that verifying an article returns 400 if invalid") {
     val articleApiArticle =
-      converterService.toArticleApiArticle(testArticle.copy(title = Seq(domain.ArticleTitle("", "nb"))))
+      converterService.toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)

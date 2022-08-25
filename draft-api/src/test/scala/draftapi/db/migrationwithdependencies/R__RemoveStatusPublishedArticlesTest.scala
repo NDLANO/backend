@@ -7,7 +7,8 @@
 
 package draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.model.domain.{ArticleStatus, Status}
+import no.ndla.common.model.domain.Status
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class R__RemoveStatusPublishedArticlesTest extends UnitSuite with TestEnvironment {
@@ -15,13 +16,13 @@ class R__RemoveStatusPublishedArticlesTest extends UnitSuite with TestEnvironmen
 
   test("published articles should only have imported as other status") {
     val importedAndQuality =
-      Status(current = ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED, ArticleStatus.QUALITY_ASSURED))
-    val imported = Status(current = ArticleStatus.PUBLISHED, other = Set(ArticleStatus.IMPORTED))
+      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED, DraftStatus.QUALITY_ASSURED))
+    val imported = Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
     val publishedNotImported =
-      Status(current = ArticleStatus.PUBLISHED, other = Set(ArticleStatus.QUALITY_ASSURED, ArticleStatus.PROPOSAL))
-    val published = Status(current = ArticleStatus.PUBLISHED, other = Set())
+      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.QUALITY_ASSURED, DraftStatus.PROPOSAL))
+    val published = Status(current = DraftStatus.PUBLISHED, other = Set())
     val notPublished =
-      Status(current = ArticleStatus.DRAFT, other = Set(ArticleStatus.QUALITY_ASSURED, ArticleStatus.IMPORTED))
+      Status(current = DraftStatus.DRAFT, other = Set(DraftStatus.QUALITY_ASSURED, DraftStatus.IMPORTED))
 
     migration.updateStatus(importedAndQuality) should be(imported)
     migration.updateStatus(imported) should be(imported)

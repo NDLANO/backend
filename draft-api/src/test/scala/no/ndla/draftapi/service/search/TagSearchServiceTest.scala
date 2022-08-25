@@ -7,8 +7,8 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.domain._
 import no.ndla.draftapi._
-import no.ndla.draftapi.model.domain
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
@@ -34,7 +34,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article1 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      domain.ArticleTag(
+      Tag(
         Seq("test", "testing", "testemer"),
         "nb"
       )
@@ -43,7 +43,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article2 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      domain.ArticleTag(
+      Tag(
         Seq("test"),
         "en"
       )
@@ -52,11 +52,11 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article3 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      domain.ArticleTag(
+      Tag(
         Seq("hei", "test", "testing"),
         "nb"
       ),
-      domain.ArticleTag(
+      Tag(
         Seq("test"),
         "en"
       )
@@ -65,7 +65,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val article4 = TestData.sampleDomainArticle.copy(
     tags = Seq(
-      domain.ArticleTag(
+      Tag(
         Seq("kyllingfilet", "filetkylling"),
         "nb"
       )

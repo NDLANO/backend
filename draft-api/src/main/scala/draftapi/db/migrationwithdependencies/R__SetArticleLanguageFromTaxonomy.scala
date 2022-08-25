@@ -8,6 +8,16 @@
 package draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  ArticleMetaImage,
+  Tag,
+  Title,
+  VisualElement
+}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.languageOrUnknown
@@ -19,7 +29,7 @@ import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalaj.http.Http
-import scalikejdbc.{DBSession, _}
+import scalikejdbc._
 
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
@@ -31,7 +41,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats = org.json4s.DefaultFormats +
-    new EnumNameSerializer(ArticleStatus) +
+    new EnumNameSerializer(DraftStatus) +
     Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout     = 20 * 1000 // 20 Seconds
@@ -84,7 +94,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
 
   }
 
-  def fetchArticleTags(externalId: Long): Seq[ArticleTag] = {
+  def fetchArticleTags(externalId: Long): Seq[Tag] = {
 
     val url = "http://api.topic.ndla.no/rest/v1/keywords/?filter%5Bnode%5D=ndlanode_" + externalId.toString
 
@@ -103,7 +113,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))
-          .map(t => ArticleTag(t._2, languageOrUnknown(t._1).toString))
+          .map(t => Tag(t._2, languageOrUnknown(t._1).toString))
           .toList
     }
 
@@ -140,13 +150,13 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
 
   }
 
-  def convertArticle(articleId: Long, externalId: Option[Long])(implicit session: DBSession): Option[Article] = {
+  def convertArticle(articleId: Long, externalId: Option[Long])(implicit session: DBSession): Option[Draft] = {
     val externalTags = externalId.map(fetchArticleTags).getOrElse(Seq())
     val oldArticle   = fetchArticleInfo(articleId)
     convertArticleLanguage(oldArticle, externalTags)
   }
 
-  def fetchArticleInfo(articleId: Long)(implicit session: DBSession): Option[Article] = {
+  def fetchArticleInfo(articleId: Long)(implicit session: DBSession): Option[Draft] = {
     val ar = DBArticle.syntax("ar")
     val withId =
       sqls"ar.id=${articleId.toInt} ORDER BY revision DESC LIMIT 1"
@@ -155,7 +165,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
       .single()
   }
 
-  def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[ArticleTag]): Option[Article] = {
+  def convertArticleLanguage(oldArticle: Option[Draft], externalTags: Seq[Tag]): Option[Draft] = {
     val contentLanguages = oldArticle.map(_.content).getOrElse(Seq()).map(content => content.language)
     oldArticle.map(article =>
       article.copy(
@@ -171,10 +181,10 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
   }
 
   def mergeTags(
-      oldTags: Seq[ArticleTag],
-      externalTags: Seq[ArticleTag],
+      oldTags: Seq[Tag],
+      externalTags: Seq[Tag],
       contentLanguages: Seq[String]
-  ): Seq[ArticleTag] = {
+  ): Seq[Tag] = {
     val combinedSeq = oldTags ++ externalTags
     combinedSeq
       .groupBy(_.language)
@@ -183,12 +193,12 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
       .toSeq
   }
 
-  def createTag(language: String, tags: Seq[ArticleTag]): ArticleTag = {
+  def createTag(language: String, tags: Seq[Tag]): Tag = {
     val distinctTags = tags.flatMap(_.tags).distinct
-    ArticleTag(distinctTags, language)
+    Tag(distinctTags, language)
   }
 
-  def copyArticleTitle(field: ArticleTitle): ArticleTitle = {
+  def copyArticleTitle(field: Title): Title = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
@@ -212,7 +222,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def updateArticle(article: Article)(implicit session: DBSession): Long = {
+  def updateArticle(article: Draft)(implicit session: DBSession): Long = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))

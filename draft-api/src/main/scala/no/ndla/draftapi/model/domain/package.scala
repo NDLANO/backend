@@ -6,13 +6,13 @@
  */
 package no.ndla.draftapi.model
 
+import no.ndla.common.model.domain.draft.Draft
+
 package object domain {
 
   def emptySomeToNone(lang: Option[String]): Option[String] = {
     lang.filter(_.nonEmpty)
   }
 
-  type RelatedContent = Either[RelatedContentLink, Long]
-
-  type IgnoreFunction = (Option[Article], StateTransition) => Boolean
+  type IgnoreFunction = (Option[Draft], StateTransition) => Boolean
 }

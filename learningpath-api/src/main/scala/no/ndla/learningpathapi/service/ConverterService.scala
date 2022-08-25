@@ -10,7 +10,8 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, errors}
+import no.ndla.common.errors.ValidationException
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,
@@ -32,7 +33,6 @@ import no.ndla.network.ApplicationUrl
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.ValidationException
 
 trait ConverterService {
   this: ImageApiClientComponent
@@ -181,7 +181,7 @@ trait ConverterService {
 
     private def extractImageId(url: String): Option[String] = {
       learningPathValidator.validateCoverPhoto(url) match {
-        case Some(err) => throw ValidationException(errors = Seq(err))
+        case Some(err) => throw errors.ValidationException(errors = Seq(err))
         case _         =>
       }
 

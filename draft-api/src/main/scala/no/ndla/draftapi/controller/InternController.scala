@@ -7,12 +7,12 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentId, NotFoundException}
-import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.{ArticleStatus, DBArticle, ReindexResult}
+import no.ndla.draftapi.model.domain.{DBArticle, ReindexResult}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
@@ -158,7 +158,7 @@ trait InternController {
     }
 
     get("/ids") {
-      paramOrNone("status").map(ArticleStatus.valueOfOrError) match {
+      paramOrNone("status").map(DraftStatus.valueOfOrError) match {
         case Some(Success(status)) => draftRepository.idsWithStatus(status).getOrElse(List.empty)
         case Some(Failure(ex))     => errorHandler(ex)
         case None                  => draftRepository.getAllIds
@@ -238,7 +238,7 @@ trait InternController {
     }
 
     post("/dump/article/?") {
-      tryExtract[domain.Article](request.body) match {
+      tryExtract[Draft](request.body) match {
         case Failure(ex) => errorHandler(ex)
         case Success(article) =>
           writeService.insertDump(article) match {

@@ -13,8 +13,7 @@ lazy val `article-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
@@ -28,8 +27,7 @@ lazy val `draft-api`: Project = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
@@ -42,8 +40,7 @@ lazy val `audio-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
@@ -57,8 +54,7 @@ lazy val `concept-api` = Module.setup(
     validation,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
@@ -83,8 +79,7 @@ lazy val `image-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
@@ -97,15 +92,14 @@ lazy val `learningpath-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
 lazy val `oembed-proxy` = Module.setup(
   project in file("./oembed-proxy/"),
   oembedproxy,
-  deps = Seq(network, common, scalatra)
+  deps = Seq(network, common)
 )
 
 lazy val `search-api` = Module.setup(
@@ -117,20 +111,18 @@ lazy val `search-api` = Module.setup(
     language,
     common,
     search,
-    testWith(scalatestsuite),
-    scalatra
+    testWith(scalatestsuite)
   )
 )
 
 // Libraries
-lazy val common         = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite)))
+lazy val common = Module.setup(project in file("./common/"), commonlib, deps = Seq(testWith(scalatestsuite), language))
 lazy val scalatestsuite = Module.setup(project in file("./scalatestsuite/"), scalatestsuitelib)
 lazy val network        = Module.setup(project in file("./network/"), networklib, deps = Seq(common))
 lazy val language       = Module.setup(project in file("./language/"), languagelib)
 lazy val mapping        = Module.setup(project in file("./mapping/"), mappinglib)
-lazy val validation     = Module.setup(project in file("./validation/"), validationlib, deps = Seq(scalatra))
+lazy val validation     = Module.setup(project in file("./validation/"), validationlib, deps = Seq(common))
 lazy val search         = Module.setup(project in file("./search/"), searchlib, deps = Seq(language, common))
-lazy val scalatra       = Module.setup(project in file("./scalatra/"), scalatralib)
 
 lazy val `integration-tests` = Module.setup(
   project in file("./integration-tests/"),

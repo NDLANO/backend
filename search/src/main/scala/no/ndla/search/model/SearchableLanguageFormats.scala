@@ -7,8 +7,10 @@
 
 package no.ndla.search.model
 
+import enumeratum.Json4s
+import no.ndla.common.model.domain.draft.RevisionStatus
 import org.json4s.JsonAST.{JField, JObject, JString}
-import org.json4s.ext.JavaTimeSerializers
+import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JArray, JNothing, MappingException}
 
 import java.util.TimeZone
@@ -76,11 +78,15 @@ object SearchableLanguageFormats {
     defaultFormats(false) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all ++
+      JavaTypesSerializers.all +
+      Json4s.serializer(RevisionStatus)
 
   val JSonFormatsWithMillis: Formats =
     defaultFormats(true) +
       new SearchableLanguageValuesSerializer +
       new SearchableLanguageListSerializer ++
-      JavaTimeSerializers.all
+      JavaTimeSerializers.all ++
+      JavaTypesSerializers.all +
+      Json4s.serializer(RevisionStatus)
 }

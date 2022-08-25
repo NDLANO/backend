@@ -7,15 +7,17 @@
 
 package no.ndla.searchapi.model.search
 
+import no.ndla.common.model.domain.ArticleMetaImage
+import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
-import no.ndla.searchapi.model.domain.article.{ArticleMetaImage, LearningResourceType}
-import no.ndla.searchapi.model.domain.draft.{ArticleStatus, RevisionMeta}
+import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
@@ -70,22 +72,22 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
     val revisionMeta = List(
       RevisionMeta(
-        id = "id",
+        id = UUID.randomUUID(),
         revisionDate = today,
         note = "some note",
-        status = "needs-revision"
+        status = RevisionStatus.NeedsRevision
       ),
       RevisionMeta(
-        id = "id",
+        id = UUID.randomUUID(),
         revisionDate = olddate,
         note = "some other note",
-        status = "needs-revision"
+        status = RevisionStatus.NeedsRevision
       )
     )
 
     val original = SearchableDraft(
       id = 100,
-      draftStatus = Status(ArticleStatus.DRAFT.toString, Seq(ArticleStatus.PROPOSAL.toString)),
+      draftStatus = Status(DraftStatus.DRAFT.toString, Seq(DraftStatus.PROPOSAL.toString)),
       title = titles,
       content = contents,
       visualElement = visualElements,

@@ -11,7 +11,7 @@ import draftapi.db.migration.V17__MoveTopicArticleEmbedToVisualElement
 import enumeratum.Json4s
 
 import java.time.LocalDateTime
-import no.ndla.draftapi.model.domain.ArticleType
+import no.ndla.common.model.domain.draft.ArticleType
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}

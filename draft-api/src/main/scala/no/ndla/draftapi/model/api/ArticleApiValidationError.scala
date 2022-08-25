@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.model.api
 
-import no.ndla.scalatra.error.ValidationMessage
+import no.ndla.common.errors.ValidationMessage
 
 case class ArticleApiValidationError(
     code: String,

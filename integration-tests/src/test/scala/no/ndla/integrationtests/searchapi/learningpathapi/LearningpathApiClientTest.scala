@@ -8,6 +8,7 @@
 package no.ndla.integrationtests.searchapi.learningpathapi
 
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
@@ -15,7 +16,6 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.article._
-import no.ndla.searchapi.model.domain.draft.ArticleStatus
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{learningpathapi, searchapi}
 import org.eclipse.jetty.server.Server
@@ -32,7 +32,7 @@ class LearningpathApiClientTest
     with searchapi.TestEnvironment {
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
-      new EnumNameSerializer(ArticleStatus) +
+      new EnumNameSerializer(DraftStatus) +
       new EnumNameSerializer(LearningPathStatus) +
       new EnumNameSerializer(LearningPathVerificationStatus) +
       new EnumNameSerializer(StepType) +

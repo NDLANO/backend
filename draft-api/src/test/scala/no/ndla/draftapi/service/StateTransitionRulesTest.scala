@@ -7,13 +7,12 @@
 
 package no.ndla.draftapi.service
 
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
-import no.ndla.draftapi.model.api.ArticleApiArticle
-import no.ndla.draftapi.model.domain
-import no.ndla.draftapi.model.domain.ArticleStatus._
-import no.ndla.draftapi.model.domain.{Article, EditorNote, Status}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
@@ -25,20 +24,21 @@ import scala.util.{Failure, Success, Try}
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   import StateTransitionRules.doTransitionWithoutSideEffect
 
-  val DraftStatus                       = domain.Status(DRAFT, Set(QUALITY_ASSURED))
-  val DraftWithPublishedStatus          = domain.Status(DRAFT, Set(IMPORTED, PUBLISHED))
-  val PublishedStatus                   = domain.Status(PUBLISHED, Set(IMPORTED))
-  val UserTestStatus                    = domain.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
-  val AwaitingUnpublishStatus           = domain.Status(AWAITING_UNPUBLISHING, Set.empty)
-  val UnpublishedStatus                 = domain.Status(UNPUBLISHED, Set.empty)
-  val ProposalStatus                    = domain.Status(PROPOSAL, Set.empty)
-  val ArchivedStatus                    = domain.Status(ARCHIVED, Set(PUBLISHED))
-  val DraftArticle: Article             = TestData.sampleArticleWithByNcSa.copy(status = DraftStatus)
-  val AwaitingUnpublishArticle: Article = TestData.sampleArticleWithByNcSa.copy(status = AwaitingUnpublishStatus)
-  val UnpublishedArticle: Article       = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
+  val DraftStatus                      = common.Status(DRAFT, Set(QUALITY_ASSURED))
+  val DraftWithPublishedStatus         = common.Status(DRAFT, Set(IMPORTED, PUBLISHED))
+  val PublishedStatus                  = common.Status(PUBLISHED, Set(IMPORTED))
+  val UserTestStatus                   = common.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
+  val AwaitingUnpublishStatus          = common.Status(AWAITING_UNPUBLISHING, Set.empty)
+  val UnpublishedStatus                = common.Status(UNPUBLISHED, Set.empty)
+  val ProposalStatus                   = common.Status(PROPOSAL, Set.empty)
+  val ArchivedStatus                   = common.Status(ARCHIVED, Set(PUBLISHED))
+  val DraftArticle: common.draft.Draft = TestData.sampleArticleWithByNcSa.copy(status = DraftStatus)
+  val AwaitingUnpublishArticle: common.draft.Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = AwaitingUnpublishStatus)
+  val UnpublishedArticle: common.draft.Draft = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
 
   test("doTransition should succeed when performing a legal transition") {
-    val expected = domain.Status(PUBLISHED, Set.empty)
+    val expected = common.Status(PUBLISHED, Set.empty)
     val (Success(res), _) =
       doTransitionWithoutSideEffect(DraftArticle, PUBLISHED, TestData.userWithAdminAccess, false)
 
@@ -46,7 +46,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should keep some states when performing a legal transition") {
-    val expected = domain.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
+    val expected = common.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
     val (Success(res), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = UserTestStatus),
@@ -56,7 +56,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res.status should equal(expected)
 
-    val expected2 = domain.Status(DRAFT, Set(IMPORTED, PUBLISHED))
+    val expected2 = common.Status(DRAFT, Set(IMPORTED, PUBLISHED))
     val (Success(res2), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = PublishedStatus),
@@ -69,7 +69,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition every state change to Archived should succeed") {
-    val expected1 = domain.Status(ARCHIVED, Set(IMPORTED))
+    val expected1 = common.Status(ARCHIVED, Set(IMPORTED))
     val (Success(res1), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = PublishedStatus),
@@ -79,7 +79,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res1.status should equal(expected1)
 
-    val expected2 = domain.Status(ARCHIVED, Set.empty)
+    val expected2 = common.Status(ARCHIVED, Set.empty)
     val (Success(res2), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = UnpublishedStatus),
@@ -89,7 +89,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res2.status should equal(expected2)
 
-    val expected3 = domain.Status(ARCHIVED, Set.empty)
+    val expected3 = common.Status(ARCHIVED, Set.empty)
     val (Success(res3), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = ProposalStatus),
@@ -99,7 +99,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res3.status should equal(expected3)
 
-    val expected4 = domain.Status(ARCHIVED, Set(IMPORTED))
+    val expected4 = common.Status(ARCHIVED, Set(IMPORTED))
     val (Success(res4), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = UserTestStatus),
@@ -109,7 +109,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res4.status should equal(expected4)
 
-    val expected5 = domain.Status(ARCHIVED, Set.empty)
+    val expected5 = common.Status(ARCHIVED, Set.empty)
     val (Success(res5), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = DraftStatus),
@@ -119,7 +119,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res5.status should equal(expected5)
 
-    val expected6 = domain.Status(ARCHIVED, Set.empty)
+    val expected6 = common.Status(ARCHIVED, Set.empty)
     val (Success(res6), _) =
       doTransitionWithoutSideEffect(
         DraftArticle.copy(status = AwaitingUnpublishStatus),
@@ -137,12 +137,12 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should publish the article when transitioning to PUBLISHED") {
-    val expectedStatus  = domain.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val expectedStatus  = common.Status(PUBLISHED, Set.empty)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
-    when(converterService.getEmbeddedConceptIds(any[Article])).thenReturn(Seq.empty)
-    when(converterService.getEmbeddedH5PPaths(any[Article])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedConceptIds(any[common.draft.Draft])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedH5PPaths(any[common.draft.Draft])).thenReturn(Seq.empty)
     when(conceptApiClient.publishConceptsIfToPublishing(any[Seq[Long]]))
       .thenAnswer((i: InvocationOnMock) => {
         val ids = i.getArgument[Seq[Long]](0)
@@ -152,7 +152,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
     when(
       articleApiClient
-        .updateArticle(eqTo(DraftArticle.id.get), any[Article], eqTo(List("1234")), eqTo(false), eqTo(true))
+        .updateArticle(
+          eqTo(DraftArticle.id.get),
+          any[common.draft.Draft],
+          eqTo(List("1234")),
+          eqTo(false),
+          eqTo(true)
+        )
     )
       .thenReturn(Success(expectedArticle))
 
@@ -160,18 +166,18 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       doTransitionWithoutSideEffect(DraftArticle, PUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[Article])
+    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
     verify(articleApiClient, times(1))
       .updateArticle(eqTo(DraftArticle.id.get), captor.capture(), eqTo(List("1234")), eqTo(false), eqTo(true))
 
-    val argumentArticle: Article = captor.getValue
-    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: common.draft.Draft = captor.getValue
+    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 
   test("doTransition should unpublish the article when transitioning to UNPUBLISHED") {
-    val expectedStatus  = domain.Status(UNPUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val expectedStatus  = common.Status(UNPUBLISHED, Set.empty)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
 
     when(learningpathApiClient.getLearningpathsWithPaths(Seq.empty)).thenReturn(Success(Seq.empty))
@@ -179,24 +185,24 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(taxonomyApiClient.queryResource(any[Long])).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(any[Long])).thenReturn(Success(List.empty))
-    when(articleApiClient.unpublishArticle(any[Article])).thenReturn(Success(expectedArticle))
+    when(articleApiClient.unpublishArticle(any[common.draft.Draft])).thenReturn(Success(expectedArticle))
 
     val (Success(res), sideEffect) =
       doTransitionWithoutSideEffect(AwaitingUnpublishArticle, UNPUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[Article])
+    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
 
     verify(articleApiClient, times(1))
       .unpublishArticle(captor.capture())
 
-    val argumentArticle: Article = captor.getValue
-    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: common.draft.Draft = captor.getValue
+    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 
   test("doTransition should not remove article from search when transitioning to ARCHIVED") {
-    val expectedStatus = domain.Status(ARCHIVED, Set.empty)
+    val expectedStatus = common.Status(ARCHIVED, Set.empty)
 
     when(articleIndexService.deleteDocument(UnpublishedArticle.id.get)).thenReturn(Success(UnpublishedArticle.id.get))
 
@@ -220,8 +226,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("PUBLISHED should be removed when transitioning to UNPUBLISHED") {
-    val expected         = domain.Status(UNPUBLISHED, Set())
-    val publishedArticle = DraftArticle.copy(status = domain.Status(current = PUBLISHED, other = Set()))
+    val expected         = common.Status(UNPUBLISHED, Set())
+    val publishedArticle = DraftArticle.copy(status = common.Status(current = PUBLISHED, other = Set()))
     val (Success(res), _) =
       doTransitionWithoutSideEffect(publishedArticle, UNPUBLISHED, TestData.userWithAdminAccess, false)
 
@@ -360,7 +366,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("validateArticle should be called when transitioning to QUEUED_FOR_PUBLISHING") {
     val articleId = 7
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
-    val status    = Status(QUALITY_ASSURED, Set.empty)
+    val status    = common.Status(QUALITY_ASSURED, Set.empty)
 
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == QUEUED_FOR_PUBLISHING)
     transitionsToTest.foreach(t =>
@@ -373,7 +379,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         )
         .unsafeRunSync()
     )
-    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[ArticleApiArticle], any[Boolean])
+    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[api.ArticleApiArticle], any[Boolean])
   }
 
   test("publishArticle should call h5p api") {
@@ -382,12 +388,12 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     reset(articleApiClient)
     val h5pId           = "123-kulid-123"
     val h5pPaths        = Seq(s"/resource/$h5pId")
-    val expectedStatus  = domain.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
+    val expectedStatus  = common.Status(PUBLISHED, Set.empty)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
-    when(converterService.getEmbeddedConceptIds(any[Article])).thenReturn(Seq.empty)
-    when(converterService.getEmbeddedH5PPaths(any[Article])).thenReturn(h5pPaths)
+    when(converterService.getEmbeddedConceptIds(any[common.draft.Draft])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedH5PPaths(any[common.draft.Draft])).thenReturn(h5pPaths)
     when(conceptApiClient.publishConceptsIfToPublishing(any[Seq[Long]]))
       .thenAnswer((i: InvocationOnMock) => {
         val ids = i.getArgument[Seq[Long]](0)
@@ -397,7 +403,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
     when(
       articleApiClient
-        .updateArticle(eqTo(DraftArticle.id.get), any[Article], eqTo(List("1234")), eqTo(false), eqTo(true))
+        .updateArticle(
+          eqTo(DraftArticle.id.get),
+          any[common.draft.Draft],
+          eqTo(List("1234")),
+          eqTo(false),
+          eqTo(true)
+        )
     )
       .thenReturn(Success(expectedArticle))
 
@@ -405,14 +417,14 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       doTransitionWithoutSideEffect(DraftArticle, PUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[Article])
+    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
     verify(articleApiClient, times(1))
       .updateArticle(eqTo(DraftArticle.id.get), captor.capture(), eqTo(List("1234")), eqTo(false), eqTo(true))
 
     verify(h5pApiClient, times(1)).publishH5Ps(h5pPaths)
 
-    val argumentArticle: Article = captor.getValue
-    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: common.draft.Draft = captor.getValue
+    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 

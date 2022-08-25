@@ -9,13 +9,15 @@ package draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
 import no.ndla.draftapi.{DraftApiProperties, Props}
-import no.ndla.draftapi.model.domain._
+import no.ndla.draftapi.model.domain.DBArticle
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
+import no.ndla.common.model.domain.Status
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
     extends BaseJavaMigration
@@ -24,7 +26,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + new EnumNameSerializer(ArticleStatus) + Json4s.serializer(ArticleType)
+    org.json4s.DefaultFormats + new EnumNameSerializer(DraftStatus) + Json4s.serializer(ArticleType)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
 
@@ -55,26 +57,26 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
       .single()
   }
 
-  def allArticles(offset: Long)(implicit session: DBSession): Seq[Article] = {
+  def allArticles(offset: Long)(implicit session: DBSession): Seq[Draft] = {
     val ar = DBArticle.syntax("ar")
     sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL order by ar.id limit 1000 offset $offset"
       .map(DBArticle.fromResultSet(ar))
       .list()
   }
 
-  def updateArticle(article: Article)(implicit session: DBSession) = {
+  def updateArticle(article: Draft)(implicit session: DBSession) = {
     val newArticle = article.copy(status = updateStatus(article.status))
     saveArticle(newArticle)
   }
 
   def updateStatus(status: Status): Status = {
-    if (status.current == ArticleStatus.PUBLISHED) {
-      val newOther: Set[ArticleStatus.Value] = status.other.filter(value => value == ArticleStatus.IMPORTED)
+    if (status.current == DraftStatus.PUBLISHED) {
+      val newOther: Set[DraftStatus.Value] = status.other.filter(value => value == DraftStatus.IMPORTED)
       status.copy(other = newOther)
     } else status
   }
 
-  def saveArticle(article: Article)(implicit session: DBSession): Long = {
+  def saveArticle(article: Draft)(implicit session: DBSession): Long = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))

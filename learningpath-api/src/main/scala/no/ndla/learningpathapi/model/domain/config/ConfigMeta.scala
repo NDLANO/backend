@@ -8,15 +8,15 @@
 package no.ndla.learningpathapi.model.domain.config
 
 import enumeratum.Json4s
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.learningpathapi.Props
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
-import scalikejdbc.{WrappedResultSet, _}
+import scalikejdbc._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
-import no.ndla.scalatra.error.{ValidationException, ValidationMessage}
 
 case class ConfigMeta(
     key: ConfigKey,
