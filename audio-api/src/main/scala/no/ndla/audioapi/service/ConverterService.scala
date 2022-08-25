@@ -17,6 +17,7 @@ import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.Clock
+import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
@@ -195,7 +196,7 @@ trait ConverterService {
       }
     }
 
-    def toApiAuthor(author: domain.Author): api.Author =
+    def toApiAuthor(author: common.Author): api.Author =
       api.Author(author.`type`, author.name)
 
     def toDomainTags(tags: api.Tag): Seq[domain.Tag] = {
@@ -280,8 +281,8 @@ trait ConverterService {
       )
     }
 
-    def toDomainAuthor(author: api.Author): domain.Author = {
-      domain.Author(author.`type`, author.name)
+    def toDomainAuthor(author: api.Author): common.Author = {
+      common.Author(author.`type`, author.name)
     }
 
     def findAndConvertDomainToApiField[DomainType <: WithLanguage, ApiType](

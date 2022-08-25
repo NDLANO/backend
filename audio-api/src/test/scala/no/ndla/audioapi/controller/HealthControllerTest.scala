@@ -11,6 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.Author
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalaj.http.HttpResponse
 

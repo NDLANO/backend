@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
+import no.ndla.common.model.{domain => common}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
@@ -63,7 +64,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val publicDomain: domain.Copyright = domain.Copyright(
     "publicdomain",
     Some("Metropolis"),
-    List(domain.Author("Forfatter", "Bruce Wayne")),
+    List(common.Author("Forfatter", "Bruce Wayne")),
     Seq(),
     Seq(),
     None,

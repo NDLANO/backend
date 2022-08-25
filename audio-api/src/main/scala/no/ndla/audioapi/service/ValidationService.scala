@@ -14,6 +14,7 @@ import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
+import no.ndla.common.model.domain.Author
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup

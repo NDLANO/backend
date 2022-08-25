@@ -11,6 +11,7 @@ package no.ndla.audioapi.service
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.domain.Author
 import no.ndla.mapping.License.CC_BY_SA
 
 import java.time.LocalDateTime

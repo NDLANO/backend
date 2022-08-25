@@ -12,6 +12,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.SearchableAudioInformation
+import no.ndla.common.model.domain.Author
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import org.mockito.invocation.InvocationOnMock
 

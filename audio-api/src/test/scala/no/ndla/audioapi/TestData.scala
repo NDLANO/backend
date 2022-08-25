@@ -10,6 +10,7 @@ package no.ndla.audioapi
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
+import no.ndla.common.model.{domain => common}
 
 import java.time.LocalDateTime
 
@@ -34,9 +35,9 @@ object TestData {
   val sampleCopyright: Copyright = domain.Copyright(
     license = "CC-BY-4.0",
     origin = Some("origin"),
-    creators = Seq(domain.Author("originator", "ole")),
-    processors = Seq(domain.Author("processor", "dole")),
-    rightsholders = Seq(domain.Author("rightsholder", "doffen")),
+    creators = Seq(common.Author("originator", "ole")),
+    processors = Seq(common.Author("processor", "dole")),
+    rightsholders = Seq(common.Author("rightsholder", "doffen")),
     agreementId = None,
     validFrom = None,
     validTo = None

@@ -9,6 +9,7 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.Props
+import no.ndla.common.model.domain.Author
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
@@ -69,7 +70,6 @@ case class Copyright(
     validFrom: Option[LocalDateTime],
     validTo: Option[LocalDateTime]
 )
-case class Author(`type`: String, name: String)
 case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
   override def value: Seq[String] = tags
   override def isEmpty: Boolean   = tags.isEmpty
