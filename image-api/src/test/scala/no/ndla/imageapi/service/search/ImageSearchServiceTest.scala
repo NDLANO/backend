@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -89,7 +89,7 @@ class ImageSearchServiceTest
     alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
     images = Seq(largeImage),
     copyright = byNcSa,
-    tags = List(ImageTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     captions = List(),
     updatedBy = "ndla124",
     updated = updated,
@@ -105,7 +105,7 @@ class ImageSearchServiceTest
     alttexts = List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
     images = Seq(largeImage),
     copyright = publicDomain,
-    tags = List(ImageTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     captions = List(),
     updatedBy = "ndla124",
     updated = updated,
@@ -121,7 +121,7 @@ class ImageSearchServiceTest
     alttexts = List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
     images = Seq(smallImage),
     copyright = byNcSa,
-    tags = List(ImageTag(List("and"), "nb")),
+    tags = List(Tag(List("and"), "nb")),
     captions = List(),
     updatedBy = "ndla124",
     updated = updated,

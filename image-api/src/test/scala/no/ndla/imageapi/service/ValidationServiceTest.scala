@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -174,7 +174,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("validate returns a validation error if tags contain html") {
-    val imageMeta = sampleImageMeta.copy(tags = Seq(ImageTag(Seq("<h1>tag</h1>"), "en")))
+    val imageMeta = sampleImageMeta.copy(tags = Seq(Tag(Seq("<h1>tag</h1>"), "en")))
     val result    = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]
     exception.errors.length should be(1)
@@ -183,7 +183,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("validate returns a validation error if tags language is invalid") {
-    val imageMeta = sampleImageMeta.copy(tags = Seq(ImageTag(Seq("tag"), "invalid")))
+    val imageMeta = sampleImageMeta.copy(tags = Seq(Tag(Seq("tag"), "invalid")))
     val result    = validationService.validate(imageMeta, None)
     val exception = result.failed.get.asInstanceOf[ValidationException]
     exception.errors.length should be(1)
@@ -192,7 +192,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("validate returns success if tags are valid") {
-    val imageMeta = sampleImageMeta.copy(tags = Seq(ImageTag(Seq("tag"), "en")))
+    val imageMeta = sampleImageMeta.copy(tags = Seq(Tag(Seq("tag"), "en")))
     validationService.validate(imageMeta, None).isSuccess should be(true)
   }
 

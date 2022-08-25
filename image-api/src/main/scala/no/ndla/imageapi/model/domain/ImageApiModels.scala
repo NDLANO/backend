@@ -31,10 +31,6 @@ case class ImageCaption(caption: String, language: String) extends LanguageField
   override def value: String    = caption
   override def isEmpty: Boolean = caption.isEmpty
 }
-case class ImageTag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
-  override def value: Seq[String] = tags
-  override def isEmpty: Boolean   = tags.isEmpty
-}
 case class UploadedImage(
     fileName: String,
     size: Long,

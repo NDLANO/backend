@@ -101,7 +101,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       ),
-      tags = List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
+      tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
       captions = List(domain.ImageCaption("Elg i busk", "nb")),
       updatedBy = "ndla124",
       updated = TestData.updated(),
@@ -149,7 +149,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       ),
-      tags = List(domain.ImageTag(List("rovdyr", "elg"), "nb")),
+      tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
       captions = List(domain.ImageCaption("Elg i busk", "nb")),
       updatedBy = "ndla124",
       updated = TestData.updated(),

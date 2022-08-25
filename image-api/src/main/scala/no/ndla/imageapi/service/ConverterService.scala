@@ -237,7 +237,7 @@ trait ConverterService {
       )
     }
 
-    def asApiImageTag(domainImageTag: domain.ImageTag): api.ImageTag = {
+    def asApiImageTag(domainImageTag: common.Tag): api.ImageTag = {
       api.ImageTag(domainImageTag.tags, domainImageTag.language)
     }
 
@@ -329,8 +329,8 @@ trait ConverterService {
       common.Author(author.`type`, author.name)
     }
 
-    def toDomainTag(tags: Seq[String], language: String): domain.ImageTag = {
-      domain.ImageTag(tags, language)
+    def toDomainTag(tags: Seq[String], language: String): common.Tag = {
+      common.Tag(tags, language)
     }
 
     def toDomainCaption(caption: String, language: String): domain.ImageCaption = {

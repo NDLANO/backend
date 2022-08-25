@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits._
+import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
 import no.ndla.imageapi.model._
@@ -248,7 +249,7 @@ trait WriteService {
       }
     }
 
-    private def mergeTags(existing: Seq[domain.ImageTag], updated: Seq[domain.ImageTag]): Seq[domain.ImageTag] = {
+    private def mergeTags(existing: Seq[common.Tag], updated: Seq[common.Tag]): Seq[common.Tag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }

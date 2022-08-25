@@ -8,7 +8,7 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DraftApiClient
 import no.ndla.imageapi.model.domain._
@@ -155,7 +155,7 @@ trait ValidationService {
       }
     }
 
-    def validateTags(tags: Seq[ImageTag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
+    def validateTags(tags: Seq[Tag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(containsNoHtml("tags.tags", _)).toList :::
           validateLanguage("tags.language", tagList.language, oldLanguages).toList

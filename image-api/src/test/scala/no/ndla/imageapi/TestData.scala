@@ -11,7 +11,7 @@ package no.ndla.imageapi
 import java.awt.image.BufferedImage
 import java.io.InputStream
 import javax.imageio.ImageIO
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2
 import no.ndla.imageapi.model.domain._
@@ -55,7 +55,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "elg"), "nb")),
+      tags = List(Tag(List("rovdyr", "elg"), "nb")),
       captions = List(ImageCaption("Elg i busk", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -154,7 +154,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "bjørn"), "nb")),
+      tags = List(Tag(List("rovdyr", "bjørn"), "nb")),
       captions = List(ImageCaption("Bjørn i busk", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -189,7 +189,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "jerv"), "nb")),
+      tags = List(Tag(List("rovdyr", "jerv"), "nb")),
       captions = List(ImageCaption("Jerv på stein", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -224,7 +224,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "mink"), "nb")),
+      tags = List(Tag(List("rovdyr", "mink"), "nb")),
       captions = List(ImageCaption("Overrasket mink", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -259,7 +259,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "rein", "jakt"), "nb")),
+      tags = List(Tag(List("rovdyr", "rein", "jakt"), "nb")),
       captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -294,7 +294,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("rovdyr", "krokodille"), "nb")),
+      tags = List(Tag(List("rovdyr", "krokodille"), "nb")),
       captions = List(ImageCaption("Krokodille på krok", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
@@ -329,7 +329,7 @@ trait TestData {
         None,
         None
       ),
-      tags = List(ImageTag(List("bison"), "nb")),
+      tags = List(Tag(List("bison"), "nb")),
       captions = List(ImageCaption("Bison på sletten", "nb")),
       updatedBy = "ndla124",
       updated = updated(),
