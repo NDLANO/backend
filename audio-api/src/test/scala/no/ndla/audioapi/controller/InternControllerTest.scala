@@ -11,6 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.{domain => common}
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.time.LocalDateTime
@@ -44,10 +45,10 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
-    Seq(domain.Title("title", "nb")),
+    Seq(common.Title("title", "nb")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb")),
     domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, None),
-    Seq(domain.Tag(Seq("tag"), "nb")),
+    Seq(common.Tag(Seq("tag"), "nb")),
     "ndla124",
     updated,
     created,
@@ -61,10 +62,10 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
   val DefaultDomainAudioNoLanguage: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
-    Seq(domain.Title("title", "unknown")),
+    Seq(common.Title("title", "unknown")),
     Seq(domain.Audio("audio/test.mp3", "audio/mpeg", 1024, "unknown")),
     domain.Copyright("by-sa", None, Seq(), Seq(), Seq(), None, None, None),
-    Seq(domain.Tag(Seq("tag"), "unknown")),
+    Seq(common.Tag(Seq("tag"), "unknown")),
     "ndla124",
     updated,
     created,

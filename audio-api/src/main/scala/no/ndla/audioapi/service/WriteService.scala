@@ -16,6 +16,7 @@ import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
+import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.scalatra.servlet.FileItem
 
@@ -383,9 +384,9 @@ trait WriteService {
           id = existing.id,
           revision = Some(toUpdate.revision),
           titles =
-            converterService.mergeLanguageField(existing.titles, domain.Title(toUpdate.title, toUpdate.language)),
+            converterService.mergeLanguageField(existing.titles, common.Title(toUpdate.title, toUpdate.language)),
           tags =
-            converterService.mergeLanguageField(existing.tags, domain.Tag(toUpdate.tags.distinct, toUpdate.language)),
+            converterService.mergeLanguageField(existing.tags, common.Tag(toUpdate.tags.distinct, toUpdate.language)),
           filePaths = mergedFilePaths,
           copyright = converterService.toDomainCopyright(toUpdate.copyright),
           updated = clock.now(),

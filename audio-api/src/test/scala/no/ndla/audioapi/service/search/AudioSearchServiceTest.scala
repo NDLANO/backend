@@ -12,7 +12,7 @@ import no.ndla.audioapi.TestData.searchSettings
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.mockito.invocation.InvocationOnMock
@@ -68,7 +68,7 @@ class AudioSearchServiceTest
     id = 1,
     revision = 1,
     episodes = None,
-    title = Seq(domain.Title("TestSeries", "nb")),
+    title = Seq(Title("TestSeries", "nb")),
     description = Seq(domain.Description("TestSeriesDesc", "nb")),
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,

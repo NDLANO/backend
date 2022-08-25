@@ -17,6 +17,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, Search
 import no.ndla.audioapi.model.search._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -45,7 +46,7 @@ trait SearchConverterService {
     }
 
     def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummary] = {
-      val titles = searchable.titles.languageValues.map(lv => domain.Title(lv.value, lv.language))
+      val titles = searchable.titles.languageValues.map(lv => common.Title(lv.value, lv.language))
 
       val domainPodcastMeta = searchable.podcastMetaIntroduction.languageValues.flatMap(lv => {
         searchable.podcastMeta
@@ -70,8 +71,8 @@ trait SearchConverterService {
       val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
       val manuscript  = findByLanguageOrBestEffort(manuscripts, language).map(converterService.toApiManuscript)
 
-      val tags      = searchable.tags.languageValues.map(lv => domain.Tag(lv.value, lv.language))
-      val filePaths = searchable.filePaths.map(lv => domain.Title(lv.filePath, lv.language)) // Hacky but functional
+      val tags      = searchable.tags.languageValues.map(lv => common.Tag(lv.value, lv.language))
+      val filePaths = searchable.filePaths.map(lv => common.Title(lv.filePath, lv.language)) // Hacky but functional
 
       val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta, filePaths, tags)
 

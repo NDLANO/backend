@@ -33,7 +33,7 @@ trait ConverterService {
     import props._
 
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeries): domain.Series = {
-      val newTitle       = domain.Title(updatedSeries.title, updatedSeries.language)
+      val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
       val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
       val coverPhoto = domain.CoverPhoto(
         imageId = updatedSeries.coverPhotoId,
@@ -53,7 +53,7 @@ trait ConverterService {
     }
 
     def toDomainSeries(newSeries: api.NewSeries): domain.SeriesWithoutId = {
-      val titles       = Seq(domain.Title(newSeries.title, newSeries.language))
+      val titles       = Seq(common.Title(newSeries.title, newSeries.language))
       val descriptions = Seq(domain.Description(newSeries.description, newSeries.language))
 
       val coverPhoto = domain.CoverPhoto(
@@ -149,17 +149,17 @@ trait ConverterService {
       )
     }
 
-    def toApiTitle(title: domain.Title): api.Title                  = api.Title(title.title, title.language)
+    def toApiTitle(title: common.Title): api.Title                  = api.Title(title.title, title.language)
     def toApiDescription(desc: domain.Description): api.Description = api.Description(desc.description, desc.language)
 
-    def maybeToApiTitle(maybeTitle: Option[domain.Title]): api.Title = {
+    def maybeToApiTitle(maybeTitle: Option[common.Title]): api.Title = {
       maybeTitle match {
         case Some(title) => toApiTitle(title)
         case None        => api.Title("", DefaultLanguage)
       }
     }
 
-    def toApiTags(maybeTag: Option[domain.Tag]): Tag = {
+    def toApiTags(maybeTag: Option[common.Tag]): Tag = {
       maybeTag match {
         case Some(tag) => api.Tag(tag.tags, tag.language)
         case None      => api.Tag(Seq(), DefaultLanguage)
@@ -199,9 +199,9 @@ trait ConverterService {
     def toApiAuthor(author: common.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toDomainTags(tags: api.Tag): Seq[domain.Tag] = {
+    def toDomainTags(tags: api.Tag): Seq[common.Tag] = {
       if (tags.tags.nonEmpty) { Seq() }
-      else { Seq(domain.Tag(tags.tags, tags.language)) }
+      else { Seq(common.Tag(tags.tags, tags.language)) }
     }
 
     def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMeta = {
@@ -249,10 +249,10 @@ trait ConverterService {
       domain.AudioMetaInformation(
         id = None,
         revision = None,
-        titles = Seq(domain.Title(audioMeta.title, audioMeta.language)),
+        titles = Seq(common.Title(audioMeta.title, audioMeta.language)),
         filePaths = Seq(audio),
         copyright = toDomainCopyright(audioMeta.copyright),
-        tags = if (audioMeta.tags.nonEmpty) Seq(domain.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
+        tags = if (audioMeta.tags.nonEmpty) Seq(common.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
         updatedBy = authUser.userOrClientid(),
         updated = clock.now(),
         created = clock.now(),
@@ -264,8 +264,8 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(title: api.Title): domain.Title = {
-      domain.Title(title.title, title.language)
+    def toDomainTitle(title: api.Title): common.Title = {
+      common.Title(title.title, title.language)
     }
 
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {

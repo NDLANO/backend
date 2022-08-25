@@ -11,7 +11,8 @@ package no.ndla.audioapi.service
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.{domain => common}
 import no.ndla.mapping.License.CC_BY_SA
 
 import java.time.LocalDateTime
@@ -174,30 +175,30 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeLanguageField merges language fields as expected") {
-    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+    val existingTitles = Seq(common.Title("Tittel", "nb"), common.Title("Title", "en"))
 
-    val res1      = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nb"))
-    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    val res1      = service.mergeLanguageField(existingTitles, common.Title("Ny tittel", "nb"))
+    val expected1 = Seq(common.Title("Ny tittel", "nb"), common.Title("Title", "en"))
     res1 should be(expected1)
 
-    val res2      = service.mergeLanguageField(existingTitles, domain.Title("Ny tittel", "nn"))
-    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    val res2      = service.mergeLanguageField(existingTitles, common.Title("Ny tittel", "nn"))
+    val expected2 = Seq(common.Title("Tittel", "nb"), common.Title("Title", "en"), common.Title("Ny tittel", "nn"))
     res2 should be(expected2)
   }
 
   test("That mergeLanguageField deletes language fields as expected") {
-    val existingTitles = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"))
+    val existingTitles = Seq(common.Title("Tittel", "nb"), common.Title("Title", "en"))
 
-    val res1      = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nb")), "nb")
-    val expected1 = Seq(domain.Title("Ny tittel", "nb"), domain.Title("Title", "en"))
+    val res1      = service.mergeLanguageField(existingTitles, Some(common.Title("Ny tittel", "nb")), "nb")
+    val expected1 = Seq(common.Title("Ny tittel", "nb"), common.Title("Title", "en"))
     res1 should be(expected1)
 
-    val res2      = service.mergeLanguageField(existingTitles, Some(domain.Title("Ny tittel", "nn")), "nn")
-    val expected2 = Seq(domain.Title("Tittel", "nb"), domain.Title("Title", "en"), domain.Title("Ny tittel", "nn"))
+    val res2      = service.mergeLanguageField(existingTitles, Some(common.Title("Ny tittel", "nn")), "nn")
+    val expected2 = Seq(common.Title("Tittel", "nb"), common.Title("Title", "en"), common.Title("Ny tittel", "nn"))
     res2 should be(expected2)
 
     val res3      = service.mergeLanguageField(existingTitles, None, "en")
-    val expected3 = Seq(domain.Title("Tittel", "nb"))
+    val expected3 = Seq(common.Title("Tittel", "nb"))
     res3 should be(expected3)
   }
 

@@ -8,8 +8,8 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.{TestData, TestEnvironment}
-import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.common.model.{domain => common}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
@@ -35,7 +35,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val audio1: AudioMetaInformation = TestData.sampleAudio.copy(
     tags = Seq(
-      domain.Tag(
+      common.Tag(
         Seq("test", "testing", "testemer"),
         "nb"
       )
@@ -44,7 +44,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val audio2: AudioMetaInformation = TestData.sampleAudio.copy(
     tags = Seq(
-      domain.Tag(
+      common.Tag(
         Seq("test"),
         "en"
       )
@@ -53,11 +53,11 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val audio3: AudioMetaInformation = TestData.sampleAudio.copy(
     tags = Seq(
-      domain.Tag(
+      common.Tag(
         Seq("hei", "test", "testing"),
         "nb"
       ),
-      domain.Tag(
+      common.Tag(
         Seq("test"),
         "en"
       )
@@ -66,7 +66,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
 
   val audio4: AudioMetaInformation = TestData.sampleAudio.copy(
     tags = Seq(
-      domain.Tag(
+      common.Tag(
         Seq("kyllingfilet", "filetkylling"),
         "nb"
       )

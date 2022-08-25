@@ -9,7 +9,7 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.Props
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import org.json4s.FieldSerializer._
@@ -48,10 +48,6 @@ object AudioType extends Enumeration {
   def valueOf(s: String): Option[this.Value] = this.values.find(_.toString == s)
 }
 
-case class Title(title: String, language: String) extends LanguageField[String] {
-  override def value: String    = title
-  override def isEmpty: Boolean = title.isEmpty
-}
 case class Manuscript(manuscript: String, language: String) extends LanguageField[String] {
   override def value: String    = manuscript
   override def isEmpty: Boolean = manuscript.isEmpty
@@ -70,10 +66,6 @@ case class Copyright(
     validFrom: Option[LocalDateTime],
     validTo: Option[LocalDateTime]
 )
-case class Tag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
-  override def value: Seq[String] = tags
-  override def isEmpty: Boolean   = tags.isEmpty
-}
 trait DBAudioMetaInformation {
   this: Props =>
 

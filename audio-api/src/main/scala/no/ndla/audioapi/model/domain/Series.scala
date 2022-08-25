@@ -9,6 +9,7 @@
 package no.ndla.audioapi.model.domain
 
 import no.ndla.audioapi.Props
+import no.ndla.common.model.domain.Title
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer.ignore
 import org.json4s.ext.JavaTimeSerializers
