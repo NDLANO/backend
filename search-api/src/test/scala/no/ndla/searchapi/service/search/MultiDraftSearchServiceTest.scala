@@ -490,7 +490,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search.totalCount should be(7)
     search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 12))
 
-//    search2.totalCount should be(6)
+    search2.totalCount should be(6)
     search2.results.map(_.id) should be(Seq(8, 9, 10, 11, 13, 15))
   }
 

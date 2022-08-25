@@ -111,9 +111,6 @@ class MultiDraftSearchServiceAtomicTest
   }
 
   test("That sorting by revision date sorts by the earliest 'needs-revision'") {
-//    implicit val formats: Formats =
-//      SearchableLanguageFormats.JSonFormatsWithMillis ++ JavaTypesSerializers.all + Json4s.serializer(RevisionStatus)
-
     val today     = LocalDateTime.now().withNano(0)
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)

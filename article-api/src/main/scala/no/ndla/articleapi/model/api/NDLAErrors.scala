@@ -66,7 +66,6 @@ trait ErrorHelpers {
 
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
     extends RuntimeException(message)
-case class ImportException(message: String)                                      extends RuntimeException(message)
-case class AccessDeniedException(message: String, unauthorized: Boolean = false) extends RuntimeException(message)
-class ImportExceptions(val message: String, val errors: Seq[Throwable])          extends RuntimeException(message)
-class ConfigurationException(message: String)                                    extends RuntimeException(message)
+case class ImportException(message: String)                             extends RuntimeException(message)
+class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends RuntimeException(message)
+class ConfigurationException(message: String)                           extends RuntimeException(message)

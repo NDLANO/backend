@@ -81,7 +81,5 @@ class ValidationException(message: String = "Validation Error", val errors: Seq[
     extends RuntimeException(message)
 class ApiSearchException(val apiName: String, message: String) extends RuntimeException(message)
 case class ElasticIndexingException(message: String)           extends RuntimeException(message)
-case class AccessDeniedException(message: String)              extends RuntimeException(message)
 case class TaxonomyException(message: String)                  extends RuntimeException(message)
 case class GrepException(message: String)                      extends RuntimeException(message)
-case class FeideApiException(message: String, ex: Throwable)   extends RuntimeException(message)

@@ -7,13 +7,11 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.draftapi.integration.DataSource
-
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{
-  AccessDeniedException,
   ArticlePublishException,
   ArticleStatusException,
   Error,

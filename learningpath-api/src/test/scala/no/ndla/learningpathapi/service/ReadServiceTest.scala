@@ -13,6 +13,7 @@ import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
+import no.ndla.common.errors.AccessDeniedException
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
@@ -535,5 +536,35 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID)
     result.message should be("Folder does not exist")
+  }
+
+  test("That getFeideUserData creates new UserData if no user exist") {
+    val feideId        = "feide"
+    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+
+    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
+    when(userRepository.insertUser(eqTo(feideId), any[domain.FeideUserDocument])(any))
+      .thenReturn(Success(domainUserData))
+
+    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(1)).insertUser(any, any)(any)
+  }
+
+  test("That getFeideUserData returns already created user if it exists") {
+    val feideId        = "feide"
+    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+
+    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
+
+    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(0)).insertUser(any, any)(any)
   }
 }

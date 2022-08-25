@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import enumeratum.Json4s
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus}
+import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus, RevisionStatus}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -99,7 +99,8 @@ trait SearchApiClient {
           new EnumNameSerializer(Availability) ++
           JavaTimeSerializers.all ++
           JavaTypesSerializers.all +
-          Json4s.serializer(ArticleType)
+          Json4s.serializer(ArticleType) +
+          Json4s.serializer(RevisionStatus)
       ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
     }
 

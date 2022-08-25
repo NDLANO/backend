@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.DateParser
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
@@ -1820,6 +1820,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List.empty))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(props.MaxFolderDepth))
 
     val Failure(result: ValidationException) = service.newFolder(newFolder, Some(feideId))
@@ -1863,9 +1865,150 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
     when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List.empty))
 
     service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
 
     verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
+  }
+
+  test("that folder is not created if name already exists as a sibling") {
+    val feideId   = "FEIDE"
+    val folderId  = UUID.randomUUID()
+    val parentId  = UUID.randomUUID()
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+    val domainFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "asd",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val siblingFolder = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "aSd",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val belowLimit = props.MaxFolderDepth - 2
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List(siblingFolder)))
+
+    service.newFolder(newFolder, Some(feideId)) should be(
+      Failure(
+        ValidationException("name", s"The folder name must be unique within its parent.")
+      )
+    )
+
+    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+  }
+
+  test("that folder is not updated if name already exists as a sibling") {
+    val feideId      = "FEIDE"
+    val folderId     = UUID.randomUUID()
+    val parentId     = UUID.randomUUID()
+    val updateFolder = api.UpdatedFolder(name = Some("asd"), status = None)
+
+    val existingFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "noe unikt",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val siblingFolder = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "aSd",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty
+    )
+    val belowLimit = props.MaxFolderDepth - 2
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
+    when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List(siblingFolder)))
+    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
+
+    service.updateFolder(folderId, updateFolder, Some(feideId)) should be(
+      Failure(
+        ValidationException("name", s"The folder name must be unique within its parent.")
+      )
+    )
+
+    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
+  }
+
+  test("That deleteAllUserData works as expected") {
+    val feideId = "feide"
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.deleteAllUserFolders(any)(any)).thenReturn(Success(1))
+    when(folderRepository.deleteAllUserResources(any)(any)).thenReturn(Success(1))
+    when(userRepository.deleteUser(any)(any)).thenReturn(Success(""))
+
+    service.deleteAllUserData(Some(feideId)) should be(Success(()))
+
+    verify(folderRepository, times(1)).deleteAllUserFolders(any)(any)
+    verify(folderRepository, times(1)).deleteAllUserResources(any)(any)
+    verify(userRepository, times(1)).deleteUser(any)(any)
+  }
+
+  test("That updateUserData updates user if user exist") {
+    val feideId         = "feide"
+    val userBefore      = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("h", "b"))
+    val updatedUserData = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("r", "e")))
+    val userAfterMerge  = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
+    val expected        = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
+    when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
+
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(Success(expected))
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(1)).updateUser(any, any)(any)
+  }
+
+  test("That updateUserData fails if user does not exist") {
+    val feideId         = "feide"
+    val updatedUserData = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("r", "e")))
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
+
+    service.updateFeideUserData(updatedUserData, Some(feideId)) should be(
+      Failure(NotFoundException(s"User with feide_id $feideId was not found"))
+    )
+
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(0)).updateUser(any, any)(any)
   }
 }
