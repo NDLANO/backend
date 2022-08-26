@@ -15,6 +15,7 @@ import java.time.LocalDateTime
 import scala.annotation.meta.field
 import scala.annotation.unused
 
+// format: off
 case class Folder(
     @(ApiModelProperty @field)(description = "UUID of the folder") id: String,
     @(ApiModelProperty @field)(description = "Folder name") name: String,
@@ -23,8 +24,10 @@ case class Folder(
     @(ApiModelProperty @field)(description = "List of parent folders to resource") breadcrumbs: List[Breadcrumb],
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
     @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
-    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int]
+    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
+    @(ApiModelProperty @field)(description = "A list of direct child ids in sorted order.") sortedChildIds: Option[List[String]]
 ) extends FolderData
+// format: on
 
 // 1: This object is needed for generating recursive Folder typescript type.
 object Folder {

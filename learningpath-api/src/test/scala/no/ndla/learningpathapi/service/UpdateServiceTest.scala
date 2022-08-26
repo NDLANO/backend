@@ -1864,7 +1864,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      sortedChildIds = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 

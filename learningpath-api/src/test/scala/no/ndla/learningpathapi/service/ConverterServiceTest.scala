@@ -586,7 +586,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
       ),
       parentId = Some(subFolder3UUID.toString),
-      rank = None
+      rank = None,
+      sortedChildIds = None
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -599,7 +600,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None
+      rank = None,
+      sortedChildIds = None
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -612,7 +614,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None
+      rank = None,
+      sortedChildIds = None
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -624,7 +627,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
       ),
       parentId = None,
-      rank = None
+      rank = None,
+      sortedChildIds = None
     )
 
     val Success(result) =

@@ -51,7 +51,8 @@ case class Folder(
     rank: Option[Int]
 ) extends FeideContent
     with Rankable {
-  override val sortId: UUID = id
+  override val sortId: UUID          = id
+  override val sortRank: Option[Int] = rank
 
   def toDocument: FolderDocument = FolderDocument(name = name, status = status)
 

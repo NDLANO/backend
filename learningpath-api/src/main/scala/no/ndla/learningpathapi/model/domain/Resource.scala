@@ -49,10 +49,13 @@ case class Resource(
     resourceId: Long,
     connection: Option[FolderResource]
 ) extends FeideContent
+    with Rankable {
+  override val sortId: UUID          = id
+  override val sortRank: Option[Int] = connection.map(_.rank)
+}
 
 trait DBResource {
   this: Props with DBFolderResource =>
-
   object DBResource extends SQLSyntaxSupport[Resource] {
     implicit val formats: Formats = DefaultFormats
     override val tableName        = "resources"

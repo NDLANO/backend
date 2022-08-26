@@ -715,6 +715,8 @@ trait ConverterService {
           folder.resources
             .traverse(toApiResource)
             .map(resources => {
+              val directs: List[Rankable] = folder.subfolders ++ folder.resources
+              val sorted                  = directs.sortBy(e => e.sortRank.getOrElse(directs.length))
               api.Folder(
                 id = folder.id.toString,
                 name = folder.name,
@@ -723,7 +725,8 @@ trait ConverterService {
                 resources = resources,
                 breadcrumbs = crumbs,
                 parentId = folder.parentId.map(_.toString),
-                rank = folder.rank
+                rank = folder.rank,
+                sortedChildIds = Some(sorted.map(_.sortId.toString))
               )
             })
         )

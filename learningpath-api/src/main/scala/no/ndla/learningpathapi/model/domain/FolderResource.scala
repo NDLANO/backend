@@ -17,6 +17,7 @@ import scala.util.Try
 
 case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int) extends Rankable {
   override val sortId: UUID = resourceId
+  override val sortRank: Option[Int] = Some(rank)
 }
 
 trait DBFolderResource {
