@@ -10,6 +10,7 @@ package no.ndla.learningpathapi
 import no.ndla.language.Language.DefaultLanguage
 
 import java.util.UUID
+import no.ndla.common.model.{domain => common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{
@@ -58,7 +59,7 @@ object TestData {
     None,
     None,
     1,
-    List(domain.Title("Step1Title", "nb")),
+    List(common.Title("Step1Title", "nb")),
     List(domain.Description("Step1Description", "nb")),
     List(),
     domain.StepType.INTRODUCTION,
@@ -71,7 +72,7 @@ object TestData {
     None,
     None,
     2,
-    List(domain.Title("Step2Title", "nb")),
+    List(common.Title("Step2Title", "nb")),
     List(domain.Description("Step2Description", "nb")),
     List(),
     domain.StepType.TEXT,
@@ -83,7 +84,7 @@ object TestData {
     Some(1),
     None,
     None,
-    List(domain.Title("tittel", DefaultLanguage)),
+    List(common.Title("tittel", DefaultLanguage)),
     List(domain.Description("deskripsjon", DefaultLanguage)),
     None,
     Some(60),

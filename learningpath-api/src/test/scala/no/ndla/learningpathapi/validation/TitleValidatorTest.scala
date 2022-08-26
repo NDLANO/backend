@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.learningpathapi.model.domain.Title
+import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class TitleValidatorTest extends UnitSuite with TestEnvironment {

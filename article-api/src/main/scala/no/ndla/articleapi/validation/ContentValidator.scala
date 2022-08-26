@@ -12,6 +12,8 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.{Author, Tag, VisualElement}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
@@ -207,7 +209,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateTags(tags: Seq[ArticleTag], isImported: Boolean): Seq[ValidationMessage] = {
+    private def validateTags(tags: Seq[Tag], isImported: Boolean): Seq[ValidationMessage] = {
 
       // Since quite a few articles from old ndla has fewer than 3 tags we skip validation here for imported articles until we are done importing.
       val languageTagAmountErrors = tags.groupBy(_.language).flatMap {

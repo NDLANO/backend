@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.domain.ImageTag
+import no.ndla.common.model.domain.Tag
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.json4s.DefaultFormats
@@ -25,7 +25,7 @@ trait TagsService {
 
     val pattern = new Regex("http:\\/\\/psi\\..*\\/#(.+)")
 
-    def streamToImageTags(stream: InputStream): Seq[ImageTag] = {
+    def streamToImageTags(stream: InputStream): Seq[Tag] = {
       implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
       read[Keywords](Source.fromInputStream(stream).mkString).keyword
         .flatMap(_.names)
@@ -34,7 +34,7 @@ trait TagsService {
         .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
         .groupBy(_._1)
         .map(entry => (entry._1, entry._2.map(_._2)))
-        .map(t => ImageTag(t._2, Language.languageOrUnknown(t._1).toString()))
+        .map(t => Tag(t._2, Language.languageOrUnknown(t._1).toString()))
         .toList
     }
 

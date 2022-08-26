@@ -8,6 +8,7 @@
 package articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
+import no.ndla.common.model.domain.{Tag, Title, VisualElement}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
@@ -63,7 +64,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
 
   }
 
-  def fetchArticleTags(externalId: Long): Seq[ArticleTag] = {
+  def fetchArticleTags(externalId: Long): Seq[Tag] = {
 
     val url = "http://api.topic.ndla.no/rest/v1/keywords/?filter%5Bnode%5D=ndlanode_" + externalId.toString
 
@@ -82,7 +83,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))
-          .map(t => ArticleTag(t._2, Language.languageOrUnknown(t._1).toString))
+          .map(t => Tag(t._2, Language.languageOrUnknown(t._1).toString))
           .toList
     }
 
@@ -144,7 +145,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
       .flatten
   }
 
-  def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[ArticleTag]): Option[Article] = {
+  def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[Tag]): Option[Article] = {
     oldArticle.map(article =>
       article.copy(
         title = article.title.map(copyArticleTitle),
@@ -158,17 +159,17 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     )
   }
 
-  def mergeTags(oldTags: Seq[ArticleTag], externalTags: Seq[ArticleTag]): Seq[ArticleTag] = {
+  def mergeTags(oldTags: Seq[Tag], externalTags: Seq[Tag]): Seq[Tag] = {
     val combinedSeq = oldTags ++ externalTags
     combinedSeq.groupBy(_.language).map(mapEntry => createTag(mapEntry._1, mapEntry._2)).toSeq
   }
 
-  def createTag(language: String, tags: Seq[ArticleTag]): ArticleTag = {
+  def createTag(language: String, tags: Seq[Tag]): Tag = {
     val distinctTags = tags.flatMap(_.tags).distinct
-    ArticleTag(distinctTags, language)
+    Tag(distinctTags, language)
   }
 
-  def copyArticleTitle(field: ArticleTitle): ArticleTitle = {
+  def copyArticleTitle(field: Title): Title = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 

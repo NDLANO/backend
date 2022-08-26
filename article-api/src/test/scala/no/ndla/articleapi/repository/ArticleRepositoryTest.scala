@@ -9,13 +9,13 @@
 package no.ndla.articleapi.repository
 
 import java.net.Socket
-
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.domain
-import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
+import no.ndla.articleapi.model.domain.{Article, ArticleIds}
 import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 import cats.implicits._
+import no.ndla.common.model.domain.Tag
 
 import scala.util.{Success, Try}
 
@@ -173,20 +173,20 @@ class ArticleRepositoryTest
       .copy(
         id = Some(1L),
         revision = Some(0),
-        tags = Seq(ArticleTag(Seq("abc", "bcd", "ddd"), "nb"), ArticleTag(Seq("abc", "bcd"), "nn"))
+        tags = Seq(Tag(Seq("abc", "bcd", "ddd"), "nb"), Tag(Seq("abc", "bcd"), "nn"))
       )
     val sampleArticle2 = TestData.sampleDomainArticle2
       .copy(
         id = Some(2L),
         revision = Some(0),
-        tags = Seq(ArticleTag(Seq("bcd", "cde"), "nb"), ArticleTag(Seq("bcd", "cde"), "nn"))
+        tags = Seq(Tag(Seq("bcd", "cde"), "nb"), Tag(Seq("bcd", "cde"), "nn"))
       )
     val sampleArticle3 =
       TestData.sampleDomainArticle2
         .copy(
           id = Some(3L),
           revision = Some(0),
-          tags = Seq(ArticleTag(Seq("def"), "nb"), ArticleTag(Seq("d", "def", "asd"), "nn"))
+          tags = Seq(Tag(Seq("def"), "nb"), Tag(Seq("d", "def", "asd"), "nn"))
         )
     val sampleArticle4 = TestData.sampleDomainArticle2.copy(id = Some(4L), revision = Some(0), tags = Seq.empty)
 

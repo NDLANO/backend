@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.imageapi.model.domain
+import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -38,7 +38,7 @@ class TagSearchServiceTest
 
   val image1 = TestData.elg.copy(
     tags = Seq(
-      domain.ImageTag(
+      common.Tag(
         Seq("test", "testing", "testemer"),
         "nb"
       )
@@ -47,7 +47,7 @@ class TagSearchServiceTest
 
   val image2 = TestData.elg.copy(
     tags = Seq(
-      domain.ImageTag(
+      common.Tag(
         Seq("test"),
         "en"
       )
@@ -56,11 +56,11 @@ class TagSearchServiceTest
 
   val image3 = TestData.elg.copy(
     tags = Seq(
-      domain.ImageTag(
+      common.Tag(
         Seq("hei", "test", "testing"),
         "nb"
       ),
-      domain.ImageTag(
+      common.Tag(
         Seq("test"),
         "en"
       )
@@ -69,7 +69,7 @@ class TagSearchServiceTest
 
   val image4 = TestData.elg.copy(
     tags = Seq(
-      domain.ImageTag(
+      common.Tag(
         Seq("kyllingfilet", "filetkylling"),
         "nb"
       )

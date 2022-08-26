@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.{
   Title,
   VisualElement
 }
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.draft
 import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
 import no.ndla.language.Language.DefaultLanguage

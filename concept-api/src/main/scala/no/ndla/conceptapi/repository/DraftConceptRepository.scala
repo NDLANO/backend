@@ -8,10 +8,11 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHelpers, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, DBConcept}
+import no.ndla.conceptapi.model.domain.{Concept, DBConcept}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
@@ -103,7 +104,7 @@ trait DraftConceptRepository {
          """
         .map(rs => {
           val jsonStr = rs.string("tags")
-          read[List[ConceptTags]](jsonStr)
+          read[List[Tag]](jsonStr)
         })
         .list()
     }

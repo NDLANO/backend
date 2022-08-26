@@ -7,9 +7,9 @@
 
 package no.ndla.conceptapi.validation
 
+import no.ndla.common.model.domain.Title
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{Author, Copyright}
 
 import scala.util.{Failure, Success}
@@ -32,7 +32,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That title validation succeeds if titles exist") {
     val conceptToValidate = TestData.domainConcept.copy(
-      title = Seq(domain.ConceptTitle("Amazing title", "nb"))
+      title = Seq(Title("Amazing title", "nb"))
     )
 
     val result = contentValidator.validateConcept(conceptToValidate)

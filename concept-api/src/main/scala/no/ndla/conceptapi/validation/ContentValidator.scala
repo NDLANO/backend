@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.validation
 
+import no.ndla.common.model.domain.Title
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -60,7 +61,7 @@ trait ContentValidator {
         validateLanguage("language", content.language)
     }
 
-    private def validateTitles(titles: Seq[ConceptTitle]): Seq[ValidationMessage] = {
+    private def validateTitles(titles: Seq[Title]): Seq[ValidationMessage] = {
       titles.flatMap(t => validateTitle(t.title, t.language)) ++
         validateExistingLanguageField("title", titles)
     }

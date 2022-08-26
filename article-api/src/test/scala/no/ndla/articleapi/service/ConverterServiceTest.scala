@@ -12,7 +12,8 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{Author, Availability, Tag, Title}
+import no.ndla.common.model.domain.article.Copyright
 
 import java.time.LocalDateTime
 import scala.util.Success
@@ -20,9 +21,9 @@ import scala.util.Success
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service         = new ConverterService
-  val contentTitle    = ArticleTitle("", "und")
+  val contentTitle    = Title("", "und")
   val author          = Author("forfatter", "Henrik")
-  val tag             = ArticleTag(List("asdf"), "nb")
+  val tag             = Tag(List("asdf"), "nb")
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId          = "1234"
   val sampleAlt       = "Fotografi"
@@ -49,7 +50,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toApiArticleV2 returns sorted supportedLanguages") {
     when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(
-      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ ArticleTitle("hehe", "und")),
+      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb"
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
@@ -192,14 +193,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateExistingTags updates tags correctly") {
-    val existingTags = Seq(ArticleTag(Seq("nb-tag1", "nb-tag2"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+    val existingTags = Seq(Tag(Seq("nb-tag1", "nb-tag2"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
     val updatedTags = Seq(
-      ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
-      ArticleTag(Seq("new-nn-tag1"), "nn"),
-      ArticleTag(Seq("new-es-tag1", "new-es-tag2"), "es")
+      Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
+      Tag(Seq("new-nn-tag1"), "nn"),
+      Tag(Seq("new-es-tag1", "new-es-tag2"), "es")
     )
     val expectedTags =
-      Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+      Seq(Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
 
     service.updateExistingTagsField(existingTags, updatedTags) should be(expectedTags)
     service.updateExistingTagsField(existingTags, Seq.empty) should be(existingTags)
@@ -228,7 +229,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
-      tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
+      tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
     )
 
     val revisionDate = LocalDateTime.now()
@@ -259,7 +260,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Left(RelatedContentLink("Newer Title", "Newer Url")),
         Right(42L)
       ),
-      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb")),
+      tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
       revisionDate = Some(revisionDate)
     )
 
@@ -275,7 +276,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
       relatedContent =
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
-      tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
+      tags = Seq(Tag(Seq("Gluten", "Tag"), "de"))
     )
 
     val revisionDate = LocalDateTime.now()
@@ -307,7 +308,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
-      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de")),
+      tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
       revisionDate = Some(revisionDate)
     )
 

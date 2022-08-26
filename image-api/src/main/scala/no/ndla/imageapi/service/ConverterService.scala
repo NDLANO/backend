@@ -11,6 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.UrlPath
+import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.integration.DraftApiClient
@@ -40,7 +41,7 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
     import props.DefaultLanguage
 
-    def asApiAuthor(domainAuthor: domain.Author): api.Author = {
+    def asApiAuthor(domainAuthor: common.Author): api.Author = {
       api.Author(domainAuthor.`type`, domainAuthor.name)
     }
 
@@ -236,7 +237,7 @@ trait ConverterService {
       )
     }
 
-    def asApiImageTag(domainImageTag: domain.ImageTag): api.ImageTag = {
+    def asApiImageTag(domainImageTag: common.Tag): api.ImageTag = {
       api.ImageTag(domainImageTag.tags, domainImageTag.language)
     }
 
@@ -324,12 +325,12 @@ trait ConverterService {
       )
     }
 
-    def toDomainAuthor(author: api.Author): domain.Author = {
-      domain.Author(author.`type`, author.name)
+    def toDomainAuthor(author: api.Author): common.Author = {
+      common.Author(author.`type`, author.name)
     }
 
-    def toDomainTag(tags: Seq[String], language: String): domain.ImageTag = {
-      domain.ImageTag(tags, language)
+    def toDomainTag(tags: Seq[String], language: String): common.Tag = {
+      common.Tag(tags, language)
     }
 
     def toDomainCaption(caption: String, language: String): domain.ImageCaption = {
