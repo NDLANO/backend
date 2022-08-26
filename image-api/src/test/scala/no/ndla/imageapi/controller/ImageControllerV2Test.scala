@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.model.domain.Tag
 import no.ndla.imageapi.model.api.{
   ImageMetaSummary,
   NewImageMetaInformationV2,
@@ -211,7 +212,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     val titles: Seq[ImageTitle]     = Seq()
     val alttexts: Seq[ImageAltText] = Seq()
     val copyright                   = Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None)
-    val tags: Seq[ImageTag]         = Seq()
+    val tags: Seq[Tag]              = Seq()
     val captions: Seq[ImageCaption] = Seq()
 
     val sampleImageMeta = new ImageMetaInformation(

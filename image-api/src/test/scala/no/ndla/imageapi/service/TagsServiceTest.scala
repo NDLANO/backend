@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import java.io.ByteArrayInputStream
 
-import no.ndla.imageapi.model.domain.ImageTag
+import no.ndla.common.model.domain.Tag
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class TagsServiceTest extends UnitSuite with TestEnvironment {
@@ -65,10 +65,10 @@ class TagsServiceTest extends UnitSuite with TestEnvironment {
          ]
        }]}"""
     val expectedResult = List(
-      ImageTag(List("folk song"), "en"),
-      ImageTag(List("folkevise"), "nb"),
-      ImageTag(List("folkevise"), "nn"),
-      ImageTag(List("folk song"), "und")
+      Tag(List("folk song"), "en"),
+      Tag(List("folkevise"), "nb"),
+      Tag(List("folkevise"), "nn"),
+      Tag(List("folk song"), "und")
     )
     val result = service.streamToImageTags(new ByteArrayInputStream(jsonString.getBytes()))
     result.sortBy(_.language) should equal(expectedResult)

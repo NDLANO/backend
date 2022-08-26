@@ -10,6 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
+import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
@@ -89,7 +90,7 @@ trait ConverterService {
       )
     }
 
-    def toApiTags(tags: domain.ConceptTags) = {
+    def toApiTags(tags: Tag) = {
       api.ConceptTags(
         tags.tags,
         tags.language
@@ -118,7 +119,7 @@ trait ConverterService {
     def toApiAuthor(author: domain.Author): api.Author =
       api.Author(author.`type`, author.name)
 
-    def toApiConceptTitle(title: domain.ConceptTitle): api.ConceptTitle =
+    def toApiConceptTitle(title: Title): api.ConceptTitle =
       api.ConceptTitle(title.title, title.language)
 
     def toApiConceptContent(title: domain.ConceptContent): api.ConceptContent =
@@ -139,7 +140,7 @@ trait ConverterService {
         domain.Concept(
           id = None,
           revision = None,
-          title = Seq(domain.ConceptTitle(concept.title, concept.language)),
+          title = Seq(Title(concept.title, concept.language)),
           content = concept.content
             .map(content => Seq(domain.ConceptContent(content, concept.language)))
             .getOrElse(Seq.empty),
@@ -181,8 +182,8 @@ trait ConverterService {
       )
     }
 
-    private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
-      if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
+    private def toDomainTags(tags: Seq[String], language: String): Seq[Tag] =
+      if (tags.isEmpty) Seq.empty else Seq(Tag(tags, language))
 
     def toDomainConcept(
         toMergeInto: domain.Concept,
@@ -190,13 +191,13 @@ trait ConverterService {
         userInfo: UserInfo
     ): domain.Concept = {
       val domainTitle = updateConcept.title
-        .map(t => domain.ConceptTitle(t, updateConcept.language))
+        .map(t => Title(t, updateConcept.language))
         .toSeq
       val domainContent = updateConcept.content
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
 
-      val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
+      val domainTags = updateConcept.tags.map(t => Tag(t, updateConcept.language)).toSeq
 
       val domainVisualElement =
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
@@ -248,7 +249,7 @@ trait ConverterService {
       domain.Concept(
         id = Some(id),
         revision = None,
-        title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
+        title = concept.title.map(t => Title(t, lang)).toSeq,
         content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
         source = concept.source,

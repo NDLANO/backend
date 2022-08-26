@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.model.domain
 
+import no.ndla.common.model.domain.Tag
 import no.ndla.imageapi.Props
 import org.json4s.FieldSerializer.ignore
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
@@ -25,7 +26,7 @@ case class ImageMetaInformation(
     alttexts: Seq[ImageAltText],
     images: Seq[ImageFileData],
     copyright: Copyright,
-    tags: Seq[ImageTag],
+    tags: Seq[Tag],
     captions: Seq[ImageCaption],
     updatedBy: String,
     updated: LocalDateTime,

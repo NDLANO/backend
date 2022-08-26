@@ -11,6 +11,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.DateParser
 
 import java.net.Socket
+import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import scalikejdbc.DB
@@ -95,9 +96,9 @@ class DraftConceptRepositoryTest
   }
 
   test("Inserting and fetching with listing id works as expected") {
-    val concept1 = domainConcept.copy(title = Seq(domain.ConceptTitle("Really good title", "nb")))
-    val concept2 = domainConcept.copy(title = Seq(domain.ConceptTitle("Not so bad title", "nb")))
-    val concept3 = domainConcept.copy(title = Seq(domain.ConceptTitle("Whatchu doin", "nb")))
+    val concept1 = domainConcept.copy(title = Seq(common.Title("Really good title", "nb")))
+    val concept2 = domainConcept.copy(title = Seq(common.Title("Not so bad title", "nb")))
+    val concept3 = domainConcept.copy(title = Seq(common.Title("Whatchu doin", "nb")))
 
     val insertedConcept1 = repository.insertwithListingId(concept1, 55555)
     val insertedConcept2 = repository.insertwithListingId(concept2, 66666)
@@ -143,20 +144,20 @@ class DraftConceptRepositoryTest
       TestData.domainConcept.copy(
         id = Some(1),
         tags = Seq(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("konge", "bror"), "nb"),
+          common.Tag(Seq("konge", "brur"), "nn"),
+          common.Tag(Seq("king", "bro"), "en"),
+          common.Tag(Seq("zing", "xiongdi"), "zh")
         )
       )
     val concept2 =
       TestData.domainConcept.copy(
         id = Some(2),
         tags = Seq(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+          common.Tag(Seq("konge", "lol", "meme"), "nb"),
+          common.Tag(Seq("konge", "lel", "meem"), "nn"),
+          common.Tag(Seq("king", "lul", "maymay"), "en"),
+          common.Tag(Seq("zing", "kek", "mimi"), "zh")
         )
       )
     val concept3 =
@@ -172,16 +173,16 @@ class DraftConceptRepositoryTest
     repository.everyTagFromEveryConcept should be(
       List(
         List(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("konge", "bror"), "nb"),
+          common.Tag(Seq("konge", "brur"), "nn"),
+          common.Tag(Seq("king", "bro"), "en"),
+          common.Tag(Seq("zing", "xiongdi"), "zh")
         ),
         List(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+          common.Tag(Seq("konge", "lol", "meme"), "nb"),
+          common.Tag(Seq("konge", "lel", "meem"), "nn"),
+          common.Tag(Seq("king", "lul", "maymay"), "en"),
+          common.Tag(Seq("zing", "kek", "mimi"), "zh")
         )
       )
     )
@@ -189,14 +190,14 @@ class DraftConceptRepositoryTest
 
   test("getTags returns non-duplicate tags and correct number of them") {
     val sampleArticle1 = TestData.domainConcept.copy(
-      tags = Seq(domain.ConceptTags(Seq("abc", "bcd", "ddd"), "nb"), domain.ConceptTags(Seq("abc", "bcd"), "nn"))
+      tags = Seq(common.Tag(Seq("abc", "bcd", "ddd"), "nb"), common.Tag(Seq("abc", "bcd"), "nn"))
     )
     val sampleArticle2 = TestData.domainConcept.copy(
-      tags = Seq(domain.ConceptTags(Seq("bcd", "cde"), "nb"), domain.ConceptTags(Seq("bcd", "cde"), "nn"))
+      tags = Seq(common.Tag(Seq("bcd", "cde"), "nb"), common.Tag(Seq("bcd", "cde"), "nn"))
     )
     val sampleArticle3 =
       TestData.domainConcept.copy(
-        tags = Seq(domain.ConceptTags(Seq("def"), "nb"), domain.ConceptTags(Seq("d", "def", "asd"), "nn"))
+        tags = Seq(common.Tag(Seq("def"), "nb"), common.Tag(Seq("d", "def", "asd"), "nn"))
       )
     val sampleArticle4 = TestData.domainConcept.copy(tags = Seq.empty)
 

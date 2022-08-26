@@ -7,9 +7,10 @@
 
 package no.ndla.conceptapi
 
+import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.{api, domain}
-import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
+import no.ndla.conceptapi.model.domain.{ConceptContent, Copyright, Status}
 import java.time.LocalDateTime
 
 object TestData {
@@ -63,7 +64,7 @@ object TestData {
   val sampleNbDomainConcept = domain.Concept(
     id = Some(1),
     revision = Some(1),
-    title = Seq(domain.ConceptTitle("Tittel", "nb")),
+    title = Seq(common.Title("Tittel", "nb")),
     content = Seq(domain.ConceptContent("Innhold", "nb")),
     copyright = None,
     source = None,
@@ -71,7 +72,7 @@ object TestData {
     updated = today,
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
@@ -81,7 +82,7 @@ object TestData {
   val sampleConcept = domain.Concept(
     id = Some(1),
     revision = Some(1),
-    title = Seq(ConceptTitle("Tittel for begrep", "nb")),
+    title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     source = None,
@@ -89,7 +90,7 @@ object TestData {
     updated = LocalDateTime.now().minusDays(2),
     updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
+    tags = Seq(common.Tag(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
@@ -99,7 +100,7 @@ object TestData {
   val domainConcept = domain.Concept(
     id = Some(1),
     revision = Some(1),
-    title = Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
+    title = Seq(common.Title("Tittel", "nb"), common.Title("Tittelur", "nn")),
     content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
     copyright = None,
     source = None,
@@ -107,7 +108,7 @@ object TestData {
     updated = today,
     updatedBy = Seq(""),
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
+    tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb"), common.Tag(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,

@@ -1,5 +1,5 @@
 /*
- * Part of NDLA draft-api.
+ * Part of NDLA common.
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -8,7 +8,6 @@
 package no.ndla.common.model.domain.draft
 
 import no.ndla.common.model.domain.Author
-
 import java.time.LocalDateTime
 
 case class Copyright(

@@ -9,6 +9,7 @@
 package no.ndla.imageapi.model.domain
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.Author
 import no.ndla.language.model.LanguageField
 
 import java.time.LocalDateTime
@@ -30,10 +31,6 @@ case class ImageCaption(caption: String, language: String) extends LanguageField
   override def value: String    = caption
   override def isEmpty: Boolean = caption.isEmpty
 }
-case class ImageTag(tags: Seq[String], language: String) extends LanguageField[Seq[String]] {
-  override def value: Seq[String] = tags
-  override def isEmpty: Boolean   = tags.isEmpty
-}
 case class UploadedImage(
     fileName: String,
     size: Long,
@@ -51,7 +48,6 @@ case class Copyright(
     validTo: Option[LocalDateTime]
 )
 case class License(license: String, description: String, url: Option[String])
-case class Author(`type`: String, name: String)
 case class EditorNote(timeStamp: LocalDateTime, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 

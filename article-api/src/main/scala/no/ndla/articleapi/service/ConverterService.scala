@@ -19,6 +19,8 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
+import no.ndla.common.model.domain.{Author, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
@@ -88,7 +90,7 @@ trait ConverterService {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
       val searchableArticle         = read[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
+      val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
       val introductions =
         searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions =
@@ -154,12 +156,12 @@ trait ConverterService {
       }
     }
 
-    private[service] def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
+    private[service] def mergeTags(existing: Seq[Tag], updated: Seq[Tag]): Seq[Tag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    def updateExistingTagsField(existingTags: Seq[ArticleTag], updatedTags: Seq[ArticleTag]): Seq[ArticleTag] = {
+    def updateExistingTagsField(existingTags: Seq[Tag], updatedTags: Seq[Tag]): Seq[Tag] = {
       val newTags    = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
       val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
       newTags ++ tagsToKeep
@@ -191,7 +193,7 @@ trait ConverterService {
         partialArticle.relatedContent.map(toDomainRelatedContent).getOrElse(existingArticle.relatedContent)
       val newTags = partialArticle.tags match {
         case Some(tags) =>
-          updateExistingTagsField(existingArticle.tags, tags.map(t => domain.ArticleTag(t.tags, t.language)))
+          updateExistingTagsField(existingArticle.tags, tags.map(t => Tag(t.tags, t.language)))
         case None => existingArticle.tags
       }
 
@@ -253,23 +255,23 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
-      ArticleTitle(articleTitle.title, articleTitle.language)
+    def toDomainTitle(articleTitle: api.ArticleTitle): Title = {
+      Title(articleTitle.title, articleTitle.language)
     }
 
     def toDomainContent(articleContent: api.ArticleContentV2): ArticleContent = {
       ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
     }
 
-    def toDomainTag(tag: api.ArticleTag): ArticleTag = {
-      ArticleTag(tag.tags, tag.language)
+    def toDomainTag(tag: api.ArticleTag): Tag = {
+      Tag(tag.tags, tag.language)
     }
 
-    def toDomainTagV2(tag: Seq[String], language: String): Seq[ArticleTag] = {
+    def toDomainTagV2(tag: Seq[String], language: String): Seq[Tag] = {
       if (tag.isEmpty) {
-        Seq.empty[ArticleTag]
+        Seq.empty[Tag]
       } else {
-        Seq(ArticleTag(tag, language))
+        Seq(Tag(tag, language))
       }
     }
 
@@ -427,7 +429,7 @@ trait ConverterService {
       }
     }
 
-    def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
+    def toApiArticleTitle(title: Title): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }
 
@@ -470,7 +472,7 @@ trait ConverterService {
       api.Author(author.`type`, author.name)
     }
 
-    def toApiArticleTag(tag: ArticleTag): api.ArticleTag = {
+    def toApiArticleTag(tag: Tag): api.ArticleTag = {
       api.ArticleTag(tag.tags, tag.language)
     }
 

@@ -7,14 +7,15 @@
 
 package no.ndla.searchapi.model.domain.article
 
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleIntroduction,
   ArticleMetaImage,
-  Tag,
-  Title,
   Availability,
   Content,
+  Tag,
+  Title,
   VisualElement
 }
 import no.ndla.searchapi.model.domain.article.RelatedContentLink.RelatedContent

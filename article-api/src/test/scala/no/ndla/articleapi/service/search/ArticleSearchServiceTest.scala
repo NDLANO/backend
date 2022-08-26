@@ -11,7 +11,8 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{Author, Availability, Tag, Title}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -83,12 +84,12 @@ class ArticleSearchServiceTest
 
   val article1 = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
-    title = List(ArticleTitle("Batmen er på vift med en bil", "nb")),
+    title = List(Title("Batmen er på vift med en bil", "nb")),
     introduction = List(ArticleIntroduction("Batmen", "nb")),
     content = List(
       ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
     ),
-    tags = List(ArticleTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(3),
     metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
@@ -97,10 +98,10 @@ class ArticleSearchServiceTest
 
   val article2 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(2),
-    title = List(ArticleTitle("Pingvinen er ute og går", "nb")),
+    title = List(Title("Pingvinen er ute og går", "nb")),
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    tags = List(ArticleTag(List("fugl"), "nb")),
+    tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(2),
     grepCodes = Seq("KV123", "KV456")
@@ -108,10 +109,10 @@ class ArticleSearchServiceTest
 
   val article3 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(3),
-    title = List(ArticleTitle("Donald Duck kjører bil", "nb")),
+    title = List(Title("Donald Duck kjører bil", "nb")),
     introduction = List(ArticleIntroduction("Donald Duck", "nb")),
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(ArticleTag(List("and"), "nb")),
+    tags = List(Tag(List("and"), "nb")),
     created = today.minusDays(4),
     updated = today.minusDays(1),
     grepCodes = Seq("KV456")
@@ -119,28 +120,28 @@ class ArticleSearchServiceTest
 
   val article4 = TestData.sampleArticleWithCopyrighted.copy(
     id = Option(4),
-    title = List(ArticleTitle("Superman er ute og flyr", "nb")),
+    title = List(Title("Superman er ute og flyr", "nb")),
     introduction = List(ArticleIntroduction("Superman", "nb")),
     content =
       List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(ArticleTag(List("supermann"), "nb")),
+    tags = List(Tag(List("supermann"), "nb")),
     created = today.minusDays(4),
     updated = today
   )
 
   val article5 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(5),
-    title = List(ArticleTitle("Hulken løfter biler", "nb")),
+    title = List(Title("Hulken løfter biler", "nb")),
     introduction = List(ArticleIntroduction("Hulken", "nb")),
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(ArticleTag(List("hulk"), "nb")),
+    tags = List(Tag(List("hulk"), "nb")),
     created = today.minusDays(40),
     updated = today.minusDays(35)
   )
 
   val article6 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(6),
-    title = List(ArticleTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
+    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
     content = List(
       ArticleContent(
@@ -148,27 +149,27 @@ class ArticleSearchServiceTest
         "nb"
       )
     ),
-    tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), "nb")),
+    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
     created = today.minusDays(30),
     updated = today.minusDays(25)
   )
 
   val article7 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(7),
-    title = List(ArticleTitle("Yggdrasil livets tre", "nb")),
+    title = List(Title("Yggdrasil livets tre", "nb")),
     introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(ArticleTag(List("yggdrasil"), "nb")),
+    tags = List(Tag(List("yggdrasil"), "nb")),
     created = today.minusDays(20),
     updated = today.minusDays(15)
   )
 
   val article8 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(8),
-    title = List(ArticleTitle("Baldur har mareritt", "nb")),
+    title = List(Title("Baldur har mareritt", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(ArticleTag(List("baldur"), "nb")),
+    tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -176,10 +177,10 @@ class ArticleSearchServiceTest
 
   val article9 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(9),
-    title = List(ArticleTitle("En Baldur har mareritt om Ragnarok", "nb")),
+    title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(ArticleTag(List("baldur"), "nb")),
+    tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -187,10 +188,10 @@ class ArticleSearchServiceTest
 
   val article10 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(10),
-    title = List(ArticleTitle("This article is in english", "en")),
+    title = List(Title("This article is in english", "en")),
     introduction = List(ArticleIntroduction("Engulsk", "en")),
     content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
-    tags = List(ArticleTag(List("englando"), "en")),
+    tags = List(Tag(List("englando"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -198,7 +199,7 @@ class ArticleSearchServiceTest
 
   val article11 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(11),
-    title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en"), ArticleTitle("Baloi", "biz")),
+    title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
     introduction = List(
       ArticleIntroduction("Katter er store", "nb"),
       ArticleIntroduction("Cats are big", "en"),
@@ -206,7 +207,7 @@ class ArticleSearchServiceTest
     ),
     metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
+    tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.TopicArticle.toString
@@ -214,11 +215,11 @@ class ArticleSearchServiceTest
 
   val article12 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(12),
-    title = List(ArticleTitle("availability - Hemmelig lærer artikkel", "nb")),
+    title = List(Title("availability - Hemmelig lærer artikkel", "nb")),
     introduction = List(ArticleIntroduction("Lærer", "nb")),
     metaDescription = List(ArticleMetaDescription("lærer", "nb")),
     content = List(ArticleContent("<p>Lærer</p>", "nb")),
-    tags = List(ArticleTag(List("lærer"), "nb")),
+    tags = List(Tag(List("lærer"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,
@@ -227,11 +228,11 @@ class ArticleSearchServiceTest
 
   val article13 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(13),
-    title = List(ArticleTitle("availability - Hemmelig student artikkel", "nb")),
+    title = List(Title("availability - Hemmelig student artikkel", "nb")),
     introduction = List(ArticleIntroduction("Student", "nb")),
     metaDescription = List(ArticleMetaDescription("student", "nb")),
     content = List(ArticleContent("<p>Student</p>", "nb")),
-    tags = List(ArticleTag(List("student"), "nb")),
+    tags = List(Tag(List("student"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     articleType = ArticleType.Standard.toString,

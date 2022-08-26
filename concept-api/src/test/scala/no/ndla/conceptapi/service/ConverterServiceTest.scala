@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.{api, domain}
@@ -55,8 +56,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         title = Seq(
-          domain.ConceptTitle("Tittelur", "nn"),
-          domain.ConceptTitle("heisann", "nb")
+          common.Title("Tittelur", "nn"),
+          common.Title("heisann", "nb")
         ),
         updated = updated
       )
@@ -101,9 +102,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         title = Seq(
-          domain.ConceptTitle("Tittel", "nb"),
-          domain.ConceptTitle("Tittelur", "nn"),
-          domain.ConceptTitle("Title", "en")
+          common.Title("Tittel", "nb"),
+          common.Title("Tittelur", "nn"),
+          common.Title("Title", "en")
         ),
         content = Seq(
           domain.ConceptContent("Innhold", "nb"),
@@ -399,7 +400,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
-      title = Seq(domain.ConceptTitle("", "")),
+      title = Seq(common.Title("", "")),
       updatedBy = Seq("test"),
       created = today,
       updated = today

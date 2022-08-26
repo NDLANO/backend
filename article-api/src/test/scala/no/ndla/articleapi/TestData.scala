@@ -10,7 +10,8 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{Author, Availability, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 
@@ -125,10 +126,10 @@ trait TestData {
     val sampleArticleWithPublicDomain = Article(
       Option(1),
       Option(1),
-      Seq(ArticleTitle("test", "en")),
+      Seq(Title("test", "en")),
       Seq(ArticleContent("<section><div>test</div></section>", "en")),
       publicDomainCopyright,
-      Seq(ArticleTag(Seq("a", "b", "c"), "en")),
+      Seq(Tag(Seq("a", "b", "c"), "en")),
       Seq(),
       Seq(VisualElement("image", "en")),
       Seq(ArticleIntroduction("This is an introduction", "en")),
@@ -149,10 +150,10 @@ trait TestData {
     val sampleDomainArticle = Article(
       Option(articleId),
       Option(2),
-      Seq(ArticleTitle("title", "nb")),
+      Seq(Title("title", "nb")),
       Seq(ArticleContent("content", "nb")),
       Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None, None),
-      Seq(ArticleTag(Seq("tag"), "nb")),
+      Seq(Tag(Seq("tag"), "nb")),
       Seq(),
       Seq(),
       Seq(),
@@ -173,7 +174,7 @@ trait TestData {
     val sampleDomainArticle2 = Article(
       None,
       None,
-      Seq(ArticleTitle("test", "en")),
+      Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
       Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
       Seq(),
@@ -200,7 +201,7 @@ trait TestData {
     val sampleDomainArticleWithHtmlFault = Article(
       Option(articleId),
       Option(2),
-      Seq(ArticleTitle("test", "en")),
+      Seq(Title("test", "en")),
       Seq(
         ArticleContent(
           """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
@@ -264,7 +265,7 @@ trait TestData {
     )
 
     val (nodeId, nodeId2) = ("1234", "4321")
-    val sampleTitle       = ArticleTitle("title", "en")
+    val sampleTitle       = Title("title", "en")
 
     val visualElement = VisualElement(
       s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
@@ -275,7 +276,7 @@ trait TestData {
       Article(
         Option(articleId),
         Option(2),
-        Seq(ArticleTitle("title", lang)),
+        Seq(Title("title", lang)),
         Seq(ArticleContent("content", lang)),
         Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
         Seq(),

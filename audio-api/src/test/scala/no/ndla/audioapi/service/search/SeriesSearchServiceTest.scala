@@ -11,6 +11,7 @@ package no.ndla.audioapi.service.search
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.common.model.{domain => common}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
@@ -39,16 +40,16 @@ class SeriesSearchServiceTest
   val seriesToIndex = Seq(
     TestData.SampleSeries.copy(
       id = 1,
-      title = Seq(domain.Title("Lyd med epler", "nb"), domain.Title("Sound with apples", "en")),
+      title = Seq(common.Title("Lyd med epler", "nb"), common.Title("Sound with apples", "en")),
       description = Seq(domain.Description("megabeskrivelse", "nb"), domain.Description("giant description", "en"))
     ),
     TestData.SampleSeries.copy(
       id = 2,
-      title = Seq(domain.Title("Lyd med tiger", "nb"))
+      title = Seq(common.Title("Lyd med tiger", "nb"))
     ),
     TestData.SampleSeries.copy(
       id = 3,
-      title = Seq(domain.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix"))
+      title = Seq(common.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix"))
     )
   )
 
@@ -112,17 +113,17 @@ class SeriesSearchServiceTest
     val seriesToIndex = Seq(
       TestData.SampleSeries.copy(
         id = 1,
-        title = Seq(domain.Title("Lyd med epler", "nb"), domain.Title("Sound with apples", "en")),
+        title = Seq(common.Title("Lyd med epler", "nb"), common.Title("Sound with apples", "en")),
         description = Seq(domain.Description("megabeskrivelse", "nb"), domain.Description("giant description", "en"))
       ),
       TestData.SampleSeries.copy(
         id = 2,
-        title = Seq(domain.Title("Lyd med tiger", "nb")),
+        title = Seq(common.Title("Lyd med tiger", "nb")),
         description = Seq(domain.Description("megabeskrivelse", "nb"))
       ),
       TestData.SampleSeries.copy(
         id = 3,
-        title = Seq(domain.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix")),
+        title = Seq(common.Title("Lyd på språket Mixtepec Mixtec uten analyzer", "mix")),
         description = Seq(domain.Description("descriptos", "mix"))
       )
     )

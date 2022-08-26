@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
+import no.ndla.common.model.{domain => common}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
@@ -63,7 +64,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val publicDomain: domain.Copyright = domain.Copyright(
     "publicdomain",
     Some("Metropolis"),
-    List(domain.Author("Forfatter", "Bruce Wayne")),
+    List(common.Author("Forfatter", "Bruce Wayne")),
     Seq(),
     Seq(),
     None,
@@ -75,9 +76,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Some(4),
     Some(1),
     List(
-      domain.Title("Donald Duck kjører bil", "nb"),
-      domain.Title("Donald Duck kjører bil", "nn"),
-      domain.Title("Donald Duck drives a car", "en")
+      common.Title("Donald Duck kjører bil", "nb"),
+      common.Title("Donald Duck kjører bil", "nn"),
+      common.Title("Donald Duck drives a car", "en")
     ),
     List(
       domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
@@ -86,9 +87,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     ),
     publicDomain,
     List(
-      domain.Tag(List("and"), "nb"),
-      domain.Tag(List("and"), "nn"),
-      domain.Tag(List("duck"), "en")
+      common.Tag(List("and"), "nb"),
+      common.Tag(List("and"), "nn"),
+      common.Tag(List("duck"), "en")
     ),
     "ndla124",
     updated1,
@@ -521,9 +522,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audio = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck kjører bil", "nn"),
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck kjører bil", "nb"),
+        common.Title("Donald Duck kjører bil", "nn"),
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
@@ -531,9 +532,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("and"), "nn"),
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("and"), "nb"),
+        common.Tag(List("and"), "nn"),
+        common.Tag(List("duck"), "en")
       ),
       manuscript = List(
         domain.Manuscript("Manuskript", "nb"),
@@ -549,16 +550,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedAudio = audio.copy(
       titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck kjører bil", "nb"),
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
         domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("and"), "nb"),
+        common.Tag(List("duck"), "en")
       ),
       manuscript = List(
         domain.Manuscript("Manuskript", "nb"),
@@ -607,13 +608,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audio = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("duck"), "en")
       )
     )
 
@@ -890,9 +891,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audio = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck kjører bil", "nn"),
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck kjører bil", "nb"),
+        common.Title("Donald Duck kjører bil", "nn"),
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
@@ -900,9 +901,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("and"), "nn"),
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("and"), "nb"),
+        common.Tag(List("and"), "nn"),
+        common.Tag(List("duck"), "en")
       )
     )
 
@@ -939,9 +940,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audio = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck kjører bil", "nn"),
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck kjører bil", "nb"),
+        common.Title("Donald Duck kjører bil", "nn"),
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
@@ -949,9 +950,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Audio("file2.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("and"), "nn"),
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("and"), "nb"),
+        common.Tag(List("and"), "nn"),
+        common.Tag(List("duck"), "en")
       )
     )
 
@@ -986,9 +987,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audio = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
-        domain.Title("Donald Duck kjører bil", "nb"),
-        domain.Title("Donald Duck kjører bil", "nn"),
-        domain.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck kjører bil", "nb"),
+        common.Title("Donald Duck kjører bil", "nn"),
+        common.Title("Donald Duck drives a car", "en")
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
@@ -996,9 +997,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
       ),
       tags = List(
-        domain.Tag(List("and"), "nb"),
-        domain.Tag(List("and"), "nn"),
-        domain.Tag(List("duck"), "en")
+        common.Tag(List("and"), "nb"),
+        common.Tag(List("and"), "nn"),
+        common.Tag(List("duck"), "en")
       )
     )
 

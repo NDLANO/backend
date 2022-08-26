@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}

@@ -9,7 +9,9 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.DateParser
+import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
@@ -46,7 +48,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     0,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -61,7 +63,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     1,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -76,7 +78,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     2,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -91,7 +93,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     3,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -106,7 +108,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     4,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -121,7 +123,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     5,
-    List(domain.Title("Tittel", "nb")),
+    List(common.Title("Tittel", "nb")),
     List(),
     List(),
     StepType.TEXT,
@@ -1116,7 +1118,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("Owner updates step of published should update status to UNLISTED") {
     val newDate          = DateParser.fromUnixTime(648000000)
-    val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
+    val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
@@ -1171,7 +1173,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("owner updates step private should not update status") {
     val newDate          = DateParser.fromUnixTime(648000000)
-    val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
+    val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(any[DBSession]))
@@ -1199,7 +1201,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("admin updates step should not update status") {
     val newDate          = DateParser.fromUnixTime(648000000)
-    val stepWithBadTitle = STEP1.copy(title = Seq(domain.Title("Dårlig tittel", "nb")))
+    val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")))
 
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
