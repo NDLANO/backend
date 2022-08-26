@@ -228,7 +228,7 @@ trait ArticleControllerV2 {
     get(
       "/",
       operation(
-        apiOperation[List[SearchResultV2]]("getAllArticles")
+        apiOperation[SearchResultV2]("getAllArticles")
           .summary("Find published articles.")
           .description("Returns all articles. You can search it too.")
           .parameters(
@@ -276,6 +276,31 @@ trait ArticleControllerV2 {
           shouldScroll
         )
       }
+    }
+
+    get(
+      "/ids/",
+      operation(
+        apiOperation[List[ArticleV2]]("getArticlesByIds")
+          .summary("Fetch articles that matches ids parameter.")
+          .description("Returns articles that matches ids parameter.")
+          .parameters(
+            asQueryParam(articleIds),
+            asQueryParam(fallback),
+            asQueryParam(language)
+          )
+          .responseMessages(response500)
+      )
+    ) {
+      val idList   = paramAsListOfLong(this.articleIds.paramName)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+
+      readService.getArticlesByIds(idList, language, fallback, requestFeideToken) match {
+        case Failure(ex)       => errorHandler(ex)
+        case Success(articles) => Ok(articles)
+      }
+
     }
 
     post(
@@ -327,7 +352,7 @@ trait ArticleControllerV2 {
     get(
       "/:article_id",
       operation(
-        apiOperation[List[ArticleV2]]("getArticleById")
+        apiOperation[ArticleV2]("getArticleById")
           .summary("Fetch specified article.")
           .description("Returns the article for the specified id.")
           .parameters(

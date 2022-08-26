@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
@@ -273,6 +274,39 @@ trait ReadService {
       else
         Cachable.yes(result)
     }
+
+    private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability.Value] = {
+      feideAccessToken match {
+        case None => Some(Availability.everyone)
+        case Some(value) =>
+          feideApiClient.getUser(value) match {
+            case Failure(_)                      => Some(Availability.everyone)
+            case Success(user) if user.isTeacher => None
+            case Success(_)                      => Some(Availability.everyone)
+          }
+      }
+    }
+
+    private def applyAvailabilityFilter(feideAccessToken: Option[String], articles: List[Article]): List[Article] = {
+      val availabilityFilter = getAvailabilityFilter(feideAccessToken)
+      val filteredArticles = availabilityFilter
+        .map(avaFilter => articles.filter(article => article.availability == avaFilter))
+        .getOrElse(articles)
+      filteredArticles
+    }
+
+    def getArticlesByIds(
+        articleIds: List[Long],
+        language: String,
+        fallback: Boolean,
+        feideAccessToken: Option[String] = None
+    ): Try[List[api.ArticleV2]] = {
+      val domainArticles = articleIds.distinct.flatMap(articleRepository.withId)
+      val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
+      val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
+      filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
+    }
+
   }
 
 }
