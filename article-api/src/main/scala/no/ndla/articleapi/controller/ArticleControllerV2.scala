@@ -287,7 +287,9 @@ trait ArticleControllerV2 {
           .parameters(
             asQueryParam(articleIds),
             asQueryParam(fallback),
-            asQueryParam(language)
+            asQueryParam(language),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo)
           )
           .responseMessages(response500)
       )
@@ -295,8 +297,16 @@ trait ArticleControllerV2 {
       val idList   = paramAsListOfLong(this.articleIds.paramName)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
       val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
+        case x                        => x
+      }
+      val page = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
 
-      readService.getArticlesByIds(idList, language, fallback, requestFeideToken) match {
+      readService.getArticlesByIds(idList, language, fallback, page, pageSize, requestFeideToken) match {
         case Failure(ex)       => errorHandler(ex)
         case Success(articles) => Ok(articles)
       }

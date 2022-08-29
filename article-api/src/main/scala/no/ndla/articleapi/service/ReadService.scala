@@ -299,9 +299,12 @@ trait ReadService {
         articleIds: List[Long],
         language: String,
         fallback: Boolean,
+        page: Long,
+        pageSize: Long,
         feideAccessToken: Option[String] = None
     ): Try[Seq[api.ArticleV2]] = {
-      val domainArticles = articleRepository.withIds(articleIds.distinct)
+      val offset         = (page - 1) * pageSize
+      val domainArticles = articleRepository.withIds(articleIds.distinct, offset, pageSize)
       val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
       val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
       filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))

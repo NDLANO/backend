@@ -136,19 +136,23 @@ trait ArticleRepository {
       )
     }
 
-    def withIds(articleIds: List[Long])(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
+    def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Seq[Article] = {
       val ar  = Article.syntax("ar")
       val ar2 = Article.syntax("ar2")
       sql"""
         select ${ar.result.*}
         from ${Article.as(ar)}
         where ar.document is not NULL
-          and ar.article_id in ($articleIds)
+        and ar.article_id in ($articleIds)
         and ar.revision = (
             select max(revision)
             from ${Article.as(ar2)}
             where ar2.article_id = ar.article_id
         )
+        offset $offset
+        limit $pageSize
          """
         .map(Article.fromResultSet(ar))
         .list()
