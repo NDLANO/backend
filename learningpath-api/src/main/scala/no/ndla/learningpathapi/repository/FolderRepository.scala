@@ -32,6 +32,9 @@ trait FolderRepository {
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
 
+    def withTx[T](func: DBSession => T): T =
+      DB.localTx { session => func(session) }
+
     def insertFolder(
         feideId: FeideID,
         parentId: Option[UUID],

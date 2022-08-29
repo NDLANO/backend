@@ -587,7 +587,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(subFolder3UUID.toString),
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List(apiResource.id)
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -601,7 +601,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List.empty
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -615,7 +615,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List(apiData1.id)
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -628,7 +628,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = None,
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List(apiData2.id, apiData3.id, apiResource.id)
     )
 
     val Success(result) =

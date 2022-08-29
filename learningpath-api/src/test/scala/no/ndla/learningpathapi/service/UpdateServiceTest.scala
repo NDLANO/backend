@@ -17,6 +17,7 @@ import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{
+  FolderSortRequest,
   NewCopyLearningPathV2,
   NewLearningPathV2,
   NewLearningStepV2,
@@ -31,7 +32,7 @@ import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
@@ -1865,7 +1866,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List.empty
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2030,5 +2031,63 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
+  }
+
+  test("That sorting endpoint calls ranking correctly :^)") {
+    val feideId = "FEIDE"
+
+    val parent = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child1 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child2 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child3 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val childResCon1 = FolderResource(parent.id, UUID.randomUUID(), rank = 5)
+
+    val sortRequest = FolderSortRequest(
+      sortedIds = List(
+        child1.id,
+        child3.id,
+        childResCon1.resourceId,
+        child2.id
+      )
+    )
+
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.setFolderRank(any, any, any)(any)).thenReturn(Success(()))
+    when(folderRepository.setResourceConnectionRank(any, any, any)(any)).thenReturn(Success(()))
+    when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(any)).thenReturn(Success(parent))
+    when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(any)).thenReturn(Success(child1))
+    when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(any)).thenReturn(Success(child2))
+    when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(any)).thenReturn(Success(child3))
+    when(folderRepository.getConnections(eqTo(parent.id))(any)).thenReturn(Success(List(childResCon1)))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(any)).thenReturn(
+      Success(List(child1, child2, child3))
+    )
+
+    service.sortFolder(parent.id, sortRequest, Some("1234")) should be(Success(()))
+
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child1.id), eqTo(1), any)(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child3.id), eqTo(2), any)(any)
+    verify(folderRepository, times(1)).setResourceConnectionRank(
+      eqTo(childResCon1.folderId),
+      eqTo(childResCon1.resourceId),
+      eqTo(3)
+    )(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(4), any)(any)
   }
 }

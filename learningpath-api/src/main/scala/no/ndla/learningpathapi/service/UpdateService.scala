@@ -37,7 +37,7 @@ import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.network.clients.FeideApiClient
-import scalikejdbc.{DB, DBSession, ReadOnlyAutoSession}
+import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -719,22 +719,23 @@ trait UpdateService {
             )
           )
 
-        DB.localTx { session =>
-          sortRequest.sortedIds
-            .mapWithIndex((x, idx) => {
-              val newRank = idx + 1
-              val found = rankables.find(r => x == r.sortId)
-              found match {
-                case Some(Folder(folderId, _, _, _, _, _, _, _)) =>
-                  folderRepository.setFolderRank(folderId, newRank, feideId)(session)
-                case Some(FolderResource(folderId, resourceId, _)) =>
-                  folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
-                case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
-              }
-            })
-            .sequence
-            .map(_ => ())
-        }
+          folderRepository.withTx { session =>
+            sortRequest.sortedIds
+              .mapWithIndex((x, idx) => {
+                val newRank = idx + 1
+                val found   = rankables.find(r => x == r.sortId)
+                found match {
+                  case Some(Folder(folderId, _, _, _, _, _, _, _)) =>
+                    folderRepository.setFolderRank(folderId, newRank, feideId)(session)
+                  case Some(FolderResource(folderId, resourceId, _)) =>
+                    folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
+                  case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
+                }
+              })
+              .sequence
+              .map(_ => ())
+          }
+      }
     }
   }
 

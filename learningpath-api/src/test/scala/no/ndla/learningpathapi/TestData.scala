@@ -153,7 +153,7 @@ object TestData {
     breadcrumbs = List.empty,
     parentId = None,
     rank = None,
-    sortedChildIds = None
+    sortedChildIds = List.empty
   )
 
 }

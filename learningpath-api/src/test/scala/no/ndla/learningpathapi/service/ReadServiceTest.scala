@@ -404,7 +404,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = None,
-          sortedChildIds = None
+          sortedChildIds = List.empty
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -418,11 +418,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = None,
-          sortedChildIds = None
+          sortedChildIds = List.empty
         )
       ),
       rank = None,
-      sortedChildIds = None
+      sortedChildIds = List(subFolder1UUID.toString, subFolder2UUID.toString, resource1UUID.toString)
     )
 
     val whgaterh = mainFolder.copy(
