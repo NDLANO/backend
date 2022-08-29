@@ -287,7 +287,7 @@ trait ReadService {
       }
     }
 
-    private def applyAvailabilityFilter(feideAccessToken: Option[String], articles: List[Article]): List[Article] = {
+    private def applyAvailabilityFilter(feideAccessToken: Option[String], articles: Seq[Article]): Seq[Article] = {
       val availabilityFilter = getAvailabilityFilter(feideAccessToken)
       val filteredArticles = availabilityFilter
         .map(avaFilter => articles.filter(article => article.availability == avaFilter))
@@ -300,8 +300,8 @@ trait ReadService {
         language: String,
         fallback: Boolean,
         feideAccessToken: Option[String] = None
-    ): Try[List[api.ArticleV2]] = {
-      val domainArticles = articleIds.distinct.flatMap(articleRepository.withId)
+    ): Try[Seq[api.ArticleV2]] = {
+      val domainArticles = articleRepository.withIds(articleIds.distinct)
       val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
       val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
       filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
