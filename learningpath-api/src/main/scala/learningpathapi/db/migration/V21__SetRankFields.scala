@@ -12,7 +12,7 @@ import scalikejdbc.{DB, DBSession, _}
 
 import java.util.UUID
 
-class V20__SetRankFields extends BaseJavaMigration {
+class V21__SetRankFields extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
