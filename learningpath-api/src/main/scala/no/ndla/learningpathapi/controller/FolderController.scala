@@ -19,6 +19,7 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedResource,
   ValidationError
 }
+import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -49,10 +50,11 @@ trait FolderController {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
     val response502 = ResponseMessage(502, "Remote error", Some("Error"))
 
-    private val folderId   = Param[UUID]("folder_id", "UUID of the folder.")
-    private val resourceId = Param[UUID]("resource_id", "UUID of the resource.")
-    private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
-    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+    private val folderId      = Param[UUID]("folder_id", "UUID of the folder.")
+    private val folderIdQuery = Param[Option[UUID]]("folder-id", "UUID of the folder.")
+    private val resourceId    = Param[UUID]("resource_id", "UUID of the resource.")
+    private val size          = Param[Option[Int]]("size", "Limit the number of results to this many elements")
+    private val feideToken    = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
     private val includeResources =
       Param[Option[Boolean]]("include-resources", "Choose if resources should be included in the response")
@@ -280,23 +282,49 @@ trait FolderController {
     }
 
     put(
-      "/:folder_id/sort",
+      "/sort-resources/:folder_id",
       operation(
-        apiOperation[Folder]("sortFolderContent")
-          .summary("Decide order of ids in a folder")
-          .description("Decide order of ids in a folder")
+        apiOperation[Folder]("sortFolderResources")
+          .summary("Decide order of resource ids in a folder")
+          .description("Decide order of resource ids in a folder")
           .parameters(
             bodyParam[FolderSortRequest]
           )
       )
     ) {
-      val sorted = for {
+      val result = for {
         folderId    <- uuidParam(this.folderId.paramName)
         sortRequest <- tryExtract[FolderSortRequest](request.body)
-        sorted      <- updateService.sortFolder(folderId, sortRequest, requestFeideToken)
+        sortObject = ResourceSorting(folderId)
+        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
 
-      sorted match {
+      result match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(_)  => Ok()
+      }
+    }
+
+    put(
+      "/sort-subfolders",
+      operation(
+        apiOperation[Folder]("sortFolderFolders")
+          .summary("Decide order of subfolder ids in a folder")
+          .description("Decide order of subfolder ids in a folder")
+          .parameters(
+            bodyParam[FolderSortRequest],
+            asQueryParam(folderIdQuery)
+          )
+      )
+    ) {
+      val result = for {
+        folderId    <- uuidParamOrNone(this.folderIdQuery.paramName)
+        sortRequest <- tryExtract[FolderSortRequest](request.body)
+        sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
+        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
+      } yield sorted
+
+      result match {
         case Failure(ex) => errorHandler(ex)
         case Success(_)  => Ok()
       }

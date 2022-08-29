@@ -22,6 +22,7 @@ import no.ndla.common.errors.AccessDeniedException
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
+import cats.implicits._
 
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
@@ -108,6 +109,13 @@ trait NdlaController {
     def uuidParam(paramName: String)(implicit request: HttpServletRequest): Try[UUID] = {
       val maybeParam = paramOrNone(paramName)(request)
       converterService.toUUIDValidated(maybeParam, paramName)
+    }
+
+    def uuidParamOrNone(paramName: String)(implicit request: HttpServletRequest): Try[Option[UUID]] = {
+      paramOrNone(paramName)(request) match {
+        case Some(param) => converterService.toUUIDValidated(Some(param), paramName).map(_.some)
+        case None        => Success(None)
+      }
     }
 
     def doOrAccessDenied(hasAccess: Boolean, reason: String = "Missing user/client-id or role")(w: => Any): Any = {

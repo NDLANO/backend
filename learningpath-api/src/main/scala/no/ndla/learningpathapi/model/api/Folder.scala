@@ -24,8 +24,7 @@ case class Folder(
     @(ApiModelProperty @field)(description = "List of parent folders to resource") breadcrumbs: List[Breadcrumb],
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
     @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
-    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
-    @(ApiModelProperty @field)(description = "A list of direct child ids in sorted order.") sortedChildIds: List[String]
+    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int]
 ) extends FolderData
 // format: on
 

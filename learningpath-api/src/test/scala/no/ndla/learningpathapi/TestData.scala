@@ -152,8 +152,7 @@ object TestData {
     resources = List.empty,
     breadcrumbs = List.empty,
     parentId = None,
-    rank = None,
-    sortedChildIds = List.empty
+    rank = None
   )
 
 }

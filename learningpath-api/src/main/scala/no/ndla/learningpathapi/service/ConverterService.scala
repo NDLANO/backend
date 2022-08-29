@@ -725,8 +725,7 @@ trait ConverterService {
                 resources = resources,
                 breadcrumbs = crumbs,
                 parentId = folder.parentId.map(_.toString),
-                rank = folder.rank,
-                sortedChildIds = sorted.map(_.sortId.toString)
+                rank = folder.rank
               )
             })
         )

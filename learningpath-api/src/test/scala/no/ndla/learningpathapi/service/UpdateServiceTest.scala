@@ -25,6 +25,7 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
+import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.mockito.invocation.InvocationOnMock
@@ -1865,8 +1866,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None,
-      sortedChildIds = List.empty
+      rank = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2052,13 +2052,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       id = UUID.randomUUID(),
       feideId = feideId
     )
-    val childResCon1 = FolderResource(parent.id, UUID.randomUUID(), rank = 5)
 
     val sortRequest = FolderSortRequest(
       sortedIds = List(
         child1.id,
         child3.id,
-        childResCon1.resourceId,
         child2.id
       )
     )
@@ -2074,20 +2072,15 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(any)).thenReturn(Success(child1))
     when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(any)).thenReturn(Success(child2))
     when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(any)).thenReturn(Success(child3))
-    when(folderRepository.getConnections(eqTo(parent.id))(any)).thenReturn(Success(List(childResCon1)))
+    when(folderRepository.getConnections(eqTo(parent.id))(any)).thenReturn(Success(List()))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(any)).thenReturn(
       Success(List(child1, child2, child3))
     )
 
-    service.sortFolder(parent.id, sortRequest, Some("1234")) should be(Success(()))
+    service.sortFolder(FolderSorting(parent.id), sortRequest, Some("1234")) should be(Success(()))
 
     verify(folderRepository, times(1)).setFolderRank(eqTo(child1.id), eqTo(1), any)(any)
     verify(folderRepository, times(1)).setFolderRank(eqTo(child3.id), eqTo(2), any)(any)
-    verify(folderRepository, times(1)).setResourceConnectionRank(
-      eqTo(childResCon1.folderId),
-      eqTo(childResCon1.resourceId),
-      eqTo(3)
-    )(any)
-    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(4), any)(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(3), any)(any)
   }
 }

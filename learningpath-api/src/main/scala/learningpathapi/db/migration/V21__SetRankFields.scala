@@ -74,16 +74,16 @@ class V21__SetRankFields extends BaseJavaMigration {
   def handleFolderAndChildren(id: UUID)(implicit session: DBSession): Unit = {
     val subfolders          = getSubfolders(id)
     val resourceConnections = getResourceConnections(id)
-    val combined            = subfolders ++ resourceConnections
 
-    combined.zipWithIndex.foreach { case (res, idx) =>
+    resourceConnections.zipWithIndex.foreach { case (res, idx) =>
       val rank = idx + 1
-      res match {
-        case Connection(folder_id, resource_id) => updateConnectionRank(folder_id, resource_id, rank)
-        case Folder(id) =>
-          updateFolderRank(id, rank)
-          handleFolderAndChildren(id)
-      }
+      updateConnectionRank(res.folder_id, res.resource_id, rank)
+    }
+
+    subfolders.zipWithIndex.foreach { case (res, idx) =>
+      val rank = idx + 1
+      updateFolderRank(res.id, rank)
+      handleFolderAndChildren(res.id)
     }
   }
 

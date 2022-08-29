@@ -36,6 +36,7 @@ import no.ndla.common.Clock
 import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.caching.Memoize
+import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.network.clients.FeideApiClient
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
@@ -697,44 +698,78 @@ trait UpdateService {
       } yield api
     }
 
-    def sortFolder(
+    private def performSort(
+        rankables: Seq[Rankable],
+        sortRequest: FolderSortRequest,
+        feideId: FeideID
+    ): Try[Unit] = {
+      val allIds     = rankables.map(_.sortId)
+      val hasEveryId = allIds.forall(sortRequest.sortedIds.contains)
+      if (!hasEveryId || allIds.size != sortRequest.sortedIds.size)
+        return Failure(
+          ValidationException(
+            "ids",
+            s"You need to supply _every_ direct child of the folder when sorting."
+          )
+        )
+
+      folderRepository.withTx { session =>
+        sortRequest.sortedIds
+          .mapWithIndex((id, idx) => {
+            val newRank = idx + 1
+            val found   = rankables.find(_.sortId == id)
+            found match {
+              case Some(Folder(folderId, _, _, _, _, _, _, _)) =>
+                folderRepository.setFolderRank(folderId, newRank, feideId)(session)
+              case Some(FolderResource(folderId, resourceId, _)) =>
+                folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
+              case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
+            }
+          })
+          .sequence
+          .map(_ => ())
+      }
+    }
+
+    private def sortRootFolders(sortRequest: FolderSortRequest, feideId: FeideID): Try[Unit] = {
+      val session = folderRepository.getSession(true)
+      folderRepository
+        .foldersWithFeideAndParentID(None, feideId)(session)
+        .map(rootFolders => performSort(rootFolders, sortRequest, feideId))
+    }
+
+    private def sortNonRootFolderResources(
         folderId: UUID,
+        sortRequest: FolderSortRequest,
+        feideId: FeideID
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId) match {
+      case Failure(ex)   => Failure(ex)
+      case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
+      case Success(Some(FolderAndDirectChildren(_, _, resources))) => performSort(resources, sortRequest, feideId)
+    }
+
+    private def sortNonRootFolderSubfolders(
+        folderId: UUID,
+        sortRequest: FolderSortRequest,
+        feideId: FeideID
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId) match {
+      case Failure(ex)   => Failure(ex)
+      case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
+      case Success(Some(FolderAndDirectChildren(_, subfolders, _))) => performSort(subfolders, sortRequest, feideId)
+    }
+
+    def sortFolder(
+        folderSortObject: FolderSortObject,
         sortRequest: FolderSortRequest,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[Unit] = {
       val feideId = getUserFeideID(feideAccessToken).?
-      getFolderWithDirectChildren(folderId.some, feideId) match {
-        case Failure(ex)   => Failure(ex)
-        case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
-        case Success(Some(FolderAndDirectChildren(_, folderChildren, resourceChildren))) =>
-          val rankables: Seq[Rankable] = folderChildren ++ resourceChildren
-          val allIds                   = rankables.map(_.sortId)
-          val hasEveryId               = allIds.forall(sortRequest.sortedIds.contains)
-          if (!hasEveryId || allIds.size != sortRequest.sortedIds.size)
-            return Failure(
-              ValidationException(
-                "ids",
-                "You need to supply _every_ direct child of the folder when sorting. Both resources and folders."
-              )
-            )
-
-          folderRepository.withTx { session =>
-            sortRequest.sortedIds
-              .mapWithIndex((x, idx) => {
-                val newRank = idx + 1
-                val found   = rankables.find(r => x == r.sortId)
-                found match {
-                  case Some(Folder(folderId, _, _, _, _, _, _, _)) =>
-                    folderRepository.setFolderRank(folderId, newRank, feideId)(session)
-                  case Some(FolderResource(folderId, resourceId, _)) =>
-                    folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
-                  case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
-                }
-              })
-              .sequence
-              .map(_ => ())
-          }
+      folderSortObject match {
+        case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
+        case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
+        case RootFolderSorting()       => sortRootFolders(sortRequest, feideId)
       }
     }
+
   }
 }

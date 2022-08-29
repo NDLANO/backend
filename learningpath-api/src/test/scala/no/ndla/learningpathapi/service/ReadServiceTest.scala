@@ -403,8 +403,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None,
-          sortedChildIds = List.empty
+          rank = None
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -417,12 +416,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None,
-          sortedChildIds = List.empty
+          rank = None
         )
       ),
-      rank = None,
-      sortedChildIds = List(subFolder1UUID.toString, subFolder2UUID.toString, resource1UUID.toString)
+      rank = None
     )
 
     val whgaterh = mainFolder.copy(
