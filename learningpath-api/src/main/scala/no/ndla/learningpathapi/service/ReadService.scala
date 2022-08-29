@@ -303,7 +303,8 @@ trait ReadService {
           withData,
           v => converterService.toApiFolder(v, List(api.Breadcrumb(id = v.id.toString, name = v.name)))
         )
-      } yield apiFolders
+        sorted = apiFolders.sortBy(_.rank)
+      } yield sorted
     }
 
     def getSharedFolder(id: UUID): Try[api.Folder] = {

@@ -21,7 +21,7 @@ import no.ndla.learningpathapi.model.api.{
 }
 import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
-import org.json4s.ext.JavaTimeSerializers
+import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
 import org.scalatra.{NoContent, Ok}
@@ -35,7 +35,8 @@ trait FolderController {
   val folderController: FolderController
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 

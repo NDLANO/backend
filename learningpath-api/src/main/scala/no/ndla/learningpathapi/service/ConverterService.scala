@@ -715,14 +715,12 @@ trait ConverterService {
           folder.resources
             .traverse(toApiResource)
             .map(resources => {
-              val directs: List[Rankable] = folder.subfolders ++ folder.resources
-              val sorted                  = directs.sortBy(e => e.sortRank.getOrElse(directs.length))
               api.Folder(
                 id = folder.id.toString,
                 name = folder.name,
                 status = folder.status.toString,
-                subfolders = subFolders,
-                resources = resources,
+                subfolders = subFolders.sortBy(_.rank),
+                resources = resources.sortBy(_.rank),
                 breadcrumbs = crumbs,
                 parentId = folder.parentId.map(_.toString),
                 rank = folder.rank

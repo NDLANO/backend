@@ -23,15 +23,13 @@ class V21__SetRankFields extends BaseJavaMigration {
   }
 
   def migrateFoldersAndResources(implicit session: DBSession): Unit = {
-    val count        = countRootFolders.get
-    var numPagesLeft = (count / 1000) + 1
-    var offset       = 0L
-
-    while (numPagesLeft > 0) {
-      allRootFolders(offset * 1000).foreach(id => handleFolderAndChildren(id))
-      numPagesLeft -= 1
-      offset += 1
-    }
+    allFeideIds().foreach(feideId => {
+      allRootFolders(feideId).zipWithIndex.foreach { case (id, idx) =>
+        val rank = idx + 1
+        updateFolderRank(id, rank)
+        handleFolderAndChildren(id)
+      }
+    })
   }
 
   implicit val uuidBinder: Binders[UUID] = Binders.of[UUID] {
@@ -87,14 +85,14 @@ class V21__SetRankFields extends BaseJavaMigration {
     }
   }
 
-  def countRootFolders(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from folders where parent_id is null"
-      .map(rs => rs.long("count"))
-      .single()
+  def allFeideIds()(implicit session: DBSession): Seq[String] = {
+    sql"select distinct feide_id from folders where parent_id is null;"
+      .map(rs => rs.string("feide_id"))
+      .list()
   }
 
-  def allRootFolders(offset: Long)(implicit session: DBSession): Seq[UUID] = {
-    sql"select id from folders where parent_id is null order by id limit 1000 offset $offset"
+  def allRootFolders(feideId: String)(implicit session: DBSession): Seq[UUID] = {
+    sql"select id from folders where parent_id is null and feide_id = $feideId"
       .map(rs => rs.get[UUID]("id"))
       .list()
   }
