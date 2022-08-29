@@ -183,10 +183,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.everyone)
 
-    when(articleRepository.withId(any)).thenReturn(Some(article1), Some(article2), Some(article3))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
-    val Success(result) = readService.getArticlesByIds(articleIds = ids, language = "nb", fallback = true)
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None
+      )
     result.length should be(3)
 
     verify(feideApiClient, times(0)).getUser(feideId)
@@ -201,11 +209,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), "")
 
     when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withId(any)).thenReturn(Some(article1), Some(article2), Some(article3))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
-      readService.getArticlesByIds(articleIds = ids, language = "nb", fallback = true, feideAccessToken = Some(feideId))
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId)
+      )
     result.length should be(3)
 
     verify(feideApiClient, times(1)).getUser(feideId)
@@ -220,11 +235,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), "")
 
     when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withId(any)).thenReturn(Some(article1), Some(article2), Some(article3))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
-      readService.getArticlesByIds(articleIds = ids, language = "nb", fallback = true, feideAccessToken = Some(feideId))
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId)
+      )
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
@@ -238,11 +260,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
 
-    when(articleRepository.withId(any)).thenReturn(Some(article1), Some(article2), Some(article3))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
-      readService.getArticlesByIds(articleIds = ids, language = "nb", fallback = true, feideAccessToken = None)
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None
+      )
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
