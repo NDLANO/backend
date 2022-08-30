@@ -13,7 +13,8 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.{Tag, VisualElement}
+import no.ndla.common.model.domain.{Availability, Tag, VisualElement}
+import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
@@ -48,6 +49,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   override val readService      = new ReadService
   override val converterService = new ConverterService
+
+  override def beforeEach() = {
+    reset(feideApiClient)
+  }
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore =
@@ -169,5 +174,107 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
 
+  }
+
+  test("that getArticlesByIds doesn't perform filter when every article has availability status everyone") {
+    val feideId  = "asd"
+    val ids      = List(1L, 2L, 3L)
+    val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.everyone)
+
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None
+      )
+    result.length should be(3)
+
+    verify(feideApiClient, times(0)).getUser(feideId)
+  }
+
+  test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
+    val feideId     = "asd"
+    val ids         = List(1L, 2L, 3L)
+    val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
+    val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
+    val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
+    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), "")
+
+    when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId)
+      )
+    result.length should be(3)
+
+    verify(feideApiClient, times(1)).getUser(feideId)
+  }
+
+  test("that getArticlesByIds performs filter and returns articles that can only be seen by everyone") {
+    val feideId     = "asd"
+    val ids         = List(1L, 2L, 3L)
+    val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
+    val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
+    val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
+    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), "")
+
+    when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId)
+      )
+    result.length should be(2)
+    result.map(res => res.availability).contains("teacher") should be(false)
+
+    verify(feideApiClient, times(1)).getUser(feideId)
+  }
+
+  test("that getArticlesByIds performs filter if feideAccessToken is not set") {
+    val feideId  = "asd"
+    val ids      = List(1L, 2L, 3L)
+    val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
+
+    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None
+      )
+    result.length should be(2)
+    result.map(res => res.availability).contains("teacher") should be(false)
+
+    verify(feideApiClient, times(0)).getUser(feideId)
   }
 }
