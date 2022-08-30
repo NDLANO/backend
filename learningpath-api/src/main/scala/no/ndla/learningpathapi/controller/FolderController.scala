@@ -24,7 +24,7 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
-import org.scalatra.{NoContent, Ok}
+import org.scalatra.NoContent
 
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
@@ -293,17 +293,12 @@ trait FolderController {
           )
       )
     ) {
-      val result = for {
+      for {
         folderId    <- uuidParam(this.folderId.paramName)
         sortRequest <- tryExtract[FolderSortRequest](request.body)
         sortObject = ResourceSorting(folderId)
         sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
-
-      result match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_)  => Ok()
-      }
     }
 
     put(
@@ -318,17 +313,12 @@ trait FolderController {
           )
       )
     ) {
-      val result = for {
+      for {
         folderId    <- uuidParamOrNone(this.folderIdQuery.paramName)
         sortRequest <- tryExtract[FolderSortRequest](request.body)
         sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
         sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
-
-      result match {
-        case Failure(ex) => errorHandler(ex)
-        case Success(_)  => Ok()
-      }
     }
   }
 }
