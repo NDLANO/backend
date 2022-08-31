@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migration
+package no.ndla.learningpathapi.db.migration
 
 import no.ndla.language.Language
 import no.ndla.learningpathapi.model.domain._

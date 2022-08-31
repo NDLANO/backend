@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migration
+package no.ndla.learningpathapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import scalikejdbc.{DB, DBSession, _}

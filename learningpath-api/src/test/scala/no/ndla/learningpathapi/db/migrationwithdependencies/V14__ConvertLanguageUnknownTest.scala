@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migrationwithdependencies
+package no.ndla.learningpathapi.db.migrationwithdependencies
 
+import no.ndla.learningpathapi.db.migrationwithdependencies.V14__ConvertLanguageUnknown
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V14__ConvertLanguageUnknownTest extends UnitSuite with TestEnvironment {

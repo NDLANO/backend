@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migrationwithdependencies
+package no.ndla.learningpathapi.db.migrationwithdependencies
 
+import no.ndla.learningpathapi.db.migrationwithdependencies.V15__MergeDuplicateLanguageFields
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V15__MergeDuplicateLanguageFieldsTest extends UnitSuite with TestEnvironment {

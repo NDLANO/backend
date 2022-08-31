@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi
 
-import learningpathapi.db.migrationwithdependencies.{
+import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V11__CreatedByNdlaStatusForOwnersWithRoles,
   V13__StoreNDLAStepsAsIframeTypes,
   V14__ConvertLanguageUnknown,
@@ -33,7 +33,7 @@ trait DBMigrator {
           new V14__ConvertLanguageUnknown(props),
           new V15__MergeDuplicateLanguageFields(props)
         )
-        .locations("learningpathapi/db/migration")
+        .locations("no/ndla/learningpathapi/db/migration")
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
         // Therefore we simply override it with dataSource.getScheme.

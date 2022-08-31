@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migration
+package no.ndla.learningpathapi.db.migration
 
-import learningpathapi.db.migration.V8__UpdateLicenses
+import no.ndla.learningpathapi.db.migration.V8__UpdateLicenses
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V8__UpdateLicensesTest extends UnitSuite with TestEnvironment {

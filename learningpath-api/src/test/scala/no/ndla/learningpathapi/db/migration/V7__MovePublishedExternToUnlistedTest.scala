@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migration
+package no.ndla.learningpathapi.db.migration
 
-import learningpathapi.db.migration.V7__MovePublishedExternToUnlisted
 import no.ndla.learningpathapi.UnitSuite
+import no.ndla.learningpathapi.db.migration.V7__MovePublishedExternToUnlisted
 
 class V7__MovePublishedExternToUnlistedTest extends UnitSuite {
   val migration = new V7__MovePublishedExternToUnlisted()

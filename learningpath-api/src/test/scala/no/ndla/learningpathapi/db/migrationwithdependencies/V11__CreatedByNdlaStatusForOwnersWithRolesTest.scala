@@ -5,8 +5,9 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migrationwithdependencies
+package no.ndla.learningpathapi.db.migrationwithdependencies
 
+import no.ndla.learningpathapi.db.migrationwithdependencies.V11__CreatedByNdlaStatusForOwnersWithRoles
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V11__CreatedByNdlaStatusForOwnersWithRolesTest extends UnitSuite with TestEnvironment {

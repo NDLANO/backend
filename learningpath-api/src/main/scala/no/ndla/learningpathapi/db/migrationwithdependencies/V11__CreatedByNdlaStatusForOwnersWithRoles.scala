@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package learningpathapi.db.migrationwithdependencies
+package no.ndla.learningpathapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
