@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package frontpageapi.db.migration
+package no.ndla.frontpageapi.db.migration
 
 import io.circe.generic.auto._
 import io.circe.generic.semiauto._

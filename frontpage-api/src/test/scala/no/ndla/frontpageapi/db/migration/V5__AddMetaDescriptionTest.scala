@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package frontpageapi.db.migration
+package no.ndla.frontpageapi.db.migration
 
-import frontpageapi.db.migration.{DBSubjectPage, V5__add_meta_description}
+import no.ndla.frontpageapi.db.migration.{DBSubjectPage, V5__add_meta_description}
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V5__AddMetaDescriptionTest extends UnitSuite with TestEnvironment {

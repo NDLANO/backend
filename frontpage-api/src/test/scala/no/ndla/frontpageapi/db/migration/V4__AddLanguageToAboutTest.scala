@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package frontpageapi.db.migration
+package no.ndla.frontpageapi.db.migration
 
-import frontpageapi.db.migration.{DBSubjectPage, V4__add_language_to_about}
+import no.ndla.frontpageapi.db.migration.{DBSubjectPage, V4__add_language_to_about}
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V4__AddLanguageToAboutTest extends UnitSuite with TestEnvironment {
