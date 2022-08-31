@@ -6,10 +6,10 @@
  *
  */
 
-package db.migration
+package no.ndla.imageapi.db.migration
 
-import imageapi.db.migration.{V2_DBImageMetaInformation, V2__RemoveFullFromImagePath}
 import no.ndla.imageapi.UnitSuite
+import no.ndla.imageapi.db.migration.{V2_DBImageMetaInformation, V2__RemoveFullFromImagePath}
 
 class V2__RemoveFullFromImagePathTest extends UnitSuite {
   val migration = new V2__RemoveFullFromImagePath

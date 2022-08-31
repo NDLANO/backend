@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package db.migration
+package no.ndla.imageapi.db.migration
 
-import imageapi.db.migration.{TimeService2, V4__DBImageMetaInformation, V4__DateFormatUpdated}
 import no.ndla.imageapi.UnitSuite
+import no.ndla.imageapi.db.migration.{TimeService2, V4__DBImageMetaInformation, V4__DateFormatUpdated}
 
 class V4__DateFormatUpdatedTest extends UnitSuite {
 

@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package imageapi.db.migration
+package no.ndla.imageapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JString

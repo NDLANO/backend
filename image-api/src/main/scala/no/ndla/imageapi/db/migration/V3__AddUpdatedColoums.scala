@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package imageapi.db.migration
+package no.ndla.imageapi.db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.DateParser

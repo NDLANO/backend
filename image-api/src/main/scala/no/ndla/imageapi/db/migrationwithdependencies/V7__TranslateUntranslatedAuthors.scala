@@ -5,11 +5,11 @@
  * See LICENSE
  */
 
-package imageapi.db.migrationwithdependencies
+package no.ndla.imageapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.LazyLogging
-import imageapi.db.migration.V5_Author
 import no.ndla.imageapi.ImageApiProperties
+import no.ndla.imageapi.db.migration.V5_Author
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.Formats

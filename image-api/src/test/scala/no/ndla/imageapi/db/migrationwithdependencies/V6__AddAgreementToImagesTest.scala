@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package db.migrationwithdependencies
+package no.ndla.imageapi.db.migrationwithdependencies
 
-import imageapi.db.migration.{V5_Author, V5_ImageMetaInformation}
-import imageapi.db.migrationwithdependencies.{V6_ImageMetaInformation, V6__AddAgreementToImages}
+import no.ndla.imageapi.db.migration.{V5_Author, V5_ImageMetaInformation}
+import no.ndla.imageapi.db.migrationwithdependencies.{V6_ImageMetaInformation, V6__AddAgreementToImages}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read

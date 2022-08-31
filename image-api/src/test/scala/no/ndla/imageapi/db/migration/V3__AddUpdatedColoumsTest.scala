@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package db.migration
+package no.ndla.imageapi.db.migration
 
-import imageapi.db.migration.{TimeService, V3__AddUpdatedColoums, V3__DBImageMetaInformation}
 import no.ndla.imageapi.UnitSuite
+import no.ndla.imageapi.db.migration.{TimeService, V3__AddUpdatedColoums, V3__DBImageMetaInformation}
 
 class V3__AddUpdatedColoumsTest extends UnitSuite {
 

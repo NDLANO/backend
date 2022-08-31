@@ -5,10 +5,10 @@
  * See LICENSE
  */
 
-package db.migrationwithdependencies
+package no.ndla.imageapi.db.migrationwithdependencies
 
-import imageapi.db.migration.V5_Author
-import imageapi.db.migrationwithdependencies.V7__TranslateUntranslatedAuthors
+import no.ndla.imageapi.db.migration.V5_Author
+import no.ndla.imageapi.db.migrationwithdependencies.V7__TranslateUntranslatedAuthors
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 
 class V7__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {
