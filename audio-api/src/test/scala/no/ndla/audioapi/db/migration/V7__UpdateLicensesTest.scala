@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package audioapi.db.migration
+package no.ndla.audioapi.db.migration
 
-import audioapi.db.migration.V7__UpdateLicenses
+import no.ndla.audioapi.db.migration.V7__UpdateLicenses
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V7__UpdateLicensesTest extends UnitSuite with TestEnvironment {

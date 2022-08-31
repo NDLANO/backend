@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi
 
-import audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
+import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
 import no.ndla.audioapi.integration.DataSource
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -25,7 +25,7 @@ trait DBMigrator {
           new V5__AddAgreementToAudio(props),
           new V6__TranslateUntranslatedAuthors(props)
         )
-        .locations("audioapi/db/migration")
+        .locations("no/ndla/audioapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.

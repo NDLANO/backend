@@ -5,23 +5,16 @@
  * See LICENSE
  */
 
-package audioapi.db.migration
+package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.JField
-import org.json4s.ext.{EnumNameSerializer, EnumSerializer}
+import org.json4s.JsonAST.{JField, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction, JObject}
+import org.json4s.{DefaultFormats, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
-
-  object MigrationAudioType extends Enumeration {
-    val Standard: this.Value = Value("standard")
-    val Podcast: this.Value  = Value("podcast")
-  }
-
+class V11__AddCreatedField extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
@@ -40,20 +33,13 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
   }
 
   def convertDocument(document: String): String = {
-    val enumManifest = manifest[MigrationAudioType.Value]
-
-    val oldFormats = DefaultFormats + new EnumSerializer(MigrationAudioType)
-    val newFormats = DefaultFormats + new EnumNameSerializer(MigrationAudioType)
+    implicit val formats = DefaultFormats
 
     val oldArticle = parse(document)
 
-    val existingAudioType = (oldArticle \ "audioType").extractOpt[MigrationAudioType.Value](oldFormats, enumManifest)
-    val audioType         = existingAudioType.getOrElse(MigrationAudioType.Standard)
-    val audioTypeString   = Extraction.decompose(audioType)(newFormats)
-
-    val objectToMerge = JObject(JField("audioType", audioTypeString))
+    val updated       = (oldArticle \ "updated").extract[String]
+    val objectToMerge = JObject(JField("created", JString(updated)))
     val newArticle    = oldArticle.merge(objectToMerge)
-
     compact(render(newArticle))
   }
 

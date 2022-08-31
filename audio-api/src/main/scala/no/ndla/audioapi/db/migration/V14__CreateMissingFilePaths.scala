@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package audioapi.db.migration
+package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction

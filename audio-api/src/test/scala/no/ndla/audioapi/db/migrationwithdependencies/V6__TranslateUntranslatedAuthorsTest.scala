@@ -5,9 +5,10 @@
  * See LICENSE
  */
 
-package audioapi.db.migrationwithdependencies
+package no.ndla.audioapi.db.migrationwithdependencies
 
-import audioapi.db.migration.V4_Author
+import no.ndla.audioapi.db.migration.V4_Author
+import no.ndla.audioapi.db.migrationwithdependencies.V6__TranslateUntranslatedAuthors
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 
 class V6__TranslateUntranslatedAuthorsTest extends UnitSuite with TestEnvironment {

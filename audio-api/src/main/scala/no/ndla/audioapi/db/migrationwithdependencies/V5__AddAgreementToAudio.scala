@@ -5,11 +5,11 @@
  * See LICENSE
  */
 
-package audioapi.db.migrationwithdependencies
+package no.ndla.audioapi.db.migrationwithdependencies
 
-import audioapi.db.migration._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.audioapi.AudioApiProperties
+import no.ndla.audioapi.db.migration.{V4_Audio, V4_AudioMetaInformation, V4_Author, V4_Tag, V4_Title}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject

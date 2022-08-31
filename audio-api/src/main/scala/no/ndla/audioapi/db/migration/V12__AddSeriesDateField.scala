@@ -5,16 +5,23 @@
  * See LICENSE
  */
 
-package audioapi.db.migration
+package no.ndla.audioapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.{JField, JString}
+import org.json4s.JsonAST.JField
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, JObject}
+import org.json4s.{DefaultFormats, Extraction, Formats, JObject}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V11__AddCreatedField extends BaseJavaMigration {
+import java.time.LocalDateTime
+
+class V12__AddSeriesDateField extends BaseJavaMigration {
+  private implicit val formats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+  private val dateToUse                 = LocalDateTime.now()
+  private val jsonDate                  = Extraction.decompose(dateToUse)(formats)
+
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
@@ -27,19 +34,20 @@ class V11__AddCreatedField extends BaseJavaMigration {
   }
 
   def allAudios(implicit session: DBSession): List[(Long, String)] = {
-    sql"select id, document from audiodata"
+    sql"select id, document from seriesdata"
       .map(rs => (rs.long("id"), rs.string("document")))
       .list()
   }
 
   def convertDocument(document: String): String = {
-    implicit val formats = DefaultFormats
-
     val oldArticle = parse(document)
 
-    val updated       = (oldArticle \ "updated").extract[String]
-    val objectToMerge = JObject(JField("created", JString(updated)))
-    val newArticle    = oldArticle.merge(objectToMerge)
+    val objectToMerge = JObject(
+      JField("created", jsonDate),
+      JField("updated", jsonDate)
+    )
+
+    val newArticle = oldArticle.merge(objectToMerge)
     compact(render(newArticle))
   }
 
@@ -48,7 +56,7 @@ class V11__AddCreatedField extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update audiodata set document = ${dataObject} where id = $id".update()
+    sql"update seriesdata set document = ${dataObject} where id = $id".update()
   }
 
 }
