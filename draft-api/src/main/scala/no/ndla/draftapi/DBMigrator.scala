@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi
 
-import draftapi.db.migrationwithdependencies.{
+import no.ndla.draftapi.db.migrationwithdependencies.{
   R__RemoveEmptyStringLanguageFields,
   R__RemoveStatusPublishedArticles,
   R__SetArticleLanguageFromTaxonomy,
@@ -37,7 +37,7 @@ trait DBMigrator {
           new V23__UpdateH5PDomainForFFVisualElement(props),
           new V33__ConvertLanguageUnknown(props)
         )
-        .locations("draftapi/db/migration")
+        .locations("no/ndla/draftapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.

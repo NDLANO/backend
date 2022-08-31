@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import articleapi.db.migrationwithdependencies.{
+import no.ndla.articleapi.db.migrationwithdependencies.{
   R__SetArticleLanguageFromTaxonomy,
   R__SetArticleTypeFromTaxonomy,
   V20__UpdateH5PDomainForFF,
@@ -39,7 +39,7 @@ trait DBMigrator {
           new V22__UpdateH5PDomainForFFVisualElement(props),
           new V33__ConvertLanguageUnknown(props)
         )
-        .locations("articleapi/db/migration")
+        .locations("no/ndla/articleapi/db/migration")
         .table("schema_version") // Flyway's default table name changed, so we specify the old one.
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
