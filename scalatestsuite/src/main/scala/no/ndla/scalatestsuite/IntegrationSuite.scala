@@ -25,7 +25,10 @@ abstract class IntegrationSuite(
 ) extends UnitTestSuite {
 
   val elasticSearchContainer: Try[ElasticsearchContainer] = if (EnableElasticsearchContainer) {
-    val imgName = s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage"
+    val imageFromEnv = sys.env.get("SEARCH_ENGINE_IMAGE")
+    val imgName =
+      imageFromEnv.getOrElse(s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage")
+
     val searchEngineImage = DockerImageName
       .parse(imgName)
       .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")

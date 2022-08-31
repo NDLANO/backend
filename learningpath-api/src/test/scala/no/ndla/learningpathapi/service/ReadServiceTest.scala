@@ -337,7 +337,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "mainFolder",
       status = FolderStatus.PUBLIC,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
 
     val subFolder1 = domain.Folder(
@@ -347,7 +348,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "subFolder1",
       status = FolderStatus.PUBLIC,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
 
     val subFolder2 = domain.Folder(
@@ -357,7 +359,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "subFolder2",
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
 
     val resource1 = domain.Resource(
@@ -367,7 +370,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       path = "/subject/1/topic/1/resource/4",
       created = created,
       tags = List.empty,
-      resourceId = 1
+      resourceId = 1,
+      connection = None
     )
 
     val expected = api.Folder(
@@ -383,7 +387,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           tags = List.empty,
           path = "/subject/1/topic/1/resource/4",
           created = created,
-          resourceId = 1
+          resourceId = 1,
+          rank = None
         )
       ),
       subfolders = List(
@@ -397,7 +402,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
             api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
           ),
-          parentId = Some(mainFolderUUID.toString)
+          parentId = Some(mainFolderUUID.toString),
+          rank = None
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -409,9 +415,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder"),
             api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
           ),
-          parentId = Some(mainFolderUUID.toString)
+          parentId = Some(mainFolderUUID.toString),
+          rank = None
         )
-      )
+      ),
+      rank = None
     )
 
     val whgaterh = mainFolder.copy(
@@ -465,7 +473,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.insertFolder(any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
 
@@ -474,7 +482,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.find(_.name == "favorite").get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any, any, any)(any)
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -504,7 +512,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.length should be(2)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
     verify(folderRepository, times(2)).getFolderResources(any)(any)
   }
 

@@ -1,0 +1,2 @@
+ALTER TABLE folders ADD COLUMN rank INTEGER DEFAULT null;
+ALTER TABLE folder_resources ADD COLUMN rank INTEGER DEFAULT null;

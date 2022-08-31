@@ -17,6 +17,7 @@ import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._
 import no.ndla.learningpathapi.model.api.config.UpdateConfigValue
 import no.ndla.learningpathapi.model.api.{
+  FolderSortRequest,
   NewCopyLearningPathV2,
   NewLearningPathV2,
   NewLearningStepV2,
@@ -24,6 +25,7 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
+import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
 import org.mockito.invocation.InvocationOnMock
@@ -31,7 +33,7 @@ import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
 import java.util.UUID
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
@@ -1679,22 +1681,25 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "",
         created = created,
         tags = List.empty,
-        resourceId = 1
+        resourceId = 1,
+        connection = None
       )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(None))
     when(folderRepository.insertResource(any, any, any, any, any)(any)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any)(any)).thenReturn(Success(()))
+    when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
+    })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).isSuccess should be(true)
+    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any
     )
     verify(converterService, times(1)).toDomainResource(eqTo(newResource))
     verify(folderRepository, times(1)).insertResource(eqTo(feideId), eqTo(resourcePath), eqTo(""), any, any)(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any)(any)
     verify(converterService, times(0)).mergeResource(any, any[NewResource])
     verify(folderRepository, times(0)).updateResource(any)(any)
   }
@@ -1718,16 +1723,19 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "",
         created = created,
         tags = List.empty,
-        resourceId = 1
+        resourceId = 1,
+        connection = None
       )
 
+    when(folderRepository.getConnection(any, any)(any)).thenReturn(Success(None))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.isConnected(eqTo(folderId), eqTo(resourceId))(any)).thenReturn(Success(false))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(Some(resource)))
     when(folderRepository.updateResource(resource)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any)(any[DBSession])).thenReturn(Success(()))
+    when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+      Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
+    })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, feideId).get
+    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any
@@ -1736,7 +1744,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(any)
     verify(converterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any)(any)
   }
 
   test("that deleteFolder deletes correct number of folder-resource-connections and resources") {
@@ -1825,13 +1833,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
       .thenReturn(Success(List.empty))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(props.MaxFolderDepth))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
 
     val Failure(result: ValidationException) = service.newFolder(newFolder, Some(feideId))
     result.errors.head.message should be(
       s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
   }
 
   test("that folder is created if depth count is below the limit") {
@@ -1846,7 +1855,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "asd",
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val apiFolder = api.Folder(
       id = folderId.toString,
@@ -1855,7 +1865,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(parentId.toString),
       breadcrumbs = List.empty,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1865,14 +1876,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.insertFolder(any, any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
       .thenReturn(Success(List.empty))
 
     service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
 
-    verify(folderRepository, times(1)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any, any, any)(any)
   }
 
   test("that folder is not created if name already exists as a sibling") {
@@ -1887,7 +1900,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "asd",
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -1896,7 +1910,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "aSd",
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1906,7 +1921,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.insertFolder(any, any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
       .thenReturn(Success(List(siblingFolder)))
@@ -1917,7 +1933,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
   }
 
   test("that folder is not updated if name already exists as a sibling") {
@@ -1933,7 +1949,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "noe unikt",
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -1942,7 +1959,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       name = "aSd",
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
-      resources = List.empty
+      resources = List.empty,
+      rank = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1953,6 +1971,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
       .thenReturn(Success(List(siblingFolder)))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
@@ -1963,7 +1982,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
     verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
   }
 
@@ -2012,5 +2031,56 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
+  }
+
+  test("That sorting endpoint calls ranking correctly :^)") {
+    val feideId = "FEIDE"
+
+    val parent = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child1 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child2 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+    val child3 = TestData.emptyDomainFolder.copy(
+      id = UUID.randomUUID(),
+      feideId = feideId
+    )
+
+    val sortRequest = FolderSortRequest(
+      sortedIds = List(
+        child1.id,
+        child3.id,
+        child2.id
+      )
+    )
+
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(folderRepository.setFolderRank(any, any, any)(any)).thenReturn(Success(()))
+    when(folderRepository.setResourceConnectionRank(any, any, any)(any)).thenReturn(Success(()))
+    when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(any)).thenReturn(Success(parent))
+    when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(any)).thenReturn(Success(child1))
+    when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(any)).thenReturn(Success(child2))
+    when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(any)).thenReturn(Success(child3))
+    when(folderRepository.getConnections(eqTo(parent.id))(any)).thenReturn(Success(List()))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(any)).thenReturn(
+      Success(List(child1, child2, child3))
+    )
+
+    service.sortFolder(FolderSorting(parent.id), sortRequest, Some("1234")) should be(Success(()))
+
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child1.id), eqTo(1), any)(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child3.id), eqTo(2), any)(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(3), any)(any)
   }
 }

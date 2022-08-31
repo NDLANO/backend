@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{
   Folder,
+  FolderSortRequest,
   NewFolder,
   NewResource,
   Resource,
@@ -18,8 +19,9 @@ import no.ndla.learningpathapi.model.api.{
   UpdatedResource,
   ValidationError
 }
+import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
-import org.json4s.ext.JavaTimeSerializers
+import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
 import org.scalatra.NoContent
@@ -33,7 +35,8 @@ trait FolderController {
   val folderController: FolderController
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
+    protected implicit override val jsonFormats: Formats =
+      DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all
 
     protected val applicationDescription = "API for accessing My NDLA from ndla.no."
 
@@ -48,10 +51,11 @@ trait FolderController {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
     val response502 = ResponseMessage(502, "Remote error", Some("Error"))
 
-    private val folderId   = Param[UUID]("folder_id", "UUID of the folder.")
-    private val resourceId = Param[UUID]("resource_id", "UUID of the resource.")
-    private val size       = Param[Option[Int]]("size", "Limit the number of results to this many elements")
-    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+    private val folderId      = Param[UUID]("folder_id", "UUID of the folder.")
+    private val folderIdQuery = Param[Option[UUID]]("folder-id", "UUID of the folder.")
+    private val resourceId    = Param[UUID]("resource_id", "UUID of the resource.")
+    private val size          = Param[Option[Int]]("size", "Limit the number of results to this many elements")
+    private val feideToken    = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
     private val includeResources =
       Param[Option[Boolean]]("include-resources", "Choose if resources should be included in the response")
@@ -276,6 +280,45 @@ trait FolderController {
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
+    }
+
+    put(
+      "/sort-resources/:folder_id",
+      operation(
+        apiOperation[Folder]("sortFolderResources")
+          .summary("Decide order of resource ids in a folder")
+          .description("Decide order of resource ids in a folder")
+          .parameters(
+            bodyParam[FolderSortRequest]
+          )
+      )
+    ) {
+      for {
+        folderId    <- uuidParam(this.folderId.paramName)
+        sortRequest <- tryExtract[FolderSortRequest](request.body)
+        sortObject = ResourceSorting(folderId)
+        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
+      } yield sorted
+    }
+
+    put(
+      "/sort-subfolders",
+      operation(
+        apiOperation[Folder]("sortFolderFolders")
+          .summary("Decide order of subfolder ids in a folder")
+          .description("Decide order of subfolder ids in a folder")
+          .parameters(
+            bodyParam[FolderSortRequest],
+            asQueryParam(folderIdQuery)
+          )
+      )
+    ) {
+      for {
+        folderId    <- uuidParamOrNone(this.folderIdQuery.paramName)
+        sortRequest <- tryExtract[FolderSortRequest](request.body)
+        sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
+        sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
+      } yield sorted
     }
   }
 }
