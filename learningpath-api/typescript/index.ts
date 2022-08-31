@@ -51,6 +51,7 @@ export interface IFolder {
   breadcrumbs: IBreadcrumb[]
   subfolders: IFolderData[]
   resources: IResource[]
+  rank?: number
 }
 
 export type IFolderData = IFolder
@@ -184,6 +185,7 @@ export interface IResource {
   created: string
   tags: string[]
   resourceId: number
+  rank?: number
 }
 
 export interface ISearchResultV2 {
