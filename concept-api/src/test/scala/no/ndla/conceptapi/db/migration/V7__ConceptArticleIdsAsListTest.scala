@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
-import conceptapi.db.migration.V7__ConceptArticleIdsAsList
+import no.ndla.conceptapi.db.migration.V7__ConceptArticleIdsAsList
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V7__ConceptArticleIdsAsListTest extends UnitSuite with TestEnvironment {

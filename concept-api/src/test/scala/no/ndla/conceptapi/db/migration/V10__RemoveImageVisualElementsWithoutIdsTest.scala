@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
-import conceptapi.db.migration.V10__RemoveImageVisualElementsWithoutIds
+import no.ndla.conceptapi.db.migration.V10__RemoveImageVisualElementsWithoutIds
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V10__RemoveImageVisualElementsWithoutIdsTest extends UnitSuite with TestEnvironment {

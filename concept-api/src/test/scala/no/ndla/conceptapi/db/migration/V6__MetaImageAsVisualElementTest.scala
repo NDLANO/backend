@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
-import conceptapi.db.migration.V6__MetaImageAsVisualElement
+import no.ndla.conceptapi.db.migration.V6__MetaImageAsVisualElement
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V6__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {

@@ -5,9 +5,9 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
-import conceptapi.db.migration.V11__RemoveEmptyStringMetaImages
+import no.ndla.conceptapi.db.migration.V11__RemoveEmptyStringMetaImages
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V11__RemoveEmptyStringMetaImagesTest extends UnitSuite with TestEnvironment {

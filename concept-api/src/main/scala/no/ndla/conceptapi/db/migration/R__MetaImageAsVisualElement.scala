@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JObject

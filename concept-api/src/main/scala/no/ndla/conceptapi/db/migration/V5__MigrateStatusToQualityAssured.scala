@@ -1,19 +1,20 @@
 /*
- * Part of NDLA ndla.
- * Copyright (C) 2019 NDLA
+ * Part of NDLA concept-api
+ * Copyright (C) 2020 NDLA
  *
  * See LICENSE
  */
-package conceptapi.db.migration
+
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
-import org.json4s.JsonAST.{JArray, JInt, JObject}
+import org.json4s.JsonAST.{JObject, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
+class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -40,13 +41,13 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
   }
 
   def countAllConcepts(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from publishedconceptdata where document is not NULL"
+    sql"select count(*) from conceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document from publishedconceptdata where document is not null order by id limit 1000 offset $offset"
+    sql"select id, document from conceptdata where document is not null order by id limit 1000 offset $offset"
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
@@ -58,23 +59,29 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update publishedconceptdata set document = $dataObject where id = $id"
+    sql"update conceptdata set document = $dataObject where id = $id"
       .update()
   }
 
-  private[migration] def convertToNewConcept(document: String): String = {
-    val oldArticle = parse(document)
+  def renameStatus(status: String): String = {
+    val mapping = Map(
+      "QUEUED_FOR_PUBLISHING" -> "QUALITY_ASSURED"
+    )
+    mapping.getOrElse(status, status)
+  }
 
-    val newArticle = oldArticle.mapField {
-      case ("articleId", articleId: JInt) =>
-        "articleIds" -> JArray(List(articleId))
+  def convertToNewConcept(document: String): String = {
+    val concept = parse(document)
+
+    val newConcept = concept.mapField {
+      case ("status", status: JObject) =>
+        "status" -> status.mapField {
+          case ("current", current: JString) =>
+            "current" -> JString(renameStatus(current.values))
+          case x => x
+        }
       case x => x
     }
-
-    val toMergeWith = JObject("articleIds" -> JArray(List.empty))
-
-    val mergedArticle = toMergeWith.merge(newArticle)
-
-    compact(render(mergedArticle))
+    compact(render(newConcept))
   }
 }

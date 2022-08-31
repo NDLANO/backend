@@ -4,7 +4,7 @@
  *
  * See LICENSE
  */
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
@@ -13,7 +13,7 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
+class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -40,13 +40,13 @@ class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
   }
 
   def countAllConcepts(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from conceptdata where document is not NULL"
+    sql"select count(*) from publishedconceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document from conceptdata where document is not null order by id limit 1000 offset $offset"
+    sql"select id, document from publishedconceptdata where document is not null order by id limit 1000 offset $offset"
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
@@ -58,7 +58,7 @@ class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update conceptdata set document = $dataObject where id = $id"
+    sql"update publishedconceptdata set document = $dataObject where id = $id"
       .update()
   }
 

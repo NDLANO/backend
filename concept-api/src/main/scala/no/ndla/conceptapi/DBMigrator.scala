@@ -21,7 +21,7 @@ trait DBMigrator {
         .configure()
         .javaMigrations(
         )
-        .locations("conceptapi/db/migration")
+        .locations("no/ndla/conceptapi/db/migration")
         .dataSource(dataSource)
         // Seems like flyway uses datasource.getConnection().getScheme() which is null if the scheme does not exist.
         // Therefore we simply override it with dataSource.getScheme.

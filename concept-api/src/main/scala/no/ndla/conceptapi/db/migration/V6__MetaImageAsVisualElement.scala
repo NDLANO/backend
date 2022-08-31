@@ -1,22 +1,20 @@
 /*
  * Part of NDLA concept-api
- * Copyright (C) 2021 NDLA
+ * Copyright (C) 2020 NDLA
  *
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
-import no.ndla.common.model.domain.Title
-import no.ndla.conceptapi.model.api.{ConceptContent, ConceptTags}
-import no.ndla.conceptapi.model.domain.{ConceptMetaImage, VisualElement}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
+import scalikejdbc.{DB, DBSession, _}
 
-class V9__LanguageUnknownToUnd extends BaseJavaMigration {
+class V6__MetaImageAsVisualElement extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -103,56 +101,33 @@ class V9__LanguageUnknownToUnd extends BaseJavaMigration {
       .update()
   }
 
-  def convertToNewConcept(document: String): String = {
-    val concept = parse(document)
-    val titles = (concept \ "title")
-      .extract[Seq[Title]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
-    val content = (concept \ "content")
-      .extract[Seq[ConceptContent]]
-      .map(c => {
-        if (c.language == "unknown")
-          c.copy(language = "und")
-        else
-          c
-      })
-    val tags = (concept \ "tags")
-      .extract[Seq[ConceptTags]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
-    val metaImage = (concept \ "metaImage")
-      .extract[Seq[ConceptMetaImage]]
-      .map(m => {
-        if (m.language == "unknown")
-          m.copy(language = "und")
-        else
-          m
-      })
-    val visualElement = (concept \ "visualElement")
-      .extract[Seq[VisualElement]]
-      .map(t => {
-        if (t.language == "unknown")
-          t.copy(language = "und")
-        else
-          t
-      })
+  private def mergeFields(
+      existing: Seq[NewVisualElement],
+      updated: Seq[NewVisualElement]
+  ): Seq[NewVisualElement] = {
+    val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
+    (toKeep ++ updated).filterNot(_.visualElement.isEmpty)
+  }
 
-    val newConcept = concept
-      .replace(List("title"), Extraction.decompose(titles))
-      .replace(List("content"), Extraction.decompose(content))
-      .replace(List("tags"), Extraction.decompose(tags))
-      .replace(List("metaImage"), Extraction.decompose(metaImage))
-      .replace(List("visualElement"), Extraction.decompose(visualElement))
+  def convertMetaImageToVisualElement(image: OldMetaImage) = {
+    val embedString =
+      s"""<embed data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
+    NewVisualElement(embedString, image.language)
+  }
+
+  def convertToNewConcept(document: String): String = {
+    val concept        = parse(document)
+    val metaImages     = (concept \ "metaImage").extract[Seq[OldMetaImage]]
+    val visualElements = (concept \ "visualElement").extract[Seq[NewVisualElement]]
+
+    val convertedVisualElements = metaImages.map(convertMetaImageToVisualElement)
+
+    val newVisualElements = mergeFields(convertedVisualElements, visualElements)
+    val newConcept        = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
 
     compact(render(newConcept))
   }
+
+  case class OldMetaImage(imageId: String, altText: String, language: String)
+  case class NewVisualElement(visualElement: String, language: String)
 }

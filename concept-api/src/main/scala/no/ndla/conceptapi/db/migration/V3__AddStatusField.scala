@@ -1,20 +1,19 @@
 /*
- * Part of NDLA concept-api
- * Copyright (C) 2020 NDLA
+ * Part of NDLA ndla.
+ * Copyright (C) 2019 NDLA
  *
  * See LICENSE
  */
-
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
-import org.json4s.JsonAST.{JObject, JString}
+import org.json4s.JsonAST.{JArray, JObject, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
+class V3__AddStatusField extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -63,25 +62,18 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
       .update()
   }
 
-  def renameStatus(status: String): String = {
-    val mapping = Map(
-      "QUEUED_FOR_PUBLISHING" -> "QUALITY_ASSURED"
+  private[migration] def convertToNewConcept(document: String): String = {
+    val oldArticle = parse(document)
+
+    val toMergeWith = JObject(
+      "status" -> JObject(
+        "current" -> JString("PUBLISHED"),
+        "other"   -> JArray(List.empty)
+      )
     )
-    mapping.getOrElse(status, status)
-  }
 
-  def convertToNewConcept(document: String): String = {
-    val concept = parse(document)
+    val newArticle = oldArticle.merge(toMergeWith)
 
-    val newConcept = concept.mapField {
-      case ("status", status: JObject) =>
-        "status" -> status.mapField {
-          case ("current", current: JString) =>
-            "current" -> JString(renameStatus(current.values))
-          case x => x
-        }
-      case x => x
-    }
-    compact(render(newConcept))
+    compact(render(newArticle))
   }
 }

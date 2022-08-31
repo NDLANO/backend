@@ -5,19 +5,16 @@
  * See LICENSE
  */
 
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, Extraction}
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
+class V11__RemoveEmptyStringMetaImages extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -37,7 +34,7 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
 
     while (numPagesLeft > 0) {
       allPublishedConcepts(offset * 1000).map { case (id, document) =>
-        updatePublishedConcept(convertToNewConcept(document, id), id)
+        updatePublishedConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -51,7 +48,7 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
 
     while (numPagesLeft > 0) {
       allConcepts(offset * 1000).map { case (id, document) =>
-        updateConcept(convertToNewConcept(document, id), id)
+        updateConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -104,48 +101,18 @@ class V10__RemoveImageVisualElementsWithoutIds extends BaseJavaMigration {
       .update()
   }
 
-  private def stringToJsoupDocument(htmlString: String): Element = {
-    val document = Jsoup.parseBodyFragment(htmlString)
-    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    document.select("body").first()
-  }
-
-  def convertVisualElement(oldVisualElement: NewVisualElement, id: Long): Option[NewVisualElement] = {
-    if (oldVisualElement.visualElement.nonEmpty) {
-      val x     = stringToJsoupDocument(oldVisualElement.visualElement)
-      val embed = Option(x.select("embed").first())
-      embed match {
-        case Some(oldEmbed) =>
-          val resourceType = oldEmbed.attr("data-resource")
-          val imageId      = oldEmbed.attr("data-resource_id")
-          if (resourceType == "image" && imageId.isEmpty) {
-            println(
-              s"Concept '$id' had empty-id visualelement image in language '${oldVisualElement.language}', removing..."
-            )
-            None
-          } else {
-            Some(oldVisualElement)
-          }
-        case _ => Some(oldVisualElement)
-
-      }
-    } else {
-      Some(oldVisualElement)
-    }
-  }
-
-  def convertToNewConcept(document: String, id: Long): String = {
+  def convertToNewConcept(document: String): String = {
     val concept = parse(document)
     val newConcept = concept
       .mapField {
-        case ("visualElement", visualElement: JArray) =>
-          val visualElements    = visualElement.extract[Seq[NewVisualElement]]
-          val newVisualElements = visualElements.flatMap(ve => convertVisualElement(ve, id))
-          "visualElement" -> Extraction.decompose(newVisualElements)
+        case ("metaImage", metaImage: JArray) =>
+          val metaImages    = metaImage.extract[Seq[OldMetaImage]]
+          val newMetaImages = metaImages.filter(_.imageId.nonEmpty)
+          "metaImage" -> Extraction.decompose(newMetaImages)
         case x => x
       }
     compact(render(newConcept))
   }
 
-  case class NewVisualElement(visualElement: String, language: String)
+  case class OldMetaImage(imageId: String, altText: String, language: String)
 }

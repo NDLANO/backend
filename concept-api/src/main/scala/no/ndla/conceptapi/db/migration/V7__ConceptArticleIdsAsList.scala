@@ -4,16 +4,16 @@
  *
  * See LICENSE
  */
-package conceptapi.db.migration
+package no.ndla.conceptapi.db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
-import org.json4s.JsonAST.{JArray, JObject, JString}
+import org.json4s.JsonAST.{JArray, JInt, JObject}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V3__AddStatusField extends BaseJavaMigration {
+class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
@@ -65,15 +65,16 @@ class V3__AddStatusField extends BaseJavaMigration {
   private[migration] def convertToNewConcept(document: String): String = {
     val oldArticle = parse(document)
 
-    val toMergeWith = JObject(
-      "status" -> JObject(
-        "current" -> JString("PUBLISHED"),
-        "other"   -> JArray(List.empty)
-      )
-    )
+    val newArticle = oldArticle.mapField {
+      case ("articleId", articleId: JInt) =>
+        "articleIds" -> JArray(List(articleId))
+      case x => x
+    }
 
-    val newArticle = oldArticle.merge(toMergeWith)
+    val toMergeWith = JObject("articleIds" -> JArray(List.empty))
 
-    compact(render(newArticle))
+    val mergedArticle = toMergeWith.merge(newArticle)
+
+    compact(render(mergedArticle))
   }
 }
