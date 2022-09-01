@@ -7,7 +7,17 @@
 
 package no.ndla.articleapi.db.migration
 
-import no.ndla.articleapi.db.migration.{V6_Article, V6_ArticleContent, V6_ArticleIntroduction, V6_ArticleMetaDescription, V6_ArticleTag, V6_ArticleTitle, V6_Copyright, V6_VisualElement, V6__AddLanguageToAll}
+import no.ndla.articleapi.db.migration.{
+  V6_Article,
+  V6_ArticleContent,
+  V6_ArticleIntroduction,
+  V6_ArticleMetaDescription,
+  V6_ArticleTag,
+  V6_ArticleTitle,
+  V6_Copyright,
+  V6_VisualElement,
+  V6__AddLanguageToAll
+}
 
 import java.time.LocalDateTime
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}

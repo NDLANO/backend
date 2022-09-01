@@ -7,7 +7,14 @@
 
 package no.ndla.audioapi.db.migration
 
-import no.ndla.audioapi.db.migration.{V4_Audio, V4_AudioMetaInformation, V4_Copyright, V4_Tag, V4_Title, V4__AddLanguageToAll}
+import no.ndla.audioapi.db.migration.{
+  V4_Audio,
+  V4_AudioMetaInformation,
+  V4_Copyright,
+  V4_Tag,
+  V4_Title,
+  V4__AddLanguageToAll
+}
 
 import java.time.LocalDateTime
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
