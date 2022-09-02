@@ -16,7 +16,7 @@ import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
 import java.util.UUID
-import scala.util.{Success, Try}
+import scala.util.Try
 
 case class FolderDocument(name: String, status: FolderStatus.Value) {
   def toFullFolder(
@@ -56,16 +56,7 @@ case class Folder(
 
   def toDocument: FolderDocument = FolderDocument(name = name, status = status)
 
-  def isPublic: Boolean  = this.status == FolderStatus.PUBLIC
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
-
-  def hasReadAccess(feideId: FeideID): Try[_] = {
-    if (isPublic) {
-      Success(this)
-    } else {
-      isOwner(feideId)
-    }
-  }
 
 }
 

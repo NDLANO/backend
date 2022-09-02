@@ -237,7 +237,7 @@ trait ReadService {
       for {
         feideId           <- getUserFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
-        _                 <- folderWithContent.hasReadAccess(feideId)
+        _                 <- folderWithContent.isOwner(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
         converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
       } yield converted

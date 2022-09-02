@@ -10,7 +10,6 @@ package no.ndla.learningpathapi.model.domain
 
 object FolderStatus extends Enumeration {
   val PRIVATE: FolderStatus.Value = Value("private")
-  val PUBLIC: FolderStatus.Value  = Value("public")
   val SHARED: FolderStatus.Value  = Value("shared")
 
   def valueOf(s: String): Option[FolderStatus.Value] = {

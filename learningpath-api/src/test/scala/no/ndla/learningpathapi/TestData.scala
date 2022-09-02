@@ -136,7 +136,7 @@ object TestData {
 
   val baseFolderDocument: FolderDocument = FolderDocument(
     name = "some-name",
-    status = FolderStatus.PUBLIC
+    status = FolderStatus.PRIVATE
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
