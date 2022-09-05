@@ -156,21 +156,4 @@ class SeriesSearchServiceTest
     result2.results(1).title.language should be("nb")
     result2.results.last.title.language should be("mix")
   }
-
-  def blockUntil(predicate: () => Boolean): Unit = {
-    var backoff = 0
-    var done    = false
-
-    while (backoff <= 16 && !done) {
-      if (backoff > 0) Thread.sleep(200 * backoff)
-      backoff = backoff + 1
-      try {
-        done = predicate()
-      } catch {
-        case e: Throwable => println(("problem while testing predicate", e))
-      }
-    }
-
-    require(done, s"Failed waiting for predicate")
-  }
 }
