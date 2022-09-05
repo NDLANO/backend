@@ -672,20 +672,4 @@ class ArticleSearchServiceTest
     search1.results.map(_.id) should be(Seq(12, 13))
   }
 
-  def blockUntil(predicate: () => Boolean): Unit = {
-    var backoff = 0
-    var done    = false
-
-    while (backoff <= 16 && !done) {
-      if (backoff > 0) Thread.sleep(200 * backoff)
-      backoff = backoff + 1
-      try {
-        done = predicate()
-      } catch {
-        case e: Throwable => println(("problem while testing predicate", e))
-      }
-    }
-
-    require(done, s"Failed waiting for predicate")
-  }
 }

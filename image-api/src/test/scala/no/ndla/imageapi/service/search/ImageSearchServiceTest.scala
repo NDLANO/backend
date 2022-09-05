@@ -618,21 +618,4 @@ class ImageSearchServiceTest
     searchResult2.results.head.title.title should equal("This is a unrelated photo")
     searchResult2.results.head.title.language should equal("en")
   }
-
-  def blockUntil(predicate: () => Boolean): Unit = {
-    var backoff = 0
-    var done    = false
-
-    while (backoff <= 16 && !done) {
-      if (backoff > 0) Thread.sleep(200 * backoff)
-      backoff = backoff + 1
-      try {
-        done = predicate()
-      } catch {
-        case e: Throwable => println(("problem while testing predicate", e))
-      }
-    }
-
-    require(done, s"Failed waiting for predicate")
-  }
 }

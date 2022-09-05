@@ -761,21 +761,4 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     search.totalCount should be(1)
     search.results.head.id should be(5)
   }
-
-  def blockUntil(predicate: () => Boolean): Unit = {
-    var backoff = 0
-    var done    = false
-
-    while (backoff <= 16 && !done) {
-      if (backoff > 0) Thread.sleep(200 * backoff)
-      backoff = backoff + 1
-      try {
-        done = predicate()
-      } catch {
-        case e: Throwable => println(("problem while testing predicate", e))
-      }
-    }
-
-    require(done, s"Failed waiting for predicate")
-  }
 }
