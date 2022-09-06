@@ -221,7 +221,9 @@ trait TaxonomyApiClient {
       get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(taxonomyTimeout, taxonomyTimeout).params(params))
+      ndlaClient.fetchWithForwardedAuth[A](
+        Http(url).timeout(taxonomyTimeout, taxonomyTimeout).header("VersionHash", "default").params(params)
+      )
     }
 
     private def put[A, B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
