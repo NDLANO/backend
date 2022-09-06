@@ -38,6 +38,7 @@ trait NdlaController {
       contentType = formats("json")
       CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
       ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
+      ThreadContext.put(TaxonomyVersionIdKey, Option(request.getHeader(TaxonomyVersionHeader)).getOrElse("default"))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
@@ -45,6 +46,7 @@ trait NdlaController {
     after() {
       CorrelationID.clear()
       ThreadContext.remove(CorrelationIdKey)
+      ThreadContext.remove(TaxonomyVersionIdKey)
       AuthUser.clear()
       ApplicationUrl.clear()
     }
