@@ -53,6 +53,7 @@ trait FolderController {
 
     private val folderId      = Param[UUID]("folder_id", "UUID of the folder.")
     private val folderIdQuery = Param[Option[UUID]]("folder-id", "UUID of the folder.")
+    private val folderStatus  = Param[String]("folder-status", "Status of the folder")
     private val resourceId    = Param[UUID]("resource_id", "UUID of the resource.")
     private val size          = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val feideToken    = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
@@ -280,6 +281,27 @@ trait FolderController {
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
+    }
+
+    patch(
+      "/shared/:folder_id",
+      operation(
+        apiOperation[List[UUID]]("ChangeStatusForFolderAndSubFolders")
+          .summary("Change status for given folder and all its subfolders")
+          .description("Change status for given folder and all its subfolders")
+          .parameters(
+            asPathParam(folderId),
+            asQueryParam(folderStatus)
+          )
+          .responseMessages(response204, response400, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      for {
+        folderId   <- uuidParam(this.folderId.paramName)
+        status     <- folderStatusParam(this.folderStatus.paramName)
+        updatedIds <- updateService.shareFolderAndSubfolders(folderId, status, requestFeideToken)
+      } yield updatedIds
     }
 
     put(

@@ -771,5 +771,20 @@ trait UpdateService {
       }
     }
 
+    def shareFolderAndSubfolders(
+        folderId: UUID,
+        newStatus: domain.FolderStatus.Value,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[List[UUID]] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId    <- getUserFeideID(feideAccessToken)
+        folder     <- folderRepository.folderWithId(folderId)
+        _          <- folder.isOwner(feideId)
+        ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
+        updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
+      } yield updatedIds
+    }
+
   }
 }

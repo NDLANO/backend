@@ -120,6 +120,27 @@ trait FolderRepository {
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
+    def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
+        session: DBSession = AutoSession
+    ): Try[List[UUID]] = Try {
+      val newStatusStringified = s"\"${newStatus.toString}\""
+
+      sql"""
+             UPDATE ${DBFolder.table}
+             SET document = jsonb_set(document, '{status}', $newStatusStringified::jsonb)
+             where id in ($folderIds);
+           """.update()
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(count) if count == folderIds.length =>
+        logger.info(s"Updated folders with ids (${folderIds.mkString(", ")})")
+        Success(folderIds)
+      case Success(count) =>
+        Failure(
+          NDLASQLException(s"This is a Bug! The expected rows count should be ${folderIds.length} and was $count.")
+        )
+    }
+
     def updateResource(resource: Resource)(implicit session: DBSession = AutoSession): Try[Resource] = Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -368,6 +389,25 @@ trait FolderRepository {
         .first()
         .getOrElse(0)
     }
+
+    def getFoldersAndSubfoldersIds(folderId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[UUID]] =
+      Try {
+        sql"""
+             WITH RECURSIVE parent (id) as (
+                  SELECT id
+                  FROM ${DBFolder.table} child
+                  WHERE id = $folderId
+                  UNION ALL
+                  SELECT child.id
+                  FROM ${DBFolder.table} child, parent
+                  WHERE child.parent_id = parent.id
+            )
+            SELECT * FROM parent
+           """
+          .map(rs => rs.get[Try[UUID]]("id"))
+          .list()
+          .sequence
+      }.flatten
 
     def foldersWithParentID(parentId: Option[UUID])(implicit
         session: DBSession = ReadOnlyAutoSession
