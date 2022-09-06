@@ -210,13 +210,15 @@ trait TaxonomyApiClient {
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] =
-      ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(taxonomyTimeout, taxonomyTimeout).params(params))
+      ndlaClient.fetchWithForwardedAuth[A](
+        Http(url).timeout(taxonomyTimeout, taxonomyTimeout).header("VersionHash", "default").params(params)
+      )
 
     def queryResource(articleId: Long): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/queries/resources", "contentURI" -> s"urn:article:$articleId")
+      get[List[Resource]](s"$TaxonomyApiEndpoint/resources", "contentURI" -> s"urn:article:$articleId")
 
     def queryTopic(articleId: Long): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
+      get[List[Topic]](s"$TaxonomyApiEndpoint/topics", "contentURI" -> s"urn:article:$articleId")
 
     def getNode(uri: String): Try[Topic] = get[Topic](s"$TaxonomyApiEndpoint/nodes/${uri}")
 
