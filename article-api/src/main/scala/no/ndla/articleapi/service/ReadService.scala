@@ -20,7 +20,7 @@ import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.common.model.domain.Availability
-import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.language.Language.languageOrUnknown
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.HttpRequestException
@@ -303,11 +303,14 @@ trait ReadService {
         pageSize: Long,
         feideAccessToken: Option[String] = None
     ): Try[Seq[api.ArticleV2]] = {
-      val offset         = (page - 1) * pageSize
-      val domainArticles = articleRepository.withIds(articleIds.distinct, offset, pageSize)
-      val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
-      val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
-      filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
+      if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+      else {
+        val offset         = (page - 1) * pageSize
+        val domainArticles = articleRepository.withIds(articleIds, offset, pageSize)
+        val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
+        val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
+        filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
+      }
     }
 
   }

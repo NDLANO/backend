@@ -7,13 +7,14 @@
 
 package no.ndla.draftapi.service
 
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, Tag, VisualElement}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   import props.{externalApiUrls, resourceHtmlEmbedTag}
@@ -127,5 +128,42 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""<div><$resourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"><$resourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
+  }
+
+  test("that getArticlesByIds works as expected") {
+    val ids      = List(1L, 2L, 3L)
+    val article1 = TestData.sampleDomainArticle.copy(id = Some(1))
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
+
+    when(draftRepository.withIds(any, any, any)(any)).thenReturn(Success(Seq(article1, article2, article3)))
+    when(draftRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+
+    val Success(result) =
+      readService.getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10
+      )
+    result.length should be(3)
+
+    verify(draftRepository, times(1)).withIds(any, any, any)(any)
+  }
+
+  test("that getArticlesByIds fails if no ids were given") {
+    reset(draftRepository)
+    val Failure(result: ValidationException) =
+      readService.getArticlesByIds(
+        articleIds = List.empty,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10
+      )
+    result.errors.head.message should be("Query parameter 'ids' is missing")
+
+    verify(draftRepository, times(0)).withIds(any, any, any)(any)
   }
 }
