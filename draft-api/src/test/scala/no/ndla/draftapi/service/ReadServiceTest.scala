@@ -153,6 +153,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds fails if no ids were given") {
+    reset(draftRepository)
     val Failure(result: ValidationException) =
       readService.getArticlesByIds(
         articleIds = List.empty,
