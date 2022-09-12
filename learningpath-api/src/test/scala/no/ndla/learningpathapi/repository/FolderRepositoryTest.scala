@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{DBFolderResource, FolderDocument, FolderStatus, ResourceDocument}
+import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, FolderDocument, FolderStatus, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -98,6 +98,14 @@ class FolderRepositoryTest
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
+  }
+
+  def getAllFolders(implicit session: DBSession = AutoSession): List[Folder] = {
+    sql"select * from ${DBFolder.table}"
+      .map(rs => DBFolder.fromResultSet(rs))
+      .list()
+      .sequence
+      .get
   }
 
   test("that inserting and retrieving a folder works as expected") {
@@ -432,6 +440,41 @@ class FolderRepositoryTest
     folderCount() should be(1)
     resourceCount() should be(1)
     folderResourcesCount() should be(1)
+  }
+
+  test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
+    val doc = FolderDocument(name = "some name", status = FolderStatus.PRIVATE)
+
+    val folder1 = repository.insertFolder("feide1", None, doc, None)
+    val folder2 = repository.insertFolder("feide1", Some(folder1.get.id), doc, None)
+    val folder3 = repository.insertFolder("feide1", Some(folder1.get.id), doc, None)
+    val folder4 = repository.insertFolder("feide1", Some(folder2.get.id), doc, None)
+    val folder5 = repository.insertFolder("feide1", Some(folder4.get.id), doc, None)
+    val folder6 = repository.insertFolder("feide1", None, doc, None)
+    repository.insertFolder("feide1", Some(folder6.get.id), doc, None)
+
+    val ids = Seq(folder1.get.id, folder2.get.id, folder3.get.id, folder4.get.id, folder5.get.id)
+
+    folderCount() should be(7)
+    val result = repository.getFoldersAndSubfoldersIds(folder1.get.id)
+    result.get.length should be(5)
+    ids.sorted should be(result.get.sorted)
+  }
+
+  test("that updateFolderStatusInBulk updates status of chosen folders") {
+    val doc = FolderDocument(name = "some name", status = FolderStatus.PRIVATE)
+
+    val folder1 = repository.insertFolder("feide1", None, doc, None)
+    val folder2 = repository.insertFolder("feide1", Some(folder1.get.id), doc, None)
+    val folder3 = repository.insertFolder("feide1", Some(folder1.get.id), doc, None)
+    val folder4 = repository.insertFolder("feide1", Some(folder2.get.id), doc, None)
+    val folder5 = repository.insertFolder("feide1", Some(folder4.get.id), doc, None)
+
+    val ids = List(folder1.get.id, folder2.get.id, folder3.get.id, folder4.get.id, folder5.get.id)
+
+    val result = repository.updateFolderStatusInBulk(ids, FolderStatus.SHARED)
+    result.get.length should be(5)
+    getAllFolders().map(folder => folder.status).distinct should be(List(FolderStatus.SHARED))
   }
 
 }
