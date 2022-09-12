@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.language.Language
 import no.ndla.network.NdlaClient
+import org.apache.logging.log4j.ThreadContext
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
@@ -24,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
-  import props.{ApiGatewayHost, DefaultLanguage}
+  import props.{ApiGatewayHost, DefaultLanguage, TaxonomyVersionHeader, TaxonomyVersionIdKey}
 
   class TaxonomyApiClient extends LazyLogging {
     private val TaxonomyApiEndpoint           = s"http://$ApiGatewayHost/taxonomy/v1"
@@ -210,13 +211,18 @@ trait TaxonomyApiClient {
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] =
-      ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(taxonomyTimeout, taxonomyTimeout).params(params))
+      ndlaClient.fetchWithForwardedAuth[A](
+        Http(url)
+          .timeout(taxonomyTimeout, taxonomyTimeout)
+          .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
+          .params(params)
+      )
 
     def queryResource(articleId: Long): Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/queries/resources", "contentURI" -> s"urn:article:$articleId")
+      get[List[Resource]](s"$TaxonomyApiEndpoint/resources", "contentURI" -> s"urn:article:$articleId")
 
     def queryTopic(articleId: Long): Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/queries/topics", "contentURI" -> s"urn:article:$articleId")
+      get[List[Topic]](s"$TaxonomyApiEndpoint/topics", "contentURI" -> s"urn:article:$articleId")
 
     def getNode(uri: String): Try[Topic] = get[Topic](s"$TaxonomyApiEndpoint/nodes/${uri}")
 
@@ -243,6 +249,7 @@ trait TaxonomyApiClient {
           .put(write(data))
           .timeout(taxonomyTimeout, taxonomyTimeout)
           .header("content-type", "application/json")
+          .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
           .params(params)
       ) match {
         case Success(_)  => Success(data)

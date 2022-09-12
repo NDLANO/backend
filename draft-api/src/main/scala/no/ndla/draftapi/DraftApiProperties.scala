@@ -100,6 +100,9 @@ class DraftApiProperties extends LazyLogging {
   def CorrelationIdKey    = "correlationID"
   def CorrelationIdHeader = "X-Correlation-ID"
 
+  def TaxonomyVersionIdKey  = "versionHash"
+  def TaxonomyVersionHeader = "VersionHash"
+
   def AttachmentStorageName: String =
     propOrElse("ARTICLE_ATTACHMENT_S3_BUCKET", s"$Environment.article-attachments.ndla")
 
