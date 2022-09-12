@@ -404,6 +404,39 @@ trait DraftController {
     }
 
     get(
+      "/ids/",
+      operation(
+        apiOperation[List[Article]]("getArticlesByIds")
+          .summary("Fetch articles that matches ids parameter.")
+          .description("Returns articles that matches ids parameter.")
+          .parameters(
+            asQueryParam(articleIds),
+            asQueryParam(fallback),
+            asQueryParam(language),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo)
+          )
+          .responseMessages(response400, response403, response500)
+      )
+    ) {
+      val userInfo = user.getUser
+      val idList   = paramAsListOfLong(this.articleIds.paramName)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
+        case x                        => x
+      }
+      val page = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      doOrAccessDenied(userInfo.canWrite) {
+        readService.getArticlesByIds(idList, language, fallback, page, pageSize)
+      }
+    }
+
+    get(
       "/:article_id/history",
       operation(
         apiOperation[Article]("getHistoricArticleById")

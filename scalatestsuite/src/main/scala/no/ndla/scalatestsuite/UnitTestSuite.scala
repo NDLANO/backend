@@ -69,6 +69,23 @@ abstract class UnitTestSuite
     throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
   }
 
+  def blockUntil(predicate: () => Boolean): Unit = {
+    var backoff = 0
+    var done    = false
+
+    while (backoff <= 16 && !done) {
+      if (backoff > 0) Thread.sleep(200 * backoff)
+      backoff = backoff + 1
+      try {
+        done = predicate()
+      } catch {
+        case e: Throwable => println(("problem while testing predicate", e))
+      }
+    }
+
+    require(done, s"Failed waiting for predicate")
+  }
+
   // Adds method to `Try`s in tests that will fail the test if a `Try` is `Failure`
   // and return the result if it is a `Success`
   implicit class failableTry[T](result: Try[T]) {

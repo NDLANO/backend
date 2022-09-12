@@ -233,6 +233,28 @@ trait DraftRepository {
               """
       )
 
+    def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[Seq[Draft]] = Try {
+      val ar  = DBArticle.syntax("ar")
+      val ar2 = DBArticle.syntax("ar2")
+      sql"""
+        select ${ar.result.*}
+        from ${DBArticle.as(ar)}
+        where ar.document is not NULL
+        and ar.article_id in ($articleIds)
+        and ar.revision = (
+            select max(revision)
+            from ${DBArticle.as(ar2)}
+            where ar2.article_id = ar.article_id
+        )
+        offset $offset
+        limit $pageSize
+         """
+        .map(DBArticle.fromResultSet(ar))
+        .list()
+    }
+
     def idsWithStatus(status: DraftStatus.Value)(implicit session: DBSession = AutoSession): Try[List[ArticleIds]] = {
       val ar = DBArticle.syntax("ar")
       Try(

@@ -7,8 +7,10 @@
 
 package no.ndla.draftapi.service
 
+import cats.implicits._
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api.NotFoundException
@@ -67,7 +69,7 @@ trait ReadService {
         .reverse
     }
 
-    private[service] def addUrlsOnEmbedResources(article: common.draft.Draft): common.draft.Draft = {
+    private[service] def addUrlsOnEmbedResources(article: Draft): Draft = {
       val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
       val visualElementWithUrls =
         article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
@@ -188,6 +190,23 @@ trait ReadService {
           }
         case Some(userData) => Success(converterService.toApiUserData(userData))
       }
+    }
+
+    def getArticlesByIds(
+        articleIds: List[Long],
+        language: String,
+        fallback: Boolean,
+        page: Long,
+        pageSize: Long
+    ): Try[Seq[api.Article]] = {
+      val offset = (page - 1) * pageSize
+      for {
+        ids <-
+          if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+          else Success(articleIds)
+        domainArticles <- draftRepository.withIds(ids, offset, pageSize)
+        api            <- domainArticles.traverse(article => converterService.toApiArticle(article, language, fallback))
+      } yield api
     }
   }
 }

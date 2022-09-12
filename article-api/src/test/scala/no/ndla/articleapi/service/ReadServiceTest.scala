@@ -13,13 +13,14 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{Availability, Tag, VisualElement}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
@@ -276,5 +277,20 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result.map(res => res.availability).contains("teacher") should be(false)
 
     verify(feideApiClient, times(0)).getUser(feideId)
+  }
+
+  test("that getArticlesByIds fails if no ids were given") {
+    reset(articleRepository)
+    val Failure(result: ValidationException) =
+      readService.getArticlesByIds(
+        articleIds = List.empty,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10
+      )
+    result.errors.head.message should be("Query parameter 'ids' is missing")
+
+    verify(articleRepository, times(0)).withIds(any, any, any)(any)
   }
 }
