@@ -510,7 +510,21 @@ trait UpdateService {
       parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
     }
 
-    private def validateFolder(
+    private def validateUpdatedFolder(
+        folderName: String,
+        parentId: Option[UUID],
+        maybeParentAndSiblings: Option[FolderAndDirectChildren],
+        updatedFolder: Folder
+    ): Try[Option[UUID]] = {
+      val folderTreeWithoutTheUpdatee = maybeParentAndSiblings.map(_.withoutChild(updatedFolder.id))
+      for {
+        validatedParentId <- validateParentId(parentId, maybeParentAndSiblings.map(_.folder))
+        _                 <- validateSiblingNames(folderName, folderTreeWithoutTheUpdatee)
+        _                 <- checkDepth(validatedParentId)
+      } yield validatedParentId
+    }
+
+    private def validateNewFolder(
         folderName: String,
         parentId: Option[UUID],
         maybeParentAndSiblings: Option[FolderAndDirectChildren]
@@ -528,12 +542,12 @@ trait UpdateService {
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
       for {
         feideId           <- getUserFeideID(feideAccessToken)
-        document          <- converterService.toDomainFolderDocument(newFolder)
         parentId          <- getMaybeParentId(newFolder.parentId)
         maybeSiblings     <- getFolderWithDirectChildren(parentId, feideId)
         nextRank          <- Try(getNextRank(maybeSiblings)) // `Try` for align
-        validatedParentId <- validateFolder(newFolder.name, parentId, maybeSiblings)
-        inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document, nextRank)
+        validatedParentId <- validateNewFolder(newFolder.name, parentId, maybeSiblings)
+        newFolderData     <- converterService.toNewFolderData(newFolder, validatedParentId, nextRank)
+        inserted          <- folderRepository.insertFolder(feideId, newFolderData)
         crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api               <- converterService.toApiFolder(inserted, crumbs)
       } yield api
@@ -602,7 +616,7 @@ trait UpdateService {
       _              <- existingFolder.isOwner(feideId)
       converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
       maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
-      _              <- validateFolder(converted.name, converted.parentId, maybeSiblings)
+      _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
       updated        <- folderRepository.updateFolder(id, feideId, converted)
       crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
       api            <- converterService.toApiFolder(updated, crumbs)

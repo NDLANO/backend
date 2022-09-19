@@ -37,30 +37,22 @@ trait FolderRepository {
 
     def insertFolder(
         feideId: FeideID,
-        parentId: Option[UUID],
-        document: FolderDocument,
-        rank: Option[Int]
+        folderData: NewFolderData
     )(implicit session: DBSession = AutoSession): Try[Folder] =
       Try {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(write(document))
-
         val newId = UUID.randomUUID()
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, document, rank)
-        values ($newId, $parentId, $feideId, $dataObject, $rank)
+        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank)
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank})
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
-        document.toFullFolder(
+        folderData.toFullFolder(
           id = newId,
           feideId = feideId,
-          parentId = parentId,
           resources = List.empty,
-          subfolders = List.empty,
-          rank = rank
+          subfolders = List.empty
         )
       }
 
@@ -101,14 +93,10 @@ trait FolderRepository {
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = Try {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(write(folder))
-
       sql"""
           update ${DBFolder.table}
-          set parent_id=${folder.parentId},
-              document=$dataObject
+          set name=${folder.name},
+              status=${folder.status.toString}
           where id=$id and feide_id=$feideId
       """.update()
     } match {
@@ -123,11 +111,11 @@ trait FolderRepository {
     def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
         session: DBSession = AutoSession
     ): Try[List[UUID]] = Try {
-      val newStatusStringified = s"\"${newStatus.toString}\""
+      val newStatusStringified = sqls"${newStatus.toString}"
 
       sql"""
              UPDATE ${DBFolder.table}
-             SET document = jsonb_set(document, '{status}', $newStatusStringified::jsonb)
+             SET status = $newStatusStringified
              where id in ($folderIds);
            """.update()
     } match {
@@ -331,11 +319,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, document AS f_document, rank AS f_rank
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.document AS f_document, child.rank AS f_rank
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
             )
@@ -357,11 +345,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id, parent_id, feide_id, document
+                SELECT id, parent_id, feide_id, name, status
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id, child.parent_id, child.feide_id, child.document
+                SELECT child.id, child.parent_id, child.feide_id, child.name, child.status
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.id = child.parent_id
             )

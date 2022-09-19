@@ -474,7 +474,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.insertFolder(any, any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
 
@@ -483,7 +483,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.find(_.name == "favorite").get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(1)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any)(any)
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -513,7 +513,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.length should be(2)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(any)
     verify(folderRepository, times(2)).getFolderResources(any)(any)
   }
 

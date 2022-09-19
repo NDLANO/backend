@@ -484,23 +484,25 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
   }
 
-  test("toDomainFolder transforms correctly") {
+  test("toNewFolderData transforms correctly") {
     val folderUUID = UUID.randomUUID()
     val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
     val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("shared"))
     val newFolder3 =
       api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("ikkeesksisterendestatus"))
 
-    val expected1 = domain.FolderDocument(
+    val expected1 = domain.NewFolderData(
+      parentId = Some(folderUUID),
       name = "kenkaku",
-      status = domain.FolderStatus.PRIVATE
+      status = domain.FolderStatus.PRIVATE,
+      rank = None
     )
 
-    service.toDomainFolderDocument(newFolder1).get should be(expected1)
-    service.toDomainFolderDocument(newFolder2).get should be(
+    service.toNewFolderData(newFolder1, Some(folderUUID), None).get should be(expected1)
+    service.toNewFolderData(newFolder2, Some(folderUUID), None).get should be(
       expected1.copy(status = domain.FolderStatus.SHARED)
     )
-    service.toDomainFolderDocument(newFolder3).get should be(
+    service.toNewFolderData(newFolder3, Some(folderUUID), None).get should be(
       expected1.copy(status = domain.FolderStatus.PRIVATE)
     )
   }

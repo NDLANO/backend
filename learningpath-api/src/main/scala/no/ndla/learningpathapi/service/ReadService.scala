@@ -191,11 +191,13 @@ trait ReadService {
     private def createFavorite(
         feideId: domain.FeideID
     ): Try[domain.Folder] = {
-      val favoriteFolder = domain.FolderDocument(
+      val favoriteFolder = domain.NewFolderData(
+        parentId = None,
         name = FavoriteFolderDefaultName,
-        status = domain.FolderStatus.PRIVATE
+        status = domain.FolderStatus.PRIVATE,
+        rank = None
       )
-      folderRepository.insertFolder(feideId, None, favoriteFolder, None)
+      folderRepository.insertFolder(feideId, favoriteFolder)
     }
 
     def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {

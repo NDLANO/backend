@@ -14,7 +14,7 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{
-  FolderDocument,
+  NewFolderData,
   FolderStatus,
   LearningPath,
   LearningStep,
@@ -134,9 +134,11 @@ object TestData {
     rank = None
   )
 
-  val baseFolderDocument: FolderDocument = FolderDocument(
+  val baseFolderDocument: NewFolderData = NewFolderData(
+    parentId = None,
     name = "some-name",
-    status = FolderStatus.PRIVATE
+    status = FolderStatus.PRIVATE,
+    rank = None
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
