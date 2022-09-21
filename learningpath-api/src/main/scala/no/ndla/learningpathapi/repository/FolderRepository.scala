@@ -39,7 +39,7 @@ trait FolderRepository {
         feideId: FeideID,
         parentId: Option[UUID],
         document: FolderDocument,
-        rank: Option[Int]
+        rank: Int
     )(implicit session: DBSession = AutoSession): Try[Folder] =
       Try {
         val dataObject = new PGobject()
@@ -60,7 +60,7 @@ trait FolderRepository {
           parentId = parentId,
           resources = List.empty,
           subfolders = List.empty,
-          rank = rank
+          rank = rank.some
         )
       }
 

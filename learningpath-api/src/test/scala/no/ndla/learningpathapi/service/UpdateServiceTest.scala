@@ -1692,7 +1692,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).isSuccess should be(true)
+    service
+      .createNewResourceOrUpdateExisting(
+        newResource,
+        folderId,
+        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+        feideId
+      )
+      .isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any
@@ -1735,7 +1742,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).get
+    service
+      .createNewResourceOrUpdateExisting(
+        newResource,
+        folderId,
+        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+        feideId
+      )
+      .get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any

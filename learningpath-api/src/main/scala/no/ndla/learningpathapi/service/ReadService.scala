@@ -195,7 +195,7 @@ trait ReadService {
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE
       )
-      folderRepository.insertFolder(feideId, None, favoriteFolder, None)
+      folderRepository.insertFolder(feideId, None, favoriteFolder, 1)
     }
 
     def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {
