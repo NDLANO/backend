@@ -485,4 +485,72 @@ class FolderRepositoryTest
     getAllFolders().map(folder => folder.status).distinct should be(List(FolderStatus.SHARED))
   }
 
+  test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
+    val base =
+      domain.Folder(
+        id = UUID.randomUUID(),
+        feideId = "feide",
+        parentId = None,
+        name = "name",
+        status = FolderStatus.SHARED,
+        subfolders = List.empty,
+        resources = List.empty,
+        rank = None
+      )
+
+    val baseNewFolderData = domain.NewFolderData(
+      parentId = base.parentId,
+      name = base.name,
+      status = base.status,
+      rank = base.rank
+    )
+
+    val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
+    val insertedChild1 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+    val insertedChild2 =
+      repository
+        .insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, status = FolderStatus.PRIVATE))
+        .failIfFailure
+    val insertedChild3 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some)).failIfFailure
+    val insertedResource = repository
+      .insertResource(
+        "feide",
+        "/testPath",
+        "resourceType",
+        LocalDateTime.now(),
+        ResourceDocument(List(), 1)
+      )
+      .failIfFailure
+    val insertedConnection =
+      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1).failIfFailure
+
+    val expectedSubfolders = List(
+      insertedChild2,
+      insertedChild1.copy(
+        subfolders = List(
+          insertedChild3
+        )
+      )
+    )
+
+    val expectedResultNormal = insertedMain.copy(
+      subfolders = expectedSubfolders.sortBy(_.id.toString),
+      resources = List(insertedResource.copy(connection = Some(insertedConnection)))
+    )
+
+    val expectedResultFiltered = insertedMain.copy(
+      subfolders = expectedSubfolders.filter(_.isShared).sortBy(_.id.toString),
+      resources = List(insertedResource.copy(connection = Some(insertedConnection)))
+    )
+
+    val resultNormal = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
+    resultNormal should be(Success(Some(expectedResultNormal)))
+
+    val resultFiltered =
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED)(ReadOnlyAutoSession)
+    resultFiltered should be(Success(Some(expectedResultFiltered)))
+  }
+
 }

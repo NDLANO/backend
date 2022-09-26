@@ -313,10 +313,22 @@ trait FolderRepository {
           }
       }
 
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = {
+      getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"")
+    }
+
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] = {
+      getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"and child.status = ${status.toString}")
+    }
+
     /** A flat list of the folder with `id` as well as its children folders. The folders in the list comes with
       * connected resources in the `data` list.
       */
-    def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
+    private[repository] def getFolderAndChildrenSubfoldersWithResourcesWhere(id: UUID, sqlFilterClause: SQLSyntax)(
+        implicit session: DBSession
+    ): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
                 SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank
@@ -326,6 +338,7 @@ trait FolderRepository {
                 SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
+                $sqlFilterClause
             )
             SELECT * FROM childs
             LEFT JOIN folder_resources fr ON fr.folder_id = f_id

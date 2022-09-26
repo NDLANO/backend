@@ -528,7 +528,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
       )
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
       .thenReturn(Success(Some(folderWithId)))
 
     service.getSharedFolder(folderUUID) should be(Success(apiFolder))
@@ -538,7 +538,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
       .thenReturn(Success(Some(folderWithId)))
 
     val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID)

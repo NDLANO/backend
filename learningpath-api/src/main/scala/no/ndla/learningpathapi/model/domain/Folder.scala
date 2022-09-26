@@ -57,6 +57,7 @@ case class Folder(
   override val sortRank: Option[Int] = rank
 
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
+  def isShared: Boolean  = this.status == FolderStatus.SHARED
 }
 
 trait DBFolder {
