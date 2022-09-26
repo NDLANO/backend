@@ -644,9 +644,13 @@ trait UpdateService {
       for {
         feideId         <- getUserFeideID(feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
+        parent          <- getFolderWithDirectChildren(folder.parentId, feideId)
         _               <- folder.isOwner(feideId)
         folderWithData  <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
+        siblingsToSort = parent.childrenFolders.filterNot(_.id == deletedFolderId)
+        sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.id))
+        _ <- performSort(siblingsToSort, sortRequest, feideId)
       } yield deletedFolderId
     }
 
@@ -663,6 +667,10 @@ trait UpdateService {
         resource <- folderRepository.resourceWithId(resourceId)
         _        <- resource.isOwner(feideId)
         id       <- deleteResourceIfNoConnection(folderId, resourceId)
+        parent   <- getFolderWithDirectChildren(folder.id.some, feideId)
+        siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
+        sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.resourceId))
+        _ <- performSort(siblingsToSort, sortRequest, feideId)
       } yield id
     }
 
