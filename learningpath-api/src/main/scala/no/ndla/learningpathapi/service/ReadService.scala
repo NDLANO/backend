@@ -195,7 +195,7 @@ trait ReadService {
         parentId = None,
         name = FavoriteFolderDefaultName,
         status = domain.FolderStatus.PRIVATE,
-        rank = None
+        rank = 1.some
       )
       folderRepository.insertFolder(feideId, favoriteFolder)
     }
