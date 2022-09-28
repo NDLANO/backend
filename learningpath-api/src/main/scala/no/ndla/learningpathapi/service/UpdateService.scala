@@ -478,32 +478,33 @@ trait UpdateService {
     private def getFolderWithDirectChildren(
         maybeParentId: Option[UUID],
         feideId: FeideID
-    ): Try[Option[FolderAndDirectChildren]] = maybeParentId match {
-      case None => Success(None)
+    ): Try[FolderAndDirectChildren] = maybeParentId match {
+      case None =>
+        folderRepository
+          .foldersWithFeideAndParentID(None, feideId)
+          .map(siblingFolders => {
+            FolderAndDirectChildren(None, siblingFolders, Seq.empty)
+          })
       case Some(parentId) =>
         folderRepository.folderWithFeideId(parentId, feideId) match {
-          case Failure(_: NotFoundException) => Success(None)
-          case Failure(ex)                   => Failure(ex)
+          case Failure(ex) => Failure(ex)
           case Success(parent) =>
             for {
               siblingFolders   <- folderRepository.foldersWithFeideAndParentID(parentId.some, feideId)
               siblingResources <- folderRepository.getConnections(parentId)
-            } yield Some(FolderAndDirectChildren(parent, siblingFolders, siblingResources))
+            } yield FolderAndDirectChildren(Some(parent), siblingFolders, siblingResources)
         }
     }
 
     private def validateSiblingNames(
         name: String,
-        maybeParentAndSiblings: Option[FolderAndDirectChildren]
+        maybeParentAndSiblings: FolderAndDirectChildren
     ): Try[Unit] = {
-      maybeParentAndSiblings
-        .map { case FolderAndDirectChildren(_, siblings, _) =>
-          val hasNameDuplicate = siblings.map(_.name).exists(_.toLowerCase == name.toLowerCase)
-          if (hasNameDuplicate) {
-            Failure(ValidationException("name", s"The folder name must be unique within its parent."))
-          } else Success(())
-        }
-        .getOrElse(Success(()))
+      val FolderAndDirectChildren(_, siblings, _) = maybeParentAndSiblings
+      val hasNameDuplicate                        = siblings.map(_.name).exists(_.toLowerCase == name.toLowerCase)
+      if (hasNameDuplicate) {
+        Failure(ValidationException("name", s"The folder name must be unique within its parent."))
+      } else Success(())
     }
 
     private def getMaybeParentId(parentId: Option[String]): Try[Option[UUID]] = {
@@ -513,17 +514,14 @@ trait UpdateService {
     private def validateFolder(
         folderName: String,
         parentId: Option[UUID],
-        maybeParentAndSiblings: Option[FolderAndDirectChildren]
+        maybeParentAndSiblings: FolderAndDirectChildren
     ): Try[Option[UUID]] = for {
-      validatedParentId <- validateParentId(parentId, maybeParentAndSiblings.map(_.folder))
+      validatedParentId <- validateParentId(parentId, maybeParentAndSiblings.folder)
       _                 <- validateSiblingNames(folderName, maybeParentAndSiblings)
       _                 <- checkDepth(validatedParentId)
     } yield validatedParentId
 
-    private def getNextRank(siblings: Option[FolderAndDirectChildren]): Option[Int] = siblings.map {
-      case FolderAndDirectChildren(_, siblingFolders, siblingResources) =>
-        (siblingFolders.length + siblingResources.length) + 1
-    }
+    private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
 
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
       for {
@@ -531,7 +529,7 @@ trait UpdateService {
         document          <- converterService.toDomainFolderDocument(newFolder)
         parentId          <- getMaybeParentId(newFolder.parentId)
         maybeSiblings     <- getFolderWithDirectChildren(parentId, feideId)
-        nextRank          <- Try(getNextRank(maybeSiblings)) // `Try` for align
+        nextRank          <- Try(getNextRank(maybeSiblings.childrenFolders)) // `Try` for align
         validatedParentId <- validateFolder(newFolder.name, parentId, maybeSiblings)
         inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document, nextRank)
         crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
@@ -557,10 +555,10 @@ trait UpdateService {
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
         folderId: UUID,
-        siblings: Option[FolderAndDirectChildren],
+        siblings: FolderAndDirectChildren,
         feideId: FeideID
     ): Try[(domain.Resource, domain.FolderResource)] = {
-      val rank = getNextRank(siblings).getOrElse(1)
+      val rank = getNextRank(siblings.childrenResources)
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
         .flatMap {
@@ -646,9 +644,13 @@ trait UpdateService {
       for {
         feideId         <- getUserFeideID(feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
+        parent          <- getFolderWithDirectChildren(folder.parentId, feideId)
         _               <- folder.isOwner(feideId)
         folderWithData  <- readService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
         deletedFolderId <- deleteRecursively(folderWithData, feideId)
+        siblingsToSort = parent.childrenFolders.filterNot(_.id == deletedFolderId)
+        sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.id))
+        _ <- performSort(siblingsToSort, sortRequest, feideId)
       } yield deletedFolderId
     }
 
@@ -665,6 +667,10 @@ trait UpdateService {
         resource <- folderRepository.resourceWithId(resourceId)
         _        <- resource.isOwner(feideId)
         id       <- deleteResourceIfNoConnection(folderId, resourceId)
+        parent   <- getFolderWithDirectChildren(folder.id.some, feideId)
+        siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
+        sortRequest    = FolderSortRequest(sortedIds = siblingsToSort.map(_.resourceId))
+        _ <- performSort(siblingsToSort, sortRequest, feideId)
       } yield id
     }
 
@@ -742,20 +748,16 @@ trait UpdateService {
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
-    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId) match {
-      case Failure(ex)   => Failure(ex)
-      case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
-      case Success(Some(FolderAndDirectChildren(_, _, resources))) => performSort(resources, sortRequest, feideId)
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
+      case FolderAndDirectChildren(_, _, resources) => performSort(resources, sortRequest, feideId)
     }
 
     private def sortNonRootFolderSubfolders(
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
-    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId) match {
-      case Failure(ex)   => Failure(ex)
-      case Success(None) => Failure(NotFoundException(s"Folder with id $folderId was not found."))
-      case Success(Some(FolderAndDirectChildren(_, subfolders, _))) => performSort(subfolders, sortRequest, feideId)
+    ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
+      case FolderAndDirectChildren(_, subfolders, _) => performSort(subfolders, sortRequest, feideId)
     }
 
     def sortFolder(

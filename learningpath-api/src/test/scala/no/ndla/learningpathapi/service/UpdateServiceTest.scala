@@ -1485,6 +1485,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val wrongFeideId = "nope"
 
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(wrongFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0))
     when(folderRepository.folderWithId(eqTo(id))(any)).thenReturn(Success(folderWithChildren))
@@ -1517,6 +1518,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val correctFeideId = "FEIDE"
 
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
@@ -1526,7 +1532,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
     when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
 
-    service.deleteFolder(mainFolderId, Some("token")) should be(Success(mainFolderId))
+    service.deleteFolder(mainFolderId, Some("token")).get should be(mainFolderId)
 
     verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any)
     verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any)
@@ -1555,6 +1561,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val correctFeideId = "FEIDE"
 
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(5))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
@@ -1581,15 +1592,24 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
+    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(2))
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(any)).thenReturn(Success(folder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(eqTo(folderId))(any)).thenReturn(Success(List(folderResource)))
     when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any))
       .thenReturn(Success(resourceId))
 
-    service.deleteConnection(folderId, resourceId, None).isSuccess should be(true)
+    service.deleteConnection(folderId, resourceId, None).failIfFailure
 
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
@@ -1604,6 +1624,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
+    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(correctFeideId))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
@@ -1612,8 +1633,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any))
       .thenReturn(Success(resourceId))
     when(folderRepository.deleteResource(eqTo(resourceId))(any)).thenReturn(Success(resourceId))
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(any)).thenReturn(Success(folder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(eqTo(folderId))(any)).thenReturn(Success(List(folderResource)))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
 
-    service.deleteConnection(folderId, resourceId, None) should be(Success(resourceId))
+    service.deleteConnection(folderId, resourceId, None).failIfFailure should be(resourceId)
 
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
@@ -1692,7 +1721,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).isSuccess should be(true)
+    service
+      .createNewResourceOrUpdateExisting(
+        newResource,
+        folderId,
+        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+        feideId
+      )
+      .isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any
@@ -1735,7 +1771,14 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
 
-    service.createNewResourceOrUpdateExisting(newResource, folderId, None, feideId).get
+    service
+      .createNewResourceOrUpdateExisting(
+        newResource,
+        folderId,
+        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+        feideId
+      )
+      .get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
       any
@@ -1796,6 +1839,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.deleteFolder(eqTo(folder3Id))(any[DBSession])).thenReturn(Success(folder3Id))
     when(folderRepository.deleteFolder(eqTo(folder2Id))(any[DBSession])).thenReturn(Success(folder2Id))
     when(folderRepository.deleteFolder(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1Id))
+    when(folderRepository.withTx(any[DBSession => Try[Unit]])).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
 
     service.deleteFolder(folder1Id, Some("FEIDEF")) should be(Success(folder1Id))
 

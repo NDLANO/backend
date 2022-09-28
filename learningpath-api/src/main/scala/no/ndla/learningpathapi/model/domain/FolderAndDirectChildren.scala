@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.model.domain
 
 case class FolderAndDirectChildren(
-    folder: Folder,
+    folder: Option[Folder],
     childrenFolders: Seq[Folder],
     childrenResources: Seq[FolderResource]
 )
