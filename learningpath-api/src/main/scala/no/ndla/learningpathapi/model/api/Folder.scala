@@ -41,7 +41,29 @@ object Folder {
 }
 
 sealed trait FolderData {}
-object FolderData       {
+object FolderData {
+  def apply(
+      id: String,
+      name: String,
+      status: String,
+      parentId: Option[String],
+      breadcrumbs: List[Breadcrumb],
+      subfolders: List[FolderData],
+      resources: List[Resource],
+      rank: Option[Int]
+  ): FolderData = {
+    Folder(
+      id,
+      name,
+      status,
+      parentId,
+      breadcrumbs,
+      subfolders,
+      resources,
+      rank
+    )
+  }
+
   // 3: After being redirected here from TSType.external we are manually making the union of FolderData,
   // with Folder. After that we alias it as IFolderData so that scala-tsi can incorporate it.
   implicit val folderDataAlias: TSNamedType[FolderData] = TSType.alias[FolderData]("IFolderData", Folder.folderTSI.get)

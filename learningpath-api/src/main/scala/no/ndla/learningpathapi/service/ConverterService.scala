@@ -784,21 +784,6 @@ trait ConverterService {
       )
     }
 
-    def toApiResource(domainResource: domain.Resource, connection: domain.FolderResource): Try[api.Resource] = {
-      Success(
-        api.Resource(
-          id = domainResource.id.toString,
-          resourceType = domainResource.resourceType,
-          path = domainResource.path,
-          created = domainResource.created,
-          tags = domainResource.tags,
-          resourceId = domainResource.resourceId,
-          rank = connection.rank.some
-        )
-      )
-
-    }
-
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {
       val resourceType = domainResource.resourceType
       val path         = domainResource.path

@@ -278,7 +278,7 @@ trait ReadService {
       getWith404IfNone(folderId, folderWithContent)
     }
 
-    private def getWith404IfNone(folderId: UUID, maybeFolder: Try[Option[domain.Folder]]): Try[domain.Folder] = {
+    def getWith404IfNone(folderId: UUID, maybeFolder: Try[Option[domain.Folder]]): Try[domain.Folder] = {
       maybeFolder match {
         case Failure(ex)           => Failure(ex)
         case Success(Some(folder)) => Success(folder)

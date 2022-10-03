@@ -14,7 +14,6 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 package object domain {
-  type FolderData       = Either[Folder, Resource]
   type FeideID          = String
   type FeideAccessToken = String
 

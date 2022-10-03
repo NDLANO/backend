@@ -15,7 +15,7 @@ import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
 import java.util.UUID
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 case class NewFolderData(
     parentId: Option[UUID],
@@ -58,6 +58,11 @@ case class Folder(
 
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
   def isShared: Boolean  = this.status == FolderStatus.SHARED
+
+  def isClonable: Try[_] = {
+    if (this.isShared) Success(this)
+    else Failure(InvalidStatusException(s"Only folders with status ${FolderStatus.SHARED.toString} can be cloned"))
+  }
 }
 
 trait DBFolder {

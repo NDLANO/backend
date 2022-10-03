@@ -63,6 +63,12 @@ trait FolderController {
     private val includeSubfolders =
       Param[Option[Boolean]]("include-subfolders", "Choose if sub-folders should be included in the response")
 
+    private val sourceId = Param[UUID]("source_folder_id", "Source UUID of the folder.")
+    private val destinationId = Param[Option[UUID]](
+      "destination-folder-id",
+      "Destination UUID of the folder. If None it will be cloned as a root folder."
+    )
+
     private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
       request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
     }
@@ -302,6 +308,28 @@ trait FolderController {
         status     <- folderStatusParam(this.folderStatus.paramName)
         updatedIds <- updateService.shareFolderAndSubfolders(folderId, status, requestFeideToken)
       } yield updatedIds
+    }
+
+    post(
+      "/clone/:source_folder_id/?",
+      operation(
+        apiOperation[Folder]("cloneFolder")
+          .summary("Creates new folder structure based on source folder structure")
+          .description("Creates new folder structure based on source folder structure")
+          .parameters(
+            asHeaderParam(feideToken),
+            asPathParam(sourceId),
+            asQueryParam(destinationId)
+          )
+          .responseMessages(response400, response403, response404, response500, response502)
+          .authorizations("oauth2")
+      )
+    ) {
+      for {
+        source      <- uuidParam(this.sourceId.paramName)
+        destination <- uuidParamOrNone(this.destinationId.paramName)
+        cloned      <- updateService.cloneFolder(source, destination, requestFeideToken)
+      } yield cloned
     }
 
     put(
