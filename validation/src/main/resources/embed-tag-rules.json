@@ -146,6 +146,8 @@
         "fast.wistia.com",
         ".*.khanacademy.org",
         "khanacademy.org",
+        "elevkanalen.no",
+        ".*.elevkanalen.no",
         "tv2skole.no",
         ".*.tv2skole.no",
         "www.scribd.com",
@@ -175,7 +177,10 @@
         "public.flourish.studio",
         "ourworldindata.org",
         "3dwarehouse.sketchup.com",
-        "www.gapminder.org"
+        "www.gapminder.org",
+        "www.facebook.com",
+        "fb.watch",
+        "sketchfab.com"
       ]
     },
     "footnote": {
