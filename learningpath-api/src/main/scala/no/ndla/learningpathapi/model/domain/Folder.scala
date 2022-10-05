@@ -59,7 +59,7 @@ case class Folder(
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
   def isShared: Boolean  = this.status == FolderStatus.SHARED
 
-  def isClonable: Try[_] = {
+  def isClonable: Try[Folder] = {
     if (this.isShared) Success(this)
     else Failure(InvalidStatusException(s"Only folders with status ${FolderStatus.SHARED.toString} can be cloned"))
   }

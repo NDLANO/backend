@@ -111,11 +111,9 @@ trait FolderRepository {
     def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
         session: DBSession = AutoSession
     ): Try[List[UUID]] = Try {
-      val newStatusStringified = sqls"${newStatus.toString}"
-
       sql"""
              UPDATE ${DBFolder.table}
-             SET status = $newStatusStringified
+             SET status = ${newStatus.toString}
              where id in ($folderIds);
            """.update()
     } match {
