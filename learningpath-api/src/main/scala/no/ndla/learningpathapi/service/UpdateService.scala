@@ -475,9 +475,8 @@ trait UpdateService {
       }
     }
 
-    private def getFolderWithDirectChildren(
-        maybeParentId: Option[UUID],
-        feideId: FeideID
+    private def getFolderWithDirectChildren(maybeParentId: Option[UUID], feideId: FeideID)(implicit
+        session: DBSession
     ): Try[FolderAndDirectChildren] = maybeParentId match {
       case None =>
         folderRepository
@@ -537,7 +536,9 @@ trait UpdateService {
 
     private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
 
-    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID): Try[domain.Folder] =
+    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID)(implicit
+        session: DBSession
+    ): Try[domain.Folder] =
       for {
         parentId          <- getMaybeParentId(newFolder.parentId)
         maybeSiblings     <- getFolderWithDirectChildren(parentId, feideId)
@@ -547,18 +548,22 @@ trait UpdateService {
         inserted          <- folderRepository.insertFolder(feideId, newFolderData)
       } yield inserted
 
-    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
+    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId  <- getUserFeideID(feideAccessToken)
         inserted <- createNewFolder(newFolder, feideId)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api      <- converterService.toApiFolder(inserted, crumbs)
       } yield api
+    }
 
     def createOrUpdateFolderResourceConnection(
         folderId: UUID,
         newResource: api.NewResource,
         feideId: FeideID
+    )(implicit
+        session: DBSession
     ): Try[domain.Resource] =
       for {
         _ <- folderRepository
@@ -572,19 +577,21 @@ trait UpdateService {
         folderId: UUID,
         newResource: api.NewResource,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Resource] =
+    ): Try[api.Resource] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId   <- getUserFeideID(feideAccessToken)
         resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
         converted <- converterService.toApiResource(resource)
       } yield converted
+    }
 
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
         folderId: UUID,
         siblings: FolderAndDirectChildren,
         feideId: FeideID
-    ): Try[domain.Resource] = {
+    )(implicit session: DBSession): Try[domain.Resource] = {
       val rank = getNextRank(siblings.childrenResources)
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
@@ -610,7 +617,9 @@ trait UpdateService {
         }
     }
 
-    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int): Try[FolderResource] =
+    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int)(implicit
+        session: DBSession
+    ): Try[FolderResource] =
       folderRepository.getConnection(folderId, resourceId) match {
         case Success(Some(connection)) => Success(connection)
         case Success(None)             => folderRepository.createFolderResourceConnection(folderId, resourceId, rank)
@@ -621,17 +630,20 @@ trait UpdateService {
         id: UUID,
         updatedFolder: UpdatedFolder,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Folder] = for {
-      feideId        <- getUserFeideID(feideAccessToken)
-      existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(feideId)
-      converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
-      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
-      _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
-      updated        <- folderRepository.updateFolder(id, feideId, converted)
-      crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
-      api            <- converterService.toApiFolder(updated, crumbs)
-    } yield api
+    ): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId        <- getUserFeideID(feideAccessToken)
+        existingFolder <- folderRepository.folderWithId(id)
+        _              <- existingFolder.isOwner(feideId)
+        converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
+        maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
+        _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
+        updated        <- folderRepository.updateFolder(id, feideId, converted)
+        crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
+        api            <- converterService.toApiFolder(updated, crumbs)
+      } yield api
+    }
 
     def updateResource(
         id: UUID,
@@ -775,6 +787,8 @@ trait UpdateService {
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
+    )(implicit
+        session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
       case FolderAndDirectChildren(_, _, resources) => performSort(resources, sortRequest, feideId)
     }
@@ -783,6 +797,8 @@ trait UpdateService {
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
+    )(implicit
+        session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
       case FolderAndDirectChildren(_, subfolders, _) => performSort(subfolders, sortRequest, feideId)
     }
@@ -792,7 +808,8 @@ trait UpdateService {
         sortRequest: FolderSortRequest,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[Unit] = {
-      val feideId = getUserFeideID(feideAccessToken).?
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      val feideId                     = getUserFeideID(feideAccessToken).?
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -819,7 +836,7 @@ trait UpdateService {
         sourceFolder: domain.Folder,
         destinationFolder: domain.Folder,
         feideId: FeideID
-    ): Try[Folder] = {
+    )(implicit session: DBSession): Try[Folder] = {
 
       val clonedResources = sourceFolder.resources.traverse(res => {
         val newResource =

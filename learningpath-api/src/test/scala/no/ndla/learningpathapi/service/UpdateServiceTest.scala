@@ -1727,7 +1727,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )
+      )(mock[DBSession])
       .isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
@@ -1766,7 +1766,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getConnection(any, any)(any)).thenReturn(Success(None))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(Some(resource)))
-    when(folderRepository.updateResource(resource)).thenReturn(Success(resource))
+    when(folderRepository.updateResource(eqTo(resource))(any)).thenReturn(Success(resource))
     when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
@@ -1777,7 +1777,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )
+      )(mock[DBSession])
       .get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
