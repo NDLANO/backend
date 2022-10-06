@@ -20,7 +20,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 import java.time.LocalDateTime
 import java.util.UUID
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class CloneFolderTest
     extends IntegrationSuite(EnableElasticsearchContainer = false, EnablePostgresContainer = true)
@@ -45,8 +45,10 @@ class CloneFolderTest
 
   val learningpathApi: MainClass = new MainClass(learningpathApiProperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(learningpathApiProperties) {
-      override lazy val feideApiClient: FeideApiClient = mock[FeideApiClient]
-      override lazy val clock                          = mock[SystemClock]
+      override lazy val feideApiClient: FeideApiClient     = mock[FeideApiClient]
+      override lazy val clock                              = mock[SystemClock]
+      override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
+
       when(feideApiClient.getUserFeideID(any)).thenReturn(Success("q"))
       when(clock.now()).thenReturn(LocalDateTime.of(2017, 1, 1, 1, 59))
     }
@@ -60,6 +62,8 @@ class CloneFolderTest
 
   override def beforeEach(): Unit = {
     super.beforeEach()
+    reset(learningpathApi.componentRegistry.folderRepository)
+
     learningpathApi.componentRegistry.folderRepository.deleteAllUserResources(feideId)
     learningpathApi.componentRegistry.folderRepository.deleteAllUserResources(destinationFeideId)
     learningpathApi.componentRegistry.folderRepository.deleteAllUserFolders(feideId)
@@ -106,6 +110,8 @@ class CloneFolderTest
 
   test("that cloning a folder without destination works as expected") {
     when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    val folderRepository = learningpathApi.componentRegistry.folderRepository
+
     val sourceFolderId = prepareFolderToClone()
     val customId       = "someid"
     val parentId       = Some(customId)
@@ -155,6 +161,9 @@ class CloneFolderTest
       rank = Some(1)
     )
 
+    val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    destinationFoldersBefore.get.length should be(0)
+
     val response = scalaj.http
       .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
       .method("POST")
@@ -162,9 +171,11 @@ class CloneFolderTest
       .header("FeideAuthorization", s"Bearer asd")
       .asString
 
-    val deserialized = read[api.Folder](response.body)
+    val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    destinationFoldersAfter.get.length should be(1)
 
-    val result = replaceIdRecursively(deserialized, customId)
+    val deserialized = read[api.Folder](response.body)
+    val result       = replaceIdRecursively(deserialized, customId)
     result should be(expectedFolder)
   }
 
@@ -243,6 +254,9 @@ class CloneFolderTest
       rank = Some(1)
     )
 
+    val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    destinationFoldersBefore.get.length should be(0)
+
     val response = scalaj.http
       .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
       .method("POST")
@@ -250,9 +264,11 @@ class CloneFolderTest
       .header("FeideAuthorization", s"Bearer asd")
       .asString
 
-    val deserialized = read[api.Folder](response.body)
+    val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    destinationFoldersAfter.get.length should be(1)
 
-    val result = replaceIdRecursively(deserialized, customId)
+    val deserialized = read[api.Folder](response.body)
+    val result       = replaceIdRecursively(deserialized, customId)
     result should be(expectedFolder)
   }
 
@@ -342,8 +358,7 @@ class CloneFolderTest
       .asString
 
     val deserialized = read[api.Folder](response.body)
-
-    val result = replaceIdRecursively(deserialized, customId)
+    val result       = replaceIdRecursively(deserialized, customId)
     result should be(expectedFolder)
   }
 
@@ -364,6 +379,38 @@ class CloneFolderTest
     val error = read[api.Error](response.body)
     error.code should be("NOT_FOUND")
     error.description should be(s"Folder with id ${wrongId.toString} does not exist")
+  }
+
+  test(
+    "that cloning a folder happens during one db transaction, if a fail occurs during inserting no new folders nor resources will be created"
+  ) {
+    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    val folderRepository = learningpathApi.componentRegistry.folderRepository
+    val sourceFolderId   = prepareFolderToClone()
+
+    // We want to fail on the next to last insertion to ensure that the previous insertions will be rollbacked
+    when(learningpathApi.componentRegistry.folderRepository.insertFolder(any, any)(any))
+      .thenCallRealMethod()
+      .andThenCallRealMethod()
+      .andThen(Failure(new RuntimeException("bad")))
+      .andThenCallRealMethod()
+
+    val destinationFoldersBefore   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    val destinationResourcesBefore = folderRepository.resourcesWithFeideId(destinationFeideId, 10)
+    destinationFoldersBefore.get.length should be(0)
+    destinationResourcesBefore.get.length should be(0)
+
+    scalaj.http
+      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
+      .method("POST")
+      .timeout(10000, 10000)
+      .header("FeideAuthorization", s"Bearer asd")
+      .asString
+
+    val destinationFoldersAfter   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
+    val destinationResourcesAfter = folderRepository.resourcesWithFeideId(destinationFeideId, 10)
+    destinationFoldersAfter.get.length should be(0)
+    destinationResourcesAfter.get.length should be(0)
   }
 
 }
