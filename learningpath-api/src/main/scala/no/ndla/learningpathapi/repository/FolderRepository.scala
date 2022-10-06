@@ -35,6 +35,17 @@ trait FolderRepository {
     def withTx[T](func: DBSession => T): T =
       DB.localTx { session => func(session) }
 
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          val result = func(session)
+          Success(result.get)
+        }
+      } catch {
+        case throwable: Throwable => Failure(throwable)
+      }
+    }
+
     def insertFolder(
         feideId: FeideID,
         folderData: NewFolderData

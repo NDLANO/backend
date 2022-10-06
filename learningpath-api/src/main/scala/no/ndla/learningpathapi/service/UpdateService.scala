@@ -877,18 +877,17 @@ trait UpdateService {
         destinationId: Option[UUID],
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.Folder] = {
-      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-      for {
-        feideId <- getUserFeideID(feideAccessToken)
-        maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
-        sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
-        _            <- sourceFolder.isClonable
-
-        clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId)
-        breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
-        converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
-      } yield converted
+      folderRepository.rollbackOnFailure { implicit session =>
+        for {
+          feideId <- getUserFeideID(feideAccessToken)
+          maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
+          sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
+          _            <- sourceFolder.isClonable
+          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId)(session)
+          breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
+          converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
+        } yield converted
+      }
     }
-
   }
 }
