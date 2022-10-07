@@ -118,6 +118,14 @@ trait NdlaController {
       }
     }
 
+    def folderStatusParam(paramName: String)(implicit request: HttpServletRequest): Try[FolderStatus.Value] = {
+      val maybeParam = paramOrNone(paramName)(request)
+      maybeParam match {
+        case None               => Failure(InvalidStatusException("Parameter 'folder-status' is required"))
+        case Some(folderStatus) => FolderStatus.valueOfOrError(folderStatus)
+      }
+    }
+
     def doOrAccessDenied(hasAccess: Boolean, reason: String = "Missing user/client-id or role")(w: => Any): Any = {
       if (hasAccess) {
         w

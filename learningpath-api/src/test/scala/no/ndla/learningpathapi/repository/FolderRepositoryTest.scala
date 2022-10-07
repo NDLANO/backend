@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{DBFolderResource, FolderDocument, FolderStatus, ResourceDocument}
+import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, NewFolderData, FolderStatus, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -100,10 +100,18 @@ class FolderRepositoryTest
       .getOrElse(0)
   }
 
+  def getAllFolders(implicit session: DBSession = AutoSession): List[Folder] = {
+    sql"select * from ${DBFolder.table}"
+      .map(rs => DBFolder.fromResultSet(rs))
+      .list()
+      .sequence
+      .get
+  }
+
   test("that inserting and retrieving a folder works as expected") {
-    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 1)
-    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 2)
-    val folder3 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 3)
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder3 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
     repository.folderWithId(folder1.get.id) should be(folder1)
     repository.folderWithId(folder2.get.id) should be(folder2)
@@ -124,8 +132,8 @@ class FolderRepositoryTest
   }
 
   test("that connecting folders and resources works as expected") {
-    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 1)
-    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 2)
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
     val created = LocalDateTime.now()
 
@@ -139,11 +147,30 @@ class FolderRepositoryTest
     folderResourcesCount should be(3)
   }
 
+  test("that updateFolder updates all fields correctly") {
+    val folderData = NewFolderData(parentId = None, name = "new", status = FolderStatus.PRIVATE, rank = None)
+    val updatedFolder = Folder(
+      id = UUID.randomUUID(),
+      feideId = "feide",
+      parentId = None,
+      name = "updated",
+      status = FolderStatus.SHARED,
+      rank = None,
+      resources = List.empty,
+      subfolders = List.empty
+    )
+    val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED)
+
+    val inserted = repository.insertFolder(feideId = "feide", folderData = folderData)
+    val result   = repository.updateFolder(id = inserted.get.id, feideId = "feide", folder = updatedFolder)
+    result should be(Success(expected))
+  }
+
   test("that deleting a folder deletes folder-resource connection") {
     val created = LocalDateTime.now()
 
-    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 1)
-    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 2)
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
@@ -159,8 +186,8 @@ class FolderRepositoryTest
   test("that deleting a resource deletes folder-resource connection") {
     val created = LocalDateTime.now()
 
-    val folder1 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 1)
-    val folder2 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 2)
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
@@ -206,11 +233,11 @@ class FolderRepositoryTest
   }
 
   test("that foldersWithParentID works correctly") {
-    val parent1 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 1)
-    val parent2 = repository.insertFolder("feide", None, TestData.baseFolderDocument, 2)
+    val parent1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val parent2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
-    repository.insertFolder("feide", Some(parent1.get.id), TestData.baseFolderDocument, 3)
-    repository.insertFolder("feide", Some(parent2.get.id), TestData.baseFolderDocument, 4)
+    repository.insertFolder("feide", TestData.baseFolderDocument.copy(parentId = Some(parent1.get.id)))
+    repository.insertFolder("feide", TestData.baseFolderDocument.copy(parentId = Some(parent2.get.id)))
 
     repository.foldersWithFeideAndParentID(None, "feide").get.length should be(2)
     repository.foldersWithFeideAndParentID(Some(parent1.get.id), "feide").get.length should be(1)
@@ -219,10 +246,10 @@ class FolderRepositoryTest
 
   test("that getFolderResources works as expected") {
     val created = LocalDateTime.now()
-    val doc     = FolderDocument(name = "some name", status = FolderStatus.PUBLIC)
+    val doc     = NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
 
-    val folder1 = repository.insertFolder("feide", None, doc, 1)
-    val folder2 = repository.insertFolder("feide", Some(folder1.get.id), doc, 2)
+    val folder1 = repository.insertFolder("feide", doc)
+    val folder2 = repository.insertFolder("feide", doc.copy(parentId = Some(folder1.get.id)))
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
@@ -259,7 +286,7 @@ class FolderRepositoryTest
         feideId = "feide",
         parentId = None,
         name = "name",
-        status = FolderStatus.PUBLIC,
+        status = FolderStatus.SHARED,
         resources = List.empty,
         subfolders = List.empty,
         rank = None
@@ -309,37 +336,26 @@ class FolderRepositoryTest
         feideId = "feide",
         parentId = None,
         name = "name",
-        status = FolderStatus.PUBLIC,
+        status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
         rank = None
       )
 
-    val mainParent = base.copy(
-      id = UUID.randomUUID(),
-      parentId = None
+    val baseNewFolderData = domain.NewFolderData(
+      parentId = base.parentId,
+      name = base.name,
+      status = base.status,
+      rank = base.rank
     )
 
-    val child1 = base.copy(
-      id = UUID.randomUUID(),
-      parentId = mainParent.id.some
-    )
-
-    val child2 = base.copy(
-      id = UUID.randomUUID(),
-      parentId = mainParent.id.some
-    )
-
-    val nestedChild1 = base.copy(
-      id = UUID.randomUUID(),
-      parentId = child1.id.some
-    )
-
-    val insertedMain   = repository.insertFolder("feide", None, mainParent.toDocument, 1).failIfFailure
-    val insertedChild1 = repository.insertFolder("feide", insertedMain.id.some, child1.toDocument, 2).failIfFailure
-    val insertedChild2 = repository.insertFolder("feide", insertedMain.id.some, child2.toDocument, 3).failIfFailure
+    val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
+    val insertedChild1 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+    val insertedChild2 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
     val insertedChild3 =
-      repository.insertFolder("feide", insertedChild1.id.some, nestedChild1.toDocument, 4).failIfFailure
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some)).failIfFailure
     val insertedResource = repository
       .insertResource(
         "feide",
@@ -371,12 +387,12 @@ class FolderRepositoryTest
   }
 
   test("that deleteAllUserFolders works as expected") {
-    repository.insertFolder("feide1", None, TestData.baseFolderDocument, 1)
-    repository.insertFolder("feide2", None, TestData.baseFolderDocument, 2)
-    repository.insertFolder("feide3", None, TestData.baseFolderDocument, 3)
-    repository.insertFolder("feide1", None, TestData.baseFolderDocument, 4)
-    repository.insertFolder("feide2", None, TestData.baseFolderDocument, 5)
-    repository.insertFolder("feide1", None, TestData.baseFolderDocument, 6)
+    repository.insertFolder("feide1", TestData.baseFolderDocument)
+    repository.insertFolder("feide2", TestData.baseFolderDocument)
+    repository.insertFolder("feide3", TestData.baseFolderDocument)
+    repository.insertFolder("feide1", TestData.baseFolderDocument)
+    repository.insertFolder("feide2", TestData.baseFolderDocument)
+    repository.insertFolder("feide1", TestData.baseFolderDocument)
 
     folderCount() should be(6)
     repository.deleteAllUserFolders(feideId = "feide1") should be(Success(3))
@@ -402,11 +418,11 @@ class FolderRepositoryTest
     "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
   ) {
     val created = LocalDateTime.now()
-    val doc     = FolderDocument(name = "some name", status = FolderStatus.PUBLIC)
+    val doc     = NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
 
-    val folder1 = repository.insertFolder("feide1", None, doc, 1)
-    val folder2 = repository.insertFolder("feide1", Some(folder1.get.id), doc, 2)
-    val folder3 = repository.insertFolder("feide2", None, doc, 3)
+    val folder1 = repository.insertFolder("feide1", doc)
+    val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
+    val folder3 = repository.insertFolder("feide2", doc)
 
     val resource1 = repository.insertResource("feide1", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide1", "/path2", "type", created, TestData.baseResourceDocument)
@@ -432,6 +448,109 @@ class FolderRepositoryTest
     folderCount() should be(1)
     resourceCount() should be(1)
     folderResourcesCount() should be(1)
+  }
+
+  test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
+    val doc = NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+
+    val folder1 = repository.insertFolder("feide1", doc)
+    val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
+    val folder3 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
+    val folder4 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder2.get.id)))
+    val folder5 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder4.get.id)))
+    val folder6 = repository.insertFolder("feide1", doc)
+    repository.insertFolder("feide1", doc.copy(parentId = Some(folder6.get.id)))
+
+    val ids = Seq(folder1.get.id, folder2.get.id, folder3.get.id, folder4.get.id, folder5.get.id)
+
+    folderCount() should be(7)
+    val result = repository.getFoldersAndSubfoldersIds(folder1.get.id)
+    result.get.length should be(5)
+    ids.sorted should be(result.get.sorted)
+  }
+
+  test("that updateFolderStatusInBulk updates status of chosen folders") {
+    val doc = NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+
+    val folder1 = repository.insertFolder("feide1", doc)
+    val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
+    val folder3 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
+    val folder4 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder2.get.id)))
+    val folder5 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder4.get.id)))
+
+    val ids = List(folder1.get.id, folder2.get.id, folder3.get.id, folder4.get.id, folder5.get.id)
+
+    val result = repository.updateFolderStatusInBulk(ids, FolderStatus.SHARED)
+    result.get.length should be(5)
+    getAllFolders().map(folder => folder.status).distinct should be(List(FolderStatus.SHARED))
+  }
+
+  test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
+    val base =
+      domain.Folder(
+        id = UUID.randomUUID(),
+        feideId = "feide",
+        parentId = None,
+        name = "name",
+        status = FolderStatus.SHARED,
+        subfolders = List.empty,
+        resources = List.empty,
+        rank = None
+      )
+
+    val baseNewFolderData = domain.NewFolderData(
+      parentId = base.parentId,
+      name = base.name,
+      status = base.status,
+      rank = base.rank
+    )
+
+    val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
+    val insertedChild1 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+    val insertedChild2 =
+      repository
+        .insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, status = FolderStatus.PRIVATE))
+        .failIfFailure
+    val insertedChild3 =
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some)).failIfFailure
+    val insertedResource = repository
+      .insertResource(
+        "feide",
+        "/testPath",
+        "resourceType",
+        LocalDateTime.now(),
+        ResourceDocument(List(), 1)
+      )
+      .failIfFailure
+    val insertedConnection =
+      repository.createFolderResourceConnection(insertedMain.id, insertedResource.id, 1).failIfFailure
+
+    val expectedSubfolders = List(
+      insertedChild2,
+      insertedChild1.copy(
+        subfolders = List(
+          insertedChild3
+        )
+      )
+    )
+
+    val expectedResultNormal = insertedMain.copy(
+      subfolders = expectedSubfolders.sortBy(_.id.toString),
+      resources = List(insertedResource.copy(connection = Some(insertedConnection)))
+    )
+
+    val expectedResultFiltered = insertedMain.copy(
+      subfolders = expectedSubfolders.filter(_.isShared).sortBy(_.id.toString),
+      resources = List(insertedResource.copy(connection = Some(insertedConnection)))
+    )
+
+    val resultNormal = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
+    resultNormal should be(Success(Some(expectedResultNormal)))
+
+    val resultFiltered =
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED)(ReadOnlyAutoSession)
+    resultFiltered should be(Success(Some(expectedResultFiltered)))
   }
 
 }

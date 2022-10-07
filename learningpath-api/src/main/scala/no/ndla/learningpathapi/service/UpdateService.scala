@@ -475,9 +475,8 @@ trait UpdateService {
       }
     }
 
-    private def getFolderWithDirectChildren(
-        maybeParentId: Option[UUID],
-        feideId: FeideID
+    private def getFolderWithDirectChildren(maybeParentId: Option[UUID], feideId: FeideID)(implicit
+        session: DBSession
     ): Try[FolderAndDirectChildren] = maybeParentId match {
       case None =>
         folderRepository
@@ -511,7 +510,21 @@ trait UpdateService {
       parentId.traverse(pid => converterService.toUUIDValidated(pid.some, "parentId"))
     }
 
-    private def validateFolder(
+    private def validateUpdatedFolder(
+        folderName: String,
+        parentId: Option[UUID],
+        maybeParentAndSiblings: FolderAndDirectChildren,
+        updatedFolder: Folder
+    ): Try[Option[UUID]] = {
+      val folderTreeWithoutTheUpdatee = maybeParentAndSiblings.withoutChild(updatedFolder.id)
+      for {
+        validatedParentId <- validateParentId(parentId, maybeParentAndSiblings.folder)
+        _                 <- validateSiblingNames(folderName, folderTreeWithoutTheUpdatee)
+        _                 <- checkDepth(validatedParentId)
+      } yield validatedParentId
+    }
+
+    private def validateNewFolder(
         folderName: String,
         parentId: Option[UUID],
         maybeParentAndSiblings: FolderAndDirectChildren
@@ -523,41 +536,62 @@ trait UpdateService {
 
     private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
 
-    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] =
+    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID)(implicit
+        session: DBSession
+    ): Try[domain.Folder] =
       for {
-        feideId           <- getUserFeideID(feideAccessToken)
-        document          <- converterService.toDomainFolderDocument(newFolder)
         parentId          <- getMaybeParentId(newFolder.parentId)
         maybeSiblings     <- getFolderWithDirectChildren(parentId, feideId)
         nextRank          <- Try(getNextRank(maybeSiblings.childrenFolders)) // `Try` for align
-        validatedParentId <- validateFolder(newFolder.name, parentId, maybeSiblings)
-        inserted          <- folderRepository.insertFolder(feideId, validatedParentId, document, nextRank)
-        crumbs            <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
-        api               <- converterService.toApiFolder(inserted, crumbs)
-      } yield api
+        validatedParentId <- validateNewFolder(newFolder.name, parentId, maybeSiblings)
+        newFolderData     <- converterService.toNewFolderData(newFolder, validatedParentId, nextRank.some)
+        inserted          <- folderRepository.insertFolder(feideId, newFolderData)
+      } yield inserted
 
-    def newFolderResourceConnection(
+    def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId  <- getUserFeideID(feideAccessToken)
+        inserted <- createNewFolder(newFolder, feideId)
+        crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+        api      <- converterService.toApiFolder(inserted, crumbs)
+      } yield api
+    }
+
+    def createOrUpdateFolderResourceConnection(
         folderId: UUID,
         newResource: api.NewResource,
-        feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Resource] =
+        feideId: FeideID
+    )(implicit
+        session: DBSession
+    ): Try[domain.Resource] =
       for {
-        feideId <- getUserFeideID(feideAccessToken)
         _ <- folderRepository
           .folderWithFeideId(folderId, feideId)
           .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
         siblings          <- getFolderWithDirectChildren(folderId.some, feideId)
         insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
-        (resource, connection) = insertedOrUpdated
-        converted <- converterService.toApiResource(resource, connection)
+      } yield insertedOrUpdated
+
+    def newFolderResourceConnection(
+        folderId: UUID,
+        newResource: api.NewResource,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[api.Resource] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId   <- getUserFeideID(feideAccessToken)
+        resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
+        converted <- converterService.toApiResource(resource)
       } yield converted
+    }
 
     private[service] def createNewResourceOrUpdateExisting(
         newResource: api.NewResource,
         folderId: UUID,
         siblings: FolderAndDirectChildren,
         feideId: FeideID
-    ): Try[(domain.Resource, domain.FolderResource)] = {
+    )(implicit session: DBSession): Try[domain.Resource] = {
       val rank = getNextRank(siblings.childrenResources)
       folderRepository
         .resourceWithPathAndTypeAndFeideId(newResource.path, newResource.resourceType, feideId)
@@ -573,17 +607,19 @@ trait UpdateService {
                 document
               )
               connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank)
-            } yield (inserted, connection)
+            } yield inserted.copy(connection = connection.some)
           case Some(existingResource) =>
             val mergedResource = converterService.mergeResource(existingResource, newResource)
             for {
               updated    <- folderRepository.updateResource(mergedResource)
               connection <- connectIfNotConnected(folderId, mergedResource.id, rank)
-            } yield (updated, connection)
+            } yield updated.copy(connection = connection.some)
         }
     }
 
-    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int): Try[FolderResource] =
+    private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int)(implicit
+        session: DBSession
+    ): Try[FolderResource] =
       folderRepository.getConnection(folderId, resourceId) match {
         case Success(Some(connection)) => Success(connection)
         case Success(None)             => folderRepository.createFolderResourceConnection(folderId, resourceId, rank)
@@ -594,17 +630,20 @@ trait UpdateService {
         id: UUID,
         updatedFolder: UpdatedFolder,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.Folder] = for {
-      feideId        <- getUserFeideID(feideAccessToken)
-      existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(feideId)
-      converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
-      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
-      _              <- validateFolder(converted.name, converted.parentId, maybeSiblings)
-      updated        <- folderRepository.updateFolder(id, feideId, converted)
-      crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
-      api            <- converterService.toApiFolder(updated, crumbs)
-    } yield api
+    ): Try[api.Folder] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId        <- getUserFeideID(feideAccessToken)
+        existingFolder <- folderRepository.folderWithId(id)
+        _              <- existingFolder.isOwner(feideId)
+        converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
+        maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
+        _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
+        updated        <- folderRepository.updateFolder(id, feideId, converted)
+        crumbs         <- readService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
+        api            <- converterService.toApiFolder(updated, crumbs)
+      } yield api
+    }
 
     def updateResource(
         id: UUID,
@@ -748,6 +787,8 @@ trait UpdateService {
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
+    )(implicit
+        session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
       case FolderAndDirectChildren(_, _, resources) => performSort(resources, sortRequest, feideId)
     }
@@ -756,6 +797,8 @@ trait UpdateService {
         folderId: UUID,
         sortRequest: FolderSortRequest,
         feideId: FeideID
+    )(implicit
+        session: DBSession
     ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).map {
       case FolderAndDirectChildren(_, subfolders, _) => performSort(subfolders, sortRequest, feideId)
     }
@@ -765,7 +808,8 @@ trait UpdateService {
         sortRequest: FolderSortRequest,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[Unit] = {
-      val feideId = getUserFeideID(feideAccessToken).?
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      val feideId                     = getUserFeideID(feideAccessToken).?
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -773,5 +817,94 @@ trait UpdateService {
       }
     }
 
+    def shareFolderAndSubfolders(
+        folderId: UUID,
+        newStatus: domain.FolderStatus.Value,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[List[UUID]] = {
+      implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+      for {
+        feideId    <- getUserFeideID(feideAccessToken)
+        folder     <- folderRepository.folderWithId(folderId)
+        _          <- folder.isOwner(feideId)
+        ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
+        updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
+      } yield updatedIds
+    }
+
+    private[service] def cloneChildrenRecursively(
+        sourceFolder: domain.Folder,
+        destinationFolder: domain.Folder,
+        feideId: FeideID
+    )(implicit session: DBSession): Try[Folder] = {
+
+      val clonedResources = sourceFolder.resources.traverse(res => {
+        val newResource =
+          api.NewResource(
+            resourceType = res.resourceType,
+            path = res.path,
+            tags = res.tags.some,
+            resourceId = res.resourceId
+          )
+        createOrUpdateFolderResourceConnection(destinationFolder.id, newResource, feideId)
+      })
+
+      val clonedSubfolders = sourceFolder.subfolders.traverse(childFolder => {
+        val newFolder = domain.NewFolderData(
+          parentId = destinationFolder.id.some,
+          name = childFolder.name,
+          status = FolderStatus.PRIVATE,
+          rank = childFolder.rank
+        )
+        folderRepository
+          .insertFolder(feideId, newFolder)
+          .flatMap(newFolder => cloneChildrenRecursively(childFolder, newFolder, feideId))
+      })
+
+      for {
+        resources <- clonedResources
+        folders   <- clonedSubfolders
+      } yield destinationFolder.copy(subfolders = folders, resources = resources)
+    }
+
+    private def cloneRecursively(sourceFolder: domain.Folder, destinationId: Option[UUID], feideId: FeideID)(implicit
+        session: DBSession
+    ): Try[domain.Folder] = {
+      val sourceFolderCopy =
+        api.NewFolder(name = sourceFolder.name, parentId = None, status = FolderStatus.PRIVATE.toString.some)
+
+      destinationId match {
+        case None =>
+          for {
+            createdFolder <- createNewFolder(sourceFolderCopy, feideId)
+            clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+          } yield clonedFolder
+        case Some(id) =>
+          for {
+            existingFolder <- folderRepository.folderWithId(id)
+            clonedSourceFolder = sourceFolderCopy.copy(parentId = existingFolder.id.toString.some)
+            createdFolder <- createNewFolder(clonedSourceFolder, feideId)
+            clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
+          } yield existingFolder.copy(subfolders = existingFolder.subfolders :+ clonedFolder)
+      }
+    }
+
+    def cloneFolder(
+        sourceId: UUID,
+        destinationId: Option[UUID],
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[api.Folder] = {
+      folderRepository.rollbackOnFailure { implicit session =>
+        for {
+          feideId <- getUserFeideID(feideAccessToken)
+          maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
+          sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
+          _            <- sourceFolder.isClonable
+          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId)(session)
+          breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
+          converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
+        } yield converted
+      }
+    }
   }
 }

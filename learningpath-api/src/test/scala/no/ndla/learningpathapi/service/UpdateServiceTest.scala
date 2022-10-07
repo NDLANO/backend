@@ -1727,7 +1727,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )
+      )(mock[DBSession])
       .isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
@@ -1766,7 +1766,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getConnection(any, any)(any)).thenReturn(Success(None))
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(Some(resource)))
-    when(folderRepository.updateResource(resource)).thenReturn(Success(resource))
+    when(folderRepository.updateResource(eqTo(resource))(any)).thenReturn(Success(resource))
     when(folderRepository.createFolderResourceConnection(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       Success(FolderResource(folderId = i.getArgument(0), resourceId = i.getArgument(1), rank = i.getArgument(2)))
     })
@@ -1777,7 +1777,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )
+      )(mock[DBSession])
       .get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(eqTo(resourcePath), eqTo(""), eqTo(feideId))(
@@ -1888,7 +1888,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       s"Folder can not be created, max folder depth limit of ${props.MaxFolderDepth} reached."
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(any)
   }
 
   test("that folder is created if depth count is below the limit") {
@@ -1924,7 +1924,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.insertFolder(any, any)(any[DBSession])).thenReturn(Success(domainFolder))
     when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
@@ -1933,7 +1933,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
 
-    verify(folderRepository, times(1)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any)(any)
   }
 
   test("that folder is not created if name already exists as a sibling") {
@@ -1969,7 +1969,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any, any, any)(any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.insertFolder(any, any)(any[DBSession])).thenReturn(Success(domainFolder))
     when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
     when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
@@ -1981,7 +1981,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(any)
   }
 
   test("that folder is not updated if name already exists as a sibling") {
@@ -2030,8 +2030,65 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(any)
     verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
+  }
+
+  test("that folder status is updated even when name is not changed") {
+    val feideId      = "FEIDE"
+    val folderId     = UUID.randomUUID()
+    val parentId     = UUID.randomUUID()
+    val updateFolder = api.UpdatedFolder(name = None, status = Some("shared"))
+
+    val existingFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "noe unikt",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = None
+    )
+    val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
+    val siblingFolder = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "aSd",
+      status = domain.FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = None
+    )
+    val expectedFolder = api.Folder(
+      id = folderId.toString,
+      name = "noe unikt",
+      status = "shared",
+      parentId = Some(parentId.toString),
+      breadcrumbs = List.empty,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = None
+    )
+    val belowLimit = props.MaxFolderDepth - 2
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
+      .thenReturn(Success(parentId))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+      .thenReturn(Success(emptyDomainFolder))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
+    when(readService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+      .thenReturn(Success(List(siblingFolder)))
+    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
+    when(folderRepository.updateFolder(any, any, any)(any)).thenReturn(Success(mergedFolder))
+
+    service.updateFolder(folderId, updateFolder, Some(feideId)) should be(Success(expectedFolder))
+
+    verify(folderRepository, times(1)).updateFolder(any, any, any)(any)
   }
 
   test("That deleteAllUserData works as expected") {

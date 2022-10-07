@@ -10,22 +10,24 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.learningpathapi.Props
 import org.json4s.FieldSerializer._
-import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
 import java.util.UUID
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
-case class FolderDocument(name: String, status: FolderStatus.Value) {
+case class NewFolderData(
+    parentId: Option[UUID],
+    name: String,
+    status: FolderStatus.Value,
+    rank: Option[Int]
+) {
   def toFullFolder(
       id: UUID,
       feideId: FeideID,
-      parentId: Option[UUID],
       resources: List[Resource],
-      subfolders: List[Folder],
-      rank: Option[Int]
+      subfolders: List[Folder]
   ): Folder = {
     Folder(
       id = id,
@@ -46,27 +48,21 @@ case class Folder(
     parentId: Option[UUID],
     name: String,
     status: FolderStatus.Value,
-    subfolders: List[Folder],
+    rank: Option[Int],
     resources: List[Resource],
-    rank: Option[Int]
+    subfolders: List[Folder]
 ) extends FeideContent
     with Rankable {
   override val sortId: UUID          = id
   override val sortRank: Option[Int] = rank
 
-  def toDocument: FolderDocument = FolderDocument(name = name, status = status)
-
-  def isPublic: Boolean  = this.status == FolderStatus.PUBLIC
   def isPrivate: Boolean = this.status == FolderStatus.PRIVATE
+  def isShared: Boolean  = this.status == FolderStatus.SHARED
 
-  def hasReadAccess(feideId: FeideID): Try[_] = {
-    if (isPublic) {
-      Success(this)
-    } else {
-      isOwner(feideId)
-    }
+  def isClonable: Try[Folder] = {
+    if (this.isShared) Success(this)
+    else Failure(InvalidStatusException(s"Only folders with status ${FolderStatus.SHARED.toString} can be cloned"))
   }
-
 }
 
 trait DBFolder {
@@ -89,21 +85,25 @@ trait DBFolder {
     def fromResultSet(rs: WrappedResultSet): Try[Folder] = fromResultSet((s: String) => s)(rs)
 
     def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[Folder] = {
-      val metaData = read[FolderDocument](rs.string(colNameWrapper("document")))
       val id       = rs.get[Try[UUID]](colNameWrapper("id"))
-      val feideId  = rs.string(colNameWrapper("feide_id"))
       val parentId = rs.get[Option[UUID]](colNameWrapper("parent_id"))
+      val feideId  = rs.string(colNameWrapper("feide_id"))
+      val name     = rs.string(colNameWrapper("name"))
+      val status   = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
       val rank     = rs.intOpt(colNameWrapper("rank"))
 
-      id.map(id =>
-        metaData.toFullFolder(
-          id = id,
-          feideId = feideId,
-          parentId = parentId,
-          resources = List.empty,
-          subfolders = List.empty,
-          rank = rank
-        )
+      for {
+        id     <- id
+        status <- status
+      } yield Folder(
+        id = id,
+        parentId = parentId,
+        feideId = feideId,
+        name = name,
+        status = status,
+        resources = List.empty,
+        subfolders = List.empty,
+        rank = rank
       )
     }
   }

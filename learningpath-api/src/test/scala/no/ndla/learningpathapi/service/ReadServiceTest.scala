@@ -323,8 +323,9 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
-  test("That getFolder returns folder and its data when FEIDE ID does not match but the Folder is Public") {
+  test("That getSingleFolder returns folder and its data when user is the owner") {
     val created        = clock.now()
+    val feideId        = "FEIDE"
     val mainFolderUUID = UUID.randomUUID()
     val subFolder1UUID = UUID.randomUUID()
     val subFolder2UUID = UUID.randomUUID()
@@ -332,10 +333,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
-      feideId = "FEIDE",
+      feideId = feideId,
       parentId = None,
       name = "mainFolder",
-      status = FolderStatus.PUBLIC,
+      status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
       rank = None
@@ -346,7 +347,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = "",
       parentId = Some(mainFolderUUID),
       name = "subFolder1",
-      status = FolderStatus.PUBLIC,
+      status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
       rank = None
@@ -377,7 +378,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected = api.Folder(
       id = mainFolderUUID.toString,
       name = "mainFolder",
-      status = "public",
+      status = "private",
       breadcrumbs = List(api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")),
       parentId = None,
       resources = List(
@@ -395,7 +396,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Folder(
           id = subFolder1UUID.toString,
           name = "subFolder1",
-          status = "public",
+          status = "private",
           subfolders = List.empty,
           resources = List.empty,
           breadcrumbs = List(
@@ -432,7 +433,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("wrong"))
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
     when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
       .thenReturn(Success(List(subFolder1, subFolder2)))
@@ -447,7 +448,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result should be(Success(expected))
   }
 
-  test("That user with no access doesn't get the treat") {
+  test("That getSingleFolder fails if user does not own the folder") {
     val mainFolderUUID = UUID.randomUUID()
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
@@ -473,7 +474,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
-    when(folderRepository.insertFolder(any, any, any, any)(any)).thenReturn(Success(favoriteDomainFolder))
+    when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
 
@@ -482,7 +483,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.find(_.name == "favorite").get should be(favoriteApiFolder)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(1)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any)(any)
   }
 
   test("That getFolders includes resources for the top folders when includeResources flag is set to true") {
@@ -512,14 +513,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.get.length should be(2)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)
-    verify(folderRepository, times(0)).insertFolder(any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(any)
     verify(folderRepository, times(2)).getFolderResources(any)(any)
   }
 
-  test("That getSharedFolder returns a folder if the status is shared or public") {
-    val folderUUID    = UUID.randomUUID()
-    val folderWithId  = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
-    val folderWithId2 = folderWithId.copy(status = FolderStatus.PUBLIC)
+  test("That getSharedFolder returns a folder if the status is shared") {
+    val folderUUID   = UUID.randomUUID()
+    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
     val apiFolder =
       emptyApiFolder.copy(
         id = folderUUID.toString,
@@ -527,20 +527,18 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         status = "shared",
         breadcrumbs = List(api.Breadcrumb(id = folderUUID.toString, name = ""))
       )
-    val apiFolder2 = apiFolder.copy(status = "public")
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
-      .thenReturn(Success(Some(folderWithId)), Success(Some(folderWithId2)))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
+      .thenReturn(Success(Some(folderWithId)))
 
     service.getSharedFolder(folderUUID) should be(Success(apiFolder))
-    service.getSharedFolder(folderUUID) should be(Success(apiFolder2))
   }
 
-  test("That getSharedFolder returns a Failure Not Found if the status is not shared or public") {
+  test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE)
 
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID))(any))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(eqTo(folderUUID), eqTo(FolderStatus.SHARED))(any))
       .thenReturn(Success(Some(folderWithId)))
 
     val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID)

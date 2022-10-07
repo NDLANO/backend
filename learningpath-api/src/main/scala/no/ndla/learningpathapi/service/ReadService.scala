@@ -191,11 +191,13 @@ trait ReadService {
     private def createFavorite(
         feideId: domain.FeideID
     ): Try[domain.Folder] = {
-      val favoriteFolder = domain.FolderDocument(
+      val favoriteFolder = domain.NewFolderData(
+        parentId = None,
         name = FavoriteFolderDefaultName,
-        status = domain.FolderStatus.PRIVATE
+        status = domain.FolderStatus.PRIVATE,
+        rank = 1.some
       )
-      folderRepository.insertFolder(feideId, None, favoriteFolder, 1)
+      folderRepository.insertFolder(feideId, favoriteFolder)
     }
 
     def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.Breadcrumb]] = {
@@ -237,7 +239,7 @@ trait ReadService {
       for {
         feideId           <- getUserFeideID(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
-        _                 <- folderWithContent.hasReadAccess(feideId)
+        _                 <- folderWithContent.isOwner(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
         converted         <- converterService.toApiFolder(folderWithContent, breadcrumbs)
       } yield converted
@@ -273,7 +275,11 @@ trait ReadService {
         case (false, shouldIncludeResources) => withResources(folderId, shouldIncludeResources).map(_.some)
       }
 
-      folderWithContent match {
+      getWith404IfNone(folderId, folderWithContent)
+    }
+
+    def getWith404IfNone(folderId: UUID, maybeFolder: Try[Option[domain.Folder]]): Try[domain.Folder] = {
+      maybeFolder match {
         case Failure(ex)           => Failure(ex)
         case Success(Some(folder)) => Success(folder)
         case Success(None)         => Failure(NotFoundException(s"Folder with id $folderId does not exist"))
@@ -309,9 +315,10 @@ trait ReadService {
 
     def getSharedFolder(id: UUID): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
+      val folderWithResources = folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED)
       for {
-        folderWithContent <- getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
-        _ <- if (!folderWithContent.isPrivate) Success(()) else Failure(NotFoundException("Folder does not exist"))
+        folderWithContent <- getWith404IfNone(id, folderWithResources)
+        _ <- if (folderWithContent.isShared) Success(()) else Failure(NotFoundException("Folder does not exist"))
         folderAsTopFolder = folderWithContent.copy(parentId = None)
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
         converted   <- converterService.toApiFolder(folderAsTopFolder, breadcrumbs)

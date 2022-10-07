@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.common.errors.RollbackException
 
 trait FolderRepository {
   this: DataSource with DBFolder with DBResource with DBFolderResource =>
@@ -35,32 +36,37 @@ trait FolderRepository {
     def withTx[T](func: DBSession => T): T =
       DB.localTx { session => func(session) }
 
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
+        }
+      } catch {
+        case RollbackException(ex) => Failure(ex)
+      }
+    }
+
     def insertFolder(
         feideId: FeideID,
-        parentId: Option[UUID],
-        document: FolderDocument,
-        rank: Int
+        folderData: NewFolderData
     )(implicit session: DBSession = AutoSession): Try[Folder] =
       Try {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(write(document))
-
         val newId = UUID.randomUUID()
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, document, rank)
-        values ($newId, $parentId, $feideId, $dataObject, $rank)
+        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank)
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank})
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
-        document.toFullFolder(
+        folderData.toFullFolder(
           id = newId,
           feideId = feideId,
-          parentId = parentId,
           resources = List.empty,
-          subfolders = List.empty,
-          rank = rank.some
+          subfolders = List.empty
         )
       }
 
@@ -101,14 +107,10 @@ trait FolderRepository {
     def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
         session: DBSession = AutoSession
     ): Try[Folder] = Try {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(write(folder))
-
       sql"""
           update ${DBFolder.table}
-          set parent_id=${folder.parentId},
-              document=$dataObject
+          set name=${folder.name},
+              status=${folder.status.toString}
           where id=$id and feide_id=$feideId
       """.update()
     } match {
@@ -118,6 +120,25 @@ trait FolderRepository {
         Success(folder)
       case Success(count) =>
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+    }
+
+    def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
+        session: DBSession = AutoSession
+    ): Try[List[UUID]] = Try {
+      sql"""
+             UPDATE ${DBFolder.table}
+             SET status = ${newStatus.toString}
+             where id in ($folderIds);
+           """.update()
+    } match {
+      case Failure(ex) => Failure(ex)
+      case Success(count) if count == folderIds.length =>
+        logger.info(s"Updated folders with ids (${folderIds.mkString(", ")})")
+        Success(folderIds)
+      case Success(count) =>
+        Failure(
+          NDLASQLException(s"This is a Bug! The expected rows count should be ${folderIds.length} and was $count.")
+        )
     }
 
     def updateResource(resource: Resource)(implicit session: DBSession = AutoSession): Try[Resource] = Try {
@@ -304,19 +325,32 @@ trait FolderRepository {
           }
       }
 
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = {
+      getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"")
+    }
+
+    def getFolderAndChildrenSubfoldersWithResources(id: UUID, status: FolderStatus.Value)(implicit
+        session: DBSession
+    ): Try[Option[Folder]] = {
+      getFolderAndChildrenSubfoldersWithResourcesWhere(id, sqls"and child.status = ${status.toString}")
+    }
+
     /** A flat list of the folder with `id` as well as its children folders. The folders in the list comes with
       * connected resources in the `data` list.
       */
-    def getFolderAndChildrenSubfoldersWithResources(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
+    private[repository] def getFolderAndChildrenSubfoldersWithResourcesWhere(id: UUID, sqlFilterClause: SQLSyntax)(
+        implicit session: DBSession
+    ): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, document AS f_document, rank AS f_rank
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.document AS f_document, child.rank AS f_rank
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
+                $sqlFilterClause
             )
             SELECT * FROM childs
             LEFT JOIN folder_resources fr ON fr.folder_id = f_id
@@ -336,11 +370,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id, parent_id, feide_id, document
+                SELECT id, parent_id, feide_id, name, status
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id, child.parent_id, child.feide_id, child.document
+                SELECT child.id, child.parent_id, child.feide_id, child.name, child.status
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.id = child.parent_id
             )
@@ -368,6 +402,25 @@ trait FolderRepository {
         .first()
         .getOrElse(0)
     }
+
+    def getFoldersAndSubfoldersIds(folderId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[UUID]] =
+      Try {
+        sql"""
+             WITH RECURSIVE parent (id) as (
+                  SELECT id
+                  FROM ${DBFolder.table} child
+                  WHERE id = $folderId
+                  UNION ALL
+                  SELECT child.id
+                  FROM ${DBFolder.table} child, parent
+                  WHERE child.parent_id = parent.id
+            )
+            SELECT * FROM parent
+           """
+          .map(rs => rs.get[Try[UUID]]("id"))
+          .list()
+          .sequence
+      }.flatten
 
     def foldersWithParentID(parentId: Option[UUID])(implicit
         session: DBSession = ReadOnlyAutoSession

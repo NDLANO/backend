@@ -690,13 +690,19 @@ trait ConverterService {
       }
     }
 
-    def toDomainFolderDocument(newFolder: api.NewFolder): Try[domain.FolderDocument] = {
+    def toNewFolderData(
+        newFolder: api.NewFolder,
+        parentId: Option[UUID],
+        newRank: Option[Int]
+    ): Try[domain.NewFolderData] = {
       val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
 
       Success(
-        FolderDocument(
+        NewFolderData(
+          parentId = parentId,
           name = newFolder.name,
-          status = newStatus
+          status = newStatus,
+          rank = newRank
         )
       )
     }
@@ -776,21 +782,6 @@ trait ConverterService {
         resourceId = newResource.resourceId,
         connection = existing.connection
       )
-    }
-
-    def toApiResource(domainResource: domain.Resource, connection: domain.FolderResource): Try[api.Resource] = {
-      Success(
-        api.Resource(
-          id = domainResource.id.toString,
-          resourceType = domainResource.resourceType,
-          path = domainResource.path,
-          created = domainResource.created,
-          tags = domainResource.tags,
-          resourceId = domainResource.resourceId,
-          rank = connection.rank.some
-        )
-      )
-
     }
 
     def toApiResource(domainResource: domain.Resource): Try[api.Resource] = {

@@ -484,23 +484,25 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
   }
 
-  test("toDomainFolder transforms correctly") {
+  test("toNewFolderData transforms correctly") {
     val folderUUID = UUID.randomUUID()
     val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
-    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("public"))
+    val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("shared"))
     val newFolder3 =
       api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("ikkeesksisterendestatus"))
 
-    val expected1 = domain.FolderDocument(
+    val expected1 = domain.NewFolderData(
+      parentId = Some(folderUUID),
       name = "kenkaku",
-      status = domain.FolderStatus.PRIVATE
+      status = domain.FolderStatus.PRIVATE,
+      rank = None
     )
 
-    service.toDomainFolderDocument(newFolder1).get should be(expected1)
-    service.toDomainFolderDocument(newFolder2).get should be(
-      expected1.copy(status = domain.FolderStatus.PUBLIC)
+    service.toNewFolderData(newFolder1, Some(folderUUID), None).get should be(expected1)
+    service.toNewFolderData(newFolder2, Some(folderUUID), None).get should be(
+      expected1.copy(status = domain.FolderStatus.SHARED)
     )
-    service.toDomainFolderDocument(newFolder3).get should be(
+    service.toNewFolderData(newFolder3, Some(folderUUID), None).get should be(
       expected1.copy(status = domain.FolderStatus.PRIVATE)
     )
   }
@@ -540,7 +542,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = "w",
       parentId = Some(mainFolderUUID),
       name = "folderData2",
-      status = domain.FolderStatus.PUBLIC,
+      status = domain.FolderStatus.SHARED,
       subfolders = List.empty,
       resources = List.empty,
       rank = None
@@ -560,7 +562,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = "u",
       parentId = None,
       name = "mainFolder",
-      status = domain.FolderStatus.PUBLIC,
+      status = domain.FolderStatus.SHARED,
       subfolders = List(folderData2, folderData3),
       resources = List(resource),
       rank = None
@@ -591,7 +593,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
       name = "folderData2",
-      status = "public",
+      status = "shared",
       resources = List.empty,
       subfolders = List.empty,
       breadcrumbs = List(
@@ -617,7 +619,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected = api.Folder(
       id = mainFolderUUID.toString,
       name = "mainFolder",
-      status = "public",
+      status = "shared",
       subfolders = List(apiData2, apiData3),
       resources = List(apiResource),
       breadcrumbs = List(
@@ -646,12 +648,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None
     )
-    val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("public"))
+    val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("shared"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
     val updatedWithGarbageData =
       api.UpdatedFolder(name = Some("huehueuheasdasd+++"), status = Some("det å joike er noe kult"))
 
-    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.PUBLIC)
+    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.SHARED)
     val expected2 = existing.copy(name = "folderData1", status = FolderStatus.PRIVATE)
     val expected3 = existing.copy(name = "huehueuheasdasd+++", status = FolderStatus.PRIVATE)
 
