@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.common.errors.RollbackException
 
 trait FolderRepository {
   this: DataSource with DBFolder with DBResource with DBFolderResource =>
@@ -38,11 +39,13 @@ trait FolderRepository {
     def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
       try {
         DB.localTx { session =>
-          val result = func(session)
-          Success(result.get)
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
         }
       } catch {
-        case throwable: Throwable => Failure(throwable)
+        case RollbackException(ex) => Failure(ex)
       }
     }
 
