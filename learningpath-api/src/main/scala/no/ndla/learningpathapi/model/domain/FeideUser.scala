@@ -44,7 +44,10 @@ case class FeideUser(
     lastUpdated = lastUpdated
   )
 
+  // Keeping FEIDE and our data in sync
   def wasUpdatedLast24h: Boolean = LocalDateTime.now().isBefore(lastUpdated.minusSeconds(10))
+
+  def isTeacher: Boolean = userRole == UserRole.TEACHER
 }
 
 trait DBFeideUser {

@@ -157,4 +157,12 @@ object TestData {
     rank = None
   )
 
+  val emptyFeideUser: domain.FeideUser = domain.FeideUser(
+    id = 1,
+    feideId = "",
+    favoriteSubjects = Seq.empty,
+    userRole = domain.UserRole.TEACHER,
+    lastUpdated = today
+  )
+
 }

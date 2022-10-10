@@ -340,12 +340,13 @@ trait ReadService {
       } yield inserted
     }
 
-    private[service] def getOrCreateFeideUserIfNotExist(
+    def getOrCreateFeideUserIfNotExist(
         feideId: FeideID,
-        feideAccessToken: FeideAccessToken
+        feideAccessToken: Option[FeideAccessToken]
     ): Try[domain.FeideUser] = {
       userRepository.userWithFeideId(feideId).flatMap {
-        case None => createFeideUser(feideId, feideAccessToken)
+        case None =>
+          feideApiClient.getFeideAccessTokenOrFail(feideAccessToken).flatMap(token => createFeideUser(feideId, token))
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
           else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))
@@ -355,7 +356,7 @@ trait ReadService {
     def getFeideUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.FeideUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        userData <- getOrCreateFeideUserIfNotExist(feideId, feideAccessToken.get)
+        userData <- getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)
         api = converterService.toApiUserData(userData)
       } yield api
     }

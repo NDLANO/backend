@@ -565,6 +565,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getUser(any)).thenReturn(Success(feideUserInfo))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[domain.FeideUserDocument])(any))

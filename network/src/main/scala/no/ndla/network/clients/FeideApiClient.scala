@@ -93,27 +93,32 @@ trait FeideApiClient {
       })
     }
 
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
-      feideAccessToken match {
+    def getFeideAccessTokenOrFail(maybeFeideAccessToken: Option[FeideAccessToken]): Try[FeideAccessToken] = {
+      maybeFeideAccessToken match {
         case None =>
           Failure(
             AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
           )
-        case Some(accessToken) =>
-          this.getOpenIdUser(accessToken) match {
-            case Failure(ex: HttpRequestException) =>
-              val code = ex.httpResponse.map(_.code)
-              if (code.contains(403) || code.contains(401)) {
-                Failure(
-                  AccessDeniedException(
-                    "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
-                  )
-                )
-              } else Failure(ex)
-            case Failure(ex)        => Failure(ex)
-            case Success(feideUser) => Success(feideUser.sub)
-          }
+        case Some(feideAccessToken) => Success(feideAccessToken)
       }
+    }
+
+    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
+      getFeideAccessTokenOrFail(feideAccessToken).flatMap(accessToken =>
+        this.getOpenIdUser(accessToken) match {
+          case Failure(ex: HttpRequestException) =>
+            val code = ex.httpResponse.map(_.code)
+            if (code.contains(403) || code.contains(401)) {
+              Failure(
+                AccessDeniedException(
+                  "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
+                )
+              )
+            } else Failure(ex)
+          case Failure(ex)        => Failure(ex)
+          case Success(feideUser) => Success(feideUser.sub)
+        }
+      )
     }
 
   }

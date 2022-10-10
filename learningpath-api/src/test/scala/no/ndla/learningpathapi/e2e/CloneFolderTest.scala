@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.e2e
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.domain.{FolderStatus, NewFolderData, ResourceDocument}
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
+import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
 import org.json4s.{DefaultFormats, Formats}
@@ -48,8 +49,11 @@ class CloneFolderTest
       override lazy val feideApiClient: FeideApiClient     = mock[FeideApiClient]
       override lazy val clock                              = mock[SystemClock]
       override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
+      override lazy val userRepository: UserRepository     = spy(new UserRepository)
 
       when(feideApiClient.getUserFeideID(any)).thenReturn(Success("q"))
+      when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
+      when(feideApiClient.getUser(any)).thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"), "employee")))
       when(clock.now()).thenReturn(LocalDateTime.of(2017, 1, 1, 1, 59))
     }
   }
@@ -63,11 +67,14 @@ class CloneFolderTest
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(learningpathApi.componentRegistry.folderRepository)
+    reset(learningpathApi.componentRegistry.userRepository)
 
     learningpathApi.componentRegistry.folderRepository.deleteAllUserResources(feideId)
     learningpathApi.componentRegistry.folderRepository.deleteAllUserResources(destinationFeideId)
     learningpathApi.componentRegistry.folderRepository.deleteAllUserFolders(feideId)
     learningpathApi.componentRegistry.folderRepository.deleteAllUserFolders(destinationFeideId)
+    learningpathApi.componentRegistry.userRepository.deleteUser(feideId)
+    learningpathApi.componentRegistry.userRepository.deleteUser(destinationFeideId)
   }
 
   override def afterAll(): Unit = {
