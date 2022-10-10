@@ -91,9 +91,9 @@ trait UserRepository {
     }
 
     def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FeideUser]] =
-      folderWhere(sqls"u.feide_id=$feideId")
+      userWhere(sqls"u.feide_id=$feideId")
 
-    private def folderWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[FeideUser]] = Try {
+    private def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[FeideUser]] = Try {
       val u = DBFeideUser.syntax("u")
       sql"select ${u.result.*} from ${DBFeideUser.as(u)} where $whereClause"
         .map(DBFeideUser.fromResultSet(u))

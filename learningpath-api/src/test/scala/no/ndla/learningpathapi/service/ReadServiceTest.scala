@@ -15,6 +15,7 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Title
+import no.ndla.network.clients.FeideExtendedUserInfo
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
@@ -546,32 +547,83 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getFeideUserData creates new UserData if no user exist") {
-    val feideId        = "feide"
-    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
-    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+    when(clock.now()).thenReturn(LocalDateTime.now())
 
-    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
-    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
-    when(userRepository.insertUser(eqTo(feideId), any[domain.FeideUserDocument])(any))
+    val feideId = "feide"
+    val domainUserData = domain.FeideUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq("r", "e"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
+    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val feideUserInfo = FeideExtendedUserInfo(
+      displayName = "David",
+      eduPersonAffiliation = Seq("student"),
+      eduPersonPrimaryAffiliation = "student"
+    )
+
+    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(feideApiClient.getUser(any)).thenReturn(Success(feideUserInfo))
+    when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
+    when(userRepository.insertUser(any, any[domain.FeideUserDocument])(any))
       .thenReturn(Success(domainUserData))
 
-    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
+    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
 
+    verify(feideApiClient, times(1)).getUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
+    verify(userRepository, times(0)).updateUser(any, any)(any)
   }
 
-  test("That getFeideUserData returns already created user if it exists") {
-    val feideId        = "feide"
-    val domainUserData = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
-    val apiUserData    = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+  test("That getFeideUserData returns already created user if it exists and was updated lately") {
+    when(clock.now()).thenReturn(LocalDateTime.now())
+
+    val feideId = "feide"
+    val domainUserData = domain.FeideUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq("r", "e"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now().plusDays(1)
+    )
+    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
-    service.getFeideUserData(Some(feideId)) should be(Success(apiUserData))
+    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
 
+    verify(feideApiClient, times(0)).getUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
+    verify(userRepository, times(0)).updateUser(any, any)(any)
+  }
+
+  test("That getFeideUserData returns already created user if it exists but needs update") {
+    when(clock.now()).thenReturn(LocalDateTime.now())
+
+    val feideId = "feide"
+    val domainUserData = domain.FeideUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq("r", "e"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now().minusDays(1)
+    )
+    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+
+    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
+    when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
+
+    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
+
+    verify(feideApiClient, times(0)).getUser(any)
+    verify(userRepository, times(1)).userWithFeideId(any)(any)
+    verify(userRepository, times(0)).insertUser(any, any)(any)
+    verify(userRepository, times(1)).updateUser(any, any)(any)
   }
 }

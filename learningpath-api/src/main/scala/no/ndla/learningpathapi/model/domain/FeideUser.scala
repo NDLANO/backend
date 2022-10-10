@@ -14,7 +14,9 @@ import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
 
-case class FeideUserDocument(favoriteSubjects: Seq[String]) {
+import java.time.LocalDateTime
+
+case class FeideUserDocument(favoriteSubjects: Seq[String], userRole: UserRole.Value, lastUpdated: LocalDateTime) {
   def toFullUser(
       id: Long,
       feideId: FeideID
@@ -22,15 +24,27 @@ case class FeideUserDocument(favoriteSubjects: Seq[String]) {
     FeideUser(
       id = id,
       feideId = feideId,
-      favoriteSubjects = favoriteSubjects
+      favoriteSubjects = favoriteSubjects,
+      userRole = userRole,
+      lastUpdated = lastUpdated
     )
   }
 }
 
-case class FeideUser(id: Long, feideId: FeideID, favoriteSubjects: Seq[String]) {
+case class FeideUser(
+    id: Long,
+    feideId: FeideID,
+    favoriteSubjects: Seq[String],
+    userRole: UserRole.Value,
+    lastUpdated: LocalDateTime
+) {
   def toDocument: FeideUserDocument = FeideUserDocument(
-    favoriteSubjects = favoriteSubjects
+    favoriteSubjects = favoriteSubjects,
+    userRole = userRole,
+    lastUpdated = lastUpdated
   )
+
+  def wasUpdatedLast24h: Boolean = LocalDateTime.now().isBefore(lastUpdated.minusSeconds(10))
 }
 
 trait DBFeideUser {

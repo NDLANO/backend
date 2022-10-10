@@ -2107,11 +2107,23 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That updateUserData updates user if user exist") {
-    val feideId         = "feide"
-    val userBefore      = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("h", "b"))
+    val feideId = "feide"
+    val userBefore = domain.FeideUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq("h", "b"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
     val updatedUserData = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("r", "e")))
-    val userAfterMerge  = domain.FeideUser(id = 42, feideId = feideId, favoriteSubjects = Seq("r", "e"))
-    val expected        = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"))
+    val userAfterMerge = domain.FeideUser(
+      id = 42,
+      feideId = feideId,
+      favoriteSubjects = Seq("r", "e"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
+    val expected = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))

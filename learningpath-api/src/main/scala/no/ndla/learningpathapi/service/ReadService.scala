@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import cats.implicits._
+import no.ndla.common.Clock
 import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api._
@@ -43,7 +44,8 @@ trait ReadService {
     with ConfigRepository
     with ConverterService
     with UserRepository
-    with FolderRepository =>
+    with FolderRepository
+    with Clock =>
   val readService: ReadService
 
   class ReadService {
@@ -325,19 +327,35 @@ trait ReadService {
       } yield converted
     }
 
-    private[service] def getOrCreateFeideUserIfNotExist(feideId: FeideID): Try[domain.FeideUser] = {
-      val emptyUserData = domain.FeideUserDocument(favoriteSubjects = Seq.empty)
+    private def createFeideUser(feideId: FeideID, feideAccessToken: FeideAccessToken): Try[domain.FeideUser] = {
+      for {
+        feideExtendedUserData <- feideApiClient.getUser(feideAccessToken)
+        newUser = domain
+          .FeideUserDocument(
+            favoriteSubjects = Seq.empty,
+            userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+            lastUpdated = clock.now().plusDays(1)
+          )
+        inserted <- userRepository.insertUser(feideId, newUser)
+      } yield inserted
+    }
 
+    private[service] def getOrCreateFeideUserIfNotExist(
+        feideId: FeideID,
+        feideAccessToken: FeideAccessToken
+    ): Try[domain.FeideUser] = {
       userRepository.userWithFeideId(feideId).flatMap {
-        case None        => userRepository.insertUser(feideId, emptyUserData)
-        case Some(value) => Success(value)
+        case None => createFeideUser(feideId, feideAccessToken)
+        case Some(userData) =>
+          if (userData.wasUpdatedLast24h) Success(userData)
+          else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))
       }
     }
 
-    def getFeideUserData(feideAccessToken: Option[FeideAccessToken] = None): Try[api.FeideUser] = {
+    def getFeideUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.FeideUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        userData <- getOrCreateFeideUserIfNotExist(feideId)
+        userData <- getOrCreateFeideUserIfNotExist(feideId, feideAccessToken.get)
         api = converterService.toApiUserData(userData)
       } yield api
     }
