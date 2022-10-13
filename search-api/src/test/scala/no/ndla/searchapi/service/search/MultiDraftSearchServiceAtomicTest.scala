@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.model.domain.ArticleContent
-import no.ndla.common.model.domain.draft.{RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status, Title}
+import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
@@ -338,6 +338,69 @@ class MultiDraftSearchServiceAtomicTest
         multiDraftSearchSettings.copy(
           revisionDateFilterFrom = Some(today.minusDays(11)),
           revisionDateFilterTo = Some(today.plusDays(1))
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 3))
+  }
+
+  test("That hits from revision log is not included when exclude param is set") {
+    val today = LocalDateTime.now().withNano(0)
+
+    val status = Status(current = DraftStatus.DRAFT, other = Set.empty)
+    val not    = (n: String) => EditorNote(n, "some-user", status, today)
+
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      notes = Seq(
+        not("Katt"),
+        not("Hund"),
+        not("Gris")
+      ),
+      previousVersionsNotes = Seq(
+        not("Tiger")
+      )
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      notes = Seq(
+        not("Kinakål"),
+        not("Grevling"),
+        not("Apekatt")
+      ),
+      previousVersionsNotes = Seq(
+        not("Giraff")
+      )
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      title = Seq(Title("Gris", "nb")),
+      notes = Seq(),
+      previousVersionsNotes = Seq()
+    )
+    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 3)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some("Gris"),
+          excludeRevisionHistory = true
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some("Gris"),
+          excludeRevisionHistory = false
         )
       )
       .get
