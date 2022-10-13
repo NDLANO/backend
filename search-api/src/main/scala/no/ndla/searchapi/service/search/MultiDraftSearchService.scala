@@ -209,10 +209,10 @@ trait MultiDraftSearchService {
     }
 
     private def getRevisionHistoryLogQuery(queryString: String, excludeHistoryLog: Boolean): Seq[Query] = {
-      if (excludeHistoryLog) Seq.empty
-      else
-        Seq(
-          simpleStringQuery(queryString).field("notes", 1),
+      Seq(
+        simpleStringQuery(queryString).field("notes", 1)
+      ) ++ Option
+        .when(!excludeHistoryLog)(
           simpleStringQuery(queryString).field("previousVersionsNotes", 1)
         )
     }

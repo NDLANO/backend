@@ -349,28 +349,29 @@ class MultiDraftSearchServiceAtomicTest
     val today = LocalDateTime.now().withNano(0)
 
     val status = Status(current = DraftStatus.DRAFT, other = Set.empty)
-    val not    = (n: String) => EditorNote(n, "some-user", status, today)
+    val mkNote = (n: String) => EditorNote(n, "some-user", status, today)
 
     val draft1 = TestData.draft1.copy(
       id = Some(1),
       notes = Seq(
-        not("Katt"),
-        not("Hund"),
-        not("Gris")
+        mkNote("Katt"),
+        mkNote("Hund")
       ),
       previousVersionsNotes = Seq(
-        not("Tiger")
+        mkNote("Tiger"),
+        mkNote("Gris")
       )
     )
     val draft2 = TestData.draft1.copy(
       id = Some(2),
       notes = Seq(
-        not("Kinakål"),
-        not("Grevling"),
-        not("Apekatt")
+        mkNote("Kinakål"),
+        mkNote("Grevling"),
+        mkNote("Apekatt"),
+        mkNote("Gris")
       ),
       previousVersionsNotes = Seq(
-        not("Giraff")
+        mkNote("Giraff")
       )
     )
     val draft3 = TestData.draft1.copy(
@@ -394,7 +395,7 @@ class MultiDraftSearchServiceAtomicTest
       )
       .get
       .results
-      .map(_.id) should be(Seq(3))
+      .map(_.id) should be(Seq(2, 3))
 
     multiDraftSearchService
       .matchingQuery(
@@ -405,6 +406,6 @@ class MultiDraftSearchServiceAtomicTest
       )
       .get
       .results
-      .map(_.id) should be(Seq(1, 3))
+      .map(_.id) should be(Seq(1, 2, 3))
   }
 }
