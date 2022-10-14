@@ -39,5 +39,6 @@ case class MultiDraftSearchSettings(
     embedId: Option[String],
     includeOtherStatuses: Boolean,
     revisionDateFilterFrom: Option[LocalDateTime],
-    revisionDateFilterTo: Option[LocalDateTime]
+    revisionDateFilterTo: Option[LocalDateTime],
+    excludeRevisionHistory: Boolean
 )

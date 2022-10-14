@@ -65,12 +65,11 @@ trait MultiDraftSearchService {
             langQueryFunc("tags", 1),
             langQueryFunc("embedAttributes", 1),
             simpleStringQuery(queryString).field("authors", 1),
-            simpleStringQuery(queryString).field("notes", 1),
-            simpleStringQuery(queryString).field("previousVersionsNotes", 1),
             simpleStringQuery(queryString).field("grepContexts.title", 1),
             idsQuery(queryString),
             nestedQuery("revisionMeta", simpleStringQuery(queryString).field("revisionMeta.note")).ignoreUnmapped(true)
           ) ++
+            getRevisionHistoryLogQuery(queryString, settings.excludeRevisionHistory) ++
             buildNestedEmbedField(List(queryString), None, settings.language, settings.fallback) ++
             buildNestedEmbedField(List.empty, Some(queryString), settings.language, settings.fallback)
         )
@@ -207,6 +206,15 @@ trait MultiDraftSearchService {
         embedResourceAndIdFilter,
         dateFilter
       ).flatten
+    }
+
+    private def getRevisionHistoryLogQuery(queryString: String, excludeHistoryLog: Boolean): Seq[Query] = {
+      Seq(
+        simpleStringQuery(queryString).field("notes", 1)
+      ) ++ Option
+        .when(!excludeHistoryLog)(
+          simpleStringQuery(queryString).field("previousVersionsNotes", 1)
+        )
     }
 
     private def dateToEs(date: LocalDateTime): Long = date.toEpochSecond(ZoneOffset.UTC) * 1000

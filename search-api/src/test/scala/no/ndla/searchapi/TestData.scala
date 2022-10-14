@@ -1414,7 +1414,8 @@ object TestData {
     embedId = None,
     includeOtherStatuses = false,
     revisionDateFilterFrom = None,
-    revisionDateFilterTo = None
+    revisionDateFilterTo = None,
+    excludeRevisionHistory = false
   )
 
   val searchableResourceTypes = List(

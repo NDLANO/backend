@@ -209,6 +209,10 @@ trait SearchController {
         "revision-date-to",
         "Return only results having next revision before this date."
       )
+    private val excludeRevisionLog = Param[Option[Boolean]](
+      "exclude-revision-log",
+      "Set to true to avoid including hits from the revision history log."
+    )
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -466,6 +470,7 @@ trait SearchController {
       val includeOtherStatuses     = booleanOrDefault(this.includeOtherStatuses.paramName, default = false)
       val revisionDateFrom         = paramAsDateOrNone(this.revisionDateFilterFrom.paramName)
       val revisionDateTo           = paramAsDateOrNone(this.revisionDateFilterTo.paramName)
+      val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
 
       MultiDraftSearchSettings(
         query = query,
@@ -493,7 +498,8 @@ trait SearchController {
         embedId = embedId,
         includeOtherStatuses = includeOtherStatuses,
         revisionDateFilterFrom = revisionDateFrom,
-        revisionDateFilterTo = revisionDateTo
+        revisionDateFilterTo = revisionDateTo,
+        excludeRevisionHistory = excludeRevisionHistory
       )
     }
 
@@ -609,7 +615,8 @@ trait SearchController {
             asQueryParam(embedId),
             asQueryParam(includeOtherStatuses),
             asQueryParam(revisionDateFilterFrom),
-            asQueryParam(revisionDateFilterTo)
+            asQueryParam(revisionDateFilterTo),
+            asQueryParam(excludeRevisionLog)
           )
           .authorizations("oauth2")
           .responseMessages(response500)
