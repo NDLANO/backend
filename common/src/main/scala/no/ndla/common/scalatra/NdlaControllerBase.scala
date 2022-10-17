@@ -10,6 +10,7 @@ package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.Environment.booleanPropOrFalse
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
@@ -29,6 +30,7 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
   def ndlaErrorHandler: NdlaErrorHandler
 
   private val currentTimeBeforeRequest = new ThreadLocal[Long]
+  private val extendedLogging = booleanPropOrFalse("ENABLE_EXTENDED_LOGGING")
   before() {
     currentTimeBeforeRequest.set(System.currentTimeMillis())
     logger.info(
@@ -51,6 +53,12 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
         .getOrElse(""),
       response.getStatus
     )
+    if (extendedLogging) {
+      logger.info(
+        "{}",
+        request.getHeader("FeideAuthorization"),
+      )
+    }
   }
 
   error { ndlaErrorHandler }

@@ -8,6 +8,7 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Environment.booleanPropOrFalse
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
@@ -17,7 +18,7 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
-case class FeideOpenIdUserInfo(sub: String)
+case class FeideOpenIdUserInfo(sub: String, name: String)
 
 case class FeideExtendedUserInfo(
     displayName: String,
@@ -95,6 +96,7 @@ trait FeideApiClient {
     }
 
     def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
+      val extendedLogging = booleanPropOrFalse("ENABLE_EXTENDED_LOGGING")
       feideAccessToken match {
         case None =>
           Failure(
@@ -112,11 +114,14 @@ trait FeideApiClient {
                 )
               } else Failure(ex)
             case Failure(ex)        => Failure(ex)
-            case Success(feideUser) => Success(feideUser.sub)
+            case Success(feideUser) =>
+              if (extendedLogging) {
+                logger.info(s"${feideUser.name}: ${feideUser.sub}")
+              }
+              Success(feideUser.sub)
+            }
           }
       }
     }
-
-  }
 
 }
