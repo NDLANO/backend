@@ -22,8 +22,7 @@ case class FeideOpenIdUserInfo(sub: String, name: String)
 
 case class FeideExtendedUserInfo(
     displayName: String,
-    eduPersonAffiliation: Seq[String],
-    eduPersonPrimaryAffiliation: String
+    eduPersonAffiliation: Seq[String]
 ) {
 
   def isTeacher: Boolean = {
