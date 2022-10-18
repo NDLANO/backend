@@ -30,7 +30,7 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
   def ndlaErrorHandler: NdlaErrorHandler
 
   private val currentTimeBeforeRequest = new ThreadLocal[Long]
-  private val extendedLogging = booleanPropOrFalse("ENABLE_EXTENDED_LOGGING")
+  private val extendedLogging          = booleanPropOrFalse("ENABLE_EXTENDED_LOGGING")
   before() {
     currentTimeBeforeRequest.set(System.currentTimeMillis())
     logger.info(
@@ -56,7 +56,7 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     if (extendedLogging) {
       logger.info(
         "{}",
-        request.getHeader("FeideAuthorization"),
+        request.getHeader("FeideAuthorization")
       )
     }
   }

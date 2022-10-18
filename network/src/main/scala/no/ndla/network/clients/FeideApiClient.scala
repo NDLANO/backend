@@ -113,15 +113,15 @@ trait FeideApiClient {
                   )
                 )
               } else Failure(ex)
-            case Failure(ex)        => Failure(ex)
+            case Failure(ex) => Failure(ex)
             case Success(feideUser) =>
               if (extendedLogging) {
                 logger.info(s"${feideUser.name}: ${feideUser.sub}")
               }
               Success(feideUser.sub)
-            }
           }
       }
     }
+  }
 
 }
