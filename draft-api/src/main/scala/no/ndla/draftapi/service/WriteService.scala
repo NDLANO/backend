@@ -15,8 +15,8 @@ import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PROPOSAL, PUBLISHED}
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration._
@@ -77,14 +77,20 @@ trait WriteService {
         })
     }
 
-    private def indexArticle(article: common.draft.Draft): Try[common.draft.Draft] = {
-      searchApiClient.indexDraft(article)
+    private def indexArticle(article: common.draft.Draft): Try[Unit] = {
+      val executor = Executors.newSingleThreadExecutor
+      val ec       = ExecutionContext.fromExecutorService(executor)
 
-      for {
-        _ <- articleIndexService.indexDocument(article)
-        _ <- tagIndexService.indexDocument(article)
-        _ <- grepCodesIndexService.indexDocument(article)
-      } yield article
+      article.id match {
+        case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
+        case Some(articleId) =>
+          searchApiClient.indexDraft(article)(ec)
+          articleIndexService.indexAsync(articleId, article)(ec)
+          tagIndexService.indexAsync(articleId, article)(ec)
+          grepCodesIndexService.indexAsync(articleId, article)(ec)
+          Success(())
+      }
+
     }
 
     def copyArticleFromId(
@@ -120,7 +126,7 @@ trait WriteService {
               notes = notes
             )
             inserted = draftRepository.insert(articleToInsert)
-            _ <- indexArticle(inserted)
+            _        = indexArticle(inserted)
             enriched = readService.addUrlsOnEmbedResources(inserted)
             converted <- converterService.toApiArticle(enriched, language, fallback)
           } yield converted
@@ -235,8 +241,8 @@ trait WriteService {
         )
         _               <- contentValidator.validateArticle(domainArticle)
         insertedArticle <- updateFunction(domainArticle)
-        _               <- indexArticle(insertedArticle)
-        apiArticle      <- converterService.toApiArticle(insertedArticle, newArticle.language)
+        _ = indexArticle(insertedArticle)
+        apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
       } yield apiArticle
     }
 
@@ -261,7 +267,7 @@ trait WriteService {
               isImported,
               statusWasUpdated = true
             )
-            _          <- indexArticle(updatedArticle)
+            _ = indexArticle(updatedArticle)
             apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
           } yield apiArticle
       }
@@ -405,7 +411,7 @@ trait WriteService {
           api.PartialArticleFields.values,
           language.getOrElse(Language.AllLanguages)
         )
-        _ <- indexArticle(domainArticle)
+        _ = indexArticle(domainArticle)
         _ <- updateTaxonomyForArticle(domainArticle)
       } yield domainArticle
     }
