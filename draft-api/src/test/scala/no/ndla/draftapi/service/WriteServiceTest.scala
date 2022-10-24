@@ -9,21 +9,21 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{
-  Title,
-  Tag,
   ArticleContent,
-  ArticleMetaDescription,
-  Availability,
   ArticleIntroduction,
-  Author,
+  ArticleMetaDescription,
   ArticleMetaImage,
-  RequiredLibrary,
+  Author,
+  Availability,
   RelatedContentLink,
+  RequiredLibrary,
   Status,
+  Tag,
+  Title,
   VisualElement
 }
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType, Copyright, RevisionStatus, RevisionMeta}
+import no.ndla.common.model.domain.draft.{ArticleType, Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
@@ -40,6 +40,7 @@ import scalikejdbc.DBSession
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 import java.util.UUID
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
@@ -124,7 +125,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(draftRepository, times(1)).newEmptyArticle()
     verify(draftRepository, times(0)).insert(any[Draft])(any)
     verify(draftRepository, times(1)).updateArticle(any[Draft], any[Boolean])(any)
-    verify(articleIndexService, times(1)).indexDocument(any[Draft])
+    verify(articleIndexService, times(1)).indexAsync(any, any)(any)
+    verify(tagIndexService, times(1)).indexAsync(any, any)(any)
+    verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
   }
 
   test("newAgreement should insert a given Agreement") {
@@ -475,16 +478,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(10)).thenReturn(Some(articleToUpdate))
     when(draftRepository.updateArticle(any[Draft], eqTo(false))(any)).thenReturn(Success(updatedAndInserted))
 
-    when(articleIndexService.indexDocument(any[Draft])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexDraft(any[Draft])).thenReturn(updatedAndInserted)
+    when(articleIndexService.indexAsync(any, any[Draft])(any))
+      .thenReturn(Future.successful(Success(updatedAndInserted)))
+    when(searchApiClient.indexDraft(any[Draft])(any)).thenReturn(updatedAndInserted)
 
     service.updateArticleStatus(DraftStatus.PROPOSAL, 10, user, isImported = false)
 
     val argCap1: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
-    verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
-    verify(searchApiClient, times(1)).indexDraft(argCap2.capture())
+    verify(articleIndexService, times(1)).indexAsync(any, argCap1.capture())(any)
+    verify(searchApiClient, times(1)).indexDraft(argCap2.capture())(any)
 
     val captured1 = argCap1.getValue
     captured1.copy(updated = today, notes = captured1.notes.map(_.copy(timestamp = today))) should be(
