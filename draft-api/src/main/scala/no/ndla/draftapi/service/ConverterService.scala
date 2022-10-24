@@ -12,7 +12,7 @@ import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, IMPORTED}
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
@@ -63,6 +63,10 @@ trait ConverterService {
         case _ => common.draft.RevisionMeta.default
       }
 
+      val responsible = newArticle.responsibleId.map(responsibleId =>
+        DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
+      )
+
       newNotes(newArticle.notes, user, status).map(notes =>
         common.draft.Draft(
           id = Some(newArticleId),
@@ -99,7 +103,8 @@ trait ConverterService {
           conceptIds = newArticle.conceptIds,
           availability = newAvailability,
           relatedContent = toDomainRelatedContent(newArticle.relatedContent),
-          revisionMeta = revisionMeta
+          revisionMeta = revisionMeta,
+          responsible = responsible
         )
       )
     }
@@ -295,6 +300,12 @@ trait ConverterService {
         isImported: Boolean
     ): IO[Try[common.draft.Draft]] = StateTransitionRules.doTransition(article, status, user, isImported)
 
+    def toApiResponsible(responsible: common.draft.DraftResponsible): api.DraftResponsible =
+      api.DraftResponsible(
+        responsibleId = responsible.responsibleId,
+        lastUpdated = responsible.lastUpdated
+      )
+
     def toApiArticle(article: common.draft.Draft, language: String, fallback: Boolean = false): Try[api.Article] = {
       val isLanguageNeutral =
         article.supportedLanguages.contains(UnknownLanguage.toString) && article.supportedLanguages.length == 1
@@ -309,6 +320,7 @@ trait ConverterService {
         val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent)
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
         val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
+        val responsible    = article.responsible.map(toApiResponsible)
 
         Success(
           api.Article(
@@ -337,7 +349,8 @@ trait ConverterService {
             conceptIds = article.conceptIds,
             availability = article.availability.toString,
             relatedContent = article.relatedContent.map(toApiRelatedContent),
-            revisions = revisionMetas
+            revisions = revisionMetas,
+            responsible = responsible
           )
         )
       } else {
@@ -616,6 +629,10 @@ trait ConverterService {
         newContent <- cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage)
       } yield (newNotes, newContent)
 
+      val responsible = article.responsibleId
+        .map(responsibleId => DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+        .orElse(toMergeInto.responsible)
+
       failableFields match {
         case Failure(ex) => Failure(ex)
         case Success((allNotes, newContent)) =>
@@ -635,7 +652,8 @@ trait ConverterService {
             conceptIds = article.conceptIds.getOrElse(toMergeInto.conceptIds),
             availability = updatedAvailability,
             relatedContent = updatedRelatedContent,
-            revisionMeta = updatedRevisionMeta
+            revisionMeta = updatedRevisionMeta,
+            responsible = responsible
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -715,6 +733,10 @@ trait ConverterService {
             common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
           val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
+          val responsible = article.responsibleId.map(responsibleId =>
+            DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
+          )
+
           mergedNotes.map(notes =>
             common.draft.Draft(
               id = Some(id),
@@ -743,7 +765,8 @@ trait ConverterService {
               conceptIds = article.conceptIds.getOrElse(Seq.empty),
               availability = updatedAvailability,
               relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty),
-              revisionMeta = updatedRevisionMeta
+              revisionMeta = updatedRevisionMeta,
+              responsible = responsible
             )
           )
       }

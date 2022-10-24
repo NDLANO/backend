@@ -313,7 +313,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       conceptIds = Seq.empty,
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionMeta = Seq.empty
+      revisionMeta = Seq.empty,
+      responsible = None
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -351,7 +352,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       conceptIds = Seq.empty,
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionMeta = Seq.empty
+      revisionMeta = Seq.empty,
+      responsible = None
     )
 
     val expectedArticle = Draft(
@@ -379,7 +381,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       conceptIds = Seq.empty,
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionMeta = Seq.empty
+      revisionMeta = Seq.empty,
+      responsible = None
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -435,7 +438,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       conceptIds = Seq.empty,
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionMeta = Seq.empty
+      revisionMeta = Seq.empty,
+      responsible = None
     )
 
     val expectedArticle = Draft(
@@ -463,7 +467,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       conceptIds = Seq.empty,
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionMeta = Seq.empty
+      revisionMeta = Seq.empty,
+      responsible = None
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(

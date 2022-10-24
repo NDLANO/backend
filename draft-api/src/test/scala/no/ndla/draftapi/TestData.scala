@@ -99,7 +99,8 @@ object TestData {
     Seq.empty,
     availability = "everyone",
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    responsible = None
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
@@ -113,6 +114,7 @@ object TestData {
     None,
     None,
     Right(None),
+    None,
     None,
     None,
     None,
@@ -205,7 +207,8 @@ object TestData {
     Seq.empty,
     availability = "everyone",
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val apiArticleUserTest: api.Article = api.Article(
@@ -251,7 +254,8 @@ object TestData {
     Seq.empty,
     availability = "everyone",
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val sampleTopicArticle: common.draft.Draft = common.draft.Draft(
@@ -279,7 +283,8 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val sampleArticleWithPublicDomain: common.draft.Draft = common.draft.Draft(
@@ -307,7 +312,8 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    common.draft.RevisionMeta.default
+    common.draft.RevisionMeta.default,
+    None
   )
 
   val sampleDomainArticle: common.draft.Draft = common.draft.Draft(
@@ -335,7 +341,8 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -368,6 +375,7 @@ object TestData {
     Seq.empty,
     availability = None,
     Seq.empty,
+    None,
     None
   )
 
@@ -410,7 +418,8 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
@@ -459,7 +468,8 @@ object TestData {
     Seq.empty,
     availability = "everyone",
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

@@ -52,7 +52,8 @@ case class Draft(
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionMeta: Seq[RevisionMeta]
+    revisionMeta: Seq[RevisionMeta],
+    responsible: Option[DraftResponsible]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
