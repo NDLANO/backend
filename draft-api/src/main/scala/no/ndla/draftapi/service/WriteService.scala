@@ -408,7 +408,7 @@ trait WriteService {
         )
         _ = partialPublishIfNeeded(
           domainArticle,
-          api.PartialArticleFields.values,
+          fieldsToPartialPublish.toSeq,
           language.getOrElse(Language.AllLanguages)
         )
         _ = indexArticle(domainArticle)
