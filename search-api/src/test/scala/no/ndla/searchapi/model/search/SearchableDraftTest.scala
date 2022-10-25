@@ -111,7 +111,8 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,
       revisionMeta = revisionMeta,
-      nextRevision = revisionMeta.lastOption
+      nextRevision = revisionMeta.lastOption,
+      responsible = Some(Responsible("some responsible", TestData.today))
     )
 
     val json         = write(original)

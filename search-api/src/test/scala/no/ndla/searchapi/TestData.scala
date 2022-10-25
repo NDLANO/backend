@@ -511,7 +511,7 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsibleId = None
+    responsible = None
   )
 
   val draftStatus         = Status(DraftStatus.DRAFT, Set.empty)
@@ -568,7 +568,7 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsibleId = None
+    responsible = None
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1417,7 +1417,8 @@ object TestData {
     includeOtherStatuses = false,
     revisionDateFilterFrom = None,
     revisionDateFilterTo = None,
-    excludeRevisionHistory = false
+    excludeRevisionHistory = false,
+    responsibleIdFilter = List.empty
   )
 
   val searchableResourceTypes = List(

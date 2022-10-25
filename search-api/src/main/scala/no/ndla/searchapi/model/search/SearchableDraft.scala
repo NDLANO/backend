@@ -37,5 +37,6 @@ case class SearchableDraft(
     embedAttributes: SearchableLanguageList,
     embedResourcesAndIds: List[EmbedValues],
     revisionMeta: List[RevisionMeta],
-    nextRevision: Option[RevisionMeta]
+    nextRevision: Option[RevisionMeta],
+    responsible: Option[Responsible]
 )

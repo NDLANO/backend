@@ -8,7 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status, Title}
-import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
@@ -402,6 +402,66 @@ class MultiDraftSearchServiceAtomicTest
         multiDraftSearchSettings.copy(
           query = Some("Gris"),
           excludeRevisionHistory = false
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3))
+  }
+
+  test("That responsibleId is filterable") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      responsible = Some(DraftResponsible("hei", TestData.today))
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      responsible = Some(DraftResponsible("hei2", TestData.today))
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      responsible = Some(DraftResponsible("hei", TestData.today))
+    )
+    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 3)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List.empty
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 2, 3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List("hei")
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List("hei2")
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(2))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List("hei", "hei2")
         )
       )
       .get

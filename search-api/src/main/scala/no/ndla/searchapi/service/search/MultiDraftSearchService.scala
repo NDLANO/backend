@@ -171,24 +171,19 @@ trait MultiDraftSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
-      val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
-      val usersFilter  = boolUsersFilter(settings.userFilter)
-      val dateFilter   = revisionDateFilter(settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
+      val statusFilter            = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
+      val usersFilter             = boolUsersFilter(settings.userFilter)
+      val dateFilter              = revisionDateFilter(settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
+      val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
+      val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
+        termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
+      }
 
       val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects)
       val taxonomyTopicFilter         = topicFilter(settings.topics)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
-
-      val supportedLanguageFilter =
-        if (settings.supportedLanguages.isEmpty) None
-        else
-          Some(
-            boolQuery().should(
-              settings.supportedLanguages.map(l => termQuery("supportedLanguages", l))
-            )
-          )
 
       List(
         licenseFilter,
@@ -204,7 +199,8 @@ trait MultiDraftSearchService {
         usersFilter,
         grepCodesFilter,
         embedResourceAndIdFilter,
-        dateFilter
+        dateFilter,
+        responsibleIdFilter
       ).flatten
     }
 

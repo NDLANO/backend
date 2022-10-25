@@ -325,6 +325,10 @@ trait SearchConverterService {
       val nextRevision =
         draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
 
+      val responsible = draft.responsible.map(responsible =>
+        Responsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
+      )
+
       Success(
         SearchableDraft(
           id = draft.id.get,
@@ -361,7 +365,8 @@ trait SearchConverterService {
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
           revisionMeta = draft.revisionMeta.toList,
-          nextRevision = nextRevision
+          nextRevision = nextRevision,
+          responsible = responsible
         )
       )
 

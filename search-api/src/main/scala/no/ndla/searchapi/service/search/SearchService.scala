@@ -25,6 +25,7 @@ import no.ndla.searchapi.model.domain._
 import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.search.SearchType
 import cats.implicits._
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 
 import java.lang.Math.max
 import scala.annotation.tailrec
@@ -117,6 +118,12 @@ trait SearchService {
             boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback))
           )
         )
+      }
+    }
+
+    protected def supportedLanguagesFilter(supportedLanguages: List[String]): Option[BoolQuery] = {
+      Option.when(supportedLanguages.nonEmpty) {
+        boolQuery().should(supportedLanguages.map(l => termQuery("supportedLanguages", l)))
       }
     }
 
