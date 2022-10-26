@@ -468,4 +468,51 @@ class MultiDraftSearchServiceAtomicTest
       .results
       .map(_.id) should be(Seq(1, 2, 3))
   }
+
+  test("That responsible lastUpdated is sortable") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      responsible = Some(DraftResponsible("hei", TestData.today.minusDays(5)))
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      responsible = Some(DraftResponsible("hei2", TestData.today.minusDays(2)))
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      responsible = Some(DraftResponsible("hei", TestData.today.minusDays(3)))
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      responsible = None
+    )
+    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List.empty,
+          sort = Sort.ByResponsibleLastUpdatedAsc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(1, 3, 2, 4))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List.empty,
+          sort = Sort.ByResponsibleLastUpdatedDesc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(2, 3, 1, 4))
+  }
 }

@@ -377,6 +377,10 @@ trait SearchService {
         case Sort.ByRevisionDateAsc => fieldSort("nextRevision.revisionDate").sortOrder(SortOrder.Asc).missing("_last")
         case Sort.ByRevisionDateDesc =>
           fieldSort("nextRevision.revisionDate").sortOrder(SortOrder.Desc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedAsc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedDesc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
       }
     }
 
