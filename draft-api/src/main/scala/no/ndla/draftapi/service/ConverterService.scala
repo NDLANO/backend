@@ -629,9 +629,11 @@ trait ConverterService {
         newContent <- cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage)
       } yield (newNotes, newContent)
 
-      val responsible = article.responsibleId
-        .map(responsibleId => DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now()))
-        .orElse(toMergeInto.responsible)
+      val responsible = article.responsibleId match {
+        case Left(_)                    => None
+        case Right(Some(responsibleId)) => Some(DraftResponsible(responsibleId, clock.now()))
+        case Right(None)                => toMergeInto.responsible
+      }
 
       failableFields match {
         case Failure(ex) => Failure(ex)
@@ -733,9 +735,9 @@ trait ConverterService {
             common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
           val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
 
-          val responsible = article.responsibleId.map(responsibleId =>
-            DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
-          )
+          val responsible = article.responsibleId
+            .getOrElse(None)
+            .map(responsibleId => DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now()))
 
           mergedNotes.map(notes =>
             common.draft.Draft(

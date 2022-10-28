@@ -126,7 +126,7 @@ object TestData {
     None,
     None,
     None,
-    None
+    Right(None)
   )
 
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
