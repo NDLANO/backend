@@ -15,6 +15,7 @@ import org.testcontainers.utility.DockerImageName
 
 import java.time.Duration
 import scala.util.{Failure, Success, Try}
+import sys.env
 
 abstract class IntegrationSuite(
     EnableElasticsearchContainer: Boolean = false,
@@ -24,25 +25,37 @@ abstract class IntegrationSuite(
     schemaName: String = "testschema"
 ) extends UnitTestSuite {
 
+  val skipContainerSpawn: Boolean = env.getOrElse("NDLA_SKIP_CONTAINER_SPAWN", "false") == "true"
+
   val elasticSearchContainer: Try[ElasticsearchContainer] = if (EnableElasticsearchContainer) {
-    val imageFromEnv = sys.env.get("SEARCH_ENGINE_IMAGE")
-    val imgName =
-      imageFromEnv.getOrElse(s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage")
+    if (skipContainerSpawn) {
+      val esMock = mock[ElasticsearchContainer]
+      val found  = env.get("SEARCH_SERVER").map(x => x.stripPrefix("http://"))
+      when(esMock.getHttpHostAddress).thenReturn(found.getOrElse("localhost:9200"))
+      Success(esMock)
+    } else {
+      val imageFromEnv = env.get("SEARCH_ENGINE_IMAGE")
+      val imgName =
+        imageFromEnv.getOrElse(
+          s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage"
+        )
 
-    val searchEngineImage = DockerImageName
-      .parse(imgName)
-      .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")
+      val searchEngineImage = DockerImageName
+        .parse(imgName)
+        .asCompatibleSubstituteFor("docker.elastic.co/elasticsearch/elasticsearch")
 
-    Try {
-      val container = new ElasticsearchContainer(searchEngineImage) {
-        this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+      Try {
+        val container = new ElasticsearchContainer(searchEngineImage) {
+          this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+        }
+        container.addEnv("xpack.security.enabled", "false")
+        container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
+        container.addEnv("discovery.type", "single-node")
+        container.start()
+        container
       }
-      container.addEnv("xpack.security.enabled", "false")
-      container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
-      container.addEnv("discovery.type", "single-node")
-      container.start()
-      container
     }
+
   } else { Failure(new RuntimeException("Search disabled for this IntegrationSuite")) }
 
   val elasticSearchHost: Try[String] = elasticSearchContainer.map(c => {
@@ -52,19 +65,28 @@ abstract class IntegrationSuite(
   })
 
   val postgresContainer: Try[PostgreSQLContainer[Nothing]] = if (EnablePostgresContainer) {
-    val username: String = "postgres"
-    val password: String = "hemmelig"
-    val resource: String = "postgres"
+    val defaultUsername: String     = "postgres"
+    val defaultDatabaseName: String = "postgres"
+    val defaultPassword: String     = "hemmelig"
+    val defaultResource: String     = "postgres"
 
-    val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
-      this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+    if (skipContainerSpawn) {
+      val x = mock[PostgreSQLContainer[Nothing]]
+      when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword))
+      when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername))
+      when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName))
+      when(x.getMappedPort(any)).thenReturn(env.getOrElse("META_PORT", "5432").toInt)
+      Success(x)
+    } else {
+      val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
+        this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
+      }
+      c.withDatabaseName(defaultResource)
+      c.withUsername(defaultUsername)
+      c.withPassword(defaultPassword)
+      c.start()
+      Success(c)
     }
-    c.withDatabaseName(resource)
-    c.withUsername(username)
-    c.withPassword(password)
-    c.start()
-
-    Success(c)
   } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }
 
   def testDataSource: Try[HikariDataSource] = postgresContainer.flatMap(pgc =>
