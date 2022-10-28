@@ -623,7 +623,8 @@ trait SearchController {
             asQueryParam(includeOtherStatuses),
             asQueryParam(revisionDateFilterFrom),
             asQueryParam(revisionDateFilterTo),
-            asQueryParam(excludeRevisionLog)
+            asQueryParam(excludeRevisionLog),
+            asQueryParam(responsibleIdFilter)
           )
           .authorizations("oauth2")
           .responseMessages(response500)
