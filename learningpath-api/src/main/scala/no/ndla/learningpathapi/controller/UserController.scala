@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.scalatra.NdlaSwaggerSupport
-import no.ndla.learningpathapi.model.api.{FeideUser, UpdatedFeideUser, ValidationError}
+import no.ndla.learningpathapi.model.api.{ExportedUserData, FeideUser, UpdatedFeideUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -90,6 +90,18 @@ trait UserController {
       )
     ) {
       updateService.deleteAllUserData(requestFeideToken).map(_ => NoContent())
+    }
+
+    get(
+      "/export",
+      operation(
+        apiOperation[ExportedUserData]("exportUserData")
+          .summary("Export all stored user-related data as a json structure")
+          .description("Export all stored user-related data as a json structure")
+          .parameters(asHeaderParam(feideToken))
+      )
+    ) {
+      readService.exportUserData(requestFeideToken)
     }
   }
 }

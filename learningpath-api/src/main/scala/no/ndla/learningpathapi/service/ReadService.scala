@@ -52,6 +52,19 @@ trait ReadService {
 
     private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
+    def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[api.ExportedUserData] = {
+      withFeideId(maybeFeideToken)(exportUserDataAuthenticated)
+    }
+
+    private def exportUserDataAuthenticated(feideId: FeideID): Try[api.ExportedUserData] =
+      for {
+        folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
+        feideUser <- getFeideUserDataAuthenticated(feideId)
+      } yield ExportedUserData(
+        userData = feideUser,
+        folders = folders
+      )
+
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
     }
@@ -296,14 +309,24 @@ trait ReadService {
       folders
         .traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
+    def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] =
+      getUserFeideID(maybeToken).flatMap(feideId => func(feideId))
+
     def getFolders(
         includeSubfolders: Boolean,
         includeResources: Boolean,
-        feideAccessToken: Option[FeideAccessToken] = None
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[List[api.Folder]] = {
+      withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
+    }
+
+    def getFoldersAuthenticated(
+        includeSubfolders: Boolean,
+        includeResources: Boolean,
+        feideId: FeideID
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- getUserFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
@@ -351,6 +374,10 @@ trait ReadService {
           if (userData.wasUpdatedLast24h) Success(userData)
           else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))
       }
+    }
+
+    private def getFeideUserDataAuthenticated(feideId: FeideID): Try[api.FeideUser] = {
+      getOrCreateFeideUserIfNotExist(feideId).map(converterService.toApiUserData)
     }
 
     def getFeideUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.FeideUser] = {
