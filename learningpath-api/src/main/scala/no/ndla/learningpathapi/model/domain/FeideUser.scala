@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.learningpathapi.Props
 import org.json4s.FieldSerializer._
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import scalikejdbc._
@@ -54,8 +55,8 @@ trait DBFeideUser {
   this: Props =>
 
   object DBFeideUser extends SQLSyntaxSupport[FeideUser] {
-    implicit val jsonEncoder: Formats            = DefaultFormats
-    override val tableName                       = "feide_users"
+    implicit val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(UserRole) ++ JavaTimeSerializers.all
+    override val tableName            = "feide_users"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
     val repositorySerializer: Formats = jsonEncoder + FieldSerializer[FeideUser](

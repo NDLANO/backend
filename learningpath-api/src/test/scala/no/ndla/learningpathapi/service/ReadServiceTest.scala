@@ -560,8 +560,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
-      eduPersonAffiliation = Seq("student"),
-      eduPersonPrimaryAffiliation = "student"
+      eduPersonAffiliation = Seq("student")
     )
 
     when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))

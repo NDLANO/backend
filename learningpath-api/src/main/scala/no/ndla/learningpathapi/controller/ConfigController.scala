@@ -48,7 +48,7 @@ trait ConfigController {
     private val configKeyPathParam =
       Param[String](
         "config_key",
-        s"""Key of configuration value. Can only be one of '${ConfigKey.values.mkString("', '")}'""".stripMargin
+        s"""Key of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'""".stripMargin
       )
 
     post(
