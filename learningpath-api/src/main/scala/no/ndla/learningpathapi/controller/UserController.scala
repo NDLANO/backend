@@ -103,5 +103,21 @@ trait UserController {
     ) {
       readService.exportUserData(requestFeideToken)
     }
+
+    post(
+      "/import",
+      operation(
+        apiOperation[ExportedUserData]("importUserData")
+          .summary("Import all stored user-related data from a exported json structure")
+          .description("Import all stored user-related data from a exported json structure")
+          .parameters(
+            asHeaderParam(feideToken),
+            bodyParam[ExportedUserData]
+          )
+      )
+    ) {
+      val importBody = tryExtract[ExportedUserData](request.body)
+      importBody.flatMap(importBody => updateService.importUserData(importBody, requestFeideToken))
+    }
   }
 }

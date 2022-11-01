@@ -70,9 +70,10 @@ trait DBFeideUser {
     def fromResultSet(rs: WrappedResultSet): FeideUser = fromResultSet((s: String) => s)(rs)
 
     def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): FeideUser = {
-      val metaData = read[FeideUserDocument](rs.string(colNameWrapper("document")))
-      val id       = rs.long(colNameWrapper("id"))
-      val feideId  = rs.string(colNameWrapper("feide_id"))
+      val jsonString = rs.string(colNameWrapper("document"))
+      val metaData   = read[FeideUserDocument](jsonString)
+      val id         = rs.long(colNameWrapper("id"))
+      val feideId    = rs.string(colNameWrapper("feide_id"))
 
       metaData.toFullUser(
         id = id,

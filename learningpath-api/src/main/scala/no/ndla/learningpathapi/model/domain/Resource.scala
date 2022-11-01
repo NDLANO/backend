@@ -49,7 +49,8 @@ case class Resource(
     resourceId: Long,
     connection: Option[FolderResource]
 ) extends FeideContent
-    with Rankable {
+    with Rankable
+    with CopyableResource {
   override val sortId: UUID          = id
   override val sortRank: Option[Int] = connection.map(_.rank)
 }
