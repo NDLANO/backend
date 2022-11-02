@@ -168,14 +168,7 @@ trait MultiSearchService {
       val taxonomySubjectFilter       = subjectFilter(settings.subjects)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
 
-      val supportedLanguageFilter =
-        if (settings.supportedLanguages.isEmpty) None
-        else
-          Some(
-            boolQuery().should(
-              settings.supportedLanguages.map(l => termQuery("supportedLanguages", l))
-            )
-          )
+      val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
 
       val availsToFilterOut = Availability.values -- (settings.availability.toSet + Availability.everyone)
       val availabilityFilter = Some(
