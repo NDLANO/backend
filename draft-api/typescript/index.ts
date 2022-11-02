@@ -257,7 +257,7 @@ export interface IUpdatedArticle {
   availability?: string
   relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
-  responsibleId?: string
+  responsibleId?: (null | string)
 }
 
 export interface IUpdatedUserData {
