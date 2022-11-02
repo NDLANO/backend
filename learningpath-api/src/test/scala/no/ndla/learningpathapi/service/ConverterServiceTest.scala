@@ -744,21 +744,52 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That toApiUserData works correctly") {
-    val domainUserData   = domain.FeideUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
-    val expectedUserData = api.FeideUser(id = 42, Seq("a", "b"))
+    val domainUserData =
+      domain.FeideUser(
+        id = 42,
+        feideId = "feide",
+        favoriteSubjects = Seq("a", "b"),
+        userRole = UserRole.STUDENT,
+        lastUpdated = clock.now()
+      )
+    val expectedUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("a", "b"), role = "student")
 
     service.toApiUserData(domainUserData) should be(expectedUserData)
   }
 
   test("That mergeUserData works correctly") {
-    val domainUserData   = domain.FeideUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
+    val domainUserData = domain.FeideUser(
+      id = 42,
+      feideId = "feide",
+      favoriteSubjects = Seq("a", "b"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
     val updatedUserData1 = api.UpdatedFeideUser(favoriteSubjects = None)
     val updatedUserData2 = api.UpdatedFeideUser(favoriteSubjects = Some(Seq.empty))
     val updatedUserData3 = api.UpdatedFeideUser(favoriteSubjects = Some(Seq("x", "y", "z")))
 
-    val expectedUserData1 = domain.FeideUser(id = 42, feideId = "feide", favoriteSubjects = Seq("a", "b"))
-    val expectedUserData2 = domain.FeideUser(id = 42, feideId = "feide", favoriteSubjects = Seq.empty)
-    val expectedUserData3 = domain.FeideUser(id = 42, feideId = "feide", favoriteSubjects = Seq("x", "y", "z"))
+    val expectedUserData1 = domain.FeideUser(
+      id = 42,
+      feideId = "feide",
+      favoriteSubjects = Seq("a", "b"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
+    val expectedUserData2 = domain.FeideUser(
+      id = 42,
+      feideId = "feide",
+      favoriteSubjects = Seq.empty,
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
+    val expectedUserData3 = domain.FeideUser(
+      id = 42,
+      feideId = "feide",
+      favoriteSubjects = Seq("x", "y", "z"),
+      userRole = UserRole.STUDENT,
+      lastUpdated = clock.now()
+    )
 
     service.mergeUserData(domainUserData, updatedUserData1) should be(expectedUserData1)
     service.mergeUserData(domainUserData, updatedUserData2) should be(expectedUserData2)

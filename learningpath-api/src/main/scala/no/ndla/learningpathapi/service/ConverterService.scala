@@ -805,13 +805,23 @@ trait ConverterService {
     }
 
     def toApiUserData(domainUserData: domain.FeideUser): api.FeideUser = {
-      api.FeideUser(id = domainUserData.id, favoriteSubjects = domainUserData.favoriteSubjects)
+      api.FeideUser(
+        id = domainUserData.id,
+        favoriteSubjects = domainUserData.favoriteSubjects,
+        role = domainUserData.userRole.toString
+      )
     }
 
     def mergeUserData(domainUserData: domain.FeideUser, updatedUser: api.UpdatedFeideUser): domain.FeideUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
 
-      domain.FeideUser(id = domainUserData.id, feideId = domainUserData.feideId, favoriteSubjects = favoriteSubjects)
+      domain.FeideUser(
+        id = domainUserData.id,
+        feideId = domainUserData.feideId,
+        favoriteSubjects = favoriteSubjects,
+        userRole = domainUserData.userRole,
+        lastUpdated = domainUserData.lastUpdated
+      )
     }
 
     def toDomainResource(newResource: api.NewResource): ResourceDocument = {
