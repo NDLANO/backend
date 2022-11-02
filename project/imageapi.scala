@@ -41,10 +41,12 @@ object imageapi extends Module {
     exports = Seq(
       "Image",
       "ImageMetaInformationV2",
+      "ImageMetaInformationV3",
       "ImageMetaSummary",
       "NewImageMetaInformationV2",
       "SearchParams",
       "SearchResult",
+      "SearchResultV3",
       "TagsSearchResult",
       "UpdateImageMetaInformation",
       "ValidationError"
