@@ -31,6 +31,7 @@ import no.ndla.learningpathapi.repository.{
 }
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.implicits.TryQuestionMark
 import scalikejdbc.DBSession
 
 import java.util.UUID
@@ -175,6 +176,17 @@ trait ReadService {
           .getConfigWithKey(ConfigKey.IsWriteRestricted)
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
+
+    def getConfig(
+        configKey: ConfigKey,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[api.config.ConfigMetaRestricted] = {
+      getUserFeideID(feideAccessToken).?
+      configRepository.getConfigWithKey(configKey) match {
+        case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
+        case Some(key) => Success(converterService.asApiConfigRestricted(key))
+      }
+    }
 
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
