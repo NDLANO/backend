@@ -52,11 +52,6 @@ trait ConfigController {
         "config_key",
         s"""Key of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'""".stripMargin
       )
-    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
-
-    private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
-      request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
-    }
 
     private def withConfigKey[T](callback: ConfigKey => T)(implicit request: HttpServletRequest) = {
       val configKeyString = params("config_key")
@@ -74,14 +69,13 @@ trait ConfigController {
           .summary("Get db configuration by key")
           .description("Get db configuration by key")
           .parameters(
-            asHeaderParam(feideToken),
             asPathParam(configKeyPathParam)
           )
           .responseMessages(response400, response403, response404, response500)
           .authorizations("oauth2")
       )
     ) {
-      withConfigKey(key => readService.getConfig(key, requestFeideToken))
+      withConfigKey(readService.getConfig)
     }
 
     post(
