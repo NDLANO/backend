@@ -17,6 +17,11 @@ export interface IConfigMeta {
   updatedBy: string
 }
 
+export interface IConfigMetaRestricted {
+  key: string
+  value: string
+}
+
 export interface ICopyright {
   license: ILicense
   contributors: IAuthor[]
