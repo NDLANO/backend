@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.ValidationError
-import no.ndla.learningpathapi.model.api.config.{ConfigMeta, UpdateConfigValue}
+import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, UpdateConfigValue}
 import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
@@ -65,7 +65,7 @@ trait ConfigController {
     get(
       "/:config_key",
       operation(
-        apiOperation[ConfigMeta]("getConfig")
+        apiOperation[ConfigMetaRestricted]("getConfig")
           .summary("Get db configuration by key")
           .description("Get db configuration by key")
           .parameters(
