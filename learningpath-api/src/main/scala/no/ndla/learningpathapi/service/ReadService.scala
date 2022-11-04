@@ -176,6 +176,13 @@ trait ReadService {
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
 
+    def getConfig(configKey: ConfigKey): Try[api.config.ConfigMetaRestricted] = {
+      configRepository.getConfigWithKey(configKey) match {
+        case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
+        case Some(key) => Success(converterService.asApiConfigRestricted(key))
+      }
+    }
+
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 

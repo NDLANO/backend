@@ -676,6 +676,9 @@ trait ConverterService {
       )
     }
 
+    def asApiConfigRestricted(configValue: ConfigMeta): api.config.ConfigMetaRestricted =
+      api.config.ConfigMetaRestricted(key = configValue.key.entryName, value = configValue.value)
+
     def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
       val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
       maybeUUID match {

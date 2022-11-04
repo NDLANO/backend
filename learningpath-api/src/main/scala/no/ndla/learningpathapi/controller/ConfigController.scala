@@ -22,6 +22,8 @@ import org.json4s.ext.JavaTimeSerializers
 import org.scalatra.swagger.Swagger
 import org.scalatra.BadRequest
 
+import javax.servlet.http.HttpServletRequest
+
 trait ConfigController {
 
   this: ReadService with UpdateService with NdlaController with Props with CorrelationIdSupport =>
@@ -51,6 +53,31 @@ trait ConfigController {
         s"""Key of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'""".stripMargin
       )
 
+    private def withConfigKey[T](callback: ConfigKey => T)(implicit request: HttpServletRequest) = {
+      val configKeyString = params("config_key")
+      ConfigKey.valueOf(configKeyString) match {
+        case None =>
+          BadRequest(s"No such config key was found. Must be one of '${ConfigKey.values.mkString("', '")}'")
+        case Some(configKey) => callback(configKey)
+      }
+    }
+
+    get(
+      "/:config_key",
+      operation(
+        apiOperation[ConfigMeta]("getConfig")
+          .summary("Get db configuration by key")
+          .description("Get db configuration by key")
+          .parameters(
+            asPathParam(configKeyPathParam)
+          )
+          .responseMessages(response400, response403, response404, response500)
+          .authorizations("oauth2")
+      )
+    ) {
+      withConfigKey(readService.getConfig)
+    }
+
     post(
       "/:config_key",
       operation(
@@ -66,18 +93,14 @@ trait ConfigController {
           .authorizations("oauth2")
       )
     ) {
-      val userInfo        = UserInfo(requireUserId)
-      val configKeyString = params("config_key")
-      ConfigKey.valueOf(configKeyString) match {
-        case None =>
-          BadRequest(s"No such config key was found. Must be one of '${ConfigKey.values.mkString("', '")}'")
-        case Some(configKey) =>
-          val newConfigValue = extract[UpdateConfigValue](request.body)
-          updateService.updateConfig(configKey, newConfigValue, userInfo) match {
-            case Success(c)  => c
-            case Failure(ex) => errorHandler(ex)
-          }
-      }
+      val userInfo = UserInfo(requireUserId)
+      withConfigKey(configKey => {
+        val newConfigValue = extract[UpdateConfigValue](request.body)
+        updateService.updateConfig(configKey, newConfigValue, userInfo) match {
+          case Success(c)  => c
+          case Failure(ex) => errorHandler(ex)
+        }
+      })
     }
 
   }
