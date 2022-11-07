@@ -45,9 +45,9 @@ trait Module {
     organization        := "ndla",
     version             := "0.0.1",
     scalaVersion        := ScalaV,
-    javacOptions ++= Seq("-source", "11", "-target", "11"),
+    javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
-      "-target:jvm-11",
+      "-target:jvm-17",
       "-unchecked",
       "-deprecation",
       "-feature",
@@ -115,8 +115,7 @@ trait Module {
           Seq("-jar", artifactTargetPath)
 
         new Dockerfile {
-          from("adoptopenjdk/openjdk11:alpine-slim")
-          run("apk", "--no-cache", "add", "ttf-dejavu")
+          from("eclipse-temurin:17-jdk")
           add(artifact, artifactTargetPath)
           entryPoint(entry: _*)
         }
