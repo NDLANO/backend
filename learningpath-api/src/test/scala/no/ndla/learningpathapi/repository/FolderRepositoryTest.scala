@@ -119,7 +119,7 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a resource works as expected") {
-    val created = LocalDateTime.now()
+    val created = LocalDateTime.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
@@ -135,7 +135,7 @@ class FolderRepositoryTest
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
 
-    val created = LocalDateTime.now()
+    val created = LocalDateTime.now().withNano(0)
 
     val resource1 = repository.insertResource("feide", "/path1", "type", created, TestData.baseResourceDocument)
     val resource2 = repository.insertResource("feide", "/path2", "type", created, TestData.baseResourceDocument)
@@ -361,7 +361,7 @@ class FolderRepositoryTest
         "feide",
         "/testPath",
         "resourceType",
-        LocalDateTime.now(),
+        LocalDateTime.now().withNano(0),
         ResourceDocument(List(), 1)
       )
       .failIfFailure
@@ -519,7 +519,7 @@ class FolderRepositoryTest
         "feide",
         "/testPath",
         "resourceType",
-        LocalDateTime.now(),
+        LocalDateTime.now().withNano(0),
         ResourceDocument(List(), 1)
       )
       .failIfFailure

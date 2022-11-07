@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.scalatra.NdlaSwaggerSupport
-import no.ndla.learningpathapi.model.api.{MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
+import no.ndla.learningpathapi.model.api.{MyNDLAUser, UpdatedMyNDLAUser, ValidationError, Error}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}

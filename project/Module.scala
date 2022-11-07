@@ -100,6 +100,19 @@ trait Module {
     }
   )
 
+  // Since scalatra uses reflection to generate swagger-doc
+  // We need to open some types to reflective access
+  // This should match `.jvmopts` file
+  lazy val reflectiveAccessOptions: Seq[String] = Seq(
+    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    "--add-opens=java.base/java.net=ALL-UNNAMED",
+    "--add-opens=java.base/java.security=ALL-UNNAMED",
+    "--add-opens=java.base/java.time=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt.event=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt=ALL-UNNAMED"
+  )
+
   def dockerSettings(extraJavaOpts: String*): Seq[Def.Setting[_]] = {
     Seq(
       docker := (docker dependsOn assembly).value,
@@ -111,6 +124,7 @@ trait Module {
           "java",
           "-Dorg.scalatra.environment=production"
         ) ++
+          reflectiveAccessOptions ++
           extraJavaOpts ++
           Seq("-jar", artifactTargetPath)
 

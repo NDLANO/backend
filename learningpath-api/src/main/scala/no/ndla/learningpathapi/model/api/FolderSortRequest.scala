@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.model.api
 
 import org.scalatra.swagger.annotations.ApiModelProperty
-
 import java.util.UUID
 import scala.annotation.meta.field
 

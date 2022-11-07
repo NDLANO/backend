@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{
+  Error,
   Folder,
   FolderSortRequest,
   NewFolder,
