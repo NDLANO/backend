@@ -24,7 +24,11 @@ import java.util.UUID
 import scala.util.{Failure, Success}
 
 class CloneFolderTest
-    extends IntegrationSuite(EnableElasticsearchContainer = false, EnablePostgresContainer = true)
+    extends IntegrationSuite(
+      EnableElasticsearchContainer = false,
+      EnablePostgresContainer = true,
+      EnableRedisContainer = true
+    )
     with UnitSuite {
 
   implicit val formats: Formats =
@@ -32,6 +36,7 @@ class CloneFolderTest
 
   val learningpathApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[Nothing] = postgresContainer.get
+  val redisPort: Int                    = redisContainer.get.port
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int = learningpathApiPort
     override def MetaServer: String   = pgc.getContainerIpAddress
@@ -40,6 +45,9 @@ class CloneFolderTest
     override def MetaPassword: String = pgc.getPassword
     override def MetaPort: Int        = pgc.getMappedPort(5432)
     override def MetaSchema: String   = "testschema"
+
+    override def RedisHost: String = "localhost"
+    override def RedisPort: Int    = redisPort
   }
 
   val feideId            = "feide"

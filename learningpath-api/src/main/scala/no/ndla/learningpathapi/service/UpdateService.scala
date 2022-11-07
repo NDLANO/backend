@@ -35,9 +35,8 @@ import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
@@ -57,12 +56,11 @@ trait UpdateService {
     with TaxonomyApiClient
     with FeideApiClient
     with SearchApiClient
-    with Props =>
+    with Props
+    with RedisClient =>
   val updateService: UpdateService
 
   class UpdateService {
-
-    private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def updateTaxonomyForLearningPath(
         pathId: Long,
@@ -566,7 +564,7 @@ trait UpdateService {
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId  <- getUserFeideID(feideAccessToken)
+        feideId  <- redisClient.memoize(feideAccessToken)
         _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         inserted <- createNewFolder(newFolder, feideId)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
@@ -596,7 +594,7 @@ trait UpdateService {
     ): Try[api.Resource] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId   <- getUserFeideID(feideAccessToken)
+        feideId   <- redisClient.memoize(feideAccessToken)
         _         <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
         converted <- converterService.toApiResource(resource)
@@ -650,7 +648,7 @@ trait UpdateService {
     ): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId        <- getUserFeideID(feideAccessToken)
+        feideId        <- redisClient.memoize(feideAccessToken)
         _              <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingFolder <- folderRepository.folderWithId(id)
         _              <- existingFolder.isOwner(feideId)
@@ -669,7 +667,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[api.Resource] = {
       for {
-        feideId          <- getUserFeideID(feideAccessToken)
+        feideId          <- redisClient.memoize(feideAccessToken)
         _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingResource <- folderRepository.resourceWithId(id)
         _                <- existingResource.isOwner(feideId)
@@ -700,7 +698,7 @@ trait UpdateService {
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId         <- getUserFeideID(feideAccessToken)
+        feideId         <- redisClient.memoize(feideAccessToken)
         _               <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
         _               <- folder.isOwner(feideId)
@@ -720,7 +718,7 @@ trait UpdateService {
     ): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId  <- getUserFeideID(feideAccessToken)
+        feideId  <- redisClient.memoize(feideAccessToken)
         _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder   <- folderRepository.folderWithId(folderId)
         _        <- folder.isOwner(feideId)
@@ -736,7 +734,7 @@ trait UpdateService {
 
     def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
       for {
-        feideId <- getUserFeideID(feideAccessToken)
+        feideId <- redisClient.memoize(feideAccessToken)
         _       <- folderRepository.deleteAllUserFolders(feideId)
         _       <- folderRepository.deleteAllUserResources(feideId)
         _       <- userRepository.deleteUser(feideId)
@@ -756,7 +754,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.MyNDLAUser] = {
       for {
-        feideId          <- getUserFeideID(feideAccessToken)
+        feideId          <- redisClient.memoize(feideAccessToken)
         _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
@@ -831,7 +829,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[Unit] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-      val feideId                     = getUserFeideID(feideAccessToken).?
+      val feideId                     = redisClient.memoize(feideAccessToken).?
       val _                           = canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
@@ -847,7 +845,7 @@ trait UpdateService {
     ): Try[List[UUID]] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId    <- getUserFeideID(feideAccessToken)
+        feideId    <- redisClient.memoize(feideAccessToken)
         _          <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder     <- folderRepository.folderWithId(folderId)
         _          <- folder.isOwner(feideId)
@@ -920,7 +918,7 @@ trait UpdateService {
     ): Try[api.Folder] = {
       folderRepository.rollbackOnFailure { implicit session =>
         for {
-          feideId <- getUserFeideID(feideAccessToken)
+          feideId <- redisClient.memoize(feideAccessToken)
           _       <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
           maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)

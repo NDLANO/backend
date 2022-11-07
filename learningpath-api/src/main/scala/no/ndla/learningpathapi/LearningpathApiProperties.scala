@@ -49,6 +49,9 @@ class LearningpathApiProperties extends LazyLogging {
   def InternalImageApiUrl    = s"$ImageApiHost/image-api/v2/images"
   def SearchApiHost: String  = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
 
+  def RedisHost: String = propOrElse("REDIS_HOST", "localhost")
+  def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
+
   def NdlaFrontendHost: String = propOrElse(
     "NDLA_FRONTEND_HOST",
     Environment match {

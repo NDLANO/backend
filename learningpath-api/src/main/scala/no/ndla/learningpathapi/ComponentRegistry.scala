@@ -48,7 +48,7 @@ import no.ndla.learningpathapi.validation.{
   UrlValidator
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
@@ -96,7 +96,8 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBLearningPath
     with DBLearningStep
     with DBConfigMeta
-    with NdlaController {
+    with NdlaController
+    with RedisClient {
   override val props: LearningpathApiProperties = properties
   override val migrator                         = new DBMigrator
   override val dataSource: HikariDataSource     = DataSource.getHikariDataSource
@@ -133,4 +134,5 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   var e4sClient: NdlaE4sClient      = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchApiClient          = new SearchApiClient
   lazy val oembedProxyClient        = new OembedProxyClient
+  lazy val redisClient              = new RedisClient(props.RedisHost, props.RedisPort)
 }

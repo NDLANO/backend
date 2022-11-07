@@ -10,7 +10,6 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.learningpathapi.caching.Memoize
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain
@@ -29,7 +28,7 @@ import no.ndla.learningpathapi.repository.{
   LearningPathRepositoryComponent,
   UserRepository
 }
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.common.errors.AccessDeniedException
 import scalikejdbc.DBSession
 
@@ -45,12 +44,11 @@ trait ReadService {
     with ConverterService
     with UserRepository
     with FolderRepository
-    with Clock =>
+    with Clock
+    with RedisClient =>
   val readService: ReadService
 
   class ReadService {
-
-    private val getUserFeideID = Memoize(feideApiClient.getUserFeideID)
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -191,7 +189,7 @@ trait ReadService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[List[api.Resource]] = {
       for {
-        feideId            <- getUserFeideID(feideAccessToken)
+        feideId            <- redisClient.memoize(feideAccessToken)
         resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- converterService.domainToApiModel(resources, converterService.toApiResource)
       } yield convertedResources
@@ -246,7 +244,7 @@ trait ReadService {
     ): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId           <- getUserFeideID(feideAccessToken)
+        feideId           <- redisClient.memoize(feideAccessToken)
         folderWithContent <- getSingleFolderWithContent(id, includeSubfolders, includeResources)
         _                 <- folderWithContent.isOwner(feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
@@ -310,7 +308,7 @@ trait ReadService {
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- getUserFeideID(feideAccessToken)
+        feideId      <- redisClient.memoize(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
@@ -362,7 +360,7 @@ trait ReadService {
 
     def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
-        feideId  <- getUserFeideID(feideAccessToken)
+        feideId  <- redisClient.memoize(feideAccessToken)
         userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)
         api = converterService.toApiUserData(userData)
       } yield api
