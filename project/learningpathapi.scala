@@ -40,6 +40,7 @@ object learningpathapi extends Module {
     exports = Seq(
       "Author",
       "Error",
+      "FeideUser",
       "ConfigMetaRestricted",
       "LearningPathStatus",
       "LearningPathSummaryV2",
