@@ -90,8 +90,8 @@ trait UpdateService {
         "You do not have write access while write restriction is active."
       )(w)
 
-    private def canWriteNow(feideUser: domain.FeideUser): Boolean =
-      feideUser.isTeacher || !readService.isWriteRestricted
+    private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Boolean =
+      myNDLAUser.isTeacher || !readService.isWriteRestricted
 
     private[service] def writeOrAccessDenied[T](
         willExecute: Boolean,
@@ -452,9 +452,9 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
       readService
-        .getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)
-        .flatMap(feideUser => {
-          if (canWriteNow(feideUser)) Success(())
+        .getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)
+        .flatMap(myNDLAUser => {
+          if (canWriteNow(myNDLAUser)) Success(())
           else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
         })
     }
@@ -743,7 +743,7 @@ trait UpdateService {
       } yield ()
     }
 
-    private[service] def getFeideUserOrFail(feideId: FeideID): Try[domain.FeideUser] = {
+    private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId) match {
         case Failure(ex)         => Failure(ex)
         case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
@@ -751,14 +751,14 @@ trait UpdateService {
       }
     }
 
-    def updateFeideUserData(
-        updatedUser: api.UpdatedFeideUser,
+    def updateMyNDLAUserData(
+        updatedUser: api.UpdatedMyNDLAUser,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.FeideUser] = {
+    ): Try[api.MyNDLAUser] = {
       for {
         feideId          <- getUserFeideID(feideAccessToken)
         _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        existingUserData <- getFeideUserOrFail(feideId)
+        existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
         api = converterService.toApiUserData(updated)

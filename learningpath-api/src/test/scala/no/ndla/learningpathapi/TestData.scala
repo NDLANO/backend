@@ -157,7 +157,7 @@ object TestData {
     rank = None
   )
 
-  val emptyFeideUser: domain.FeideUser = domain.FeideUser(
+  val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(
     id = 1,
     feideId = "",
     favoriteSubjects = Seq.empty,

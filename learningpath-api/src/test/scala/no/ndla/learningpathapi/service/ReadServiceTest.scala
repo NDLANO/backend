@@ -546,18 +546,18 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     result.message should be("Folder does not exist")
   }
 
-  test("That getFeideUserData creates new UserData if no user exist") {
+  test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(LocalDateTime.now())
 
     val feideId = "feide"
-    val domainUserData = domain.FeideUser(
+    val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now()
     )
-    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student")
@@ -567,10 +567,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getUser(any)).thenReturn(Success(feideUserInfo))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
-    when(userRepository.insertUser(any, any[domain.FeideUserDocument])(any))
+    when(userRepository.insertUser(any, any[domain.MyNDLAUserDocument])(any))
       .thenReturn(Success(domainUserData))
 
-    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
+    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
@@ -578,23 +578,23 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(userRepository, times(0)).updateUser(any, any)(any)
   }
 
-  test("That getFeideUserData returns already created user if it exists and was updated lately") {
+  test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(LocalDateTime.now())
 
     val feideId = "feide"
-    val domainUserData = domain.FeideUser(
+    val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1)
     )
-    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
-    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
+    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(0)).getUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
@@ -602,24 +602,24 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(userRepository, times(0)).updateUser(any, any)(any)
   }
 
-  test("That getFeideUserData returns already created user if it exists but needs update") {
+  test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(LocalDateTime.now())
 
     val feideId = "feide"
-    val domainUserData = domain.FeideUser(
+    val domainUserData = domain.MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1)
     )
-    val apiUserData = api.FeideUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
 
-    service.getFeideUserData(Some(feideId)).get should be(apiUserData)
+    service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(0)).getUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)

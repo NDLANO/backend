@@ -807,18 +807,18 @@ trait ConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.FeideUser): api.FeideUser = {
-      api.FeideUser(
+    def toApiUserData(domainUserData: domain.MyNDLAUser): api.MyNDLAUser = {
+      api.MyNDLAUser(
         id = domainUserData.id,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString
       )
     }
 
-    def mergeUserData(domainUserData: domain.FeideUser, updatedUser: api.UpdatedFeideUser): domain.FeideUser = {
+    def mergeUserData(domainUserData: domain.MyNDLAUser, updatedUser: api.UpdatedMyNDLAUser): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
 
-      domain.FeideUser(
+      domain.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,

@@ -40,7 +40,6 @@ object learningpathapi extends Module {
     exports = Seq(
       "Author",
       "Error",
-      "FeideUser",
       "ConfigMetaRestricted",
       "LearningPathStatus",
       "LearningPathSummaryV2",
@@ -53,6 +52,7 @@ object learningpathapi extends Module {
       "LearningStepV2",
       "License",
       "SearchResultV2",
+      "MyNDLAUser",
       "config.ConfigMeta",
       "Folder",
       "FolderData",

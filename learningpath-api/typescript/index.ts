@@ -48,12 +48,6 @@ export interface IError {
   occuredAt: string
 }
 
-export interface IFeideUser {
-  id: number
-  favoriteSubjects: string[]
-  role: string
-}
-
 export interface IFolder {
   id: string
   name: string
@@ -174,6 +168,12 @@ export interface ILicense {
 export interface IMessage {
   message: string
   date: string
+}
+
+export interface IMyNDLAUser {
+  id: number
+  favoriteSubjects: string[]
+  role: string
 }
 
 export interface INewFolder {

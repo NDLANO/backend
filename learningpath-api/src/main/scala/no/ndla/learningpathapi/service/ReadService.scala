@@ -334,11 +334,11 @@ trait ReadService {
       } yield converted
     }
 
-    private def createFeideUser(feideId: FeideID, feideAccessToken: FeideAccessToken): Try[domain.FeideUser] = {
+    private def createMyNDLAUser(feideId: FeideID, feideAccessToken: FeideAccessToken): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getUser(feideAccessToken)
         newUser = domain
-          .FeideUserDocument(
+          .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1)
@@ -347,23 +347,23 @@ trait ReadService {
       } yield inserted
     }
 
-    def getOrCreateFeideUserIfNotExist(
+    def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[domain.FeideUser] = {
+    ): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId).flatMap {
         case None =>
-          feideApiClient.getFeideAccessTokenOrFail(feideAccessToken).flatMap(token => createFeideUser(feideId, token))
+          feideApiClient.getFeideAccessTokenOrFail(feideAccessToken).flatMap(token => createMyNDLAUser(feideId, token))
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
           else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))
       }
     }
 
-    def getFeideUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.FeideUser] = {
+    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        userData <- getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)
+        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)
         api = converterService.toApiUserData(userData)
       } yield api
     }
