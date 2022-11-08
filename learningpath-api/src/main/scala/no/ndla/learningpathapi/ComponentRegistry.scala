@@ -27,7 +27,7 @@ import no.ndla.learningpathapi.model.domain.{
   DBFolderResource,
   DBLearningPath,
   DBLearningStep,
-  DBFeideUser,
+  DBMyNDLAUser,
   DBResource
 }
 import no.ndla.learningpathapi.model.domain.config.DBConfigMeta
@@ -87,7 +87,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBFolder
     with DBResource
     with DBFolderResource
-    with DBFeideUser
+    with DBMyNDLAUser
     with TextValidator
     with UrlValidator
     with CorrelationIdSupport

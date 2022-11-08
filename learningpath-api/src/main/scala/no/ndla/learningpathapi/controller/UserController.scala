@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.scalatra.NdlaSwaggerSupport
-import no.ndla.learningpathapi.model.api.{FeideUser, UpdatedFeideUser, ValidationError}
+import no.ndla.learningpathapi.model.api.{MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -45,7 +45,7 @@ trait UserController {
     get(
       "/",
       operation(
-        apiOperation[FeideUser]("GetFeideUser")
+        apiOperation[MyNDLAUser]("GetMyNDLAUser")
           .summary("Get user data")
           .description("Get user data")
           .parameters(
@@ -55,25 +55,25 @@ trait UserController {
           .authorizations("oauth2")
       )
     ) {
-      readService.getFeideUserData(requestFeideToken)
+      readService.getMyNDLAUserData(requestFeideToken)
     }
 
     patch(
       "/",
       operation(
-        apiOperation[FeideUser]("UpdateFeideUser")
+        apiOperation[MyNDLAUser]("UpdateMyNDLAUser")
           .summary("Update user data")
           .description("Update user data")
           .parameters(
             asHeaderParam(feideToken),
-            bodyParam[UpdatedFeideUser]
+            bodyParam[UpdatedMyNDLAUser]
           )
           .responseMessages(response403, response404, response500)
           .authorizations("oauth2")
       )
     ) {
-      val updatedUserData = extract[UpdatedFeideUser](request.body)
-      updateService.updateFeideUserData(updatedUserData, requestFeideToken)
+      val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
+      updateService.updateMyNDLAUserData(updatedUserData, requestFeideToken)
     }
 
     delete(
