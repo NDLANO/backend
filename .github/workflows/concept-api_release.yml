@@ -1,7 +1,7 @@
 name: 'Release: concept-api'
 on:
   workflow_dispatch:
-    inputs: {}
+    inputs: { }
   push:
     branches:
       - master
@@ -40,10 +40,11 @@ jobs:
           path: ndla/deploy
       - uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
-      - uses: olafurpg/setup-scala@v13
+          python-version: '3.10'
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.11
+          distribution: temurin
+          java-version: '17'
       - name: Setup ~/bin directory
         run: |
           mkdir -p /home/runner/bin
