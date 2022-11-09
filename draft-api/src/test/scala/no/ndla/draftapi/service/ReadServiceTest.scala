@@ -9,7 +9,6 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, Tag, VisualElement}
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
@@ -91,23 +90,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val result = readService.addUrlsOnEmbedResources(article)
     result should equal(article.copy(content = Seq(article1ExpectedResult, article2ExpectedResult)))
-  }
-
-  test("getNMostUsedTags should return the N most used tags") {
-    val expectedResult1 = Some(api.ArticleTag(Seq("a", "b"), "nb"))
-    val expectedResult2 = Some(api.ArticleTag(Seq("d", "e"), "en"))
-    readService.getNMostUsedTags(2, "nb") should equal(expectedResult1)
-    readService.getNMostUsedTags(2, "en") should equal(expectedResult2)
-  }
-
-  test("MostFrequentOccurencesList.getNMostFrequent returns the N most frequent entries in a list") {
-    val tagsList = Seq("tag", "tag", "tag", "junk", "lol", "17. Mai", "is", "brus", "17. Mai", "is", "is", "tag")
-    val occList  = new readService.MostFrequentOccurencesList(tagsList)
-
-    occList.getNMostFrequent(1) should equal(Seq("tag"))
-    occList.getNMostFrequent(2) should equal(Seq("tag", "is"))
-    occList.getNMostFrequent(3) should equal(Seq("tag", "is", "17. Mai"))
-    occList.getNMostFrequent(4) should equal(Seq("tag", "is", "17. Mai", "lol"))
   }
 
   test("addUrlOnResource adds url attribute on file embeds") {
