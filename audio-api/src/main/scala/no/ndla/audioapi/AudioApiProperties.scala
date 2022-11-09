@@ -31,8 +31,8 @@ class AudioApiProperties extends LazyLogging {
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
   val ContactName: String     = propOrElse("CONTACT_NAME", "NDLA")
-  val ContactUrl: String      = propOrElse("CONTACT_URL", "ndla.no")
-  val ContactEmail: String    = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
+  val ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
+  val ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
   val TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   val CorrelationIdKey     = "correlationID"

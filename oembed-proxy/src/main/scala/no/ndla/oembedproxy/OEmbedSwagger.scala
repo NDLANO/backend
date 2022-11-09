@@ -23,8 +23,8 @@ trait OEmbedProxyInfo {
   object OEmbedProxyInfo {
 
     val contactInfo: ContactInfo = ContactInfo(
-      "NDLA",
-      "ndla.no",
+      props.ContactName,
+      props.ContactUrl,
       props.ContactEmail
     )
 
@@ -36,7 +36,7 @@ trait OEmbedProxyInfo {
     val apiInfo: ApiInfo = ApiInfo(
       "OEmbed Proxy",
       "Convert any NDLA resource to an oEmbed embeddable resource.",
-      "https://om.ndla.no/tos",
+      props.TermsUrl,
       contactInfo,
       licenseInfo
     )

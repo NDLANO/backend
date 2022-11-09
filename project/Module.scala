@@ -52,9 +52,9 @@ trait Module {
     organization        := "ndla",
     version             := "0.0.1",
     scalaVersion        := ScalaV,
-    javacOptions ++= Seq("-source", "11", "-target", "11"),
+    javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
-      "-target:jvm-11",
+      "-target:jvm-17",
       "-unchecked",
       "-deprecation",
       "-feature",
@@ -62,6 +62,7 @@ trait Module {
       "-Wconf:src=src_managed/.*:silent",
       "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
     ),
+    javaOptions ++= reflectiveAccessOptions,
     scalacOptions ++= CIOptions,
     // Disable warns about non-exhaustive match in tests as they are very useful there.
     Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
@@ -107,6 +108,19 @@ trait Module {
     }
   )
 
+  // Since scalatra uses reflection to generate swagger-doc
+  // We need to open some types to reflective access
+  // This should match `.jvmopts` file
+  lazy val reflectiveAccessOptions: Seq[String] = Seq(
+    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    "--add-opens=java.base/java.net=ALL-UNNAMED",
+    "--add-opens=java.base/java.security=ALL-UNNAMED",
+    "--add-opens=java.base/java.time=ALL-UNNAMED",
+    "--add-opens=java.base/java.util=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt.event=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt=ALL-UNNAMED"
+  )
+
   def dockerSettings(extraJavaOpts: String*): Seq[Def.Setting[_]] = {
     Seq(
       docker := (docker dependsOn assembly).value,
@@ -118,12 +132,12 @@ trait Module {
           "java",
           "-Dorg.scalatra.environment=production"
         ) ++
+          reflectiveAccessOptions ++
           extraJavaOpts ++
           Seq("-jar", artifactTargetPath)
 
         new Dockerfile {
-          from("adoptopenjdk/openjdk11:alpine-slim")
-          run("apk", "--no-cache", "add", "ttf-dejavu")
+          from("eclipse-temurin:17-jdk")
           add(artifact, artifactTargetPath)
           entryPoint(entry: _*)
         }

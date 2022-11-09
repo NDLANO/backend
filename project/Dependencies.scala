@@ -21,7 +21,7 @@ object Dependencies {
     val JacksonV              = "2.13.3"
     val CatsEffectV           = "2.1.2"
     val ElasticsearchV        = "7.16.2"
-    val Json4SV               = "4.0.3"
+    val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
     val FlywayV               = "7.5.3"
     val PostgresV             = "42.4.1"
