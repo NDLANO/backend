@@ -411,7 +411,7 @@ trait ImageControllerV3 {
         case Failure(ex) => errorHandler(ex)
         case Success(metaInfo) =>
           val fileItem = fileParams.get(this.file.paramName)
-          writeService.updateImage(imageId, metaInfo, fileItem) match {
+          writeService.updateImageV3(imageId, metaInfo, fileItem) match {
             case Success(imageMeta) => Ok(imageMeta)
             case Failure(e)         => errorHandler(e)
           }

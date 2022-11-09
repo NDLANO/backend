@@ -340,6 +340,16 @@ trait WriteService {
         converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(updated, updateMeta.language.some)
       } yield converted
 
+    def updateImageV3(
+        imageId: Long,
+        updateMeta: UpdateImageMetaInformation,
+        newFile: Option[FileItem]
+    ): Try[ImageMetaInformationV3] =
+      for {
+        updated   <- updateImageAndFile(imageId, updateMeta, newFile)
+        converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some)
+      } yield converted
+
     private[service] def getFileExtension(fileName: String): Option[String] = {
       fileName.lastIndexOf(".") match {
         case index: Int if index > -1 => Some(fileName.substring(index))
