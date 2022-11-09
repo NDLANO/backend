@@ -17,7 +17,12 @@ import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service.search.{ArticleSearchService, GrepCodesSearchService, SearchConverterService, TagSearchService}
+import no.ndla.draftapi.service.search.{
+  ArticleSearchService,
+  GrepCodesSearchService,
+  SearchConverterService,
+  TagSearchService
+}
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 
