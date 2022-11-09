@@ -36,10 +36,11 @@ object learningpathapi extends Module {
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    imports = Seq("no.ndla.learningpathapi.model.api._"),
+    imports = Seq("no.ndla.learningpathapi.model.api._", "no.ndla.learningpathapi.model.api.config._"),
     exports = Seq(
       "Author",
       "Error",
+      "ConfigMetaRestricted",
       "LearningPathStatus",
       "LearningPathSummaryV2",
       "LearningPathTagsSummary",
@@ -51,6 +52,7 @@ object learningpathapi extends Module {
       "LearningStepV2",
       "License",
       "SearchResultV2",
+      "MyNDLAUser",
       "config.ConfigMeta",
       "Folder",
       "FolderData",

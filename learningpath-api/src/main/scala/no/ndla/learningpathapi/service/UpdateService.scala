@@ -91,8 +91,8 @@ trait UpdateService {
         "You do not have write access while write restriction is active."
       )(w)
 
-    private def canWriteNow(feideUser: domain.FeideUser): Boolean =
-      feideUser.isTeacher || !readService.isWriteRestricted
+    private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Boolean =
+      myNDLAUser.isTeacher || !readService.isWriteRestricted
 
     private[service] def writeOrAccessDenied[T](
         willExecute: Boolean,
@@ -453,9 +453,9 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
       readService
-        .getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)(AutoSession)
-        .flatMap(feideUser => {
-          if (canWriteNow(feideUser)) Success(())
+        .getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+        .flatMap(myNDLAUser => {
+          if (canWriteNow(myNDLAUser)) Success(())
           else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
         })
     }
@@ -765,7 +765,7 @@ trait UpdateService {
       } yield ()
     }
 
-    private[service] def getFeideUserOrFail(feideId: FeideID): Try[domain.FeideUser] = {
+    private[service] def getMyNDLAUserOrFail(feideId: FeideID): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId) match {
         case Failure(ex)         => Failure(ex)
         case Success(None)       => Failure(NotFoundException(s"User with feide_id $feideId was not found"))
@@ -773,23 +773,23 @@ trait UpdateService {
       }
     }
 
-    def updateFeideUserData(
-        updatedUser: api.UpdatedFeideUser,
+    def updateMyNDLAUserData(
+        updatedUser: api.UpdatedMyNDLAUser,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.FeideUser] = {
+    ): Try[api.MyNDLAUser] = {
       getUserFeideID(feideAccessToken).flatMap(feideId =>
         updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession)
       )
     }
 
     private def updateFeideUserDataAuthenticated(
-        updatedUser: api.UpdatedFeideUser,
+        updatedUser: api.UpdatedMyNDLAUser,
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    )(implicit session: DBSession): Try[api.FeideUser] = {
+    )(implicit session: DBSession): Try[api.MyNDLAUser] = {
       for {
         _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        existingUserData <- getFeideUserOrFail(feideId)
+        existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
         api = converterService.toApiUserData(updated)
@@ -976,13 +976,13 @@ trait UpdateService {
     ): Try[Seq[domain.Folder]] =
       toImport.traverse(folder => cloneRecursively(folder, None, feideId, makeUniqueRootNames = true))
 
-    private def importUser(userData: api.FeideUser, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
+    private def importUser(userData: api.MyNDLAUser, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
         implicit session: DBSession
-    ): Try[api.FeideUser] =
+    ): Try[api.MyNDLAUser] =
       for {
-        existingUser <- readService.getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)(session)
+        existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
-        updatedFeideUser = api.UpdatedFeideUser(favoriteSubjects = Some(newFavorites))
+        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites))
         updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
       } yield updated
 

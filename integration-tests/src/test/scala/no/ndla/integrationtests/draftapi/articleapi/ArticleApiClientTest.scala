@@ -98,7 +98,8 @@ class ArticleApiClientTest
         revisionDate = LocalDateTime.now(),
         status = common.draft.RevisionStatus.NeedsRevision
       )
-    )
+    ),
+    responsible = None
   )
 
   val exampleToken =

@@ -43,6 +43,15 @@ export interface IImageDimensions {
   height: number
 }
 
+export interface IImageFile {
+  fileName: string
+  size: number
+  contentType: string
+  imageUrl: string
+  dimensions?: IImageDimensions
+  language: string
+}
+
 export interface IImageMetaInformationV2 {
   id: string
   metaUrl: string
@@ -60,6 +69,22 @@ export interface IImageMetaInformationV2 {
   modelRelease: string
   editorNotes?: IEditorNote[]
   imageDimensions?: IImageDimensions
+}
+
+export interface IImageMetaInformationV3 {
+  id: string
+  metaUrl: string
+  title: IImageTitle
+  alttext: IImageAltText
+  copyright: ICopyright
+  tags: IImageTag
+  caption: IImageCaption
+  supportedLanguages: string[]
+  created: string
+  createdBy: string
+  modelRelease: string
+  editorNotes?: IEditorNote[]
+  image: IImageFile
 }
 
 export interface IImageMetaSummary {
@@ -126,6 +151,14 @@ export interface ISearchResult {
   pageSize: number
   language: string
   results: IImageMetaSummary[]
+}
+
+export interface ISearchResultV3 {
+  totalCount: number
+  page?: number
+  pageSize: number
+  language: string
+  results: IImageMetaInformationV3[]
 }
 
 export interface ITagsSearchResult {

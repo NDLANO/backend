@@ -361,7 +361,8 @@ trait SearchConverterService {
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
           revisionMeta = draft.revisionMeta.toList,
-          nextRevision = nextRevision
+          nextRevision = nextRevision,
+          responsible = draft.responsible
         )
       )
 

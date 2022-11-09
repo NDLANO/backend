@@ -53,6 +53,7 @@ export interface IArticle {
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
   revisions: IRevisionMeta[]
+  responsible?: IDraftResponsible
 }
 
 export interface IArticleContent {
@@ -118,6 +119,11 @@ export interface ICopyright {
   validTo?: string
 }
 
+export interface IDraftResponsible {
+  responsibleId: string
+  lastUpdated: string
+}
+
 export interface IEditorNote {
   note: string
   user: string
@@ -175,6 +181,7 @@ export interface INewArticle {
   availability?: string
   relatedContent: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
+  responsibleId?: string
 }
 
 export interface INewArticleMetaImage {
@@ -250,6 +257,7 @@ export interface IUpdatedArticle {
   availability?: string
   relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
+  responsibleId?: (null | string)
 }
 
 export interface IUpdatedUserData {

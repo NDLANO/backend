@@ -25,14 +25,14 @@ jobs:
     name: Generate typescript types
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: coursier/cache-action@v6
-      - uses: olafurpg/setup-scala@v10
+      - uses: olafurpg/setup-scala@v13
         with:
           java-version: adopt@1.11
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: '14.16'
       - name: Login to ECR repo

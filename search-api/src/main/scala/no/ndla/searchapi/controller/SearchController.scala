@@ -214,6 +214,11 @@ trait SearchController {
       "Set to true to avoid including hits from the revision history log."
     )
 
+    private val responsibleIdFilter = Param[Option[Seq[String]]](
+      "responsible-ids",
+      "List of responsible ids to filter by (OR filter)."
+    )
+
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
     get(
@@ -471,6 +476,7 @@ trait SearchController {
       val revisionDateFrom         = paramAsDateOrNone(this.revisionDateFilterFrom.paramName)
       val revisionDateTo           = paramAsDateOrNone(this.revisionDateFilterTo.paramName)
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
+      val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
 
       MultiDraftSearchSettings(
         query = query,
@@ -499,7 +505,8 @@ trait SearchController {
         includeOtherStatuses = includeOtherStatuses,
         revisionDateFilterFrom = revisionDateFrom,
         revisionDateFilterTo = revisionDateTo,
-        excludeRevisionHistory = excludeRevisionHistory
+        excludeRevisionHistory = excludeRevisionHistory,
+        responsibleIdFilter = responsibleIds
       )
     }
 
@@ -616,7 +623,8 @@ trait SearchController {
             asQueryParam(includeOtherStatuses),
             asQueryParam(revisionDateFilterFrom),
             asQueryParam(revisionDateFilterTo),
-            asQueryParam(excludeRevisionLog)
+            asQueryParam(excludeRevisionLog),
+            asQueryParam(responsibleIdFilter)
           )
           .authorizations("oauth2")
           .responseMessages(response500)

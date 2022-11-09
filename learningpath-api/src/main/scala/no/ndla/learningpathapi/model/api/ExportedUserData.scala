@@ -11,6 +11,6 @@ import org.scalatra.swagger.annotations.ApiModelProperty
 import scala.annotation.meta.field
 
 case class ExportedUserData(
-    @(ApiModelProperty @field)(description = "The users data") userData: FeideUser,
+    @(ApiModelProperty @field)(description = "The users data") userData: MyNDLAUser,
     @(ApiModelProperty @field)(description = "The users folders") folders: List[Folder]
 )

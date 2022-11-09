@@ -17,6 +17,11 @@ export interface IConfigMeta {
   updatedBy: string
 }
 
+export interface IConfigMetaRestricted {
+  key: string
+  value: string
+}
+
 export interface ICopyright {
   license: ILicense
   contributors: IAuthor[]
@@ -163,6 +168,12 @@ export interface ILicense {
 export interface IMessage {
   message: string
   date: string
+}
+
+export interface IMyNDLAUser {
+  id: number
+  favoriteSubjects: string[]
+  role: string
 }
 
 export interface INewFolder {

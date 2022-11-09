@@ -191,6 +191,13 @@ trait ReadService {
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
 
+    def getConfig(configKey: ConfigKey): Try[api.config.ConfigMetaRestricted] = {
+      configRepository.getConfigWithKey(configKey) match {
+        case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))
+        case Some(key) => Success(converterService.asApiConfigRestricted(key))
+      }
+    }
+
     def canWriteNow(userInfo: UserInfo): Boolean =
       userInfo.canWriteDuringWriteRestriction || !readService.isWriteRestricted
 
@@ -352,13 +359,13 @@ trait ReadService {
       } yield converted
     }
 
-    private def createFeideUser(feideId: FeideID, feideAccessToken: FeideAccessToken)(implicit
+    private def createMyNDLAUser(feideId: FeideID, feideAccessToken: FeideAccessToken)(implicit
         session: DBSession
-    ): Try[domain.FeideUser] = {
+    ): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getUser(feideAccessToken)
         newUser = domain
-          .FeideUserDocument(
+          .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1)
@@ -367,15 +374,15 @@ trait ReadService {
       } yield inserted
     }
 
-    def getOrCreateFeideUserIfNotExist(
+    def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    )(implicit session: DBSession): Try[domain.FeideUser] = {
+    )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId)(session).flatMap {
         case None =>
           feideApiClient
             .getFeideAccessTokenOrFail(feideAccessToken)
-            .flatMap(token => createFeideUser(feideId, token)(session))
+            .flatMap(token => createMyNDLAUser(feideId, token)(session))
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
           else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))(session)
@@ -385,14 +392,14 @@ trait ReadService {
     private def getFeideUserDataAuthenticated(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[api.FeideUser] = {
-      getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)(AutoSession).map(converterService.toApiUserData)
+    ): Try[api.MyNDLAUser] = {
+      getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession).map(converterService.toApiUserData)
     }
 
-    def getFeideUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.FeideUser] = {
+    def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        userData <- getOrCreateFeideUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
         api = converterService.toApiUserData(userData)
       } yield api
     }

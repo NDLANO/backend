@@ -94,7 +94,8 @@ trait DraftRepository {
               notes = user
                 .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, clock.now()))
                 .toList,
-              previousVersionsNotes = article.previousVersionsNotes ++ article.notes
+              previousVersionsNotes = article.previousVersionsNotes ++ article.notes,
+              responsible = None
             )
 
             val dataObject = new PGobject()

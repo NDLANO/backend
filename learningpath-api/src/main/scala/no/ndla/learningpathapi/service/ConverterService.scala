@@ -676,6 +676,9 @@ trait ConverterService {
       )
     }
 
+    def asApiConfigRestricted(configValue: ConfigMeta): api.config.ConfigMetaRestricted =
+      api.config.ConfigMetaRestricted(key = configValue.key.entryName, value = configValue.value)
+
     def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
       val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
       maybeUUID match {
@@ -804,18 +807,18 @@ trait ConverterService {
       )
     }
 
-    def toApiUserData(domainUserData: domain.FeideUser): api.FeideUser = {
-      api.FeideUser(
+    def toApiUserData(domainUserData: domain.MyNDLAUser): api.MyNDLAUser = {
+      api.MyNDLAUser(
         id = domainUserData.id,
         favoriteSubjects = domainUserData.favoriteSubjects,
         role = domainUserData.userRole.toString
       )
     }
 
-    def mergeUserData(domainUserData: domain.FeideUser, updatedUser: api.UpdatedFeideUser): domain.FeideUser = {
+    def mergeUserData(domainUserData: domain.MyNDLAUser, updatedUser: api.UpdatedMyNDLAUser): domain.MyNDLAUser = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
 
-      domain.FeideUser(
+      domain.MyNDLAUser(
         id = domainUserData.id,
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,

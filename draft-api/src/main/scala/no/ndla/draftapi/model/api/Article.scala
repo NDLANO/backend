@@ -39,5 +39,6 @@ case class Article(
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
-    @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta]
+    @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
+    @(ApiModelProperty @field)(description = "Object with data containing representing the editor responsible for this article") responsible: Option[DraftResponsible]
 )

@@ -8,6 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
@@ -65,6 +66,13 @@ trait DraftIndexService {
         keywordField("grepContexts.code"),
         textField("grepContexts.title"),
         keywordField("traits"),
+        ObjectField(
+          "responsible",
+          properties = Seq(
+            keywordField("responsibleId"),
+            dateField("lastUpdated")
+          )
+        ),
         getTaxonomyContextMapping,
         nestedField("embedResourcesAndIds").fields(
           keywordField("resource"),
