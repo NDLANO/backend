@@ -30,6 +30,7 @@ trait TaxonomyApiClient {
     import props.ApiGatewayUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val TaxonomyApiEndpoint           = s"$ApiGatewayUrl/taxonomy/v1"
+    private val timeoutSeconds                = 600
 
     def getAllResources: Try[List[Resource]] =
       get[List[Resource]](s"$TaxonomyApiEndpoint/resources/").map(_.distinct)
@@ -104,7 +105,9 @@ trait TaxonomyApiClient {
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(60000, 60000).params(params))
+      ndlaClient.fetchWithForwardedAuth[A](
+        Http(url).timeout(timeoutSeconds * 1000, timeoutSeconds * 1000).params(params)
+      )
     }
   }
 }
