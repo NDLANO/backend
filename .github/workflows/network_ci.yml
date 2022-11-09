@@ -1,7 +1,7 @@
 name: 'CI: network'
 on:
   workflow_dispatch:
-    inputs: {}
+    inputs: { }
   push:
     paths:
       - network/**
@@ -29,9 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: coursier/cache-action@v6
-      - uses: olafurpg/setup-scala@v13
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.11
+          distribution: temurin
+          java-version: '17'
       - name: Login to ECR repo
         run: RES=$(aws sts assume-role --role-arn arn:aws:iam::950645517739:role/releaseAccess
           --role-session-name travis-test-release-pull-whatever) AWS_ACCESS_KEY_ID=$(echo

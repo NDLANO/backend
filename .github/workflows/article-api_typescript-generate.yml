@@ -29,9 +29,10 @@ jobs:
         with:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: coursier/cache-action@v6
-      - uses: olafurpg/setup-scala@v13
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.11
+          distribution: temurin
+          java-version: '17'
       - uses: actions/setup-node@v3
         with:
           node-version: '14.16'

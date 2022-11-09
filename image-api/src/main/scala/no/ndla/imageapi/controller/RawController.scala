@@ -7,18 +7,19 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.imageapi.Props
-
-import javax.servlet.http.HttpServletRequest
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.servlet.FileUploadSupport
+import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger}
 import org.scalatra.{NotFound, Ok}
-import org.scalatra.swagger.{Parameter, ResponseMessage, Swagger, SwaggerSupport}
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
@@ -31,8 +32,12 @@ trait RawController {
     with ReadService =>
   val rawController: RawController
 
-  class RawController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class RawController(implicit val swagger: Swagger)
+      extends NdlaController
+      with NdlaSwaggerSupport
+      with FileUploadSupport {
     import props.ValidMimeTypes
+
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     protected val applicationDescription                 = "API for accessing image files from ndla.no."
 
@@ -76,7 +81,7 @@ trait RawController {
     get(
       "/:image_name",
       operation(
-        apiOperation("getImageFile")
+        apiOperation[ImageStream]("getImageFile")
           .summary("Fetch an image with options to resize and crop")
           .description("Fetches a image with options to resize and crop")
           .produces(ValidMimeTypes :+ "application/octet-stream": _*)
@@ -97,7 +102,7 @@ trait RawController {
     get(
       "/id/:image_id",
       operation(
-        apiOperation("getImageFileById")
+        apiOperation[ImageStream]("getImageFileById")
           .summary("Fetch an image with options to resize and crop")
           .description("Fetches a image with options to resize and crop")
           .produces(ValidMimeTypes :+ "application/octet-stream": _*)

@@ -25,6 +25,11 @@ You could run the sbt-tasks directly to execute the tasks for _all_ subprojects 
 
 **Apply code formatting for everything:** `sbt scalafmt scalafmtSbt`
 
+### IntelliJ jvm options
+
+When using IntelliJ it is useful to setup required [jvmoptions](.jvmopts) in templates for `sbt task` and `scalatest` under 
+run/debug configurations.
+
 
 ### Merging in sub-projects
 
