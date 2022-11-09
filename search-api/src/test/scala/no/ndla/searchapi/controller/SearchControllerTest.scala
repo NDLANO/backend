@@ -190,7 +190,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     }
 
-    verify(feideApiClient, never).getUser(any)
+    verify(feideApiClient, never).getFeideExtendedUser(any)
   }
 
   test("That fetching feide user does happen token is supplied") {
@@ -200,7 +200,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       eduPersonAffiliation = Seq("employee", "staff")
     )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
-    when(feideApiClient.getUser(any)).thenReturn(Success(teacheruser))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
     val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10)
@@ -217,7 +217,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
       verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     }
 
-    verify(feideApiClient, times(1)).getUser(eqTo(teacherToken))
+    verify(feideApiClient, times(1)).getFeideExtendedUser(eqTo(Some(teacherToken)))
   }
 
   test("That retrieving datetime strings from request works") {

@@ -23,7 +23,6 @@ import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.language.Language.languageOrUnknown
 import no.ndla.network.clients.FeideApiClient
-import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -67,32 +66,16 @@ trait ReadService {
         case Some(article) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(article) =>
-          feideAccessToken match {
-            case None =>
-              Failure(
-                AccessDeniedException("User is missing required role(s) to perform this operation", unauthorized = true)
-              )
-            case Some(accessToken) =>
-              feideApiClient.getUser(accessToken) match {
-                case Failure(ex: HttpRequestException) =>
-                  val code = ex.httpResponse.map(_.code)
-                  if (code.contains(403) || code.contains(401)) {
-                    Failure(
-                      AccessDeniedException(
-                        "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
-                      )
-                    )
-                  } else Failure(ex)
-                case Failure(ex) => Failure(ex)
-                case Success(feideUser) =>
-                  article.availability match {
-                    case Availability.teacher if !feideUser.isTeacher =>
-                      Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
-                    case _ =>
-                      Cachable.no(converterService.toApiArticleV2(article, language, fallback))
-                  }
+          feideApiClient
+            .getFeideExtendedUser(feideAccessToken)
+            .flatMap(feideUser =>
+              article.availability match {
+                case Availability.teacher if !feideUser.isTeacher =>
+                  Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+                case _ =>
+                  Cachable.no(converterService.toApiArticleV2(article, language, fallback))
               }
-          }
+            )
       }
     }
 
@@ -221,16 +204,11 @@ trait ReadService {
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
     ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
-      val availabilities = feideAccessToken match {
-        case None => Seq.empty
-        case Some(token) =>
-          feideApiClient
-            .getUser(token) match {
-            case Success(user) => user.availabilities
-            case Failure(ex) =>
-              logger.warn("Something went wrong when fetching feideuser, assuming non-user", ex)
-              Seq.empty
-          }
+      val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
+        case Success(user) => user.availabilities
+        case Failure(ex) =>
+          logger.warn("Something went wrong when fetching feideuser, assuming non-user", ex)
+          Seq.empty
       }
 
       val settings = query match {
@@ -276,14 +254,10 @@ trait ReadService {
     }
 
     private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability.Value] = {
-      feideAccessToken match {
-        case None => Some(Availability.everyone)
-        case Some(value) =>
-          feideApiClient.getUser(value) match {
-            case Failure(_)                      => Some(Availability.everyone)
-            case Success(user) if user.isTeacher => None
-            case Success(_)                      => Some(Availability.everyone)
-          }
+      feideApiClient.getFeideExtendedUser(feideAccessToken) match {
+        case Failure(_)                      => Some(Availability.everyone)
+        case Success(user) if user.isTeacher => None
+        case Success(_)                      => Some(Availability.everyone)
       }
     }
 

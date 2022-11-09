@@ -332,9 +332,12 @@ trait ReadService {
       } yield converted
     }
 
-    private def createMyNDLAUser(feideId: FeideID, feideAccessToken: FeideAccessToken): Try[domain.MyNDLAUser] = {
+    private def createMyNDLAUser(
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[domain.MyNDLAUser] = {
       for {
-        feideExtendedUserData <- feideApiClient.getUser(feideAccessToken)
+        feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
@@ -350,8 +353,7 @@ trait ReadService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[domain.MyNDLAUser] = {
       userRepository.userWithFeideId(feideId).flatMap {
-        case None =>
-          feideApiClient.getFeideAccessTokenOrFail(feideAccessToken).flatMap(token => createMyNDLAUser(feideId, token))
+        case None => createMyNDLAUser(feideId, feideAccessToken)
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
           else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))

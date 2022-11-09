@@ -29,7 +29,7 @@ trait RedisClient {
 
     private def fetchFeideIdAndUpdateCache(accessToken: FeideAccessToken): Try[FeideID] = {
       feideApiClient
-        .getUserFeideID(Some(accessToken))
+        .getFeideID(Some(accessToken))
         .map(id => {
           val values = Map(
             feideIdField   -> id,
