@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleContent, Tag, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
@@ -37,10 +37,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val articleContent2 = ArticleContent(content2, "und")
-
-  val nbTags = Tag(Seq("a", "b", "c", "a", "b", "a"), "nb")
-  val enTags = Tag(Seq("d", "e", "f", "d", "e", "d"), "en")
-  when(draftRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
 
   override val readService      = new ReadService
   override val converterService = new ConverterService
