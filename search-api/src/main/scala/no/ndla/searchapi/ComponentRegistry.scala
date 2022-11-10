@@ -9,6 +9,7 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
@@ -20,7 +21,8 @@ import no.ndla.searchapi.service.search._
 import no.ndla.searchapi.service.{ApiSearchService, ConverterService, SearchClients}
 
 class ComponentRegistry(properties: SearchApiProperties)
-    extends ArticleApiClient
+    extends BaseComponentRegistry[SearchApiProperties]
+    with ArticleApiClient
     with ArticleIndexService
     with LearningPathIndexService
     with DraftIndexService
@@ -52,8 +54,8 @@ class ComponentRegistry(properties: SearchApiProperties)
     with Props
     with NdlaController
     with SearchApiInfo {
-  import props.{SearchServer, DraftApiUrl, LearningpathApiUrl, ImageApiUrl, AudioApiUrl, ArticleApiUrl}
   override val props: SearchApiProperties = properties
+  import props._
 
   implicit val swagger = new SearchSwagger
 
