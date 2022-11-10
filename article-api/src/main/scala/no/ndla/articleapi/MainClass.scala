@@ -8,15 +8,14 @@
 
 package no.ndla.articleapi
 
-import java.util
 import com.typesafe.scalalogging.LazyLogging
-
-import javax.servlet.DispatcherType
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
 
+import java.util
+import javax.servlet.DispatcherType
 import scala.io.Source
 
 class MainClass(props: ArticleApiProperties) extends LazyLogging {
@@ -30,9 +29,6 @@ class MainClass(props: ArticleApiProperties) extends LazyLogging {
     logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
 
     val startMillis = System.currentTimeMillis()
-
-    componentRegistry.readService.getTagUsageMap()
-    logger.info(s"Built tags cache in ${System.currentTimeMillis() - startMillis} ms.")
 
     val context = new ServletContextHandler()
     context.setContextPath("/")
