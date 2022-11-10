@@ -10,6 +10,7 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -20,10 +21,9 @@ trait Props {
   val props: ArticleApiProperties
 }
 
-class ArticleApiProperties extends LazyLogging {
+class ArticleApiProperties extends BaseProps with LazyLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def Environment: String      = propOrElse("NDLA_ENVIRONMENT", "local")
   def ApplicationName          = "article-api"
   def Auth0LoginEndpoint       = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def RoleWithWriteAccess      = "articles:write"
