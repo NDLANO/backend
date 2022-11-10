@@ -12,9 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, DBArticle}
-import no.ndla.common.model.domain.Tag
 import org.json4s.Formats
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -251,20 +249,6 @@ trait ArticleRepository {
         .map(Article.fromResultSet(ar))
         .list()
         .flatten
-    }
-
-    def allTags(implicit session: DBSession = AutoSession): Seq[Tag] = {
-      val allTags = sql"""select document->>'tags' from ${Article.table} where document is not NULL"""
-        .map(rs => rs.string(1))
-        .list()
-
-      allTags
-        .flatMap(tag => parse(tag).extract[List[Tag]])
-        .groupBy(_.language)
-        .map { case (language, tags) =>
-          Tag(tags.flatMap(_.tags), language)
-        }
-        .toList
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit

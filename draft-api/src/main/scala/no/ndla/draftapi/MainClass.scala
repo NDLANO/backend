@@ -30,9 +30,6 @@ class MainClass(props: DraftApiProperties) extends LazyLogging {
 
     val startMillis = System.currentTimeMillis()
 
-    componentRegistry.readService.getTagUsageMap()
-    logger.info(s"Built tags cache in ${System.currentTimeMillis() - startMillis} ms.")
-
     val context = new ServletContextHandler()
     context.setContextPath("/")
     context.setInitParameter("org.scalatra.LifeCycle", "no.ndla.draftapi.ScalatraBootstrap")

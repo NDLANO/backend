@@ -13,9 +13,9 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.NotFoundException
 import no.ndla.draftapi.model.domain.ImportId
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.repository.{AgreementRepository, DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
   ArticleSearchService,
@@ -23,7 +23,6 @@ import no.ndla.draftapi.service.search.{
   SearchConverterService,
   TagSearchService
 }
-import no.ndla.language.Language.languageOrUnknown
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 
@@ -77,15 +76,6 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getNMostUsedTags(n: Int, language: String): Option[api.ArticleTag] = {
-      val tagUsageMap    = getTagUsageMap()
-      val searchLanguage = languageOrUnknown(Some(language))
-
-      tagUsageMap
-        .flatMap(_.get(searchLanguage.toString))
-        .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage.toString))
-    }
-
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results = draftRepository
@@ -117,12 +107,6 @@ trait ReadService {
 
       result.map(searchConverterService.tagSearchResultAsApiResult)
     }
-
-    val getTagUsageMap = MemoizeAutoRenew(() => {
-      draftRepository.allTags
-        .map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags))
-        .toMap
-    })
 
     private[service] def addUrlOnResource(content: String): String = {
       val doc = HtmlTagRules.stringToJsoupDocument(content)
@@ -159,19 +143,6 @@ trait ReadService {
           )
         case _ =>
       }
-    }
-
-    class MostFrequentOccurencesList(list: Seq[String]) {
-      // Create a map where the key is a list entry, and the value is the number of occurrences of this entry in the list
-      private[this] val listToNumOccurrencesMap: Map[String, Int] = list.groupBy(identity).view.mapValues(_.size).toMap
-      // Create an inverse of the map 'listToNumOccurrencesMap': the key is number of occurrences, and the value is a list of all entries that occurred that many times
-      private[this] val numOccurrencesToListMap: Map[Int, Set[String]] =
-        listToNumOccurrencesMap.groupBy(x => x._2).view.mapValues(_.keySet).toMap
-      // Build a list sorted by the most frequent words to the least frequent words
-      private[this] val mostFrequentOccorencesDec = numOccurrencesToListMap.keys.toSeq.sorted
-        .foldRight(Seq[String]())((current, result) => result ++ numOccurrencesToListMap(current))
-
-      def getNMostFrequent(n: Int): Seq[String] = mostFrequentOccorencesDec.slice(0, n)
     }
 
     def agreementWithId(id: Long): Option[api.Agreement] =
