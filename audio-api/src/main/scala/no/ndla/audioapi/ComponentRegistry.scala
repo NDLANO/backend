@@ -26,11 +26,13 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, _}
 import no.ndla.audioapi.service._
 import no.ndla.common.Clock
+import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: AudioApiProperties)
-    extends DataSource
+    extends BaseComponentRegistry[AudioApiProperties]
+    with DataSource
     with AudioRepository
     with SeriesRepository
     with DBSeries
