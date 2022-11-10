@@ -9,6 +9,7 @@ package no.ndla.draftapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -19,9 +20,7 @@ trait Props {
   val props: DraftApiProperties
 }
 
-class DraftApiProperties extends LazyLogging {
-
-  def Environment: String          = propOrElse("NDLA_ENVIRONMENT", "local")
+class DraftApiProperties extends BaseProps with LazyLogging {
   def ApplicationName              = "draft-api"
   def Auth0LoginEndpoint           = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def DraftRoleWithWriteAccess     = "drafts:write"
