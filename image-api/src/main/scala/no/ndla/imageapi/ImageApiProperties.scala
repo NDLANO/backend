@@ -10,6 +10,7 @@ package no.ndla.imageapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
 
@@ -19,12 +20,11 @@ trait Props {
   val props: ImageApiProperties
 }
 
-class ImageApiProperties extends LazyLogging {
+class ImageApiProperties extends BaseProps with LazyLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
-  val ApplicationName     = "image-api"
-  val Auth0LoginEndpoint  = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val ApplicationName    = "image-api"
+  val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val RoleWithWriteAccess = "images:write"
 

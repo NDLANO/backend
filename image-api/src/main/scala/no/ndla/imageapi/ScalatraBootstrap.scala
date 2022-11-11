@@ -7,14 +7,12 @@
  */
 package no.ndla.imageapi
 
-import org.scalatra.LifeCycle
+import no.ndla.common.scalatra.NdlaScalatraBootstrapBase
 import javax.servlet.ServletContext
 
-class ScalatraBootstrap extends LifeCycle {
-
-  override def init(context: ServletContext): Unit = {
-    val componentRegistry = context.getAttribute("ComponentRegistry").asInstanceOf[ComponentRegistry]
-    import componentRegistry.props.{ImageApiBasePath, RawControllerPath, ApiDocsPath, HealthControllerPath}
+class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {
+  override def ndlaInit(context: ServletContext, componentRegistry: ComponentRegistry): Unit = {
+    import componentRegistry.props.{ApiDocsPath, HealthControllerPath, ImageApiBasePath, RawControllerPath}
 
     context.mount(componentRegistry.imageControllerV2, s"$ImageApiBasePath/v2/images", "imagesV2")
     context.mount(componentRegistry.imageControllerV3, s"$ImageApiBasePath/v3/images", "imagesV3")

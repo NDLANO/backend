@@ -7,12 +7,11 @@
  */
 package no.ndla.audioapi
 
-import org.scalatra.LifeCycle
+import no.ndla.common.scalatra.NdlaScalatraBootstrapBase
 import javax.servlet.ServletContext
 
-class ScalatraBootstrap extends LifeCycle {
-  override def init(context: ServletContext): Unit = {
-    val componentRegistry = context.getAttribute("ComponentRegistry").asInstanceOf[ComponentRegistry]
+class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {
+  override def ndlaInit(context: ServletContext, componentRegistry: ComponentRegistry): Unit = {
     context.mount(componentRegistry.audioApiController, "/audio-api/v1/audio")
     context.mount(componentRegistry.seriesController, "/audio-api/v1/series")
     context.mount(componentRegistry.internController, "/intern")

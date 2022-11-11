@@ -7,14 +7,11 @@
  */
 package no.ndla.oembedproxy
 
-import org.scalatra.LifeCycle
-
+import no.ndla.common.scalatra.NdlaScalatraBootstrapBase
 import javax.servlet.ServletContext
 
-class ScalatraBootstrap extends LifeCycle {
-
-  override def init(context: ServletContext): Unit = {
-    val componentRegistry = context.getAttribute("ComponentRegistry").asInstanceOf[ComponentRegistry]
+class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {
+  override def ndlaInit(context: ServletContext, componentRegistry: ComponentRegistry): Unit = {
     import componentRegistry.props.{OembedProxyControllerMountPoint, ResourcesAppMountPoint, HealthControllerMountPoint}
 
     context.mount(componentRegistry.oEmbedProxyController, OembedProxyControllerMountPoint)

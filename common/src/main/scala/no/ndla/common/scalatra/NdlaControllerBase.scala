@@ -39,20 +39,6 @@ trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with Laz
     )
   }
 
-  after() {
-    logger.info(
-      "{} {}{} executed in {} with code {}",
-      request.getMethod,
-      request.getRequestURI,
-      Option(request.getQueryString).map(s => s"?$s").getOrElse(""),
-      Option(currentTimeBeforeRequest.get())
-        .map(ct => System.currentTimeMillis() - ct)
-        .map(s => s"${s}ms")
-        .getOrElse(""),
-      response.getStatus
-    )
-  }
-
   error { ndlaErrorHandler }
 
   /** Custom renderer to allow for returning Try[T] from controller endpoints. Where `Failure(ex)` will pass `ex` to

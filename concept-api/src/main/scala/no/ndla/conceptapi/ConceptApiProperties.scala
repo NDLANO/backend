@@ -9,6 +9,7 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -19,10 +20,9 @@ trait Props {
   val props: ConceptApiProperties
 }
 
-class ConceptApiProperties extends LazyLogging {
+class ConceptApiProperties extends BaseProps with LazyLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def Environment     = propOrElse("NDLA_ENVIRONMENT", "local")
   def ApplicationName = "concept-api"
 
   def Auth0LoginEndpoint =
