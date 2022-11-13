@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
@@ -45,6 +45,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with ApiSearchService
     with SearchController
     with FeideApiClient
+    with RedisClient
     with InternController
     with User
     with SearchApiClient
@@ -74,6 +75,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val audioApiClient        = new AudioApiClient(AudioApiUrl)
   lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
   lazy val feideApiClient        = new FeideApiClient
+  lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val SearchClients = Map[String, SearchApiClient](
     draftApiClient.name        -> draftApiClient,
     learningPathApiClient.name -> learningPathApiClient,

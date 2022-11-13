@@ -23,7 +23,7 @@ import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: ArticleApiProperties)
@@ -38,6 +38,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with DraftApiClient
     with SearchApiClient
     with FeideApiClient
+    with RedisClient
     with ArticleSearchService
     with IndexService
     with BaseIndexService
@@ -87,6 +88,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
   lazy val draftApiClient      = new DraftApiClient
   lazy val searchApiClient     = new SearchApiClient
   lazy val feideApiClient      = new FeideApiClient
+  lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
 
   lazy val clock    = new SystemClock
   lazy val authRole = new AuthRole

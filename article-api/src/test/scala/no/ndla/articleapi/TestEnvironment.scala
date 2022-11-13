@@ -23,7 +23,7 @@ import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -45,6 +45,7 @@ trait TestEnvironment
     with DraftApiClient
     with SearchApiClient
     with FeideApiClient
+    with RedisClient
     with ConverterService
     with NdlaClient
     with SearchConverterService
@@ -87,6 +88,7 @@ trait TestEnvironment
   val draftApiClient         = mock[DraftApiClient]
   val searchApiClient        = mock[SearchApiClient]
   val feideApiClient         = mock[FeideApiClient]
+  val redisClient            = mock[RedisClient]
 
   val clock    = mock[SystemClock]
   val authUser = mock[AuthUser]

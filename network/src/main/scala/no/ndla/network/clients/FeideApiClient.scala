@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.implicits.TryQuestionMark
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -43,6 +44,7 @@ case class FeideExtendedUserInfo(
 }
 
 trait FeideApiClient {
+  this: RedisClient =>
   val feideApiClient: FeideApiClient
 
   class FeideApiClient extends LazyLogging {
@@ -122,15 +124,23 @@ trait FeideApiClient {
     def getFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
       for {
         accessToken <- getFeideAccessTokenOrFail(feideAccessToken)
-        feideData   <- getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken))
-      } yield feideData.sub
+        maybeFeideId = redisClient.getFeideIdFromCache(accessToken)
+        feideId = maybeFeideId match {
+          case Some(feideId) => feideId
+          case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken)).get.sub
+        }
+        f <- redisClient.updateCacheAndReturnFeideId(accessToken, feideId)
+      } yield f
     }
 
     def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {
-      for {
-        accessToken       <- getFeideAccessTokenOrFail(feideAccessToken)
-        feideExtendedUser <- getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
-      } yield feideExtendedUser
+      val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
+      val feideExtendedUser = (maybeFeideUser match {
+        case Some(feideUser) => Success(feideUser)
+        case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
+      }).?
+      redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
   }
