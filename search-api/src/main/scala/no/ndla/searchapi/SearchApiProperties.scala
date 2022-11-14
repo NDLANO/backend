@@ -9,13 +9,13 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.common.configuration.BaseProps
+import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.searchapi.model.search.SearchType
 
 import scala.util.Properties._
 
-trait Props {
+trait Props extends HasBaseProps {
   val props: SearchApiProperties
 }
 
@@ -29,9 +29,6 @@ class SearchApiProperties extends BaseProps with LazyLogging {
   def ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
   def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
   def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
-
-  def CorrelationIdKey    = "correlationID"
-  def CorrelationIdHeader = "X-Correlation-ID"
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 

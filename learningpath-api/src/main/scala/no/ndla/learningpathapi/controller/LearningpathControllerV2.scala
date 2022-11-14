@@ -44,13 +44,10 @@ trait LearningpathControllerV2 {
     with NdlaController
     with Props
     with ErrorHelpers
-    with CorrelationIdSupport =>
+    with NdlaSwaggerSupport =>
   val learningpathControllerV2: LearningpathControllerV2
 
-  class LearningpathControllerV2(implicit val swagger: Swagger)
-      extends NdlaController
-      with NdlaSwaggerSupport
-      with CorrelationIdSupport {
+  class LearningpathControllerV2(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
 
     import props.{
       DefaultLanguage,

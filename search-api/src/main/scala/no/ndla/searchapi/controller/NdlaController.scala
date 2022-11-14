@@ -13,13 +13,12 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus, RevisionStatus}
 import no.ndla.common.scalatra.NdlaControllerBase
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{Error, ErrorHelpers, TaxonomyException}
 import no.ndla.searchapi.model.domain.article.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
-import org.apache.logging.log4j.ThreadContext
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.scalatra._
@@ -27,9 +26,8 @@ import org.scalatra._
 import scala.util.{Failure, Success}
 
 trait NdlaController {
-  this: Props with ErrorHelpers =>
+  this: Props with ErrorHelpers with NdlaControllerBase =>
 
-  import props.{CorrelationIdHeader, CorrelationIdKey}
   abstract class NdlaController extends NdlaControllerBase {
     protected implicit override val jsonFormats: Formats =
       org.json4s.DefaultFormats +
@@ -48,15 +46,11 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       AuthUser.clear()
       ApplicationUrl.clear()
     }

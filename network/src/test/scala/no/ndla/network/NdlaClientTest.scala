@@ -8,6 +8,8 @@
 
 package no.ndla.network
 
+import no.ndla.common.CorrelationID
+
 import javax.servlet.http.HttpServletRequest
 import org.scalatest.TryValues._
 import scalaj.http.{HttpRequest, HttpResponse}

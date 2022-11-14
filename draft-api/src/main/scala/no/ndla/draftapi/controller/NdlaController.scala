@@ -9,8 +9,8 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.Props
+import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{
   ArticlePublishException,
   ArticleStatusException,
@@ -20,7 +20,7 @@ import no.ndla.draftapi.model.api.{
   ValidationError
 }
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
@@ -29,24 +29,20 @@ import org.postgresql.util.PSQLException
 import org.scalatra._
 
 trait NdlaController {
-  this: Props with ErrorHelpers with DataSource =>
+  this: Props with ErrorHelpers with DataSource with NdlaControllerBase with NdlaSwaggerSupport =>
 
-  abstract class NdlaController extends NdlaControllerBase with NdlaSwaggerSupport {
+  abstract class NdlaController extends NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
     import props._
 
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ThreadContext.put(TaxonomyVersionIdKey, Option(request.getHeader(TaxonomyVersionHeader)).getOrElse("default"))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       ThreadContext.remove(TaxonomyVersionIdKey)
       AuthUser.clear()
       ApplicationUrl.clear()

@@ -19,9 +19,8 @@ import no.ndla.conceptapi.model.api.{
   ValidationError
 }
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -31,23 +30,19 @@ import org.scalatra.swagger.ResponseMessage
 import java.nio.file.AccessDeniedException
 
 trait NdlaController {
-  this: Props with ErrorHelpers with DataSource =>
+  this: Props with ErrorHelpers with DataSource with NdlaControllerBase with NdlaSwaggerSupport =>
 
-  abstract class NdlaController() extends NdlaControllerBase with NdlaSwaggerSupport {
+  abstract class NdlaController() extends NdlaSwaggerSupport {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       AuthUser.clear()
       ApplicationUrl.clear()
     }

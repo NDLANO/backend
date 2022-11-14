@@ -8,15 +8,10 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{
-  Concept,
-  ConceptSearchResult,
-  DraftConceptSearchParams,
-  NotFoundException,
-  SubjectTags
-}
+import no.ndla.conceptapi.model.api._
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
@@ -26,7 +21,7 @@ import no.ndla.language.Language.AllLanguages
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import org.scalatra.swagger.Swagger
 
 import scala.util.{Failure, Success}
 
@@ -39,12 +34,13 @@ trait DraftConceptController {
     with DraftNdlaController
     with ConverterService
     with Props
-    with NdlaController =>
+    with NdlaController
+    with NdlaSwaggerSupport =>
   val draftConceptController: DraftConceptController
 
   class DraftConceptController(implicit val swagger: Swagger)
       extends DraftNdlaControllerClass
-      with SwaggerSupport
+      with NdlaSwaggerSupport
       with LazyLogging {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all

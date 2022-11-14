@@ -8,9 +8,10 @@
 
 package no.ndla.oembedproxy
 
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.caching.MemoizeHelpers
-import no.ndla.oembedproxy.controller.{CorrelationIdSupport, HealthController, OEmbedProxyController}
+import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 import org.mockito.scalatest.MockitoSugar
@@ -23,7 +24,8 @@ trait TestEnvironment
     with MockitoSugar
     with HealthController
     with Props
-    with CorrelationIdSupport
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with MemoizeHelpers
     with ErrorHelpers
     with OEmbedProxyInfo {

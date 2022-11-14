@@ -10,14 +10,14 @@ package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.BaseProps
+import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
 import scala.util.Properties._
 
-trait Props {
+trait Props extends HasBaseProps {
   val props: ArticleApiProperties
 }
 
@@ -55,8 +55,6 @@ class ArticleApiProperties extends BaseProps with LazyLogging {
   def ElasticSearchScrollKeepAlive         = "1m"
   def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
 
-  def CorrelationIdKey             = "correlationID"
-  def CorrelationIdHeader          = "X-Correlation-ID"
   def AudioHost: String            = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
   def ImageHost: String            = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
   def DraftHost: String            = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")

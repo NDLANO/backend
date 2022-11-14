@@ -20,13 +20,10 @@ import org.scalatra.swagger.{ResponseMessage, Swagger}
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
-  this: OEmbedServiceComponent with ErrorHelpers with CorrelationIdSupport =>
+  this: OEmbedServiceComponent with ErrorHelpers with NdlaControllerBase with NdlaSwaggerSupport =>
   val oEmbedProxyController: OEmbedProxyController
 
-  class OEmbedProxyController(implicit val swagger: Swagger)
-      extends NdlaControllerBase
-      with NdlaSwaggerSupport
-      with CorrelationIdSupport {
+  class OEmbedProxyController(implicit val swagger: Swagger) extends NdlaControllerBase with NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     protected val applicationDescription =

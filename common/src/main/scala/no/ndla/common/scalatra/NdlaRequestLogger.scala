@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.eclipse.jetty.server.{Request, RequestLog, Response}
 
 class NdlaRequestLogger extends RequestLog with LazyLogging {
+
   override def log(request: Request, response: Response): Unit = {
     val latency = System.currentTimeMillis() - request.getTimeStamp
     val query   = Option(request.getQueryString).map(s => s"?$s").getOrElse("")

@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.network
+package no.ndla.common
 
 import java.util.UUID
 

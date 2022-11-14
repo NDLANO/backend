@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
@@ -39,6 +40,8 @@ class ComponentRegistry(properties: DraftApiProperties)
     with AgreementController
     with HealthController
     with NdlaController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with MemoizeHelpers
     with DraftRepository
     with AgreementRepository

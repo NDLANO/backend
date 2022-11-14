@@ -50,7 +50,8 @@ trait AudioController {
     with ConverterService
     with NdlaController
     with Props
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with NdlaSwaggerSupport =>
   val audioApiController: AudioController
 
   class AudioController(implicit val swagger: Swagger)

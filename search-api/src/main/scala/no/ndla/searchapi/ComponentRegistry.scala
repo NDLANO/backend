@@ -10,6 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
@@ -46,6 +47,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with SearchService
     with ApiSearchService
     with SearchController
+    with NdlaSwaggerSupport
     with FeideApiClient
     with InternController
     with User
@@ -53,6 +55,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with GrepApiClient
     with Props
     with NdlaController
+    with NdlaControllerBase
     with SearchApiInfo {
   override val props: SearchApiProperties = properties
   import props._

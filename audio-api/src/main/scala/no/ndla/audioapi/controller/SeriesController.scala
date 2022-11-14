@@ -44,7 +44,8 @@ trait SeriesController {
     with SearchConverterService
     with ConverterService
     with Props
-    with NdlaController =>
+    with NdlaController
+    with NdlaSwaggerSupport =>
   val seriesController: SeriesController
 
   class SeriesController(implicit val swagger: Swagger)

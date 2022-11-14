@@ -22,6 +22,7 @@ import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
@@ -36,6 +37,8 @@ trait TestEnvironment
     with SearchService
     with LazyLogging
     with NdlaController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with ArticleControllerV2
     with InternController
     with HealthController

@@ -9,6 +9,7 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
@@ -45,11 +46,13 @@ trait TestEnvironment
     with SearchService
     with ApiSearchService
     with SearchController
+    with NdlaSwaggerSupport
     with User
     with LearningPathIndexService
     with InternController
     with SearchApiClient
     with NdlaController
+    with NdlaControllerBase
     with ErrorHelpers
     with GrepApiClient
     with Props

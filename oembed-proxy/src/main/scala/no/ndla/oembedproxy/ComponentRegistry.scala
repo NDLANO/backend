@@ -9,15 +9,18 @@
 package no.ndla.oembedproxy
 
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.caching.MemoizeHelpers
-import no.ndla.oembedproxy.controller.{CorrelationIdSupport, HealthController, OEmbedProxyController}
+import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties)
     extends BaseComponentRegistry[OEmbedProxyProperties]
     with OEmbedProxyController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with OEmbedServiceComponent
     with NdlaClient
     with ProviderService
@@ -25,8 +28,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with HealthController
     with Props
     with OEmbedProxyInfo
-    with ErrorHelpers
-    with CorrelationIdSupport {
+    with ErrorHelpers {
   override val props: OEmbedProxyProperties = properties
   implicit val swagger: OEmbedSwagger       = new OEmbedSwagger
 

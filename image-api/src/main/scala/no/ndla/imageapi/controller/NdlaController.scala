@@ -9,35 +9,29 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.scalatra.NdlaControllerBase
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers, ValidationError}
 import no.ndla.imageapi.model.domain.ImageStream
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.apache.logging.log4j.ThreadContext
 import org.postgresql.util.PSQLException
-import org.scalatra.servlet.SizeConstraintExceededException
 import org.scalatra._
+import org.scalatra.servlet.SizeConstraintExceededException
 
 trait NdlaController {
-  this: Props with ErrorHelpers with DataSource =>
-  import props.{CorrelationIdHeader, CorrelationIdKey}
+  this: Props with ErrorHelpers with DataSource with NdlaSwaggerSupport =>
 
-  abstract class NdlaController extends NdlaControllerBase {
+  abstract class NdlaController extends NdlaSwaggerSupport {
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       ApplicationUrl.clear()
       AuthUser.clear()
     }

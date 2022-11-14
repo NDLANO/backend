@@ -10,13 +10,13 @@ package no.ndla.imageapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.BaseProps
+import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties._
 
-trait Props {
+trait Props extends HasBaseProps {
   val props: ImageApiProperties
 }
 
@@ -35,8 +35,6 @@ class ImageApiProperties extends BaseProps with LazyLogging {
   val ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
   val TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
-  val CorrelationIdKey     = "correlationID"
-  val CorrelationIdHeader  = "X-Correlation-ID"
   val HealthControllerPath = "/health"
   val ImageApiBasePath     = "/image-api"
   val ApiDocsPath          = s"$ImageApiBasePath/api-docs"

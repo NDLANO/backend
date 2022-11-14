@@ -17,7 +17,7 @@ import org.scalatra.servlet.{FileUploadSupport, MultipartConfig}
 import org.scalatra.swagger._
 
 trait BaseImageController {
-  this: Props with NdlaController with DBImageMetaInformation =>
+  this: Props with NdlaController with DBImageMetaInformation with NdlaSwaggerSupport =>
 
   /** Base class for sharing code between Image controllers. */
   class BaseImageController(implicit override val swagger: Swagger)

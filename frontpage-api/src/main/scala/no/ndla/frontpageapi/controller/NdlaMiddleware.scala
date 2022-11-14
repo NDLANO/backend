@@ -8,8 +8,9 @@
 package no.ndla.frontpageapi.controller
 
 import cats.effect.{Effect, IO}
+import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaHttpRequest
-import no.ndla.network.{ApplicationUrl, CorrelationID}
+import no.ndla.network.ApplicationUrl
 import org.apache.logging.log4j.ThreadContext
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{HttpRoutes, Request, Response}

@@ -29,7 +29,8 @@ trait RawController {
     with ErrorHelpers
     with NdlaController
     with Props
-    with ReadService =>
+    with ReadService
+    with NdlaSwaggerSupport =>
   val rawController: RawController
 
   class RawController(implicit val swagger: Swagger)
