@@ -25,20 +25,21 @@ case class ConfigMeta(
     updatedBy: String
 ) {
 
-  def validate: Try[ConfigMeta] = {
-    key match {
-      case ConfigKey.IsWriteRestricted =>
-        Try(value.toBoolean) match {
-          case Success(_) => Success(this)
-          case Failure(_) =>
-            val validationMessage = ValidationMessage(
-              "value",
-              s"Value of '${ConfigKey.IsWriteRestricted.entryName}' must be a boolean string ('true' or 'false')"
-            )
-            Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
-        }
-      // Add case here for validation for new ConfigKeys
+  private def validateBooleanKey(configKey: ConfigKey): Try[ConfigMeta] = {
+    Try(value.toBoolean) match {
+      case Success(_) => Success(this)
+      case Failure(_) =>
+        val validationMessage = ValidationMessage(
+          "value",
+          s"Value of '${configKey.entryName}' must be a boolean string ('true' or 'false')"
+        )
+        Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
     }
+  }
+
+  def validate: Try[ConfigMeta] = key match {
+    case ConfigKey.IsWriteRestricted     => validateBooleanKey(ConfigKey.IsWriteRestricted)
+    case ConfigKey.MyNDLAWriteRestricted => validateBooleanKey(ConfigKey.MyNDLAWriteRestricted)
   }
 }
 

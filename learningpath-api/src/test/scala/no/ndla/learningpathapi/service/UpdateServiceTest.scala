@@ -2225,7 +2225,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isWriteRestricted).thenReturn(true)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
   }
 
@@ -2235,9 +2235,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(readService.isWriteRestricted).thenReturn(true)
+    when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result should be(Failure(AccessDeniedException("You do not have write access while write restriction is active.")))
   }
 
@@ -2247,9 +2247,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
-    when(readService.isWriteRestricted).thenReturn(false)
+    when(readService.isMyNDLAWriteRestricted).thenReturn(false)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
   }
 }

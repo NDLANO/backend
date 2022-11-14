@@ -191,6 +191,13 @@ trait ReadService {
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
 
+    def isMyNDLAWriteRestricted: Boolean =
+      Try(
+        configRepository
+          .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
+          .map(_.value.toBoolean)
+      ).toOption.flatten.getOrElse(false)
+
     def getConfig(configKey: ConfigKey): Try[api.config.ConfigMetaRestricted] = {
       configRepository.getConfigWithKey(configKey) match {
         case None      => Failure(NotFoundException(s"Configuration with key $configKey does not exist"))

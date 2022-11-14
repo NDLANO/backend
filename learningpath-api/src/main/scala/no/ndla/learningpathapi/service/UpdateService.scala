@@ -92,7 +92,7 @@ trait UpdateService {
       )(w)
 
     private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Boolean =
-      myNDLAUser.isTeacher || !readService.isWriteRestricted
+      myNDLAUser.isTeacher || !readService.isMyNDLAWriteRestricted
 
     private[service] def writeOrAccessDenied[T](
         willExecute: Boolean,
@@ -448,7 +448,7 @@ trait UpdateService {
       }
     }
 
-    private[service] def canWriteDuringWriteRestrictionsOrAccessDenied(
+    private[service] def canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
@@ -589,7 +589,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         inserted <- createNewFolder(newFolder, feideId, makeUniqueName = false)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api      <- converterService.toApiFolder(inserted, crumbs)
@@ -619,7 +619,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId   <- getUserFeideID(feideAccessToken)
-        _         <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
         converted <- converterService.toApiResource(resource)
       } yield converted
@@ -673,7 +673,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId        <- getUserFeideID(feideAccessToken)
-        _              <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _              <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingFolder <- folderRepository.folderWithId(id)
         _              <- existingFolder.isOwner(feideId)
         converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
@@ -692,7 +692,7 @@ trait UpdateService {
     ): Try[api.Resource] = {
       for {
         feideId          <- getUserFeideID(feideAccessToken)
-        _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingResource <- folderRepository.resourceWithId(id)
         _                <- existingResource.isOwner(feideId)
         converted = converterService.mergeResource(existingResource, updatedResource)
@@ -723,7 +723,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId         <- getUserFeideID(feideAccessToken)
-        _               <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _               <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
         _               <- folder.isOwner(feideId)
         parent          <- getFolderWithDirectChildren(folder.parentId, feideId)
@@ -743,7 +743,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId  <- getUserFeideID(feideAccessToken)
-        _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder   <- folderRepository.folderWithId(folderId)
         _        <- folder.isOwner(feideId)
         resource <- folderRepository.resourceWithId(resourceId)
@@ -788,7 +788,7 @@ trait UpdateService {
         feideAccessToken: Option[FeideAccessToken]
     )(implicit session: DBSession): Try[api.MyNDLAUser] = {
       for {
-        _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
@@ -863,7 +863,7 @@ trait UpdateService {
     ): Try[Unit] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       val feideId                     = getUserFeideID(feideAccessToken).?
-      val _                           = canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
+      canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -879,7 +879,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId    <- getUserFeideID(feideAccessToken)
-        _          <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _          <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder     <- folderRepository.folderWithId(folderId)
         _          <- folder.isOwner(feideId)
         ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
@@ -960,7 +960,7 @@ trait UpdateService {
       folderRepository.rollbackOnFailure { implicit session =>
         for {
           feideId <- getUserFeideID(feideAccessToken)
-          _       <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+          _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
           maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
           _            <- sourceFolder.isClonable
@@ -993,7 +993,7 @@ trait UpdateService {
     ): Try[ExportedUserData] = {
       folderRepository.rollbackOnFailure { session =>
         for {
-          _ <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
+          _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
           _ <- importUser(toImport.userData, feideId, maybeFeideToken)(session)
           _ <- importFolders(toImport.folders, feideId)(session)
         } yield toImport
