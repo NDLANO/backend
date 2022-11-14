@@ -117,8 +117,8 @@ trait TaxonomyApiClient {
         .getOrElse(SubjectTopicConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
       val pages = firstPage.totalCount / pageSize
-      var i     = 0
-      while (i < pages) {
+      var i     = 1
+      while (i < pages + 1) {
         val page = get[SubjectTopicConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
           .getOrElse(SubjectTopicConnectionPage(0, List.empty))
         results.addAll(page.page)
@@ -133,8 +133,8 @@ trait TaxonomyApiClient {
         .getOrElse(TopicSubtopicConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
       val pages = firstPage.totalCount / pageSize
-      var i     = 0
-      while (i < pages) {
+      var i     = 1
+      while (i < pages + 1) {
         val page = get[TopicSubtopicConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
           .getOrElse(TopicSubtopicConnectionPage(0, List.empty))
         results.addAll(page.page)
@@ -149,8 +149,8 @@ trait TaxonomyApiClient {
         .getOrElse(TopicResourceConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
       val pages = firstPage.totalCount / pageSize
-      var i     = 0
-      while (i < pages) {
+      var i     = 1
+      while (i < pages + 1) {
         val page = get[TopicResourceConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
           .getOrElse(TopicResourceConnectionPage(0, List.empty))
         results.addAll(page.page)
