@@ -112,7 +112,7 @@ trait TaxonomyApiClient {
     }
 
     private def getSubjectTopicConnections(url: String, pageSize: Int): Try[List[SubjectTopicConnection]] = {
-      val results  = new mutable.ListBuffer[SubjectTopicConnection]()
+      val results = new mutable.ListBuffer[SubjectTopicConnection]()
       val firstPage = get[SubjectTopicConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
         .getOrElse(SubjectTopicConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
@@ -128,7 +128,7 @@ trait TaxonomyApiClient {
     }
 
     private def getTopicSubtopicConnections(url: String, pageSize: Int): Try[List[TopicSubtopicConnection]] = {
-      val results  = new mutable.ListBuffer[TopicSubtopicConnection]()
+      val results = new mutable.ListBuffer[TopicSubtopicConnection]()
       val firstPage = get[TopicSubtopicConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
         .getOrElse(TopicSubtopicConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
@@ -144,7 +144,7 @@ trait TaxonomyApiClient {
     }
 
     private def getTopicResourceConnections(url: String, pageSize: Int): Try[List[TopicResourceConnection]] = {
-      val results  = new mutable.ListBuffer[TopicResourceConnection]()
+      val results = new mutable.ListBuffer[TopicResourceConnection]()
       val firstPage = get[TopicResourceConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
         .getOrElse(TopicResourceConnectionPage(0, List.empty))
       results.addAll(firstPage.page)
