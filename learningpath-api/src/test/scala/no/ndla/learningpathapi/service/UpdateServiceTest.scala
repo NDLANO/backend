@@ -1434,7 +1434,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.PUBLISH))
     )
@@ -1445,7 +1445,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Success(config) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
@@ -1455,7 +1455,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("123"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
@@ -1467,7 +1467,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val res = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )

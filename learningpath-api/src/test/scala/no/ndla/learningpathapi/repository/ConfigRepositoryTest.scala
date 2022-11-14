@@ -70,7 +70,7 @@ class ConfigRepositoryTest
 
   test("That updating configKey from empty database inserts config") {
     val newConfig = ConfigMeta(
-      key = ConfigKey.IsWriteRestricted,
+      key = ConfigKey.LearningpathWriteRestricted,
       value = "true",
       updatedAt = DateParser.fromUnixTime(0),
       updatedBy = "ndlaUser1"
@@ -79,12 +79,12 @@ class ConfigRepositoryTest
     repository.updateConfigParam(newConfig)
 
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.IsWriteRestricted) should be(Some(newConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(newConfig))
   }
 
   test("That updating config works as expected") {
     val originalConfig = ConfigMeta(
-      key = ConfigKey.IsWriteRestricted,
+      key = ConfigKey.LearningpathWriteRestricted,
       value = "true",
       updatedAt = DateParser.fromUnixTime(0),
       updatedBy = "ndlaUser1"
@@ -92,10 +92,10 @@ class ConfigRepositoryTest
 
     repository.updateConfigParam(originalConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.IsWriteRestricted) should be(Some(originalConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(originalConfig))
 
     val updatedConfig = ConfigMeta(
-      key = ConfigKey.IsWriteRestricted,
+      key = ConfigKey.LearningpathWriteRestricted,
       value = "false",
       updatedAt = DateParser.fromUnixTime(10000),
       updatedBy = "ndlaUser2"
@@ -103,6 +103,6 @@ class ConfigRepositoryTest
 
     repository.updateConfigParam(updatedConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.IsWriteRestricted) should be(Some(updatedConfig))
+    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Some(updatedConfig))
   }
 }
