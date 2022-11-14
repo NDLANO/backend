@@ -15,3 +15,5 @@ case class TopicResourceConnection(
     rank: Int,
     relevanceId: Option[String]
 )
+
+case class TopicResourceConnectionPage(totalCount: Long, page: List[TopicResourceConnection])
