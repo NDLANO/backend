@@ -39,6 +39,13 @@ trait Module {
   lazy val disablePlugins: Seq[sbt.AutoPlugin]               = Seq.empty
 
   protected val MainClass: Option[String] = None
+
+  // NOTE: Intellij has no good way of separating run and test scala configurations from sbt.
+  //       This is a workaround to stop having to customize this locally,
+  //       while still keeping fatal warnings active on CI.
+  val isCI: Boolean          = sys.env.getOrElse("CI", "false").toBoolean
+  val CIOptions: Seq[String] = if (isCI) Seq("-Xfatal-warnings") else Seq.empty
+
   lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
     run / mainClass     := this.MainClass,
     Compile / mainClass := this.MainClass,
@@ -51,12 +58,12 @@ trait Module {
       "-unchecked",
       "-deprecation",
       "-feature",
-      "-Xfatal-warnings",
       "-Xlint",
       "-Wconf:src=src_managed/.*:silent",
       "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
     ),
     javaOptions ++= reflectiveAccessOptions,
+    scalacOptions ++= CIOptions,
     // Disable warns about non-exhaustive match in tests as they are very useful there.
     Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
     Test / parallelExecution := false,

@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.model.api
 
 import com.scalatsi.{TSIType, TSNamedType, TSType}
+import no.ndla.learningpathapi.model.domain.{CopyableFolder, CopyableResource}
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import java.time.LocalDateTime
@@ -25,7 +26,7 @@ case class Folder(
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
     @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
     @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int]
-) extends FolderData
+) extends FolderData with CopyableFolder
 // format: on
 
 // 1: This object is needed for generating recursive Folder typescript type.
@@ -40,7 +41,7 @@ object Folder {
   }
 }
 
-sealed trait FolderData {}
+sealed trait FolderData extends CopyableFolder {}
 object FolderData {
   def apply(
       id: String,
@@ -89,7 +90,7 @@ case class Resource(
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
     @(ApiModelProperty @field)(description = "The id of the resource, useful for fetching metadata for the resource") resourceId: Long,
     @(ApiModelProperty @field)(description = "The which rank the resource appears in a sorted sequence") rank: Option[Int]
-)
+) extends CopyableResource
 // format: on
 
 case class NewResource(
