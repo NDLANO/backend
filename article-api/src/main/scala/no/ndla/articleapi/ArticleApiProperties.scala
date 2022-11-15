@@ -65,7 +65,7 @@ class ArticleApiProperties extends LazyLogging {
 
   def MinimumAllowedTags = 3
 
-  def RedisHost: String = propOrElse("REDIS_HOST", "localhost")
+  def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
   def oldCreatorTypes: List[String] = List(
