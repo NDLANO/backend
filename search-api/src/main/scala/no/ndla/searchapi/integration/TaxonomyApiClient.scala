@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.integration
 
-import java.util.concurrent.Executors
+import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
@@ -18,8 +18,9 @@ import no.ndla.searchapi.model.taxonomy._
 import org.json4s.DefaultFormats
 import scalaj.http.Http
 
+import java.util.concurrent.Executors
+import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -45,16 +46,16 @@ trait TaxonomyApiClient {
       get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
 
     def getAllTopicResourceConnections: Try[List[TopicResourceConnection]] =
-      get[List[TopicResourceConnection]](s"$TaxonomyApiEndpoint/topic-resources/").map(_.distinct)
+      getPaginated[TopicResourceConnection](s"$TaxonomyApiEndpoint/topic-resources", 5000).map(_.distinct)
 
     def getAllTopicSubtopicConnections: Try[List[TopicSubtopicConnection]] =
-      get[List[TopicSubtopicConnection]](s"$TaxonomyApiEndpoint/topic-subtopics/").map(_.distinct)
+      getPaginated[TopicSubtopicConnection](s"$TaxonomyApiEndpoint/topic-subtopics", 1000).map(_.distinct)
 
     def getAllResourceResourceTypeConnections: Try[List[ResourceResourceTypeConnection]] =
       get[List[ResourceResourceTypeConnection]](s"$TaxonomyApiEndpoint/resource-resourcetypes/").map(_.distinct)
 
     def getAllSubjectTopicConnections: Try[List[SubjectTopicConnection]] =
-      get[List[SubjectTopicConnection]](s"$TaxonomyApiEndpoint/subject-topics/").map(_.distinct)
+      getPaginated[SubjectTopicConnection](s"$TaxonomyApiEndpoint/subject-topics", 1000).map(_.distinct)
 
     def getAllRelevances: Try[List[Relevance]] =
       get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
@@ -109,5 +110,26 @@ trait TaxonomyApiClient {
         Http(url).timeout(timeoutSeconds * 1000, timeoutSeconds * 1000).params(params)
       )
     }
+
+    private def getPaginated[T](url: String, pageSize: Int)(implicit mf: Manifest[T]): Try[List[T]] = {
+      def fetchPage(page: Int, pageSize: Int = pageSize): Try[PaginationPage[T]] =
+        get[PaginationPage[T]](s"$url/page", "page" -> page.toString, "pageSize" -> pageSize.toString)
+
+      fetchPage(0, 1).flatMap(firstPage => {
+        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble)
+        val pageRange = 0 until 10
+
+        val numThreads = Math.max(20, numPages).toInt
+        implicit val executionContext: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
+
+        val pages        = pageRange.map(pageNum => Future(fetchPage(pageNum)))
+        val mergedFuture = Future.sequence(pages)
+        val awaited      = Await.result(mergedFuture, Duration(timeoutSeconds, "seconds"))
+
+        awaited.toList.sequence.map(_.flatMap(_.page))
+      })
+    }
   }
 }
+case class PaginationPage[T](totalCount: Long, page: List[T])

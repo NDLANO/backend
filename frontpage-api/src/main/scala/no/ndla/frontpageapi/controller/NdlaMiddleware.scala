@@ -42,7 +42,6 @@ object NdlaMiddleware {
     CorrelationID.clear()
     ThreadContext.remove(CorrelationIdKey)
     ApplicationUrl.clear()
-
     resp
   }
 
