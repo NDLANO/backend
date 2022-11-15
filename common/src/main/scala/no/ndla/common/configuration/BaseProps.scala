@@ -6,7 +6,5 @@ trait BaseProps {
   def ApplicationPort: Int
   def ApplicationName: String
 
-  def Environment: String         = propOrElse("NDLA_ENVIRONMENT", "local")
-  def CorrelationIdKey: String    = "correlationID"
-  def CorrelationIdHeader: String = "X-Correlation-ID"
+  def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 }

@@ -64,7 +64,7 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
 
   afterHeaderBeforeStart
 
-  this.setRequestLog(new NdlaRequestLogger)
+  this.setRequestLog(new NdlaRequestLogger(props))
   setupServletContext()
   this.start()
 

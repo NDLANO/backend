@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.CorrelationID
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import org.apache.logging.log4j.ThreadContext
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
@@ -35,8 +34,7 @@ trait NdlaControllerBase {
     def ndlaErrorHandler: NdlaErrorHandler
 
     before() {
-      CorrelationID.set(Option(request.getHeader(props.CorrelationIdHeader)))
-      ThreadContext.put(props.CorrelationIdKey, CorrelationID.get.getOrElse(""))
+      CorrelationID.set(request)
 
       logger.info(
         "{} {}{}",
