@@ -15,4 +15,3 @@ case class SubjectTopicConnection(
     rank: Int,
     relevanceId: Option[String]
 )
-case class SubjectTopicConnectionPage(totalCount: Long, page: List[SubjectTopicConnection])
