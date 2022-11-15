@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.integration
 
+import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
@@ -18,9 +19,8 @@ import org.json4s.DefaultFormats
 import scalaj.http.Http
 
 import java.util.concurrent.Executors
-import scala.collection.mutable
+import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -46,16 +46,16 @@ trait TaxonomyApiClient {
       get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
 
     def getAllTopicResourceConnections: Try[List[TopicResourceConnection]] =
-      getTopicResourceConnections(s"$TaxonomyApiEndpoint/topic-resources", 5000).map(_.distinct)
+      getPaginated[TopicResourceConnection](s"$TaxonomyApiEndpoint/topic-resources", 5000).map(_.distinct)
 
     def getAllTopicSubtopicConnections: Try[List[TopicSubtopicConnection]] =
-      getTopicSubtopicConnections(s"$TaxonomyApiEndpoint/topic-subtopics", 1000).map(_.distinct)
+      getPaginated[TopicSubtopicConnection](s"$TaxonomyApiEndpoint/topic-subtopics", 1000).map(_.distinct)
 
     def getAllResourceResourceTypeConnections: Try[List[ResourceResourceTypeConnection]] =
       get[List[ResourceResourceTypeConnection]](s"$TaxonomyApiEndpoint/resource-resourcetypes/").map(_.distinct)
 
     def getAllSubjectTopicConnections: Try[List[SubjectTopicConnection]] =
-      getSubjectTopicConnections(s"$TaxonomyApiEndpoint/subject-topics", 1000).map(_.distinct)
+      getPaginated[SubjectTopicConnection](s"$TaxonomyApiEndpoint/subject-topics", 1000).map(_.distinct)
 
     def getAllRelevances: Try[List[Relevance]] =
       get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
@@ -111,52 +111,25 @@ trait TaxonomyApiClient {
       )
     }
 
-    private def getSubjectTopicConnections(url: String, pageSize: Int): Try[List[SubjectTopicConnection]] = {
-      val results = new mutable.ListBuffer[SubjectTopicConnection]()
-      val firstPage = get[SubjectTopicConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
-        .getOrElse(SubjectTopicConnectionPage(0, List.empty))
-      results.addAll(firstPage.page)
-      val pages = firstPage.totalCount / pageSize
-      var i     = 1
-      while (i < pages + 1) {
-        val page = get[SubjectTopicConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
-          .getOrElse(SubjectTopicConnectionPage(0, List.empty))
-        results.addAll(page.page)
-        i = i + 1
-      }
-      Success(results.toList)
-    }
+    private def getPaginated[T](url: String, pageSize: Int)(implicit mf: Manifest[T]): Try[List[T]] = {
+      def fetchPage(page: Int, pageSize: Int = pageSize): Try[PaginationPage[T]] =
+        get[PaginationPage[T]](s"$url/page", "page" -> page.toString, "pageSize" -> pageSize.toString)
 
-    private def getTopicSubtopicConnections(url: String, pageSize: Int): Try[List[TopicSubtopicConnection]] = {
-      val results = new mutable.ListBuffer[TopicSubtopicConnection]()
-      val firstPage = get[TopicSubtopicConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
-        .getOrElse(TopicSubtopicConnectionPage(0, List.empty))
-      results.addAll(firstPage.page)
-      val pages = firstPage.totalCount / pageSize
-      var i     = 1
-      while (i < pages + 1) {
-        val page = get[TopicSubtopicConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
-          .getOrElse(TopicSubtopicConnectionPage(0, List.empty))
-        results.addAll(page.page)
-        i = i + 1
-      }
-      Success(results.toList)
-    }
+      fetchPage(0, 1).flatMap(firstPage => {
+        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble)
+        val pageRange = 0 until 10
 
-    private def getTopicResourceConnections(url: String, pageSize: Int): Try[List[TopicResourceConnection]] = {
-      val results = new mutable.ListBuffer[TopicResourceConnection]()
-      val firstPage = get[TopicResourceConnectionPage](s"$url/page", "page" -> "0", "pageSize" -> s"$pageSize")
-        .getOrElse(TopicResourceConnectionPage(0, List.empty))
-      results.addAll(firstPage.page)
-      val pages = firstPage.totalCount / pageSize
-      var i     = 1
-      while (i < pages + 1) {
-        val page = get[TopicResourceConnectionPage](s"$url/page", "page" -> s"$i", "pageSize" -> s"$pageSize")
-          .getOrElse(TopicResourceConnectionPage(0, List.empty))
-        results.addAll(page.page)
-        i = i + 1
-      }
-      Success(results.toList)
+        val numThreads = Math.max(20, numPages).toInt
+        implicit val executionContext: ExecutionContextExecutorService =
+          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
+
+        val pages        = pageRange.map(pageNum => Future(fetchPage(pageNum)))
+        val mergedFuture = Future.sequence(pages)
+        val awaited      = Await.result(mergedFuture, Duration(timeoutSeconds, "seconds"))
+
+        awaited.toList.sequence.map(_.flatMap(_.page))
+      })
     }
   }
 }
+case class PaginationPage[T](totalCount: Long, page: List[T])
