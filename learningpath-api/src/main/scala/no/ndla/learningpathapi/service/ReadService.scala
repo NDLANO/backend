@@ -187,7 +187,14 @@ trait ReadService {
     def isWriteRestricted: Boolean =
       Try(
         configRepository
-          .getConfigWithKey(ConfigKey.IsWriteRestricted)
+          .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
+          .map(_.value.toBoolean)
+      ).toOption.flatten.getOrElse(false)
+
+    def isMyNDLAWriteRestricted: Boolean =
+      Try(
+        configRepository
+          .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
 
