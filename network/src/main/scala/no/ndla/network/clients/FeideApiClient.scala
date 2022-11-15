@@ -123,14 +123,14 @@ trait FeideApiClient {
 
     def getFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
       for {
-        accessToken <- getFeideAccessTokenOrFail(feideAccessToken)
-        maybeFeideId = redisClient.getFeideIdFromCache(accessToken)
-        feideId = maybeFeideId match {
-          case Some(feideId) => feideId
-          case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken)).get.sub
+        accessToken  <- getFeideAccessTokenOrFail(feideAccessToken)
+        maybeFeideId <- redisClient.getFeideIdFromCache(accessToken)
+        feideOpenUser <- maybeFeideId match {
+          case Some(feideId) => Success(FeideOpenIdUserInfo(feideId))
+          case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken))
         }
-        f <- redisClient.updateCacheAndReturnFeideId(accessToken, feideId)
-      } yield f
+        feideId <- redisClient.updateCacheAndReturnFeideId(accessToken, feideOpenUser.sub)
+      } yield feideId
     }
 
     def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {

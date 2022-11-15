@@ -12,7 +12,7 @@ import org.json4s.DefaultFormats
 import redis.clients.jedis.JedisPooled
 import org.json4s.native.Serialization._
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 trait RedisClient {
   val redisClient: RedisClient
@@ -26,13 +26,13 @@ trait RedisClient {
     val feideIdField   = "feideId"
     val feideUserField = "feideUser"
 
-    def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
+    def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = Try {
       implicit val formats: DefaultFormats.type = DefaultFormats
       if (jedis.hexists(accessToken, feideUserField)) {
         val feideUser = jedis.hget(accessToken, feideUserField)
-        Try(Some(read[FeideExtendedUserInfo](feideUser)))
+        Some(read[FeideExtendedUserInfo](feideUser))
       } else {
-        Success(None)
+        None
       }
     }
 
@@ -49,7 +49,7 @@ trait RedisClient {
       feideExtendedUser
     }
 
-    def getFeideIdFromCache(accessToken: FeideAccessToken): Option[FeideID] = {
+    def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] = Try {
       if (jedis.hexists(accessToken, feideIdField)) {
         Some(jedis.hget(accessToken, feideIdField))
       } else {

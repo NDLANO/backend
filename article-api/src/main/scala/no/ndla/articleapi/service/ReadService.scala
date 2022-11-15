@@ -255,9 +255,8 @@ trait ReadService {
 
     private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability.Value] = {
       feideApiClient.getFeideExtendedUser(feideAccessToken) match {
-        case Failure(_)                      => Some(Availability.everyone)
         case Success(user) if user.isTeacher => None
-        case Success(_)                      => Some(Availability.everyone)
+        case _                               => Some(Availability.everyone)
       }
     }
 
