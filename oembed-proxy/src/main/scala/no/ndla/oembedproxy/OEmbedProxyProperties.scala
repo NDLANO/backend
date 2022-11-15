@@ -8,20 +8,21 @@
 
 package no.ndla.oembedproxy
 
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.{AuthUser, Domains}
+
 import scala.util.Properties.propOrElse
 
 trait Props {
   val props: OEmbedProxyProperties
 }
 
-class OEmbedProxyProperties {
-
-  val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
+class OEmbedProxyProperties extends BaseProps {
+  def ApplicationName: String = "oembed-proxy"
+  val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
 
   val CorrelationIdKey    = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
-  val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val Auth0LoginEndpoint =
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"

@@ -8,6 +8,7 @@
 
 package no.ndla.oembedproxy
 
+import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{CorrelationIdSupport, HealthController, OEmbedProxyController}
@@ -15,7 +16,8 @@ import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties)
-    extends OEmbedProxyController
+    extends BaseComponentRegistry[OEmbedProxyProperties]
+    with OEmbedProxyController
     with OEmbedServiceComponent
     with NdlaClient
     with ProviderService

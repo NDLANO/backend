@@ -11,6 +11,7 @@ package no.ndla.imageapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import no.ndla.common.Clock
+import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
@@ -31,7 +32,8 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: ImageApiProperties)
-    extends Elastic4sClient
+    extends BaseComponentRegistry[ImageApiProperties]
+    with Elastic4sClient
     with IndexService
     with BaseIndexService
     with TagIndexService

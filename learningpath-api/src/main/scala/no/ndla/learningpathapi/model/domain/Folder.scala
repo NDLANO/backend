@@ -52,7 +52,8 @@ case class Folder(
     resources: List[Resource],
     subfolders: List[Folder]
 ) extends FeideContent
-    with Rankable {
+    with Rankable
+    with CopyableFolder {
   override val sortId: UUID          = id
   override val sortRank: Option[Int] = rank
 

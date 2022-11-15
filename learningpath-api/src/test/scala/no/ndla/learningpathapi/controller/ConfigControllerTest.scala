@@ -35,11 +35,11 @@ class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   test("That updating config returns 200 if all is good") {
     when(updateService.updateConfig(any[ConfigKey], any[UpdateConfigValue], any[UserInfo]))
       .thenReturn(
-        Success(ConfigMeta(ConfigKey.IsWriteRestricted.entryName, "true", LocalDateTime.now(), "someoneCool"))
+        Success(ConfigMeta(ConfigKey.LearningpathWriteRestricted.entryName, "true", LocalDateTime.now(), "someoneCool"))
       )
 
     post(
-      s"/${ConfigKey.IsWriteRestricted.entryName}",
+      s"/${ConfigKey.LearningpathWriteRestricted.entryName}",
       body = "{\"value\": \"true\"}",
       headers = Map("Authorization" -> s"Bearer $adminScopeClientToken")
     ) {
@@ -47,7 +47,7 @@ class ConfigControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     }
 
     post(
-      s"/${ConfigKey.IsWriteRestricted.entryName}",
+      s"/${ConfigKey.LearningpathWriteRestricted.entryName}",
       body = "{\"value\": \"true\"}",
       headers = Map("Authorization" -> s"Bearer $adminAndWriteScopeClientToken")
     ) {

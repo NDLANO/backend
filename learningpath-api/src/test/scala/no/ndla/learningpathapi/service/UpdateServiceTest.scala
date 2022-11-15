@@ -1434,7 +1434,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.PUBLISH))
     )
@@ -1445,7 +1445,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Success(config) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
@@ -1455,7 +1455,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("123"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
@@ -1467,7 +1467,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
       .thenReturn(Success(TestData.testConfigMeta))
     val res = service.updateConfig(
-      ConfigKey.IsWriteRestricted,
+      ConfigKey.LearningpathWriteRestricted,
       UpdateConfigValue("true"),
       UserInfo("Kari", Set(LearningPathRole.ADMIN))
     )
@@ -1487,7 +1487,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(wrongFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0))
     when(folderRepository.folderWithId(eqTo(id))(any)).thenReturn(Success(folderWithChildren))
 
@@ -1525,7 +1525,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     })
     when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
     when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
@@ -1569,7 +1569,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     })
     when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(5))
     when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
     when(readService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
@@ -1598,7 +1598,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(2))
@@ -1631,7 +1631,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(1))
@@ -1663,7 +1663,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "asd")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
 
     val res = service.deleteConnection(folderId, resourceId, None)
@@ -1685,7 +1685,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "asd")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
 
@@ -1828,7 +1828,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success("FEIDEF"))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.folderWithId(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1))
     when(readService.getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(any[DBSession]))
       .thenReturn(Success(folder1))
@@ -1882,7 +1882,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
@@ -1928,7 +1928,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val belowLimit = props.MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
@@ -1974,7 +1974,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val belowLimit = props.MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
@@ -2024,7 +2024,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val belowLimit = props.MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
@@ -2086,7 +2086,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val belowLimit = props.MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
       .thenReturn(Success(parentId))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
@@ -2139,7 +2139,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
 
@@ -2154,7 +2154,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(
@@ -2198,7 +2198,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       func(mock[DBSession])
     })
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
     when(folderRepository.setFolderRank(any, any, any)(any)).thenReturn(Success(()))
     when(folderRepository.setResourceConnectionRank(any, any, any)(any)).thenReturn(Success(()))
     when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(any)).thenReturn(Success(parent))
@@ -2222,10 +2222,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
 
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(myNDLAUser))
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isWriteRestricted).thenReturn(true)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
   }
 
@@ -2234,10 +2234,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(myNDLAUser))
-    when(readService.isWriteRestricted).thenReturn(true)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result should be(Failure(AccessDeniedException("You do not have write access while write restriction is active.")))
   }
 
@@ -2246,10 +2246,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
-    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)).thenReturn(Success(myNDLAUser))
-    when(readService.isWriteRestricted).thenReturn(false)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(readService.isMyNDLAWriteRestricted).thenReturn(false)
 
-    val result = service.canWriteDuringWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
   }
 }

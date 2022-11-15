@@ -62,7 +62,6 @@ trait DraftController {
       Param[Option[Long]]("articleId", description = "The ID of the article to generate a status state machine for")
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fetched")
     private val nodeId    = Param[String]("node_id", "Id of the taxonomy node to process")
-    private val size      = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val articleTypes = Param[Option[String]](
       "articleTypes",
       "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
@@ -102,38 +101,6 @@ trait DraftController {
             case Failure(ex) => errorHandler(ex)
           }
         case _ => orFunction
-      }
-    }
-
-    get(
-      "/tags/",
-      operation(
-        apiOperation[ArticleTag]("getTags")
-          .summary("Retrieves a list of all previously used tags in articles")
-          .description("Retrieves a list of all previously used tags in articles")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(size),
-            asQueryParam(language)
-          )
-          .responseMessages(response404, response500)
-          .authorizations("oauth2")
-      )
-    ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        val defaultSize = 20
-        val language    = paramOrDefault("language", Language.AllLanguages)
-        val size = intOrDefault("size", defaultSize) match {
-          case tooSmall if tooSmall < 1 => defaultSize
-          case x                        => x
-        }
-        val tags = readService.getNMostUsedTags(size, language)
-        if (tags.isEmpty) {
-          NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No tags with language $language was found"))
-        } else {
-          tags
-        }
       }
     }
 

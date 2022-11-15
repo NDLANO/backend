@@ -340,6 +340,7 @@ trait FolderController {
           .summary("Decide order of resource ids in a folder")
           .description("Decide order of resource ids in a folder")
           .parameters(
+            asHeaderParam(feideToken),
             bodyParam[FolderSortRequest]
           )
       )
@@ -359,6 +360,7 @@ trait FolderController {
           .summary("Decide order of subfolder ids in a folder")
           .description("Decide order of subfolder ids in a folder")
           .parameters(
+            asHeaderParam(feideToken),
             bodyParam[FolderSortRequest],
             asQueryParam(folderIdQuery)
           )

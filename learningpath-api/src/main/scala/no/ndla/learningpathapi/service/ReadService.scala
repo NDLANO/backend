@@ -10,9 +10,9 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.learningpathapi.model.api
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.learningpathapi.model.api._
-import no.ndla.learningpathapi.model.domain
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
   StepStatus,
@@ -29,8 +29,7 @@ import no.ndla.learningpathapi.repository.{
   UserRepository
 }
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.common.errors.AccessDeniedException
-import scalikejdbc.DBSession
+import scalikejdbc.{AutoSession, DBSession}
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -49,6 +48,22 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+
+    def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[api.ExportedUserData] = {
+      withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
+    }
+
+    private def exportUserDataAuthenticated(
+        maybeFeideAccessToken: Option[FeideAccessToken],
+        feideId: FeideID
+    ): Try[api.ExportedUserData] =
+      for {
+        folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
+        feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
+      } yield ExportedUserData(
+        userData = feideUser,
+        folders = folders
+      )
 
     def tags: List[LearningPathTags] = {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
@@ -170,7 +185,14 @@ trait ReadService {
     def isWriteRestricted: Boolean =
       Try(
         configRepository
-          .getConfigWithKey(ConfigKey.IsWriteRestricted)
+          .getConfigWithKey(ConfigKey.LearningpathWriteRestricted)
+          .map(_.value.toBoolean)
+      ).toOption.flatten.getOrElse(false)
+
+    def isMyNDLAWriteRestricted: Boolean =
+      Try(
+        configRepository
+          .getConfigWithKey(ConfigKey.MyNDLAWriteRestricted)
           .map(_.value.toBoolean)
       ).toOption.flatten.getOrElse(false)
 
@@ -301,14 +323,24 @@ trait ReadService {
       folders
         .traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
+    def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] =
+      feideApiClient.getFeideID(maybeToken).flatMap(feideId => func(feideId))
+
     def getFolders(
         includeSubfolders: Boolean,
         includeResources: Boolean,
-        feideAccessToken: Option[FeideAccessToken] = None
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[List[api.Folder]] = {
+      withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
+    }
+
+    def getFoldersAuthenticated(
+        includeSubfolders: Boolean,
+        includeResources: Boolean,
+        feideId: FeideID
     ): Try[List[api.Folder]] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId      <- feideApiClient.getFeideID(feideAccessToken)
         topFolders   <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)
@@ -332,9 +364,8 @@ trait ReadService {
       } yield converted
     }
 
-    private def createMyNDLAUser(
-        feideId: FeideID,
-        feideAccessToken: Option[FeideAccessToken]
+    private def createMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+        session: DBSession
     ): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
@@ -344,26 +375,34 @@ trait ReadService {
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1)
           )
-        inserted <- userRepository.insertUser(feideId, newUser)
+        inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
     }
 
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[domain.MyNDLAUser] = {
-      userRepository.userWithFeideId(feideId).flatMap {
-        case None => createMyNDLAUser(feideId, feideAccessToken)
+    )(implicit session: DBSession): Try[domain.MyNDLAUser] = {
+      userRepository.userWithFeideId(feideId)(session).flatMap {
+        case None =>
+          createMyNDLAUser(feideId, feideAccessToken)(session)
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
-          else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))
+          else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))(session)
       }
+    }
+
+    private def getFeideUserDataAuthenticated(
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken]
+    ): Try[api.MyNDLAUser] = {
+      getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession).map(converterService.toApiUserData)
     }
 
     def getMyNDLAUserData(feideAccessToken: Option[FeideAccessToken]): Try[api.MyNDLAUser] = {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)
+        userData <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
         api = converterService.toApiUserData(userData)
       } yield api
     }

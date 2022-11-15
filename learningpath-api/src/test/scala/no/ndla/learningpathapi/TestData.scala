@@ -47,7 +47,7 @@ object TestData {
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
 
   val testConfigMeta: ConfigMeta = domain.config.ConfigMeta(
-    ConfigKey.IsWriteRestricted,
+    ConfigKey.LearningpathWriteRestricted,
     value = "true",
     today,
     "EnKulFyr"

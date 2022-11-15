@@ -22,9 +22,11 @@ import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.common.Clock
+import no.ndla.common.configuration.BaseComponentRegistry
 
 class ComponentRegistry(properties: ConceptApiProperties)
-    extends DraftConceptController
+    extends BaseComponentRegistry[ConceptApiProperties]
+    with DraftConceptController
     with PublishedConceptController
     with DraftNdlaController
     with Clock

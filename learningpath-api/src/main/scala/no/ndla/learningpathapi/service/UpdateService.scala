@@ -37,9 +37,10 @@ import no.ndla.common.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import scalikejdbc.{DBSession, ReadOnlyAutoSession}
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait UpdateService {
@@ -89,7 +90,7 @@ trait UpdateService {
       )(w)
 
     private def canWriteNow(myNDLAUser: domain.MyNDLAUser): Boolean =
-      myNDLAUser.isTeacher || !readService.isWriteRestricted
+      myNDLAUser.isTeacher || !readService.isMyNDLAWriteRestricted
 
     private[service] def writeOrAccessDenied[T](
         willExecute: Boolean,
@@ -445,12 +446,12 @@ trait UpdateService {
       }
     }
 
-    private[service] def canWriteDuringWriteRestrictionsOrAccessDenied(
+    private[service] def canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
       readService
-        .getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)
+        .getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
         .flatMap(myNDLAUser => {
           if (canWriteNow(myNDLAUser)) Success(())
           else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
@@ -549,24 +550,45 @@ trait UpdateService {
 
     private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
 
-    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID)(implicit
+    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID, makeUniqueName: Boolean)(implicit
         session: DBSession
-    ): Try[domain.Folder] =
-      for {
-        parentId          <- getMaybeParentId(newFolder.parentId)
-        maybeSiblings     <- getFolderWithDirectChildren(parentId, feideId)
-        nextRank          <- Try(getNextRank(maybeSiblings.childrenFolders)) // `Try` for align
-        validatedParentId <- validateNewFolder(newFolder.name, parentId, maybeSiblings)
-        newFolderData     <- converterService.toNewFolderData(newFolder, validatedParentId, nextRank.some)
-        inserted          <- folderRepository.insertFolder(feideId, newFolderData)
-      } yield inserted
+    ): Try[domain.Folder] = {
+
+      val parentId          = getMaybeParentId(newFolder.parentId).?
+      val maybeSiblings     = getFolderWithDirectChildren(parentId, feideId).?
+      val nextRank          = getNextRank(maybeSiblings.childrenFolders)
+      val folderWithName    = newFolder.copy(name = getFolderValidName(makeUniqueName, newFolder.name, maybeSiblings))
+      val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
+      val newFolderData     = converterService.toNewFolderData(folderWithName, validatedParentId, nextRank.some).?
+      val inserted          = folderRepository.insertFolder(feideId, newFolderData).?
+
+      Success(inserted)
+    }
+
+    private def getFolderValidName(
+        makeUniqueName: Boolean,
+        folderName: String,
+        maybeParentAndSiblings: FolderAndDirectChildren
+    ): String = {
+      if (!makeUniqueName) {
+        return folderName
+      }
+
+      @tailrec
+      def getCopyUntilValid(folderName: String): String =
+        if (validateSiblingNames(folderName, maybeParentAndSiblings).isFailure) {
+          getCopyUntilValid(s"$folderName (Fra import)")
+        } else { folderName }
+
+      getCopyUntilValid(folderName)
+    }
 
     def newFolder(newFolder: api.NewFolder, feideAccessToken: Option[FeideAccessToken]): Try[api.Folder] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        inserted <- createNewFolder(newFolder, feideId)
+        _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        inserted <- createNewFolder(newFolder, feideId, makeUniqueName = false)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api      <- converterService.toApiFolder(inserted, crumbs)
       } yield api
@@ -595,7 +617,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId   <- feideApiClient.getFeideID(feideAccessToken)
-        _         <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
         converted <- converterService.toApiResource(resource)
       } yield converted
@@ -649,7 +671,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId        <- feideApiClient.getFeideID(feideAccessToken)
-        _              <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _              <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingFolder <- folderRepository.folderWithId(id)
         _              <- existingFolder.isOwner(feideId)
         converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
@@ -668,7 +690,7 @@ trait UpdateService {
     ): Try[api.Resource] = {
       for {
         feideId          <- feideApiClient.getFeideID(feideAccessToken)
-        _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingResource <- folderRepository.resourceWithId(id)
         _                <- existingResource.isOwner(feideId)
         converted = converterService.mergeResource(existingResource, updatedResource)
@@ -699,7 +721,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId         <- feideApiClient.getFeideID(feideAccessToken)
-        _               <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _               <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder          <- folderRepository.folderWithId(id)
         _               <- folder.isOwner(feideId)
         parent          <- getFolderWithDirectChildren(folder.parentId, feideId)
@@ -719,7 +741,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
-        _        <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder   <- folderRepository.folderWithId(folderId)
         _        <- folder.isOwner(feideId)
         resource <- folderRepository.resourceWithId(resourceId)
@@ -753,9 +775,18 @@ trait UpdateService {
         updatedUser: api.UpdatedMyNDLAUser,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[api.MyNDLAUser] = {
+      feideApiClient
+        .getFeideID(feideAccessToken)
+        .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession))
+    }
+
+    private def updateFeideUserDataAuthenticated(
+        updatedUser: api.UpdatedMyNDLAUser,
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken]
+    )(implicit session: DBSession): Try[api.MyNDLAUser] = {
       for {
-        feideId          <- feideApiClient.getFeideID(feideAccessToken)
-        _                <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
         combined = converterService.mergeUserData(existingUserData, updatedUser)
         updated <- userRepository.updateUser(feideId, combined)
@@ -830,7 +861,7 @@ trait UpdateService {
     ): Try[Unit] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       val feideId                     = feideApiClient.getFeideID(feideAccessToken).?
-      val _                           = canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
+      canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).?
       folderSortObject match {
         case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
         case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -846,7 +877,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _          <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         folder     <- folderRepository.folderWithId(folderId)
         _          <- folder.isOwner(feideId)
         ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
@@ -855,7 +886,7 @@ trait UpdateService {
     }
 
     private[service] def cloneChildrenRecursively(
-        sourceFolder: domain.Folder,
+        sourceFolder: CopyableFolder,
         destinationFolder: domain.Folder,
         feideId: FeideID
     )(implicit session: DBSession): Try[Folder] = {
@@ -889,23 +920,31 @@ trait UpdateService {
       } yield destinationFolder.copy(subfolders = folders, resources = resources)
     }
 
-    private def cloneRecursively(sourceFolder: domain.Folder, destinationId: Option[UUID], feideId: FeideID)(implicit
+    private def cloneRecursively(
+        sourceFolder: CopyableFolder,
+        destinationId: Option[UUID],
+        feideId: FeideID,
+        makeUniqueRootNames: Boolean
+    )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
-      val sourceFolderCopy =
-        api.NewFolder(name = sourceFolder.name, parentId = None, status = FolderStatus.PRIVATE.toString.some)
+      val sourceFolderCopy = api.NewFolder(
+        name = sourceFolder.name,
+        parentId = None,
+        status = FolderStatus.PRIVATE.toString.some
+      )
 
       destinationId match {
         case None =>
           for {
-            createdFolder <- createNewFolder(sourceFolderCopy, feideId)
+            createdFolder <- createNewFolder(sourceFolderCopy, feideId, makeUniqueRootNames)
             clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield clonedFolder
         case Some(id) =>
           for {
             existingFolder <- folderRepository.folderWithId(id)
             clonedSourceFolder = sourceFolderCopy.copy(parentId = existingFolder.id.toString.some)
-            createdFolder <- createNewFolder(clonedSourceFolder, feideId)
+            createdFolder <- createNewFolder(clonedSourceFolder, feideId, makeUniqueRootNames)
             clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield existingFolder.copy(subfolders = existingFolder.subfolders :+ clonedFolder)
       }
@@ -919,15 +958,50 @@ trait UpdateService {
       folderRepository.rollbackOnFailure { implicit session =>
         for {
           feideId <- feideApiClient.getFeideID(feideAccessToken)
-          _       <- canWriteDuringWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+          _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
           maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED)
           sourceFolder <- readService.getWith404IfNone(sourceId, maybeFolder)
           _            <- sourceFolder.isClonable
-          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId)(session)
+          clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, makeUniqueRootNames = false)(session)
           breadcrumbs  <- readService.getBreadcrumbs(clonedFolder)
           converted    <- converterService.toApiFolder(clonedFolder, breadcrumbs)
         } yield converted
       }
+    }
+
+    private def importFolders(toImport: Seq[api.Folder], feideId: FeideID)(implicit
+        session: DBSession
+    ): Try[Seq[domain.Folder]] =
+      toImport.traverse(folder => cloneRecursively(folder, None, feideId, makeUniqueRootNames = true))
+
+    private def importUser(userData: api.MyNDLAUser, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
+        implicit session: DBSession
+    ): Try[api.MyNDLAUser] =
+      for {
+        existingUser <- readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
+        updatedFeideUser = api.UpdatedMyNDLAUser(favoriteSubjects = Some(newFavorites))
+        updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
+      } yield updated
+
+    private def importUserDataAuthenticated(
+        toImport: ExportedUserData,
+        feideId: FeideID,
+        maybeFeideToken: Option[FeideAccessToken]
+    ): Try[ExportedUserData] = {
+      folderRepository.rollbackOnFailure { session =>
+        for {
+          _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
+          _ <- importUser(toImport.userData, feideId, maybeFeideToken)(session)
+          _ <- importFolders(toImport.folders, feideId)(session)
+        } yield toImport
+      }
+    }
+
+    def importUserData(toImport: ExportedUserData, maybeFeideToken: Option[FeideAccessToken]): Try[ExportedUserData] = {
+      feideApiClient
+        .getFeideID(maybeFeideToken)
+        .flatMap(feideId => importUserDataAuthenticated(toImport, feideId, maybeFeideToken))
     }
   }
 }

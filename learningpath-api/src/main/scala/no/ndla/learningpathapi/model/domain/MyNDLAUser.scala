@@ -70,9 +70,10 @@ trait DBMyNDLAUser {
     def fromResultSet(rs: WrappedResultSet): MyNDLAUser = fromResultSet((s: String) => s)(rs)
 
     def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): MyNDLAUser = {
-      val metaData = read[MyNDLAUserDocument](rs.string(colNameWrapper("document")))
-      val id       = rs.long(colNameWrapper("id"))
-      val feideId  = rs.string(colNameWrapper("feide_id"))
+      val jsonString = rs.string(colNameWrapper("document"))
+      val metaData   = read[MyNDLAUserDocument](jsonString)
+      val id         = rs.long(colNameWrapper("id"))
+      val feideId    = rs.string(colNameWrapper("feide_id"))
 
       metaData.toFullUser(
         id = id,

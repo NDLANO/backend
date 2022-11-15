@@ -10,6 +10,7 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.learningpathapi.controller.{
   ConfigController,
   CorrelationIdSupport,
@@ -52,7 +53,8 @@ import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)
-    extends LearningpathControllerV2
+    extends BaseComponentRegistry[LearningpathApiProperties]
+    with LearningpathControllerV2
     with InternController
     with HealthController
     with ConfigController

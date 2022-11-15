@@ -7,21 +7,20 @@
 
 package no.ndla.draftapi.repository
 
-import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.common.Clock
+import no.ndla.common.model.domain.EditorNote
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain._
-import no.ndla.common.Clock
-import no.ndla.common.model.domain.{Tag, EditorNote}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import org.json4s.Formats
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
+import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
@@ -358,20 +357,6 @@ trait DraftRepository {
       """
         .map(DBArticle.fromResultSet(ar))
         .list()
-    }
-
-    def allTags(implicit session: DBSession = AutoSession): Seq[Tag] = {
-      val allTags = sql"""select document->>'tags' from ${DBArticle.table} where document is not NULL"""
-        .map(rs => rs.string(1))
-        .list()
-
-      allTags
-        .flatMap(tag => parse(tag).extract[List[Tag]])
-        .groupBy(_.language)
-        .map { case (language, tags) =>
-          Tag(tags.flatMap(_.tags), language)
-        }
-        .toList
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {

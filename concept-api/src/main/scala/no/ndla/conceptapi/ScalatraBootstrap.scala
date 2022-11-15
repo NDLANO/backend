@@ -6,13 +6,11 @@
  */
 package no.ndla.conceptapi
 
-import org.scalatra.LifeCycle
+import no.ndla.common.scalatra.NdlaScalatraBootstrapBase
 import javax.servlet.ServletContext
 
-class ScalatraBootstrap extends LifeCycle {
-
-  override def init(context: ServletContext): Unit = {
-    val componentRegistry = context.getAttribute("ComponentRegistry").asInstanceOf[ComponentRegistry]
+class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {
+  override def ndlaInit(context: ServletContext, componentRegistry: ComponentRegistry): Unit = {
     context.mount(componentRegistry.draftConceptController, "/concept-api/v1/drafts", "concept")
     context.mount(componentRegistry.publishedConceptController, "/concept-api/v1/concepts", "publishedConcept")
     context.mount(componentRegistry.resourcesApp, "/concept-api/api-docs")

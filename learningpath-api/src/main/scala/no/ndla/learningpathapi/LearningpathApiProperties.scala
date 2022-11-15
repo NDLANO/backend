@@ -10,6 +10,7 @@ package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 
@@ -19,12 +20,11 @@ trait Props {
   val props: LearningpathApiProperties
 }
 
-class LearningpathApiProperties extends LazyLogging {
+class LearningpathApiProperties extends BaseProps with LazyLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
-  def ApplicationName     = "learningpath-api"
-  def Auth0LoginEndpoint  = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def ApplicationName    = "learningpath-api"
+  def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")

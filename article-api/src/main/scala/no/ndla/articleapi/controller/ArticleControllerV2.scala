@@ -72,11 +72,6 @@ trait ArticleControllerV2 {
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
     private val revision =
       Param[Option[Int]]("revision", "Revision of article to fetch. If not provided the current revision is returned.")
-    private val size =
-      Param[Option[Int]](
-        "size",
-        s"Limit the number of results to this many elements. Default is $DefaultPageSize and max is $MaxPageSize."
-      )
     private val articleTypes = Param[Option[String]](
       "articleTypes",
       "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
@@ -128,34 +123,6 @@ trait ArticleControllerV2 {
 
     private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
       request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
-    }
-
-    get(
-      "/tags/",
-      operation(
-        apiOperation[ArticleTag]("getTags")
-          .summary("Fetch tags used in articles.")
-          .description("Retrieves a list of all previously used tags in articles.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(size),
-            asQueryParam(language)
-          )
-          .responseMessages(response500)
-      )
-    ) {
-      val defaultSize = 20
-      val language    = paramOrDefault(this.language.paramName, AllLanguages)
-      val size = intOrDefault(this.size.paramName, defaultSize) match {
-        case tooSmall if tooSmall < 1 => defaultSize
-        case x                        => x
-      }
-      val tags = readService.getNMostUsedTags(size, language)
-      if (tags.isEmpty) {
-        NotFound(body = Error(ErrorHelpers.NOT_FOUND, s"No tags with language $language was found"))
-      } else {
-        tags
-      }
     }
 
     get(

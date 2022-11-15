@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{Availability, Tag, VisualElement}
+import no.ndla.common.model.domain.{Availability, VisualElement}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -43,10 +43,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val articleContent2 = ArticleContent(content2, "und")
-
-  val nbTags = Tag(Seq("a", "b", "c", "a", "b", "a"), "nb")
-  val enTags = Tag(Seq("d", "e", "f", "d", "e", "d"), "en")
-  when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
 
   override val readService      = new ReadService
   override val converterService = new ConverterService
@@ -110,23 +106,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val result = readService.addUrlsOnEmbedResources(article)
     result should equal(article.copy(content = Seq(article1ExpectedResult, article2ExpectedResult)))
-  }
-
-  test("getNMostUsedTags should return the N most used tags") {
-    val expectedResult1 = Some(api.ArticleTag(Seq("a", "b"), "nb"))
-    val expectedResult2 = Some(api.ArticleTag(Seq("d", "e"), "en"))
-    readService.getNMostUsedTags(2, "nb") should equal(expectedResult1)
-    readService.getNMostUsedTags(2, "en") should equal(expectedResult2)
-  }
-
-  test("MostFrequentOccurencesList.getNMostFrequent returns the N most frequent entries in a list") {
-    val tagsList = Seq("tag", "tag", "tag", "junk", "lol", "17. Mai", "is", "brus", "17. Mai", "is", "is", "tag")
-    val occList  = new readService.MostFrequentOccurencesList(tagsList)
-
-    occList.getNMostFrequent(1) should equal(Seq("tag"))
-    occList.getNMostFrequent(2) should equal(Seq("tag", "is"))
-    occList.getNMostFrequent(3) should equal(Seq("tag", "is", "17. Mai"))
-    occList.getNMostFrequent(4) should equal(Seq("tag", "is", "17. Mai", "lol"))
   }
 
   test("addUrlOnResource adds url attribute on h5p embeds") {
