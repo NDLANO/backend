@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain
 import no.ndla.network.NdlaClient
@@ -25,7 +25,7 @@ case class ConceptDomainDumpResults(
 )
 
 trait ArticleApiClient {
-  this: NdlaClient with LazyLogging with Props =>
+  this: NdlaClient with StrictLogging with Props =>
   val articleApiClient: ArticleApiClient
 
   class ArticleApiClient {

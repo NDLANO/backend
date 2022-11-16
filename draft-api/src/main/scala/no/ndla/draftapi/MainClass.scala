@@ -7,11 +7,11 @@
 
 package no.ndla.draftapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
-class MainClass(props: DraftApiProperties) extends LazyLogging {
+class MainClass(props: DraftApiProperties) extends StrictLogging {
   val componentRegistry = new ComponentRegistry(props)
 
   def startServer(): Server = {

@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.DateParser
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -29,7 +29,7 @@ trait WriteService {
     with ContentValidator
     with DraftConceptIndexService
     with PublishedConceptIndexService
-    with LazyLogging =>
+    with StrictLogging =>
   val writeService: WriteService
 
   class WriteService {

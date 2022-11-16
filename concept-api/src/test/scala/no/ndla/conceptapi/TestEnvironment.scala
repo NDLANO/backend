@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller.{
@@ -57,7 +57,7 @@ trait TestEnvironment
     with BaseIndexService
     with Elastic4sClient
     with SearchService
-    with LazyLogging
+    with StrictLogging
     with MockitoSugar
     with DataSource
     with WriteService
@@ -93,7 +93,6 @@ trait TestEnvironment
   val publishedConceptSearchService = mock[PublishedConceptSearchService]
 
   var e4sClient        = mock[NdlaE4sClient]
-  val lazyLogging      = mock[LazyLogging]
   val mockitoSugar     = mock[MockitoSugar]
   val dataSource       = mock[HikariDataSource]
   val writeService     = mock[WriteService]

@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
@@ -24,7 +24,7 @@ trait PublishedConceptRepository {
   this: DataSource with DBConcept =>
   val publishedConceptRepository: PublishedConceptRepository
 
-  class PublishedConceptRepository extends LazyLogging with Repository[Concept] {
+  class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
     implicit val formats: Formats = Concept.repositorySerializer ++ JavaTimeSerializers.all
 
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {

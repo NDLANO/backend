@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.LearningPathApiClient
@@ -28,7 +28,7 @@ trait LearningPathIndexService {
   this: SearchConverterService with IndexService with LearningPathApiClient with Props =>
   val learningPathIndexService: LearningPathIndexService
 
-  class LearningPathIndexService extends LazyLogging with IndexService[LearningPath] {
+  class LearningPathIndexService extends StrictLogging with IndexService[LearningPath] {
     implicit val formats: Formats                 = SearchableLanguageFormats.JSonFormatsWithMillis
     override val documentType: String             = props.SearchDocuments(SearchType.LearningPaths)
     override val searchIndex: String              = props.SearchIndexes(SearchType.LearningPaths)

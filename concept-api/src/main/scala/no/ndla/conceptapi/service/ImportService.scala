@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{ArticleApiClient, ImageApiClient}
 import no.ndla.conceptapi.model.api.ConceptImportResults
@@ -25,7 +25,7 @@ trait ImportService {
     with ImageApiClient =>
   val importService: ImportService
 
-  class ImportService extends LazyLogging {
+  class ImportService extends StrictLogging {
 
     def importConcepts(forceUpdate: Boolean): Try[ConceptImportResults] = {
       val start      = System.currentTimeMillis()

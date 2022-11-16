@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
@@ -42,7 +42,7 @@ trait ReadService {
     with Props =>
   val readService: ReadService
 
-  class ReadService extends LazyLogging {
+  class ReadService extends StrictLogging {
 
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)

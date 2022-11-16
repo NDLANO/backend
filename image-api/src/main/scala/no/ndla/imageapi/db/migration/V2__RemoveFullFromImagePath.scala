@@ -8,14 +8,14 @@
 
 package no.ndla.imageapi.db.migration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V2__RemoveFullFromImagePath extends BaseJavaMigration with LazyLogging {
+class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
 
   implicit val formats = org.json4s.DefaultFormats
 

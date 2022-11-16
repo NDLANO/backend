@@ -10,7 +10,7 @@ package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
@@ -37,7 +37,7 @@ trait SeriesSearchService {
     with ErrorHelpers =>
   val seriesSearchService: SeriesSearchService
 
-  class SeriesSearchService extends LazyLogging with SearchService[api.SeriesSummary] {
+  class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummary] {
     import props._
 
     override val searchIndex: String = SeriesSearchIndex

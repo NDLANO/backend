@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus, RevisionStatus}
@@ -26,7 +26,7 @@ trait SearchApiClient {
   this: NdlaClient with ConverterService with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends LazyLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends StrictLogging {
 
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
     private val SearchEndpoint          = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"

@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
@@ -20,7 +20,7 @@ trait Props extends HasBaseProps {
   val props: DraftApiProperties
 }
 
-class DraftApiProperties extends BaseProps with LazyLogging {
+class DraftApiProperties extends BaseProps with StrictLogging {
   def ApplicationName              = "draft-api"
   def Auth0LoginEndpoint           = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def DraftRoleWithWriteAccess     = "drafts:write"

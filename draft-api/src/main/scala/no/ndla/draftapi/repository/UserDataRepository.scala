@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.domain.{DBArticle, UserData}
 import org.json4s.Formats
@@ -22,7 +22,7 @@ trait UserDataRepository {
   this: DataSource with DBArticle =>
   val userDataRepository: UserDataRepository
 
-  class UserDataRepository extends LazyLogging {
+  class UserDataRepository extends StrictLogging {
     implicit val formats: Formats = org.json4s.DefaultFormats + DBUserData.JSonSerializer
 
     def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {

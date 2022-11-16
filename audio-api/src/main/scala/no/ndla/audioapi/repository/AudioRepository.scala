@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api.ErrorHelpers
@@ -24,7 +24,7 @@ trait AudioRepository {
   this: DataSource with SeriesRepository with DBSeries with DBAudioMetaInformation with Props with ErrorHelpers =>
   val audioRepository: AudioRepository
 
-  class AudioRepository extends LazyLogging with Repository[AudioMetaInformation] {
+  class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
     implicit val formats: Formats = AudioMetaInformation.repositorySerializer
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 

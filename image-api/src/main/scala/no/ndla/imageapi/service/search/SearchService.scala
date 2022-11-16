@@ -10,7 +10,7 @@ package no.ndla.imageapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
@@ -25,7 +25,7 @@ import cats.implicits._
 trait SearchService {
   this: Elastic4sClient with IndexService with SearchConverterService with Props =>
 
-  trait SearchService[T] extends LazyLogging {
+  trait SearchService[T] extends StrictLogging {
     val searchIndex: String
     val indexService: IndexService[_, _]
 

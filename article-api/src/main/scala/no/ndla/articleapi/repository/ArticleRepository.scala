@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, DBArticle}
@@ -23,7 +23,7 @@ trait ArticleRepository {
   this: DataSource with DBArticle =>
   val articleRepository: ArticleRepository
 
-  class ArticleRepository extends LazyLogging with Repository[Article] {
+  class ArticleRepository extends StrictLogging with Repository[Article] {
     implicit val formats: Formats = Article.repositorySerializer
 
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit

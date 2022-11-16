@@ -9,7 +9,7 @@ package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ErrorHelpers
@@ -31,7 +31,7 @@ trait ArticleSearchService {
     with ErrorHelpers =>
   val articleSearchService: ArticleSearchService
 
-  class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummary] {
+  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummary] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 
     private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))

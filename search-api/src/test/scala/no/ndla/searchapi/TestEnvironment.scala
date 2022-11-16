@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
@@ -38,7 +38,7 @@ trait TestEnvironment
     with TaxonomyApiClient
     with IndexService
     with BaseIndexService
-    with LazyLogging
+    with StrictLogging
     with LearningPathApiClient
     with NdlaClient
     with SearchClients

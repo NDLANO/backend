@@ -9,7 +9,7 @@
 package no.ndla.audioapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
@@ -29,7 +29,7 @@ trait ConverterService {
   this: User with Clock with DraftApiClient with Props =>
   val converterService: ConverterService
 
-  class ConverterService extends LazyLogging {
+  class ConverterService extends StrictLogging {
     import props._
 
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeries): domain.Series = {

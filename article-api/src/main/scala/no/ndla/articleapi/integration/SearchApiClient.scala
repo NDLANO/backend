@@ -7,7 +7,7 @@
 
 package no.ndla.articleapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.domain.{Article, ArticleType}
 import no.ndla.articleapi.service.ConverterService
@@ -26,7 +26,7 @@ trait SearchApiClient {
   this: NdlaClient with ConverterService with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchHost}") extends LazyLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchHost}") extends StrictLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 1000 * 30

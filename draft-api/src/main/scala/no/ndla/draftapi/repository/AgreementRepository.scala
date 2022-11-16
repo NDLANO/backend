@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.domain.{Agreement, DBArticle}
 import org.json4s.Formats
@@ -21,7 +21,7 @@ trait AgreementRepository {
   this: DataSource with DBArticle =>
   val agreementRepository: AgreementRepository
 
-  class AgreementRepository extends LazyLogging with Repository[Agreement] {
+  class AgreementRepository extends StrictLogging with Repository[Agreement] {
     implicit val formats: Formats = DBAgreement.JSonSerializer
 
     def insert(agreement: Agreement)(implicit session: DBSession = AutoSession): Agreement = {

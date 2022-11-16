@@ -10,13 +10,13 @@ package no.ndla.searchapi.caching
 
 import java.util.concurrent.Executors
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success}
 
-class Memoize[R](maxCacheAgeMs: Long, f: () => R) extends (() => R) with LazyLogging {
+class Memoize[R](maxCacheAgeMs: Long, f: () => R) extends (() => R) with StrictLogging {
   implicit val ec: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
 

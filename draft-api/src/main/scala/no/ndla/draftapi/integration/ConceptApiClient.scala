@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
@@ -28,7 +28,7 @@ trait ConceptApiClient {
   this: NdlaClient with ConverterService with Props =>
   val conceptApiClient: ConceptApiClient
 
-  class ConceptApiClient(conceptBaseUrl: String = s"http://${props.ConceptApiHost}") extends LazyLogging {
+  class ConceptApiClient(conceptBaseUrl: String = s"http://${props.ConceptApiHost}") extends StrictLogging {
     private val draftEndpoint  = s"concept-api/v1/drafts"
     private val conceptTimeout = 1000 * 10 // 10 seconds
 

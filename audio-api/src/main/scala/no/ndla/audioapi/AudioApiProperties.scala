@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
@@ -20,7 +20,7 @@ trait Props extends HasBaseProps {
   val props: AudioApiProperties
 }
 
-class AudioApiProperties extends BaseProps with LazyLogging {
+class AudioApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val ApplicationName    = "audio-api"

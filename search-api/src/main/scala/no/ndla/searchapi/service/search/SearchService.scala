@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, SimpleStringQuery}
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with IndexService with SearchConverterService with LazyLogging with Props =>
+  this: Elastic4sClient with IndexService with SearchConverterService with StrictLogging with Props =>
 
   trait SearchService {
     import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}

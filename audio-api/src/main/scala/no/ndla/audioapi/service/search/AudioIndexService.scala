@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.MissingIdException
 import no.ndla.audioapi.model.domain.AudioMetaInformation
@@ -34,7 +34,7 @@ trait AudioIndexService {
 
   val audioIndexService: AudioIndexService
 
-  class AudioIndexService extends LazyLogging with IndexService[AudioMetaInformation, SearchableAudioInformation] {
+  class AudioIndexService extends StrictLogging with IndexService[AudioMetaInformation, SearchableAudioInformation] {
     import props._
     override val documentType: String        = SearchDocument
     override val searchIndex: String         = SearchIndex

@@ -10,7 +10,7 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableTag
@@ -23,7 +23,7 @@ trait TagIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val tagIndexService: TagIndexService
 
-  class TagIndexService extends LazyLogging with IndexService[Draft, SearchableTag] {
+  class TagIndexService extends StrictLogging with IndexService[Draft, SearchableTag] {
     implicit val formats: Formats              = SearchableLanguageFormats.JSonFormats
     override val documentType: String          = props.DraftTagSearchDocument
     override val searchIndex: String           = props.DraftTagSearchIndex

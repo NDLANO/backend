@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
@@ -31,7 +31,7 @@ trait WriteService {
     with SearchApiClient =>
   val writeService: WriteService
 
-  class WriteService extends LazyLogging {
+  class WriteService extends StrictLogging {
 
     def updateArticle(
         article: Article,

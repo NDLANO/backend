@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries, Series}
 import no.ndla.audioapi.model.domain
@@ -26,7 +26,7 @@ trait SeriesRepository {
   this: DataSource with Props with DBSeries with DBAudioMetaInformation with ErrorHelpers =>
   val seriesRepository: SeriesRepository
 
-  class SeriesRepository extends LazyLogging with Repository[Series] {
+  class SeriesRepository extends StrictLogging with Repository[Series] {
     val formats: Formats = Series.repositorySerializer
 
     /** Method to fetch single series from database

@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
@@ -20,7 +20,7 @@ trait Props extends HasBaseProps {
   val props: ImageApiProperties
 }
 
-class ImageApiProperties extends BaseProps with LazyLogging {
+class ImageApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val ApplicationName    = "image-api"

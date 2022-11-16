@@ -8,7 +8,7 @@
 package no.ndla.audioapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
 import no.ndla.audioapi.model.{api, domain}
@@ -38,7 +38,7 @@ trait WriteService {
     with User =>
   val writeService: WriteService
 
-  class WriteService extends LazyLogging {
+  class WriteService extends StrictLogging {
 
     def updateSeries(id: Long, toUpdateSeries: api.NewSeries): Try[api.Series] = {
       seriesRepository.withId(id) match {

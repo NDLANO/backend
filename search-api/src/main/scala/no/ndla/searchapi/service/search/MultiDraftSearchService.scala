@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -37,7 +37,7 @@ trait MultiDraftSearchService {
     with ErrorHelpers =>
   val multiDraftSearchService: MultiDraftSearchService
 
-  class MultiDraftSearchService extends LazyLogging with SearchService with TaxonomyFiltering {
+  class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
     override val searchIndex   = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
     override val indexServices = List(draftIndexService, learningPathIndexService)

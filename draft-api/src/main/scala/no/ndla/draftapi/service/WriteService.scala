@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
@@ -64,7 +64,7 @@ trait WriteService {
     with Props =>
   val writeService: WriteService
 
-  class WriteService extends LazyLogging {
+  class WriteService extends StrictLogging {
 
     def insertDump(article: common.draft.Draft): Try[common.draft.Draft] = {
       draftRepository

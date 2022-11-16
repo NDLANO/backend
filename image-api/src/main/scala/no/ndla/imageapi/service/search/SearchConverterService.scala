@@ -9,7 +9,7 @@ package no.ndla.imageapi.service.search
 
 import io.lemonlabs.uri.Uri.parse
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.api.{ImageAltText, ImageCaption, ImageMetaSummary, ImageTitle}
@@ -37,7 +37,7 @@ trait SearchConverterService {
   this: ConverterService with Role with Props with DBImageMetaInformation with DBImageFile =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
 
     def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] =
       domainModel.tags.flatMap(tags =>

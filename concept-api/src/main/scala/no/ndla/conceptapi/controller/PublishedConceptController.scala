@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
@@ -41,7 +41,7 @@ trait PublishedConceptController {
   class PublishedConceptController(implicit val swagger: Swagger)
       extends DraftNdlaControllerClass
       with SwaggerSupport
-      with LazyLogging {
+      with StrictLogging {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 

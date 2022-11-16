@@ -7,7 +7,7 @@
 
 package no.ndla.audioapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.db.migration.{V4_Audio, V4_AudioMetaInformation, V4_Author, V4_Tag, V4_Title}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -17,7 +17,7 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 
-class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
+class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigration with StrictLogging {
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
   implicit val formats = org.json4s.DefaultFormats
   import props._

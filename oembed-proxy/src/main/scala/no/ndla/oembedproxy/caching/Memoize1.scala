@@ -9,13 +9,13 @@
 package no.ndla.oembedproxy.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.model.DoNotUpdateMemoizeException
 
 class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefreshCache: Boolean)
     extends (() => R)
-    with LazyLogging {
+    with StrictLogging {
 
   case class CacheValue(value: R, lastUpdated: Long) {
 

@@ -9,7 +9,7 @@
 package no.ndla.imageapi.repository
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.service.ConverterService
@@ -25,7 +25,7 @@ trait ImageRepository {
   this: DataSource with ConverterService with DBImageMetaInformation with DBImageFile =>
   val imageRepository: ImageRepository
 
-  class ImageRepository extends LazyLogging with Repository[ImageMetaInformation] {
+  class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
     implicit val formats: Formats = ImageMetaInformation.repositorySerializer ++ JavaTimeSerializers.all
 
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =

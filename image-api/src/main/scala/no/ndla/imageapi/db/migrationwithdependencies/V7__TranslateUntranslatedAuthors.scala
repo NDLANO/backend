@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.db.migration.V5_Author
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -17,7 +17,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
+class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJavaMigration with StrictLogging {
   // Some contributors were not translated V6
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   import props.{

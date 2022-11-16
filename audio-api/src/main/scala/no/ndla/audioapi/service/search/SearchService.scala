@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, SimpleStringQuery}
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.SearchResult
 import no.ndla.audioapi.model.Sort
@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 trait SearchService {
   this: Elastic4sClient with SearchConverterService with Props =>
 
-  trait SearchService[T] extends LazyLogging {
+  trait SearchService[T] extends StrictLogging {
     import props._
     val searchIndex: String
 

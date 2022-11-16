@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
@@ -41,7 +41,7 @@ trait DraftConceptController {
   class DraftConceptController(implicit val swagger: Swagger)
       extends DraftNdlaControllerClass
       with NdlaSwaggerSupport
-      with LazyLogging {
+      with StrictLogging {
     import props._
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
     val applicationDescription                           = "This is the Api for concept drafts"

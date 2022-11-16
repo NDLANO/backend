@@ -9,7 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.IO
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus}
@@ -35,7 +35,7 @@ trait ConverterService {
   this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService with Props =>
   val converterService: ConverterService
 
-  class ConverterService extends LazyLogging {
+  class ConverterService extends StrictLogging {
     import props.{externalApiUrls, resourceHtmlEmbedTag}
 
     def toDomainArticle(

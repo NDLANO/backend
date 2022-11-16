@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 trait IndexService {
   this: Elastic4sClient with BaseIndexService with Props =>
 
-  trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with LazyLogging {
+  trait IndexService[D <: Content, T <: AnyRef] extends BaseIndexService with StrictLogging {
     val repository: Repository[D]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 

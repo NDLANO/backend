@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.{
   DBMyNDLAUser,
@@ -30,7 +30,7 @@ trait UserRepository {
   this: DataSource with DBMyNDLAUser =>
   val userRepository: UserRepository
 
-  class UserRepository extends LazyLogging {
+  class UserRepository extends StrictLogging {
     implicit val formats: Formats = DBMyNDLAUser.repositorySerializer
 
     def getSession(readOnly: Boolean): DBSession =

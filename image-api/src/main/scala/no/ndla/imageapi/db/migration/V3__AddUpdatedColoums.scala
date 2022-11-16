@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.db.migration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.DateParser
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
@@ -18,7 +18,7 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 
-class V3__AddUpdatedColoums extends BaseJavaMigration with LazyLogging {
+class V3__AddUpdatedColoums extends BaseJavaMigration with StrictLogging {
 
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   val timeService               = new TimeService()

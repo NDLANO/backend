@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller._
@@ -40,7 +40,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftConceptRepository
     with PublishedConceptRepository
     with DataSource
-    with LazyLogging
+    with StrictLogging
     with HealthController
     with DraftConceptSearchService
     with PublishedConceptSearchService

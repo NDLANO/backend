@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
@@ -27,7 +27,7 @@ trait DraftConceptIndexService {
   this: IndexService with DraftConceptRepository with SearchConverterService with Props =>
   val draftConceptIndexService: DraftConceptIndexService
 
-  class DraftConceptIndexService extends LazyLogging with IndexService[Concept] {
+  class DraftConceptIndexService extends StrictLogging with IndexService[Concept] {
     implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
     override val documentType: String            = props.ConceptSearchDocument
     override val searchIndex: String             = props.DraftConceptSearchIndex

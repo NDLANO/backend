@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.LearningPathVerificationStatus
@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiProperties)
     extends BaseJavaMigration
-    with LazyLogging {
+    with StrictLogging {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val auth0Host                     = AuthUser.getAuth0HostForEnv(props.Environment)
 

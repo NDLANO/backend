@@ -8,7 +8,7 @@
 package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
@@ -45,7 +45,7 @@ trait SearchConverterService {
   this: DraftApiClient with TaxonomyApiClient with ConverterService with Props =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
 
     def getParentTopicsAndPaths(
         topic: Topic,

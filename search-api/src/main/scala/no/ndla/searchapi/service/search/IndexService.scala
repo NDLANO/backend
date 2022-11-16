@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.analysis._
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.Content
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
@@ -37,7 +37,7 @@ trait IndexService {
     with GrepApiClient
     with Props =>
 
-  trait IndexService[D <: Content] extends BaseIndexService with LazyLogging {
+  trait IndexService[D <: Content] extends BaseIndexService with StrictLogging {
     val apiClient: SearchApiClient
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 

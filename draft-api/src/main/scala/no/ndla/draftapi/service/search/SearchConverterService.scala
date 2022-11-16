@@ -8,7 +8,7 @@
 package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
 import no.ndla.draftapi.model.domain.{Agreement, SearchResult}
@@ -30,7 +30,7 @@ trait SearchConverterService {
   this: ConverterService =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
     implicit val formats: Formats =
       SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.DraftStatus)
 

@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
@@ -30,7 +30,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait SearchService extends LazyLogging {
+trait SearchService extends StrictLogging {
   this: SearchIndexService with Elastic4sClient with SearchConverterServiceComponent with Props with ErrorHelpers =>
   val searchService: SearchService
 

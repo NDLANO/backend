@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, Copyright, SearchResult}
@@ -31,7 +31,7 @@ trait SearchConverterService {
   this: ConverterService =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     private def parseHtml(html: String) = {

@@ -8,7 +8,7 @@
 
 package no.ndla.common.scalatra
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
 import no.ndla.common.configuration.{BaseComponentRegistry, BaseProps}
 import org.eclipse.jetty.server.Server
@@ -24,7 +24,7 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
     componentRegistry: CR,
     afterHeaderBeforeStart: => Unit = {}
 ) extends Server(componentRegistry.props.ApplicationPort)
-    with LazyLogging {
+    with StrictLogging {
   val props: PropType           = componentRegistry.props
   private val startMillis: Long = System.currentTimeMillis()
   private def setupJavaMelody(context: ServletContextHandler): Unit = {

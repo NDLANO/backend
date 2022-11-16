@@ -12,7 +12,7 @@ import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.Role
 import no.ndla.imageapi.model.ResultWindowTooLargeException
@@ -38,7 +38,7 @@ trait ImageSearchService {
     with ErrorHelpers
     with DBImageMetaInformation =>
   val imageSearchService: ImageSearchService
-  class ImageSearchService extends LazyLogging with SearchService[(SearchableImage, MatchedLanguage)] {
+  class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
     private val noCopyright          = boolQuery().not(termQuery("license", "copyrighted"))
     override val searchIndex: String = props.SearchIndex

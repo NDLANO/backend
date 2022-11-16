@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.model.domain.{LearningPath, TaxonomyUpdateException}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -24,7 +24,7 @@ trait TaxonomyApiClient {
   this: NdlaClient with Props =>
   val taxononyApiClient: TaxonomyApiClient
 
-  class TaxonomyApiClient extends LazyLogging {
+  class TaxonomyApiClient extends StrictLogging {
     import props.{ApiGatewayHost, DefaultLanguage}
     implicit val formats                   = org.json4s.DefaultFormats
     private val taxonomyTimeout            = 20 * 1000 // 20 Seconds

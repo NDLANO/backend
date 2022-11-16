@@ -8,11 +8,11 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
-class MainClass(props: ArticleApiProperties) extends LazyLogging {
+class MainClass(props: ArticleApiProperties) extends StrictLogging {
   val componentRegistry = new ComponentRegistry(props)
 
   def startServer(): Server = {

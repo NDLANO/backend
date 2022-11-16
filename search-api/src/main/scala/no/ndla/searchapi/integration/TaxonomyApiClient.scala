@@ -8,7 +8,7 @@
 package no.ndla.searchapi.integration
 
 import cats.implicits.toTraverseOps
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -27,7 +27,7 @@ trait TaxonomyApiClient {
   this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
 
-  class TaxonomyApiClient extends LazyLogging {
+  class TaxonomyApiClient extends StrictLogging {
     import props.ApiGatewayUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val TaxonomyApiEndpoint           = s"$ApiGatewayUrl/taxonomy/v1"

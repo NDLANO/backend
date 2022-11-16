@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.ArticleApiClient
@@ -27,7 +27,7 @@ trait ArticleIndexService {
   this: SearchConverterService with IndexService with ArticleApiClient with Props =>
   val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends LazyLogging with IndexService[Article] {
+  class ArticleIndexService extends StrictLogging with IndexService[Article] {
     implicit val formats: Formats            = SearchableLanguageFormats.JSonFormatsWithMillis
     override val documentType: String        = props.SearchDocuments(SearchType.Articles)
     override val searchIndex: String         = props.SearchIndexes(SearchType.Articles)

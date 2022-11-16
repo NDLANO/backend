@@ -10,7 +10,7 @@ package no.ndla.audioapi.service.search
 
 import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.Title
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, SearchableTag}
@@ -28,7 +28,7 @@ trait SearchConverterService {
   this: ConverterService with Props =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
 
     def asSearchableSeries(s: domain.Series): Try[SearchableSeries] = {
       s.episodes

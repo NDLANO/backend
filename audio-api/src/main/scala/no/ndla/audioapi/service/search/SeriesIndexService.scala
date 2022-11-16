@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
@@ -28,7 +28,7 @@ trait SeriesIndexService {
 
   val seriesIndexService: SeriesIndexService
 
-  class SeriesIndexService extends LazyLogging with IndexService[Series, SearchableSeries] {
+  class SeriesIndexService extends StrictLogging with IndexService[Series, SearchableSeries] {
     import props._
     override val documentType: String         = SeriesSearchDocument
     override val searchIndex: String          = SeriesSearchIndex

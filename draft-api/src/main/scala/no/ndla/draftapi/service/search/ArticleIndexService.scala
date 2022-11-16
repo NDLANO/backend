@@ -11,7 +11,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
@@ -25,7 +25,7 @@ trait ArticleIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
   val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends LazyLogging with IndexService[Draft, SearchableArticle] {
+  class ArticleIndexService extends StrictLogging with IndexService[Draft, SearchableArticle] {
     implicit val formats: Formats     = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(DraftStatus)
     override val documentType: String = props.DraftSearchDocument
     override val searchIndex: String  = props.DraftSearchIndex

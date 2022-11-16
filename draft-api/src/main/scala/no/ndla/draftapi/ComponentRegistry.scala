@@ -9,7 +9,7 @@ package no.ndla.draftapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
@@ -59,7 +59,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with GrepCodesIndexService
     with AgreementIndexService
     with SearchService
-    with LazyLogging
+    with StrictLogging
     with NdlaClient
     with SearchConverterService
     with ReadService

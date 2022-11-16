@@ -8,7 +8,7 @@
 package no.ndla.draftapi
 
 import com.amazonaws.services.s3.AmazonS3
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
@@ -39,7 +39,7 @@ trait TestEnvironment
     with IndexService
     with BaseIndexService
     with SearchService
-    with LazyLogging
+    with StrictLogging
     with DraftController
     with InternController
     with HealthController

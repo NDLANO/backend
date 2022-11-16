@@ -6,7 +6,7 @@
  */
 package no.ndla.searchapi.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.{booleanPropOrFalse, prop}
 import no.ndla.common.model.domain.Content
 import no.ndla.searchapi.model.domain.ReindexResult
@@ -25,7 +25,7 @@ import java.time.Instant
 /** This part of search-api is used for indexing in a separate instance. If enabled, this will also send a slack message
   * if the indexing fails for any reason.
   */
-class StandaloneIndexing(props: SearchApiProperties, componentRegistry: ComponentRegistry) extends LazyLogging {
+class StandaloneIndexing(props: SearchApiProperties, componentRegistry: ComponentRegistry) extends StrictLogging {
   case class SlackAttachment(
       title: String,
       color: String,

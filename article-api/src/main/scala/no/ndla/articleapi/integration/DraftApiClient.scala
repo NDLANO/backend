@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
 import no.ndla.network.NdlaClient
@@ -22,7 +22,7 @@ trait DraftApiClient {
   this: NdlaClient with Props =>
   val draftApiClient: DraftApiClient
 
-  class DraftApiClient(DraftBaseUrl: String = s"http://${props.DraftHost}") extends LazyLogging {
+  class DraftApiClient(DraftBaseUrl: String = s"http://${props.DraftHost}") extends StrictLogging {
     private val draftApiGetAgreementEndpoint = s"$DraftBaseUrl/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty

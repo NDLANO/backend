@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.ReindexResult
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
@@ -29,7 +29,7 @@ import scala.util.{Failure, Success, Try}
 trait IndexService {
   this: Elastic4sClient with BaseIndexService with SearchConverterService with AudioRepository with Props =>
 
-  trait IndexService[D, T] extends BaseIndexService with LazyLogging {
+  trait IndexService[D, T] extends BaseIndexService with StrictLogging {
     implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 

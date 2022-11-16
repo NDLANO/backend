@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import scalaj.http.Http
 
@@ -18,7 +18,7 @@ trait ReindexClient {
   this: Props =>
   val reindexClient: ReindexClient
 
-  class ReindexClient extends LazyLogging {
+  class ReindexClient extends StrictLogging {
     import props.internalApiUrls
 
     private def reindexArticles() =

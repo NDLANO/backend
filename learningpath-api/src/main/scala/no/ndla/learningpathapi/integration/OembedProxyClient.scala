@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.NdlaClient
@@ -23,7 +23,7 @@ trait OembedProxyClient {
   this: NdlaClient with Props =>
   val oembedProxyClient: OembedProxyClient
 
-  class OembedProxyClient extends LazyLogging {
+  class OembedProxyClient extends StrictLogging {
     import props.ApiGatewayHost
     private val OembedProxyTimeout = 90 * 1000 // 90 seconds
     private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"

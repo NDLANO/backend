@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.conceptapi.Props
 import no.ndla.network.NdlaClient
@@ -21,7 +21,7 @@ case class ImageAltText(alttext: String, language: String)
 case class DomainImageMeta(id: Long, alttexts: Seq[ImageAltText])
 
 trait ImageApiClient {
-  this: NdlaClient with LazyLogging with Props =>
+  this: NdlaClient with StrictLogging with Props =>
   val imageApiClient: ImageApiClient
 
   class ImageApiClient {

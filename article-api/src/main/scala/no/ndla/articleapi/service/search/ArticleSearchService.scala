@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelpers}
@@ -38,7 +38,7 @@ trait ArticleSearchService {
 
   import props._
 
-  class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
+  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleSearchIndex

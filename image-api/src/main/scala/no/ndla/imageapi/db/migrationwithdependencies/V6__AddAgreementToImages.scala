@@ -7,7 +7,7 @@
 
 package no.ndla.imageapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.db.migration.{
   V5_Author,
@@ -26,7 +26,7 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 
-class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigration with LazyLogging {
+class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigration with StrictLogging {
   import props.{
     oldCreatorTypes,
     creatorTypes,
