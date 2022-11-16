@@ -607,4 +607,17 @@ class AudioSearchServiceTest
     result2.results(4).title.language should be("nb")
     result2.results(5).title.language should be("pt-br")
   }
+
+  test("That fallback searching includes audios with languages outside the search with query") {
+    val Success(result1) = audioSearchService.matchingQuery(
+      searchSettings.copy(
+        query = Some("drives"),
+        fallback = true,
+        language = Some("nb"),
+        sort = Sort.ByIdAsc
+      )
+    )
+
+    result1.results.map(_.id) should be(Seq(4))
+  }
 }
