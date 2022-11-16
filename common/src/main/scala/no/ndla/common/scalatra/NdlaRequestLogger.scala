@@ -13,6 +13,8 @@ import org.eclipse.jetty.server.{Request, RequestLog, Response}
 
 class NdlaRequestLogger extends RequestLog with LazyLogging {
   override def log(request: Request, response: Response): Unit = {
+    if (request.getRequestURI == "/health") return // Logging health-endpoints are very noisy
+
     val latency = System.currentTimeMillis() - request.getTimeStamp
     val query   = Option(request.getQueryString).map(s => s"?$s").getOrElse("")
     logger.info(
