@@ -10,7 +10,7 @@ package no.ndla.imageapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{DBImageFile, DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.model.search.SearchableTag
@@ -27,7 +27,7 @@ trait TagIndexService {
     with DBImageFile =>
   val tagIndexService: TagIndexService
 
-  class TagIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableTag] {
+  class TagIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableTag] {
     implicit val formats                                      = SearchableLanguageFormats.JSonFormats
     override val documentType: String                         = props.TagSearchDocument
     override val searchIndex: String                          = props.TagSearchIndex

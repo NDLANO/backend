@@ -8,12 +8,12 @@
 
 package no.ndla.audioapi.service.search
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.repository.AudioRepository
 
 trait SearchIndexService {
   this: AudioRepository with AudioIndexService =>
   val searchIndexService: SearchIndexService
 
-  class SearchIndexService extends LazyLogging {}
+  class SearchIndexService extends StrictLogging {}
 }

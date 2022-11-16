@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import io.lemonlabs.uri.UrlPath
 import no.ndla.common.model.{domain => common}
@@ -38,7 +38,7 @@ trait ConverterService {
   this: User with Role with Clock with DraftApiClient with Props with DBImageFile with DBImageMetaInformation =>
   val converterService: ConverterService
 
-  class ConverterService extends LazyLogging {
+  class ConverterService extends StrictLogging {
     import props.DefaultLanguage
 
     def asApiAuthor(domainAuthor: common.Author): api.Author = {

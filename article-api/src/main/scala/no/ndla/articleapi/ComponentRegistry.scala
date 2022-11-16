@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.caching.MemoizeHelpers
@@ -48,7 +48,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with BaseIndexService
     with ArticleIndexService
     with SearchService
-    with LazyLogging
+    with StrictLogging
     with ConverterService
     with NdlaClient
     with SearchConverterService

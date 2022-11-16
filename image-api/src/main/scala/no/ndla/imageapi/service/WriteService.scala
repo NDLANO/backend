@@ -9,7 +9,7 @@
 package no.ndla.imageapi.service
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits._
@@ -50,7 +50,7 @@ trait WriteService {
     with Random =>
   val writeService: WriteService
 
-  class WriteService extends LazyLogging {
+  class WriteService extends StrictLogging {
 
     def deleteImageLanguageVersionV2(imageId: Long, language: String): Try[Option[ImageMetaInformationV2]] = {
       deleteImageLanguageVersion(imageId, language).flatMap {

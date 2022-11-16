@@ -8,7 +8,7 @@
 
 package no.ndla.common.scalatra
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CorrelationID
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
@@ -27,7 +27,7 @@ import java.time.format.DateTimeFormatter
 trait NdlaControllerBase {
   this: HasBaseProps =>
 
-  trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+  trait NdlaControllerBase extends ScalatraServlet with NativeJsonSupport with StrictLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 
     type NdlaErrorHandler = PartialFunction[Throwable, ActionResult]

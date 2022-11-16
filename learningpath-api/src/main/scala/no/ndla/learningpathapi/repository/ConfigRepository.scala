@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta, DBConfigMeta}
 import org.json4s.Formats
@@ -23,7 +23,7 @@ trait ConfigRepository {
   this: DataSource with DBConfigMeta =>
   val configRepository: ConfigRepository
 
-  class ConfigRepository extends LazyLogging {
+  class ConfigRepository extends StrictLogging {
     implicit val formats: Formats = DBConfigMeta.formats ++ JavaTimeSerializers.all
     implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
       ParameterBinderFactory[ConfigMeta] { value => (stmt, idx) =>

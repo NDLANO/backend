@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.searchapi.model.search.SearchType
@@ -19,7 +19,7 @@ trait Props extends HasBaseProps {
   val props: SearchApiProperties
 }
 
-class SearchApiProperties extends BaseProps with LazyLogging {
+class SearchApiProperties extends BaseProps with StrictLogging {
   def ApplicationName    = "search-api"
   def Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 

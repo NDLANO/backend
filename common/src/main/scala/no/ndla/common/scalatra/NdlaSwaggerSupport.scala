@@ -8,7 +8,7 @@
 
 package no.ndla.common.scalatra
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
 import org.scalatra.swagger.DataType.ValueDataType
 import org.scalatra.swagger.SwaggerSupportSyntax.{ParameterBuilder, SwaggerParameterBuilder}
@@ -18,7 +18,7 @@ import org.scalatra.util.NotNothing
 trait NdlaSwaggerSupport {
   this: HasBaseProps with NdlaControllerBase =>
 
-  trait NdlaSwaggerSupport extends NdlaControllerBase with LazyLogging with SwaggerSupport {
+  trait NdlaSwaggerSupport extends NdlaControllerBase with StrictLogging with SwaggerSupport {
 
     case class Param[T](paramName: String, description: String)
 

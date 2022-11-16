@@ -10,7 +10,7 @@ package no.ndla.imageapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.ErrorHelpers
@@ -33,7 +33,7 @@ trait TagSearchService {
     with ErrorHelpers =>
   val tagSearchService: TagSearchService
 
-  class TagSearchService extends LazyLogging with SearchService[String] {
+  class TagSearchService extends StrictLogging with SearchService[String] {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, TagSearchIndex}
     implicit val formats: Formats    = DefaultFormats
     override val searchIndex: String = TagSearchIndex

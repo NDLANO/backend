@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service.search
 import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ErrorHelpers, OperationNotAllowedException, SubjectTags}
@@ -38,7 +38,7 @@ trait DraftConceptSearchService {
     with DraftSearchSettingsHelper =>
   val draftConceptSearchService: DraftConceptSearchService
 
-  class DraftConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
+  class DraftConceptSearchService extends StrictLogging with SearchService[api.ConceptSummary] {
     import props._
     override val searchIndex: String = DraftConceptSearchIndex
 

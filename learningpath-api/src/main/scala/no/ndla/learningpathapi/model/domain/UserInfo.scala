@@ -6,7 +6,7 @@
  */
 
 package no.ndla.learningpathapi.model.domain
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
@@ -21,7 +21,7 @@ case class UserInfo(userId: String, roles: Set[LearningPathRole.Value]) {
   def isNdla: Boolean                         = roles.nonEmpty
 }
 
-object UserInfo extends LazyLogging {
+object UserInfo extends StrictLogging {
   val PublicReadUser = UserInfo("PublicReadUser", Set.empty)
 
   def apply(name: String): UserInfo = {

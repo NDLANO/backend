@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
@@ -24,7 +24,7 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with ConverterService with LazyLogging with Props =>
+  this: Elastic4sClient with ConverterService with StrictLogging with Props =>
 
   trait SearchService[T] {
     val searchIndex: String

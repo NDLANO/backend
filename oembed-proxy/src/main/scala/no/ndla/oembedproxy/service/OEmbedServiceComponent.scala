@@ -8,7 +8,7 @@
 
 package no.ndla.oembedproxy.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.model.{OEmbed, OEmbedProvider, ProviderNotSupportedException}
 import org.json4s.DefaultFormats
@@ -16,7 +16,7 @@ import org.json4s.DefaultFormats
 import scala.util.{Failure, Try}
 import scalaj.http.{Http, HttpOptions}
 
-trait OEmbedServiceComponent extends LazyLogging {
+trait OEmbedServiceComponent extends StrictLogging {
   this: NdlaClient with ProviderService =>
   val oEmbedService: OEmbedService
 

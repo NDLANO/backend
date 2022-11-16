@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._
 import org.json4s.Formats
@@ -26,7 +26,7 @@ trait FolderRepository {
   this: DataSource with DBFolder with DBResource with DBFolderResource =>
   val folderRepository: FolderRepository
 
-  class FolderRepository extends LazyLogging {
+  class FolderRepository extends StrictLogging {
     implicit val formats: Formats = DBFolder.repositorySerializer + DBResource.JSonSerializer
 
     def getSession(readOnly: Boolean): DBSession =

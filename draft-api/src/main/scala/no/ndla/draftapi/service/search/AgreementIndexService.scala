@@ -10,7 +10,7 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.domain.Agreement
 import no.ndla.draftapi.model.search.SearchableArticle
@@ -23,7 +23,7 @@ trait AgreementIndexService {
   this: SearchConverterService with IndexService with AgreementRepository with Props =>
   val agreementIndexService: AgreementIndexService
 
-  class AgreementIndexService extends LazyLogging with IndexService[Agreement, SearchableArticle] {
+  class AgreementIndexService extends StrictLogging with IndexService[Agreement, SearchableArticle] {
     implicit val formats: Formats                  = SearchableLanguageFormats.JSonFormats
     override val documentType: String              = props.AgreementSearchDocument
     override val searchIndex: String               = props.AgreementSearchIndex

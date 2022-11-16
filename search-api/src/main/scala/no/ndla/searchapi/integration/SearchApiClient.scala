@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.model.domain.Availability
@@ -30,7 +30,7 @@ import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
-  this: NdlaClient with LazyLogging with Props =>
+  this: NdlaClient with StrictLogging with Props =>
 
   trait SearchApiClient {
     val name: String

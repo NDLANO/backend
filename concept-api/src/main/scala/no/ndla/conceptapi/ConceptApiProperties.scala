@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
@@ -20,7 +20,7 @@ trait Props extends HasBaseProps {
   val props: ConceptApiProperties
 }
 
-class ConceptApiProperties extends BaseProps with LazyLogging {
+class ConceptApiProperties extends BaseProps with StrictLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   def ApplicationName = "concept-api"

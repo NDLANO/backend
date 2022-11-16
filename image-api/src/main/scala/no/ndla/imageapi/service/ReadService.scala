@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Uri, UrlPath}
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.imageapi.auth.User
@@ -36,7 +36,7 @@ trait ReadService {
     with ImageMetaDomainDump =>
   val readService: ReadService
 
-  class ReadService extends LazyLogging {
+  class ReadService extends StrictLogging {
 
     def withIdV3(imageId: Long, language: Option[String]): Try[Option[ImageMetaInformationV3]] = {
       imageRepository

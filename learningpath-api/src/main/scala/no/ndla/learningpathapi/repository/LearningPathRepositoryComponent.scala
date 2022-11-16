@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._
@@ -22,7 +22,7 @@ import scalikejdbc._
 import java.util.UUID
 import scala.util.Try
 
-trait LearningPathRepositoryComponent extends LazyLogging {
+trait LearningPathRepositoryComponent extends StrictLogging {
   this: DataSource with DBLearningPath with DBLearningStep with Props =>
   val learningPathRepository: LearningPathRepository
 

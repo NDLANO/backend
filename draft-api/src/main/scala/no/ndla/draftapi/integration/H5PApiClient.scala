@@ -8,7 +8,7 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.H5PException
@@ -26,7 +26,7 @@ trait H5PApiClient {
   this: NdlaClient with Props =>
   val h5pApiClient: H5PApiClient
 
-  class H5PApiClient extends LazyLogging {
+  class H5PApiClient extends StrictLogging {
     private val H5PApi                        = s"${props.H5PAddress}/v1"
     private val h5pTimeout                    = 20 * 1000 // 20 Seconds
     implicit val formats: DefaultFormats.type = DefaultFormats

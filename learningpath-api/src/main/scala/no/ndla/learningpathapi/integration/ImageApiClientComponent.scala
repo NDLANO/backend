@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.integration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
@@ -20,7 +20,7 @@ trait ImageApiClientComponent {
   this: NdlaClient with Props =>
   val imageApiClient: ImageApiClient
 
-  class ImageApiClient extends LazyLogging {
+  class ImageApiClient extends StrictLogging {
     val ImageImportTimeout = 10 * 1000 // 10 seconds
     val ExternalId         = ":external_id"
 

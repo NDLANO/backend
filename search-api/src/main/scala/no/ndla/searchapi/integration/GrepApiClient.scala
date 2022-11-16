@@ -8,7 +8,7 @@
 package no.ndla.searchapi.integration
 
 import java.util.concurrent.Executors
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -26,7 +26,7 @@ trait GrepApiClient {
   this: NdlaClient with Props =>
   val grepApiClient: GrepApiClient
 
-  class GrepApiClient extends LazyLogging {
+  class GrepApiClient extends StrictLogging {
     import props.GrepApiUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val GrepApiEndpoint               = s"$GrepApiUrl/kl06/v201906"

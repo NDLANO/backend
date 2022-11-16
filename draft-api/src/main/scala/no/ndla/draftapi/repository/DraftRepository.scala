@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.model.domain.EditorNote
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
@@ -27,7 +27,7 @@ trait DraftRepository {
   this: DataSource with DBArticle with ErrorHelpers with Clock =>
   val draftRepository: ArticleRepository
 
-  class ArticleRepository extends LazyLogging with Repository[Draft] {
+  class ArticleRepository extends StrictLogging with Repository[Draft] {
     implicit val formats: Formats = DBArticle.repositorySerializer
 
     def insert(article: Draft)(implicit session: DBSession = AutoSession): Draft = {

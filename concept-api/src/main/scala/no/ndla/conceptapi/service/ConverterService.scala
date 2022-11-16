@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service
 
 import cats.effect.IO
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.Clock
@@ -32,7 +32,7 @@ trait ConverterService {
   this: Clock with DraftConceptRepository with StateTransitionRules with Props =>
   val converterService: ConverterService
 
-  class ConverterService extends LazyLogging {
+  class ConverterService extends StrictLogging {
     import props.externalApiUrls
 
     def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {

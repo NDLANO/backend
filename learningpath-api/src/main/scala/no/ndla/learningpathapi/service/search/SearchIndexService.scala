@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.RequestSuccess
 import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.SearchApiClient
 import no.ndla.learningpathapi.model.domain.{ElasticIndexingException, LearningPath, ReindexResult}
@@ -37,7 +37,7 @@ trait SearchIndexService {
     with Props =>
   val searchIndexService: SearchIndexService
 
-  class SearchIndexService extends BaseIndexService with LazyLogging {
+  class SearchIndexService extends BaseIndexService with StrictLogging {
     import props.{SearchDocument, SearchIndex, ElasticSearchIndexMaxResultWindow}
     implicit val formats: Formats           = SearchableLanguageFormats.JSonFormats
     override val documentType: String       = SearchDocument

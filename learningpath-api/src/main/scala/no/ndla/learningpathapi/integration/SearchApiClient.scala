@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.integration
 import java.util.concurrent.Executors
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -25,7 +25,7 @@ trait SearchApiClient {
   this: NdlaClient with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient extends LazyLogging {
+  class SearchApiClient extends StrictLogging {
     import props.SearchApiHost
     private val IndexTimeout = 90 * 1000 // 90 seconds
     @unused

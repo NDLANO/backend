@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.service.search
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
@@ -21,7 +21,7 @@ trait SearchConverterService {
   this: ConverterService =>
   val searchConverterService: SearchConverterService
 
-  class SearchConverterService extends LazyLogging {
+  class SearchConverterService extends StrictLogging {
 
     def asSearchableArticle(ai: Article): SearchableArticle = {
       val articleWithAgreement = converterService.withAgreementCopyright(ai)

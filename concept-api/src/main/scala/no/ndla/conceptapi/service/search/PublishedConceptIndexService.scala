@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.Concept
@@ -25,7 +25,7 @@ trait PublishedConceptIndexService {
   this: IndexService with PublishedConceptRepository with SearchConverterService with Props =>
   val publishedConceptIndexService: PublishedConceptIndexService
 
-  class PublishedConceptIndexService extends LazyLogging with IndexService[Concept] {
+  class PublishedConceptIndexService extends StrictLogging with IndexService[Concept] {
     implicit val formats: Formats                = SearchableLanguageFormats.JSonFormats
     override val documentType: String            = props.ConceptSearchDocument
     override val searchIndex: String             = props.PublishedConceptSearchIndex

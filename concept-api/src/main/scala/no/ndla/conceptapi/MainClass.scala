@@ -7,11 +7,11 @@
 
 package no.ndla.conceptapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
-class MainClass(props: ConceptApiProperties) extends LazyLogging {
+class MainClass(props: ConceptApiProperties) extends StrictLogging {
   val componentRegistry = new ComponentRegistry(props)
 
   def startServer(): Server = {

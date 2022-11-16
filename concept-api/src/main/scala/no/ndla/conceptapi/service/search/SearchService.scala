@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.NestedQuery
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.term.TermQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
@@ -25,7 +25,7 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with SearchConverterService with LazyLogging with Props =>
+  this: Elastic4sClient with SearchConverterService with StrictLogging with Props =>
 
   trait SearchService[T] {
     import props._

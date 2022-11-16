@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, InputStream}
 import com.amazonaws.services.s3.model._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import javax.imageio.ImageIO
 import no.ndla.imageapi.Props
@@ -26,7 +26,7 @@ trait ImageStorageService {
   this: AmazonClient with ReadService with Props with DBImageFile =>
   val imageStorage: AmazonImageStorageService
 
-  class AmazonImageStorageService extends LazyLogging {
+  class AmazonImageStorageService extends StrictLogging {
     import props.{StorageName, ValidMimeTypes}
     case class NdlaImage(s3Object: S3Object, fileName: String) extends ImageStream {
       lazy val imageContent = {

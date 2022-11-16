@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
@@ -40,7 +40,7 @@ trait ConverterService {
 
   import props._
 
-  class ConverterService extends LazyLogging {
+  class ConverterService extends StrictLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     /** Attempts to extract language that hit from highlights in elasticsearch response.

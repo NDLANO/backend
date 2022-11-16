@@ -8,11 +8,11 @@
 
 package no.ndla.oembedproxy
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
-class MainClass(props: OEmbedProxyProperties) extends LazyLogging {
+class MainClass(props: OEmbedProxyProperties) extends StrictLogging {
   val componentRegistry = new ComponentRegistry(props)
 
   private def fetchProviderList() = {

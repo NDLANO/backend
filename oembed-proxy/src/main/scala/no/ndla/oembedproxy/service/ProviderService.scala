@@ -8,7 +8,7 @@
 
 package no.ndla.oembedproxy.service
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.caching.{Memoize, MemoizeHelpers}
@@ -28,7 +28,7 @@ trait ProviderService {
   this: NdlaClient with Props with MemoizeHelpers =>
   val providerService: ProviderService
 
-  class ProviderService extends LazyLogging {
+  class ProviderService extends StrictLogging {
     implicit val formats: DefaultFormats = org.json4s.DefaultFormats
 
     val NdlaFrontendEndpoint: OEmbedEndpoint =

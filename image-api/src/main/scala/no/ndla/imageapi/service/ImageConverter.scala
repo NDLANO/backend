@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.lang.Math.{abs, max, min}
 import javax.imageio.ImageIO
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
@@ -61,7 +61,7 @@ trait ImageConverter {
     return newImage;
   }
 
-  class ImageConverter extends LazyLogging {
+  class ImageConverter extends StrictLogging {
     private[service] def toImageStream(bufferedImage: BufferedImage, originalImage: ImageStream): ImageStream = {
       val outputStream      = new ByteArrayOutputStream()
       val imageOutputStream = ImageIO.createImageOutputStream(outputStream)

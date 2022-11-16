@@ -7,7 +7,7 @@
 
 package no.ndla.network.clients
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
@@ -45,7 +45,7 @@ case class FeideExtendedUserInfo(
 trait FeideApiClient {
   val feideApiClient: FeideApiClient
 
-  class FeideApiClient extends LazyLogging {
+  class FeideApiClient extends StrictLogging {
 
     private val feideTimeout           = 1000 * 30
     private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"

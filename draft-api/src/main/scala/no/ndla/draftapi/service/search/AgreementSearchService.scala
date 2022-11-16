@@ -10,7 +10,7 @@ package no.ndla.draftapi.service.search
 import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ErrorHelpers
@@ -32,7 +32,7 @@ trait AgreementSearchService {
     with ErrorHelpers =>
   val agreementSearchService: AgreementSearchService
 
-  class AgreementSearchService extends LazyLogging with SearchService[api.AgreementSummary] {
+  class AgreementSearchService extends StrictLogging with SearchService[api.AgreementSummary] {
     import props._
     override val searchIndex: String = props.AgreementSearchIndex
 

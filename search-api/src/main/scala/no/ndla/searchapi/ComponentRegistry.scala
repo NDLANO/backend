@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
@@ -39,7 +39,7 @@ class ComponentRegistry(properties: SearchApiProperties)
     with ImageApiClient
     with IndexService
     with BaseIndexService
-    with LazyLogging
+    with StrictLogging
     with LearningPathApiClient
     with NdlaClient
     with SearchClients

@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, ImageMetaInformation}
 import no.ndla.imageapi.model.search.SearchableImage
@@ -25,7 +25,7 @@ trait ImageIndexService {
   this: SearchConverterService with IndexService with ImageRepository with Props with DBImageMetaInformation =>
   val imageIndexService: ImageIndexService
 
-  class ImageIndexService extends LazyLogging with IndexService[ImageMetaInformation, SearchableImage] {
+  class ImageIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableImage] {
     implicit val formats: Formats     = SearchableLanguageFormats.JSonFormats ++ ImageMetaInformation.jsonEncoders
     override val documentType: String = props.SearchDocument
     override val searchIndex: String  = props.SearchIndex

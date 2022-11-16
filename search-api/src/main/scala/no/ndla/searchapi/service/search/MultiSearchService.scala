@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -37,7 +37,7 @@ trait MultiSearchService {
 
   val multiSearchService: MultiSearchService
 
-  class MultiSearchService extends LazyLogging with SearchService with TaxonomyFiltering {
+  class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
 
     override val searchIndex   = List(SearchIndexes(SearchType.Articles), SearchIndexes(SearchType.LearningPaths))

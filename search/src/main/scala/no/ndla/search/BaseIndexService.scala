@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s.analysis.Analysis
 import com.sksamuel.elastic4s.requests.alias.AliasAction
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 
 import java.text.SimpleDateFormat
@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 trait BaseIndexService {
   this: Elastic4sClient =>
 
-  trait BaseIndexService extends LazyLogging {
+  trait BaseIndexService extends StrictLogging {
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int

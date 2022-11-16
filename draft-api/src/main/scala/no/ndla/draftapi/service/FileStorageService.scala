@@ -9,7 +9,7 @@ package no.ndla.draftapi.service
 
 import java.io.InputStream
 import com.amazonaws.services.s3.model._
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.AmazonClient
 
@@ -19,7 +19,7 @@ trait FileStorageService {
   this: AmazonClient with Props =>
   val fileStorage: FileStorageService
 
-  class FileStorageService extends LazyLogging {
+  class FileStorageService extends StrictLogging {
     import props.AttachmentStorageName
 
     private val resourceDirectory = "resources"

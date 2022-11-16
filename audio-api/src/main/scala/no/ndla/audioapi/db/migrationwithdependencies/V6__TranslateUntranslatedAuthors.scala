@@ -7,7 +7,7 @@
 
 package no.ndla.audioapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.AudioApiProperties
 import no.ndla.audioapi.db.migration.V4_Author
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -16,7 +16,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJavaMigration with LazyLogging {
+class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJavaMigration with StrictLogging {
   import props._
   // Translates authors that wasn't translated in V5
   implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all

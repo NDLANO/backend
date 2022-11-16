@@ -6,7 +6,7 @@
  */
 package no.ndla.learningpathapi.db.migrationwithdependencies
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.Url
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.learningpathapi.model.domain.InvalidOembedResponse
@@ -26,7 +26,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends BaseJavaMigration with LazyLogging {
+class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends BaseJavaMigration with StrictLogging {
   import props.{ApiGatewayHost, NdlaFrontendHost, NdlaFrontendProtocol}
   implicit val formats: Formats = org.json4s.DefaultFormats
 

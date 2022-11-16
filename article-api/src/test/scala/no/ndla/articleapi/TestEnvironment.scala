@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.caching.MemoizeHelpers
@@ -35,7 +35,7 @@ trait TestEnvironment
     with IndexService
     with BaseIndexService
     with SearchService
-    with LazyLogging
+    with StrictLogging
     with NdlaController
     with NdlaControllerBase
     with NdlaSwaggerSupport

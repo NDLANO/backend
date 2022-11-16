@@ -7,7 +7,7 @@
 
 package no.ndla.draftapi.db.migration
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.errors.ValidationException
 import no.ndla.network.model.HttpRequestException
@@ -109,7 +109,7 @@ class BrightcoveApiClient {
   }
 }
 
-class V31__ConvertBrightcoveIds extends BaseJavaMigration with LazyLogging {
+class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   val Brightcove = new BrightcoveApiClient

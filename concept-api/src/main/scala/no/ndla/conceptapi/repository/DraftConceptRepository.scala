@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.repository
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.Tag
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
@@ -24,7 +24,7 @@ trait DraftConceptRepository {
   this: DataSource with DBConcept with Props with ErrorHelpers =>
   val draftConceptRepository: DraftConceptRepository
 
-  class DraftConceptRepository extends LazyLogging with Repository[Concept] {
+  class DraftConceptRepository extends StrictLogging with Repository[Concept] {
     implicit val formats: Formats = Concept.repositorySerializer
 
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
