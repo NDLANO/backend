@@ -8,13 +8,12 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.scalatra.NdlaSwaggerSupport
-import no.ndla.learningpathapi.model.api.{ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser, ValidationError, Error}
+import no.ndla.learningpathapi.model.api.{Error, ExportedUserData, MyNDLAUser, UpdatedMyNDLAUser, ValidationError}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger._
 import org.scalatra.NoContent
+import org.scalatra.swagger._
 
 import javax.servlet.http.HttpServletRequest
 
@@ -22,7 +21,7 @@ trait UserController {
   this: ReadService with UpdateService with ConverterService with NdlaController =>
   val userController: UserController
 
-  class UserController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {
+  class UserController(implicit val swagger: Swagger) extends NdlaController {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ JavaTimeSerializers.all
 

@@ -11,33 +11,26 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api._
-import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.NdlaSearchException
-import org.apache.logging.log4j.ThreadContext
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.servlet.SizeConstraintExceededException
 
 trait NdlaController {
-  this: Props with ErrorHelpers with DataSource =>
+  this: Props with ErrorHelpers with DataSource with NdlaControllerBase =>
 
   abstract class NdlaController extends NdlaControllerBase {
-    import props._
-
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       ApplicationUrl.clear()
       AuthUser.clear()
     }

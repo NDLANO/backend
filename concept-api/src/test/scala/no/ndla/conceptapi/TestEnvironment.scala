@@ -35,12 +35,15 @@ import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import no.ndla.common.Clock
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends DraftConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with DBConcept
     with PublishedConceptController
     with NdlaController

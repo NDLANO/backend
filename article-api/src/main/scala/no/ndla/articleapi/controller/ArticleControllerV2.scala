@@ -34,7 +34,8 @@ trait ArticleControllerV2 {
     with ContentValidator
     with Props
     with ErrorHelpers
-    with NdlaController =>
+    with NdlaController
+    with NdlaSwaggerSupport =>
   val articleControllerV2: ArticleControllerV2
 
   import props._

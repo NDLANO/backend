@@ -7,7 +7,8 @@
 
 package no.ndla.network.model
 
-import no.ndla.network.{AuthUser, CorrelationID}
+import no.ndla.common.CorrelationID
+import no.ndla.network.AuthUser
 import org.apache.logging.log4j.ThreadContext
 
 /** Helper class to help keep Thread specific request information in futures. */

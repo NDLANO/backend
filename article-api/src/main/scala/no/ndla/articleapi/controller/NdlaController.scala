@@ -13,18 +13,16 @@ import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.{Error, ErrorHelpers, NotFoundException, ValidationError}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.scalatra.NdlaControllerBase
-import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
 
 trait NdlaController {
-  this: Props with ErrorHelpers with DataSource =>
+  this: Props with ErrorHelpers with DataSource with NdlaControllerBase =>
 
-  import props._
   import ErrorHelpers._
 
   abstract class NdlaController extends NdlaControllerBase {
@@ -32,15 +30,11 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
-      ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
       ApplicationUrl.set(request)
       AuthUser.set(request)
     }
 
     after() {
-      CorrelationID.clear()
-      ThreadContext.remove(CorrelationIdKey)
       AuthUser.clear()
       ApplicationUrl.clear()
     }

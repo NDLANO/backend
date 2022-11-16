@@ -20,6 +20,7 @@ import no.ndla.network.AuthUser
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.scalatra._
+import org.scalatra.swagger.Swagger
 
 import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
@@ -34,7 +35,8 @@ trait InternController {
     with Props =>
   val internController: InternController
 
-  class InternController extends NdlaController {
+  class InternController(implicit val swagger: Swagger) extends NdlaController {
+    protected val applicationDescription = "API for accessing internal functionality in learningpath API"
     protected implicit override val jsonFormats: Formats =
       org.json4s.DefaultFormats +
         new EnumNameSerializer(LearningPathStatus) +

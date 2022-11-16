@@ -23,6 +23,7 @@ import no.ndla.articleapi.model.api.ErrorHelpers
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
@@ -34,6 +35,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with InternController
     with ArticleControllerV2
     with NdlaController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with HealthController
     with ArticleRepository
     with Elastic4sClient

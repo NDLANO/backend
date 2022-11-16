@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest
 
 trait ConfigController {
 
-  this: ReadService with UpdateService with NdlaController with Props with CorrelationIdSupport =>
+  this: ReadService with UpdateService with NdlaController with Props with NdlaSwaggerSupport =>
   val configController: ConfigController
 
   class ConfigController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {

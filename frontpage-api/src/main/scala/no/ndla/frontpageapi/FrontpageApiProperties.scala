@@ -8,18 +8,18 @@
 package no.ndla.frontpageapi
 
 import no.ndla.common.Environment.prop
+import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties._
 
-trait Props {
+trait Props extends HasBaseProps {
   val props: FrontpageApiProperties
 }
 
-class FrontpageApiProperties {
+class FrontpageApiProperties extends BaseProps {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
-  val Environment: String   = propOrElse("NDLA_ENVIRONMENT", "local")
 
   val ApplicationName         = "frontpage-api"
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt

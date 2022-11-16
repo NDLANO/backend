@@ -52,7 +52,8 @@ trait SearchController {
     with User
     with FeideApiClient
     with NdlaController
-    with Props =>
+    with Props
+    with NdlaSwaggerSupport =>
   val searchController: SearchController
 
   class SearchController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {

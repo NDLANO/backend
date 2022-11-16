@@ -11,9 +11,9 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.learningpathapi.controller.{
   ConfigController,
-  CorrelationIdSupport,
   FolderController,
   HealthController,
   InternController,
@@ -59,6 +59,8 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with HealthController
     with ConfigController
     with FolderController
+    with NdlaSwaggerSupport
+    with NdlaControllerBase
     with UserController
     with LearningPathRepositoryComponent
     with ConfigRepository
@@ -92,7 +94,6 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with DBMyNDLAUser
     with TextValidator
     with UrlValidator
-    with CorrelationIdSupport
     with ErrorHelpers
     with LearningpathApiInfo
     with DBLearningPath

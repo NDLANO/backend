@@ -10,13 +10,13 @@ package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.BaseProps
+import no.ndla.common.configuration.{BaseProps, HasBaseProps}
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties._
 
-trait Props {
+trait Props extends HasBaseProps {
   val props: LearningpathApiProperties
 }
 
@@ -114,9 +114,6 @@ class LearningpathApiProperties extends BaseProps with LazyLogging {
     "u",
     "ul"
   )
-
-  def CorrelationIdKey    = "correlationID"
-  def CorrelationIdHeader = "X-Correlation-ID"
 
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)

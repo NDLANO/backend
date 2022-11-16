@@ -8,30 +8,28 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.errors.ValidationException
-import no.ndla.common.scalatra.NdlaControllerBase
-import javax.servlet.http.HttpServletRequest
+import cats.implicits._
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.integration.DataSource
-import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport}
+import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.common.errors.AccessDeniedException
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra._
-import cats.implicits._
 
 import java.util.UUID
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
-import no.ndla.learningpathapi.model.api.ValidationError
 
 trait NdlaController {
-  this: DataSource with ErrorHelpers with CorrelationIdSupport with ConverterService =>
+  this: DataSource with ErrorHelpers with ConverterService with NdlaSwaggerSupport =>
 
-  abstract class NdlaController extends NdlaControllerBase with CorrelationIdSupport {
+  abstract class NdlaController extends NdlaSwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     before() {

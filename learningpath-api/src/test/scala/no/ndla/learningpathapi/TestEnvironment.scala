@@ -10,9 +10,9 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.learningpathapi.controller.{
   ConfigController,
-  CorrelationIdSupport,
   HealthController,
   InternController,
   LearningpathControllerV2,
@@ -46,6 +46,8 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends LearningpathControllerV2
     with ConfigController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with LearningPathRepositoryComponent
     with ConfigRepository
     with FeideApiClient
@@ -82,7 +84,6 @@ trait TestEnvironment
     with DBFolderResource
     with DBMyNDLAUser
     with NdlaController
-    with CorrelationIdSupport
     with ErrorHelpers
     with Props
     with InternController

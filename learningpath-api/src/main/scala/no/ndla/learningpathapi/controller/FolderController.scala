@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success}
 
 trait FolderController {
-  this: ReadService with UpdateService with ConverterService with NdlaController =>
+  this: ReadService with UpdateService with ConverterService with NdlaController with NdlaSwaggerSupport =>
   val folderController: FolderController
 
   class FolderController(implicit val swagger: Swagger) extends NdlaController with NdlaSwaggerSupport {

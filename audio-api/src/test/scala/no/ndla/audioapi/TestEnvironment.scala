@@ -25,6 +25,7 @@ import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.common.Clock
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
@@ -44,6 +45,8 @@ trait TestEnvironment
     with ConverterService
     with AudioStorageService
     with NdlaController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with InternController
     with HealthController
     with AudioController

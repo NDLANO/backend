@@ -17,6 +17,7 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.imageapi.service.{ConverterService, ReadService}
 import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.swagger.Swagger
 import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -38,7 +39,8 @@ trait InternController {
     with ErrorHelpers =>
   val internController: InternController
 
-  class InternController extends NdlaController {
+  class InternController(implicit val swagger: Swagger) extends NdlaController {
+    protected val applicationDescription                 = "API for accessing internal functionality in image API"
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ ImageMetaInformation.jsonEncoders
 
     post("/index") {

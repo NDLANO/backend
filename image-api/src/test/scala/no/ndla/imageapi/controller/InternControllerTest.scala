@@ -24,6 +24,7 @@ import scala.util.{Failure, Success}
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
   override val converterService = new ConverterService
+  implicit val swagger          = new ImageSwagger
   lazy val controller           = new InternController
   addServlet(controller, "/*")
   val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)

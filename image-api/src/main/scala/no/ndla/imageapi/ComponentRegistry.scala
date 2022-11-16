@@ -12,6 +12,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller._
 import no.ndla.imageapi.integration._
@@ -71,6 +72,8 @@ class ComponentRegistry(properties: ImageApiProperties)
     with DBImageFile
     with ImageMetaDomainDump
     with NdlaController
+    with NdlaControllerBase
+    with NdlaSwaggerSupport
     with Random {
   override val props: ImageApiProperties = properties
 

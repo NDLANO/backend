@@ -16,6 +16,7 @@ import scala.util.{Failure, Success}
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
   implicit val jsonFormats = org.json4s.DefaultFormats
+  implicit val swagger     = new LearningpathSwagger
 
   lazy val controller = new InternController
   addServlet(controller, "/*")
