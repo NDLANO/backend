@@ -62,19 +62,15 @@ trait SearchService {
       }
 
       if (searchLanguage == Language.AllLanguages || fallback) {
-        SearchLanguage.languageAnalyzers.foldLeft(SimpleStringQuery(query))((acc, cur) => {
-          val languageTag = cur.languageTag.toString
-          val fieldBoost  = if (languageTag == searchLanguage) boost + 1 else boost
-          acc.field(s"$searchField.$languageTag", fieldBoost)
-        })
+        SearchLanguage.languageAnalyzers
+          .foldLeft(SimpleStringQuery(query))((acc, cur) => {
+            val languageTag = cur.languageTag.toString
+            val fieldBoost  = if (languageTag == searchLanguage) boost + 1 else boost
+            acc.field(s"$searchField.$languageTag", fieldBoost)
+          })
+          .field(s"$searchField.*", boost)
       } else {
         simpleStringQuery(query).field(s"$searchField.$searchLanguage", boost)
-      }
-
-      language match {
-        case Some(lang) if Iso639.get(lang).isSuccess =>
-          simpleStringQuery(query).field(s"$searchField.$lang", boost)
-        case _ => simpleStringQuery(query).field(s"$searchField.*", boost)
       }
     }
 
