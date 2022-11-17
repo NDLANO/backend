@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
@@ -397,6 +398,21 @@ trait ReadService {
       } yield inserted
     }
 
+    private def fetchDataAndUpdateMyNDLAUser(
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken],
+        userData: domain.MyNDLAUser
+    )(implicit
+        session: DBSession
+    ): Try[domain.MyNDLAUser] = {
+      val feideUser = feideApiClient.getFeideExtendedUser(feideAccessToken).?
+      val updatedMyNDLAUser = userData.copy(
+        lastUpdated = clock.now().plusDays(1),
+        userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT
+      )
+      userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
+    }
+
     def getOrCreateMyNDLAUserIfNotExist(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
@@ -406,7 +422,7 @@ trait ReadService {
           createMyNDLAUser(feideId, feideAccessToken)(session)
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
-          else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))(session)
+          else fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
       }
     }
 

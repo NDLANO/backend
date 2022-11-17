@@ -615,15 +615,17 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1)
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val updatedFeideUser = FeideExtendedUserInfo(displayName = "name", eduPersonAffiliation = Seq.empty)
+    val apiUserData      = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
-    verify(feideApiClient, times(0)).getFeideExtendedUser(any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(1)).updateUser(any, any)(any)
