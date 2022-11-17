@@ -121,6 +121,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("search should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2]]
     when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     readService.search(
       query = None,
@@ -177,7 +178,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       )
     result.length should be(3)
 
-    verify(feideApiClient, times(0)).getUser(feideId)
+    verify(feideApiClient, times(0)).getFeideExtendedUser(Some(feideId))
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
@@ -188,7 +189,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"))
 
-    when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
@@ -203,7 +204,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       )
     result.length should be(3)
 
-    verify(feideApiClient, times(1)).getUser(feideId)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by everyone") {
@@ -214,7 +215,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"))
 
-    when(feideApiClient.getUser(any)).thenReturn(Success(teacherUser))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
@@ -230,7 +231,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
-    verify(feideApiClient, times(1)).getUser(feideId)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
   }
 
   test("that getArticlesByIds performs filter if feideAccessToken is not set") {
@@ -242,6 +243,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     val Success(result) =
       readService.getArticlesByIds(
@@ -255,7 +257,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
-    verify(feideApiClient, times(0)).getUser(feideId)
+    verify(feideApiClient, times(0)).getFeideAccessTokenOrFail(Some(feideId))
   }
 
   test("that getArticlesByIds fails if no ids were given") {

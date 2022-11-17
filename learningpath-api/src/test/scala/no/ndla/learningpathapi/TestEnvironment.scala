@@ -39,7 +39,7 @@ import no.ndla.learningpathapi.service._
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation._
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -88,7 +88,8 @@ trait TestEnvironment
     with Props
     with InternController
     with DBMigrator
-    with LearningpathApiInfo {
+    with LearningpathApiInfo
+    with RedisClient {
   val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
@@ -121,6 +122,7 @@ trait TestEnvironment
   val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
   val folderRepository: FolderRepository                               = mock[FolderRepository]
   val userRepository: UserRepository                                   = mock[UserRepository]
+  val redisClient: RedisClient                                         = mock[RedisClient]
 
   def resetMocks(): Unit = {
     reset(

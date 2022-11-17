@@ -11,7 +11,7 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import no.ndla.searchapi.auth.User
 import no.ndla.searchapi.controller.{HealthController, InternController, NdlaController, SearchController}
@@ -32,6 +32,7 @@ trait TestEnvironment
     with ConverterService
     with DraftApiClient
     with FeideApiClient
+    with RedisClient
     with Elastic4sClient
     with HealthController
     with ImageApiClient
@@ -76,6 +77,7 @@ trait TestEnvironment
   val audioApiClient        = mock[AudioApiClient]
   val articleApiClient      = mock[ArticleApiClient]
   val feideApiClient        = mock[FeideApiClient]
+  val redisClient           = mock[RedisClient]
 
   val SearchClients = Map[String, SearchApiClient](
     "articles"      -> draftApiClient,

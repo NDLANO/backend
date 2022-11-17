@@ -14,7 +14,8 @@ object networklib extends Module {
       "org.mockito"          %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"          %% "mockito-scala-scalatest" % MockitoV   % "test",
       "javax.servlet"         % "javax.servlet-api"       % "4.0.1"    % "provided;test",
-      "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.0.2"
+      "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.0.2",
+      "redis.clients"         % "jedis"                   % "4.2.3"
     ) ++ vulnerabilityOverrides
   )
 

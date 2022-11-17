@@ -652,7 +652,7 @@ trait SearchController {
       requestFeideToken match {
         case None => Success(List.empty)
         case Some(token) =>
-          feideApiClient.getUser(token) match {
+          feideApiClient.getFeideExtendedUser(Some(token)) match {
             case Success(user) => Success(user.availabilities.toList)
             case Failure(ex) =>
               logger.error(s"Error when fetching user from feide with accessToken '$token'")

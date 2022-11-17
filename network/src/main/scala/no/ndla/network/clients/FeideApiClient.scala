@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.implicits.TryQuestionMark
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
@@ -43,6 +44,7 @@ case class FeideExtendedUserInfo(
 }
 
 trait FeideApiClient {
+  this: RedisClient =>
   val feideApiClient: FeideApiClient
 
   class FeideApiClient extends StrictLogging {
@@ -51,9 +53,9 @@ trait FeideApiClient {
     private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
     private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
 
-    private def getOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
+    private def fetchOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
       fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
-    def getUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
+    private def fetchFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
       fetchAndParse[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
 
     private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: String)(implicit mf: Manifest[T]): Try[T] = {
@@ -103,22 +105,42 @@ trait FeideApiClient {
       }
     }
 
-    def getUserFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
-      getFeideAccessTokenOrFail(feideAccessToken).flatMap(accessToken =>
-        this.getOpenIdUser(accessToken) match {
-          case Failure(ex: HttpRequestException) =>
-            val code = ex.httpResponse.map(_.code)
-            if (code.contains(403) || code.contains(401)) {
-              Failure(
-                AccessDeniedException(
-                  "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
-                )
+    private def getFeideDataOrFail[T](feideResponse: Try[T]): Try[T] = {
+      feideResponse match {
+        case Failure(ex: HttpRequestException) =>
+          val code = ex.httpResponse.map(_.code)
+          if (code.contains(403) || code.contains(401)) {
+            Failure(
+              AccessDeniedException(
+                "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
               )
-            } else Failure(ex)
-          case Failure(ex)        => Failure(ex)
-          case Success(feideUser) => Success(feideUser.sub)
+            )
+          } else Failure(ex)
+        case Failure(ex)        => Failure(ex)
+        case Success(feideData) => Success(feideData)
+      }
+    }
+
+    def getFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
+      for {
+        accessToken  <- getFeideAccessTokenOrFail(feideAccessToken)
+        maybeFeideId <- redisClient.getFeideIdFromCache(accessToken)
+        feideOpenUser <- maybeFeideId match {
+          case Some(feideId) => Success(FeideOpenIdUserInfo(feideId))
+          case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken))
         }
-      )
+        feideId <- redisClient.updateCacheAndReturnFeideId(accessToken, feideOpenUser.sub)
+      } yield feideId
+    }
+
+    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {
+      val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
+      val feideExtendedUser = (maybeFeideUser match {
+        case Some(feideUser) => Success(feideUser)
+        case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
+      }).?
+      redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
   }

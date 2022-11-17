@@ -434,7 +434,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
 
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(mainFolder))
     when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(any))
       .thenReturn(Success(List(subFolder1, subFolder2)))
@@ -452,7 +452,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That getSingleFolder fails if user does not own the folder") {
     val mainFolderUUID = UUID.randomUUID()
 
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success("not daijoubu"))
+    when(feideApiClient.getFeideID(any)).thenReturn(Success("not daijoubu"))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFolderAndChildrenSubfolders(any)(any)).thenReturn(Success(Some(emptyDomainFolder)))
 
@@ -474,7 +474,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         breadcrumbs = List(api.Breadcrumb(id = favoriteUUID.toString, name = "favorite"))
       )
 
-    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any)(any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
@@ -501,7 +501,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val folderResourcesResponse2 = Success(List(domainResource))
     val folderResourcesResponse3 = Success(List.empty)
 
-    when(feideApiClient.getUserFeideID(Some("token"))).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any))
       .thenReturn(Success(List(folderWithId, folderWithId)))
 
@@ -563,16 +563,16 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       eduPersonAffiliation = Seq("student")
     )
 
-    when(feideApiClient.getUserFeideID(any)).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
-    when(feideApiClient.getUser(any)).thenReturn(Success(feideUserInfo))
+    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[domain.MyNDLAUserDocument])(any))
       .thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
-    verify(feideApiClient, times(1)).getUser(any)
+    verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
@@ -591,12 +591,12 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
-    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
-    verify(feideApiClient, times(0)).getUser(any)
+    verify(feideApiClient, times(0)).getFeideExtendedUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
@@ -615,13 +615,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
 
-    when(feideApiClient.getUserFeideID(Some(feideId))).thenReturn(Success(feideId))
+    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
-    verify(feideApiClient, times(0)).getUser(any)
+    verify(feideApiClient, times(0)).getFeideExtendedUser(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(1)).updateUser(any, any)(any)

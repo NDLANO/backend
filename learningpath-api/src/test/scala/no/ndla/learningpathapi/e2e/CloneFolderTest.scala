@@ -24,7 +24,11 @@ import java.util.UUID
 import scala.util.{Failure, Success}
 
 class CloneFolderTest
-    extends IntegrationSuite(EnableElasticsearchContainer = false, EnablePostgresContainer = true)
+    extends IntegrationSuite(
+      EnableElasticsearchContainer = false,
+      EnablePostgresContainer = true,
+      EnableRedisContainer = true
+    )
     with UnitSuite {
 
   implicit val formats: Formats =
@@ -32,6 +36,7 @@ class CloneFolderTest
 
   val learningpathApiPort: Int          = findFreePort
   val pgc: PostgreSQLContainer[Nothing] = postgresContainer.get
+  val redisPort: Int                    = redisContainer.get.port
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int = learningpathApiPort
     override def MetaServer: String   = pgc.getContainerIpAddress
@@ -40,6 +45,9 @@ class CloneFolderTest
     override def MetaPassword: String = pgc.getPassword
     override def MetaPort: Int        = pgc.getMappedPort(5432)
     override def MetaSchema: String   = "testschema"
+
+    override def RedisHost: String = "localhost"
+    override def RedisPort: Int    = redisPort
   }
 
   val feideId            = "feide"
@@ -52,9 +60,9 @@ class CloneFolderTest
       override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override lazy val userRepository: UserRepository     = spy(new UserRepository)
 
-      when(feideApiClient.getUserFeideID(any)).thenReturn(Success("q"))
+      when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
-      when(feideApiClient.getUser(any)).thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"))))
+      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"))))
       when(clock.now()).thenReturn(LocalDateTime.of(2017, 1, 1, 1, 59))
     }
   }
@@ -117,7 +125,7 @@ class CloneFolderTest
   }
 
   test("that cloning a folder without destination works as expected") {
-    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -188,7 +196,7 @@ class CloneFolderTest
   }
 
   test("that cloning a folder clones only folders with status SHARED") {
-    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -281,7 +289,7 @@ class CloneFolderTest
   }
 
   test("that cloning a folder with destination works as expected") {
-    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
 
     val sourceFolderId = prepareFolderToClone()
@@ -371,7 +379,7 @@ class CloneFolderTest
   }
 
   test("that cloning a folder with destination fails if destination-folder-id is not found") {
-    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
 
     val sourceFolderId = prepareFolderToClone()
     val wrongId        = UUID.randomUUID()
@@ -392,7 +400,7 @@ class CloneFolderTest
   test(
     "that cloning a folder happens during one db transaction, if a fail occurs during inserting no new folders nor resources will be created"
   ) {
-    when(learningpathApi.componentRegistry.feideApiClient.getUserFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val sourceFolderId   = prepareFolderToClone()
 
