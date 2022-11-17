@@ -95,13 +95,10 @@ trait Module {
     assembly / assemblyJarName := name.value + ".jar",
     assembly / mainClass       := this.MainClass,
     assembly / assemblyMergeStrategy := {
-      case "module-info.class"                                   => MergeStrategy.discard
-      case x if x.endsWith("/module-info.class")                 => MergeStrategy.discard
-      case x if x.endsWith("io.netty.versions.properties")       => MergeStrategy.discard
-      case "mime.types"                                          => MergeStrategy.filterDistinctLines
-      case PathList("org", "convert", "ToString.class")          => MergeStrategy.first
-      case PathList("org", "convert", "FromString.class")        => MergeStrategy.first
-      case PathList("org", "time", "base", "BaseDateTime.class") => MergeStrategy.first
+      case "module-info.class"                             => MergeStrategy.discard
+      case x if x.endsWith("/module-info.class")           => MergeStrategy.discard
+      case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.discard
+      case "mime.types"                                    => MergeStrategy.filterDistinctLines
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
