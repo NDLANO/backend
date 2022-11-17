@@ -10,6 +10,7 @@ package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CorrelationID
+import no.ndla.common.RequestLogger.afterRequestLogString
 import no.ndla.common.configuration.BaseProps
 import org.eclipse.jetty.server.{Request, RequestLog, Response}
 
@@ -19,9 +20,15 @@ class NdlaRequestLogger[PROPS <: BaseProps](props: PROPS) extends RequestLog wit
     if (request.getRequestURI == "/health") return // Logging health-endpoints are very noisy
 
     val latency = System.currentTimeMillis() - request.getTimeStamp
-    val query   = Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+    val query   = Option(request.getQueryString).getOrElse("")
     logger.info(
-      s"${request.getMethod} ${request.getRequestURI}${query} executed in ${latency}ms with code ${response.getStatus}"
+      afterRequestLogString(
+        method = request.getMethod,
+        requestPath = request.getRequestURI,
+        queryString = query,
+        latency = latency,
+        responseCode = response.getStatus
+      )
     )
 
     CorrelationID.clear()

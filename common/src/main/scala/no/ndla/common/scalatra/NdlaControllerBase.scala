@@ -10,19 +10,19 @@ package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CorrelationID
+import no.ndla.common.RequestLogger.beforeRequestLogString
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
-import org.scalatra.{ActionResult, HaltException, Ok, RenderPipeline, ScalatraServlet}
-
-import javax.servlet.http.HttpServletRequest
-import scala.util.{Failure, Success, Try}
-import org.json4s.ext.JavaTimeSerializers
+import org.scalatra._
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.servlet.http.HttpServletRequest
+import scala.util.{Failure, Success, Try}
 
 trait NdlaControllerBase {
   this: HasBaseProps =>
@@ -37,10 +37,7 @@ trait NdlaControllerBase {
       CorrelationID.set(request)
 
       logger.info(
-        "{} {}{}",
-        request.getMethod,
-        request.getRequestURI,
-        Option(request.getQueryString).map(s => s"?$s").getOrElse("")
+        beforeRequestLogString(request.getMethod, request.getRequestURI, request.queryString)
       )
     }
 
