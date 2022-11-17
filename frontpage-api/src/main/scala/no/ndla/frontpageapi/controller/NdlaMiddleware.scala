@@ -9,8 +9,9 @@ package no.ndla.frontpageapi.controller
 
 import cats.effect.{Effect, IO}
 import no.ndla.common.CorrelationID
-import no.ndla.network.model.NdlaHttpRequest
+import no.ndla.common.RequestLogger.{afterRequestLogString, beforeRequestLogString}
 import no.ndla.network.ApplicationUrl
+import no.ndla.network.model.NdlaHttpRequest
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{HttpRoutes, Request, Response}
 import org.log4s.getLogger
@@ -30,19 +31,43 @@ object NdlaMiddleware {
   }
 
   private def before(service: HttpRoutes[IO]): HttpRoutes[IO] = cats.data.Kleisli { req: Request[IO] =>
+    val beforeTime = System.currentTimeMillis()
+
     CorrelationID.set(req.headers.get(CorrelationIdHeader).map(_.value))
     ApplicationUrl.set(asNdlaHttpRequest(req))
-    logger.info(s"${req.method} ${req.uri}${req.queryString}")
-    service(req)
+    logger.info(
+      beforeRequestLogString(
+        method = req.method.name,
+        requestPath = req.uri.path,
+        queryString = req.queryString
+      )
+    )
+
+    service(req).map { resp =>
+      after(beforeTime, req, resp)
+    }
   }
 
-  private def after(resp: Response[IO]): Response[IO] = {
+  private def after(beforeTime: Long, req: Request[IO], resp: Response[IO]): Response[IO] = {
     CorrelationID.clear()
     ApplicationUrl.clear()
+
+    val latency = System.currentTimeMillis() - beforeTime
+
+    logger.info(
+      afterRequestLogString(
+        method = req.method.name,
+        requestPath = req.uri.path,
+        queryString = req.queryString,
+        latency = latency,
+        responseCode = resp.status.code
+      )
+    )
+
     resp
   }
 
   def apply(service: HttpRoutes[IO]): HttpRoutes[IO] = {
-    before(service).map(after)
+    before(service)
   }
 }
