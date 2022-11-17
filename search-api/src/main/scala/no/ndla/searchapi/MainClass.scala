@@ -20,7 +20,12 @@ class MainClass(props: SearchApiProperties) extends StrictLogging {
   def startServer(): Server = {
     new NdlaScalatraServer[SearchApiProperties, ComponentRegistry](
       "no.ndla.searchapi.ScalatraBootstrap",
-      componentRegistry
+      componentRegistry,
+      {},
+      warmupRequest => {
+        warmupRequest("/search-api/v1/search", Map("query" -> "norge"))
+        warmupRequest("/health", Map.empty)
+      }
     )
   }
 

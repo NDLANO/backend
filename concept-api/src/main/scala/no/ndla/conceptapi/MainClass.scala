@@ -22,6 +22,11 @@ class MainClass(props: ConceptApiProperties) extends StrictLogging {
         val startDBMillis = System.currentTimeMillis()
         componentRegistry.migrator.migrate()
         logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
+      },
+      warmupRequest => {
+        warmupRequest("/concept-api/v1/concepts", Map("query" -> "norge", "fallback" -> "true"))
+        warmupRequest("/concept-api/v1/concepts/1", Map.empty)
+        warmupRequest("/health", Map.empty)
       }
     )
   }

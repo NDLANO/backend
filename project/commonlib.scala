@@ -12,6 +12,7 @@ object commonlib extends Module {
       "org.json4s"         %% "json4s-native"     % Json4SV,
       "org.json4s"         %% "json4s-ext"        % Json4SV,
       "javax.servlet"       % "javax.servlet-api" % JavaxServletV,
+      "org.scalaj"         %% "scalaj-http"       % ScalaJV,
       "org.scala-lang"      % "scala-compiler"    % ScalaV,
       "org.eclipse.jetty"   % "jetty-webapp"      % JettyV  % "compile",
       "org.eclipse.jetty"   % "jetty-plus"        % JettyV  % "container",

@@ -7,15 +7,10 @@
 
 package no.ndla.draftapi.controller
 
-import org.scalatra.{Ok, ScalatraServlet}
+import no.ndla.common.scalatra.BaseHealthController
 
 trait HealthController {
   val healthController: HealthController
 
-  class HealthController extends ScalatraServlet {
-
-    get("/") {
-      Ok()
-    }
-  }
+  class HealthController extends BaseHealthController {}
 }

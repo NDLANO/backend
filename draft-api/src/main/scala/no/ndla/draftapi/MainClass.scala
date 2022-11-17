@@ -22,6 +22,11 @@ class MainClass(props: DraftApiProperties) extends StrictLogging {
         val startDBMillis = System.currentTimeMillis()
         componentRegistry.migrator.migrate()
         logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
+      },
+      warmupRequest => {
+        warmupRequest("/draft-api/v1/drafts", Map("query" -> "norge", "fallback" -> "true"))
+        warmupRequest("/draft-api/v1/drafts/1", Map.empty)
+        warmupRequest("/health", Map.empty)
       }
     )
   }

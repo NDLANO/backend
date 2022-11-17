@@ -23,6 +23,12 @@ class MainClass(props: ArticleApiProperties) extends StrictLogging {
         val startDBMillis = System.currentTimeMillis()
         componentRegistry.migrator.migrate()
         logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
+      },
+      warmupRequest => {
+        warmupRequest("/article-api/v2/articles", Map("query" -> "norge", "fallback" -> "true"))
+        warmupRequest("/article-api/v2/articles/1", Map("language" -> "nb"))
+        warmupRequest("/article-api/v2/articles/ids/", Map("ids" -> "100,1000,2000,3000", "fallback" -> "true"))
+        warmupRequest("/health", Map.empty)
       }
     )
   }
