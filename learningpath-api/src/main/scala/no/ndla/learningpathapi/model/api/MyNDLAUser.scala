@@ -14,7 +14,8 @@ import scala.annotation.meta.field
 case class MyNDLAUser(
     @(ApiModelProperty @field)(description = "ID of the user") id: Long,
     @(ApiModelProperty @field)(description = "Favorite subjects of the user") favoriteSubjects: Seq[String],
-    @(ApiModelProperty @field)(description = "User role") role: String
+    @(ApiModelProperty @field)(description = "User role") role: String,
+    @(ApiModelProperty @field)(description = "User county") county: String
 )
 
 case class UpdatedMyNDLAUser(
