@@ -7,6 +7,7 @@
 
 package no.ndla.network.clients
 
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import org.json4s.DefaultFormats
 import redis.clients.jedis.JedisPooled
@@ -22,9 +23,16 @@ trait RedisClient {
       // default to 8 hours cache time
       cacheTimeSeconds: Long = 60 * 60 * 8
   ) {
-    val jedis          = new JedisPooled(host, port)
-    val feideIdField   = "feideId"
-    val feideUserField = "feideUser"
+    val jedis           = new JedisPooled(host, port)
+    val feideIdField    = "feideId"
+    val feideUserField  = "feideUser"
+    val feideGroupField = "feideGroup"
+
+    private def getKeyExpireTime(key: String): Try[Long] = Try {
+      val existingExpireTime = jedis.ttl(key)
+      val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
+      newExpireTime
+    }
 
     def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = Try {
       implicit val formats: DefaultFormats.type = DefaultFormats
@@ -41,9 +49,7 @@ trait RedisClient {
         feideExtendedUser: FeideExtendedUserInfo
     ): Try[FeideExtendedUserInfo] = Try {
       implicit val formats: DefaultFormats.type = DefaultFormats
-      val existingExpireTime                    = jedis.ttl(accessToken)
-      val newExpireTime                         = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
-
+      val newExpireTime                         = getKeyExpireTime(accessToken).?
       jedis.hset(accessToken, feideUserField, write(feideExtendedUser))
       jedis.expire(accessToken, newExpireTime)
       feideExtendedUser
@@ -58,12 +64,28 @@ trait RedisClient {
     }
 
     def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = Try {
-      val existingExpireTime = jedis.ttl(accessToken)
-      val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
-
+      val newExpireTime = getKeyExpireTime(accessToken).?
       jedis.hset(accessToken, feideIdField, feideId)
       jedis.expire(accessToken, newExpireTime)
       feideId
+    }
+
+    def getCountyFromCache(accessToken: FeideAccessToken): Try[Option[String]] = Try {
+      if (jedis.hexists(accessToken, feideGroupField)) {
+        Some(jedis.hget(accessToken, feideGroupField))
+      } else {
+        None
+      }
+    }
+
+    def updateCacheAndReturnCounty(
+        accessToken: FeideAccessToken,
+        feideCounty: String
+    ): Try[String] = Try {
+      val newExpireTime = getKeyExpireTime(accessToken).?
+      jedis.hset(accessToken, feideGroupField, feideCounty)
+      jedis.expire(accessToken, newExpireTime)
+      feideCounty
     }
 
   }

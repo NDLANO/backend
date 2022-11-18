@@ -18,6 +18,9 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
+case class Membership(primaryAffiliation: Option[String])
+case class FeideGroup(displayName: String, membership: Membership)
+
 case class FeideOpenIdUserInfo(sub: String)
 
 case class FeideExtendedUserInfo(
@@ -52,11 +55,14 @@ trait FeideApiClient {
     private val feideTimeout           = 1000 * 30
     private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
     private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
+    private val feideGroupEndpoint     = "https://groups-api.dataporten.no/groups/me/groups"
 
     private def fetchOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
       fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
     private def fetchFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
       fetchAndParse[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
+    private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
+      fetchAndParse[Seq[FeideGroup]](accessToken, feideGroupEndpoint)
 
     private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: String)(implicit mf: Manifest[T]): Try[T] = {
       val request =
@@ -93,6 +99,21 @@ trait FeideApiClient {
           Success(response)
         }
       })
+    }
+
+    private def findCounty(feideGroups: Seq[FeideGroup]): Try[String] = {
+      feideGroups.find(group => group.membership.primaryAffiliation.isDefined) match {
+        case Some(value) => Success(value.displayName)
+        case None =>
+          logger.error(
+            "None of feideGroup list contained 'primaryAffiliation' so it is impossible to distinguish between old organisation and the current one."
+          )
+          Failure(
+            new NoSuchFieldException(
+              "None of feideGroup list contained 'primaryAffiliation' so it is impossible to distinguish between old organisation and the current one."
+            )
+          )
+      }
     }
 
     def getFeideAccessTokenOrFail(maybeFeideAccessToken: Option[FeideAccessToken]): Try[FeideAccessToken] = {
@@ -141,6 +162,16 @@ trait FeideApiClient {
         case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
       }).?
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
+    }
+
+    def getCounty(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
+      val accessToken = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeCounty = redisClient.getCountyFromCache(accessToken).?
+      val county = (maybeCounty match {
+        case Some(county) => Success(county)
+        case None => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken)).flatMap(findCounty)
+      }).?
+      redisClient.updateCacheAndReturnCounty(accessToken, county)
     }
 
   }
