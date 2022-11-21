@@ -13,14 +13,19 @@ import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.frontpageapi.controller.{
+  FallbackRoute,
   FilmPageController,
   FrontPageController,
+  HealthController,
   InternController,
-  SubjectPageController
+  NdlaMiddleware,
+  Service,
+  SubjectPageController,
+  SwaggerDocController
 }
 import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
-import org.http4s.rho.swagger.syntax.{io => ioSwagger}
+import org.http4s.HttpRoutes
 
 class ComponentRegistry(properties: FrontpageApiProperties)
     extends DataSource
@@ -39,7 +44,13 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with ErrorHelpers
     with Props
     with DBMigrator
-    with ConverterService {
+    with ConverterService
+    with HealthController
+    with Service
+    with Routes
+    with NdlaMiddleware
+    with SwaggerDocController
+    with FallbackRoute {
   override val props: FrontpageApiProperties = properties
   override val migrator                      = new DBMigrator
   override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
@@ -52,8 +63,21 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val readService  = new ReadService
   override val writeService = new WriteService
 
-  override val subjectPageController = new SubjectPageController[IO](ioSwagger)
-  override val frontPageController   = new FrontPageController[IO](ioSwagger)
-  override val filmPageController    = new FilmPageController[IO](ioSwagger)
-  override val internController      = new InternController[IO](ioSwagger)
+  override val subjectPageController = new SubjectPageController
+  override val frontPageController   = new FrontPageController
+  override val filmPageController    = new FilmPageController
+  override val internController      = new InternController
+  override val healthController      = new HealthController
+
+  private val services: List[Service] = List(
+    subjectPageController,
+    frontPageController,
+    filmPageController,
+    internController,
+    healthController
+  )
+
+  override val swaggerDocController = new SwaggerDocController(services)
+
+  def routes: List[(String, HttpRoutes[IO])] = Routes.build(services :+ swaggerDocController)
 }

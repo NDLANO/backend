@@ -8,98 +8,22 @@
 package no.ndla.frontpageapi
 
 import cats.effect.IO
-import cats.implicits._
-import no.ndla.frontpageapi.auth.Role
-import no.ndla.frontpageapi.controller.{AuthController, HealthController, NdlaMiddleware}
+import no.ndla.frontpageapi.controller.{NdlaMiddleware, Service}
 import org.http4s.HttpRoutes
-import org.http4s.rho.RhoRoutes
-import org.http4s.rho.bits.PathAST._
-import org.http4s.rho.swagger.SwaggerMetadata
-import org.http4s.rho.swagger.models.{Contact, Info, License, OAuth2Definition}
-import org.http4s.rho.swagger.syntax.io._
-import shapeless.HNil
 
-trait ServiceWithMountPoint {
-  val mountPoint: String
-  def toRoutes: HttpRoutes[IO]
-}
+trait Routes {
+  this: Service with NdlaMiddleware =>
 
-case class Service(service: HttpRoutes[IO], override val mountPoint: String) extends ServiceWithMountPoint {
-  override def toRoutes: HttpRoutes[IO] = service
-}
+  object Routes {
+    def build(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
+      val (docServices, noDocServices) = routes.partitionMap {
+        case swaggerService: SwaggerService  => Left(swaggerService)
+        case serviceWithoutDoc: NoDocService => Right(serviceWithoutDoc)
+      }
 
-class SwaggerService(service: RhoRoutes[IO], override val mountPoint: String) extends ServiceWithMountPoint {
-  override def toRoutes: HttpRoutes[IO] = NdlaMiddleware(service.toRoutes())
-  def service(): RhoRoutes[IO]          = this.service
-}
-
-class AuthedSwaggerService(override val service: AuthController[IO], override val mountPoint: String)
-    extends SwaggerService(service, mountPoint) {
-  override def toRoutes: HttpRoutes[IO] = NdlaMiddleware(
-    service.authMiddleware.apply(service.Auth.toService(service.toRoutes()))
-  )
-}
-
-object Routes {
-
-  def buildRoutes(componentRegistry: ComponentRegistry, props: FrontpageApiProperties): List[ServiceWithMountPoint] = {
-    val frontPage   = new SwaggerService(componentRegistry.frontPageController, "/frontpage-api/v1/frontpage")
-    val subjectPage = new AuthedSwaggerService(componentRegistry.subjectPageController, "/frontpage-api/v1/subjectpage")
-    val filmFrontPage =
-      new AuthedSwaggerService(componentRegistry.filmPageController, "/frontpage-api/v1/filmfrontpage")
-
-    List(
-      frontPage,
-      subjectPage,
-      filmFrontPage,
-      new SwaggerService(componentRegistry.internController, "/intern"),
-      Service(HealthController(), "/health"),
-      Service(createSwaggerDocService(props, frontPage, subjectPage, filmFrontPage), "/frontpage-api/api-docs")
-    )
-  }
-
-  private def toTypedPath[F[_]](prefix: String): TypedPath[F, HNil] = {
-    val start: PathRule = PathMatch("")
-    val newPath =
-      prefix.split("/").foldLeft(start)((p, s) => PathAnd(p, PathMatch(s)))
-
-    TypedPath(newPath)
-  }
-
-  private def createSwaggerDocService(props: FrontpageApiProperties, services: SwaggerService*): HttpRoutes[IO] = {
-    import props._
-    val info = Info(
-      title = "frontpage-api",
-      version = "1.0",
-      description = "Service for fetching frontpage data".some,
-      termsOfService = TermsUrl.some,
-      contact = Contact(ContactName, Some(ContactUrl), Some(ContactEmail)).some,
-      license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html").some
-    )
-
-    val allRoles = Role.values.map(r => s"${Role.prefix}${r.toString}".toLowerCase)
-
-    val oauth2Definition = OAuth2Definition(
-      authorizationUrl = Auth0LoginEndpoint,
-      tokenUrl = "",
-      flow = "implicit",
-      scopes = allRoles.map(r => r -> r).toMap
-    )
-
-    val swaggerMetadata = SwaggerMetadata(
-      apiInfo = info,
-      securityDefinitions = Map(
-        "oauth2" -> oauth2Definition
-      )
-    )
-
-    val routes = services.map(t => {
-      t.service()./:(toTypedPath(t.mountPoint)).getRoutes
-    })
-
-    val swagRoutes = routes.flatten
-    val swagger    = createSwagger(swaggerMetadata = swaggerMetadata)(swagRoutes)
-
-    createSwaggerRoute(swagger, TypedPath(PathMatch(""))).toRoutes()
+      // Full paths are already prefixed in the endpoints to make nice documentation
+      val swaggerBinding = "/" -> NdlaMiddleware(docServices)
+      noDocServices.map(_.getBinding) :+ swaggerBinding
+    }
   }
 }

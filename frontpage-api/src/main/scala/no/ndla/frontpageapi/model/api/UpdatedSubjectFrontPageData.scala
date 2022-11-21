@@ -8,6 +8,7 @@
 package no.ndla.frontpageapi.model.api
 
 import cats.effect.Sync
+import io.circe.Decoder
 import org.http4s.circe.jsonOf
 import org.http4s.EntityDecoder
 import io.circe.generic.semiauto._
@@ -31,6 +32,5 @@ case class UpdatedSubjectFrontPageData(
 )
 
 object UpdatedSubjectFrontPageData {
-  implicit def decoder[F[_]: Sync]: EntityDecoder[F, UpdatedSubjectFrontPageData] =
-    jsonOf[F, UpdatedSubjectFrontPageData](Sync[F], deriveDecoder[UpdatedSubjectFrontPageData])
+  implicit def decoder: Decoder[UpdatedSubjectFrontPageData] = deriveDecoder[UpdatedSubjectFrontPageData]
 }

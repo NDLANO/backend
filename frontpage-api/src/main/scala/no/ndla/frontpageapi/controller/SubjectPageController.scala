@@ -7,76 +7,102 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.{Effect, IO}
-import no.ndla.frontpageapi.Props
+import cats.effect.IO
+import cats.implicits._
+import io.circe.generic.auto._
 import no.ndla.frontpageapi.auth.UserInfo
-import no.ndla.frontpageapi.model.api.{ErrorHelpers, NewSubjectFrontPageData, UpdatedSubjectFrontPageData}
+import no.ndla.frontpageapi.model.api.{
+  ErrorHelpers,
+  NewSubjectFrontPageData,
+  SubjectPageData,
+  UpdatedSubjectFrontPageData
+}
 import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import org.http4s.rho.swagger.{SecOps, SwaggerSyntax}
+import no.ndla.frontpageapi.Props
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
 trait SubjectPageController {
-  this: ReadService with WriteService with Props with ErrorHelpers =>
-  val subjectPageController: SubjectPageController[IO]
+  this: ReadService with WriteService with Props with ErrorHelpers with Service =>
+  val subjectPageController: SubjectPageController
 
-  class SubjectPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends AuthController[F] {
+  class SubjectPageController extends SwaggerService {
+    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
 
-    import swaggerSyntax._
+    private val errorOutputs = oneOf(
+      oneOfVariant(NotFoundError),
+      oneOfVariant(GenericError)
+    )
 
-    "Get data to display on a subject page" **
-      GET / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
-        "language",
-        props.DefaultLanguage
-      ) & param[Boolean]("fallback", false) |>> { (id: Long, language: String, fallback: Boolean) =>
-        {
+    import UserInfo._
+    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+      endpoint.get
+        .summary("Get data to display on a subject page")
+        .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+        .in(query[String]("language").default(props.DefaultLanguage))
+        .in(query[Boolean]("fallback").default(false))
+        .out(jsonBody[SubjectPageData])
+        .errorOut(errorOutputs)
+        .serverLogicPure { case (id, language, fallback) =>
           readService.subjectPage(id, language, fallback) match {
-            case Some(s) => Ok(s)
-            case None    => NotFound(ErrorHelpers.notFound)
+            case Some(s) => s.asRight
+            case None    => ErrorHelpers.notFound.asLeft
           }
+        },
+      endpoint.post
+        .summary("Create new subject page")
+        .securityIn(auth.bearer[Option[UserInfo]]())
+        .in(jsonBody[NewSubjectFrontPageData])
+        .out(jsonBody[SubjectPageData])
+        .errorOut(
+          oneOf(oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
+        )
+        .serverSecurityLogicPure {
+          case Some(user) if user.canWrite => user.asRight
+          case Some(_)                     => ErrorHelpers.forbidden.asLeft
+          case None                        => ErrorHelpers.unauthorized.asLeft
         }
-      }
+        .serverLogicPure { _ => newSubjectFrontPageData =>
+          {
+            writeService.newSubjectPage(newSubjectFrontPageData) match {
+              case Success(s)                       => s.asRight
+              case Failure(ex: ValidationException) => ErrorHelpers.unprocessableEntity(ex.getMessage).asLeft
+              case Failure(_)                       => ErrorHelpers.generic.asLeft
+            }
+          }
+        },
+      endpoint.patch
+        .summary("Update subject page")
+        .securityIn(auth.bearer[Option[UserInfo]]())
+        .in(jsonBody[UpdatedSubjectFrontPageData])
+        .in(path[Long]("subjectpage-id").description("The subjectpage id"))
+        .in(query[String]("language").default(props.DefaultLanguage))
+        .in(query[Boolean]("fallback").default(false))
+        .out(jsonBody[SubjectPageData])
+        .errorOut(
+          oneOf(oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
+        )
+        .serverSecurityLogicPure {
+          case Some(user) if user.canWrite => user.asRight
+          case Some(_)                     => ErrorHelpers.forbidden.asLeft
+          case None                        => ErrorHelpers.unauthorized.asLeft
+        }
+        .serverLogicPure { _ =>
+          { case (subjectPage, id, language, fallback) =>
+            writeService.updateSubjectPage(id, subjectPage, language) match {
+              case Success(s)                       => s.asRight
+              case Failure(_: NotFoundException)    => ErrorHelpers.notFound.asLeft
+              case Failure(ex: ValidationException) => ErrorHelpers.unprocessableEntity(ex.getMessage).asLeft
+              case Failure(_)                       => ErrorHelpers.generic.asLeft
+            }
+          }
 
-    AuthOptions.^^("Create new subject page" ** POST) >>> Auth.auth ^ NewSubjectFrontPageData.decoder |>> {
-      (user: Option[UserInfo], newSubjectFrontPageData: NewSubjectFrontPageData) =>
-        {
-          user match {
-            case Some(user) if user.canWrite =>
-              writeService.newSubjectPage(newSubjectFrontPageData) match {
-                case Success(s) => Ok(s)
-                case Failure(ex: ValidationException) =>
-                  UnprocessableEntity(ErrorHelpers.unprocessableEntity(ex.getMessage))
-                case Failure(_) => InternalServerError(ErrorHelpers.generic)
-              }
-            case Some(_) => Forbidden(ErrorHelpers.forbidden)
-            case None    => Unauthorized(ErrorHelpers.unauthorized)
-          }
         }
-    }
-
-    AuthOptions.^^(
-      "Update subject page" **
-        PATCH
-    ) / pathVar[Long]("subjectpage-id", "The subjectpage id") +? param[String](
-      "language",
-      props.DefaultLanguage
-    ) >>> Auth.auth ^ UpdatedSubjectFrontPageData.decoder |>> {
-      (id: Long, language: String, user: Option[UserInfo], subjectPage: UpdatedSubjectFrontPageData) =>
-        {
-          user match {
-            case Some(user) if user.canWrite =>
-              writeService.updateSubjectPage(id, subjectPage, language) match {
-                case Success(s)                    => Ok(s)
-                case Failure(_: NotFoundException) => NotFound(ErrorHelpers.notFound)
-                case Failure(ex: ValidationException) =>
-                  UnprocessableEntity(ErrorHelpers.unprocessableEntity(ex.getMessage))
-                case Failure(_) => InternalServerError(ErrorHelpers.generic)
-              }
-            case Some(_) => Forbidden(ErrorHelpers.forbidden)
-            case None    => Unauthorized(ErrorHelpers.unauthorized)
-          }
-        }
-    }
+    )
   }
 }

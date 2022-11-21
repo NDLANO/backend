@@ -7,67 +7,88 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.{Effect, IO}
+import cats.effect.IO
+import io.circe.generic.auto._
 import no.ndla.common.CorrelationID
 import no.ndla.common.RequestLogger.{afterRequestLogString, beforeRequestLogString}
+import no.ndla.frontpageapi.model.api.{ErrorHelpers, GenericError}
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.{HttpRoutes, Request, Response}
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
+import sttp.tapir.server.model.ValuedEndpointOutput
 
-object NdlaMiddleware {
-  private val CorrelationIdHeader = CaseInsensitiveString("X-Correlation-ID")
-  private val logger              = getLogger
+import scala.annotation.unused
 
-  def asNdlaHttpRequest[F[+_]: Effect](req: Request[F]): NdlaHttpRequest = {
-    new NdlaHttpRequest {
-      override def serverPort: Int                         = req.serverPort
-      override def getHeader(name: String): Option[String] = req.headers.get(CaseInsensitiveString(name)).map(_.value)
-      override def getScheme: String                       = req.uri.scheme.map(_.value).getOrElse("http")
-      override def serverName: String                      = req.serverAddr
-      override def servletPath: String                     = req.uri.path
-    }
-  }
+trait NdlaMiddleware {
+  this: ErrorHelpers with Service =>
+  object NdlaMiddleware {
+    private val CorrelationIdHeader = CIString("X-Correlation-ID")
+    private val logger              = getLogger
 
-  private def before(service: HttpRoutes[IO]): HttpRoutes[IO] = cats.data.Kleisli { req: Request[IO] =>
-    val beforeTime = System.currentTimeMillis()
-
-    CorrelationID.set(req.headers.get(CorrelationIdHeader).map(_.value))
-    ApplicationUrl.set(asNdlaHttpRequest(req))
-    logger.info(
-      beforeRequestLogString(
-        method = req.method.name,
-        requestPath = req.uri.path,
-        queryString = req.queryString
+    def asNdlaHttpRequest[F[+_]](req: Request[F]): NdlaHttpRequest =
+      NdlaHttpRequest(
+        serverPort = req.serverPort.map(_.value).getOrElse(-1),
+        getHeader = name => req.headers.get(CIString(name)).map(_.head.value),
+        getScheme = req.uri.scheme.map(_.value).getOrElse("http"),
+        serverName = req.serverAddr.map(_.toUriString).getOrElse("localhost"),
+        servletPath = req.uri.path.renderString
       )
-    )
 
-    service(req).map { resp =>
-      after(beforeTime, req, resp)
-    }
-  }
+    private def before(service: HttpRoutes[IO]): HttpRoutes[IO] = cats.data.Kleisli { req: Request[IO] =>
+      val beforeTime = System.currentTimeMillis()
 
-  private def after(beforeTime: Long, req: Request[IO], resp: Response[IO]): Response[IO] = {
-    CorrelationID.clear()
-    ApplicationUrl.clear()
-
-    val latency = System.currentTimeMillis() - beforeTime
-
-    logger.info(
-      afterRequestLogString(
-        method = req.method.name,
-        requestPath = req.uri.path,
-        queryString = req.queryString,
-        latency = latency,
-        responseCode = resp.status.code
+      val correlationIdHeader = req.headers.get(CorrelationIdHeader).map(_.head.value)
+      CorrelationID.set(correlationIdHeader)
+      ApplicationUrl.set(asNdlaHttpRequest(req))
+      logger.info(
+        beforeRequestLogString(
+          method = req.method.name,
+          requestPath = req.uri.path.renderString,
+          queryString = req.queryString
+        )
       )
-    )
 
-    resp
-  }
+      service(req).map { resp =>
+        after(beforeTime, req, resp)
+      }
+    }
 
-  def apply(service: HttpRoutes[IO]): HttpRoutes[IO] = {
-    before(service)
+    private def after(beforeTime: Long, req: Request[IO], resp: Response[IO]): Response[IO] = {
+      val latency = System.currentTimeMillis() - beforeTime
+
+      logger.info(
+        afterRequestLogString(
+          method = req.method.name,
+          requestPath = req.uri.path.renderString,
+          queryString = req.queryString,
+          latency = latency,
+          responseCode = resp.status.code
+        )
+      )
+
+      CorrelationID.clear()
+      ApplicationUrl.clear()
+
+      resp
+    }
+
+    def failureResponse(@unused _error: String): ValuedEndpointOutput[_] = {
+      ValuedEndpointOutput(jsonBody[GenericError], ErrorHelpers.generic)
+    }
+
+    def apply(services: List[SwaggerService]): HttpRoutes[IO] = {
+      val swaggerEndpoints = services.flatMap(_.builtEndpoints)
+      val options          = Http4sServerOptions.customiseInterceptors[IO].defaultHandlers(failureResponse).options
+      val routes           = Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
+
+      before(routes)
+    }
+
+    def apply(service: HttpRoutes[IO]): HttpRoutes[IO] = before(service)
   }
 }

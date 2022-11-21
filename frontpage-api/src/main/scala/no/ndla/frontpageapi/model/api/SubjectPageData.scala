@@ -34,11 +34,9 @@ case class SubjectPageData(
 )
 
 object SubjectPageData {
-  val indentDropNull = Printer.spaces2.copy(dropNullValues = true)
+  val indentDropNull = Printer.spaces2.copy(dropNullValues = true) // TODO: Do we need to include this in encoder?
 
-  implicit def encoder[F[_]: Applicative]: EntityEncoder[F, SubjectPageData] =
-    jsonEncoderWithPrinterOf[F, SubjectPageData](indentDropNull)(deriveEncoder[SubjectPageData])
+  implicit def encoder: Encoder[SubjectPageData] = deriveEncoder[SubjectPageData]
 
-  implicit def decoder[F[_]: Sync]: EntityDecoder[F, SubjectPageData] =
-    jsonOf[F, SubjectPageData](Sync[F], deriveDecoder[SubjectPageData])
+  implicit def decoder: Decoder[SubjectPageData] = deriveDecoder[SubjectPageData]
 }
