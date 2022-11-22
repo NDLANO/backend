@@ -178,7 +178,7 @@ trait ReadService {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) => user.availabilities
         case Failure(ex) =>
-          logger.warn("Something went wrong when fetching feideuser, assuming non-user", ex)
+          logger.warn("Something went wrong when fetching feideuser, assuming non-user")
           Seq.empty
       }
 
