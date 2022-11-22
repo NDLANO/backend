@@ -9,7 +9,7 @@ object networklib extends Module {
     Seq(
       "org.json4s"           %% "json4s-jackson"          % Json4SV,
       "org.json4s"           %% "json4s-native"           % Json4SV,
-      "org.scalaj"           %% "scalaj-http"             % "2.4.2",
+      "org.scalaj"           %% "scalaj-http"             % ScalaJV,
       "org.scalatest"        %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"          %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"          %% "mockito-scala-scalatest" % MockitoV   % "test",

@@ -26,6 +26,12 @@ class MainClass(props: ImageApiProperties) extends StrictLogging {
 
         componentRegistry.imageSearchService.createEmptyIndexIfNoIndexesExist()
         componentRegistry.tagSearchService.createEmptyIndexIfNoIndexesExist()
+      },
+      warmupRequest => {
+        warmupRequest("/image-api/v2/images", Map("query" -> "norge", "fallback" -> "true"))
+        warmupRequest("/image-api/v2/images/1", Map("language" -> "nb"))
+        warmupRequest("/image-api/raw/id/1", Map.empty)
+        warmupRequest("/health", Map.empty)
       }
     )
   }

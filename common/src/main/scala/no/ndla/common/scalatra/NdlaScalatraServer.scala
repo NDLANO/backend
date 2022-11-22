@@ -10,11 +10,11 @@ package no.ndla.common.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
 import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
+import no.ndla.common.Warmup
 import no.ndla.common.configuration.{BaseComponentRegistry, BaseProps}
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
-
 import java.util
 import javax.servlet.DispatcherType
 import scala.io.Source
@@ -22,11 +22,14 @@ import scala.io.Source
 class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[PropType]](
     bootstrapPackage: String,
     componentRegistry: CR,
-    afterHeaderBeforeStart: => Unit = {}
+    afterHeaderBeforeStart: => Unit,
+    warmupFunction: ((String, Map[String, String]) => Unit) => Unit
 ) extends Server(componentRegistry.props.ApplicationPort)
     with StrictLogging {
+
   val props: PropType           = componentRegistry.props
   private val startMillis: Long = System.currentTimeMillis()
+
   private def setupJavaMelody(context: ServletContextHandler): Unit = {
     context.addServlet(classOf[ReportServlet], "/monitoring")
     context.addEventListener(new SessionListener)
@@ -42,6 +45,7 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
   }
+
   private def setupServletContext(): Unit = {
     val context = new ServletContextHandler()
     context setContextPath "/"
@@ -56,8 +60,18 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
     context.setAttribute("ComponentRegistry", componentRegistry)
     this.setHandler(context)
   }
+
   private def logCopyrightHeader(): Unit = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
+  }
+
+  private def warmup(): Unit = {
+    val warmupStart = System.currentTimeMillis()
+    logger.info("Starting warmup procedure...")
+    warmupFunction((path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params))
+    val warmupTime = System.currentTimeMillis() - warmupStart
+    logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
+    componentRegistry.healthController.setWarmedUp()
   }
 
   logCopyrightHeader()
@@ -67,6 +81,8 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
   this.setRequestLog(new NdlaRequestLogger(props))
   setupServletContext()
   this.start()
+
+  this.warmup()
 
   private val startedTime: Long = System.currentTimeMillis() - startMillis
   logger.info(s"Started ${props.ApplicationName} server at port ${props.ApplicationPort} in ${startedTime}ms.")

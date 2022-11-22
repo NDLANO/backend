@@ -24,6 +24,10 @@ class MainClass(props: OEmbedProxyProperties) extends StrictLogging {
       "no.ndla.oembedproxy.ScalatraBootstrap",
       componentRegistry, {
         fetchProviderList()
+      },
+      warmupRequest => {
+        warmupRequest("/oembed-proxy/v1/oembed", Map("url" -> "https://ndla.no/article/1"))
+        warmupRequest("/health", Map.empty)
       }
     )
   }

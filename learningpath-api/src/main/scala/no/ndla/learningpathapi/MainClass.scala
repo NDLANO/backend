@@ -23,6 +23,11 @@ class MainClass(props: LearningpathApiProperties) extends StrictLogging {
         val startDBMillis = System.currentTimeMillis()
         componentRegistry.migrator.migrate()
         logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
+      },
+      warmupRequest => {
+        warmupRequest("/learningpath-api/v2/learningpaths", Map("query" -> "norge", "fallback" -> "true"))
+        warmupRequest("/learningpath-api/v2/learningpaths/1", Map.empty)
+        warmupRequest("/health", Map.empty)
       }
     )
   }

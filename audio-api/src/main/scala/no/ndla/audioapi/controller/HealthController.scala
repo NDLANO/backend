@@ -10,15 +10,16 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.common.scalatra.BaseHealthController
 import no.ndla.network.ApplicationUrl
-import org.scalatra.{ActionResult, InternalServerError, Ok, ScalatraServlet}
+import org.scalatra.{ActionResult, InternalServerError, Ok}
 import scalaj.http.{Http, HttpResponse}
 
 trait HealthController {
   this: AudioRepository with Props =>
   val healthController: HealthController
 
-  class HealthController extends ScalatraServlet {
+  class HealthController extends BaseHealthController {
 
     before() {
       ApplicationUrl.set(request)

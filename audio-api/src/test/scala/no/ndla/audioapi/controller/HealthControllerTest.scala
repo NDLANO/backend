@@ -26,6 +26,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     override def getApiResponse(url: String): HttpResponse[String] = httpResponseMock
   }
 
+  controller.setWarmedUp()
+
   val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
   val created = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
