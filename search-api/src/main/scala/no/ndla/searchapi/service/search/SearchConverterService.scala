@@ -603,7 +603,8 @@ trait SearchConverterService {
         paths = getPathsFromContext(searchableArticle.contexts),
         lastUpdated = searchableArticle.lastUpdated,
         license = Some(searchableArticle.license),
-        revisions = Seq.empty
+        revisions = Seq.empty,
+        responsible = None
       )
     }
 
@@ -635,6 +636,7 @@ trait SearchConverterService {
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
       val revisions =
         searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status.entryName))
+      val responsible = searchableDraft.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
 
       MultiSearchSummary(
         id = searchableDraft.id,
@@ -652,7 +654,8 @@ trait SearchConverterService {
         paths = getPathsFromContext(searchableDraft.contexts),
         lastUpdated = searchableDraft.lastUpdated,
         license = searchableDraft.license,
-        revisions = revisions
+        revisions = revisions,
+        responsible = responsible
       )
     }
 
@@ -701,7 +704,8 @@ trait SearchConverterService {
         paths = getPathsFromContext(searchableLearningPath.contexts),
         lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
-        revisions = Seq.empty
+        revisions = Seq.empty,
+        responsible = None
       )
     }
 
