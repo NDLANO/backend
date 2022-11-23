@@ -49,6 +49,11 @@ case class TaxonomyBundle(
     contentUriToResources.groupMap(_._1)(_._2)
   }
 
+  def getTopicSubject(topicId: String): List[TaxSubject] = {
+    val subjectConnections = subjectTopicConnectionsByTopicId.getOrElse(topicId, List.empty)
+    subjectConnections.flatMap(sc => subjectsById.get(sc.subjectid))
+  }
+
   /** Returns a flattened list of resourceType with its subtypes
     *
     * @param resourceType

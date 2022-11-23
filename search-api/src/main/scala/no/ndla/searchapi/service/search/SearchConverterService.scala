@@ -7,24 +7,22 @@
 
 package no.ndla.searchapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
+import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.{SearchLanguage, model}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration._
 import no.ndla.searchapi.model.api._
-import no.ndla.searchapi.model.api.article.ArticleSummary
-import no.ndla.searchapi.model.api.draft.DraftSummary
-import no.ndla.searchapi.model.api.learningpath.LearningPathSummary
-import no.ndla.search.{SearchLanguage, model}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.article.{LearningResourceType, _}
-import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep, StepType}
+import no.ndla.searchapi.model.domain.article._
+import no.ndla.searchapi.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.searchapi.model.grep._
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.taxonomy._
@@ -35,7 +33,6 @@ import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
-import cats.implicits._
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters._
@@ -733,7 +730,8 @@ trait SearchConverterService {
         filters = List.empty,
         learningResourceType = context.contextType,
         resourceTypes = resourceTypes,
-        language = language
+        language = language,
+        isPrimaryConnection = context.isPrimaryConnection
       )
 
     }
@@ -810,31 +808,28 @@ trait SearchConverterService {
       val resourceTypesWithParents = getConnectedResourceTypesWithParents(resourceTypeConnections, bundle)
 
       getContextType(resource.id, resource.contentUri) match {
+        case Failure(ex) => Failure(ex)
         case Success(contextType) =>
-          val contexts = topicsConnections.map({ tc =>
-            val relevanceId = tc.relevanceId.getOrElse("urn:relevance:core")
+          val contexts = topicsConnections.traverse({ topicConnection =>
+            val relevanceId = topicConnection.relevanceId.getOrElse("urn:relevance:core")
             val relevance   = getRelevanceNames(relevanceId, bundle)
 
-            val topic = bundle.topicById.get(tc.topicid)
-            topic
-              .map({ t =>
-                getParentTopicsAndPaths(t, bundle, List(t.id)).flatMap({ case (topic, topicPath) =>
-                  val topicShouldBeExcluded = filterVisibles && (!topic.metadata.forall(_.visible))
-                  if (topicShouldBeExcluded) {
-                    List.empty
-                  } else {
+            bundle.topicById.get(topicConnection.topicid) match {
+              case None => Success(List.empty)
+              case Some(topic) =>
+                val tp = TopicPath.from(topic, bundle)
+                tp.map(topicPath => {
+                  val topicShouldBeExcluded = filterVisibles && !topicPath.allVisible()
+                  if (topicShouldBeExcluded) List.empty
+                  else {
                     // Subjects needed to check visibility
-                    val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(topic.id, List.empty)
-                    val subjects           = subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
-
-                    val visibleSubjects = if (filterVisibles) {
-                      subjects.filter(_.metadata.forall(_.visible))
-                    } else {
-                      subjects
-                    }
+                    val subjects = bundle.getTopicSubject(topicPath.base.id)
+                    val visibleSubjects =
+                      if (filterVisibles) subjects.filter(_.metadata.forall(_.visible))
+                      else subjects
 
                     visibleSubjects.map(subject => {
-                      val pathIds = (resource.id +: topicPath :+ subject.id).reverse
+                      val pathIds = subject.id +: topicPath.idPath :+ resource.id
                       getSearchableTaxonomyContext(
                         resource.id,
                         pathIds,
@@ -843,18 +838,15 @@ trait SearchConverterService {
                         relevance,
                         contextType,
                         resourceTypesWithParents,
+                        topicConnection.primary,
                         bundle
                       )
-
                     })
-
                   }
                 })
-              })
-              .getOrElse(List.empty)
+            }
           })
-          Success(contexts.flatten)
-        case Failure(ex) => Failure(ex)
+          contexts.map(_.flatten)
       }
     }
 
@@ -879,6 +871,7 @@ trait SearchConverterService {
         relevance: SearchableLanguageValues,
         contextType: LearningResourceType.Value,
         resourceTypes: List[ResourceType],
+        isPrimaryConnection: Boolean,
         bundle: TaxonomyBundle
     ): SearchableTaxonomyContext = {
 
@@ -906,7 +899,8 @@ trait SearchConverterService {
         relevanceId = Some(relevanceId),
         relevance = relevance,
         resourceTypes = searchableResourceTypes,
-        parentTopicIds = parentTopics
+        parentTopicIds = parentTopics,
+        isPrimaryConnection = isPrimaryConnection
       )
     }
 
@@ -945,7 +939,6 @@ trait SearchConverterService {
         bundle: TaxonomyBundle
     ): Try[List[SearchableTaxonomyContext]] = {
       val parentTopicsConnections = bundle.topicSubtopicConnectionsBySubTopicId.getOrElse(topic.id, List.empty)
-      val parentTopicsAndPaths    = getParentTopicsAndPaths(topic, bundle, List(topic.id))
 
       val relevanceIds = parentTopicsConnections.length match {
         case 0 =>
@@ -956,25 +949,23 @@ trait SearchConverterService {
       }
 
       getContextType(topic.id, topic.contentUri) match {
+        case Failure(ex) => Failure(ex)
         case Success(contextType) =>
-          val contexts = parentTopicsAndPaths.map({ case (parentTopic, topicPath) =>
-            val topicShouldBeExcluded = filterVisibles && (!parentTopic.metadata.forall(_.visible))
-            if (topicShouldBeExcluded) {
-              List.empty
-            } else {
-              val subjectConnections = bundle.subjectTopicConnectionsByTopicId.getOrElse(parentTopic.id, List.empty)
-              val subjects =
-                subjectConnections.flatMap(sc => bundle.subjectsById.get(sc.subjectid))
+          val tp = TopicPath.from(topic, bundle)
+          tp.map(topicPath => {
+            val topicShouldBeExcluded = filterVisibles && !topicPath.allVisible()
+            val isPrimary             = topicPath.smallestChild.connection.forall(_.primary)
 
-              val visibleSubjects = if (filterVisibles) {
-                subjects.filter(subject => subject.metadata.exists(_.visible))
-              } else {
-                subjects
-              }
+            if (topicShouldBeExcluded) { List.empty }
+            else {
+              val subjects = bundle.getTopicSubject(topicPath.base.id)
+              val visibleSubjects =
+                if (filterVisibles) subjects.filter(_.metadata.forall(_.visible))
+                else subjects
 
               visibleSubjects.map(subject => {
-                val pathIds     = (topicPath :+ subject.id).reverse
-                val relevanceId = relevanceIds.headOption.getOrElse("urn.relevance.core")
+                val pathIds     = subject.id +: topicPath.idPath
+                val relevanceId = relevanceIds.headOption.getOrElse("urn:relevance:core")
                 val relevance   = getRelevanceNames(relevanceId, bundle)
 
                 getSearchableTaxonomyContext(
@@ -985,15 +976,13 @@ trait SearchConverterService {
                   relevance,
                   contextType,
                   List.empty,
+                  isPrimary,
                   bundle
                 )
               })
             }
           })
-          Success(contexts.flatten)
-        case Failure(ex) => Failure(ex)
       }
-
     }
 
     /** Parses [[TaxonomyBundle]] to get taxonomy for a single resource/topic.
