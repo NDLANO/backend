@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA learningpath-api.
+ * Copyright (C) 2022 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.scalatra.NdlaSwaggerSupport
