@@ -15,6 +15,7 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Title
+import no.ndla.learningpathapi.model.api.Stats
 import no.ndla.network.clients.FeideExtendedUserInfo
 import scalikejdbc.DBSession
 
@@ -29,13 +30,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID = 1
   val PRIVATE_ID   = 2
 
-  val PUBLISHED_OWNER = UserInfo("published_owner", Set.empty)
-  val PRIVATE_OWNER   = UserInfo("private_owner", Set.empty)
-  val cruz            = Author("author", "Lyin' Ted")
-  val license         = "publicdomain"
-  val copyright       = Copyright(license, List(cruz))
+  val PUBLISHED_OWNER: UserInfo = UserInfo("published_owner", Set.empty)
+  val PRIVATE_OWNER: UserInfo   = UserInfo("private_owner", Set.empty)
+  val cruz: Author              = Author("author", "Lyin' Ted")
+  val license                   = "publicdomain"
+  val copyright: Copyright      = Copyright(license, List(cruz))
 
-  val PUBLISHED_LEARNINGPATH = LearningPath(
+  val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(
     Some(PUBLISHED_ID),
     Some(1),
     None,
@@ -52,7 +53,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright
   )
 
-  val PRIVATE_LEARNINGPATH = LearningPath(
+  val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -69,7 +70,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright
   )
 
-  val STEP1 = LearningStep(
+  val STEP1: LearningStep = LearningStep(
     Some(1),
     Some(1),
     None,
@@ -84,7 +85,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     StepStatus.ACTIVE
   )
 
-  val STEP2 = LearningStep(
+  val STEP2: LearningStep = LearningStep(
     Some(2),
     Some(1),
     None,
@@ -99,7 +100,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     StepStatus.ACTIVE
   )
 
-  val STEP3 = LearningStep(
+  val STEP3: LearningStep = LearningStep(
     Some(3),
     Some(1),
     None,
@@ -114,7 +115,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     StepStatus.ACTIVE
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     service = new ReadService
     resetMocks()
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
@@ -122,14 +123,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That withIdV2 returns None when id does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.withIdV2(PUBLISHED_ID, "nb", false)
+    val Failure(ex) = service.withIdV2(PUBLISHED_ID, "nb", fallback = false)
     ex.isInstanceOf[NotFoundException]
   }
 
   test("That withIdV2 returns a learningPath when the status is PUBLISHED") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    val learningPath = service.withIdV2(PUBLISHED_ID, "nb", false)
+    val learningPath = service.withIdV2(PUBLISHED_ID, "nb", fallback = false)
     assert(learningPath.isSuccess)
     assert(learningPath.get.id == PUBLISHED_ID)
     assert(learningPath.get.status == "PUBLISHED")
@@ -138,7 +139,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That withId returns a learningPath when the status is PUBLISHED and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    val learningPath = service.withIdV2(PUBLISHED_ID, "nb", false, PRIVATE_OWNER)
+    val learningPath = service.withIdV2(PUBLISHED_ID, "nb", fallback = false, PRIVATE_OWNER)
     assert(learningPath.isSuccess)
     assert(learningPath.get.id == PUBLISHED_ID)
     assert(learningPath.get.status == "PUBLISHED")
@@ -147,21 +148,21 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That withId throws an AccessDeniedException when the status is PRIVATE and no user") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", false)
+    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That withId throws an AccessDeniedException when the status is PRIVATE and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", false, PUBLISHED_OWNER)
+    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false, PUBLISHED_OWNER)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That withId returns a learningPath when the status is PRIVATE and user is the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val learningPath = service.withIdV2(PRIVATE_ID, "nb", false, PRIVATE_OWNER)
+    val learningPath = service.withIdV2(PRIVATE_ID, "nb", fallback = false, PRIVATE_OWNER)
     assert(learningPath.isSuccess)
     assert(learningPath.get.id == PRIVATE_ID)
     assert(learningPath.get.status == "PRIVATE")
@@ -206,7 +207,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That learningstepsFor returns None when the learningPath does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", false)
+    val Failure(ex) = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", fallback = false)
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -215,7 +216,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(List())
-    val Failure(ex) = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", false)
+    val Failure(ex) = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", fallback = false)
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -224,7 +225,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(List(STEP1, STEP2.copy(status = StepStatus.DELETED), STEP3))
-    val learningSteps = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", false)
+    val learningSteps = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.ACTIVE, "nb", fallback = false)
     learningSteps.isSuccess should be(true)
     learningSteps.get.learningsteps.size should be(2)
     learningSteps.get.learningsteps.head.id should equal(STEP1.id.get)
@@ -236,7 +237,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(List(STEP1, STEP2.copy(status = StepStatus.DELETED), STEP3))
-    val learningSteps = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.DELETED, "nb", false)
+    val learningSteps = service.learningstepsForWithStatusV2(PUBLISHED_ID, StepStatus.DELETED, "nb", fallback = false)
     learningSteps.isSuccess should be(true)
     learningSteps.get.learningsteps.size should be(1)
     learningSteps.get.learningsteps.head.id should equal(STEP2.id.get)
@@ -245,14 +246,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That learningstepsFor throws an AccessDeniedException when the status is PRIVATE and no user") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", false)
+    val Failure(ex) = service.learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", fallback = false)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That learningstepsFor throws an AccessDeniedException when the status is PRIVATE and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", false, PUBLISHED_OWNER)
+    val Failure(ex) =
+      service.learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", fallback = false, PUBLISHED_OWNER)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -265,7 +267,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(List(STEP1, STEP2))
     assertResult(2) {
       service
-        .learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", false, PRIVATE_OWNER)
+        .learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", fallback = false, PRIVATE_OWNER)
         .get
         .learningsteps
         .length
@@ -274,7 +276,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That learningstepV2For returns None when the learningPath does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", false)
+    val Failure(ex) = service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", fallback = false)
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -283,7 +285,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(None)
-    val Failure(ex) = service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", false)
+    val Failure(ex) = service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", fallback = false)
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -293,7 +295,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(Some(STEP1))
     assertResult(STEP1.id.get) {
-      service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", false).get.id
+      service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", fallback = false).get.id
     }
   }
 
@@ -304,7 +306,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP1))
     assertResult(STEP1.id.get) {
       service
-        .learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", false, PRIVATE_OWNER)
+        .learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", fallback = false, PRIVATE_OWNER)
         .get
         .id
     }
@@ -313,14 +315,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That learningstepV2For throws an AccessDeniedException when the status is PRIVATE and no user") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", false)
+    val Failure(ex) = service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", fallback = false)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That learningstepFor throws an AccessDeniedException when the status is PRIVATE and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", false, PUBLISHED_OWNER)
+    val Failure(ex) = service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", fallback = false, PUBLISHED_OWNER)
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -445,7 +447,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(any)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any)(any)).thenReturn(Success(Some(whgaterh)))
 
-    val result = service.getSingleFolder(mainFolderUUID, true, true, None)
+    val result = service.getSingleFolder(mainFolderUUID, includeSubfolders = true, includeResources = true, None)
     result should be(Success(expected))
   }
 
@@ -456,7 +458,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(any)).thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFolderAndChildrenSubfolders(any)(any)).thenReturn(Success(Some(emptyDomainFolder)))
 
-    val result = service.getSingleFolder(mainFolderUUID, true, false, None)
+    val result = service.getSingleFolder(mainFolderUUID, includeSubfolders = true, includeResources = false, None)
     result should be(Failure(AccessDeniedException("You do not have access to this entity.")))
     verify(folderRepository, times(0)).foldersWithParentID(any)(any)
     verify(folderRepository, times(0)).getFolderResources(any)(any)
@@ -479,7 +481,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(any)).thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(any)).thenReturn(Success(favoriteDomainFolder))
 
-    val result = service.getFolders(false, false, Some("token"))
+    val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token"))
     result.get.length should be(1)
     result.get.find(_.name == "favorite").get should be(favoriteApiFolder)
 
@@ -625,5 +627,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(1)).updateUser(any, any)(any)
+  }
+
+  test("That getting stats fetches stats for my ndla usage") {
+    // when(userRepository.numberOfUsers()(any)).thenReturn(Some(5)) // replace later
+    when(folderRepository.numberOfUsers()(any)).thenReturn(Some(5))
+    when(folderRepository.numberOfFolders()(any)).thenReturn(Some(10))
+    when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
+    when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
+
+    service.getStats().get should be(Stats(5, 10, 20, 10))
   }
 }
