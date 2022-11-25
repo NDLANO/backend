@@ -114,6 +114,31 @@ trait InternController {
       }
     }
 
+    post("/reindex/:type/:id") {
+      val indexType = params("type")
+      val id        = long("id")
+
+      val Respond = (indexed: Try[Content]) => {
+        indexed match {
+          case Success(doc) => Created(doc)
+          case Failure(ex) =>
+            logger.error("Could not index document...", ex)
+            errorHandler(ex)
+        }
+      }
+
+      indexType match {
+        case articleIndexService.documentType      => Respond(articleIndexService.reindexDocument(id))
+        case draftIndexService.documentType        => Respond(draftIndexService.reindexDocument(id))
+        case learningPathIndexService.documentType => Respond(learningPathIndexService.reindexDocument(id))
+        case _ =>
+          BadRequest(
+            s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
+          )
+      }
+
+    }
+
     post("/index/draft") {
       val requestInfo = RequestInfo()
       val draftIndex = Future {

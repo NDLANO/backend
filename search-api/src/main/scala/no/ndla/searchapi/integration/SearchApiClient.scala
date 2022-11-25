@@ -38,6 +38,18 @@ trait SearchApiClient {
     val searchPath: String
     val dumpDomainPath: String = s"intern/dump/$name"
 
+    def getSingle[T](id: Long)(implicit mf: Manifest[T]): Try[T] = {
+      val path = s"$dumpDomainPath/$id"
+      get[T](path, Map.empty, timeout = 120000) match {
+        case Failure(ex) =>
+          logger.error(
+            s"Could not fetch single $name (id: $id) from '$baseUrl/$path'"
+          )
+          Failure(ex)
+        case Success(value) => Success(value)
+      }
+    }
+
     def getChunks[T](implicit mf: Manifest[T], ec: ExecutionContext): Iterator[Future[Try[Seq[T]]]] = {
       val fut     = getChunk(0, 0)
       val initial = Await.result(fut, 10.minutes)

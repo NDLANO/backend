@@ -94,6 +94,19 @@ trait IndexService {
       }
     }
 
+    def reindexDocument(id: Long)(implicit mf: Manifest[D]): Try[D] = {
+      for {
+        taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
+        grepBundle     <- grepApiClient.getGrepBundle()
+        _              <- createIndexIfNotExists()
+        toIndex        <- apiClient.getSingle[D](id)
+        request        <- createIndexRequest(toIndex, searchIndex, taxonomyBundle, Some(grepBundle))
+        _ <- e4sClient.execute {
+          request
+        }
+      } yield toIndex
+    }
+
     def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(implicit
         mf: Manifest[D]
     ): Try[ReindexResult] = {

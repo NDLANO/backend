@@ -108,6 +108,14 @@ trait InternController {
       readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished)
     }
 
+    get("/dump/learningpath/:learningpath_id") {
+      val learningpathId = long("learningpath_id")
+      learningPathRepository.withId(learningpathId) match {
+        case Some(value) => Ok(value)
+        case None        => NotFound()
+      }
+    }
+
     post("/dump/learningpath/?") {
       val dumpToInsert = extract[domain.LearningPath](request.body)
       updateService.insertDump(dumpToInsert)
