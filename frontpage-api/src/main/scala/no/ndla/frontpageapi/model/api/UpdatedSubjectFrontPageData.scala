@@ -7,13 +7,6 @@
 
 package no.ndla.frontpageapi.model.api
 
-import cats.effect.Sync
-import io.circe.Decoder
-import org.http4s.circe.jsonOf
-import org.http4s.EntityDecoder
-import io.circe.generic.semiauto._
-import io.circe.generic.auto._
-
 case class UpdatedSubjectFrontPageData(
     name: Option[String],
     filters: Option[List[String]],
@@ -30,7 +23,3 @@ case class UpdatedSubjectFrontPageData(
     latestContent: Option[List[String]],
     goTo: Option[List[String]]
 )
-
-object UpdatedSubjectFrontPageData {
-  implicit def decoder: Decoder[UpdatedSubjectFrontPageData] = deriveDecoder[UpdatedSubjectFrontPageData]
-}

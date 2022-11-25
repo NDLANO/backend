@@ -9,7 +9,6 @@ package no.ndla.frontpageapi.model.api
 
 import java.time.LocalDateTime
 import no.ndla.frontpageapi.Props
-import io.circe._, io.circe.generic.semiauto._
 
 sealed trait Error {
   val code: String

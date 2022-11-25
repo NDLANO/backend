@@ -6,7 +6,8 @@
  */
 
 package no.ndla.frontpageapi
-import cats.effect.{ExitCode, IO}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.{Host, Port}
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
@@ -24,7 +25,9 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
       "/" -> NdlaMiddleware(List(filmPageController))
     ).orNotFound
 
-    val serverBuilder = EmberServerBuilder
+    var serverReady = false
+
+    EmberServerBuilder
       .default[IO]
       .withHost(Host.fromString("0.0.0.0").get)
       .withPort(Port.fromInt(serverPort).get)
@@ -32,10 +35,12 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
       .build
       .use(server => {
         IO {
-          println(s"We running now boys ${server.address}")
+          println(s"${this.getClass.toString} is running server on ${server.address}")
+          serverReady = true
         }.flatMap(_ => IO.never)
       })
-    Thread.sleep(1000)
+      .unsafeToFuture()
+    blockUntil(() => serverReady)
   }
 
   test("Should return 200 when frontpage exist") {

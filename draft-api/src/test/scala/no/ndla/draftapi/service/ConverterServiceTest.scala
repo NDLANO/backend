@@ -7,22 +7,23 @@
 
 package no.ndla.draftapi.service
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.DateParser
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   ArticleContent,
-  Availability,
   ArticleIntroduction,
-  Title,
   ArticleMetaDescription,
   ArticleMetaImage,
-  Tag,
+  Availability,
   EditorNote,
   RequiredLibrary,
   Status,
+  Tag,
+  Title,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api

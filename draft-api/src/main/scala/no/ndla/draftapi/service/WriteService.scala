@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.service
 
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.Path

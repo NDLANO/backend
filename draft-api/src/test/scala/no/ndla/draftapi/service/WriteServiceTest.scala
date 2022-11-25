@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi.service
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{
   ArticleContent,
