@@ -11,6 +11,7 @@ export interface IApiTaxonomyContext {
   learningResourceType: string
   resourceTypes: ITaxonomyResourceType[]
   language: string
+  isPrimaryConnection: boolean
 }
 
 export interface IArticleIntroduction {
@@ -49,6 +50,11 @@ export interface IAudioResults {
   page: number
   pageSize: number
   results: IAudioResult[]
+}
+
+export interface IDraftResponsible {
+  responsibleId: string
+  lastUpdated: string
 }
 
 export interface IGroupSearchResult {
@@ -154,6 +160,7 @@ export interface IMultiSearchSummary {
   lastUpdated: string
   license?: string
   revisions: IRevisionMeta[]
+  responsible?: IDraftResponsible
 }
 
 export interface IMultiSearchTermsAggregation {
