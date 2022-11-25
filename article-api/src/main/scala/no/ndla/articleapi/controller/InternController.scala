@@ -117,6 +117,14 @@ trait InternController {
       readService.getArticleDomainDump(pageNo, pageSize)
     }
 
+    get("/dump/article/:article_id") {
+      val articleId = long("article_id")
+      articleRepository.withId(articleId) match {
+        case Some(value) => Ok(value)
+        case None        => NotFound()
+      }
+    }
+
     post("/validate/article") {
       val importValidate = booleanOrDefault("import_validate", default = false)
       val article        = extract[Article](request.body)
