@@ -19,5 +19,6 @@ case class SearchableTaxonomyContext(
     relevanceId: Option[String],
     relevance: SearchableLanguageValues,
     resourceTypes: List[SearchableTaxonomyResourceType],
-    parentTopicIds: List[String]
+    parentTopicIds: List[String],
+    isPrimaryConnection: Boolean
 )

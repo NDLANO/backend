@@ -44,14 +44,17 @@ class ArticleIndexServiceTest
     override val indexShards = 1
   }
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    articleIndexService.deleteIndexAndAlias()
+    articleIndexService.createIndexWithGeneratedName
+  }
+
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
   implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
-    articleIndexService.cleanupIndexes()
-    articleIndexService.createIndexWithGeneratedName
-
     articleIndexService.indexDocument(article5, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get
     articleIndexService.indexDocument(article6, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get
     articleIndexService.indexDocument(article7, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get

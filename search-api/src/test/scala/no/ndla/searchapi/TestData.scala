@@ -1447,7 +1447,8 @@ object TestData {
       relevanceId = Some("urn:relevance:core"),
       relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
       resourceTypes = searchableResourceTypes,
-      parentTopicIds = List("urn:topic:1")
+      parentTopicIds = List("urn:topic:1"),
+      isPrimaryConnection = true
     )
 
   val searchableTaxonomyContexts = List(

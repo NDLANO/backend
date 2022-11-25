@@ -7,12 +7,14 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status, Title}
 import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.taxonomy._
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.scalatest.Outcome
 
@@ -514,5 +516,170 @@ class MultiDraftSearchServiceAtomicTest
       .get
       .results
       .map(_.id) should be(Seq(2, 3, 1, 4))
+  }
+
+  test("That primary connections are handled correctly") {
+    val draft1 = TestData.draft1.copy(id = Some(1)) // T1
+    val draft2 = TestData.draft1.copy(id = Some(2)) // T2
+    val draft3 = TestData.draft1.copy(id = Some(3)) // T3
+    val draft4 = TestData.draft1.copy(id = Some(4)) // T4
+    val draft5 = TestData.draft1.copy(id = Some(5)) // R5 + R6
+
+    val taxonomyBundle = {
+      TaxonomyBundle(
+        relevances,
+        List.empty,
+        resourceTypes,
+        subjects = List(
+          TaxSubject(
+            "urn:subject:1",
+            "Matte",
+            None,
+            Some("/subject:1"),
+            visibleMetadata,
+            List.empty
+          )
+        ),
+        topics = List(
+          Topic(
+            "urn:topic:1",
+            "T1",
+            Some(s"urn:article:${draft1.id.get}"),
+            Some("/subject:1/topic:1"),
+            visibleMetadata,
+            List.empty
+          ),
+          Topic(
+            "urn:topic:2",
+            "T2",
+            Some(s"urn:article:${draft2.id.get}"),
+            Some("/subject:1/topic:2"),
+            visibleMetadata,
+            List.empty
+          ),
+          Topic(
+            "urn:topic:3",
+            "T3",
+            Some(s"urn:article:${draft3.id.get}"),
+            Some("/subject:1/topic:1/topic:3"),
+            visibleMetadata,
+            List.empty
+          ),
+          Topic(
+            "urn:topic:4",
+            "T4",
+            Some(s"urn:article:${draft4.id.get}"),
+            Some("/subject:1/topic:1/topic:4"),
+            visibleMetadata,
+            List.empty
+          )
+        ),
+        resources = List(
+          Resource(
+            "urn:resource:5",
+            "R5",
+            Some(s"urn:article:${draft5.id.get}"),
+            Some("/subject:1/topic:1/resource:5"),
+            visibleMetadata,
+            List.empty
+          ),
+          Resource(
+            "urn:resource:6",
+            "R6",
+            Some(s"urn:article:${draft5.id.get}"),
+            Some("/subject:1/topic:1/topic:3/resource:6"),
+            visibleMetadata,
+            List.empty
+          )
+        ),
+        subjectTopicConnections = List(
+          SubjectTopicConnection(
+            "urn:subject:1",
+            "urn:topic:1",
+            "urn:subject-topic:1",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          ),
+          SubjectTopicConnection(
+            "urn:subject:1",
+            "urn:topic:2",
+            "urn:subject-topic:2",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          )
+        ),
+        topicSubtopicConnections = List(
+          TopicSubtopicConnection(
+            "urn:topic:1",
+            "urn:topic:3",
+            "urn:topic-subtopic:1",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          ),
+          TopicSubtopicConnection(
+            "urn:topic:1",
+            "urn:topic:4",
+            "urn:topic-subtopic:2",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          )
+        ),
+        topicResourceConnections = List(
+          TopicResourceConnection(
+            "urn:topic:1",
+            "urn:resource:5",
+            "urn:topic-resource:1",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          ),
+          TopicResourceConnection(
+            "urn:topic:3",
+            "urn:resource:5",
+            "urn:topic-resource:1",
+            primary = false,
+            1,
+            Some("urn:relevance:core")
+          ),
+          TopicResourceConnection(
+            "urn:topic:3",
+            "urn:resource:6",
+            "urn:topic-resource:2",
+            primary = true,
+            1,
+            Some("urn:relevance:core")
+          )
+        )
+      )
+    }
+
+    {
+      draftIndexService.indexDocument(draft1, taxonomyBundle, Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft2, taxonomyBundle, Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft3, taxonomyBundle, Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft4, taxonomyBundle, Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft5, taxonomyBundle, Some(grepBundle)).failIfFailure
+      blockUntil(() => draftIndexService.countDocuments == 5)
+    }
+
+    val result = multiDraftSearchService.matchingQuery(multiDraftSearchSettings).get
+
+    def ctxsFor(id: Long): List[ApiTaxonomyContext] = result.results.find(_.id == id).get.contexts
+    def ctxFor(id: Long): ApiTaxonomyContext = {
+      val ctxs = ctxsFor(id)
+      ctxs.length should be(1)
+      ctxs.head
+    }
+
+    ctxFor(1).isPrimaryConnection should be(true)
+    ctxFor(2).isPrimaryConnection should be(true)
+    ctxFor(3).isPrimaryConnection should be(true)
+    ctxFor(4).isPrimaryConnection should be(true)
+    ctxsFor(5).map(_.isPrimaryConnection) should be(Seq(true, false, true))
+
   }
 }

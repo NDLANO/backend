@@ -23,5 +23,7 @@ case class ApiTaxonomyContext(
     @(ApiModelProperty @field)(description = "Filters connected to this object and subject. NOT IN USE.") filters: List[TaxonomyContextFilter], //TODO: To be removed
     @(ApiModelProperty @field)(description = "Type in this context.") learningResourceType: String,
     @(ApiModelProperty @field)(description = "Resource-types of this context.") resourceTypes: List[TaxonomyResourceType],
-    @(ApiModelProperty @field)(description = "Language for this context") language: String)
+    @(ApiModelProperty @field)(description = "Language for this context") language: String,
+    @(ApiModelProperty @field)(description = "Whether this context is the primary connection") isPrimaryConnection: Boolean
+)
 // format: on
