@@ -439,7 +439,8 @@ trait SearchConverterService {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       val searchableArticle         = read[SearchableArticle](hit.sourceAsString)
 
-      val contexts = searchableArticle.contexts.map(c => searchableContextToApiContext(c, language))
+      val contexts =
+        searchableArticle.contexts.sortBy(!_.isPrimaryConnection).map(c => searchableContextToApiContext(c, language))
 
       val titles = searchableArticle.title.languageValues.map(lv => api.Title(lv.value, lv.language))
       val introductions =
@@ -489,7 +490,8 @@ trait SearchConverterService {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       val searchableDraft           = read[SearchableDraft](hit.sourceAsString)
 
-      val contexts = searchableDraft.contexts.map(c => searchableContextToApiContext(c, language))
+      val contexts =
+        searchableDraft.contexts.sortBy(!_.isPrimaryConnection).map(c => searchableContextToApiContext(c, language))
 
       val titles = searchableDraft.title.languageValues.map(lv => api.Title(lv.value, lv.language))
       val introductions =
