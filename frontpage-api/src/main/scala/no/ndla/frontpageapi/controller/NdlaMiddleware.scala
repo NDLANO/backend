@@ -33,7 +33,7 @@ trait NdlaMiddleware {
     def asNdlaHttpRequest[F[+_]](req: Request[F]): NdlaHttpRequest =
       NdlaHttpRequest(
         serverPort = req.serverPort.map(_.value).getOrElse(-1),
-        getHeader = name => req.headers.get(CIString(name)).map(_.head.value),
+        getHeaderFunc = name => req.headers.get(CIString(name)).map(_.head.value),
         getScheme = req.uri.scheme.map(_.value).getOrElse("http"),
         serverName = req.serverAddr.map(_.toUriString).getOrElse("localhost"),
         servletPath = req.uri.path.renderString
