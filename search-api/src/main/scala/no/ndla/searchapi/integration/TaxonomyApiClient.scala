@@ -111,7 +111,9 @@ trait TaxonomyApiClient {
       )
     }
 
-    private def getPaginated[T](url: String, endpoint: String, pageSize: Int)(implicit mf: Manifest[T]): Try[List[T]] = {
+    private def getPaginated[T](url: String, endpoint: String, pageSize: Int)(implicit
+        mf: Manifest[T]
+    ): Try[List[T]] = {
       def fetchPage(page: Int, pageSize: Int = pageSize): Try[PaginationPage[T]] =
         get[PaginationPage[T]](s"$url$endpoint", "page" -> page.toString, "pageSize" -> pageSize.toString)
 
