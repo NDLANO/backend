@@ -517,5 +517,29 @@ trait FolderRepository {
           Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
       }
 
+    def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${DBResource.table}) as tag"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBResource.table}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBFolder.table}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(distinct feide_id) from ${DBFolder.table}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
   }
 }

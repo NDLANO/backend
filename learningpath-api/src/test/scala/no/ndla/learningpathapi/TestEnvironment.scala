@@ -16,7 +16,8 @@ import no.ndla.learningpathapi.controller.{
   HealthController,
   InternController,
   LearningpathControllerV2,
-  NdlaController
+  NdlaController,
+  StatsController
 }
 import no.ndla.learningpathapi.integration._
 import no.ndla.learningpathapi.model.api.ErrorHelpers
@@ -45,6 +46,7 @@ import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends LearningpathControllerV2
+    with StatsController
     with ConfigController
     with NdlaControllerBase
     with NdlaSwaggerSupport
@@ -111,6 +113,7 @@ trait TestEnvironment
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
   val configController: ConfigController                               = mock[ConfigController]
+  val statsController: StatsController                                 = mock[StatsController]
   val healthController: HealthController                               = mock[HealthController]
   val internController: InternController                               = mock[InternController]
   val learningStepValidator: LearningStepValidator                     = mock[LearningStepValidator]

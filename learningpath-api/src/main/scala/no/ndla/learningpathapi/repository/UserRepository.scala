@@ -100,6 +100,11 @@ trait UserRepository {
         .single()
     }
 
+    def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBMyNDLAUser.table}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
   }
 
 }

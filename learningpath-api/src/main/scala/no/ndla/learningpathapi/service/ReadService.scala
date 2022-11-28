@@ -406,5 +406,16 @@ trait ReadService {
         api = converterService.toApiUserData(userData)
       } yield api
     }
+
+    def getStats(): Option[Stats] = {
+      implicit val session: DBSession = folderRepository.getSession(true)
+      for {
+        numberOfUsers     <- folderRepository.numberOfUsers()
+        numberOfFolders   <- folderRepository.numberOfFolders()
+        numberOfResources <- folderRepository.numberOfResources()
+        numberOfTags      <- folderRepository.numberOfTags()
+        stats = Stats(numberOfUsers, numberOfFolders, numberOfResources, numberOfTags)
+      } yield stats
+    }
   }
 }
