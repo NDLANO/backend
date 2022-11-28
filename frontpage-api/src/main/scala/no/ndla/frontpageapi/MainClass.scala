@@ -13,7 +13,6 @@ import com.comcast.ip4s.{Host, Port}
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.Warmup
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.server.Router
 import org.http4s.{Request, Response}
 import org.log4s.{Logger, getLogger}
 
@@ -47,13 +46,7 @@ class MainClass(props: FrontpageApiProperties) extends IOApp {
     }
   }
 
-  private def buildRouter(): Kleisli[IO, Request[IO], Response[IO]] = {
-    logger.info("Building swagger service")
-    val router = Router[IO](componentRegistry.routes: _*)
-    Kleisli[IO, Request[IO], Response[IO]](a => {
-      router.run(a).getOrElse(componentRegistry.getFallbackRoute)
-    })
-  }
+  private def buildRouter(): Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
 
   override def run(args: List[String]): IO[ExitCode] = {
     setPropsFromEnv()

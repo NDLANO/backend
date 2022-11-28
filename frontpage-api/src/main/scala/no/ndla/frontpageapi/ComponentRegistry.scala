@@ -7,25 +7,16 @@
 
 package no.ndla.frontpageapi
 
+import cats.data.Kleisli
 import cats.effect.IO
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.frontpageapi.controller._
 import no.ndla.frontpageapi.integration.DataSource
-import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.frontpageapi.controller.{
-  FallbackRoute,
-  FilmPageController,
-  FrontPageController,
-  HealthController,
-  InternController,
-  NdlaMiddleware,
-  Service,
-  SubjectPageController,
-  SwaggerDocController
-}
 import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
-import org.http4s.HttpRoutes
+import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
+import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
+import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: FrontpageApiProperties)
     extends DataSource
@@ -49,8 +40,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with Service
     with Routes
     with NdlaMiddleware
-    with SwaggerDocController
-    with FallbackRoute {
+    with SwaggerDocController {
   override val props: FrontpageApiProperties = properties
   override val migrator                      = new DBMigrator
   override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
@@ -79,5 +69,5 @@ class ComponentRegistry(properties: FrontpageApiProperties)
 
   override val swaggerDocController = new SwaggerDocController(services)
 
-  def routes: List[(String, HttpRoutes[IO])] = Routes.build(services :+ swaggerDocController)
+  def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
 }

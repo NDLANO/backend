@@ -10,8 +10,6 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.{Host, Port}
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits._
-import org.http4s.server.Router
 import scalaj.http.Http
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment {
@@ -21,9 +19,7 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
   override val filmPageController = new FilmPageController()
 
   override def beforeAll(): Unit = {
-    val app = Router[IO](
-      "/" -> NdlaMiddleware(List(filmPageController))
-    ).orNotFound
+    val app = Routes.build(List(filmPageController))
 
     var serverReady = false
 
@@ -45,13 +41,13 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
 
   test("Should return 200 when frontpage exist") {
     when(readService.filmFrontPage(None)).thenReturn(Some(TestData.apiFilmFrontPage))
-    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/film").method("GET").asString
+    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage").method("GET").asString
     response.code should equal(200)
   }
 
   test("Should return 404 when no frontpage found") {
     when(readService.filmFrontPage(None)).thenReturn(None)
-    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/film").method("GET").asString
+    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage").method("GET").asString
     response.code should equal(404)
   }
 

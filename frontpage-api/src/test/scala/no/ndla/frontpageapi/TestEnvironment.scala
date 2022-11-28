@@ -33,7 +33,8 @@ trait TestEnvironment
     with DBSubjectFrontPageData
     with DBFrontPageData
     with ErrorHelpers
-    with DBMigrator {
+    with DBMigrator
+    with Routes {
   override val props = new FrontpageApiProperties
 
   override val migrator   = mock[DBMigrator]
