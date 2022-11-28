@@ -518,7 +518,7 @@ trait FolderRepository {
       }
 
     def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(distinct document->'tags') from ${DBResource.table}"
+      sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${DBResource.table}) as tag"
         .map(rs => rs.long("count"))
         .single()
     }
