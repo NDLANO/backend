@@ -9,22 +9,24 @@ package no.ndla.network.model
 
 import javax.servlet.http.HttpServletRequest
 
-trait NdlaHttpRequest {
-  def serverPort: Int
-  def getHeader(name: String): Option[String]
-  def getScheme: String
-  def serverName: String
-  def servletPath: String
+case class NdlaHttpRequest(
+    serverPort: Int,
+    getScheme: String,
+    getHeaderFunc: String => Option[String],
+    serverName: String,
+    servletPath: String
+) {
+  def getHeader(name: String): Option[String] = getHeaderFunc(name)
 }
 
 object NdlaHttpRequest {
 
   def apply(req: HttpServletRequest): NdlaHttpRequest =
-    new NdlaHttpRequest {
-      override def serverPort: Int                         = req.getServerPort
-      override def getHeader(name: String): Option[String] = Option(req.getHeader(name))
-      override def getScheme: String                       = req.getScheme
-      override def serverName: String                      = req.getServerName
-      override def servletPath: String                     = req.getServletPath
-    }
+    NdlaHttpRequest(
+      serverPort = req.getServerPort,
+      getHeaderFunc = name => Option(req.getHeader(name)),
+      getScheme = req.getScheme,
+      serverName = req.getServerName,
+      servletPath = req.getServletPath
+    )
 }

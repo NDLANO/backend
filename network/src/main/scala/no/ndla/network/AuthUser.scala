@@ -32,7 +32,7 @@ object AuthUser {
   def set(request: HttpServletRequest): Unit = set(NdlaHttpRequest(request))
 
   def set(request: NdlaHttpRequest): Unit = {
-    val jWTExtractor = new JWTExtractor(request)
+    val jWTExtractor = JWTExtractor(request)
     jWTExtractor.extractUserId().foreach(setId)
     setRoles(jWTExtractor.extractUserRoles())
     jWTExtractor.extractUserName().foreach(setName)

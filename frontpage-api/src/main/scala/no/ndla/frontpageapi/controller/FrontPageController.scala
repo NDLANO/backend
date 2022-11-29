@@ -7,30 +7,38 @@
 
 package no.ndla.frontpageapi.controller
 
-import cats.effect.{Effect, IO}
+import cats.effect.IO
+import cats.implicits._
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import org.http4s.rho.RhoRoutes
-import org.http4s.rho.swagger.SwaggerSyntax
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.server.ServerEndpoint
 
 trait FrontPageController {
-  this: ReadService with WriteService with ErrorHelpers =>
-  val frontPageController: FrontPageController[IO]
+  this: ReadService with WriteService with ErrorHelpers with Service =>
+  val frontPageController: FrontPageController
 
-  class FrontPageController[F[+_]: Effect](swaggerSyntax: SwaggerSyntax[F]) extends RhoRoutes[F] {
+  class FrontPageController() extends SwaggerService {
+    override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "frontpage"
 
-    import swaggerSyntax._
+    private val errorOutputs = oneOf(
+      oneOfVariant(NotFoundError),
+      oneOfVariant(GenericError)
+    )
 
-    "Get data to display on the front page" **
-      GET |>> { () =>
-        {
+    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+      endpoint.get
+        .summary("Get data to display on the front page")
+        .out(jsonBody[FrontPageData])
+        .errorOut(errorOutputs)
+        .serverLogicPure(_ =>
           readService.frontPage match {
-            case Some(s) => Ok(s)
-            case None    => NotFound(ErrorHelpers.notFound)
+            case Some(s) => s.asRight
+            case None    => ErrorHelpers.notFound.asLeft
           }
-        }
-      }
-
+        )
+    )
   }
-
 }

@@ -123,7 +123,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That Authorization header is added to request if set on Thread") {
-    val servletRequestMock = mock[HttpServletRequest]
+    val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
     val httpRequestMock    = mock[HttpRequest]
     val httpResponseMock   = mock[HttpResponse[String]]
     val authHeaderKey      = "Authorization"
@@ -146,7 +146,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
-    val servletRequestMock = mock[HttpServletRequest]
+    val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
     val httpRequestMock    = mock[HttpRequest]
     val authHeaderKey      = "Authorization"
     val authHeader         = "abc"

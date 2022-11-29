@@ -10,13 +10,19 @@ package no.ndla.frontpageapi.controller
 import cats.effect.IO
 import no.ndla.common.Warmup
 import org.http4s.HttpRoutes
-import org.http4s.dsl.impl.Root
 import org.http4s.dsl.io._
 
-object HealthController extends Warmup {
+trait HealthController {
+  this: Service =>
 
-  def apply(): HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-    if (isWarmedUp) Ok("Health check succeeded")
-    else InternalServerError("Warmup hasn't finished")
+  val healthController: HealthController
+
+  class HealthController extends Warmup with NoDocService {
+    override def getBinding: (String, HttpRoutes[IO]) = "/health" -> {
+      HttpRoutes.of[IO] { case GET -> Root =>
+        if (isWarmedUp) Ok("Health check succeeded")
+        else InternalServerError("Warmup hasn't finished")
+      }
+    }
   }
 }

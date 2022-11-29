@@ -9,21 +9,18 @@ package no.ndla.frontpageapi.model.api
 
 import java.time.LocalDateTime
 import no.ndla.frontpageapi.Props
-import cats.Applicative
-import cats.effect.Sync
-import org.http4s.circe.{jsonEncoderOf, jsonOf}
-import org.http4s.{EntityDecoder, EntityEncoder}
-import io.circe.generic.semiauto._
 
-case class Error(code: String, description: String, occuredAt: LocalDateTime)
-
-object Error {
-  implicit def encoder[F[_]: Applicative]: EntityEncoder[F, Error] =
-    jsonEncoderOf[F, Error](deriveEncoder[Error])
-
-  implicit def decoder[F[_]: Sync]: EntityDecoder[F, Error] =
-    jsonOf[F, Error](Sync[F], deriveDecoder[Error])
+sealed trait Error {
+  val code: String
+  val description: String
+  val occuredAt: LocalDateTime
 }
+case class NotFoundError(code: String, description: String, occuredAt: LocalDateTime)
+case class GenericError(code: String, description: String, occuredAt: LocalDateTime)
+case class BadRequestError(code: String, description: String, occuredAt: LocalDateTime)
+case class UnprocessableEntityError(code: String, description: String, occuredAt: LocalDateTime)
+case class UnauthorizedError(code: String, description: String, occuredAt: LocalDateTime)
+case class ForbiddenError(code: String, description: String, occuredAt: LocalDateTime)
 
 trait ErrorHelpers {
   this: Props =>
@@ -43,11 +40,12 @@ trait ErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: Error                          = Error(GENERIC, GENERIC_DESCRIPTION, LocalDateTime.now)
-    def notFound: Error                         = Error(NOT_FOUND, NOT_FOUND_DESCRIPTION, LocalDateTime.now)
-    def badRequest(msg: String): Error          = Error(BAD_REQUEST, msg, LocalDateTime.now)
-    def unprocessableEntity(msg: String): Error = Error(UNPROCESSABLE_ENTITY, msg, LocalDateTime.now)
-    def unauthorized: Error                     = Error(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, LocalDateTime.now)
-    def forbidden: Error                        = Error(FORBIDDEN, FORBIDDEN_DESCRIPTION, LocalDateTime.now)
+    def generic: GenericError                    = GenericError(GENERIC, GENERIC_DESCRIPTION, LocalDateTime.now)
+    def notFound: NotFoundError                  = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, LocalDateTime.now)
+    def badRequest(msg: String): BadRequestError = BadRequestError(BAD_REQUEST, msg, LocalDateTime.now)
+    def unprocessableEntity(msg: String): UnprocessableEntityError =
+      UnprocessableEntityError(UNPROCESSABLE_ENTITY, msg, LocalDateTime.now)
+    def unauthorized: UnauthorizedError = UnauthorizedError(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, LocalDateTime.now)
+    def forbidden: ForbiddenError       = ForbiddenError(FORBIDDEN, FORBIDDEN_DESCRIPTION, LocalDateTime.now)
   }
 }

@@ -7,17 +7,16 @@
 
 package no.ndla.frontpageapi
 
+import cats.data.Kleisli
 import cats.effect.{ExitCode, IO, IOApp}
+import com.comcast.ip4s.{Host, Port}
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.Warmup
-import no.ndla.frontpageapi.controller.HealthController
-import org.http4s.implicits._
-import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.{Request, Response}
 import org.log4s.{Logger, getLogger}
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.io.Source
 
 class MainClass(props: FrontpageApiProperties) extends IOApp {
@@ -40,12 +39,14 @@ class MainClass(props: FrontpageApiProperties) extends IOApp {
       warmupRequest("/frontpage-api/v1/subjectpage/1", Map.empty)
       warmupRequest("/health", Map.empty)
 
-      HealthController.setWarmedUp()
+      componentRegistry.healthController.setWarmedUp()
 
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
     }
   }
+
+  private def buildRouter(): Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
 
   override def run(args: List[String]): IO[ExitCode] = {
     setPropsFromEnv()
@@ -59,26 +60,22 @@ class MainClass(props: FrontpageApiProperties) extends IOApp {
     logger.info("Starting database migration")
     componentRegistry.migrator.migrate()
 
-    logger.info("Building swagger service")
-    val routes = Routes.buildRoutes(componentRegistry, props)
+    val app = buildRouter()
 
     logger.info(s"Starting on port ${props.ApplicationPort}")
-    val app = Router[IO](
-      routes.map(r => r.mountPoint -> r.toRoutes): _*
-    ).orNotFound
-
-    val executorService  = Executors.newWorkStealingPool(props.NumThreads)
-    val executionContext = ExecutionContext.fromExecutor(executorService)
-
-    warmup()
-
-    BlazeServerBuilder[IO](executionContext)
+    val server = EmberServerBuilder
+      .default[IO]
+      .withHost(Host.fromString("0.0.0.0").get)
+      .withPort(Port.fromInt(props.ApplicationPort).get)
       .withHttpApp(app)
-      .bindHttp(props.ApplicationPort, "0.0.0.0")
-      .serve
-      .compile
-      .drain
-      .as(ExitCode.Success)
+      .build
+      .use(server => {
+        IO {
+          logger.info(s"Server has started at ${server.address}")
+          warmup()
+        }.flatMap(_ => IO.never)
+      })
 
+    server.as(ExitCode.Success)
   }
 }

@@ -13,7 +13,7 @@ import no.ndla.network.model.NdlaHttpRequest
 class JWTExtractorTest extends UnitSuite {
 
   val token =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwwMDAwMDAwMDAwIiwiYXVkIjoibmRsYV9zeXN0ZW0iLCJhenAiOiJXVTBLcjRDRGtyTTB1TCIsImV4cCI6MTUwNjM1Mjg2MSwiaWF0IjoxNTA2MzQ2OTAzLCJzY29wZSI6Imxpc3RpbmctdGVzdDp3cml0ZSBhcnRpY2xlcy1zdGFnaW5nOndyaXRlIGF1ZGlvLXN0YWdpbmc6d3JpdGUgZHJhZnRzOndyaXRlIiwiaHR0cHM6Ly9uZGxhLm5vL25kbGFfaWQiOiJkZXR0ZV9lcl9lbl9uZGxhX2lkIiwiaHR0cHM6Ly9uZGxhLm5vL3VzZXJfbmFtZSI6IlRlc3QgVGVzdGVzZW4iLCJqdGkiOiI4OTMwMDY4YS0zMTkzLTRjYjgtOGI1Ni1lNzU3MjdhYjdmZDUifQ.RMGlftkqu2kPvN9JWo5L3aaJMPS19sVfgINZtfPFhTM"
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwwMDAwMDAwMDAwIiwiYXVkIjoibmRsYV9zeXN0ZW0iLCJhenAiOiJXVTBLcjRDRGtyTTB1TCIsImV4cCI6MTUwNjM1Mjg2MSwiaWF0IjoxNTA2MzQ2OTAzLCJzY29wZSI6Imxpc3Rpbmc6d3JpdGUgZHJhZnRzOndyaXRlIiwiaHR0cHM6Ly9uZGxhLm5vL25kbGFfaWQiOiJkZXR0ZV9lcl9lbl9uZGxhX2lkIiwiaHR0cHM6Ly9uZGxhLm5vL3VzZXJfbmFtZSI6IlRlc3QgVGVzdGVzZW4iLCJqdGkiOiI4OTMwMDY4YS0zMTkzLTRjYjgtOGI1Ni1lNzU3MjdhYjdmZDUifQ.X-3bTtv8f_DUEgy60wkDazO12gtoeEbXKRHQV4Sd8rQ"
 
   val tokenWithCustomClientIdField =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwwMDAwMDAwMDAwIiwiYXVkIjoibmRsYV9zeXN0ZW0iLCJhenAiOiJXVTBLcjRDRGtyTTB1TCIsImV4cCI6MTUwNjM1Mjg2MSwiaWF0IjoxNTA2MzQ2OTAzLCJzY29wZSI6Imxpc3RpbmctdGVzdDp3cml0ZSBhcnRpY2xlcy1zdGFnaW5nOndyaXRlIGF1ZGlvLXN0YWdpbmc6d3JpdGUgZHJhZnRzOndyaXRlIiwiaHR0cHM6Ly9uZGxhLm5vL25kbGFfaWQiOiJkZXR0ZV9lcl9lbl9uZGxhX2lkIiwiaHR0cHM6Ly9uZGxhLm5vL3VzZXJfbmFtZSI6IlRlc3QgVGVzdGVzZW4iLCJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoia2xkc2ZqYWxza2RmaiIsImp0aSI6Ijg5MzAwNjhhLTMxOTMtNGNiOC04YjU2LWU3NTcyN2FiN2ZkNSJ9.lXCVD0dGN564GZa6MYwcUA40eD_8IO1kVEfXdLgTB3g"
@@ -21,14 +21,14 @@ class JWTExtractorTest extends UnitSuite {
   test("That userId is None when no authorization header is set") {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader(any[String])).thenReturn(None)
-    new JWTExtractor(request).extractUserId() should be(None)
+    JWTExtractor(request).extractUserId() should be(None)
   }
 
   test("That userId is None when an illegal JWT is set") {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some("This is an invalid JWT"))
 
-    new JWTExtractor(request).extractUserId() should be(None)
+    JWTExtractor(request).extractUserId() should be(None)
   }
 
   test("That userId is None when no ndla_id is present") {
@@ -36,7 +36,7 @@ class JWTExtractorTest extends UnitSuite {
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL25kbGEuZXUuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MDAwMDAwMDAwMCIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiV1UwS3I0Q0Rrck0wdUwiLCJleHAiOjE1MDY1MTg3NjQsImlhdCI6MTUwNjM0NjkwMywic2NvcGUiOiJsaXN0aW5nLXRlc3Q6d3JpdGUgYXJ0aWNsZXMtdGVzdDp3cml0ZSBhcnRpY2xlcy1zdGFnaW5nOndyaXRlIGF1ZGlvLXN0YWdpbmc6d3JpdGUiLCJodHRwczovL25kbGEubm8vdXNlcl9uYW1lIjoiVGVzdCBUZXN0ZXNlbiIsImp0aSI6IjNmYmNlNDk1LTlmMDMtNDE0Ny1hNjcyLTVmZjYzOGVjMDkyNCJ9.aWQ2lqSXzsMgr_dd5S5xHKKGqPVRX7LdnH2nkSUlM-0"
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $tokenWithoutUserId"))
-    new JWTExtractor(request).extractUserId() should be(None)
+    JWTExtractor(request).extractUserId() should be(None)
   }
 
   test("That JWTExtractor.extractUserId is set even if roles are not present") {
@@ -44,7 +44,7 @@ class JWTExtractorTest extends UnitSuite {
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL25kbGEuZXUuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MDAwMDAwMDAwMCIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiV1UwS3I0Q0Rrck0wdUwiLCJleHAiOjE1MDY1MTc1ODQsImlhdCI6MTUwNjM0NjkwMywiaHR0cHM6Ly9uZGxhLm5vL25kbGFfaWQiOiJkZXR0ZV9lcl9lbl9uZGxhX2lkIiwiaHR0cHM6Ly9uZGxhLm5vL3VzZXJfbmFtZSI6IlRlc3QgVGVzdGVzZW4iLCJqdGkiOiJiNGVlZmQwZi0zNjg1LTQwMWItYjY3MC02MzUyY2NmNGQzNTgifQ.8vEYDokCZYAIz1Vq7R-NfU0NrcI9hpoIL7316fFYF_A"
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $tokenWithoutRoles"))
-    val jWTExtractor = new JWTExtractor(request)
+    val jWTExtractor = JWTExtractor(request)
     jWTExtractor.extractUserId() should equal(Some("dette_er_en_ndla_id"))
     jWTExtractor.extractUserRoles() should equal(List.empty)
   }
@@ -54,7 +54,7 @@ class JWTExtractorTest extends UnitSuite {
       val request = mock[NdlaHttpRequest]
       when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $token"))
 
-      val jwtExtractor = new JWTExtractor(request)
+      val jwtExtractor = JWTExtractor(request)
       val roles        = jwtExtractor.extractUserRoles()
       roles.size should be(2)
       roles.contains("listing:write") should be(true)
@@ -66,7 +66,7 @@ class JWTExtractorTest extends UnitSuite {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $token"))
 
-    val jwtExtractor = new JWTExtractor(request)
+    val jwtExtractor = JWTExtractor(request)
     jwtExtractor.extractUserName() should equal(Some("Test Testesen"))
   }
 
@@ -74,7 +74,7 @@ class JWTExtractorTest extends UnitSuite {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $tokenWithCustomClientIdField"))
 
-    val jwtExtractor = new JWTExtractor(request)
+    val jwtExtractor = JWTExtractor(request)
     jwtExtractor.extractClientId() should equal(Some("WU0Kr4CDkrM0uL"))
   }
 
@@ -85,7 +85,7 @@ class JWTExtractorTest extends UnitSuite {
     val request = mock[NdlaHttpRequest]
     when(request.getHeader("Authorization")).thenReturn(Some(s"Bearer $token"))
 
-    val jw  = new JWTExtractor(request)
+    val jw  = JWTExtractor(request)
     val res = jw.extractUserRoles()
     res should be(
       List(
