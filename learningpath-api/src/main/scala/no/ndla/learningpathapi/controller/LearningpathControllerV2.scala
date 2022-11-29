@@ -282,15 +282,17 @@ trait LearningpathControllerV2 {
       operation(
         apiOperation[List[LearningPathV2]]("getLearningpathsByIds")
           .summary("Fetch learningpaths that matches ids parameter.")
-          .description("Returns articles that matches ids parameter.")
+          .description("Returns learningpaths that matches ids parameter.")
           .parameters(
+            asHeaderParam(correlationId),
             asQueryParam(ids),
             asQueryParam(fallback),
             asQueryParam(language),
             asQueryParam(pageSize),
             asQueryParam(pageNo)
           )
-          .responseMessages(response500)
+          .responseMessages(response403, response500)
+          .authorizations("oauth2")
       )
     ) {
       val userInfo = UserInfo.getUserOrPublic
@@ -307,12 +309,12 @@ trait LearningpathControllerV2 {
       }
       if (!userInfo.isNdla) {
         errorHandler(AccessDeniedException("You do not have access to the requested resources."))
+      } else {
+        readService.withIdV2List(idList, language, fallback, page, pageSize, userInfo) match {
+          case Failure(ex)       => errorHandler(ex)
+          case Success(articles) => Ok(articles)
+        }
       }
-      readService.withIdV2List(idList, language, fallback, page, pageSize, userInfo) match {
-        case Failure(ex)       => errorHandler(ex)
-        case Success(articles) => Ok(articles)
-      }
-
     }
 
     get(
