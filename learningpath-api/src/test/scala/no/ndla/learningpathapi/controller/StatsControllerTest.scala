@@ -25,7 +25,7 @@ class StatsControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
   }
 
   test("That getting stats returns in fact stats") {
-    when(readService.getStats()).thenReturn(Some(Stats(1, 2, 3, 4)))
+    when(readService.getStats).thenReturn(Some(Stats(1, 2, 3, 4)))
     get("/") {
       status should be(200)
     }

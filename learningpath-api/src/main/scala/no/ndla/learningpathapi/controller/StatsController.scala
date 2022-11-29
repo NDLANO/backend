@@ -40,7 +40,7 @@ trait StatsController {
           .responseMessages(response404, response500, response502)
       )
     ) {
-      readService.getStats() match {
+      readService.getStats match {
         case Some(c) => Ok(c)
         case None    => NotFound("No stats found")
       }

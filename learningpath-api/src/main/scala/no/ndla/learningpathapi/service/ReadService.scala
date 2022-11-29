@@ -10,9 +10,8 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits._
 import no.ndla.common.Clock
-import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.learningpathapi.model.api._
-import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
   StepStatus,
@@ -22,6 +21,7 @@ import no.ndla.learningpathapi.model.domain.{
   LearningPathTags => _,
   _
 }
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,
   FolderRepository,
@@ -77,6 +77,24 @@ trait ReadService {
       learningPathRepository
         .withOwner(user.userId)
         .flatMap(value => converterService.asApiLearningpathSummaryV2(value, user).toOption)
+    }
+
+    def withIdV2List(
+        ids: Seq[Long],
+        language: String,
+        fallback: Boolean,
+        page: Long,
+        pageSize: Long,
+        userInfo: UserInfo
+    ): Try[Seq[LearningPathV2]] = {
+      if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+      else {
+        val offset        = (page - 1) * pageSize
+        val learningpaths = learningPathRepository.withIds(ids, offset, pageSize)
+        learningpaths.traverse(learningpath =>
+          converterService.asApiLearningpathV2(learningpath, language, fallback, userInfo)
+        )
+      }
     }
 
     def withIdV2(
@@ -407,7 +425,7 @@ trait ReadService {
       } yield api
     }
 
-    def getStats(): Option[Stats] = {
+    def getStats: Option[Stats] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
         numberOfUsers     <- folderRepository.numberOfUsers()
