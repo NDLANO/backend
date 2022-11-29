@@ -34,28 +34,28 @@ trait TaxonomyApiClient {
     private val timeoutSeconds                = 600
 
     def getAllResources: Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/resources/").map(_.distinct)
+      getPaginated[Resource](s"$TaxonomyApiEndpoint/resources/search", 1000).map(_.distinct)
 
     def getAllSubjects: Try[List[TaxSubject]] =
-      get[List[TaxSubject]](s"$TaxonomyApiEndpoint/subjects/").map(_.distinct)
+      getPaginated[TaxSubject](s"$TaxonomyApiEndpoint/subjects/search", 1000).map(_.distinct)
 
     def getAllTopics: Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/topics/").map(_.distinct)
+      getPaginated[Topic](s"$TaxonomyApiEndpoint/topics/search", 1000).map(_.distinct)
 
     def getAllResourceTypes: Try[List[ResourceType]] =
       get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
 
     def getAllTopicResourceConnections: Try[List[TopicResourceConnection]] =
-      getPaginated[TopicResourceConnection](s"$TaxonomyApiEndpoint/topic-resources", 5000).map(_.distinct)
+      getPaginated[TopicResourceConnection](s"$TaxonomyApiEndpoint/topic-resources/page", 5000).map(_.distinct)
 
     def getAllTopicSubtopicConnections: Try[List[TopicSubtopicConnection]] =
-      getPaginated[TopicSubtopicConnection](s"$TaxonomyApiEndpoint/topic-subtopics", 1000).map(_.distinct)
+      getPaginated[TopicSubtopicConnection](s"$TaxonomyApiEndpoint/topic-subtopics/page", 1000).map(_.distinct)
 
     def getAllResourceResourceTypeConnections: Try[List[ResourceResourceTypeConnection]] =
       get[List[ResourceResourceTypeConnection]](s"$TaxonomyApiEndpoint/resource-resourcetypes/").map(_.distinct)
 
     def getAllSubjectTopicConnections: Try[List[SubjectTopicConnection]] =
-      getPaginated[SubjectTopicConnection](s"$TaxonomyApiEndpoint/subject-topics", 1000).map(_.distinct)
+      getPaginated[SubjectTopicConnection](s"$TaxonomyApiEndpoint/subject-topics/page", 1000).map(_.distinct)
 
     def getAllRelevances: Try[List[Relevance]] =
       get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
@@ -111,15 +111,17 @@ trait TaxonomyApiClient {
       )
     }
 
-    private def getPaginated[T](url: String, pageSize: Int)(implicit mf: Manifest[T]): Try[List[T]] = {
+    private def getPaginated[T](url: String, pageSize: Int)(implicit
+        mf: Manifest[T]
+    ): Try[List[T]] = {
       def fetchPage(page: Int, pageSize: Int = pageSize): Try[PaginationPage[T]] =
-        get[PaginationPage[T]](s"$url/page", "page" -> page.toString, "pageSize" -> pageSize.toString)
+        get[PaginationPage[T]](s"$url", "page" -> page.toString, "pageSize" -> pageSize.toString)
 
-      fetchPage(0, 1).flatMap(firstPage => {
-        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble)
-        val pageRange = 0 until 10
+      fetchPage(1, 1).flatMap(firstPage => {
+        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
+        val pageRange = 1 to numPages
 
-        val numThreads = Math.max(20, numPages).toInt
+        val numThreads = Math.max(20, numPages)
         implicit val executionContext: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
@@ -127,9 +129,9 @@ trait TaxonomyApiClient {
         val mergedFuture = Future.sequence(pages)
         val awaited      = Await.result(mergedFuture, Duration(timeoutSeconds, "seconds"))
 
-        awaited.toList.sequence.map(_.flatMap(_.page))
+        awaited.toList.sequence.map(_.flatMap(_.results))
       })
     }
   }
 }
-case class PaginationPage[T](totalCount: Long, page: List[T])
+case class PaginationPage[T](totalCount: Long, results: List[T])
