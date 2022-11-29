@@ -20,11 +20,7 @@ export interface IBannerImage {
   desktopId: number
 }
 
-export interface IError {
-  code: string
-  description: string
-  occuredAt: string
-}
+export type IError = never
 
 export interface IFilmFrontPageData {
   name: string
