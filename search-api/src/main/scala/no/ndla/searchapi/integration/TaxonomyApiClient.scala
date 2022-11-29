@@ -34,13 +34,13 @@ trait TaxonomyApiClient {
     private val timeoutSeconds                = 600
 
     def getAllResources: Try[List[Resource]] =
-      getPaginated[Resource](s"$TaxonomyApiEndpoint/resources/search", 1000).map(_.distinct)
+      getPaginated[Resource](s"$TaxonomyApiEndpoint/resources/search", 500).map(_.distinct)
 
     def getAllSubjects: Try[List[TaxSubject]] =
-      getPaginated[TaxSubject](s"$TaxonomyApiEndpoint/subjects/search", 1000).map(_.distinct)
+      getPaginated[TaxSubject](s"$TaxonomyApiEndpoint/subjects/search", 500).map(_.distinct)
 
     def getAllTopics: Try[List[Topic]] =
-      getPaginated[Topic](s"$TaxonomyApiEndpoint/topics/search", 1000).map(_.distinct)
+      getPaginated[Topic](s"$TaxonomyApiEndpoint/topics/search", 500).map(_.distinct)
 
     def getAllResourceTypes: Try[List[ResourceType]] =
       get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
