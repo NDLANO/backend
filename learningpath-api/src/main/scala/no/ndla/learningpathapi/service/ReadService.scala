@@ -394,7 +394,8 @@ trait ReadService {
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
-            county = county
+            county = county,
+            email = feideExtendedUserData.email
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
@@ -409,10 +410,14 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       val feideUser = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val county    = feideApiClient.getCounty(feideAccessToken).?
-      val updatedMyNDLAUser = userData.copy(
-        lastUpdated = clock.now().plusDays(1),
+      val updatedMyNDLAUser = domain.MyNDLAUser(
+        id = userData.id,
+        feideId = userData.feideId,
+        favoriteSubjects = userData.favoriteSubjects,
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
-        county = county
+        lastUpdated = clock.now().plusDays(1),
+        county = county,
+        email = feideUser.email
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }

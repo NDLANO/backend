@@ -2127,7 +2127,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("h", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
     val userAfterMerge = domain.MyNDLAUser(
@@ -2136,7 +2137,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
 

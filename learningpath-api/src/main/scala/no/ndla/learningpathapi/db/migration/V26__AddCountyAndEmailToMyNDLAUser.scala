@@ -20,14 +20,15 @@ import scalikejdbc.{DB, DBSession, _}
 
 import java.time.LocalDateTime
 
-class V26__AddCountyToMyNDLAUser extends BaseJavaMigration {
+class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
 
   case class OldMyNDLAUser(favoriteSubjects: Seq[String], userRole: UserRole.Value, lastUpdated: LocalDateTime)
   case class NewMyNDLAUser(
       favoriteSubjects: Seq[String],
       userRole: UserRole.Value,
       lastUpdated: LocalDateTime,
-      county: String
+      county: String,
+      email: String
   )
   val repositorySerializer: Formats =
     DefaultFormats + new EnumNameSerializer(UserRole) ++ JavaTimeSerializers.all + FieldSerializer[OldMyNDLAUser](
@@ -50,9 +51,10 @@ class V26__AddCountyToMyNDLAUser extends BaseJavaMigration {
       val updatedUser = NewMyNDLAUser(
         favoriteSubjects = user.favoriteSubjects,
         userRole = user.userRole,
-        // We set lastUpdated to outdated in order to guarantee re-fetch of new information about county
+        // We set lastUpdated to outdated in order to guarantee re-fetch of county and email information
         lastUpdated = LocalDateTime.now().minusDays(2),
-        county = "temp"
+        county = "temp",
+        email = "example@email.com"
       )
       updateMyNDLAUser(feideId, updatedUser)
     })
@@ -77,7 +79,7 @@ class V26__AddCountyToMyNDLAUser extends BaseJavaMigration {
       .get
   }
 
-  def allFeideIds()(implicit session: DBSession): Seq[String] = {
+  def allFeideIds(implicit session: DBSession): Seq[String] = {
     sql"select feide_id from my_ndla_users"
       .map(rs => rs.string("feide_id"))
       .list()

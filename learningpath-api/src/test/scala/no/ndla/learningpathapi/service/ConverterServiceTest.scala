@@ -751,7 +751,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         favoriteSubjects = Seq("a", "b"),
         userRole = UserRole.STUDENT,
         lastUpdated = clock.now(),
-        county = "oslo"
+        county = "oslo",
+        email = "example@email.com"
       )
     val expectedUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("a", "b"), role = "student", county = "oslo")
 
@@ -765,7 +766,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None)
     val updatedUserData2 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty))
@@ -777,7 +779,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val expectedUserData2 = domain.MyNDLAUser(
       id = 42,
@@ -785,7 +788,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq.empty,
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val expectedUserData3 = domain.MyNDLAUser(
       id = 42,
@@ -793,7 +797,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("x", "y", "z"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
 
     service.mergeUserData(domainUserData, updatedUserData1) should be(expectedUserData1)

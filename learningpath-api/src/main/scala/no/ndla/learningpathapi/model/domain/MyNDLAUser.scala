@@ -21,7 +21,8 @@ case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: LocalDateTime,
-    county: String
+    county: String,
+    email: String
 ) {
   def toFullUser(
       id: Long,
@@ -33,7 +34,8 @@ case class MyNDLAUserDocument(
       favoriteSubjects = favoriteSubjects,
       userRole = userRole,
       lastUpdated = lastUpdated,
-      county = county
+      county = county,
+      email = email
     )
   }
 }
@@ -44,13 +46,15 @@ case class MyNDLAUser(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: LocalDateTime,
-    county: String
+    county: String,
+    email: String
 ) {
   def toDocument: MyNDLAUserDocument = MyNDLAUserDocument(
     favoriteSubjects = favoriteSubjects,
     userRole = userRole,
     lastUpdated = lastUpdated,
-    county = county
+    county = county,
+    email = email
   )
 
   // Keeping FEIDE and our data in sync

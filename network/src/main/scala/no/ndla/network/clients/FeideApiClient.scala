@@ -25,7 +25,8 @@ case class FeideOpenIdUserInfo(sub: String)
 
 case class FeideExtendedUserInfo(
     displayName: String,
-    eduPersonAffiliation: Seq[String]
+    eduPersonAffiliation: Seq[String],
+    eduPersonPrincipalName: String
 ) {
 
   def isTeacher: Boolean = {
@@ -44,6 +45,8 @@ case class FeideExtendedUserInfo(
       Seq(Availability.everyone)
     }
   }
+
+  def email: String = this.eduPersonPrincipalName
 }
 
 trait FeideApiClient {

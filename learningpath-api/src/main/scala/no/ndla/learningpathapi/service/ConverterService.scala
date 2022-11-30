@@ -825,7 +825,8 @@ trait ConverterService {
         favoriteSubjects = favoriteSubjects,
         userRole = domainUserData.userRole,
         lastUpdated = domainUserData.lastUpdated,
-        county = domainUserData.county
+        county = domainUserData.county,
+        email = domainUserData.email
       )
     }
 

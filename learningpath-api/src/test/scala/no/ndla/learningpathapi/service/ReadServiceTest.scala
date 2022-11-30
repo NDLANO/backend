@@ -558,12 +558,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
-      eduPersonAffiliation = Seq("student")
+      eduPersonAffiliation = Seq("student"),
+      eduPersonPrincipalName = "example@email.com"
     )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
@@ -593,7 +595,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
     val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
 
@@ -618,10 +621,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
-      county = "oslo"
+      county = "oslo",
+      email = "example@email.com"
     )
-    val updatedFeideUser = FeideExtendedUserInfo(displayName = "name", eduPersonAffiliation = Seq.empty)
-    val apiUserData      = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
+    val updatedFeideUser = FeideExtendedUserInfo(
+      displayName = "name",
+      eduPersonAffiliation = Seq.empty,
+      eduPersonPrincipalName = "example@email.com"
+    )
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
