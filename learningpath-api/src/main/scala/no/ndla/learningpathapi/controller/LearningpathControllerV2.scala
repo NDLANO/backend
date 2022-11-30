@@ -297,7 +297,7 @@ trait LearningpathControllerV2 {
     ) {
       val userInfo = UserInfo.getUserOrPublic
       val idList   = paramAsListOfLong(this.ids.paramName)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = true)
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
         case tooSmall if tooSmall < 1 => props.DefaultPageSize

@@ -47,14 +47,6 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       learningPathWhere(sqls"lp.id = $id AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}")
     }
 
-    def withIds(ids: Seq[Long], offset: Long, pageSize: Long)(implicit
-        session: DBSession = AutoSession
-    ): List[LearningPath] = {
-      learningPathsWhere(
-        sqls"lp.id in ($ids) AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString} offset $offset limit $pageSize"
-      )
-    }
-
     def withIdIncludingDeleted(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
       learningPathWhere(sqls"lp.id = $id")
     }
@@ -349,6 +341,27 @@ trait LearningPathRepositoryComponent extends StrictLogging {
           learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
         }
         .single()
+    }
+
+    def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): List[LearningPath] = {
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      val lps      = SubQuery.syntax("lps").include(lp)
+      sql"""
+            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
+                                                           from ${DBLearningPath.as(lp)}
+                                                           where ${lp.c("id")} in ($ids)
+                                                           limit $pageSize
+                                                           offset $offset) lps
+            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+      """
+        .one(DBLearningPath.fromResultSet(lps(lp).resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
+        .map { (learningpath, learningsteps) =>
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+        }
+        .list()
     }
 
     def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit

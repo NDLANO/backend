@@ -83,14 +83,14 @@ trait ReadService {
         ids: Seq[Long],
         language: String,
         fallback: Boolean,
-        page: Long,
-        pageSize: Long,
+        page: Int,
+        pageSize: Int,
         userInfo: UserInfo
     ): Try[Seq[LearningPathV2]] = {
       if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset        = (page - 1) * pageSize
-        val learningpaths = learningPathRepository.withIds(ids, offset, pageSize)
+        val learningpaths = learningPathRepository.pageWithIds(ids, pageSize, offset)
         learningpaths.traverse(learningpath =>
           converterService.asApiLearningpathV2(learningpath, language, fallback, userInfo)
         )

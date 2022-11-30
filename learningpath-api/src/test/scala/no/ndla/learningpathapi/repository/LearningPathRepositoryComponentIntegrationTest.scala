@@ -413,7 +413,11 @@ class LearningPathRepositoryComponentIntegrationTest
     val learningPath3 = repository.insert(DefaultLearningPath)
     val learningPath4 = repository.insert(DefaultLearningPath)
 
-    val learningpaths = repository.withIds(Seq(learningPath1.id.get, learningPath2.id.get, learningPath3.id.get, learningPath4.id.get), 0, 10)
+    val learningpaths = repository.pageWithIds(
+      Seq(learningPath1.id.get, learningPath2.id.get, learningPath3.id.get, learningPath4.id.get),
+      10,
+      0
+    )
     learningpaths.length should be(4)
   }
 
