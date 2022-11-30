@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
@@ -30,6 +31,7 @@ import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._
 import org.scalatra.{Created, NoContent, NotFound, Ok}
+
 import scala.util.{Failure, Success, Try}
 
 trait LearningpathControllerV2 {
@@ -118,6 +120,10 @@ trait LearningpathControllerV2 {
     )
     private val verificationStatus =
       Param[Option[String]]("verificationStatus", "Return only learning paths that have this verification status.")
+    private val ids = Param[Option[Seq[Long]]](
+      "ids",
+      "Return only learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
 
     /** Does a scroll with [[SearchService]] If no scrollId is specified execute the function @orFunction in the second
       * parameter list.
@@ -268,6 +274,46 @@ trait LearningpathControllerV2 {
         val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
         search(query, language, tag, idList, sort, pageSize, page, fallback, verificationStatus, shouldScroll)
+      }
+    }
+
+    get(
+      "/ids/",
+      operation(
+        apiOperation[List[LearningPathV2]]("getLearningpathsByIds")
+          .summary("Fetch learningpaths that matches ids parameter.")
+          .description("Returns learningpaths that matches ids parameter.")
+          .parameters(
+            asHeaderParam(correlationId),
+            asQueryParam(ids),
+            asQueryParam(fallback),
+            asQueryParam(language),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo)
+          )
+          .responseMessages(response403, response500)
+          .authorizations("oauth2")
+      )
+    ) {
+      val userInfo = UserInfo.getUserOrPublic
+      val idList   = paramAsListOfLong(this.ids.paramName)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = true)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val pageSize = intOrDefault(this.pageSize.paramName, props.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => props.DefaultPageSize
+        case x                        => x
+      }
+      val page = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      if (!userInfo.isNdla) {
+        errorHandler(AccessDeniedException("You do not have access to the requested resources."))
+      } else {
+        readService.withIdV2List(idList, language, fallback, page, pageSize, userInfo) match {
+          case Failure(ex)       => errorHandler(ex)
+          case Success(articles) => Ok(articles)
+        }
       }
     }
 

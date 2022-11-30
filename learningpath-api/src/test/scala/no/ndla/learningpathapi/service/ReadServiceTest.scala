@@ -636,6 +636,6 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
 
-    service.getStats().get should be(Stats(5, 10, 20, 10))
+    service.getStats.get should be(Stats(5, 10, 20, 10))
   }
 }

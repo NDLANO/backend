@@ -29,11 +29,10 @@ trait LearningPathRepositoryComponent extends StrictLogging {
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {
       case Some(x) => work(x)
-      case None => {
+      case None =>
         DB localTx { implicit newSession =>
           work(newSession)
         }
-      }
     }
   }
 
@@ -63,13 +62,13 @@ trait LearningPathRepositoryComponent extends StrictLogging {
     }
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from learningpaths where external_id = ${externalId}"
+      sql"select id from learningpaths where external_id = $externalId"
         .map(rs => rs.long("id"))
         .single()
     }
 
     def learningPathsWithIsBasedOn(isBasedOnId: Long): List[LearningPath] = {
-      learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString()}")
+      learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
     }
 
     def learningStepsFor(learningPathId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[LearningStep] = {
@@ -91,14 +90,13 @@ trait LearningPathRepositoryComponent extends StrictLogging {
     def learningStepWithExternalIdAndForLearningPath(externalId: Option[String], learningPathId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Option[LearningStep] = {
-      externalId.isEmpty || learningPathId.isEmpty match {
-        case true => None
-        case false => {
-          val ls = DBLearningStep.syntax("ls")
-          sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.externalId} = ${externalId.get} and ${ls.learningPathId} = ${learningPathId.get}"
-            .map(DBLearningStep.fromResultSet(ls.resultName))
-            .single()
-        }
+      if (externalId.isEmpty || learningPathId.isEmpty) {
+        None
+      } else {
+        val ls = DBLearningStep.syntax("ls")
+        sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.externalId} = ${externalId.get} and ${ls.learningPathId} = ${learningPathId.get}"
+          .map(DBLearningStep.fromResultSet(ls.resultName))
+          .single()
       }
     }
 
@@ -179,7 +177,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val newRevision = learningpath.revision.getOrElse(0) + 1
       val count =
-        sql"update learningpaths set document = $dataObject, revision = ${newRevision} where id = ${learningpath.id} and revision = ${learningpath.revision}"
+        sql"update learningpaths set document = $dataObject, revision = $newRevision where id = ${learningpath.id} and revision = ${learningpath.revision}"
           .update()
 
       if (count != 1) {
@@ -207,7 +205,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       val importIdUUID = Try(UUID.fromString(importId)).toOption
       val newRevision  = learningpath.revision.getOrElse(0) + 1
       val count =
-        sql"update learningpaths set document = $dataObject, revision = ${newRevision}, import_id = $importIdUUID where id = ${learningpath.id} and revision = ${learningpath.revision}"
+        sql"update learningpaths set document = $dataObject, revision = $newRevision, import_id = $importIdUUID where id = ${learningpath.id} and revision = ${learningpath.revision}"
           .update()
 
       if (count != 1) {
@@ -232,7 +230,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val newRevision = learningStep.revision.getOrElse(0) + 1
       val count =
-        sql"update learningsteps set document = $dataObject, revision = ${newRevision} where id = ${learningStep.id} and revision = ${learningStep.revision}"
+        sql"update learningsteps set document = $dataObject, revision = $newRevision where id = ${learningStep.id} and revision = ${learningStep.revision}"
           .update()
       if (count != 1) {
         val msg =
@@ -245,11 +243,11 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       learningStep.copy(revision = Some(newRevision))
     }
 
-    def deletePath(learningPathId: Long)(implicit session: DBSession = AutoSession) = {
+    def deletePath(learningPathId: Long)(implicit session: DBSession = AutoSession): Int = {
       sql"delete from learningpaths where id = $learningPathId".update()
     }
 
-    def deleteStep(learningStepId: Long)(implicit session: DBSession = AutoSession) = {
+    def deleteStep(learningStepId: Long)(implicit session: DBSession = AutoSession): Int = {
       sql"delete from learningsteps where id = $learningStepId".update()
     }
 
@@ -345,6 +343,27 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .single()
     }
 
+    def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): List[LearningPath] = {
+      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      val lps      = SubQuery.syntax("lps").include(lp)
+      sql"""
+            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
+                                                           from ${DBLearningPath.as(lp)}
+                                                           where ${lp.c("id")} in ($ids)
+                                                           limit $pageSize
+                                                           offset $offset) lps
+            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+      """
+        .one(DBLearningPath.fromResultSet(lps(lp).resultName))
+        .toMany(DBLearningStep.opt(ls.resultName))
+        .map { (learningpath, learningsteps) =>
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+        }
+        .list()
+    }
+
     def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): List[LearningPath] = {
@@ -393,7 +412,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
     }
 
     def publishedLearningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      val (lp, _) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       sql"select count(*) from ${DBLearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
         .map(rs => rs.long("count"))
         .single()
@@ -401,7 +420,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
     }
 
     def learningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+      val (lp, _) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
       sql"select count(*) from ${DBLearningPath.as(lp)}"
         .map(rs => rs.long("count"))
         .single()

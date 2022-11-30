@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.common.errors.ValidationException
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.{Resource, Topic}
-import no.ndla.learningpathapi.model.api.SearchResultV2
+import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2, SearchResultV2}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
@@ -32,9 +32,9 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   implicit val formats: Formats             = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   implicit val swagger: LearningpathSwagger = new LearningpathSwagger
 
-  val copyright = api.Copyright(api.License("by-sa", None, None), List())
+  val copyright: api.Copyright = api.Copyright(api.License("by-sa", None, None), List())
 
-  val DefaultLearningPathSummary = api.LearningPathSummaryV2(
+  val DefaultLearningPathSummary: LearningPathSummaryV2 = api.LearningPathSummaryV2(
     1,
     None,
     api.Title("Tittel", "nb"),

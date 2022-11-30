@@ -48,11 +48,11 @@ class LearningPathRepositoryComponentIntegrationTest
     super.withFixture(test)
   }
 
-  val clinton   = Author("author", "Hilla the Hun")
-  val license   = "publicdomain"
-  val copyright = Copyright(license, List(clinton))
+  val clinton: Author      = Author("author", "Hilla the Hun")
+  val license              = "publicdomain"
+  val copyright: Copyright = Copyright(license, List(clinton))
 
-  val DefaultLearningPath = LearningPath(
+  val DefaultLearningPath: LearningPath = LearningPath(
     None,
     None,
     None,
@@ -69,7 +69,7 @@ class LearningPathRepositoryComponentIntegrationTest
     copyright
   )
 
-  val DefaultLearningStep = LearningStep(
+  val DefaultLearningStep: LearningStep = LearningStep(
     None,
     None,
     None,
@@ -80,7 +80,7 @@ class LearningPathRepositoryComponentIntegrationTest
     List(EmbedUrl("http://www.vg.no", "unknown", EmbedType.OEmbed)),
     StepType.TEXT,
     None,
-    true,
+    showTitle = true,
     StepStatus.ACTIVE
   )
 
@@ -126,9 +126,7 @@ class LearningPathRepositoryComponentIntegrationTest
       }
       fail("Exception should prevent normal execution")
     } catch {
-      case t: Throwable => {
-        repository.withOwner(owner).length should be(0)
-      }
+      case _: Throwable => repository.withOwner(owner).length should be(0)
     }
   }
 
@@ -199,9 +197,9 @@ class LearningPathRepositoryComponentIntegrationTest
 
     learningPaths.map(_.id) should contain(copiedLearningPath1.id)
     learningPaths.map(_.id) should contain(copiedLearningPath2.id)
-    learningPaths.map(_.id) should not contain (learningPath1.id)
-    learningPaths.map(_.id) should not contain (learningPath2.id)
-    learningPaths should have length (2)
+    learningPaths.map(_.id) should not contain learningPath1.id
+    learningPaths.map(_.id) should not contain learningPath2.id
+    learningPaths should have length 2
 
     repository.deletePath(learningPath1.id.get)
     repository.deletePath(learningPath2.id.get)
@@ -286,7 +284,7 @@ class LearningPathRepositoryComponentIntegrationTest
     publicContributors should contain(Author("forfatter", "James Bond"))
     publicContributors should contain(Author("forfatter", "Christian Bond"))
     publicContributors should contain(Author("forfatter", "Jens Petrius"))
-    publicContributors should not contain (Author("forfatter", "Test testesen"))
+    publicContributors should not contain Author("forfatter", "Test testesen")
 
     repository.deletePath(publicPath.id.get)
     repository.deletePath(privatePath.id.get)
@@ -409,7 +407,21 @@ class LearningPathRepositoryComponentIntegrationTest
     repository.deletePath(inserted.id.get)
   }
 
-  def emptyTestDatabase = {
+  test("That get by ids gets all results") {
+    val learningPath1 = repository.insert(DefaultLearningPath)
+    val learningPath2 = repository.insert(DefaultLearningPath)
+    val learningPath3 = repository.insert(DefaultLearningPath)
+    val learningPath4 = repository.insert(DefaultLearningPath)
+
+    val learningpaths = repository.pageWithIds(
+      Seq(learningPath1.id.get, learningPath2.id.get, learningPath3.id.get, learningPath4.id.get),
+      10,
+      0
+    )
+    learningpaths.length should be(4)
+  }
+
+  def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from learningpaths;".execute()(session)
       sql"delete from learningsteps;".execute()(session)
