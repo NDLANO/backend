@@ -750,9 +750,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         feideId = "feide",
         favoriteSubjects = Seq("a", "b"),
         userRole = UserRole.STUDENT,
-        lastUpdated = clock.now()
+        lastUpdated = clock.now(),
+        county = "oslo"
       )
-    val expectedUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("a", "b"), role = "student")
+    val expectedUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("a", "b"), role = "student", county = "oslo")
 
     service.toApiUserData(domainUserData) should be(expectedUserData)
   }
@@ -763,7 +764,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = "feide",
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
     val updatedUserData1 = api.UpdatedMyNDLAUser(favoriteSubjects = None)
     val updatedUserData2 = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq.empty))
@@ -774,21 +776,24 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = "feide",
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
     val expectedUserData2 = domain.MyNDLAUser(
       id = 42,
       feideId = "feide",
       favoriteSubjects = Seq.empty,
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
     val expectedUserData3 = domain.MyNDLAUser(
       id = 42,
       feideId = "feide",
       favoriteSubjects = Seq("x", "y", "z"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
 
     service.mergeUserData(domainUserData, updatedUserData1) should be(expectedUserData1)

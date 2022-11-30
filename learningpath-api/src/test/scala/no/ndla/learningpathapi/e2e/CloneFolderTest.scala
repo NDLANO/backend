@@ -63,6 +63,7 @@ class CloneFolderTest
       when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(FeideExtendedUserInfo("", Seq("employee"))))
+      when(feideApiClient.getCounty(any)).thenReturn(Success("zxc"))
       when(clock.now()).thenReturn(LocalDateTime.of(2017, 1, 1, 1, 59))
     }
   }

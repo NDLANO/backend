@@ -162,7 +162,8 @@ object TestData {
     feideId = "",
     favoriteSubjects = Seq.empty,
     userRole = domain.UserRole.TEACHER,
-    lastUpdated = today
+    lastUpdated = today,
+    county = ""
   )
 
 }

@@ -2126,7 +2126,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = feideId,
       favoriteSubjects = Seq("h", "b"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
     val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
     val userAfterMerge = domain.MyNDLAUser(
@@ -2134,9 +2135,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now()
+      lastUpdated = clock.now(),
+      county = "oslo"
     )
-    val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student")
+    val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
