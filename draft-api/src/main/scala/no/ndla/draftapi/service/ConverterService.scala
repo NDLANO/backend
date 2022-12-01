@@ -11,7 +11,7 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.{RelatedContentLink, domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, IMPORTED}
@@ -142,7 +142,7 @@ trait ConverterService {
 
     def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[common.RelatedContent] = {
       relatedContent.map {
-        case Left(x)  => Left(common.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
 

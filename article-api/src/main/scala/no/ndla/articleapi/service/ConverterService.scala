@@ -20,7 +20,16 @@ import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{ArticleIntroduction, Author, RequiredLibrary, Tag, Title, VisualElement}
+import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.domain.{
+  ArticleIntroduction,
+  Author,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
@@ -316,7 +325,7 @@ trait ConverterService {
 
     def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
-        case Left(x)  => Left(domain.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
     }
@@ -441,7 +450,7 @@ trait ConverterService {
       )
     }
 
-    def toApiRelatedContent(relatedContent: domain.RelatedContent): api.RelatedContent = {
+    def toApiRelatedContent(relatedContent: RelatedContent): api.RelatedContent = {
       relatedContent match {
         case Left(x)  => Left(api.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)

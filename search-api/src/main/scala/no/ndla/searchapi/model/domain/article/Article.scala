@@ -14,12 +14,12 @@ import no.ndla.common.model.domain.{
   ArticleMetaImage,
   Availability,
   Content,
+  RelatedContent,
   RequiredLibrary,
   Tag,
   Title,
   VisualElement
 }
-import no.ndla.searchapi.model.domain.article.RelatedContentLink.RelatedContent
 
 import java.time.LocalDateTime
 

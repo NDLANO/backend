@@ -12,6 +12,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{Author, Availability, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 

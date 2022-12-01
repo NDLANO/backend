@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleIntroduction,
@@ -17,7 +18,6 @@ import no.ndla.common.model.domain.{
   ArticleMetaImage,
   Author,
   Availability,
-  RelatedContentLink,
   RequiredLibrary,
   Status,
   Tag,

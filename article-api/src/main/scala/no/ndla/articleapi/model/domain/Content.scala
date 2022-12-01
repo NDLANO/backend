@@ -10,7 +10,15 @@ package no.ndla.articleapi.model.domain
 
 import no.ndla.articleapi.Props
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleIntroduction, Availability, RequiredLibrary, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleIntroduction,
+  Availability,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.Copyright
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
