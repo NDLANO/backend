@@ -24,7 +24,7 @@ object draftapi extends Module {
       "org.scalaj"         %% "scalaj-http"                     % "2.4.2",
       "org.scalatest"      %% "scalatest"                       % ScalaTestV    % "test",
       "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
       "org.mockito"        %% "mockito-scala"                   % MockitoV      % "test",

@@ -19,7 +19,7 @@ object conceptapi extends Module {
       "javax.servlet"       % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
       "org.json4s"         %% "json4s-native"                   % Json4SV,
       "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
       "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",

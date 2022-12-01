@@ -19,7 +19,7 @@ object searchapi extends Module {
       "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
       "org.json4s"         %% "json4s-native"                   % Json4SV,
       "org.json4s"         %% "json4s-ext"                      % Json4SV,
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
       "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
