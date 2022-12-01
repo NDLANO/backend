@@ -12,6 +12,7 @@ import no.ndla.articleapi.Props
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   ArticleIntroduction,
+  ArticleMetaDescription,
   Availability,
   RelatedContent,
   RequiredLibrary,

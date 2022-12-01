@@ -11,6 +11,7 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleIntroduction,
+  ArticleMetaDescription,
   ArticleMetaImage,
   Availability,
   Content,
@@ -33,7 +34,7 @@ case class Article(
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
     introduction: Seq[ArticleIntroduction],
-    metaDescription: Seq[MetaDescription],
+    metaDescription: Seq[ArticleMetaDescription],
     metaImage: Seq[ArticleMetaImage],
     created: LocalDateTime,
     updated: LocalDateTime,

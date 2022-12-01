@@ -11,7 +11,15 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{ArticleIntroduction, Author, Availability, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleIntroduction,
+  ArticleMetaDescription,
+  Author,
+  Availability,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 

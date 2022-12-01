@@ -7,7 +7,7 @@
 
 package no.ndla.articleapi.db.migration
 
-import no.ndla.articleapi.model.domain.ArticleMetaDescription
+import no.ndla.common.model.domain.ArticleMetaDescription
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
 import org.json4s.native.JsonMethods.{compact, parse, render}

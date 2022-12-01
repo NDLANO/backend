@@ -16,13 +16,14 @@ import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchableArticle
-import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
   ArticleIntroduction,
+  ArticleMetaDescription,
   Author,
   RelatedContent,
   RequiredLibrary,
@@ -195,7 +196,7 @@ trait ConverterService {
         case Some(metaDesc) =>
           updateExistingMetaDescriptionField(
             existingArticle.metaDescription,
-            metaDesc.map(m => domain.ArticleMetaDescription(m.metaDescription, m.language))
+            metaDesc.map(m => ArticleMetaDescription(m.metaDescription, m.language))
           )
         case None => existingArticle.metaDescription
       }
