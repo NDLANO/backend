@@ -11,7 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 

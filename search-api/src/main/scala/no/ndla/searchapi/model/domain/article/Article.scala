@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.{
   ArticleMetaImage,
   Availability,
   Content,
+  RequiredLibrary,
   Tag,
   Title,
   VisualElement

@@ -20,7 +20,7 @@ import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{Author, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{Author, RequiredLibrary, Tag, Title, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
