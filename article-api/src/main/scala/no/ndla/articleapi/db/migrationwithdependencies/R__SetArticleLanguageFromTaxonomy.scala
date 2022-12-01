@@ -8,7 +8,7 @@
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{ArticleIntroduction, Tag, Title, VisualElement}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
