@@ -14,6 +14,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.validation.DurationValidator
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.learningpath.Copyright
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._

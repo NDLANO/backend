@@ -11,7 +11,8 @@ package no.ndla.learningpathapi.service
 import no.ndla.common.DateParser
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model._

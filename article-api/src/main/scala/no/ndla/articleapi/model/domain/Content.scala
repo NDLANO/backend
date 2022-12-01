@@ -11,8 +11,8 @@ package no.ndla.articleapi.model.domain
 import no.ndla.articleapi.Props
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   Availability,
   RelatedContent,
   RequiredLibrary,
@@ -42,8 +42,8 @@ case class Article(
     tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
-    introduction: Seq[ArticleIntroduction],
-    metaDescription: Seq[ArticleMetaDescription],
+    introduction: Seq[Introduction],
+    metaDescription: Seq[Description],
     metaImage: Seq[ArticleMetaImage],
     created: LocalDateTime,
     updated: LocalDateTime,

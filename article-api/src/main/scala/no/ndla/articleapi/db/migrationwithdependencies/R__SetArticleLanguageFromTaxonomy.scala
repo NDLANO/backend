@@ -8,7 +8,7 @@
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{ArticleIntroduction, ArticleMetaDescription, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{Introduction, Description, Tag, Title, VisualElement}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
@@ -18,7 +18,7 @@ import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalaj.http.Http
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
@@ -181,11 +181,11 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def copyArticleIntroduction(field: ArticleIntroduction): ArticleIntroduction = {
+  def copyArticleIntroduction(field: Introduction): Introduction = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def copyArticleMetaDescription(field: ArticleMetaDescription): ArticleMetaDescription = {
+  def copyArticleMetaDescription(field: Description): Description = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 

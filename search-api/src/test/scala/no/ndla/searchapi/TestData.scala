@@ -10,8 +10,8 @@ package no.ndla.searchapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Author,
   Availability,
@@ -24,9 +24,9 @@ import no.ndla.common.model.domain.{
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.draft
 import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
+import no.ndla.common.model.domain.learningpath
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.article._
 import no.ndla.searchapi.model.domain.learningpath.{
@@ -170,8 +170,8 @@ object TestData {
     Seq(),
     Seq(),
     Seq(VisualElement("image", "en")),
-    Seq(ArticleIntroduction("This is an introduction", "en")),
-    Seq(ArticleMetaDescription("meta", "en")),
+    Seq(Introduction("This is an introduction", "en")),
+    Seq(Description("meta", "en")),
     Seq(),
     today.minusDays(4),
     today.minusDays(2),
@@ -194,7 +194,7 @@ object TestData {
     Seq(),
     Seq(),
     Seq(),
-    Seq(ArticleMetaDescription("meta description", "nb")),
+    Seq(Description("meta description", "nb")),
     Seq(ArticleMetaImage("11", "alt", "nb")),
     today,
     today,
@@ -245,7 +245,7 @@ object TestData {
     copyright = byNcSaCopyright.copy(creators = List(Author("Forfatter", "Kjekspolitiet"))),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Batmen", "nb")),
+    introduction = List(Introduction("Batmen", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(4),
     updated = today.minusDays(3),
@@ -261,7 +261,7 @@ object TestData {
       .copy(creators = List(Author("Forfatter", "Pjolter")), processors = List(Author("Editorial", "Svims"))),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Pingvinen", "nb")),
+    introduction = List(Introduction("Pingvinen", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(4),
     updated = today.minusDays(2),
@@ -275,7 +275,7 @@ object TestData {
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     tags = List(Tag(List("and"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Donald Duck", "nb")),
+    introduction = List(Introduction("Donald Duck", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(4),
     updated = today.minusDays(1),
@@ -290,7 +290,7 @@ object TestData {
       List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
     tags = List(Tag(List("supermann"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Superman", "nb")),
+    introduction = List(Introduction("Superman", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(4),
     updated = today,
@@ -303,7 +303,7 @@ object TestData {
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
     tags = List(Tag(List("hulk"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Hulken", "nb")),
+    introduction = List(Introduction("Hulken", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(40),
     updated = today.minusDays(35),
@@ -322,7 +322,7 @@ object TestData {
     ),
     tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
+    introduction = List(Introduction("Loke og Tor", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(30),
     updated = today.minusDays(25),
@@ -335,7 +335,7 @@ object TestData {
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
     tags = List(Tag(List("yggdrasil"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
+    introduction = List(Introduction("Yggdrasil", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(20),
     updated = today.minusDays(15),
@@ -348,7 +348,7 @@ object TestData {
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     tags = List(Tag(List("baldur"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(10),
     updated = today.minusDays(5),
@@ -362,7 +362,7 @@ object TestData {
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = List(Tag(List("baldur"), "nb")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     created = today.minusDays(10),
     updated = today.minusDays(5),
@@ -377,7 +377,7 @@ object TestData {
       List(ArticleContent("<p>artikkeltekst med fire deler</p><p>Something something <em>english</em> What", "en")),
     tags = List(Tag(List("englando"), "en")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Engulsk", "en")),
+    introduction = List(Introduction("Engulsk", "en")),
     metaDescription = List.empty,
     metaImage = List(ArticleMetaImage("442", "alt", "en")),
     created = today.minusDays(10),
@@ -399,8 +399,8 @@ object TestData {
     ),
     tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
     visualElement = List.empty,
-    introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
-    metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
+    introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
+    metaDescription = List(Description("hurr durr ima sheep", "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
@@ -422,8 +422,8 @@ object TestData {
     ),
     tags = List(Tag(List(""), "nb")),
     visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\">", "nb")),
-    introduction = List(ArticleIntroduction("Ekstra", "nb")),
-    metaDescription = List(ArticleMetaDescription("", "nb")),
+    introduction = List(Introduction("Ekstra", "nb")),
+    metaDescription = List(Description("", "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
@@ -441,8 +441,8 @@ object TestData {
     ),
     tags = List(Tag(List(""), "nb")),
     visualElement = List(),
-    introduction = List(ArticleIntroduction("Intro", "nb")),
-    metaDescription = List(ArticleMetaDescription("", "nb")),
+    introduction = List(Introduction("Intro", "nb")),
+    metaDescription = List(Description("", "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
@@ -556,8 +556,8 @@ object TestData {
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
     visualElement = Seq(VisualElement("image", "en")),
-    introduction = Seq(ArticleIntroduction("This is an introduction", "en")),
-    metaDescription = Seq(ArticleMetaDescription("meta", "en")),
+    introduction = Seq(Introduction("This is an introduction", "en")),
+    metaDescription = Seq(Description("meta", "en")),
     metaImage = Seq.empty,
     created = LocalDateTime.now().minusDays(4),
     updated = LocalDateTime.now().minusDays(2),
@@ -581,7 +581,7 @@ object TestData {
   val draft1: Draft = TestData.sampleDraftWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
-    introduction = List(ArticleIntroduction("Batmen", "nb")),
+    introduction = List(Introduction("Batmen", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(
@@ -597,7 +597,7 @@ object TestData {
   val draft2: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
-    introduction = List(ArticleIntroduction("Pingvinen", "nb")),
+    introduction = List(Introduction("Pingvinen", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
@@ -614,7 +614,7 @@ object TestData {
   val draft3: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(3),
     title = List(Title("Donald Duck kjører bil", "nb")),
-    introduction = List(ArticleIntroduction("Donald Duck", "nb")),
+    introduction = List(Introduction("Donald Duck", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
@@ -627,7 +627,7 @@ object TestData {
   val draft4: Draft = TestData.sampleDraftWithCopyrighted.copy(
     id = Option(4),
     title = List(Title("Superman er ute og flyr", "nb")),
-    introduction = List(ArticleIntroduction("Superman", "nb")),
+    introduction = List(Introduction("Superman", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content =
@@ -640,7 +640,7 @@ object TestData {
   val draft5: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(5),
     title = List(Title("Hulken løfter biler", "nb")),
-    introduction = List(ArticleIntroduction("Hulken", "nb")),
+    introduction = List(Introduction("Hulken", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
@@ -669,7 +669,7 @@ object TestData {
   val draft6: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(6),
     title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
+    introduction = List(Introduction("Loke og Tor", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(
@@ -686,7 +686,7 @@ object TestData {
   val draft7: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(7),
     title = List(Title("Yggdrasil livets tre", "nb")),
-    introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
+    introduction = List(Introduction("Yggdrasil", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
@@ -698,7 +698,7 @@ object TestData {
   val draft8: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(8),
     title = List(Title("Baldur har mareritt", "nb")),
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
@@ -711,7 +711,7 @@ object TestData {
   val draft9: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(9),
     title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
@@ -725,7 +725,7 @@ object TestData {
     id = Option(10),
     status = Status(DraftStatus.PROPOSAL, Set.empty),
     title = List(Title("This article is in english", "en")),
-    introduction = List(ArticleIntroduction("Engulsk", "en")),
+    introduction = List(Introduction("Engulsk", "en")),
     metaDescription = List.empty,
     visualElement = List.empty,
     content = List(ArticleContent("<p>Something something <em>english</em> What", "en")),
@@ -740,10 +740,10 @@ object TestData {
     id = Option(11),
     status = Status(DraftStatus.PROPOSAL, Set.empty),
     title = List(Title("Katter", "nb"), Title("Cats", "en")),
-    introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
+    introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
-    metaDescription = List(ArticleMetaDescription("hurr dirr ima sheep", "en")),
+    metaDescription = List(Description("hurr dirr ima sheep", "en")),
     visualElement = List.empty,
     created = today.minusDays(10),
     updated = today.minusDays(5),
@@ -754,8 +754,8 @@ object TestData {
     id = Option(12),
     status = importedDraftStatus,
     title = List(Title("Ekstrastoff", "nb")),
-    introduction = List(ArticleIntroduction("Ekstra", "nb")),
-    metaDescription = List(ArticleMetaDescription("", "nb")),
+    introduction = List(Introduction("Ekstra", "nb")),
+    metaDescription = List(Description("", "nb")),
     content = List(
       ArticleContent(
         s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"/><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"/><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\" /><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"  /><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"  /><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\" />",
@@ -772,8 +772,8 @@ object TestData {
   val draft13: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(13),
     title = List(Title("Luringen", "nb"), Title("English title", "en"), Title("Chhattisgarhi title", "hne")),
-    introduction = List(ArticleIntroduction("Luringen", "nb")),
-    metaDescription = List(ArticleMetaDescription("", "nb")),
+    introduction = List(Introduction("Luringen", "nb")),
+    metaDescription = List(Description("", "nb")),
     content = List(
       ArticleContent("<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>", "nb"),
       ArticleContent(
@@ -796,8 +796,8 @@ object TestData {
   val draft14: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(14),
     title = List(Title("Slettet", "nb")),
-    introduction = List(ArticleIntroduction("Slettet", "nb")),
-    metaDescription = List(ArticleMetaDescription("", "nb")),
+    introduction = List(Introduction("Slettet", "nb")),
+    metaDescription = List(Description("", "nb")),
     content = List(ArticleContent("", "nb")),
     visualElement = List.empty,
     tags = List(Tag(List(""), "nb")),
@@ -813,8 +813,8 @@ object TestData {
   val draft15: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(15),
     title = List(Title("Engler og demoner", "nb")),
-    introduction = List(ArticleIntroduction("Religion", "nb")),
-    metaDescription = List(ArticleMetaDescription("metareligion", "nb")),
+    introduction = List(Introduction("Religion", "nb")),
+    metaDescription = List(Description("metareligion", "nb")),
     content = List(
       ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
       ArticleContent("<p>Christianity!</p>", "en")
@@ -846,7 +846,7 @@ object TestData {
 
   val paul              = Author("author", "Truly Weird Rand Paul")
   val license           = "publicdomain"
-  val copyright         = domain.learningpath.Copyright(license, List(paul))
+  val copyright         = learningpath.Copyright(license, List(paul))
   val visibleMetadata   = Some(Metadata(Seq.empty, visible = true))
   val invisibleMetadata = Some(Metadata(Seq.empty, visible = false))
 

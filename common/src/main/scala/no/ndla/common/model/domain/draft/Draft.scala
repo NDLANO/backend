@@ -13,8 +13,8 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Tag,
   Title,
@@ -37,8 +37,8 @@ case class Draft(
     tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
-    introduction: Seq[ArticleIntroduction],
-    metaDescription: Seq[ArticleMetaDescription],
+    introduction: Seq[Introduction],
+    metaDescription: Seq[Description],
     metaImage: Seq[ArticleMetaImage],
     created: LocalDateTime,
     updated: LocalDateTime,

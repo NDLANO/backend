@@ -13,8 +13,8 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Author,
   Availability,
@@ -258,8 +258,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("en", "to", "tre"), "en")),
       requiredLibraries = Seq(RequiredLibrary("tjup", "tjap", "tjim")),
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
-      introduction = Seq(ArticleIntroduction(updatedIntro, "en")),
-      metaDescription = Seq(ArticleMetaDescription(updatedMetaDescription, "en")),
+      introduction = Seq(Introduction(updatedIntro, "en")),
+      metaDescription = Seq(Description(updatedMetaDescription, "en")),
       metaImage = Seq(ArticleMetaImage(updatedMetaId, updatedMetaAlt, "en")),
       updated = today,
       published = yesterday,
@@ -974,10 +974,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Seq("A", "B"),
       copyright = Some(Copyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None, None)),
       metaDescription = Seq(
-        ArticleMetaDescription("oldDesc", "nb"),
-        ArticleMetaDescription("oldDescc", "es"),
-        ArticleMetaDescription("oldDesccc", "ru"),
-        ArticleMetaDescription("oldDescccc", "nn")
+        Description("oldDesc", "nb"),
+        Description("oldDescc", "es"),
+        Description("oldDesccc", "ru"),
+        Description("oldDescccc", "nn")
       ),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url2")), Right(12L)),
       tags = Seq(
@@ -1273,8 +1273,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("shouldPartialPublish return empty-set if articles are equal") {
-    val nnMeta = ArticleMetaDescription("Meta nn", "nn")
-    val nbMeta = ArticleMetaDescription("Meta nb", "nb")
+    val nnMeta = Description("Meta nn", "nn")
+    val nbMeta = Description("Meta nb", "nb")
 
     val article1 = TestData.sampleDomainArticle.copy(
       status = Status(DRAFT, Set(PUBLISHED)),
@@ -1303,8 +1303,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article1 = TestData.sampleDomainArticle.copy(
       status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(
-        ArticleMetaDescription("Meta nn", "nn"),
-        ArticleMetaDescription("Meta nb", "nb")
+        Description("Meta nn", "nn"),
+        Description("Meta nb", "nb")
       ),
       grepCodes = Seq(
         "KE123"
@@ -1314,8 +1314,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(
       status = Status(DRAFT, Set(PUBLISHED)),
       metaDescription = Seq(
-        ArticleMetaDescription("Ny Meta nn", "nn"),
-        ArticleMetaDescription("Meta nb", "nb")
+        Description("Ny Meta nn", "nn"),
+        Description("Meta nb", "nb")
       ),
       grepCodes = Seq("KE123", "KE456")
     )

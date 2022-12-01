@@ -10,9 +10,10 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
@@ -97,7 +98,7 @@ trait ConverterService {
       )
     }
 
-    def toApiCopyright(copyright: domain.Copyright): api.Copyright = {
+    def toApiCopyright(copyright: Copyright): api.Copyright = {
       api.Copyright(
         copyright.license.map(toApiLicense),
         copyright.origin,
@@ -116,7 +117,7 @@ trait ConverterService {
         .getOrElse(api.License("unknown", None, None))
     }
 
-    def toApiAuthor(author: domain.Author): api.Author =
+    def toApiAuthor(author: Author): api.Author =
       api.Author(author.`type`, author.name)
 
     def toApiConceptTitle(title: Title): api.ConceptTitle =
@@ -265,8 +266,8 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(
+    def toDomainCopyright(copyright: api.Copyright): Copyright = {
+      Copyright(
         copyright.license.map(_.license),
         copyright.origin,
         copyright.creators.map(toDomainAuthor),
@@ -278,8 +279,8 @@ trait ConverterService {
       )
     }
 
-    def toDomainAuthor(author: api.Author): domain.Author =
-      domain.Author(author.`type`, author.name)
+    def toDomainAuthor(author: api.Author): Author =
+      Author(author.`type`, author.name)
 
     def toApiConceptTags(
         tags: Seq[String],

@@ -151,12 +151,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           domain.ConceptContent("Nytt innhald", "nn")
         ),
         copyright = Option(
-          domain.Copyright(
+          common.draft.Copyright(
             None,
             None,
-            Seq(domain.Author("Photographer", "Photographer")),
-            Seq(domain.Author("Photographer", "Photographer")),
-            Seq(domain.Author("Photographer", "Photographer")),
+            Seq(common.Author("Photographer", "Photographer")),
+            Seq(common.Author("Photographer", "Photographer")),
+            Seq(common.Author("Photographer", "Photographer")),
             None,
             None,
             None

@@ -9,6 +9,8 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.domain._

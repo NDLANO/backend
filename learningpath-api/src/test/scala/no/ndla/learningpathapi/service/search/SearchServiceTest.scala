@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.{api, domain}

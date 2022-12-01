@@ -10,7 +10,8 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.learningpath.Copyright
 
 import java.time.LocalDateTime
 import no.ndla.learningpathapi._

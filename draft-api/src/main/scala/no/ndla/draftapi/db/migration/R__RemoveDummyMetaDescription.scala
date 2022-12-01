@@ -8,7 +8,7 @@
 package no.ndla.draftapi.db.migration
 
 import enumeratum.Json4s
-import no.ndla.common.model.domain.ArticleMetaDescription
+import no.ndla.common.model.domain.Description
 import no.ndla.common.model.domain.draft.{DraftStatus, ArticleType}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
@@ -65,11 +65,11 @@ class R__RemoveDummyMetaDescription extends BaseJavaMigration {
       .list()
   }
 
-  def convertMetaDescription(metaDescription: List[ArticleMetaDescription]): JValue = {
+  def convertMetaDescription(metaDescription: List[Description]): JValue = {
     val newMetaDescriptions = metaDescription.map(meta => {
       meta.content match {
-        case "Beskrivelse mangler" => ArticleMetaDescription("", meta.language)
-        case _                     => ArticleMetaDescription(meta.content, meta.language)
+        case "Beskrivelse mangler" => Description("", meta.language)
+        case _                     => Description(meta.content, meta.language)
       }
     })
     decompose(newMetaDescriptions)
@@ -80,7 +80,7 @@ class R__RemoveDummyMetaDescription extends BaseJavaMigration {
 
     val newArticle = oldArticle.mapField {
       case ("metaDescription", metaDescription: JArray) =>
-        "metaDescription" -> convertMetaDescription(metaDescription.extract[List[ArticleMetaDescription]])
+        "metaDescription" -> convertMetaDescription(metaDescription.extract[List[Description]])
       case x => x
     }
     compact(render(newArticle))

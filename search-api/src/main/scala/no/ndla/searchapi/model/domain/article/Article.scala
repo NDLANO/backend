@@ -10,8 +10,8 @@ package no.ndla.searchapi.model.domain.article
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Availability,
   Content,
@@ -33,8 +33,8 @@ case class Article(
     tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
-    introduction: Seq[ArticleIntroduction],
-    metaDescription: Seq[ArticleMetaDescription],
+    introduction: Seq[Introduction],
+    metaDescription: Seq[Description],
     metaImage: Seq[ArticleMetaImage],
     created: LocalDateTime,
     updated: LocalDateTime,

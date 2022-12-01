@@ -77,7 +77,7 @@ class ArticleApiClientTest
     requiredLibraries = Seq(),
     visualElement = Seq(),
     introduction = Seq(),
-    metaDescription = Seq(common.ArticleMetaDescription("Meta Description", "nb")),
+    metaDescription = Seq(common.Description("Meta Description", "nb")),
     metaImage = Seq(),
     created = DateParser.fromUnixTime(0),
     updated = DateParser.fromUnixTime(0),

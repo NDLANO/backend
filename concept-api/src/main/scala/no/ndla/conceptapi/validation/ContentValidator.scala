@@ -7,8 +7,9 @@
 
 package no.ndla.conceptapi.validation
 
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService

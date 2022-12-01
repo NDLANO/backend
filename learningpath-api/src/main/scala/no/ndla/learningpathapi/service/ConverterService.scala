@@ -12,6 +12,7 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.{
   AllLanguages,
@@ -76,7 +77,7 @@ trait ConverterService {
       api.LearningPathTags(tags.tags, tags.language)
     }
 
-    def asApiCopyright(copyright: domain.Copyright): api.Copyright = {
+    def asApiCopyright(copyright: learningpath.Copyright): api.Copyright = {
       api.Copyright(asApiLicense(copyright.license), copyright.contributors.map(asApiAuthor))
     }
 
@@ -86,7 +87,7 @@ trait ConverterService {
         case None    => api.License(license, Some("Invalid license"), None)
       }
 
-    def asApiAuthor(author: domain.Author): api.Author = {
+    def asApiAuthor(author: common.Author): api.Author = {
       api.Author(author.`type`, author.name)
     }
 
@@ -107,12 +108,12 @@ trait ConverterService {
         })
     }
 
-    def asCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(copyright.license.license, copyright.contributors.map(asAuthor))
+    def asCopyright(copyright: api.Copyright): learningpath.Copyright = {
+      learningpath.Copyright(copyright.license.license, copyright.contributors.map(asAuthor))
     }
 
-    def asAuthor(author: api.Author): domain.Author = {
-      domain.Author(author.`type`, author.name)
+    def asAuthor(author: api.Author): common.Author = {
+      common.Author(author.`type`, author.name)
     }
 
     def asApiLearningpathV2(

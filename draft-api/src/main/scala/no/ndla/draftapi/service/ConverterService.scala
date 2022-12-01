@@ -179,19 +179,19 @@ trait ConverterService {
     def toDomainVisualElement(visual: String, language: String): common.VisualElement =
       common.VisualElement(removeUnknownEmbedTagAttributes(visual), language)
 
-    def toDomainIntroduction(intro: api.ArticleIntroduction): common.ArticleIntroduction = {
-      common.ArticleIntroduction(intro.introduction, intro.language)
+    def toDomainIntroduction(intro: api.ArticleIntroduction): common.Introduction = {
+      common.Introduction(intro.introduction, intro.language)
     }
 
-    def toDomainIntroduction(intro: String, language: String): common.ArticleIntroduction =
-      common.ArticleIntroduction(intro, language)
+    def toDomainIntroduction(intro: String, language: String): common.Introduction =
+      common.Introduction(intro, language)
 
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): common.ArticleMetaDescription = {
-      common.ArticleMetaDescription(meta.metaDescription, meta.language)
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): common.Description = {
+      common.Description(meta.metaDescription, meta.language)
     }
 
-    def toDomainMetaDescription(meta: String, language: String): common.ArticleMetaDescription =
-      common.ArticleMetaDescription(meta, language)
+    def toDomainMetaDescription(meta: String, language: String): common.Description =
+      common.Description(meta, language)
 
     def toDomainMetaImage(metaImage: api.NewArticleMetaImage, language: String): common.ArticleMetaImage =
       common.ArticleMetaImage(metaImage.id, metaImage.alt, language)
@@ -442,11 +442,11 @@ trait ConverterService {
     def toApiVisualElement(visual: common.VisualElement): api.VisualElement =
       api.VisualElement(visual.resource, visual.language)
 
-    def toApiArticleIntroduction(intro: common.ArticleIntroduction): api.ArticleIntroduction = {
+    def toApiArticleIntroduction(intro: common.Introduction): api.ArticleIntroduction = {
       api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
-    def toApiArticleMetaDescription(metaDescription: common.ArticleMetaDescription): api.ArticleMetaDescription = {
+    def toApiArticleMetaDescription(metaDescription: common.Description): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 

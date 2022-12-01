@@ -11,15 +11,7 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{
-  ArticleIntroduction,
-  ArticleMetaDescription,
-  Author,
-  Availability,
-  Tag,
-  Title,
-  VisualElement
-}
+import no.ndla.common.model.domain.{Introduction, Description, Author, Availability, Tag, Title, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 
@@ -140,8 +132,8 @@ trait TestData {
       Seq(Tag(Seq("a", "b", "c"), "en")),
       Seq(),
       Seq(VisualElement("image", "en")),
-      Seq(ArticleIntroduction("This is an introduction", "en")),
-      Seq(ArticleMetaDescription("meta", "en")),
+      Seq(Introduction("This is an introduction", "en")),
+      Seq(Description("meta", "en")),
       Seq.empty,
       LocalDateTime.now().minusDays(4).withNano(0),
       LocalDateTime.now().minusDays(2).withNano(0),
@@ -165,7 +157,7 @@ trait TestData {
       Seq(),
       Seq(),
       Seq(),
-      Seq(ArticleMetaDescription("meta description", "nb")),
+      Seq(Description("meta description", "nb")),
       Seq(ArticleMetaImage("11", "alt", "nb")),
       today,
       today,
@@ -225,7 +217,7 @@ trait TestData {
       Seq(),
       Seq(),
       Seq(),
-      Seq(ArticleMetaDescription("meta description", "nb")),
+      Seq(Description("meta description", "nb")),
       Seq.empty,
       today,
       today,
@@ -291,7 +283,7 @@ trait TestData {
         Seq(),
         Seq(),
         Seq(),
-        Seq(ArticleMetaDescription("meta description", lang)),
+        Seq(Description("meta description", lang)),
         Seq(ArticleMetaImage("11", "alt", lang)),
         today,
         today,

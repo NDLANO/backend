@@ -10,8 +10,8 @@ package no.ndla.draftapi.db.migrationwithdependencies
 import enumeratum.Json4s
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Tag,
   Title,
@@ -210,11 +210,11 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def copyArticleIntroduction(field: ArticleIntroduction): ArticleIntroduction = {
+  def copyArticleIntroduction(field: Introduction): Introduction = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def copyArticleMetaDescription(field: ArticleMetaDescription): ArticleMetaDescription = {
+  def copyArticleMetaDescription(field: Description): Description = {
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 

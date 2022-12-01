@@ -8,7 +8,8 @@
 package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.draft.Copyright
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._

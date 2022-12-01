@@ -14,14 +14,7 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
-import no.ndla.learningpathapi.model.domain.{
-  StepStatus,
-  UserInfo,
-  Author => _,
-  LearningPathStatus => _,
-  LearningPathTags => _,
-  _
-}
+import no.ndla.learningpathapi.model.domain.{StepStatus, UserInfo, LearningPathStatus => _, LearningPathTags => _, _}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,
@@ -70,8 +63,8 @@ trait ReadService {
       learningPathRepository.allPublishedTags.map(tags => LearningPathTags(tags.tags, tags.language))
     }
 
-    def contributors: List[Author] = {
-      learningPathRepository.allPublishedContributors.map(author => Author(author.`type`, author.name))
+    def contributors: List[api.Author] = {
+      learningPathRepository.allPublishedContributors.map(author => api.Author(author.`type`, author.name))
     }
 
     def withOwnerV2(user: UserInfo = UserInfo.getUserOrPublic): List[LearningPathSummaryV2] = {
