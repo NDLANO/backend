@@ -11,6 +11,7 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue

@@ -13,6 +13,7 @@ import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.{
   AllLanguages,
@@ -57,8 +58,8 @@ trait ConverterService {
       NdlaFrontendProtocol
     }
 
-    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): domain.EmbedUrl = {
-      domain.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
+    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): EmbedUrl = {
+      learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
 
     def asDescription(description: api.Description): domain.Description = {
@@ -609,11 +610,11 @@ trait ConverterService {
       api.Description(description.description, description.language)
     }
 
-    def asApiEmbedUrlV2(embedUrl: domain.EmbedUrl): api.EmbedUrlV2 = {
+    def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2 = {
       api.EmbedUrlV2(embedUrl.url, embedUrl.embedType.toString)
     }
 
-    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2, language: String): Try[domain.EmbedUrl] = {
+    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2, language: String): Try[EmbedUrl] = {
       val hostOpt = embedUrl.url.hostOption
       hostOpt match {
         case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
@@ -623,7 +624,7 @@ trait ConverterService {
               val pathAndQueryParams: String = newUrl.url.path.toString
                 .withQueryString(newUrl.url.query)
                 .toString
-              domain.EmbedUrl(
+              learningpath.EmbedUrl(
                 url = pathAndQueryParams,
                 language = language,
                 embedType = EmbedType.IFrame
@@ -631,7 +632,7 @@ trait ConverterService {
             })
         case _ =>
           Success(
-            domain.EmbedUrl(
+            learningpath.EmbedUrl(
               embedUrl.url,
               language,
               EmbedType.valueOfOrError(embedUrl.embedType)

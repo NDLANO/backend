@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
+import no.ndla.common.model.domain.learningpath.EmbedUrl
 import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Title
 

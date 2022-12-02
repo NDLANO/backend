@@ -7,7 +7,7 @@
 
 package no.ndla.learningpathapi.db.migration
 
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.model.domain._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

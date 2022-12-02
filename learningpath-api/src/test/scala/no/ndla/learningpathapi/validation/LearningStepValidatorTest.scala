@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._

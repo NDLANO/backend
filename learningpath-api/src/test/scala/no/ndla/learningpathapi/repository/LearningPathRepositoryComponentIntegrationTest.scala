@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.repository
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
 
 import java.time.LocalDateTime
 import no.ndla.learningpathapi._

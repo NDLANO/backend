@@ -12,6 +12,7 @@ import enumeratum.Json4s
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus, RevisionStatus}
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}

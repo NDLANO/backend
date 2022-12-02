@@ -9,6 +9,7 @@ package no.ndla.learningpathapi.integration
 import java.util.concurrent.Executors
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.NdlaClient
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import no.ndla.learningpathapi.Props

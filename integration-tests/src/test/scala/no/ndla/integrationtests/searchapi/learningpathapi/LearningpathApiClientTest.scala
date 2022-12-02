@@ -9,6 +9,7 @@ package no.ndla.integrationtests.searchapi.learningpathapi
 
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
 import no.ndla.network.AuthUser
