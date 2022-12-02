@@ -26,7 +26,7 @@ object imageapi extends Module {
       "org.flywaydb"        % "flyway-core"                     % FlywayV,
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
       "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9", // This is needed for javamelody graphing
       "org.imgscalr"        % "imgscalr-lib"                    % "4.2",
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues

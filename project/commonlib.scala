@@ -17,7 +17,7 @@ object commonlib extends Module {
       "org.eclipse.jetty"   % "jetty-webapp"      % JettyV  % "compile",
       "org.eclipse.jetty"   % "jetty-plus"        % JettyV  % "container",
       "javax.servlet"       % "javax.servlet-api" % "4.0.1" % "container;provided;test",
-      "net.bull.javamelody" % "javamelody-core"   % "1.74.0"
+      "net.bull.javamelody" % "javamelody-core"   % JavaMelodyV
     ) ++ scalatra
   )
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
