@@ -8,8 +8,17 @@
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Introduction, Description, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Description,
+  Introduction,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

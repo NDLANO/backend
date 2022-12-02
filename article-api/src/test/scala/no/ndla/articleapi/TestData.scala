@@ -12,6 +12,8 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
   ArticleType,
   Author,
   Availability,
@@ -21,7 +23,7 @@ import no.ndla.common.model.domain.{
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.mapping.License
 
 import java.time.LocalDateTime

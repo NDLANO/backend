@@ -13,9 +13,9 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
+import no.ndla.common.model.domain.article.Article
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.Formats
 import org.json4s.native.Serialization.write

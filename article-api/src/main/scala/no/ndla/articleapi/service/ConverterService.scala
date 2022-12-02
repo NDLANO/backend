@@ -22,16 +22,18 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
-  Introduction,
-  Description,
+  ArticleContent,
+  ArticleMetaImage,
   Author,
+  Description,
+  Introduction,
   RelatedContent,
   RequiredLibrary,
   Tag,
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense

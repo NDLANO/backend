@@ -14,11 +14,12 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.{Content, ReindexResult}
+import no.ndla.articleapi.model.domain.ReindexResult
 import no.ndla.articleapi.repository.Repository
 import no.ndla.search.SearchLanguage.languageAnalyzers
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import cats.implicits._
+import no.ndla.common.model.domain.Content
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}

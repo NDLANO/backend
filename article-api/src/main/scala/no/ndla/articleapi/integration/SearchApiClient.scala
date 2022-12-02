@@ -10,8 +10,8 @@ package no.ndla.articleapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
 import org.json4s.Formats

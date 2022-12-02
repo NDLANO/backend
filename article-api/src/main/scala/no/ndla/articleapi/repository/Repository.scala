@@ -7,7 +7,7 @@
 
 package no.ndla.articleapi.repository
 
-import no.ndla.articleapi.model.domain.Content
+import no.ndla.common.model.domain.Content
 import scalikejdbc.{AutoSession, DBSession}
 
 trait Repository[T <: Content] {

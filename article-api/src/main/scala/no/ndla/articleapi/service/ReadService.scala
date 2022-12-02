@@ -21,7 +21,8 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain.{ArticleType, Availability, Content}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
