@@ -32,7 +32,7 @@ object Dependencies {
     val CirceV                = "0.14.2"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
-    val JsoupV                = "1.15.2"
+    val JsoupV                = "1.15.3"
     val JavaMelodyV           = "1.91.0"
     val ScalaJV               = "2.4.2"
 
