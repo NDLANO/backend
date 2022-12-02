@@ -685,10 +685,8 @@ trait SearchConverterService {
         filterVisibles: Boolean,
         bundle: TaxonomyBundle
     ): Try[List[SearchableTaxonomyContext]] = {
-      val topicsConnections = bundle.topicResourceConnectionsByResourceId.getOrElse(resource.id, List.empty)
-      val resourceTypeConnections =
-        bundle.resourceResourceTypeConnectionsByResourceId.getOrElse(resource.id, List.empty)
-      val resourceTypesWithParents = getConnectedResourceTypesWithParents(resourceTypeConnections, bundle)
+      val topicsConnections        = bundle.topicResourceConnectionsByResourceId.getOrElse(resource.id, List.empty)
+      val resourceTypesWithParents = bundle.getConnectedResourceTypesWithParents(resource.id)
 
       getContextType(resource.id, resource.contentUri) match {
         case Failure(ex) => Failure(ex)
@@ -798,22 +796,6 @@ trait SearchConverterService {
         .map(topic => getParentTopicsAndPaths(topic, bundle, List.empty))
 
       allConnectedTopics.flatMap(topic => topic.map(_._1)).map(_.id)
-    }
-
-    private def getConnectedResourceTypesWithParents(
-        connections: List[ResourceTypeConnection],
-        bundle: TaxonomyBundle
-    ): List[ResourceType] = {
-
-      // Every explicitly specified resourceType
-      val connectedResourceTypes = connections.flatMap(c => bundle.allResourceTypesById.get(c.resourceTypeId))
-
-      // Include parents of resourceTypes if they exist
-      val subParents =
-        connectedResourceTypes
-          .flatMap(rt => bundle.resourceTypeParentsByResourceTypeId.getOrElse(rt.id, List.empty))
-          .filterNot(connectedResourceTypes.contains)
-      (connectedResourceTypes ++ subParents).distinct.sortWith((l, _) => l.subtypes.isDefined)
     }
 
     private def getTopicTaxonomyContexts(
