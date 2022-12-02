@@ -14,7 +14,7 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
-import no.ndla.learningpathapi.model.domain.{StepStatus, UserInfo, LearningPathStatus => _, LearningPathTags => _, _}
+import no.ndla.learningpathapi.model.domain.{StepStatus, UserInfo, LearningPathStatus => _, _}
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.{
   ConfigRepository,

@@ -92,7 +92,7 @@ object TestData {
     domain.LearningPathStatus.PUBLISHED,
     domain.LearningPathVerificationStatus.CREATED_BY_NDLA,
     today,
-    List(domain.LearningPathTags(List("tag"), DefaultLanguage)),
+    List(common.Tag(List("tag"), DefaultLanguage)),
     "me",
     Copyright(CC_BY.toString, List.empty),
     Some(List(domainLearningStep1, domainLearningStep2))

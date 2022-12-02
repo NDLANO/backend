@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.domain.Author
+import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.DataSource
@@ -283,7 +283,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       }
     }
 
-    def allPublishedTags(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPathTags] = {
+    def allPublishedTags(implicit session: DBSession = ReadOnlyAutoSession): List[Tag] = {
       val allTags =
         sql"""select document->>'tags' from learningpaths where document->>'status' = ${LearningPathStatus.PUBLISHED.toString}"""
           .map(rs => {
@@ -293,10 +293,10 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       allTags
         .flatMap(tag => {
-          parse(tag).extract[List[LearningPathTags]]
+          parse(tag).extract[List[Tag]]
         })
         .groupBy(_.language)
-        .map(entry => LearningPathTags(entry._2.flatMap(_.tags).distinct.sorted, entry._1))
+        .map(entry => Tag(entry._2.flatMap(_.tags).distinct.sorted, entry._1))
         .toList
     }
 

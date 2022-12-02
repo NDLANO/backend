@@ -69,11 +69,11 @@ trait ConverterService {
       common.Title(title.title, title.language)
     }
 
-    def asLearningPathTags(tags: api.LearningPathTags): domain.LearningPathTags = {
-      domain.LearningPathTags(tags.tags, tags.language)
+    def asLearningPathTags(tags: api.LearningPathTags): common.Tag = {
+      common.Tag(tags.tags, tags.language)
     }
 
-    def asApiLearningPathTags(tags: domain.LearningPathTags): api.LearningPathTags = {
+    def asApiLearningPathTags(tags: common.Tag): api.LearningPathTags = {
       api.LearningPathTags(tags.tags, tags.language)
     }
 
@@ -192,9 +192,9 @@ trait ConverterService {
     }
 
     private def mergeLearningPathTags(
-        existing: Seq[domain.LearningPathTags],
-        updated: Seq[domain.LearningPathTags]
-    ): Seq[domain.LearningPathTags] = {
+        existing: Seq[common.Tag],
+        updated: Seq[common.Tag]
+    ): Seq[common.Tag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
@@ -225,7 +225,7 @@ trait ConverterService {
       val tags = updated.tags match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.LearningPathTags(value, updated.language))
+          Seq(common.Tag(value, updated.language))
       }
 
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
@@ -357,7 +357,7 @@ trait ConverterService {
       val oldTags = newLearningPath.tags match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.LearningPathTags(value, newLearningPath.language))
+          Seq(common.Tag(value, newLearningPath.language))
       }
 
       val title       = mergeLanguageFields(existing.title, oldTitle)
@@ -398,7 +398,7 @@ trait ConverterService {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
-          Seq(domain.LearningPathTags(newLearningPath.tags, newLearningPath.language))
+          Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
 
       domain.LearningPath(
         None,
