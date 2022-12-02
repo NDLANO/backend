@@ -26,7 +26,7 @@ object audioapi extends Module {
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV,
       "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "org.typelevel"      %% "cats-effect"                     % CatsEffectV
     ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides

@@ -10,6 +10,7 @@ object oembedproxy extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaUri,
+      "com.amazonaws"     % "aws-java-sdk-cloudwatch" % AwsSdkV,
       "org.eclipse.jetty" % "jetty-webapp"            % JettyV     % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"              % JettyV     % "container",
       "javax.servlet"     % "javax.servlet-api"       % "3.1.0"    % "container;provided;test",

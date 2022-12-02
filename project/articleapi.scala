@@ -23,7 +23,7 @@ object articleapi extends Module {
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
       "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
       "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % "1.74.0",
+      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9", // This is needed for javamelody graphing
       "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
       "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
