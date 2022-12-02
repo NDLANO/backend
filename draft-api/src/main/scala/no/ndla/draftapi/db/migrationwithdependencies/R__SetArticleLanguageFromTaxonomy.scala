@@ -9,6 +9,7 @@ package no.ndla.draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
 import no.ndla.common.model.domain.{
+  ArticleType,
   ArticleContent,
   Introduction,
   Description,
@@ -17,7 +18,7 @@ import no.ndla.common.model.domain.{
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.{DraftApiProperties, Props}
 import no.ndla.language.Language.languageOrUnknown

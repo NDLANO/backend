@@ -8,7 +8,7 @@
 package no.ndla.draftapi.db.migration
 
 import enumeratum.Json4s
-import no.ndla.common.model.domain.draft.ArticleType
+import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}

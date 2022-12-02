@@ -13,18 +13,19 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   ArticleContent,
-  Introduction,
-  Description,
   ArticleMetaImage,
+  ArticleType,
   Availability,
+  Description,
   EditorNote,
+  Introduction,
   RequiredLibrary,
   Status,
   Tag,
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api

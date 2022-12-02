@@ -8,8 +8,8 @@
 package no.ndla.draftapi.model.domain
 
 import enumeratum._
-import no.ndla.common.model.domain.{Availability, Content}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, ArticleType, Copyright, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleType, Availability, Content}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, Copyright, RevisionStatus}
 import no.ndla.draftapi.Props
 import org.json4s.FieldSerializer._
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}

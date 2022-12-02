@@ -9,7 +9,6 @@
 package no.ndla.articleapi.model.domain
 
 import no.ndla.articleapi.Props
-import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   Introduction,
   Description,
@@ -86,20 +85,4 @@ trait DBArticle {
       )
   }
 
-}
-
-object ArticleType extends Enumeration {
-  val Standard: ArticleType.Value     = Value("standard")
-  val TopicArticle: ArticleType.Value = Value("topic-article")
-
-  def all: Seq[String]                              = ArticleType.values.map(_.toString).toSeq
-  def valueOf(s: String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
-
-  def valueOfOrError(s: String): ArticleType.Value =
-    valueOf(s).getOrElse(
-      throw ValidationException(
-        "articleType",
-        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
-      )
-    )
 }

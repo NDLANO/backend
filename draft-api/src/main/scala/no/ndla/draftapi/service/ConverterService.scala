@@ -96,7 +96,7 @@ trait ConverterService {
           published = oldNdlaUpdatedDate.getOrElse(
             newArticle.published.getOrElse(clock.now())
           ), // If import use old updated. Else use new published or now
-          articleType = common.draft.ArticleType.valueOfOrError(newArticle.articleType),
+          articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
           notes = notes,
           previousVersionsNotes = Seq.empty,
           editorLabels = newArticle.editorLabels,
@@ -647,8 +647,7 @@ trait ConverterService {
             updated = updatedDate,
             published = publishedDate,
             updatedBy = user.id,
-            articleType =
-              article.articleType.map(common.draft.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
+            articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
             notes = allNotes,
             editorLabels = article.editorLabels.getOrElse(toMergeInto.editorLabels),
             grepCodes = article.grepCodes.getOrElse(toMergeInto.grepCodes),
@@ -759,8 +758,8 @@ trait ConverterService {
               published = article.published.getOrElse(clock.now()),
               updatedBy = user.id,
               articleType = article.articleType
-                .map(common.draft.ArticleType.valueOfOrError)
-                .getOrElse(common.draft.ArticleType.Standard),
+                .map(common.ArticleType.valueOfOrError)
+                .getOrElse(common.ArticleType.Standard),
               notes = notes,
               previousVersionsNotes = Seq.empty,
               editorLabels = article.editorLabels.getOrElse(Seq.empty),

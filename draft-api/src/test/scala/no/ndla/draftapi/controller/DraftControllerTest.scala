@@ -103,7 +103,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
           page = 1,
           pageSize = 4,
           sort = Sort.ByTitleAsc,
-          articleTypes = common.draft.ArticleType.all
+          articleTypes = common.ArticleType.all
         )
       )
     }

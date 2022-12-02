@@ -8,10 +8,11 @@
 package no.ndla.articleapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
+import enumeratum.Json4s
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain.{Article, ArticleType}
+import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
@@ -34,7 +35,7 @@ trait SearchApiClient {
     def indexArticle(article: Article): Article = {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
-          new EnumNameSerializer(ArticleType) +
+          Json4s.serializer(ArticleType) +
           new EnumNameSerializer(Availability) ++
           JavaTimeSerializers.all
 

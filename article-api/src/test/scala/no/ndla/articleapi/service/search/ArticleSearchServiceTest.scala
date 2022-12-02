@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{Introduction, Description, Author, Availability, Tag, Title}
+import no.ndla.common.model.domain.{ArticleType, Author, Availability, Description, Introduction, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
@@ -172,7 +172,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle.entryName
   )
 
   val article9 = TestData.sampleArticleWithPublicDomain.copy(
@@ -183,7 +183,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle.entryName
   )
 
   val article10 = TestData.sampleArticleWithPublicDomain.copy(
@@ -194,7 +194,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("englando"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle.entryName
   )
 
   val article11 = TestData.sampleArticleWithPublicDomain.copy(
@@ -210,7 +210,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle.entryName
   )
 
   val article12 = TestData.sampleArticleWithPublicDomain.copy(
@@ -222,7 +222,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("lærer"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.Standard.toString,
+    articleType = ArticleType.Standard.entryName,
     availability = Availability.teacher
   )
 
@@ -235,7 +235,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("student"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.Standard.toString,
+    articleType = ArticleType.Standard.entryName,
     availability = Availability.everyone
   )
 
@@ -279,7 +279,7 @@ class ArticleSearchServiceTest
 
   test("searching should return only articles of a given type if a type filter is specified") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.toString)))
+      articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName)))
     results.totalCount should be(3)
 
     val Success(results2) = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty))
@@ -369,13 +369,13 @@ class ArticleSearchServiceTest
   test("matchingQuery should filter results based on an article type filter") {
     val results = articleSearchService.matchingQuery(
       testSettings
-        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.toString))
+        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.entryName))
     )
     results.get.totalCount should be(0)
 
     val results2 = articleSearchService.matchingQuery(
       testSettings
-        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.toString))
+        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.entryName))
     )
     results2.get.totalCount should be(3)
   }

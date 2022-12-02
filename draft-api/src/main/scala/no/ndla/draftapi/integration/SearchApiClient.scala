@@ -9,8 +9,8 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
-import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient

@@ -8,9 +8,9 @@
 package no.ndla.draftapi.db.migration
 
 import enumeratum.Json4s
+import no.ndla.common.model.domain.ArticleType
 
 import java.time.LocalDateTime
-import no.ndla.common.model.domain.draft.ArticleType
 import no.ndla.draftapi.db.migration.V17__MoveTopicArticleEmbedToVisualElement
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.json4s.Formats

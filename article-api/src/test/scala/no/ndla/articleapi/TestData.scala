@@ -11,7 +11,16 @@ package no.ndla.articleapi
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{Introduction, Description, Author, Availability, Tag, Title, VisualElement}
+import no.ndla.common.model.domain.{
+  ArticleType,
+  Author,
+  Availability,
+  Description,
+  Introduction,
+  Tag,
+  Title,
+  VisualElement
+}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
 
@@ -139,7 +148,7 @@ trait TestData {
       LocalDateTime.now().minusDays(2).withNano(0),
       "ndalId54321",
       LocalDateTime.now().minusDays(2).withNano(0),
-      ArticleType.Standard.toString,
+      ArticleType.Standard.entryName,
       Seq("COMPCODE1"),
       Seq(1),
       availability = Availability.everyone,
@@ -163,7 +172,7 @@ trait TestData {
       today,
       "ndalId54321",
       today,
-      ArticleType.Standard.toString,
+      ArticleType.Standard.entryName,
       Seq("COMPCODE1"),
       Seq(1),
       availability = Availability.everyone,
@@ -187,7 +196,7 @@ trait TestData {
       today,
       "ndalId54321",
       today,
-      ArticleType.Standard.toString,
+      ArticleType.Standard.entryName,
       Seq("COMPCODE1"),
       Seq(1),
       availability = Availability.everyone,
@@ -223,7 +232,7 @@ trait TestData {
       today,
       "ndalId54321",
       today,
-      ArticleType.Standard.toString,
+      ArticleType.Standard.entryName,
       Seq(),
       Seq(),
       availability = Availability.everyone,
@@ -289,7 +298,7 @@ trait TestData {
         today,
         "ndalId54321",
         today,
-        ArticleType.Standard.toString,
+        ArticleType.Standard.entryName,
         Seq(),
         Seq(),
         availability = Availability.everyone,

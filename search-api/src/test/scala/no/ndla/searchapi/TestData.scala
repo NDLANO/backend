@@ -10,21 +10,22 @@ package no.ndla.searchapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{
   ArticleContent,
-  Introduction,
-  Description,
   ArticleMetaImage,
+  ArticleType,
   Author,
   Availability,
+  Description,
   EditorNote,
+  Introduction,
   Status,
   Tag,
   Title,
-  VisualElement
+  VisualElement,
+  draft,
+  learningpath
 }
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.draft
-import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
-import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.domain._

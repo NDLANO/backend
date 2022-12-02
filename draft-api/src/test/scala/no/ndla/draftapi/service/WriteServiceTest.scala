@@ -13,11 +13,12 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
   ArticleContent,
-  Introduction,
-  Description,
   ArticleMetaImage,
+  ArticleType,
   Author,
   Availability,
+  Description,
+  Introduction,
   RequiredLibrary,
   Status,
   Tag,
@@ -25,7 +26,7 @@ import no.ndla.common.model.domain.{
   VisualElement
 }
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PUBLISHED}
-import no.ndla.common.model.domain.draft.{ArticleType, Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}

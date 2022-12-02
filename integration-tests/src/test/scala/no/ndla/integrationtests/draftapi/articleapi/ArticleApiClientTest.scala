@@ -83,7 +83,7 @@ class ArticleApiClientTest
     updated = DateParser.fromUnixTime(0),
     updatedBy = "updatedBy",
     published = DateParser.fromUnixTime(0),
-    articleType = common.draft.ArticleType.Standard,
+    articleType = common.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
     editorLabels = Seq.empty,

@@ -9,7 +9,8 @@ package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.draft.{DraftStatus, ArticleType}
+import no.ndla.common.model.domain.ArticleType
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
