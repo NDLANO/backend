@@ -49,6 +49,27 @@ case class TaxonomyBundle(
     contentUriToResources.groupMap(_._1)(_._2)
   }
 
+  def getTopicParentConnections(topicId: String): List[TopicSubtopicConnection] = {
+    this.topicSubtopicConnectionsBySubTopicId.getOrElse(topicId, List.empty)
+  }
+
+  def getConnectedResourceTypesWithParents(
+      resourceId: String
+  ): List[ResourceType] = {
+    val connections =
+      this.resourceResourceTypeConnectionsByResourceId.getOrElse(resourceId, List.empty)
+
+    // Every explicitly specified resourceType
+    val connectedResourceTypes = connections.flatMap(c => this.allResourceTypesById.get(c.resourceTypeId))
+
+    // Include parents of resourceTypes if they exist
+    val subParents =
+      connectedResourceTypes
+        .flatMap(rt => this.resourceTypeParentsByResourceTypeId.getOrElse(rt.id, List.empty))
+        .filterNot(connectedResourceTypes.contains)
+    (connectedResourceTypes ++ subParents).distinct.sortWith((l, _) => l.subtypes.isDefined)
+  }
+
   def getTopicSubject(topicId: String): List[TaxSubject] = {
     val subjectConnections = subjectTopicConnectionsByTopicId.getOrElse(topicId, List.empty)
     subjectConnections.flatMap(sc => subjectsById.get(sc.subjectid))
