@@ -30,6 +30,7 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
+import no.ndla.network.model.RequestInfo
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -265,7 +266,9 @@ trait StateTransitionRules {
         isImported: Boolean
     ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
+      val requestInfo                     = RequestInfo()
       IO {
+        requestInfo.setRequestInfo()
         convertedArticle.flatMap(articleBeforeSideEffect => {
           sideEffects
             .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
