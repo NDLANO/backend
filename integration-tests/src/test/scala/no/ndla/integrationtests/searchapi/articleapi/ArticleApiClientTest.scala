@@ -10,13 +10,13 @@ package no.ndla.integrationtests.searchapi.articleapi
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.domain
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
@@ -107,7 +107,7 @@ class ArticleApiClientTest
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
 
     implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-    val chunks                                = articleApiClient.getChunks[domain.article.Article].toList
+    val chunks                                = articleApiClient.getChunks[Article].toList
     val fetchedArticle                        = Await.result(chunks.head, Duration.Inf).get.head
     val searchable = searchConverterService
       .asSearchableArticle(fetchedArticle, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))

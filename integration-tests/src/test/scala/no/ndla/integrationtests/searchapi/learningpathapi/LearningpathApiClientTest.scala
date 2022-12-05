@@ -16,7 +16,7 @@ import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain
-import no.ndla.searchapi.model.domain.article._
+import no.ndla.searchapi.model.domain._
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{learningpathapi, searchapi}
 import org.eclipse.jetty.server.Server

@@ -17,8 +17,7 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.{Error, GroupSearchResult, MultiSearchResult, SearchResults, ValidationError}
-import no.ndla.searchapi.model.domain.article.LearningResourceType
-import no.ndla.searchapi.model.domain.{SearchParams, Sort}
+import no.ndla.searchapi.model.domain.{LearningResourceType, SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   MultiDraftSearchService,

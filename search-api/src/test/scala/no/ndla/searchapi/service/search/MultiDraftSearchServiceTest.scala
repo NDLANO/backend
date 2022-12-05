@@ -13,8 +13,7 @@ import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
-import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.domain.article._
+import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 import no.ndla.searchapi.TestEnvironment
 import org.scalatest.Outcome
 

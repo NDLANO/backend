@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.domain.Availability
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 case class SearchSettings(
     query: Option[String],
