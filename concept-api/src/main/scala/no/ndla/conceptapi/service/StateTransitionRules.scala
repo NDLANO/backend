@@ -17,6 +17,7 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.conceptapi.model.domain.ConceptStatus._
+import no.ndla.network.model.RequestInfo
 
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -117,7 +118,11 @@ trait StateTransitionRules {
         user: UserInfo
     ): IO[Try[domain.Concept]] = {
       val (convertedArticle, sideEffect) = doTransitionWithoutSideEffect(current, to, user)
-      IO { convertedArticle.flatMap(concept => sideEffect(concept)) }
+      val requestInfo                    = RequestInfo()
+      IO {
+        requestInfo.setRequestInfo()
+        convertedArticle.flatMap(concept => sideEffect(concept))
+      }
     }
   }
 }
