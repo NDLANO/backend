@@ -30,7 +30,7 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
       county: String,
       email: String
   )
-  val repositorySerializer: Formats =
+  implicit val formats: Formats =
     DefaultFormats + new EnumNameSerializer(UserRole) ++ JavaTimeSerializers.all + FieldSerializer[OldMyNDLAUser](
       ignore("id") orElse
         ignore("feideId")
@@ -47,22 +47,34 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
 
   def migrateCounty(implicit session: DBSession): Unit = {
     allFeideIds.foreach(feideId => {
-      val user = getMyNDLAUser(feideId)
-      val updatedUser = NewMyNDLAUser(
-        favoriteSubjects = user.favoriteSubjects,
-        userRole = user.userRole,
-        // We set lastUpdated to outdated in order to guarantee re-fetch of county and email information
-        lastUpdated = LocalDateTime.now().minusDays(2),
-        county = "temp",
-        email = "example@email.com"
-      )
-      updateMyNDLAUser(feideId, updatedUser)
+      val twoDaysAgo = LocalDateTime.now().minusDays(2)
+      val maybeUser  = getMyNDLAUser(feideId)
+      maybeUser match {
+        case Some(user) =>
+          val updatedUser = NewMyNDLAUser(
+            favoriteSubjects = user.favoriteSubjects,
+            userRole = user.userRole,
+            // We set lastUpdated to outdated in order to guarantee re-fetch of county and email information
+            lastUpdated = twoDaysAgo,
+            county = "temp",
+            email = "example@email.com"
+          )
+          updateMyNDLAUser(feideId, updatedUser)
+        case None =>
+          val newUser = NewMyNDLAUser(
+            favoriteSubjects = Seq.empty,
+            userRole = UserRole.STUDENT,
+            // We set lastUpdated to outdated in order to guarantee re-fetch of county, email and userRole information
+            lastUpdated = twoDaysAgo,
+            county = "temp",
+            email = "example@email.com"
+          )
+          createMyNDLAUser(feideId, newUser)
+      }
     })
   }
 
-  def updateMyNDLAUser(feideId: FeideID, document: NewMyNDLAUser)(implicit session: DBSession) = {
-    implicit val formats: Formats = repositorySerializer
-
+  def updateMyNDLAUser(feideId: FeideID, document: NewMyNDLAUser)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(document))
@@ -70,18 +82,26 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
     sql"update my_ndla_users set document=$dataObject where feide_id = $feideId".update.apply()
   }
 
-  def getMyNDLAUser(feideId: FeideID)(implicit session: DBSession): OldMyNDLAUser = {
-    implicit val formats: Formats = repositorySerializer
+  def createMyNDLAUser(feideId: FeideID, document: NewMyNDLAUser)(implicit session: DBSession = AutoSession): Long = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(write(document))
 
+    sql"""
+    insert into my_ndla_users (feide_id, document)
+    values ($feideId, $dataObject)
+    """.updateAndReturnGeneratedKey()
+  }
+
+  def getMyNDLAUser(feideId: FeideID)(implicit session: DBSession): Option[OldMyNDLAUser] = {
     sql"select document from my_ndla_users where feide_id = $feideId"
       .map(rs => read[OldMyNDLAUser](rs.string("document")))
       .single()
-      .get
   }
 
   def allFeideIds(implicit session: DBSession): Seq[String] = {
-    sql"select feide_id from my_ndla_users"
-      .map(rs => rs.string("feide_id"))
-      .list()
+    val folderFeideIds     = sql"select feide_id from folders".map(rs => rs.string("feide_id")).list()
+    val myNDLAUserFeideIds = sql"select feide_id from my_ndla_users".map(rs => rs.string("feide_id")).list()
+    (folderFeideIds ++ myNDLAUserFeideIds).distinct
   }
 }
