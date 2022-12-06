@@ -9,6 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.implicits._
 import io.lemonlabs.uri.{Path, Url}
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
@@ -111,7 +112,7 @@ trait ReadService {
     private[service] def addUrlOnResource(content: String): String = {
       val doc = HtmlTagRules.stringToJsoupDocument(content)
 
-      val embedTags = doc.select(s"$resourceHtmlEmbedTag").asScala.toList
+      val embedTags = doc.select(EmbedTagName).asScala.toList
       embedTags.foreach(addUrlOnEmbedTag)
       HtmlTagRules.jsoupDocumentToString(doc)
     }

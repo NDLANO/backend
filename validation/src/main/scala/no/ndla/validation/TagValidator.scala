@@ -8,8 +8,8 @@
 package no.ndla.validation
 
 import io.lemonlabs.uri.typesafe.dsl._
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.TagRules.TagAttributeRules
 import org.jsoup.nodes.{Element, Node}
 
@@ -29,7 +29,7 @@ class TagValidator {
       .select("*")
       .asScala
       .flatMap(tag => {
-        if (tag.tagName == ResourceHtmlEmbedTag) validateEmbedTag(fieldName, tag, requiredToOptional)
+        if (tag.tagName == EmbedTagName) validateEmbedTag(fieldName, tag, requiredToOptional)
         else validateHtmlTag(fieldName, tag)
       })
       .toList
@@ -72,13 +72,13 @@ class TagValidator {
       embed: Element,
       requiredToOptional: Map[String, Seq[String]]
   ): Seq[ValidationMessage] = {
-    if (embed.tagName != ResourceHtmlEmbedTag)
+    if (embed.tagName != EmbedTagName)
       return Seq()
 
     val allAttributesOnTag = embed.attributes().asScala.map(attr => attr.getKey -> attr.getValue).toMap
-    val legalAttributes    = getLegalAttributesUsed(allAttributesOnTag, ResourceHtmlEmbedTag)
+    val legalAttributes    = getLegalAttributesUsed(allAttributesOnTag, EmbedTagName)
 
-    val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag, ResourceHtmlEmbedTag) ++
+    val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag, EmbedTagName) ++
       attributesContainsNoHtml(fieldName, legalAttributes) ++
       verifyAttributeResource(fieldName, legalAttributes, requiredToOptional) ++
       verifyParent(fieldName, legalAttributes, embed) ++
@@ -287,7 +287,7 @@ class TagValidator {
       Some(
         ValidationMessage(
           fieldName,
-          s"HTML tag '$ResourceHtmlEmbedTag' contains attributes with HTML: ${attributesWithHtml.mkString(", ")}"
+          s"HTML tag '$EmbedTagName' contains attributes with HTML: ${attributesWithHtml.mkString(", ")}"
         )
       )
     } else {
@@ -304,7 +304,7 @@ class TagValidator {
     if (!attributeKeys.contains(TagAttributes.DataResource)) {
       return ValidationMessage(
         fieldName,
-        s"$ResourceHtmlEmbedTag tags must contain a ${TagAttributes.DataResource} attribute"
+        s"$EmbedTagName tags must contain a ${TagAttributes.DataResource} attribute"
       ) :: Nil
     }
 
@@ -323,7 +323,7 @@ class TagValidator {
       .attributesForResourceType(resourceType)
       .withOptionalRequired(requiredToOptional.get(resourceType.toString).getOrElse(Seq.empty))
 
-    val partialErrorMessage = s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType"
+    val partialErrorMessage = s"An $EmbedTagName HTML tag with ${TagAttributes.DataResource}=$resourceType"
 
     verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributes, resourceType) ++
       verifyOptionals(fieldName, attributeRulesForTag, attributeKeys, partialErrorMessage) ++
@@ -340,7 +340,7 @@ class TagValidator {
     val missingAttributes = getMissingAttributes(requiredAttrs, actualAttributes.keySet)
     val illegalAttributes = getMissingAttributes(actualAttributes.keySet, attrRules.all)
 
-    val partialErrorMessage = s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType"
+    val partialErrorMessage = s"An $EmbedTagName HTML tag with ${TagAttributes.DataResource}=$resourceType"
 
     val missingErrors = missingAttributes
       .map(missingAttributes =>
@@ -428,7 +428,7 @@ class TagValidator {
         Seq(
           ValidationMessage(
             fieldName,
-            s"An $ResourceHtmlEmbedTag HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
+            s"An $EmbedTagName HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
                 .mkString(", ")}"
           )
         )

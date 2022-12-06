@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
@@ -477,8 +478,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.emptyDomainArticle.copy(
         id = Some(99),
         content = Seq(
-          ArticleContent("Sjekk denne h5p-en <embed data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
-          ArticleContent("Fil <embed data-resource=\"file\" data-path=\"/file/path\">", "nn")
+          ArticleContent(s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
+          ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\">", "nn")
         )
       )
 
@@ -490,10 +491,13 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.emptyDomainArticle.copy(
         id = Some(99),
         content = Seq(
-          ArticleContent("Skikkelig bra h5p: <embed data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
-          ArticleContent("Fin video <embed data-resource=\"external\" data-url=\"https://youtu.be/id\">", "nn"),
+          ArticleContent(s"Skikkelig bra h5p: <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
           ArticleContent(
-            "Movie trailer <embed data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\">",
+            s"Fin video <$EmbedTagName data-resource=\"external\" data-url=\"https://youtu.be/id\">",
+            "nn"
+          ),
+          ArticleContent(
+            s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\">",
             "en"
           )
         )
@@ -506,7 +510,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That extracting attributes extracts data-title but not all attributes") {
     val html =
-      """<section>Hei<p align="center">Heihei</p><embed class="testklasse" tulleattributt data-resource_id="55" data-title="For ei tittel" />"""
+      s"""<section>Hei<p align="center">Heihei</p><$EmbedTagName class="testklasse" tulleattributt data-resource_id="55" data-title="For ei tittel" />"""
     val result = searchConverterService.getAttributes(html)
     result should be(List("For ei tittel"))
   }

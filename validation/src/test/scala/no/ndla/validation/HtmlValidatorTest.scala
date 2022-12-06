@@ -1,5 +1,6 @@
 package no.ndla.validation
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.UnitSuite
 
@@ -7,7 +8,7 @@ class HtmlValidatorTest extends UnitSuite {
   val htmlValidator = new TextValidator(allowHtml = true)
 
   private val getValidImageEmbed = (id: String) => {
-    s"""<embed data-caption="some capt" data-align="" data-resource_id="$id" data-resource="image" data-alt="some alt" data-size="full" />"""
+    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="$id" data-resource="image" data-alt="some alt" data-size="full" />"""
   }
 
   test("validate should allow math tags with styling") {

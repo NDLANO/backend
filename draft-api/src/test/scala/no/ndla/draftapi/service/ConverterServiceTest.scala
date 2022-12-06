@@ -9,6 +9,7 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.DateParser
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -86,11 +87,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content =
-      s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedContent = s"""<h1>hello</h1><$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" />"""
     val visualElement =
-      s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
+      s"""<$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedVisualElement = s"""<$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" />"""
     val apiArticle            = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
     val expectedTime          = TestData.today
 
@@ -765,7 +766,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle should clone files if existing files appear in new language") {
     val embed1 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
     val existingArticle = TestData.sampleDomainArticle.copy(
       content = Seq(ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
     )
@@ -804,16 +805,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedPaths = Seq(enPath1, enPath2, nbPath1, nbPath2, vePath1, vePath2).sorted
 
     val articleContentNb = ArticleContent(
-      s"""<section><h1>Heisann</h1><embed data-path="$nbPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$nbPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
+      s"""<section><h1>Heisann</h1><$EmbedTagName data-path="$nbPath1" data-resource="h5p" /></section><section><p>Joda<$EmbedTagName data-path="$nbPath2" data-resource="h5p" /></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "nb"
     )
     val articleContentEn = ArticleContent(
-      s"""<section><h1>Hello</h1><embed data-path="$enPath1" data-resource="h5p" /></section><section><p>Joda<embed data-path="$enPath2" data-resource="h5p" /></p><embed data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
+      s"""<section><h1>Hello</h1><$EmbedTagName data-path="$enPath1" data-resource="h5p" /></section><section><p>Joda<$EmbedTagName data-path="$enPath2" data-resource="h5p" /></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
       "en"
     )
 
-    val visualElementNb = VisualElement(s"""<embed data-path="$vePath1" data-resource="h5p" />""", "nb")
-    val visualElementEn = VisualElement(s"""<embed data-path="$vePath2" data-resource="h5p" />""", "en")
+    val visualElementNb = VisualElement(s"""<$EmbedTagName data-path="$vePath1" data-resource="h5p" />""", "nb")
+    val visualElementEn = VisualElement(s"""<$EmbedTagName data-path="$vePath2" data-resource="h5p" />""", "en")
 
     val article = TestData.sampleDomainArticle.copy(
       id = Some(1),

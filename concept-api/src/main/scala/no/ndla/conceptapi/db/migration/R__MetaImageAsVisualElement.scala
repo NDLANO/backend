@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.db.migration
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JObject
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -115,7 +116,7 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
     if (image.imageId.isEmpty) None
     else {
       val embedString =
-        s"""<embed data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
+        s"""<$EmbedTagName data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
       Some(NewVisualElement(embedString, image.language))
     }
   }

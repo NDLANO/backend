@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.ArticleContent
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
@@ -67,7 +68,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       id = Some(1),
       content = Seq(
         ArticleContent(
-          """<section><div data-type="related-content"><embed data-article-id="3" data-resource="related-content"></div></section>""",
+          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></div></section>""",
           "nb"
         )
       )
@@ -76,7 +77,7 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
       id = Some(2),
       content = Seq(
         ArticleContent(
-          """<section><embed data-content-id="3" data-link-text="Test?" data-resource="content-link"></section>""",
+          s"""<section><$EmbedTagName data-content-id="3" data-link-text="Test?" data-resource="content-link"></section>""",
           "nb"
         )
       )

@@ -19,10 +19,10 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.domain.Availability
 import no.ndla.network.clients.FeideApiClient
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
@@ -111,7 +111,7 @@ trait ReadService {
     private[service] def addUrlOnResource(content: String): String = {
       val doc = stringToJsoupDocument(content)
 
-      val embedTags = doc.select(s"$ResourceHtmlEmbedTag").asScala.toList
+      val embedTags = doc.select(EmbedTagName).asScala.toList
       embedTags.foreach(addUrlOnEmbedTag)
       jsoupDocumentToString(doc)
     }

@@ -14,6 +14,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PROPOSAL, PUBLISHED}
@@ -137,7 +138,7 @@ trait WriteService {
     def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
       contents.toList.traverse(content => {
         val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
-        val embeds = doc.select(s"embed[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
+        val embeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
 
         embeds.toList.traverse(cloneEmbedAndUpdateElement) match {
           case Failure(ex) => Failure(ex)
