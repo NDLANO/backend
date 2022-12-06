@@ -18,8 +18,8 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
-case class Membership(primaryAffiliation: Option[String])
-case class FeideGroup(displayName: String, membership: Membership)
+case class Membership(primarySchool: Option[Boolean])
+case class FeideGroup(id: String, displayName: String, membership: Membership, parent: Option[String])
 
 case class FeideOpenIdUserInfo(sub: String)
 
@@ -105,15 +105,18 @@ trait FeideApiClient {
     }
 
     private def findCounty(feideGroups: Seq[FeideGroup]): Try[String] = {
-      feideGroups.find(group => group.membership.primaryAffiliation.isDefined) match {
+      val primarySchoolGroup = feideGroups.find(group => group.membership.primarySchool.contains(true))
+      val maybePrimaryGroup  = primarySchoolGroup.flatMap(e => feideGroups.find(group => e.parent.contains(group.id)))
+      val fallback           = feideGroups.headOption
+      maybePrimaryGroup.orElse(fallback) match {
         case Some(value) => Success(value.displayName)
         case None =>
           logger.error(
-            "None of feideGroup list contained 'primaryAffiliation' so it is impossible to distinguish between old organisation and the current one."
+            "Can not determine county information. It is impossible to distinguish between the old and the current organization."
           )
           Failure(
             new NoSuchFieldException(
-              "None of feideGroup list contained 'primaryAffiliation' so it is impossible to distinguish between old organisation and the current one."
+              "Can not determine county information. It is impossible to distinguish between the old and the current organization."
             )
           )
       }
