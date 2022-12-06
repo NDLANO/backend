@@ -558,10 +558,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo",
+      organization = "oslo",
       email = "example@email.com"
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
@@ -571,7 +571,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
-    when(feideApiClient.getCounty(any)).thenReturn(Success("oslo"))
+    when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
     when(userRepository.insertUser(any, any[domain.MyNDLAUserDocument])(any))
       .thenReturn(Success(domainUserData))
@@ -579,7 +579,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getCounty(any)
+    verify(feideApiClient, times(1)).getOrganization(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(1)).insertUser(any, any)(any)
     verify(userRepository, times(0)).updateUser(any, any)(any)
@@ -595,10 +595,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
-      county = "oslo",
+      organization = "oslo",
       email = "example@email.com"
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
@@ -621,7 +621,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
-      county = "oslo",
+      organization = "oslo",
       email = "example@email.com"
     )
     val updatedFeideUser = FeideExtendedUserInfo(
@@ -629,18 +629,18 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       eduPersonAffiliation = Seq.empty,
       eduPersonPrincipalName = "example@email.com"
     )
-    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
+    val apiUserData = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
-    when(feideApiClient.getCounty(Some(feideId))).thenReturn(Success("oslo"))
+    when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
     when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
-    verify(feideApiClient, times(1)).getCounty(any)
+    verify(feideApiClient, times(1)).getOrganization(any)
     verify(userRepository, times(1)).userWithFeideId(any)(any)
     verify(userRepository, times(0)).insertUser(any, any)(any)
     verify(userRepository, times(1)).updateUser(any, any)(any)

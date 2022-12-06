@@ -20,14 +20,14 @@ import scalikejdbc.{DB, DBSession, _}
 
 import java.time.LocalDateTime
 
-class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
+class V26__AddOrganizationAndEmailToMyNDLAUser extends BaseJavaMigration {
 
   case class OldMyNDLAUser(favoriteSubjects: Seq[String], userRole: UserRole.Value, lastUpdated: LocalDateTime)
   case class NewMyNDLAUser(
       favoriteSubjects: Seq[String],
       userRole: UserRole.Value,
       lastUpdated: LocalDateTime,
-      county: String,
+      organization: String,
       email: String
   )
   implicit val formats: Formats =
@@ -41,11 +41,11 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      migrateCounty
+      migrateOrganization
     }
   }
 
-  def migrateCounty(implicit session: DBSession): Unit = {
+  def migrateOrganization(implicit session: DBSession): Unit = {
     allFeideIds.foreach(feideId => {
       val twoDaysAgo = LocalDateTime.now().minusDays(2)
       val maybeUser  = getMyNDLAUser(feideId)
@@ -54,9 +54,9 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
           val updatedUser = NewMyNDLAUser(
             favoriteSubjects = user.favoriteSubjects,
             userRole = user.userRole,
-            // We set lastUpdated to outdated in order to guarantee re-fetch of county and email information
+            // We set lastUpdated to outdated in order to guarantee re-fetch of organization and email information
             lastUpdated = twoDaysAgo,
-            county = "temp",
+            organization = "temp",
             email = "example@email.com"
           )
           updateMyNDLAUser(feideId, updatedUser)
@@ -64,9 +64,9 @@ class V26__AddCountyAndEmailToMyNDLAUser extends BaseJavaMigration {
           val newUser = NewMyNDLAUser(
             favoriteSubjects = Seq.empty,
             userRole = UserRole.STUDENT,
-            // We set lastUpdated to outdated in order to guarantee re-fetch of county, email and userRole information
+            // We set lastUpdated to outdated in order to guarantee re-fetch of organization, email and userRole information
             lastUpdated = twoDaysAgo,
-            county = "temp",
+            organization = "temp",
             email = "example@email.com"
           )
           createMyNDLAUser(feideId, newUser)

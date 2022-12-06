@@ -21,7 +21,7 @@ case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: LocalDateTime,
-    county: String,
+    organization: String,
     email: String
 ) {
   def toFullUser(
@@ -34,7 +34,7 @@ case class MyNDLAUserDocument(
       favoriteSubjects = favoriteSubjects,
       userRole = userRole,
       lastUpdated = lastUpdated,
-      county = county,
+      organization = organization,
       email = email
     )
   }
@@ -46,14 +46,14 @@ case class MyNDLAUser(
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
     lastUpdated: LocalDateTime,
-    county: String,
+    organization: String,
     email: String
 ) {
   def toDocument: MyNDLAUserDocument = MyNDLAUserDocument(
     favoriteSubjects = favoriteSubjects,
     userRole = userRole,
     lastUpdated = lastUpdated,
-    county = county,
+    organization = organization,
     email = email
   )
 

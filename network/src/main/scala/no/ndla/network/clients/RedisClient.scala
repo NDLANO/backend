@@ -64,11 +64,11 @@ trait RedisClient {
       updateCache(accessToken, feideIdField, feideId).map(_ => feideId)
     }
 
-    def getCountyFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
+    def getOrganizationFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
       jedis.hget(accessToken, feideGroupField)
 
-    def updateCacheAndReturnCounty(accessToken: FeideAccessToken, feideCounty: String): Try[String] = {
-      updateCache(accessToken, feideGroupField, feideCounty).map(_ => feideCounty)
+    def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
+      updateCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
     }
 
   }

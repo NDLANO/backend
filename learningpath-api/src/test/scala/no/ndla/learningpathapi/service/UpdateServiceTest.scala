@@ -2127,7 +2127,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("h", "b"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo",
+      organization = "oslo",
       email = "example@email.com"
     )
     val updatedUserData = api.UpdatedMyNDLAUser(favoriteSubjects = Some(Seq("r", "e")))
@@ -2137,10 +2137,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
-      county = "oslo",
+      organization = "oslo",
       email = "example@email.com"
     )
-    val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", county = "oslo")
+    val expected = api.MyNDLAUser(id = 42, favoriteSubjects = Seq("r", "e"), role = "student", organization = "oslo")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))

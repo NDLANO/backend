@@ -388,13 +388,13 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
-        county                <- feideApiClient.getCounty(feideAccessToken)
+        organization          <- feideApiClient.getOrganization(feideAccessToken)
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
             lastUpdated = clock.now().plusDays(1),
-            county = county,
+            organization = organization,
             email = feideExtendedUserData.email
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
@@ -408,15 +408,15 @@ trait ReadService {
     )(implicit
         session: DBSession
     ): Try[domain.MyNDLAUser] = {
-      val feideUser = feideApiClient.getFeideExtendedUser(feideAccessToken).?
-      val county    = feideApiClient.getCounty(feideAccessToken).?
+      val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
+      val organization = feideApiClient.getOrganization(feideAccessToken).?
       val updatedMyNDLAUser = domain.MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,
         favoriteSubjects = userData.favoriteSubjects,
         userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
         lastUpdated = clock.now().plusDays(1),
-        county = county,
+        organization = organization,
         email = feideUser.email
       )
       userRepository.updateUser(feideId, updatedMyNDLAUser)(session)

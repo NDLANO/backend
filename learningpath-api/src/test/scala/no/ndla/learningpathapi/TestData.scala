@@ -163,7 +163,7 @@ object TestData {
     favoriteSubjects = Seq.empty,
     userRole = domain.UserRole.TEACHER,
     lastUpdated = today,
-    county = "",
+    organization = "",
     email = ""
   )
 
