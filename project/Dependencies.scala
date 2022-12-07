@@ -11,9 +11,9 @@ object Dependencies {
     val ScalaV                = "2.13.8"
     val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "4.0.1"
-    val ScalaLoggingV         = "3.9.4"
+    val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.10"
-    val Log4JV                = "2.17.1"
+    val Log4JV                = "2.19.0"
     val JettyV                = "9.4.48.v20220622"
     val AwsSdkV               = "1.12.276"
     val MockitoV              = "1.16.49"
@@ -67,11 +67,11 @@ object Dependencies {
     )
 
     lazy val logging = Seq(
-      "org.apache.logging.log4j"    % "log4j-api"        % Log4JV,
-      "org.apache.logging.log4j"    % "log4j-core"       % Log4JV,
-      "org.apache.logging.log4j"    % "log4j-slf4j-impl" % Log4JV,
-      "com.typesafe.scala-logging" %% "scala-logging"    % ScalaLoggingV,
-      "org.slf4j"                   % "slf4j-api"        % "1.7.32",
+      "org.apache.logging.log4j"    % "log4j-api"         % Log4JV,
+      "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
+      "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
+      "com.typesafe.scala-logging" %% "scala-logging"     % ScalaLoggingV,
+      "org.slf4j"                   % "slf4j-api"         % "2.0.5",
       // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,
