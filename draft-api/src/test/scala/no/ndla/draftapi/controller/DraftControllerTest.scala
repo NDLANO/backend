@@ -7,10 +7,8 @@
 
 package no.ndla.draftapi.controller
 
-import java.time.LocalDateTime
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.DraftStatus.{QUALITY_ASSURED_DELAYED, QUEUED_FOR_PUBLISHING_DELAYED}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
@@ -22,6 +20,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
