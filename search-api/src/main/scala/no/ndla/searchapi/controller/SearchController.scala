@@ -114,7 +114,8 @@ trait SearchController {
     private val contextTypes =
       Param[Option[Seq[String]]](
         "context-types",
-        s"A comma separated list of context-types the learning resources should be filtered by. Allowed values are: ${LearningResourceType.all.mkString(", ")}"
+        s"A comma separated list of context-types the learning resources should be filtered by. Allowed values are: ${LearningResourceType.all
+            .mkString(", ")}"
       )
     private val groupTypes =
       Param[Option[Seq[String]]](
