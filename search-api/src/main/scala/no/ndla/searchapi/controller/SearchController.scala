@@ -101,11 +101,6 @@ trait SearchController {
     private val apiTypes =
       Param[Option[Seq[String]]]("types", "A comma separated list of types to search in. f.ex articles,images")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
-    private val levels =
-      Param[Option[Seq[String]]](
-        "levels",
-        "A comma separated list of levels the learning resources should be filtered by."
-      )
     private val subjects =
       Param[Option[Seq[String]]](
         "subjects",
@@ -119,7 +114,7 @@ trait SearchController {
     private val contextTypes =
       Param[Option[Seq[String]]](
         "context-types",
-        "A comma separated list of context-types the learning resources should be filtered by."
+        s"A comma separated list of context-types the learning resources should be filtered by. Allowed values are: ${LearningResourceType.all.mkString(", ")}"
       )
     private val groupTypes =
       Param[Option[Seq[String]]](
@@ -240,7 +235,6 @@ trait SearchController {
             asQueryParam(subjects),
             asQueryParam(sort),
             asQueryParam(learningResourceIds),
-            asQueryParam(levels),
             asQueryParam(contextTypes),
             asQueryParam(languageFilter),
             asQueryParam(relevanceFilter),
@@ -559,7 +553,6 @@ trait SearchController {
             asQueryParam(language),
             asQueryParam(learningResourceIds),
             asQueryParam(resourceTypes),
-            asQueryParam(levels),
             asQueryParam(license),
             asQueryParam(query),
             asQueryParam(sort),
@@ -605,7 +598,6 @@ trait SearchController {
             asQueryParam(language),
             asQueryParam(learningResourceIds),
             asQueryParam(resourceTypes),
-            asQueryParam(levels),
             asQueryParam(license),
             asQueryParam(query),
             asQueryParam(noteQuery),

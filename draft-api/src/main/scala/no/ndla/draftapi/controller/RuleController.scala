@@ -32,14 +32,10 @@ trait RuleController {
           .summary("Show all HTML validation rules")
           .description("Shows all the HTML validation rules.")
           .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
+          .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        ValidationRules.htmlRulesJson
-      }
+      ValidationRules.htmlRulesJson
     }
 
     get(
@@ -49,14 +45,10 @@ trait RuleController {
           .summary("Show all embed tag validation rules")
           .description("Shows all the embed tag  validation rules.")
           .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
+          .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        ValidationRules.embedTagRulesJson
-      }
+      ValidationRules.embedTagRulesJson
     }
 
     get(
@@ -66,14 +58,10 @@ trait RuleController {
           .summary("Show all MathML validation rules")
           .description("Shows all the MathML validation rules.")
           .parameters(asHeaderParam(correlationId))
-          .authorizations("oauth2")
-          .responseMessages(response403, response500)
+          .responseMessages(response500)
       )
     ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        ValidationRules.mathMLRulesJson
-      }
+      ValidationRules.mathMLRulesJson
     }
   }
 
