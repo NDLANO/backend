@@ -9,7 +9,7 @@ object Dependencies {
 
   object versions {
     val ScalaV                = "2.13.8"
-    val ScalatraV             = "2.8.2"
+    val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "4.0.1"
     val ScalaLoggingV         = "3.9.4"
     val ScalaTestV            = "3.2.10"
@@ -17,14 +17,14 @@ object Dependencies {
     val JettyV                = "9.4.48.v20220622"
     val AwsSdkV               = "1.12.276"
     val MockitoV              = "1.16.49"
-    val Elastic4sV            = "7.16.3"
-    val JacksonV              = "2.13.3"
+    val Elastic4sV            = "8.5.0"
+    val JacksonV              = "2.14.1"
     val CatsEffectV           = "3.4.1"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
     val FlywayV               = "7.5.3"
-    val PostgresV             = "42.4.1"
+    val PostgresV             = "42.5.1"
     val ScalaTsiV             = "0.6.0"
     val Http4sV               = "0.23.16"
     val TapirV                = "1.2.2"
@@ -32,7 +32,7 @@ object Dependencies {
     val CirceV                = "0.14.2"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
-    val JsoupV                = "1.15.2"
+    val JsoupV                = "1.15.3"
     val JavaMelodyV           = "1.91.0"
     val ScalaJV               = "2.4.2"
 
@@ -81,9 +81,9 @@ object Dependencies {
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides = Seq(
       "com.google.guava"          % "guava"         % "30.0-jre",
-      "commons-codec"             % "commons-codec" % "1.14",
+      "commons-codec"             % "commons-codec" % "1.15",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.13",
-      "org.yaml"                  % "snakeyaml"     % "1.26"
+      "org.yaml"                  % "snakeyaml"     % "1.33"
     )
   }
 }
