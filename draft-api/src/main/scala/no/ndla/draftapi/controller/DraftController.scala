@@ -9,7 +9,7 @@ package no.ndla.draftapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.draft.{DraftStatus, ArticleType}
+import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.model.api._
@@ -41,7 +41,7 @@ trait DraftController {
   val draftController: DraftController
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
-    import props.{InitialScrollContextKeywords, DefaultPageSize}
+    import props.{DefaultPageSize, InitialScrollContextKeywords}
 
     protected implicit override val jsonFormats: Formats =
       DefaultFormats.withLong + Json4s.serializer(PartialArticleFields) ++ JavaTimeSerializers.all
@@ -336,13 +336,7 @@ trait DraftController {
       val articleId = long(this.articleId.paramName)
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
-
-      val article       = readService.withId(articleId, language, fallback)
-      val currentOption = article.map(_.status.current).toOption
-      val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
-        currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
-        currentOption.contains(DraftStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
-      article match {
+      readService.withId(articleId, language, fallback) match {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }

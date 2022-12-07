@@ -155,40 +155,6 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     }
   }
 
-  test("That GET /<article_id> returns 403 if auth header does not have any roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-    when(readService.withId(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
-
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(403)
-    }
-  }
-
-  test("That GET /<article_id> returns 200 if status is allowed even if auth header does not have any roles") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-    when(readService.withId(articleId, lang)).thenReturn(Success(TestData.apiArticleUserTest))
-
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(200)
-    }
-
-    when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUALITY_ASSURED_DELAYED.toString, Seq.empty)))
-    )
-
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(200)
-    }
-
-    when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.Status(QUEUED_FOR_PUBLISHING_DELAYED.toString, Seq.empty)))
-    )
-
-    get(s"/test/$articleId?language=$lang") {
-      status should equal(200)
-    }
-  }
-
   test("That PATCH /:id returns a validation message if article is invalid") {
     patch("/test/123", invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(400)
@@ -332,16 +298,6 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
     get("/test/tag-search/") {
       status should equal(200)
-    }
-  }
-
-  test("tags should return 403 Forbidden if user has no access role") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
-      .thenReturn(Success(TestData.sampleApiTagsSearchResult.copy(results = Seq.empty)))
-
-    get("/test/tag-search/") {
-      status should equal(403)
     }
   }
 
