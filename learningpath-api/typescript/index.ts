@@ -174,6 +174,7 @@ export interface IMyNDLAUser {
   id: number
   favoriteSubjects: string[]
   role: string
+  organization: string
 }
 
 export interface INewFolder {
