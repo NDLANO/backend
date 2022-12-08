@@ -30,6 +30,7 @@ package object implicits {
     c.prefix.tree match {
       case q"$_[$tp]($self)" =>
         q"""
+           import scala.util.{Failure, Success, Try}
            $self match {
              case Success(value) => value
              case Failure(ex)    => return Failure(ex)

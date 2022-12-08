@@ -18,11 +18,15 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.util.{Failure, Success, Try}
 
+case class Membership(primarySchool: Option[Boolean])
+case class FeideGroup(id: String, displayName: String, membership: Membership, parent: Option[String])
+
 case class FeideOpenIdUserInfo(sub: String)
 
 case class FeideExtendedUserInfo(
     displayName: String,
-    eduPersonAffiliation: Seq[String]
+    eduPersonAffiliation: Seq[String],
+    eduPersonPrincipalName: String
 ) {
 
   def isTeacher: Boolean = {
@@ -41,6 +45,8 @@ case class FeideExtendedUserInfo(
       Seq(Availability.everyone)
     }
   }
+
+  def email: String = this.eduPersonPrincipalName
 }
 
 trait FeideApiClient {
@@ -52,11 +58,14 @@ trait FeideApiClient {
     private val feideTimeout           = 1000 * 30
     private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
     private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
+    private val feideGroupEndpoint     = "https://groups-api.dataporten.no/groups/me/groups"
 
     private def fetchOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
       fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
     private def fetchFeideExtendedUser(accessToken: FeideAccessToken): Try[FeideExtendedUserInfo] =
       fetchAndParse[FeideExtendedUserInfo](accessToken, feideUserInfoEndpoint)
+    private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
+      fetchAndParse[Seq[FeideGroup]](accessToken, feideGroupEndpoint)
 
     private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: String)(implicit mf: Manifest[T]): Try[T] = {
       val request =
@@ -93,6 +102,24 @@ trait FeideApiClient {
           Success(response)
         }
       })
+    }
+
+    private def findOrganization(feideGroups: Seq[FeideGroup]): Try[String] = {
+      val primarySchoolGroup = feideGroups.find(group => group.membership.primarySchool.contains(true))
+      val maybePrimaryGroup  = primarySchoolGroup.flatMap(e => feideGroups.find(group => e.parent.contains(group.id)))
+      val fallback           = feideGroups.headOption
+      maybePrimaryGroup.orElse(fallback) match {
+        case Some(value) => Success(value.displayName)
+        case None =>
+          logger.error(
+            "Can not determine organization. It is impossible to distinguish between the old and the current organization."
+          )
+          Failure(
+            new NoSuchFieldException(
+              "Can not determine organization. It is impossible to distinguish between the old and the current organization."
+            )
+          )
+      }
     }
 
     def getFeideAccessTokenOrFail(maybeFeideAccessToken: Option[FeideAccessToken]): Try[FeideAccessToken] = {
@@ -141,6 +168,17 @@ trait FeideApiClient {
         case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
       }).?
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
+    }
+
+    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
+      val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
+      val organization = (maybeOrganization match {
+        case Some(organization) => Success(organization)
+        case None =>
+          getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken)).flatMap(findOrganization)
+      }).?
+      redisClient.updateCacheAndReturnOrganization(accessToken, organization)
     }
 
   }

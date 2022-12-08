@@ -7,12 +7,12 @@
 
 package no.ndla.network.clients
 
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import org.json4s.DefaultFormats
-import redis.clients.jedis.JedisPooled
 import org.json4s.native.Serialization._
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 trait RedisClient {
   val redisClient: RedisClient
@@ -22,48 +22,53 @@ trait RedisClient {
       // default to 8 hours cache time
       cacheTimeSeconds: Long = 60 * 60 * 8
   ) {
-    val jedis          = new JedisPooled(host, port)
-    val feideIdField   = "feideId"
-    val feideUserField = "feideUser"
+    val jedis           = new ScalaJedis(host, port)
+    val feideIdField    = "feideId"
+    val feideUserField  = "feideUser"
+    val feideGroupField = "feideGroup"
 
-    def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = Try {
+    private def getKeyExpireTime(key: String): Try[Long] = {
+      val existingExpireTime = jedis.ttl(key).?
+      val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
+      Success(newExpireTime)
+    }
+
+    private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[_] = {
+      for {
+        newExpireTime <- getKeyExpireTime(accessToken)
+        _             <- jedis.hset(accessToken, field, data)
+        _             <- jedis.expire(accessToken, newExpireTime)
+      } yield ()
+    }
+
+    def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
       implicit val formats: DefaultFormats.type = DefaultFormats
-      if (jedis.hexists(accessToken, feideUserField)) {
-        val feideUser = jedis.hget(accessToken, feideUserField)
-        Some(read[FeideExtendedUserInfo](feideUser))
-      } else {
-        None
+      jedis.hget(accessToken, feideUserField).map {
+        case Some(feideUser) => Some(read[FeideExtendedUserInfo](feideUser))
+        case None            => None
       }
     }
 
     def updateCacheAndReturnFeideUser(
         accessToken: FeideAccessToken,
         feideExtendedUser: FeideExtendedUserInfo
-    ): Try[FeideExtendedUserInfo] = Try {
+    ): Try[FeideExtendedUserInfo] = {
       implicit val formats: DefaultFormats.type = DefaultFormats
-      val existingExpireTime                    = jedis.ttl(accessToken)
-      val newExpireTime                         = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
-
-      jedis.hset(accessToken, feideUserField, write(feideExtendedUser))
-      jedis.expire(accessToken, newExpireTime)
-      feideExtendedUser
+      updateCache(accessToken, feideUserField, write(feideExtendedUser)).map(_ => feideExtendedUser)
     }
 
-    def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] = Try {
-      if (jedis.hexists(accessToken, feideIdField)) {
-        Some(jedis.hget(accessToken, feideIdField))
-      } else {
-        None
-      }
+    def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] =
+      jedis.hget(accessToken, feideIdField)
+
+    def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = {
+      updateCache(accessToken, feideIdField, feideId).map(_ => feideId)
     }
 
-    def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = Try {
-      val existingExpireTime = jedis.ttl(accessToken)
-      val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
+    def getOrganizationFromCache(accessToken: FeideAccessToken): Try[Option[String]] =
+      jedis.hget(accessToken, feideGroupField)
 
-      jedis.hset(accessToken, feideIdField, feideId)
-      jedis.expire(accessToken, newExpireTime)
-      feideId
+    def updateCacheAndReturnOrganization(accessToken: FeideAccessToken, feideOrganization: String): Try[String] = {
+      updateCache(accessToken, feideGroupField, feideOrganization).map(_ => feideOrganization)
     }
 
   }

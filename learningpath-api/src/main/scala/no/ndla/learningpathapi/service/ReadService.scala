@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.service
 import cats.implicits._
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.learningpathapi.model.api._
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.model.domain.{
@@ -387,14 +388,38 @@ trait ReadService {
     ): Try[domain.MyNDLAUser] = {
       for {
         feideExtendedUserData <- feideApiClient.getFeideExtendedUser(feideAccessToken)
+        organization          <- feideApiClient.getOrganization(feideAccessToken)
         newUser = domain
           .MyNDLAUserDocument(
             favoriteSubjects = Seq.empty,
             userRole = if (feideExtendedUserData.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
-            lastUpdated = clock.now().plusDays(1)
+            lastUpdated = clock.now().plusDays(1),
+            organization = organization,
+            email = feideExtendedUserData.email
           )
         inserted <- userRepository.insertUser(feideId, newUser)(session)
       } yield inserted
+    }
+
+    private def fetchDataAndUpdateMyNDLAUser(
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken],
+        userData: domain.MyNDLAUser
+    )(implicit
+        session: DBSession
+    ): Try[domain.MyNDLAUser] = {
+      val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
+      val organization = feideApiClient.getOrganization(feideAccessToken).?
+      val updatedMyNDLAUser = domain.MyNDLAUser(
+        id = userData.id,
+        feideId = userData.feideId,
+        favoriteSubjects = userData.favoriteSubjects,
+        userRole = if (feideUser.isTeacher) UserRole.TEACHER else UserRole.STUDENT,
+        lastUpdated = clock.now().plusDays(1),
+        organization = organization,
+        email = feideUser.email
+      )
+      userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
     }
 
     def getOrCreateMyNDLAUserIfNotExist(
@@ -406,7 +431,7 @@ trait ReadService {
           createMyNDLAUser(feideId, feideAccessToken)(session)
         case Some(userData) =>
           if (userData.wasUpdatedLast24h) Success(userData)
-          else userRepository.updateUser(feideId, userData.copy(lastUpdated = clock.now().plusDays(1)))(session)
+          else fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
       }
     }
 

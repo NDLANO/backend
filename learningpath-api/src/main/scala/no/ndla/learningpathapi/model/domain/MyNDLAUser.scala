@@ -17,7 +17,13 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 
-case class MyNDLAUserDocument(favoriteSubjects: Seq[String], userRole: UserRole.Value, lastUpdated: LocalDateTime) {
+case class MyNDLAUserDocument(
+    favoriteSubjects: Seq[String],
+    userRole: UserRole.Value,
+    lastUpdated: LocalDateTime,
+    organization: String,
+    email: String
+) {
   def toFullUser(
       id: Long,
       feideId: FeideID
@@ -27,7 +33,9 @@ case class MyNDLAUserDocument(favoriteSubjects: Seq[String], userRole: UserRole.
       feideId = feideId,
       favoriteSubjects = favoriteSubjects,
       userRole = userRole,
-      lastUpdated = lastUpdated
+      lastUpdated = lastUpdated,
+      organization = organization,
+      email = email
     )
   }
 }
@@ -37,12 +45,16 @@ case class MyNDLAUser(
     feideId: FeideID,
     favoriteSubjects: Seq[String],
     userRole: UserRole.Value,
-    lastUpdated: LocalDateTime
+    lastUpdated: LocalDateTime,
+    organization: String,
+    email: String
 ) {
   def toDocument: MyNDLAUserDocument = MyNDLAUserDocument(
     favoriteSubjects = favoriteSubjects,
     userRole = userRole,
-    lastUpdated = lastUpdated
+    lastUpdated = lastUpdated,
+    organization = organization,
+    email = email
   )
 
   // Keeping FEIDE and our data in sync

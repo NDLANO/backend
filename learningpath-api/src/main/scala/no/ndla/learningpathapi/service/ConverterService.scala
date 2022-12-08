@@ -811,7 +811,8 @@ trait ConverterService {
       api.MyNDLAUser(
         id = domainUserData.id,
         favoriteSubjects = domainUserData.favoriteSubjects,
-        role = domainUserData.userRole.toString
+        role = domainUserData.userRole.toString,
+        organization = domainUserData.organization
       )
     }
 
@@ -823,7 +824,9 @@ trait ConverterService {
         feideId = domainUserData.feideId,
         favoriteSubjects = favoriteSubjects,
         userRole = domainUserData.userRole,
-        lastUpdated = domainUserData.lastUpdated
+        lastUpdated = domainUserData.lastUpdated,
+        organization = domainUserData.organization,
+        email = domainUserData.email
       )
     }
 
