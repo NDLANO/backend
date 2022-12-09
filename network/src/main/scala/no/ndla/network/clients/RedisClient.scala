@@ -7,12 +7,13 @@
 
 package no.ndla.network.clients
 
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization._
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait RedisClient {
   val redisClient: RedisClient
@@ -21,7 +22,7 @@ trait RedisClient {
       port: Int,
       // default to 8 hours cache time
       cacheTimeSeconds: Long = 60 * 60 * 8
-  ) {
+  ) extends StrictLogging {
     val jedis           = new ScalaJedis(host, port)
     val feideIdField    = "feideId"
     val feideUserField  = "feideUser"
@@ -44,8 +45,14 @@ trait RedisClient {
     def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
       implicit val formats: DefaultFormats.type = DefaultFormats
       jedis.hget(accessToken, feideUserField).map {
-        case Some(feideUser) => Some(read[FeideExtendedUserInfo](feideUser))
-        case None            => None
+        case Some(feideUser) =>
+          Try(read[FeideExtendedUserInfo](feideUser)) match {
+            case Success(value) => Some(value)
+            case Failure(ex) =>
+              logger.warn(s"Failed to deserialize cached value from field $feideUserField. Updating cache.", ex)
+              None
+          }
+        case None => None
       }
     }
 
