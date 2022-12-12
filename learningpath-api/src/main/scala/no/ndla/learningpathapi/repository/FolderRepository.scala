@@ -535,11 +535,5 @@ trait FolderRepository {
         .single()
     }
 
-    def numberOfUsers()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
-      sql"select count(distinct feide_id) from ${DBFolder.table}"
-        .map(rs => rs.long("count"))
-        .single()
-    }
-
   }
 }
