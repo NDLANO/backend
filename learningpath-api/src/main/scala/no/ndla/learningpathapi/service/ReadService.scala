@@ -453,7 +453,7 @@ trait ReadService {
     def getStats: Option[Stats] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        numberOfUsers     <- folderRepository.numberOfUsers()
+        numberOfUsers     <- userRepository.numberOfUsers()
         numberOfFolders   <- folderRepository.numberOfFolders()
         numberOfResources <- folderRepository.numberOfResources()
         numberOfTags      <- folderRepository.numberOfTags()
