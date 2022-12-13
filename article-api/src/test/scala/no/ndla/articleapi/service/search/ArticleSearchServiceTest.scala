@@ -182,7 +182,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.entryName
+    articleType = ArticleType.TopicArticle
   )
 
   val article9 = TestData.sampleArticleWithPublicDomain.copy(
@@ -193,7 +193,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.entryName
+    articleType = ArticleType.TopicArticle
   )
 
   val article10 = TestData.sampleArticleWithPublicDomain.copy(
@@ -204,7 +204,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("englando"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.entryName
+    articleType = ArticleType.TopicArticle
   )
 
   val article11 = TestData.sampleArticleWithPublicDomain.copy(
@@ -220,7 +220,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle.entryName
+    articleType = ArticleType.TopicArticle
   )
 
   val article12 = TestData.sampleArticleWithPublicDomain.copy(
@@ -232,7 +232,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("lærer"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.Standard.entryName,
+    articleType = ArticleType.Standard,
     availability = Availability.teacher
   )
 
@@ -245,7 +245,7 @@ class ArticleSearchServiceTest
     tags = List(Tag(List("student"), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.Standard.entryName,
+    articleType = ArticleType.Standard,
     availability = Availability.everyone
   )
 

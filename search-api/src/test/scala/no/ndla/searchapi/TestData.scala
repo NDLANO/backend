@@ -171,7 +171,7 @@ object TestData {
     today.minusDays(2),
     "ndalId54321",
     today.minusDays(2),
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
@@ -196,7 +196,7 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
@@ -221,7 +221,7 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
@@ -353,7 +353,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article9: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -367,7 +367,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article10: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -383,7 +383,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article11: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -404,7 +404,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article12: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -427,7 +427,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.Article.toString
+    articleType = ArticleType.Standard
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -446,7 +446,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.Article.toString,
+    articleType = ArticleType.Standard,
     availability = Availability.teacher
   )
 
@@ -482,7 +482,7 @@ object TestData {
     updated = today,
     updatedBy = "",
     published = today,
-    articleType = LearningResourceType.Article.toString,
+    articleType = ArticleType.Standard,
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
     availability = Availability.everyone,

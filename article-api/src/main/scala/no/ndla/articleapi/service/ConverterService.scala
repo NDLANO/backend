@@ -423,7 +423,7 @@ trait ConverterService {
             article.updated,
             article.updatedBy,
             article.published,
-            article.articleType,
+            article.articleType.entryName,
             supportedLanguages,
             article.grepCodes,
             article.conceptIds,

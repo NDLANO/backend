@@ -57,7 +57,7 @@ trait SearchConverterService {
         license = articleWithAgreement.copyright.license,
         authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
           .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
-        articleType = articleWithAgreement.articleType,
+        articleType = articleWithAgreement.articleType.entryName,
         defaultTitle = defaultTitle.map(t => t.title),
         grepCodes = articleWithAgreement.grepCodes,
         availability = articleWithAgreement.availability.toString

@@ -226,11 +226,6 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.type")
   }
 
-  test("validateArticle throws an exception on an article with an invalid article type") {
-    val article = TestData.sampleArticleWithByNcSa.copy(articleType = "invalid")
-    contentValidator.validateArticle(article).isFailure should be(true)
-  }
-
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("tittele", "und")))
     contentValidator.validateArticle(article).isSuccess should be(true)
