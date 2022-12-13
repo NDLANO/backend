@@ -15,6 +15,11 @@ export interface IArticleDump {
   results: IArticleV2[]
 }
 
+export interface IArticleIds {
+  articleId: number
+  externalIds: string[]
+}
+
 export interface IArticleIntroduction {
   introduction: string
   language: string
