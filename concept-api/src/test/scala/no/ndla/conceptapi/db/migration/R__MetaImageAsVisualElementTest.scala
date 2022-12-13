@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.db.migration
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.conceptapi.db.migration.R__MetaImageAsVisualElement
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
@@ -29,7 +30,7 @@ class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
       s"""{"metaImage":[$oldMetaImage],"visualElement":[$oldVisualElement]}"""
 
     val visualElementString =
-      s"""<embed data-resource=\\"image\\" data-resource_id=\\"1\\" data-alt=\\"alt\\" data-size=\\"full\\" data-align=\\"\\" />"""
+      s"""<$EmbedTagName data-resource=\\"image\\" data-resource_id=\\"1\\" data-alt=\\"alt\\" data-size=\\"full\\" data-align=\\"\\" />"""
     val expectedVisualElement = s"""{"visualElement":"$visualElementString","language":"nb"}"""
 
     val expected =
@@ -41,7 +42,7 @@ class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
     val oldMetaImageNb = """{"imageId":"1","altText":"alt","language":"nb"}"""
     val oldMetaImageNn = """{"imageId":"1","altText":"alt2","language":"nn"}"""
     val oldVisualElementString =
-      """<embed data-resource_id=\"123\" data-resource=\"image\" data-alt=\"somealt\" data-size=\"full\" data-align=\"\" />"""
+      s"""<$EmbedTagName data-resource_id=\\"123\\" data-resource=\\"image\\" data-alt=\\"somealt\\" data-size=\\"full\\" data-align=\\"\\" />"""
 
     val oldVisualElement = s"""{"visualElement":"$oldVisualElementString","language":"nb"}"""
 
@@ -49,14 +50,14 @@ class R__MetaImageAsVisualElementTest extends UnitSuite with TestEnvironment {
       s"""{"metaImage":[$oldMetaImageNb,$oldMetaImageNn],"visualElement":[$oldVisualElement]}"""
 
     val newVisualElementString =
-      """<embed data-resource=\"image\" data-resource_id=\"1\" data-alt=\"alt2\" data-size=\"full\" data-align=\"\" />"""
+      s"""<$EmbedTagName data-resource=\\"image\\" data-resource_id=\\"1\\" data-alt=\\"alt2\\" data-size=\\"full\\" data-align=\\"\\" />"""
 
     val expectedNewVisualElement = s"""{"visualElement":"$newVisualElementString","language":"nn"}"""
 
     val expected =
       s"""{"metaImage":[$oldMetaImageNb,$oldMetaImageNn],"visualElement":[$oldVisualElement,$expectedNewVisualElement]}"""
-    migration.convertToNewConcept(old) should be(expected)
-
+    val result = migration.convertToNewConcept(old)
+    result should be(expected)
   }
 
 }

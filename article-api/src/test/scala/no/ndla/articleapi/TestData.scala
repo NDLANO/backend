@@ -10,10 +10,10 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Author, Availability, Tag, Title, VisualElement}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 
 import java.time.LocalDateTime
 
@@ -268,7 +268,7 @@ trait TestData {
     val sampleTitle       = Title("title", "en")
 
     val visualElement = VisualElement(
-      s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+      s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
       "nb"
     )
 

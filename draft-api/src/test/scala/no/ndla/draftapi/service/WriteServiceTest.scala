@@ -8,6 +8,7 @@
 package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -217,7 +218,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedMetaId          = "1234"
     val updatedMetaAlt         = "HeheAlt"
     val newImageMeta           = api.NewArticleMetaImage(updatedMetaId, updatedMetaAlt)
-    val updatedVisualElement   = "<embed something>"
+    val updatedVisualElement   = s"<$EmbedTagName something />"
     val updatedCopyright = api.Copyright(
       Some(api.License("a", Some("b"), None)),
       Some("c"),
@@ -909,22 +910,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Success("resources/new101112.pdf")
       )
     val embed1 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val embed2 =
-      """<embed data-alt="Kul alt2" data-path="/files/resources/abc456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt2" data-path="/files/resources/abc456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf" />"""
     val embed3 =
-      """<embed data-alt="Kul alt3" data-path="/files/resources/abc789.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt3" data-path="/files/resources/abc789.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf" />"""
     val contentNb = ArticleContent(s"<section><h1>Hei</h1>$embed1$embed2</section>", "nb")
     val contentEn = ArticleContent(s"<section><h1>Hello</h1>$embed1$embed3</section>", "en")
 
     val expectedEmbed1 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/new123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/new123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val expectedEmbed2 =
-      """<embed data-alt="Kul alt2" data-path="/files/resources/new456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt2" data-path="/files/resources/new456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf" />"""
     val expectedEmbed3 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/new789.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/new789.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val expectedEmbed4 =
-      """<embed data-alt="Kul alt3" data-path="/files/resources/new101112.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt3" data-path="/files/resources/new101112.pdf" data-resource="file" data-title="Kul tittel3" data-type="pdf" />"""
 
     val expectedNb = ArticleContent(s"<section><h1>Hei</h1>$expectedEmbed1$expectedEmbed2</section>", "nb")
     val expectedEn = ArticleContent(s"<section><h1>Hello</h1>$expectedEmbed3$expectedEmbed4</section>", "en")
@@ -938,12 +939,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("cloneEmbedAndUpdateElement updates file embeds") {
     import scala.jdk.CollectionConverters._
     val embed1 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val embed2 =
-      """<embed data-alt="Kul alt2" data-path="/files/resources/abc456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt2" data-path="/files/resources/abc456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf" />"""
 
     val doc    = HtmlTagRules.stringToJsoupDocument(s"<section>$embed1</section><section>$embed2</section>")
-    val embeds = doc.select(s"embed[data-resource='file']").asScala
+    val embeds = doc.select(s"$EmbedTagName[data-resource='file']").asScala
     when(fileStorage.copyResource(anyString, anyString)).thenReturn(
       Success("resources/new123.pdf"),
       Success("resources/new456.pdf")
@@ -953,9 +954,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     results.map(_.isSuccess should be(true))
 
     val expectedEmbed1 =
-      """<embed data-alt="Kul alt1" data-path="/files/resources/new123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/new123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf" />"""
     val expectedEmbed2 =
-      """<embed data-alt="Kul alt2" data-path="/files/resources/new456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt2" data-path="/files/resources/new456.pdf" data-resource="file" data-title="Kul tittel2" data-type="pdf" />"""
 
     HtmlTagRules.jsoupDocumentToString(doc) should be(
       s"<section>$expectedEmbed1</section><section>$expectedEmbed2</section>"

@@ -7,11 +7,12 @@
 
 package no.ndla.validation
 
-import no.ndla.validation.EmbedTagRules._
+import no.ndla.common.configuration.Constants.EmbedTagName
 import org.json4s.native.JsonMethods._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
+
 import scala.io.Source
 import scala.language.postfixOps
 import scala.jdk.CollectionConverters._
@@ -75,7 +76,7 @@ object HtmlTagRules {
       }
       val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
       val embedAttrs  = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
-      htmlAttrs ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(ResourceHtmlEmbedTag -> embedAttrs)
+      htmlAttrs ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(EmbedTagName -> embedAttrs)
     }
   }
 

@@ -14,13 +14,13 @@ The application can be configured by specifying several parameters as environmen
 
 ## Article format
 The endpoint `GET /article-api/v2/articles/<id>` will fetch a json-object containing the article in the selected language.
-The article body contained in this json-object consists of a strict subset of permitted HTML tags. It may also contain a special tag, `<embed>`,
+The article body contained in this json-object consists of a strict subset of permitted HTML tags. It may also contain a special tag, `<ndlaembed>`,
 which is used to refer to content located in other APIs (including, but not limited to images, audio, video and H5P).
 
 Some example usages of the embed tag:
-* `<embed data-resource="external" data-url="https://youtu.be/7ZVyNjKSr0M" data-id="0" />` refers content from an external source (data-resource). In this case Youtube.
+* `<ndlaembed data-resource="external" data-url="https://youtu.be/7ZVyNjKSr0M" data-id="0" />` refers content from an external source (data-resource). In this case Youtube.
   `data-url` is the url where the resource can be found, `data-id` is an embed tag-identifier used to identify unique embeds in this article and is located in every embed tag.
-* `<embed data-align="" data-alt="Fyrlykt med hav og horisont" data-caption="" data-resource="image" data-size="fullbredde" data-id="1" data-url="http://image-api-url/image-api/v1/images/179" />`
+* `<ndlaembed data-align="" data-alt="Fyrlykt med hav og horisont" data-caption="" data-resource="image" data-size="fullbredde" data-id="1" data-url="http://image-api-url/image-api/v1/images/179" />`
   refers to an image (`data-resource`) located in the [image API](https://github.com/NDLANO/image-api), along with alignment info (`data-align`), alternative text (`data-alt`),
   image caption (`data-caption`), intended display size in the article (`data-size`), the unique embed tag-identifier (`data-id`) and the url where image metadata can be found (`data-url`).
 
@@ -37,12 +37,12 @@ used.
 A list of permitted HTML/MathML tags and attributes are specified in the repo [validation](https://github.com/NDLANO/validation) in the files `src/main/resources/html-rules.json` and `src/main/resources/mathml-rules.json`.
 The `tags` section defines permitted tags without attributes. The `attributes` section defines tags with a list of permitted attributes.
 
-Extra validation is performed on the `<embed>` tag: based on the `data-resource` attribute a different set of **required** attributes must also be present.
+Extra validation is performed on the `<ndlaembed>` tag: based on the `data-resource` attribute a different set of **required** attributes must also be present.
 These rules are defined in `src/main/resources/embed-tag-rules.json` in validation-repo. Should any attribute other than those in the required list be present,
-they will be stripped before validation (this step is only performed on `<embed>` tags).
+they will be stripped before validation (this step is only performed on `<ndlaembed>` tags).
 
-When an article is fetched with the `GET` API endpoint, the api will add a `data-url` attribute on every `<embed>` tag which also contains a `data-resource_id` attribute.
-A `data-id` attribute is appended to each `<embed>` tag.
+When an article is fetched with the `GET` API endpoint, the api will add a `data-url` attribute on every `<ndlaembed>` tag which also contains a `data-resource_id` attribute.
+A `data-id` attribute is appended to each `<ndlaembed>` tag.
 
 ### Resource types for embed tags
 The embed tag contains a set of attributes which define what content should be inserted. The list below provides an explaination of each recognized attribute.

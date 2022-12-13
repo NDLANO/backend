@@ -7,8 +7,8 @@
 
 package no.ndla.validation
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 
@@ -58,7 +58,7 @@ class TextValidator(allowHtml: Boolean) {
 
     elemList match {
       case onlyElement :: Nil =>
-        if (onlyElement.tagName() != ResourceHtmlEmbedTag) {
+        if (onlyElement.tagName() != EmbedTagName) {
           errorWith("The root html element for visual elements needs to be `embed`.")
         } else {
           validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)

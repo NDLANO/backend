@@ -42,7 +42,6 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
   def MetaMaxConnections   = 10
 
-  def resourceHtmlEmbedTag         = "embed"
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))

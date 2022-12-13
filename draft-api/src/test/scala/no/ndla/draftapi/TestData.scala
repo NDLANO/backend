@@ -7,6 +7,7 @@
 
 package no.ndla.draftapi
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
@@ -476,7 +477,7 @@ object TestData {
   val sampleTitle: common.Title = common.Title("title", "en")
 
   val visualElement: common.VisualElement = common.VisualElement(
-    s"""<embed data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+    s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
     "nb"
   )
 

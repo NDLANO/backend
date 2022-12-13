@@ -7,10 +7,12 @@
 
 package no.ndla.conceptapi
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{ConceptContent, Copyright, Status}
+
 import java.time.LocalDateTime
 
 object TestData {
@@ -34,10 +36,10 @@ object TestData {
   val yesterday = LocalDateTime.now().minusDays(1)
 
   val visualElementString =
-    """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
+    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
 
   val visualElementStringWithUrl =
-    """<embed data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1">"""
+    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1" />"""
 
   val sampleNbApiConcept = api.Concept(
     1.toLong,

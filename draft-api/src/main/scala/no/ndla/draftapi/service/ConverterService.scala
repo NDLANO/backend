@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus}
@@ -36,7 +37,7 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props.{externalApiUrls, resourceHtmlEmbedTag}
+    import props.externalApiUrls
 
     def toDomainArticle(
         newArticleId: Long,
@@ -228,7 +229,7 @@ trait ConverterService {
     def getEmbeddedConceptIds(article: common.draft.Draft): Seq[Long] = {
       val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
-        val conceptSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.Concept}]"
+        val conceptSelector = s"$EmbedTagName[${TagAttributes.DataResource}=${ResourceType.Concept}]"
         elem.select(conceptSelector).asScala.toSeq
       })
 
@@ -246,7 +247,7 @@ trait ConverterService {
     def getEmbeddedH5PPaths(article: common.draft.Draft): Seq[String] = {
       val getH5PEmbeds = (htmlElements: Seq[Element]) => {
         htmlElements.flatMap(elem => {
-          val h5pSelector = s"$resourceHtmlEmbedTag[${TagAttributes.DataResource}=${ResourceType.H5P}]"
+          val h5pSelector = s"$EmbedTagName[${TagAttributes.DataResource}=${ResourceType.H5P}]"
           elem.select(h5pSelector).asScala.toSeq
         })
       }
@@ -281,7 +282,7 @@ trait ConverterService {
     private def removeUnknownEmbedTagAttributes(html: String): String = {
       val document = HtmlTagRules.stringToJsoupDocument(html)
       document
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .map(el => {
           ResourceType
@@ -545,7 +546,7 @@ trait ConverterService {
 
     private def getExistingPaths(content: String): Seq[String] = {
       val doc        = HtmlTagRules.stringToJsoupDocument(content)
-      val fileEmbeds = doc.select(s"embed[${TagAttributes.DataResource}='${ResourceType.File}']").asScala.toSeq
+      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala.toSeq
       fileEmbeds.flatMap(e => Option(e.attr(TagAttributes.DataPath.toString)))
     }
 
@@ -553,7 +554,7 @@ trait ConverterService {
       val existingFiles = existingContent.flatMap(getExistingPaths)
 
       val doc        = HtmlTagRules.stringToJsoupDocument(newContent)
-      val fileEmbeds = doc.select(s"embed[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
+      val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttributes.DataResource}='${ResourceType.File}']").asScala
 
       val embedsToCloneFile = fileEmbeds.filter(embed => {
         Option(embed.attr(TagAttributes.DataPath.toString)).exists(dataPath => existingFiles.contains(dataPath))

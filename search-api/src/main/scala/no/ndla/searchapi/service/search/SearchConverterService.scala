@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
@@ -65,7 +66,7 @@ trait SearchConverterService {
       contents.flatMap(content => {
         val traits = ListBuffer[String]()
         parseHtml(content.content)
-          .select("embed")
+          .select(EmbedTagName)
           .forEach(embed => {
             val dataResource = embed.attr("data-resource")
             dataResource match {
@@ -89,7 +90,7 @@ trait SearchConverterService {
 
     private[service] def getAttributes(html: String): List[String] = {
       parseHtml(html)
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .flatMap(getAttributes)
         .toList
@@ -120,7 +121,7 @@ trait SearchConverterService {
 
     private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
       parseHtml(html)
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
         .toList

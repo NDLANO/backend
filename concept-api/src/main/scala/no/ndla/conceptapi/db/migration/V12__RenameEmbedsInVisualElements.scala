@@ -7,18 +7,19 @@
 
 package no.ndla.conceptapi.db.migration
 
-import no.ndla.common.configuration.Constants.EmbedTagName
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.JsonAST.JObject
+import org.json4s
+import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction}
+import org.json4s.{DefaultFormats, JString}
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class R__MetaImageAsVisualElement extends BaseJavaMigration {
+class V12__RenameEmbedsInVisualElements extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
-
-  override def getChecksum: Integer = 0 // Increment this number to re-run
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -37,7 +38,7 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
 
     while (numPagesLeft > 0) {
       allPublishedConcepts(offset * 1000).map { case (id, document) =>
-        updatePublishedConcept(convertToNewConcept(document), id)
+        updatePublishedConcept(convertToNewConcept(document, id), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -51,7 +52,7 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
 
     while (numPagesLeft > 0) {
       allConcepts(offset * 1000).map { case (id, document) =>
-        updateConcept(convertToNewConcept(document), id)
+        updateConcept(convertToNewConcept(document, id), id)
       }
       numPagesLeft -= 1
       offset += 1
@@ -104,37 +105,47 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
       .update()
   }
 
-  private def mergeFields(
-      lessImportant: Seq[NewVisualElement],
-      moreImportant: Seq[NewVisualElement]
-  ): Seq[NewVisualElement] = {
-    val toKeep = lessImportant.filterNot(item => moreImportant.map(_.language).contains(item.language))
-    (toKeep ++ moreImportant).filterNot(_.visualElement.isEmpty)
+  private def stringToJsoupDocument(htmlString: String): Element = {
+    val document = Jsoup.parseBodyFragment(htmlString)
+    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
+    document.select("body").first()
   }
 
-  def convertMetaImageToVisualElement(image: OldMetaImage): Option[NewVisualElement] = {
-    if (image.imageId.isEmpty) None
-    else {
-      val embedString =
-        s"""<$EmbedTagName data-resource="image" data-resource_id="${image.imageId}" data-alt="${image.altText}" data-size="full" data-align="" />"""
-      Some(NewVisualElement(embedString, image.language))
-    }
+  private def jsoupDocumentToString(element: Element): String = {
+    element.select("body").html()
   }
 
-  def convertToNewConcept(document: String): String = {
-    val concept                 = parse(document)
-    val metaImages              = (concept \ "metaImage").extract[Seq[OldMetaImage]]
-    val visualElements          = (concept \ "visualElement").extract[Seq[NewVisualElement]]
-    val convertedVisualElements = metaImages.flatMap(convertMetaImageToVisualElement)
+  def renameEmbedTag(html: String): String = {
+    val doc = stringToJsoupDocument(html)
+    doc
+      .select("embed")
+      .forEach(embed => {
+        embed.tagName("ndlaembed")
 
-    // Existing visualElements are deemed more important than the ones gotten from metaImages so they will always "win"
-    val newVisualElements = mergeFields(convertedVisualElements, visualElements)
+      })
+    jsoupDocumentToString(doc)
+  }
 
-    val newConcept = concept.merge(JObject("visualElement" -> Extraction.decompose(newVisualElements)))
+  def updateContent(contents: JArray, contentType: String): json4s.JValue = {
+    contents.map(content =>
+      content.mapField {
+        case (`contentType`, JString(html)) => (`contentType`, JString(renameEmbedTag(html)))
+        case z                              => z
+      }
+    )
+  }
 
+  def convertToNewConcept(document: String, id: Long): String = {
+    val concept = parse(document)
+    val newConcept = concept
+      .mapField {
+        case ("visualElement", visualElements: JArray) =>
+          val updatedVisualElement = updateContent(visualElements, "visualElement")
+          ("visualElement", updatedVisualElement)
+        case x => x
+      }
     compact(render(newConcept))
   }
 
-  case class OldMetaImage(imageId: String, altText: String, language: String)
   case class NewVisualElement(visualElement: String, language: String)
 }

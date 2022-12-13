@@ -11,8 +11,6 @@ import scala.io.Source
 import scala.language.postfixOps
 
 object EmbedTagRules {
-  val ResourceHtmlEmbedTag = "embed"
-
   case class EmbedThings(attrsForResource: Map[ResourceType.Value, TagRules.TagAttributeRules])
 
   private[validation] lazy val attributeRules: Map[ResourceType.Value, TagRules.TagAttributeRules] = embedRulesToJson

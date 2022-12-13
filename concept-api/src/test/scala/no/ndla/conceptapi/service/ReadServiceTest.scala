@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.model.domain.VisualElement
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -51,20 +52,20 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("that visualElement gets url-property added") {
     val visualElements = Seq(
       VisualElement(
-        "<embed data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\">",
+        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" />",
         "nb"
       ),
-      VisualElement("<embed data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\">", "nn")
+      VisualElement(s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" />", "nn")
     )
     when(publishedConceptRepository.withId(anyLong))
       .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
     val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true)
     concept.get.visualElement.get.visualElement should equal(
-      "<embed data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\">"
+      s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\" />"
     )
     val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true)
     concept2.get.visualElement.get.visualElement should equal(
-      "<embed data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p.ndla.no/resource/uuid\">"
+      s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p.ndla.no/resource/uuid\" />"
     )
 
   }

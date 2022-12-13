@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
@@ -164,7 +165,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     updatedBy = Seq("Test1"),
     visualElement = List(
       VisualElement(
-        """<embed data-resource="image" data-url="test.url" /><embed data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
+        s"""<$EmbedTagName data-resource="image" data-url="test.url" /><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
         "nb"
       )
     )

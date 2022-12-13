@@ -44,7 +44,6 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
   def MetaMaxConnections   = 10
 
-  def resourceHtmlEmbedTag         = "embed"
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   def ArticleApiHost: String = propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")

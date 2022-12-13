@@ -13,10 +13,10 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{Availability, VisualElement}
 import no.ndla.network.clients.FeideExtendedUserInfo
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession
 
@@ -32,14 +32,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val urlAttr                     = s"${TagAttributes.DataUrl}"
 
   val content1 =
-    s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType">"""
+    s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
 
   val content2 =
-    s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType">"""
+    s"""<$EmbedTagName $resourceIdAttr="321" $resourceAttr="$imageType" /><$EmbedTagName $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
   val articleContent1 = ArticleContent(content1, "und")
 
   val expectedArticleContent1: ArticleContent = articleContent1.copy(content =
-    s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">"""
+    s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123" /><$EmbedTagName $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234" />"""
   )
 
   val articleContent2 = ArticleContent(content2, "und")
@@ -53,9 +53,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore =
-      s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="">"""
+      s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
     val visualElementAfter =
-      s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-url="http://api-gateway.ndla-local/image-api/v2/images/1">"""
+      s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-url="http://api-gateway.ndla-local/image-api/v2/images/1" />"""
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(articleContent1),
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
@@ -80,7 +80,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("addIdAndUrlOnResource adds id but not url on embed resources without a data-resource_id attribute") {
     val articleContent3 = articleContent1.copy(
-      content = s"""<$ResourceHtmlEmbedTag $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org">"""
+      content = s"""<$EmbedTagName $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org" />"""
     )
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
@@ -88,9 +88,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addUrlOnResource adds url attribute on file embeds") {
     val filePath = "files/lel/fileste.pdf"
     val content =
-      s"""<div data-type="file"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf"></div>"""
+      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" /><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" /></div>"""
     val expectedResult =
-      s"""<div data-type="file"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></div>"""
+      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath" /><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath" /></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
   }
@@ -98,10 +98,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2))
     val article1ExpectedResult = articleContent1.copy(content =
-      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">"""
+      s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123" /><$EmbedTagName $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234" />"""
     )
     val article2ExpectedResult = articleContent1.copy(content =
-      s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/321"><$ResourceHtmlEmbedTag $resourceIdAttr="4321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/4321">"""
+      s"""<$EmbedTagName $resourceIdAttr="321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/321" /><$EmbedTagName $resourceIdAttr="4321" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/4321" />"""
     )
 
     val result = readService.addUrlsOnEmbedResources(article)
@@ -111,9 +111,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addUrlOnResource adds url attribute on h5p embeds") {
     val h5pPath = "/resource/89734643-4006-4c65-a5de-34989ba7b2c8"
     val content =
-      s"""<div><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p"></div>"""
+      s"""<div><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" /><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" /></div>"""
     val expectedResult =
-      s"""<div><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"></div>"""
+      s"""<div><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath" /><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath" /></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
   }

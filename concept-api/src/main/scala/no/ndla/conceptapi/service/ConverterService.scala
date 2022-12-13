@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.Clock
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
@@ -20,7 +21,6 @@ import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
@@ -163,7 +163,7 @@ trait ConverterService {
     private def removeUnknownEmbedTagAttributes(html: String): String = {
       val document = HtmlTagRules.stringToJsoupDocument(html)
       document
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .map(el => {
           ResourceType
@@ -309,7 +309,7 @@ trait ConverterService {
     private[service] def addUrlOnElement(content: String): String = {
       val doc = stringToJsoupDocument(content)
 
-      val embedTags = doc.select(s"$ResourceHtmlEmbedTag").asScala.toList
+      val embedTags = doc.select(EmbedTagName).asScala.toList
       embedTags.foreach(addUrlOnEmbedTag)
       jsoupDocumentToString(doc)
     }

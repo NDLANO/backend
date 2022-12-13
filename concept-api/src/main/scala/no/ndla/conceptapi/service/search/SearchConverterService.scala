@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, Copyright, SearchResult}
@@ -43,7 +44,7 @@ trait SearchConverterService {
     // To be removed
     private[service] def getEmbedResources(html: String): List[String] = {
       parseHtml(html)
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .flatMap(getEmbedResources)
         .toList
@@ -66,7 +67,7 @@ trait SearchConverterService {
     // To be removed
     private[service] def getEmbedIds(html: String): List[String] = {
       parseHtml(html)
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .flatMap(getEmbedIds)
         .toList
@@ -103,7 +104,7 @@ trait SearchConverterService {
 
     private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
       parseHtml(html)
-        .select("embed")
+        .select(EmbedTagName)
         .asScala
         .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
         .toList
