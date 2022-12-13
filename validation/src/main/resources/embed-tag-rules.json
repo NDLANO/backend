@@ -12,7 +12,7 @@
     "external": {
       "required": [
         "data-resource",
-        "data-url"
+        "data-url",
         "data-type"
       ],
       "optional": [
@@ -180,7 +180,8 @@
         "www.gapminder.org",
         "www.facebook.com",
         "fb.watch",
-        "sketchfab.com"
+        "sketchfab.com",
+        "jeopardylabs.com"
       ]
     },
     "footnote": {
