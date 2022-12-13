@@ -46,7 +46,8 @@ object articleapi extends Module {
       "SearchResultV2",
       "TagsSearchResult",
       "ArticleDump",
-      "ValidationError"
+      "ValidationError",
+      "ArticleIds"
     )
   )
 
