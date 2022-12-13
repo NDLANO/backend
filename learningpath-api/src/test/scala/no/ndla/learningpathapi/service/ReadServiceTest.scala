@@ -8,14 +8,13 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.learningpathapi.TestData._
-import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain._
-import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.Title
+import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.api.Stats
+import no.ndla.learningpathapi.model.{api, domain}
+import no.ndla.learningpathapi.model.domain._
+import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import scalikejdbc.DBSession
 
@@ -647,8 +646,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    // when(userRepository.numberOfUsers()(any)).thenReturn(Some(5)) // replace later
-    when(folderRepository.numberOfUsers()(any)).thenReturn(Some(5))
+    when(userRepository.numberOfUsers()(any)).thenReturn(Some(5))
     when(folderRepository.numberOfFolders()(any)).thenReturn(Some(10))
     when(folderRepository.numberOfResources()(any)).thenReturn(Some(20))
     when(folderRepository.numberOfTags()(any)).thenReturn(Some(10))
