@@ -405,5 +405,16 @@ trait DraftRepository {
         .single()
     }
 
+    def slugExists(slug: String, articleId: Option[Long])(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Boolean = {
+      val sq = articleId match {
+        case None     => sql"select count(*) from ${DBArticle.table} where slug = $slug"
+        case Some(id) => sql"select count(*) from ${DBArticle.table} where slug = $slug and article_id != $id"
+      }
+      val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
+      count > 0L
+    }
+
   }
 }

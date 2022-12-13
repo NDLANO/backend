@@ -37,7 +37,8 @@ trait ArticleRepository {
       Try {
         sql"""update ${Article.table}
               set document=$dataObject,
-                  external_id=ARRAY[$externalIds]::text[]
+                  external_id=ARRAY[$externalIds]::text[],
+                  slug=${article.slug}
               where article_id=${article.id} and revision=${article.revision}
           """.update()
       } match {
@@ -342,6 +343,17 @@ trait ArticleRepository {
           )
         )
         .single()
+    }
+
+    def slugExists(slug: String, articleId: Option[Long])(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Boolean = {
+      val sq = articleId match {
+        case None     => sql"select count(*) from ${Article.table} where slug = $slug"
+        case Some(id) => sql"select count(*) from ${Article.table} where slug = $slug and article_id != $id"
+      }
+      val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
+      count > 0L
     }
 
   }
