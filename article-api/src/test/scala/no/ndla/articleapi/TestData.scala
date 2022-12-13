@@ -92,7 +92,8 @@ trait TestData {
       conceptIds = Seq.empty,
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val apiArticleV2 = api.ArticleV2(
@@ -131,7 +132,8 @@ trait TestData {
       Seq(1),
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val sampleArticleWithPublicDomain = Article(
@@ -155,7 +157,8 @@ trait TestData {
       Seq(1),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = Some(LocalDateTime.now().withNano(0))
+      revisionDate = Some(LocalDateTime.now().withNano(0)),
+      slug = None
     )
 
     val sampleDomainArticle = Article(
@@ -179,7 +182,8 @@ trait TestData {
       Seq(1),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val sampleDomainArticle2 = Article(
@@ -203,7 +207,8 @@ trait TestData {
       Seq(1),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -239,7 +244,8 @@ trait TestData {
       Seq(),
       availability = Availability.everyone,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -272,7 +278,8 @@ trait TestData {
       Seq.empty,
       availability = Availability.everyone.toString,
       relatedContent = Seq.empty,
-      revisionDate = None
+      revisionDate = None,
+      slug = None
     )
 
     val (nodeId, nodeId2) = ("1234", "4321")
@@ -305,7 +312,8 @@ trait TestData {
         Seq(),
         availability = Availability.everyone,
         relatedContent = Seq.empty,
-        revisionDate = None
+        revisionDate = None,
+        slug = None
       )
     }
 

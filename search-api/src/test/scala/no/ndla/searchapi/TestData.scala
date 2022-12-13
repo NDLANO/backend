@@ -176,7 +176,8 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleDomainArticle = Article(
@@ -200,7 +201,8 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleDomainArticle2 = Article(
@@ -224,7 +226,8 @@ object TestData {
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -484,7 +487,8 @@ object TestData {
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -513,7 +517,8 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsible = None
+    responsible = None,
+    slug = None
   )
 
   val draftStatus         = Status(DraftStatus.DRAFT, Set.empty)
@@ -570,7 +575,8 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsible = None
+    responsible = None,
+    slug = None
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))

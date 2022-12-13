@@ -10,6 +10,7 @@ package no.ndla.draftapi.integration
 import cats.implicits._
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
@@ -49,11 +50,11 @@ trait ArticleApiClient {
 
     def updateArticle(
         id: Long,
-        article: common.draft.Draft,
+        article: Draft,
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
-    ): Try[common.draft.Draft] = {
+    ): Try[Draft] = {
 
       val articleApiArticle = converterService.toArticleApiArticle(article)
       postWithData[api.ArticleApiArticle, api.ArticleApiArticle](
@@ -65,7 +66,7 @@ trait ArticleApiClient {
       ).map(_ => article)
     }
 
-    def unpublishArticle(article: common.draft.Draft): Try[common.draft.Draft] = {
+    def unpublishArticle(article: Draft): Try[Draft] = {
       val id = article.id.get
       post[ContentId](s"$InternalEndpoint/article/$id/unpublish/").map(_ => article)
     }

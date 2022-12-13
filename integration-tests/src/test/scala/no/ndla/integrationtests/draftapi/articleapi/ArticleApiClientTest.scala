@@ -10,6 +10,7 @@ package no.ndla.integrationtests.draftapi.articleapi
 import no.ndla.{articleapi, draftapi}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.integrationtests.UnitSuite
@@ -66,7 +67,7 @@ class ArticleApiClientTest
     None
   )
 
-  val testArticle: common.draft.Draft = common.draft.Draft(
+  val testArticle: Draft = Draft(
     id = Some(1),
     revision = Some(1),
     status = common.Status(common.draft.DraftStatus.PUBLISHED, Set.empty),
@@ -99,7 +100,8 @@ class ArticleApiClientTest
         status = common.draft.RevisionStatus.NeedsRevision
       )
     ),
-    responsible = None
+    responsible = None,
+    slug = None
   )
 
   val exampleToken =

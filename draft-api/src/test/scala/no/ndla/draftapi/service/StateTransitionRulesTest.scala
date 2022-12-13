@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.model.api
@@ -25,18 +26,18 @@ import scala.util.{Failure, Success, Try}
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   import StateTransitionRules.doTransitionWithoutSideEffect
 
-  val DraftStatus                      = common.Status(DRAFT, Set(QUALITY_ASSURED))
-  val DraftWithPublishedStatus         = common.Status(DRAFT, Set(IMPORTED, PUBLISHED))
-  val PublishedStatus                  = common.Status(PUBLISHED, Set(IMPORTED))
-  val UserTestStatus                   = common.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
-  val AwaitingUnpublishStatus          = common.Status(AWAITING_UNPUBLISHING, Set.empty)
-  val UnpublishedStatus                = common.Status(UNPUBLISHED, Set.empty)
-  val ProposalStatus                   = common.Status(PROPOSAL, Set.empty)
-  val ArchivedStatus                   = common.Status(ARCHIVED, Set(PUBLISHED))
-  val DraftArticle: common.draft.Draft = TestData.sampleArticleWithByNcSa.copy(status = DraftStatus)
-  val AwaitingUnpublishArticle: common.draft.Draft =
+  val DraftStatus              = common.Status(DRAFT, Set(QUALITY_ASSURED))
+  val DraftWithPublishedStatus = common.Status(DRAFT, Set(IMPORTED, PUBLISHED))
+  val PublishedStatus          = common.Status(PUBLISHED, Set(IMPORTED))
+  val UserTestStatus           = common.Status(USER_TEST, Set(PROPOSAL, IMPORTED))
+  val AwaitingUnpublishStatus  = common.Status(AWAITING_UNPUBLISHING, Set.empty)
+  val UnpublishedStatus        = common.Status(UNPUBLISHED, Set.empty)
+  val ProposalStatus           = common.Status(PROPOSAL, Set.empty)
+  val ArchivedStatus           = common.Status(ARCHIVED, Set(PUBLISHED))
+  val DraftArticle: Draft      = TestData.sampleArticleWithByNcSa.copy(status = DraftStatus)
+  val AwaitingUnpublishArticle: Draft =
     TestData.sampleArticleWithByNcSa.copy(status = AwaitingUnpublishStatus)
-  val UnpublishedArticle: common.draft.Draft = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
+  val UnpublishedArticle: Draft = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
 
   test("doTransition should succeed when performing a legal transition") {
     val expected = common.Status(PUBLISHED, Set.empty)
@@ -142,8 +143,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
-    when(converterService.getEmbeddedConceptIds(any[common.draft.Draft])).thenReturn(Seq.empty)
-    when(converterService.getEmbeddedH5PPaths(any[common.draft.Draft])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(Seq.empty)
     when(conceptApiClient.publishConceptsIfToPublishing(any[Seq[Long]]))
       .thenAnswer((i: InvocationOnMock) => {
         val ids = i.getArgument[Seq[Long]](0)
@@ -155,7 +156,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleApiClient
         .updateArticle(
           eqTo(DraftArticle.id.get),
-          any[common.draft.Draft],
+          any[Draft],
           eqTo(List("1234")),
           eqTo(false),
           eqTo(true)
@@ -167,12 +168,12 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       doTransitionWithoutSideEffect(DraftArticle, PUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
+    val captor = ArgumentCaptor.forClass(classOf[Draft])
     verify(articleApiClient, times(1))
       .updateArticle(eqTo(DraftArticle.id.get), captor.capture(), eqTo(List("1234")), eqTo(false), eqTo(true))
 
-    val argumentArticle: common.draft.Draft = captor.getValue
-    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: Draft   = captor.getValue
+    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 
@@ -186,19 +187,19 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(taxonomyApiClient.queryResource(any[Long])).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(any[Long])).thenReturn(Success(List.empty))
-    when(articleApiClient.unpublishArticle(any[common.draft.Draft])).thenReturn(Success(expectedArticle))
+    when(articleApiClient.unpublishArticle(any[Draft])).thenReturn(Success(expectedArticle))
 
     val (Success(res), sideEffect) =
       doTransitionWithoutSideEffect(AwaitingUnpublishArticle, UNPUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
+    val captor = ArgumentCaptor.forClass(classOf[Draft])
 
     verify(articleApiClient, times(1))
       .unpublishArticle(captor.capture())
 
-    val argumentArticle: common.draft.Draft = captor.getValue
-    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: Draft   = captor.getValue
+    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 
@@ -393,8 +394,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = AwaitingUnpublishArticle.copy(status = expectedStatus, notes = editorNotes)
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
-    when(converterService.getEmbeddedConceptIds(any[common.draft.Draft])).thenReturn(Seq.empty)
-    when(converterService.getEmbeddedH5PPaths(any[common.draft.Draft])).thenReturn(h5pPaths)
+    when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
+    when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(h5pPaths)
     when(conceptApiClient.publishConceptsIfToPublishing(any[Seq[Long]]))
       .thenAnswer((i: InvocationOnMock) => {
         val ids = i.getArgument[Seq[Long]](0)
@@ -406,7 +407,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleApiClient
         .updateArticle(
           eqTo(DraftArticle.id.get),
-          any[common.draft.Draft],
+          any[Draft],
           eqTo(List("1234")),
           eqTo(false),
           eqTo(true)
@@ -418,14 +419,14 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       doTransitionWithoutSideEffect(DraftArticle, PUBLISHED, TestData.userWithAdminAccess, false)
     sideEffect.map(sf => sf(res, false).get.status should equal(expectedStatus))
 
-    val captor = ArgumentCaptor.forClass(classOf[common.draft.Draft])
+    val captor = ArgumentCaptor.forClass(classOf[Draft])
     verify(articleApiClient, times(1))
       .updateArticle(eqTo(DraftArticle.id.get), captor.capture(), eqTo(List("1234")), eqTo(false), eqTo(true))
 
     verify(h5pApiClient, times(1)).publishH5Ps(h5pPaths)
 
-    val argumentArticle: common.draft.Draft = captor.getValue
-    val argumentArticleWithNotes            = argumentArticle.copy(notes = editorNotes)
+    val argumentArticle: Draft   = captor.getValue
+    val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
   }
 

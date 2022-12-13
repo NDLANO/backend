@@ -45,5 +45,6 @@ case class Article(
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionDate: Option[LocalDateTime]
+    revisionDate: Option[LocalDateTime],
+    slug: Option[String]
 ) extends Content

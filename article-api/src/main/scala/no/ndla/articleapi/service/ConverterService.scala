@@ -429,7 +429,8 @@ trait ConverterService {
             article.conceptIds,
             availability = article.availability.toString,
             article.relatedContent.map(toApiRelatedContent),
-            article.revisionDate
+            article.revisionDate,
+            article.slug
           )
         )
       } else {
