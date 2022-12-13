@@ -18,3 +18,9 @@ case class ValidationMessage(
     @(ApiModelProperty @field)(description = "The field the error occured in") field: String,
     @(ApiModelProperty @field)(description = "The validation message") message: String
 )
+
+object ValidationMessage {
+  def seq(fieldName: String, message: String): Seq[ValidationMessage] = {
+    Seq(ValidationMessage(fieldName, message))
+  }
+}

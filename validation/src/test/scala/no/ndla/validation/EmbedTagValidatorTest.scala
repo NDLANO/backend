@@ -30,7 +30,12 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   private def generateTagWithAttrs(attrs: Map[TagAttributes.Value, String]): String = {
     val strAttrs = attrs map { case (k, v) => k.toString -> v }
-    s"""<$EmbedTagName ${generateAttributes(strAttrs)} />"""
+    s"""<$EmbedTagName ${generateAttributes(strAttrs)}></ndlaembed>"""
+  }
+
+  private def generateTagWithAttrsAndChildren(attrs: Map[TagAttributes.Value, String], children: String): String = {
+    val strAttrs = attrs map { case (k, v) => k.toString -> v }
+    s"""<$EmbedTagName ${generateAttributes(strAttrs)}>$children</ndlaembed>"""
   }
 
   private def findErrorByMessage(validationMessages: Seq[ValidationMessage], partialMessage: String) =
@@ -192,15 +197,50 @@ class EmbedTagValidatorTest extends UnitSuite {
   }
 
   test("validate should return no validation errors if content-link embed-tag is used correctly") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttributes.DataContentId -> "54",
+        TagAttributes.DataOpenIn    -> "new-context"
+      ),
+      "interesting article"
+    )
+    embedTagValidator.validate("content", tag).size should be(0)
+  }
+
+  test("validate should return validation errors if content-link embed-tag is used incorrectly") {
     val tag = generateTagWithAttrs(
       Map(
         TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
         TagAttributes.DataContentId -> "54",
-        TagAttributes.DataLinkText  -> "interesting article",
         TagAttributes.DataOpenIn    -> "new-context"
       )
     )
+    embedTagValidator.validate("content", tag).size should be(1)
+  }
+
+  test("validate should return allow valid children for content-link") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttributes.DataContentId -> "54",
+        TagAttributes.DataOpenIn    -> "new-context"
+      ),
+      "<strong>Apekatt</strong> er kult"
+    )
     embedTagValidator.validate("content", tag).size should be(0)
+  }
+
+  test("validate should return validation errors if content-link has invalid children") {
+    val tag = generateTagWithAttrsAndChildren(
+      Map(
+        TagAttributes.DataResource  -> ResourceType.ContentLink.toString,
+        TagAttributes.DataContentId -> "54",
+        TagAttributes.DataOpenIn    -> "new-context"
+      ),
+      "<div><strong>Apekatt</strong> er kult</div>"
+    )
+    embedTagValidator.validate("content", tag).size should be(1)
   }
 
   test(

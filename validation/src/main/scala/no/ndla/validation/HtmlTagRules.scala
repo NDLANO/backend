@@ -96,7 +96,7 @@ object HtmlTagRules {
   def legalAttributesForTag(tagName: String): Set[String] = attributesForTagType(tagName).toSet
 
   def tagMustContainAtLeastOneOptionalAttribute(tagName: String): Boolean =
-    tagAttributesForTagType(tagName).exists(_.mustContainAtLeastOneOptionalAttribute)
+    tagAttributesForTagType(tagName).exists(_.mustContainAtLeastOneOptionalAttribute.getOrElse(false))
 
   def removeIllegalAttributes(el: Element, legalAttributes: Set[String]): Seq[String] = {
     el.attributes()

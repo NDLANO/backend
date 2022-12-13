@@ -51,13 +51,24 @@
     "content-link": {
       "required": [
         "data-resource",
-        "data-content-id",
-        "data-link-text"
+        "data-content-id"
       ],
       "optional": [
         [ "data-open-in" ],
         [ "data-content-type" ]
-      ]
+      ],
+      "children": {
+        "required": true,
+        "allowedChildren": [
+          "b",
+          "i",
+          "s",
+          "strong",
+          "sub",
+          "sup",
+          "u"
+        ]
+      }
     },
     "brightcove": {
       "required": [
