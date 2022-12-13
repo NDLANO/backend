@@ -9,8 +9,9 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
+import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, Sort}
+import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -403,7 +404,7 @@ trait ArticleControllerV2 {
     get(
       "/external_ids/:deprecated_node_id",
       operation(
-        apiOperation[ArticleIds]("getExternalIdsByExternalId")
+        apiOperation[api.ArticleIds]("getExternalIdsByExternalId")
           .summary("Get all ids related to article corresponding to specified deprecated node id.")
           .description(
             "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id."
