@@ -16,12 +16,24 @@ import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchableArticle
-import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.{Author, Tag, Title, VisualElement}
-import no.ndla.common.model.domain.article.Copyright
+import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Author,
+  Description,
+  Introduction,
+  RelatedContent,
+  RequiredLibrary,
+  Tag,
+  Title,
+  VisualElement
+}
+import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
@@ -93,9 +105,9 @@ trait ConverterService {
 
       val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
       val introductions =
-        searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
+        searchableArticle.introduction.languageValues.map(lv => Introduction(lv.value, lv.language))
       val metaDescriptions =
-        searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.language))
+        searchableArticle.metaDescription.languageValues.map(lv => Description(lv.value, lv.language))
       val metaImages =
         searchableArticle.metaImage.map(image => ArticleMetaImage(image.imageId, image.altText, image.language))
       val visualElements =
@@ -169,9 +181,9 @@ trait ConverterService {
     }
 
     def updateExistingMetaDescriptionField(
-        existingMetaDesc: Seq[ArticleMetaDescription],
-        updatedMetaDesc: Seq[ArticleMetaDescription]
-    ): Seq[ArticleMetaDescription] = {
+        existingMetaDesc: Seq[Description],
+        updatedMetaDesc: Seq[Description]
+    ): Seq[Description] = {
       val newMetaDescriptions = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
       val metaDescToKeep = existingMetaDesc.filterNot(tag => newMetaDescriptions.map(_.language).contains(tag.language))
       newMetaDescriptions ++ metaDescToKeep
@@ -186,7 +198,7 @@ trait ConverterService {
         case Some(metaDesc) =>
           updateExistingMetaDescriptionField(
             existingArticle.metaDescription,
-            metaDesc.map(m => domain.ArticleMetaDescription(m.metaDescription, m.language))
+            metaDesc.map(m => Description(m.metaDescription, m.language))
           )
         case None => existingArticle.metaDescription
       }
@@ -288,35 +300,35 @@ trait ConverterService {
       }
     }
 
-    def toDomainIntroduction(intro: api.ArticleIntroduction): ArticleIntroduction = {
-      ArticleIntroduction(intro.introduction, intro.language)
+    def toDomainIntroduction(intro: api.ArticleIntroduction): Introduction = {
+      Introduction(intro.introduction, intro.language)
     }
 
-    def toDomainIntroductionV2(intro: Option[String], language: String): Seq[ArticleIntroduction] = {
+    def toDomainIntroductionV2(intro: Option[String], language: String): Seq[Introduction] = {
       if (intro.isEmpty) {
-        Seq.empty[ArticleIntroduction]
+        Seq.empty[Introduction]
       } else {
-        Seq(ArticleIntroduction(intro.getOrElse(""), language))
+        Seq(Introduction(intro.getOrElse(""), language))
       }
     }
 
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription =
-      ArticleMetaDescription(meta.metaDescription, meta.language)
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): Description =
+      Description(meta.metaDescription, meta.language)
 
     def toDomainMetaImage(imageId: String, altText: String, language: String): ArticleMetaImage =
       ArticleMetaImage(imageId, altText, language)
 
-    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription] = {
+    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[Description] = {
       if (meta.isEmpty) {
-        Seq.empty[ArticleMetaDescription]
+        Seq.empty[Description]
       } else {
-        Seq(ArticleMetaDescription(meta.getOrElse(""), language))
+        Seq(Description(meta.getOrElse(""), language))
       }
     }
 
     def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
-        case Left(x)  => Left(domain.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
     }
@@ -441,7 +453,7 @@ trait ConverterService {
       )
     }
 
-    def toApiRelatedContent(relatedContent: domain.RelatedContent): api.RelatedContent = {
+    def toApiRelatedContent(relatedContent: RelatedContent): api.RelatedContent = {
       relatedContent match {
         case Left(x)  => Left(api.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -485,11 +497,11 @@ trait ConverterService {
       api.VisualElement(visual.resource, visual.language)
     }
 
-    def toApiArticleIntroduction(intro: ArticleIntroduction): api.ArticleIntroduction = {
+    def toApiArticleIntroduction(intro: Introduction): api.ArticleIntroduction = {
       api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
-    def toApiArticleMetaDescription(metaDescription: ArticleMetaDescription): api.ArticleMetaDescription = {
+    def toApiArticleMetaDescription(metaDescription: Description): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 

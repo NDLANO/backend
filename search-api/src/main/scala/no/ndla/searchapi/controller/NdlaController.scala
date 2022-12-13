@@ -10,14 +10,15 @@ package no.ndla.searchapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.model.domain.Availability
-import no.ndla.common.model.domain.draft.{ArticleType, DraftStatus, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.{ApplicationUrl, AuthUser}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{Error, ErrorHelpers, TaxonomyException}
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}

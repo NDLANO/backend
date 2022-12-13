@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi.TestData._
 import no.ndla.learningpathapi.model.api.Stats
 import no.ndla.learningpathapi.model.{api, domain}

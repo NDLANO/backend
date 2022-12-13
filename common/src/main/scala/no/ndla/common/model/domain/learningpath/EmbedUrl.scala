@@ -1,16 +1,20 @@
 /*
- * Part of NDLA search-api.
- * Copyright (C) 2018 NDLA
+ * Part of NDLA learningpath-api.
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.searchapi.model.domain.learningpath
+package no.ndla.common.model.domain.learningpath
 
-import no.ndla.language.model.WithLanguage
-import no.ndla.searchapi.model.api.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.language.model.LanguageField
 
-case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends WithLanguage
+case class EmbedUrl(url: String, language: String, embedType: EmbedType.Value) extends LanguageField[String] {
+  override def value: String    = url
+  override def isEmpty: Boolean = url.isEmpty
+}
 
 object EmbedType extends Enumeration {
 

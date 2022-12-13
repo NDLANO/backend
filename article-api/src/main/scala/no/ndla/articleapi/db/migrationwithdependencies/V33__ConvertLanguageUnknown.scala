@@ -7,8 +7,9 @@
 
 package no.ndla.articleapi.db.migrationwithdependencies
 
-import no.ndla.articleapi.model.domain.{Article, DBArticle}
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.{ArticleApiProperties, Props}
+import no.ndla.common.model.domain.article.Article
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}

@@ -10,7 +10,8 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
 
 import java.time.LocalDateTime
 import no.ndla.learningpathapi._
@@ -213,20 +214,20 @@ class LearningPathRepositoryComponentIntegrationTest
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
         tags = List(
-          LearningPathTags(Seq("aaa"), "nb"),
-          LearningPathTags(Seq("bbb"), "nn"),
-          LearningPathTags(Seq("ccc"), "en")
+          Tag(Seq("aaa"), "nb"),
+          Tag(Seq("bbb"), "nn"),
+          Tag(Seq("ccc"), "en")
         )
       )
     )
 
-    val privatePath = repository.insert(DefaultLearningPath.copy(tags = List(LearningPathTags(Seq("ddd"), "nb"))))
+    val privatePath = repository.insert(DefaultLearningPath.copy(tags = List(Tag(Seq("ddd"), "nb"))))
 
     val publicTags = repository.allPublishedTags
-    publicTags should contain(LearningPathTags(Seq("aaa"), "nb"))
-    publicTags should contain(LearningPathTags(Seq("bbb"), "nn"))
-    publicTags should contain(LearningPathTags(Seq("ccc"), "en"))
-    publicTags should not contain LearningPathTags(Seq("ddd"), "nb")
+    publicTags should contain(Tag(Seq("aaa"), "nb"))
+    publicTags should contain(Tag(Seq("bbb"), "nn"))
+    publicTags should contain(Tag(Seq("ccc"), "en"))
+    publicTags should not contain Tag(Seq("ddd"), "nb")
 
     repository.deletePath(publicPath.id.get)
     repository.deletePath(privatePath.id.get)
@@ -236,19 +237,19 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath1 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        tags = List(LearningPathTags(Seq("aaa"), "nb"), LearningPathTags(Seq("aaa"), "nn"))
+        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("aaa"), "nn"))
       )
     )
     val publicPath2 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        tags = List(LearningPathTags(Seq("aaa", "bbb"), "nb"))
+        tags = List(Tag(Seq("aaa", "bbb"), "nb"))
       )
     )
 
     val publicTags = repository.allPublishedTags
-    publicTags should contain(LearningPathTags(Seq("aaa", "bbb"), "nb"))
-    publicTags should contain(LearningPathTags(Seq("aaa"), "nn"))
+    publicTags should contain(Tag(Seq("aaa", "bbb"), "nb"))
+    publicTags should contain(Tag(Seq("aaa"), "nn"))
 
     publicTags
       .find(_.language.contains("nb"))

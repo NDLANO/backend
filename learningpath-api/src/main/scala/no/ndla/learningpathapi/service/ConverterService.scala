@@ -12,6 +12,8 @@ import cats.implicits._
 import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.common.{Clock, errors}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.learningpath
+import no.ndla.common.model.domain.learningpath.{EmbedType, EmbedUrl}
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.{
   AllLanguages,
@@ -56,8 +58,8 @@ trait ConverterService {
       NdlaFrontendProtocol
     }
 
-    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): domain.EmbedUrl = {
-      domain.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
+    def asEmbedUrlV2(embedUrl: api.EmbedUrlV2, language: String): EmbedUrl = {
+      learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
 
     def asDescription(description: api.Description): domain.Description = {
@@ -68,15 +70,15 @@ trait ConverterService {
       common.Title(title.title, title.language)
     }
 
-    def asLearningPathTags(tags: api.LearningPathTags): domain.LearningPathTags = {
-      domain.LearningPathTags(tags.tags, tags.language)
+    def asLearningPathTags(tags: api.LearningPathTags): common.Tag = {
+      common.Tag(tags.tags, tags.language)
     }
 
-    def asApiLearningPathTags(tags: domain.LearningPathTags): api.LearningPathTags = {
+    def asApiLearningPathTags(tags: common.Tag): api.LearningPathTags = {
       api.LearningPathTags(tags.tags, tags.language)
     }
 
-    def asApiCopyright(copyright: domain.Copyright): api.Copyright = {
+    def asApiCopyright(copyright: learningpath.Copyright): api.Copyright = {
       api.Copyright(asApiLicense(copyright.license), copyright.contributors.map(asApiAuthor))
     }
 
@@ -86,7 +88,7 @@ trait ConverterService {
         case None    => api.License(license, Some("Invalid license"), None)
       }
 
-    def asApiAuthor(author: domain.Author): api.Author = {
+    def asApiAuthor(author: common.Author): api.Author = {
       api.Author(author.`type`, author.name)
     }
 
@@ -107,12 +109,12 @@ trait ConverterService {
         })
     }
 
-    def asCopyright(copyright: api.Copyright): domain.Copyright = {
-      domain.Copyright(copyright.license.license, copyright.contributors.map(asAuthor))
+    def asCopyright(copyright: api.Copyright): learningpath.Copyright = {
+      learningpath.Copyright(copyright.license.license, copyright.contributors.map(asAuthor))
     }
 
-    def asAuthor(author: api.Author): domain.Author = {
-      domain.Author(author.`type`, author.name)
+    def asAuthor(author: api.Author): common.Author = {
+      common.Author(author.`type`, author.name)
     }
 
     def asApiLearningpathV2(
@@ -191,9 +193,9 @@ trait ConverterService {
     }
 
     private def mergeLearningPathTags(
-        existing: Seq[domain.LearningPathTags],
-        updated: Seq[domain.LearningPathTags]
-    ): Seq[domain.LearningPathTags] = {
+        existing: Seq[common.Tag],
+        updated: Seq[common.Tag]
+    ): Seq[common.Tag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
@@ -224,7 +226,7 @@ trait ConverterService {
       val tags = updated.tags match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.LearningPathTags(value, updated.language))
+          Seq(common.Tag(value, updated.language))
       }
 
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
@@ -356,7 +358,7 @@ trait ConverterService {
       val oldTags = newLearningPath.tags match {
         case None => Seq.empty
         case Some(value) =>
-          Seq(domain.LearningPathTags(value, newLearningPath.language))
+          Seq(common.Tag(value, newLearningPath.language))
       }
 
       val title       = mergeLanguageFields(existing.title, oldTitle)
@@ -397,7 +399,7 @@ trait ConverterService {
       val domainTags =
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
-          Seq(domain.LearningPathTags(newLearningPath.tags, newLearningPath.language))
+          Seq(common.Tag(newLearningPath.tags, newLearningPath.language))
 
       domain.LearningPath(
         None,
@@ -608,11 +610,11 @@ trait ConverterService {
       api.Description(description.description, description.language)
     }
 
-    def asApiEmbedUrlV2(embedUrl: domain.EmbedUrl): api.EmbedUrlV2 = {
+    def asApiEmbedUrlV2(embedUrl: EmbedUrl): api.EmbedUrlV2 = {
       api.EmbedUrlV2(embedUrl.url, embedUrl.embedType.toString)
     }
 
-    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2, language: String): Try[domain.EmbedUrl] = {
+    def asDomainEmbedUrl(embedUrl: api.EmbedUrlV2, language: String): Try[EmbedUrl] = {
       val hostOpt = embedUrl.url.hostOption
       hostOpt match {
         case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
@@ -622,7 +624,7 @@ trait ConverterService {
               val pathAndQueryParams: String = newUrl.url.path.toString
                 .withQueryString(newUrl.url.query)
                 .toString
-              domain.EmbedUrl(
+              learningpath.EmbedUrl(
                 url = pathAndQueryParams,
                 language = language,
                 embedType = EmbedType.IFrame
@@ -630,7 +632,7 @@ trait ConverterService {
             })
         case _ =>
           Success(
-            domain.EmbedUrl(
+            learningpath.EmbedUrl(
               embedUrl.url,
               language,
               EmbedType.valueOfOrError(embedUrl.embedType)

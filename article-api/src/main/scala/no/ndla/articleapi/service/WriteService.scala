@@ -13,11 +13,11 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
-import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.article.Article
 
 import scala.util.{Failure, Success, Try}
 

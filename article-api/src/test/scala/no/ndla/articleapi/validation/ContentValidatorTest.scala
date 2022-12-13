@@ -8,10 +8,18 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{
+  ArticleContent,
+  ArticleMetaImage,
+  Author,
+  Description,
+  Introduction,
+  RequiredLibrary,
+  Tag,
+  Title
+}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 
@@ -47,7 +55,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if introduction contains HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      introduction = Seq(ArticleIntroduction(validDocument, "nb"))
+      introduction = Seq(Introduction(validDocument, "nb"))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -55,7 +63,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if introduction contains plain text") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      introduction = Seq(ArticleIntroduction("introduction", "nb"))
+      introduction = Seq(Introduction("introduction", "nb"))
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
@@ -63,7 +71,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      metaDescription = Seq(ArticleMetaDescription(validDocument, "nb"))
+      metaDescription = Seq(Description(validDocument, "nb"))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -71,7 +79,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if metaDescription contains plain text") {
     val article = TestData.sampleArticleWithByNcSa.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      metaDescription = Seq(ArticleMetaDescription("meta description", "nb"))
+      metaDescription = Seq(Description("meta description", "nb"))
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }

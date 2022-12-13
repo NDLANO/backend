@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{Availability, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, ArticleType, Availability, VisualElement}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttributes}
 import scalikejdbc.DBSession

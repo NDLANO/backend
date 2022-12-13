@@ -16,6 +16,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.AuthUser
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}

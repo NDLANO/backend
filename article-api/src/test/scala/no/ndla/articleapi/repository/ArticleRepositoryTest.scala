@@ -10,12 +10,12 @@ package no.ndla.articleapi.repository
 
 import java.net.Socket
 import no.ndla.articleapi._
-import no.ndla.articleapi.model.domain
-import no.ndla.articleapi.model.domain.{Article, ArticleIds}
+import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 import cats.implicits._
 import no.ndla.common.model.domain.Tag
+import no.ndla.common.model.domain.article.Article
 
 import scala.util.{Success, Try}
 
@@ -96,9 +96,9 @@ class ArticleRepositoryTest
     assume(databaseIsAvailable, "Database is unavailable")
 
     val externalIds = List("123", "456")
-    val sampleArticle: domain.Article =
+    val sampleArticle: Article =
       TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
-    val Success(res: domain.Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
+    val Success(res: Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
     res.id.isDefined should be(true)
     repository.withId(res.id.get).get should be(sampleArticle)

@@ -7,7 +7,7 @@
 
 package no.ndla.articleapi.db.migration
 
-import no.ndla.articleapi.model.domain.ArticleType
+import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -51,7 +51,7 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
     val updatedDocument = oldDocument mapField {
       case ("contentType", JString(cType)) =>
         val articleType =
-          if (cType == "emneartikkel") ArticleType.TopicArticle.toString else ArticleType.Standard.toString
+          if (cType == "emneartikkel") ArticleType.TopicArticle.entryName else ArticleType.Standard.entryName
         ("articleType", JString(articleType))
       case x => x
     }

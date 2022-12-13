@@ -1,6 +1,13 @@
+/*
+ * Part of NDLA concept-api.
+ * Copyright (C) 2022 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.conceptapi.model.search
 
-import no.ndla.conceptapi.model.domain.Author
+import no.ndla.common.model.domain.Author
 
 case class SearchableCopyright(
     origin: Option[String],

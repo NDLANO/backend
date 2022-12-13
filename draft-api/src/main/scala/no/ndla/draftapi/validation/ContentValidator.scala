@@ -11,8 +11,8 @@ import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
+  Introduction,
+  Description,
   ArticleMetaImage,
   Tag,
   Title,
@@ -170,12 +170,12 @@ trait ContentValidator {
       }
     }
 
-    private def validateIntroduction(content: ArticleIntroduction): List[ValidationMessage] = {
+    private def validateIntroduction(content: Introduction): List[ValidationMessage] = {
       NoHtmlValidator.validate("introduction", content.introduction).toList ++
         validateLanguage("language", content.language)
     }
 
-    private def validateMetaDescription(content: ArticleMetaDescription): List[ValidationMessage] = {
+    private def validateMetaDescription(content: Description): List[ValidationMessage] = {
       NoHtmlValidator.validate("metaDescription", content.content).toList ++
         validateLanguage("language", content.language)
     }

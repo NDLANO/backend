@@ -7,6 +7,7 @@
 
 package no.ndla.learningpathapi
 
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.language.Language.DefaultLanguage
 
 import java.util.UUID
@@ -14,10 +15,10 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{
-  NewFolderData,
   FolderStatus,
   LearningPath,
   LearningStep,
+  NewFolderData,
   ResourceDocument,
   SearchSettings,
   Sort
@@ -91,9 +92,9 @@ object TestData {
     domain.LearningPathStatus.PUBLISHED,
     domain.LearningPathVerificationStatus.CREATED_BY_NDLA,
     today,
-    List(domain.LearningPathTags(List("tag"), DefaultLanguage)),
+    List(common.Tag(List("tag"), DefaultLanguage)),
     "me",
-    domain.Copyright(CC_BY.toString, List.empty),
+    Copyright(CC_BY.toString, List.empty),
     Some(List(domainLearningStep1, domainLearningStep2))
   )
 

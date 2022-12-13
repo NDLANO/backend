@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData._
 import org.json4s.native.Serialization.{read, write}

@@ -13,18 +13,19 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{
   ArticleContent,
-  ArticleIntroduction,
-  ArticleMetaDescription,
   ArticleMetaImage,
+  ArticleType,
   Availability,
+  Description,
   EditorNote,
+  Introduction,
   RequiredLibrary,
   Status,
   Tag,
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{ArticleType, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -300,8 +301,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
-      introduction = Seq(ArticleIntroduction("introduction", "nb")),
-      metaDescription = Seq(ArticleMetaDescription("metadesc", "nb")),
+      introduction = Seq(Introduction("introduction", "nb")),
+      metaDescription = Seq(Description("metadesc", "nb")),
       metaImage = Seq(ArticleMetaImage("123", "metaimgalt", "nb")),
       created = TestData.today,
       updated = TestData.today,
@@ -339,8 +340,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
-      introduction = Seq(ArticleIntroduction("introduction", "nb")),
-      metaDescription = Seq(ArticleMetaDescription("metadesc", "nb")),
+      introduction = Seq(Introduction("introduction", "nb")),
+      metaDescription = Seq(Description("metadesc", "nb")),
       metaImage = Seq(ArticleMetaImage("123", "metaimgalt", "nb")),
       created = TestData.today,
       updated = TestData.today,
@@ -368,8 +369,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("1", "2", "3"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("NyVisualElement", "nb")),
-      introduction = Seq(ArticleIntroduction("NyIntro", "nb")),
-      metaDescription = Seq(ArticleMetaDescription("NyMeta", "nb")),
+      introduction = Seq(Introduction("NyIntro", "nb")),
+      metaDescription = Seq(Description("NyMeta", "nb")),
       metaImage = Seq(ArticleMetaImage("321", "NyAlt", "nb")),
       created = TestData.today,
       updated = TestData.today,
@@ -425,8 +426,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("a", "b", "c"), "nb")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb")),
-      introduction = Seq(ArticleIntroduction("introduction", "nb")),
-      metaDescription = Seq(ArticleMetaDescription("metadesc", "nb")),
+      introduction = Seq(Introduction("introduction", "nb")),
+      metaDescription = Seq(Description("metadesc", "nb")),
       metaImage = Seq(ArticleMetaImage("123", "metaimgalt", "nb")),
       created = TestData.today,
       updated = TestData.today,
@@ -454,8 +455,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("1", "2", "3"), "en")),
       requiredLibraries = Seq(RequiredLibrary("", "", "")),
       visualElement = Seq(VisualElement("someembed", "nb"), VisualElement("NyVisualElement", "en")),
-      introduction = Seq(ArticleIntroduction("introduction", "nb"), ArticleIntroduction("NyIntro", "en")),
-      metaDescription = Seq(ArticleMetaDescription("metadesc", "nb"), ArticleMetaDescription("NyMeta", "en")),
+      introduction = Seq(Introduction("introduction", "nb"), Introduction("NyIntro", "en")),
+      metaDescription = Seq(Description("metadesc", "nb"), Description("NyMeta", "en")),
       metaImage = Seq(ArticleMetaImage("123", "metaimgalt", "nb"), ArticleMetaImage("321", "NyAlt", "en")),
       created = TestData.today,
       updated = TestData.today,

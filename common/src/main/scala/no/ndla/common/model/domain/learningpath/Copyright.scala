@@ -1,11 +1,11 @@
 /*
- * Part of NDLA search-api.
- * Copyright (C) 2018 NDLA
+ * Part of NDLA common.
+ * Copyright (C) 2017 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.searchapi.model.domain.learningpath
+package no.ndla.common.model.domain.learningpath
 
 import no.ndla.common.model.domain.Author
 

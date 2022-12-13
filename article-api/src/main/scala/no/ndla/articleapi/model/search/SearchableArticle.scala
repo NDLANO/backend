@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model.search
 
-import no.ndla.articleapi.model.domain.ArticleMetaImage
+import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 import java.time.LocalDateTime

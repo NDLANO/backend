@@ -76,7 +76,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article1: Draft = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
-    introduction = List(ArticleIntroduction("Batmen", "nb")),
+    introduction = List(Introduction("Batmen", "nb")),
     content = List(
       ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
     ),
@@ -88,7 +88,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article2: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
-    introduction = List(ArticleIntroduction("Pingvinen", "nb")),
+    introduction = List(Introduction("Pingvinen", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     tags = List(Tag(List("fugl"), "nb")),
     created = today.minusDays(4),
@@ -98,7 +98,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article3: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(3),
     title = List(Title("Donald Duck kjører bil", "nb")),
-    introduction = List(ArticleIntroduction("Donald Duck", "nb")),
+    introduction = List(Introduction("Donald Duck", "nb")),
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     tags = List(Tag(List("and"), "nb")),
     created = today.minusDays(4),
@@ -108,7 +108,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article4: Draft = TestData.sampleArticleWithCopyrighted.copy(
     id = Option(4),
     title = List(Title("Superman er ute og flyr", "nb")),
-    introduction = List(ArticleIntroduction("Superman", "nb")),
+    introduction = List(Introduction("Superman", "nb")),
     content =
       List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
     tags = List(Tag(List("supermann"), "nb")),
@@ -119,7 +119,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article5: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(5),
     title = List(Title("Hulken løfter biler", "nb")),
-    introduction = List(ArticleIntroduction("Hulken", "nb")),
+    introduction = List(Introduction("Hulken", "nb")),
     content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
     tags = List(Tag(List("hulk"), "nb")),
     created = today.minusDays(40),
@@ -146,7 +146,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article6: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(6),
     title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
+    introduction = List(Introduction("Loke og Tor", "nb")),
     content = List(
       ArticleContent(
         "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
@@ -161,7 +161,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article7: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(7),
     title = List(Title("Yggdrasil livets tre", "nb")),
-    introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
+    introduction = List(Introduction("Yggdrasil", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
     tags = List(Tag(List("yggdrasil"), "nb")),
     created = today.minusDays(20),
@@ -171,7 +171,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article8: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(8),
     title = List(Title("Baldur har mareritt", "nb")),
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
@@ -182,7 +182,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article9: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(9),
     title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
-    introduction = List(ArticleIntroduction("Baldur", "nb")),
+    introduction = List(Introduction("Baldur", "nb")),
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = List(Tag(List("baldur"), "nb")),
     created = today.minusDays(10),
@@ -193,7 +193,7 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   val article10: Draft = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(10),
     title = List(Title("This article is in english", "en")),
-    introduction = List(ArticleIntroduction("Engulsk", "en")),
+    introduction = List(Introduction("Engulsk", "en")),
     content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
     tags = List(Tag(List("englando"), "en")),
     created = today.minusDays(10),
@@ -205,9 +205,9 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     id = Option(11),
     title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
     introduction = List(
-      ArticleIntroduction("Katter er store", "nb"),
-      ArticleIntroduction("Cats are big", "en"),
-      ArticleIntroduction("Cats are biz", "biz")
+      Introduction("Katter er store", "nb"),
+      Introduction("Cats are big", "en"),
+      Introduction("Cats are biz", "biz")
     ),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),

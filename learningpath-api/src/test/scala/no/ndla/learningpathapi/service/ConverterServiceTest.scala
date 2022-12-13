@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
 import no.ndla.learningpathapi.integration.ImageMetaInformation
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{CoverPhoto, NewCopyLearningPathV2, NewLearningPathV2, NewLearningStepV2}
@@ -83,7 +84,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     LearningPathStatus.PRIVATE,
     LearningPathVerificationStatus.CREATED_BY_NDLA,
     randomDate,
-    List(LearningPathTags(List("tag"), DefaultLanguage)),
+    List(Tag(List("tag"), DefaultLanguage)),
     "me",
     Copyright(CC_BY.toString, List.empty),
     None

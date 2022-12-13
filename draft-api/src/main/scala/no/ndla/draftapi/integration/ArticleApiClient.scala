@@ -159,7 +159,7 @@ trait ArticleApiClient {
       copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
     def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
       copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)
-    def withMetaDescription(meta: Seq[common.ArticleMetaDescription], language: String): PartialPublishArticle =
+    def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticle =
       copy(metaDescription =
         meta
           .find(m => m.language == language)
@@ -167,7 +167,7 @@ trait ArticleApiClient {
           .toSeq
           .some
       )
-    def withMetaDescription(meta: Seq[common.ArticleMetaDescription]): PartialPublishArticle =
+    def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticle =
       copy(metaDescription = meta.map(m => api.ArticleMetaDescription(m.content, m.language)).some)
     def withAvailability(availability: Availability.Value): PartialPublishArticle =
       copy(availability = availability.some)

@@ -11,7 +11,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.{api, domain}
-import no.ndla.conceptapi.model.domain.{ConceptContent, Copyright, Status}
+import no.ndla.conceptapi.model.domain.{ConceptContent, Status}
 
 import java.time.LocalDateTime
 
@@ -86,7 +86,8 @@ object TestData {
     revision = Some(1),
     title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
-    copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    copyright =
+      Some(common.draft.Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     source = None,
     created = LocalDateTime.now().minusDays(4),
     updated = LocalDateTime.now().minusDays(2),

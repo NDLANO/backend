@@ -8,7 +8,7 @@
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.ArticleType
+import no.ndla.common.model.domain.ArticleType
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JString
@@ -79,9 +79,9 @@ class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJav
 
     val newArticle = oldArticle.mapField {
       case ("articleType", _: JString) if topicIds.contains(id) =>
-        "articleType" -> JString(ArticleType.TopicArticle.toString)
+        "articleType" -> JString(ArticleType.TopicArticle.entryName)
       case ("articleType", _: JString) if resourceIds.contains(id) && !topicIds.contains(id) =>
-        "articleType" -> JString(ArticleType.Standard.toString)
+        "articleType" -> JString(ArticleType.Standard.entryName)
       case x => x
     }
     compact(render(newArticle))

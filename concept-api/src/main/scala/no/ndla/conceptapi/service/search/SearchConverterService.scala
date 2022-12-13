@@ -9,10 +9,11 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
-import no.ndla.conceptapi.model.domain.{Concept, Copyright, SearchResult}
+import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.service.ConverterService

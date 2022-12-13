@@ -9,7 +9,7 @@ package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 
 import java.time.LocalDateTime
 

@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.{api, domain}
@@ -118,7 +119,7 @@ class SearchServiceTest
         description = List(Description("Dette handler om fugler", "nb")),
         duration = Some(1),
         lastUpdated = yesterday,
-        tags = List(LearningPathTags(Seq("superhelt", "kanikkefly"), "nb")),
+        tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
         learningsteps = Some(List(activeStep))
       )
 
@@ -128,7 +129,7 @@ class SearchServiceTest
         description = List(Description("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
         duration = Some(2),
         lastUpdated = today,
-        tags = List(LearningPathTags(Seq("superhelt", "kanfly"), "nb")),
+        tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
         learningsteps = Some(List(activeStep, deletedStep))
       )
 
@@ -138,7 +139,7 @@ class SearchServiceTest
         description = List(Description("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
         duration = Some(3),
         lastUpdated = tomorrow,
-        tags = List(LearningPathTags(Seq("disney", "kanfly"), "nb")),
+        tags = List(Tag(Seq("disney", "kanfly"), "nb")),
         learningsteps = Some(List(deletedStep)),
         verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA
       )

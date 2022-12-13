@@ -9,6 +9,7 @@ package no.ndla.conceptapi.model.domain
 
 import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import org.json4s.FieldSerializer._

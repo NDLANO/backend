@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.learningpath.Copyright
 import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.mapping.License.PublicDomain
@@ -36,7 +37,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     description = List(Description("Gyldig beskrivelse", "nb")),
     coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
     duration = Some(180),
-    tags = List(LearningPathTags(Seq("Gyldig tag"), "nb")),
+    tags = List(Tag(Seq("Gyldig tag"), "nb")),
     revision = None,
     externalId = None,
     isBasedOn = None,
@@ -214,7 +215,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when tag contains html") {
     validMock()
     val validationErrors = validator.validateLearningPath(
-      ValidLearningPath.copy(tags = List(LearningPathTags(Seq("<strong>ugyldig</strong>"), "nb"))),
+      ValidLearningPath.copy(tags = List(Tag(Seq("<strong>ugyldig</strong>"), "nb"))),
       false
     )
     validationErrors.size should be(1)
@@ -231,7 +232,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
     val validationErrors =
       validator.validateLearningPath(
-        ValidLearningPath.copy(tags = List(LearningPathTags(Seq("Gyldig"), "bergensk"))),
+        ValidLearningPath.copy(tags = List(Tag(Seq("Gyldig"), "bergensk"))),
         false
       )
     validationErrors.size should be(1)
@@ -247,7 +248,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       .thenReturn(Some(ValidationMessage("tags.language", "Error")))
 
     val validationErrors = validator.validateLearningPath(
-      ValidLearningPath.copy(tags = List(LearningPathTags(Seq("<strong>ugyldig</strong>"), "bergensk"))),
+      ValidLearningPath.copy(tags = List(Tag(Seq("<strong>ugyldig</strong>"), "bergensk"))),
       false
     )
     validationErrors.size should be(2)
@@ -260,7 +261,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(
         tags = List(
-          LearningPathTags(Seq("<strong>ugyldig</strong>", "<li>også ugyldig</li>"), "nb")
+          Tag(Seq("<strong>ugyldig</strong>", "<li>også ugyldig</li>"), "nb")
         )
       ),
       false

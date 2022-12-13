@@ -3,36 +3,33 @@
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
+ *
  */
 
-package no.ndla.common.model.domain.draft
+package no.ndla.common.model.domain.article
 
-import java.time.LocalDateTime
-import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
-  ArticleType,
   Availability,
   Content,
   Description,
-  EditorNote,
   Introduction,
   RelatedContent,
   RequiredLibrary,
-  Status,
   Tag,
   Title,
   VisualElement
 }
 
-case class Draft(
+import java.time.LocalDateTime
+
+case class Article(
     id: Option[Long],
     revision: Option[Int],
-    status: Status,
     title: Seq[Title],
     content: Seq[ArticleContent],
-    copyright: Option[Copyright],
+    copyright: Copyright,
     tags: Seq[Tag],
     requiredLibraries: Seq[RequiredLibrary],
     visualElement: Seq[VisualElement],
@@ -43,18 +40,10 @@ case class Draft(
     updated: LocalDateTime,
     updatedBy: String,
     published: LocalDateTime,
-    articleType: ArticleType,
-    notes: Seq[EditorNote],
-    previousVersionsNotes: Seq[EditorNote],
-    editorLabels: Seq[String],
+    articleType: String,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionMeta: Seq[RevisionMeta],
-    responsible: Option[DraftResponsible]
-) extends Content {
-
-  def supportedLanguages: Seq[String] =
-    getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
-}
+    revisionDate: Option[LocalDateTime]
+) extends Content

@@ -9,12 +9,13 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.model.LanguageValue
-import no.ndla.searchapi.model.domain.article.LearningResourceType
+import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.{draftapi, searchapi}
 import org.eclipse.jetty.server.Server

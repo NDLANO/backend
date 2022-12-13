@@ -7,7 +7,8 @@
 
 package no.ndla.searchapi.model.domain.learningpath
 
-import no.ndla.common.model.domain.{Tag, Title, Content}
+import no.ndla.common.model.domain.learningpath.Copyright
+import no.ndla.common.model.domain.{Content, Tag, Title}
 
 import java.time.LocalDateTime
 

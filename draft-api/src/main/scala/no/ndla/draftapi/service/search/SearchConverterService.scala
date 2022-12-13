@@ -76,7 +76,7 @@ trait SearchConverterService {
 
       val titles = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
       val introductions =
-        searchableArticle.introduction.languageValues.map(lv => common.ArticleIntroduction(lv.value, lv.language))
+        searchableArticle.introduction.languageValues.map(lv => common.Introduction(lv.value, lv.language))
       val visualElements =
         searchableArticle.visualElement.languageValues.map(lv => common.VisualElement(lv.value, lv.language))
       val tags  = searchableArticle.tags.languageValues.map(lv => common.Tag(lv.value, lv.language))

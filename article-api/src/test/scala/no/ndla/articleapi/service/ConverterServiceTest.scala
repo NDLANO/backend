@@ -10,9 +10,9 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
-import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model.domain.{Author, Availability, Tag, Title}
+import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.domain.{Description, Author, Availability, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
 
 import java.time.LocalDateTime
@@ -208,14 +208,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
-    val existingMetaDesc = Seq(ArticleMetaDescription("nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+    val existingMetaDesc = Seq(Description("nb-content", "nb"), Description("en-content", "en"))
     val updatedMetaDesc = Seq(
-      ArticleMetaDescription("new-nb-content", "nb"),
-      ArticleMetaDescription("new-nn-content", "nn"),
-      ArticleMetaDescription("new-es-content", "es")
+      Description("new-nb-content", "nb"),
+      Description("new-nn-content", "nn"),
+      Description("new-es-content", "es")
     )
     val expectedMetaDesc =
-      Seq(ArticleMetaDescription("new-nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+      Seq(Description("new-nb-content", "nb"), Description("en-content", "en"))
 
     service.updateExistingMetaDescriptionField(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
     service.updateExistingMetaDescriptionField(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
@@ -227,7 +227,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
-      metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
+      metaDescription = Seq(Description("gammelDesc", "nb")),
       relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
     )
@@ -254,7 +254,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
-      metaDescription = Seq(ArticleMetaDescription("nyDesc", "nb")),
+      metaDescription = Seq(Description("nyDesc", "nb")),
       relatedContent = Seq(
         Left(RelatedContentLink("New Title", "New Url")),
         Left(RelatedContentLink("Newer Title", "Newer Url")),
@@ -273,7 +273,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.everyone,
       grepCodes = Seq("old", "code"),
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
-      metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
+      metaDescription = Seq(Description("oldDesc", "de")),
       relatedContent =
         Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
       tags = Seq(Tag(Seq("Gluten", "Tag"), "de"))
@@ -306,7 +306,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       availability = Availability.teacher,
       grepCodes = Seq("New", "grep", "codes"),
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
-      metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
+      metaDescription = Seq(Description("neuDesc", "de")),
       relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
       revisionDate = Some(revisionDate)

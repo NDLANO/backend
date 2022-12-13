@@ -7,13 +7,14 @@
 
 package no.ndla.learningpathapi.db.migrationwithdependencies
 
+import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.learningpathapi.{LearningpathApiProperties, Props}
-import no.ndla.learningpathapi.model.domain.{DBLearningStep, EmbedType}
+import no.ndla.learningpathapi.model.domain.DBLearningStep
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Extraction, Formats}
 import org.postgresql.util.PGobject
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc._
 
 class V14__ConvertLanguageUnknown(properties: LearningpathApiProperties)
     extends BaseJavaMigration

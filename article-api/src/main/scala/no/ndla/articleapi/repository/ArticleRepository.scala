@@ -11,7 +11,8 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain.{Article, ArticleIds, DBArticle}
+import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
+import no.ndla.common.model.domain.article.Article
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject

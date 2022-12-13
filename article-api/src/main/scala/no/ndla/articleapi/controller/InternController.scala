@@ -11,11 +11,12 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
-import no.ndla.articleapi.model.domain.{Article, DBArticle}
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language
 import org.json4s.Formats
 import org.scalatra.{InternalServerError, NotFound, Ok}
