@@ -21,12 +21,13 @@ import scalikejdbc._
 trait DBArticle {
   this: Props =>
   object Article extends SQLSyntaxSupport[Article] {
-    val jsonEncoder: Formats =
-      DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(
-        ArticleType
-      )
+    val jsonEncoder: Formats = DefaultFormats.withLong +
+      new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(ArticleType)
     override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
+
+    val repositorySerializer: Formats = jsonEncoder +
+      FieldSerializer[Article](ignore("id") orElse ignore("slug"))
 
     def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
       fromResultSet(lp.resultName)(rs)
@@ -37,17 +38,15 @@ trait DBArticle {
       rs.stringOpt(lp.c("document"))
         .map(jsonStr => {
           val meta = read[Article](jsonStr)
+          val slug = rs.stringOpt(lp.c("slug"))
           meta.copy(
             id = Some(rs.long(lp.c("article_id"))),
-            revision = Some(rs.int(lp.c("revision")))
+            revision = Some(rs.int(lp.c("revision"))),
+            slug = slug
           )
         })
     }
 
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[Article](
-        ignore("id")
-      )
   }
 
 }
