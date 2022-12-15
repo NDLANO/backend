@@ -79,6 +79,13 @@ trait ReadService {
       }
     }
 
+    def getFrontpageArticle(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+      articleRepository.withSlug(slug) match {
+        case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(article) => converterService.toApiArticleV2(article, language, fallback)
+      }
+    }
+
     private[service] def addUrlsOnEmbedResources(article: Article): Article = {
       val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
       val visualElementWithUrls =

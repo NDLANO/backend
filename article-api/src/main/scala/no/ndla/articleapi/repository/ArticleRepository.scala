@@ -118,6 +118,8 @@ trait ArticleRepository {
       }
     }
 
+    def withSlug(slug: String): Option[Article] = articleWhere(sqls"ar.slug=$slug")
+
     def withId(articleId: Long): Option[Article] =
       articleWhere(
         sqls"""

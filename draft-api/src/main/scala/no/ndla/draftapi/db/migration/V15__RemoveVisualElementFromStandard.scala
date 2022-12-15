@@ -68,7 +68,8 @@ class V15__RemoveVisualElementFromStandard extends BaseJavaMigration {
               case ("visualElement", _: JArray) => "visualElement" -> JArray(List.empty)
               case x                            => x
             }
-          case ArticleType.TopicArticle => oldArticle
+          case ArticleType.TopicArticle     => oldArticle
+          case ArticleType.FrontpageArticle => oldArticle
         }
         compact(render(newArticle))
       case _ => compact(render(oldArticle))

@@ -98,7 +98,8 @@ trait ArticleControllerV2 {
       "A comma separated list of codes from GREP API the resources should be filtered by."
     )
 
-    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+    private val feideToken  = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+    private val articleSlug = Param[String]("slug", "Slug of the article that is to be fecthed.")
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -420,6 +421,31 @@ trait ArticleControllerV2 {
       readService.getArticleIdsByExternalId(externalId) match {
         case Some(idObject) => idObject
         case None           => NotFound()
+      }
+    }
+
+    get(
+      "/frontpage/:slug",
+      operation(
+        apiOperation[ArticleV2]("getArticleBySlug")
+          .summary("Fetch specified article.")
+          .description("Returns the article for the specified slug.")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(articleSlug),
+            asQueryParam(language),
+            asQueryParam(fallback)
+          )
+          .responseMessages(response404, response500)
+      )
+    ) {
+      val slug     = params(this.articleSlug.paramName)
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      readService.getFrontpageArticle(slug, language, fallback) match {
+        case Success(article) => article
+        case Failure(ex)      => errorHandler(ex)
       }
     }
   }

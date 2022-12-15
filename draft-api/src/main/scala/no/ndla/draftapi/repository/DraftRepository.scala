@@ -405,6 +405,8 @@ trait DraftRepository {
         .single()
     }
 
+    def withSlug(slug: String): Option[Draft] = articleWhere(sqls"ar.slug=$slug")
+
     def slugExists(slug: String, articleId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
