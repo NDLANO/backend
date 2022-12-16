@@ -30,12 +30,12 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   private def generateTagWithAttrs(attrs: Map[TagAttributes.Value, String]): String = {
     val strAttrs = attrs map { case (k, v) => k.toString -> v }
-    s"""<$EmbedTagName ${generateAttributes(strAttrs)}></ndlaembed>"""
+    s"""<$EmbedTagName ${generateAttributes(strAttrs)}></$EmbedTagName>"""
   }
 
   private def generateTagWithAttrsAndChildren(attrs: Map[TagAttributes.Value, String], children: String): String = {
     val strAttrs = attrs map { case (k, v) => k.toString -> v }
-    s"""<$EmbedTagName ${generateAttributes(strAttrs)}>$children</ndlaembed>"""
+    s"""<$EmbedTagName ${generateAttributes(strAttrs)}>$children</$EmbedTagName>"""
   }
 
   private def findErrorByMessage(validationMessages: Seq[ValidationMessage], partialMessage: String) =
