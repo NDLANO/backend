@@ -25,10 +25,10 @@ trait TaxonomyApiClient {
   val taxononyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
-    import props.{ApiGatewayHost, DefaultLanguage}
+    import props.{TaxonomyUrl, DefaultLanguage}
     implicit val formats                   = org.json4s.DefaultFormats
     private val taxonomyTimeout            = 20 * 1000 // 20 Seconds
-    private val TaxonomyApiEndpoint        = s"http://$ApiGatewayHost/taxonomy/v1"
+    private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
 
     def updateTaxonomyForLearningPath(

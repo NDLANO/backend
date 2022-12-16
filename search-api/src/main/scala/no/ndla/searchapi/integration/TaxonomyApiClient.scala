@@ -28,9 +28,9 @@ trait TaxonomyApiClient {
   val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
-    import props.ApiGatewayUrl
+    import props.TaxonomyUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-    private val TaxonomyApiEndpoint           = s"$ApiGatewayUrl/taxonomy/v1"
+    private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
     private val timeoutSeconds                = 600
 
     def getAllResources: Try[List[Resource]] =

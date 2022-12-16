@@ -39,6 +39,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
   def AudioApiUrl: String        = s"http://${propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")}"
   def ApiGatewayUrl: String      = s"http://${propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")}"
   def GrepApiUrl: String         = s"https://${propOrElse("GREP_API_HOST", "data.udir.no")}"
+  def TaxonomyUrl: String        = s"http://${propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")}"
 
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
   def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean

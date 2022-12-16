@@ -25,10 +25,10 @@ import scala.util.{Failure, Success, Try}
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
-  import props.{ApiGatewayHost, DefaultLanguage, TaxonomyVersionHeader, TaxonomyVersionIdKey}
+  import props.{TaxonomyUrl, DefaultLanguage, TaxonomyVersionHeader, TaxonomyVersionIdKey}
 
   class TaxonomyApiClient extends StrictLogging {
-    private val TaxonomyApiEndpoint           = s"http://$ApiGatewayHost/taxonomy/v1"
+    private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
     private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
