@@ -12,9 +12,12 @@ object TagRules {
       optional: Seq[Set[TagAttributes.Value]],
       validSrcDomains: Option[Seq[String]],
       mustBeDirectChildOf: Option[ParentTag],
-      mustContainAtLeastOneOptionalAttribute: Boolean = false
+      children: Option[ChildrenRule],
+      mustContainAtLeastOneOptionalAttribute: Option[Boolean]
   ) {
     lazy val all: Set[TagAttributes.Value] = required ++ requiredNonEmpty ++ optional.flatten
+
+    def mustContainOptionalAttribute: Boolean = this.mustContainAtLeastOneOptionalAttribute.getOrElse(false)
 
     def withOptionalRequired(toBeOptional: Seq[String]): TagAttributeRules = {
       val toBeOptionalEnums = toBeOptional.flatMap(TagAttributes.valueOf)
@@ -29,10 +32,14 @@ object TagRules {
   }
 
   case class ParentTag(name: String, requiredAttr: List[(String, String)], conditions: Option[Condition])
+  case class ChildrenRule(required: Boolean, allowedChildren: List[String])
+  object ChildrenRule {
+    def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = List.empty)
+  }
   case class Condition(childCount: String)
 
   object TagAttributeRules {
-    def empty: TagAttributeRules = TagAttributeRules(Set.empty, Set.empty, Seq.empty, None, None)
+    def empty: TagAttributeRules = TagAttributeRules(Set.empty, Set.empty, Seq.empty, None, None, None, None)
   }
 
   def convertJsonStrToAttributeRules(jsonStr: String): Map[String, TagAttributeRules] = {

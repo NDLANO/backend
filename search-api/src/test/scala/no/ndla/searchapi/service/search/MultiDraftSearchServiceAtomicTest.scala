@@ -84,7 +84,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(2),
       content = Seq(
         ArticleContent(
-          s"""<section><$EmbedTagName data-content-id="3" data-link-text="Test?" data-resource="content-link"></section>""",
+          s"""<section><$EmbedTagName data-content-id="3" data-resource="content-link">Test?</$EmbedTagName></section>""",
           "nb"
         )
       )

@@ -39,10 +39,8 @@ class TextValidator(allowHtml: Boolean) {
       text: String,
       requiredToOptional: Map[String, Seq[String]] = Map.empty
   ): Seq[ValidationMessage] = {
-    allowHtml match {
-      case true  => validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
-      case false => validateNoHtmlTags(fieldPath, text).toList
-    }
+    if (allowHtml) validateOnlyBasicHtmlTags(fieldPath, text, requiredToOptional)
+    else validateNoHtmlTags(fieldPath, text).toList
   }
 
   def validateVisualElement(
@@ -79,23 +77,17 @@ class TextValidator(allowHtml: Boolean) {
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)
       .foreach(tag => whiteList.addAttributes(tag, HtmlTagRules.legalAttributesForTag(tag).toSeq: _*))
 
-    text.isEmpty match {
-      case true => ValidationMessage(fieldPath, FieldEmpty) :: Nil
-      case false => {
-        val jsoupValidatorMessages = Jsoup.isValid(text, whiteList) match {
-          case true  => None
-          case false => Some(ValidationMessage(fieldPath, IllegalContentInBasicText))
-        }
-        TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
-      }
-
+    if (text.isEmpty) {
+      ValidationMessage(fieldPath, FieldEmpty) :: Nil
+    } else {
+      val whiteListValidationMessage = ValidationMessage(fieldPath, IllegalContentInBasicText)
+      val jsoupValidatorMessages     = Option.when(!Jsoup.isValid(text, whiteList))(whiteListValidationMessage)
+      TagValidator.validate(fieldPath, text, requiredToOptional) ++ jsoupValidatorMessages.toSeq
     }
   }
 
-  private def validateNoHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
-    Jsoup.isValid(text, Safelist.none()) match {
-      case true  => None
-      case false => Some(ValidationMessage(fieldPath, IllegalContentInPlainText))
+  private def validateNoHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] =
+    Option.when(!Jsoup.isValid(text, Safelist.none())) {
+      ValidationMessage(fieldPath, IllegalContentInPlainText)
     }
-  }
 }
