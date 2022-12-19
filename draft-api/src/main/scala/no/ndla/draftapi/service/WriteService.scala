@@ -224,28 +224,30 @@ trait WriteService {
         notes = newNotes,
         visualElement = visualElement
       )
-      val updateFunction = externalIds match {
-        case Nil =>
-          (a: Draft) => draftRepository.updateArticle(a, false)
-        case nids =>
-          (a: Draft) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
-      }
+      draftRepository.rollbackOnFailure { implicit session =>
+        val updateFunction = externalIds match {
+          case Nil =>
+            (a: Draft) => draftRepository.updateArticle(a, false)
+          case nids =>
+            (a: Draft) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
+        }
 
-      for {
-        newId <- draftRepository.newEmptyArticle()
-        domainArticle <- converterService.toDomainArticle(
-          newId,
-          withNotes,
-          externalIds,
-          user,
-          oldNdlaCreatedDate,
-          oldNdlaUpdatedDate
-        )
-        _               <- contentValidator.validateArticle(domainArticle)
-        insertedArticle <- updateFunction(domainArticle)
-        _ = indexArticle(insertedArticle)
-        apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
-      } yield apiArticle
+        for {
+          newId <- draftRepository.newEmptyArticle()
+          domainArticle <- converterService.toDomainArticle(
+            newId,
+            withNotes,
+            externalIds,
+            user,
+            oldNdlaCreatedDate,
+            oldNdlaUpdatedDate
+          )
+          _               <- contentValidator.validateArticle(domainArticle)
+          insertedArticle <- updateFunction(domainArticle)
+          _ = indexArticle(insertedArticle)
+          apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
+        } yield apiArticle
+      }
     }
 
     def updateArticleStatus(

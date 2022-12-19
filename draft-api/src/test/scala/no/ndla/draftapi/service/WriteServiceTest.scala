@@ -120,12 +120,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
     when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(1: Long))
+    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[api.Article]](0)
+      func(mock[DBSession])
+    })
 
     service
       .newArticle(TestData.newArticle, List.empty, Seq.empty, TestData.userWithWriteAccess, None, None, None)
       .isSuccess should be(true)
 
-    verify(draftRepository, times(1)).newEmptyArticle()
+    verify(draftRepository, times(1)).newEmptyArticle(any, any)(any)
     verify(draftRepository, times(0)).insert(any[Draft])(any)
     verify(draftRepository, times(1)).updateArticle(any[Draft], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(any)
@@ -1226,6 +1230,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("New articles are not made with empty-strings for empty fields") {
+    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[api.Article]](0)
+      func(mock[DBSession])
+    })
+
     val newArt = TestData.newArticle.copy(
       language = "nb",
       title = "Jonas",

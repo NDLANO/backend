@@ -9,6 +9,7 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.EditorNote
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.auth.UserInfo
@@ -29,6 +30,19 @@ trait DraftRepository {
 
   class ArticleRepository extends StrictLogging with Repository[Draft] {
     implicit val formats: Formats = DBArticle.repositorySerializer
+
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
+        }
+      } catch {
+        case RollbackException(ex) => Failure(ex)
+      }
+    }
 
     def insert(article: Draft)(implicit session: DBSession = AutoSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
