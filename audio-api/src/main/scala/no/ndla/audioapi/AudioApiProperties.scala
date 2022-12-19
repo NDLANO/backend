@@ -52,7 +52,6 @@ class AudioApiProperties extends BaseProps with StrictLogging {
   val StorageName: String = propOrElse("AUDIO_FILE_S3_BUCKET", s"$Environment.audio.ndla")
 
   val SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-audio-api.ndla-local")
-  val DraftApiHost: String                 = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val SearchIndex: String                  = propOrElse("SEARCH_INDEX_NAME", "audios")
   val SearchDocument                       = "audio"

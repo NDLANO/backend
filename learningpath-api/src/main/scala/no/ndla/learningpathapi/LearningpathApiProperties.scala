@@ -44,11 +44,7 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
   def MaxPageSize         = 10000
   def IndexBulkSize       = 1000
 
-  def ApiGatewayHost: String = propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")
-  def ImageApiHost: String   = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
-  def InternalImageApiUrl    = s"$ImageApiHost/image-api/v2/images"
-  def SearchApiHost: String  = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
-  def TaxonomyUrl: String    = s"http://${propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")}"
+  def InternalImageApiUrl = s"$ImageApiHost/image-api/v2/images"
 
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt

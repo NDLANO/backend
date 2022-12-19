@@ -46,11 +46,6 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
-  def ArticleApiHost: String = propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")
-  def ImageApiHost: String   = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
-  def ApiGatewayHost: String = propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")
-
-  def SearchApiHost: String                = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
 

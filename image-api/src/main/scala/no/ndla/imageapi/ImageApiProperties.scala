@@ -124,8 +124,6 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val ElasticSearchScrollKeepAlive         = "1m"
   val InitialScrollContextKeywords         = List("0", "initial", "start", "first")
 
-  val DraftApiHost: String = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
-
   lazy val Domain: String     = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiUrlBase: String = Domain + ImageControllerPath + "/"
   val RawImageUrlBase: String = Domain + RawControllerPath
