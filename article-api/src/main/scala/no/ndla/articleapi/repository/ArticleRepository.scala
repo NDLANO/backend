@@ -49,8 +49,8 @@ trait ArticleRepository {
           logger.info(s"No article with id ${article.id} and revision ${article.revision} exists, creating...")
           Try {
             sql"""
-                  insert into ${Article.table} (article_id, document, external_id, revision)
-                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
+                  insert into ${Article.table} (article_id, document, external_id, revision, slug)
+                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, ${article.slug})
               """.updateAndReturnGeneratedKey()
           }.map(_ => article)
 
@@ -77,7 +77,7 @@ trait ArticleRepository {
       val numRows =
         sql"""
              update ${Article.table}
-             set document=null
+             set document=null, slug=null
              where article_id=$articleId
              and revision=$revision
            """.update()

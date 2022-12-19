@@ -51,8 +51,8 @@ trait DraftRepository {
       dataObject.setValue(write(article))
 
       val dbId = sql"""
-            insert into ${DBArticle.table} (document, revision, article_id)
-            values ($dataObject, $startRevision, ${article.id})
+            insert into ${DBArticle.table} (document, revision, article_id, slug)
+            values ($dataObject, $startRevision, ${article.id}, ${article.slug})
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id}, with revision $startRevision (with db id $dbId)")
@@ -74,13 +74,14 @@ trait DraftRepository {
 
       val dbId: Long =
         sql"""
-             insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id)
+             insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
              values (ARRAY[${externalIds}]::text[],
                      ARRAY[${externalSubjectIds}]::text[],
                      ${dataObject},
                      $startRevision,
                      $uuid,
-                     ${article.id})
+                     ${article.id},
+                     ${article.slug})
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id} (with db id $dbId)")
@@ -118,13 +119,14 @@ trait DraftRepository {
 
             val dbId: Long =
               sql"""
-                 insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id)
+                 insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
                  values (ARRAY[${externalIds}]::text[],
                          ARRAY[${externalSubjectIds}]::text[],
                          ${dataObject},
                          $articleRevision,
                          $uuid,
-                         ${articleId})
+                         ${articleId},
+                         ${article.slug})
               """.updateAndReturnGeneratedKey()
 
             logger.info(s"Inserted new article: ${articleId} (with db id $dbId)")
@@ -173,7 +175,7 @@ trait DraftRepository {
       val count =
         sql"""
               update ${DBArticle.table}
-              set document=$dataObject, revision=$newRevision
+              set document=$dataObject, revision=$newRevision, slug=${article.slug}
               where article_id=${article.id}
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
@@ -228,7 +230,8 @@ trait DraftRepository {
                  revision=1,
                  external_id=ARRAY[$externalIds]::text[],
                  external_subject_id=ARRAY[$externalSubjectIds]::text[],
-                 import_id=$uuid
+                 import_id=$uuid,
+                 slug=${article.slug}
               """
           )
           .where
