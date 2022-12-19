@@ -123,7 +123,7 @@ export interface ILicense {
 
 export interface INewImageMetaInformationV2 {
   title: string
-  alttext: string
+  alttext?: string
   copyright: ICopyright
   tags: string[]
   caption: string
@@ -172,7 +172,7 @@ export interface ITagsSearchResult {
 export interface IUpdateImageMetaInformation {
   language: string
   title?: string
-  alttext?: string
+  alttext?: (null | string)
   copyright?: ICopyright
   tags?: string[]
   caption?: string

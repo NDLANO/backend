@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits._
+import no.ndla.common.model.api.Deletable
 import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.auth.User
@@ -27,6 +28,7 @@ import no.ndla.imageapi.model.domain._
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
+import no.ndla.language.model.LanguageField
 import org.scalatra.servlet.FileItem
 
 import java.io.ByteArrayInputStream
@@ -186,6 +188,16 @@ trait WriteService {
       withoutMetas(lhs) != withoutMetas(rhs)
     }
 
+    def mergeDeletableLanguageFields[A <: LanguageField[_]](
+        existing: Seq[A],
+        updated: Deletable[A],
+        language: String
+    ): Seq[A] = (updated match {
+      case Left(_)               => existing.filterNot(_.language == language)
+      case Right(None)           => existing
+      case Right(Some(newValue)) => existing.filterNot(_.language == language) :+ newValue
+    }).filterNot(_.isEmpty)
+
     private[service] def mergeImages(
         existing: ImageMetaInformation,
         toMerge: UpdateImageMetaInformation
@@ -198,9 +210,10 @@ trait WriteService {
           existing.titles,
           toMerge.title.toSeq.map(t => converterService.asDomainTitle(t, toMerge.language))
         ),
-        alttexts = mergeLanguageFields(
+        alttexts = mergeDeletableLanguageFields(
           existing.alttexts,
-          toMerge.alttext.toSeq.map(a => converterService.asDomainAltText(a, toMerge.language))
+          toMerge.alttext.map(_.map(converterService.asDomainAltText(_, toMerge.language))),
+          toMerge.language
         ),
         copyright = toMerge.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
         tags = mergeTags(existing.tags, toMerge.tags.toSeq.map(t => converterService.toDomainTag(t, toMerge.language))),
