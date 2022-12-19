@@ -62,6 +62,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def ImageApiHost: String        = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
   def SearchApiHost: String       = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
   def ApiGatewayHost: String      = propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")
+  def TaxonomyUrl: String         = s"http://${propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")}"
 
   def internalApiUrls: Map[String, String] = Map(
     "article-api" -> s"http://$ArticleApiHost/intern",
