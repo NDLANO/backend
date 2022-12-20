@@ -79,7 +79,7 @@ trait ReadService {
       }
     }
 
-    def getFrontpageArticle(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       articleRepository.withSlug(slug) match {
         case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(article) => converterService.toApiArticleV2(article, language, fallback)

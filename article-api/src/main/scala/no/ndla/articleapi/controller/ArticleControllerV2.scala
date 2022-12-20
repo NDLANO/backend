@@ -443,7 +443,7 @@ trait ArticleControllerV2 {
       val language = paramOrDefault(this.language.paramName, AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      readService.getFrontpageArticle(slug, language, fallback) match {
+      readService.getArticleBySlug(slug, language, fallback) match {
         case Success(article) => article
         case Failure(ex)      => errorHandler(ex)
       }

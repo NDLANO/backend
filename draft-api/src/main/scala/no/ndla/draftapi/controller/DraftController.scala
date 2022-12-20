@@ -826,7 +826,7 @@ trait DraftController {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      val article       = readService.getFrontpageArticle(slug, language, fallback)
+      val article       = readService.getArticleBySlug(slug, language, fallback)
       val currentOption = article.map(_.status.current).toOption
       val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
         currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
