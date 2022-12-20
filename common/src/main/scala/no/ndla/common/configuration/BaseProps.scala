@@ -8,6 +8,11 @@ trait BaseProps {
 
   def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
+  def ContactName: String  = propOrElse("CONTACT_NAME", "NDLA")
+  def ContactUrl: String   = propOrElse("CONTACT_URL", "https://ndla.no")
+  def ContactEmail: String = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
+  def TermsUrl: String     = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
+
   def ApiGatewayHost: String      = propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")
   def ArticleApiHost: String      = propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")
   def AudioApiHost: String        = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")

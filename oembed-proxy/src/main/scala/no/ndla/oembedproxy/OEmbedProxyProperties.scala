@@ -24,10 +24,6 @@ class OEmbedProxyProperties extends BaseProps {
   val Auth0LoginEndpoint =
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
-  val ContactName: String             = propOrElse("CONTACT_NAME", "NDLA")
-  val ContactUrl: String              = propOrElse("CONTACT_URL", "https://ndla.no")
-  val ContactEmail: String            = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
-  val TermsUrl: String                = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
   val JSonProviderUrl                 = "https://oembed.com/providers.json"
   val ProviderListCacheAgeInMs: Long  = 1000 * 60 * 60 * 24 // 24 hour caching
   val ProviderListRetryTimeInMs: Long = 1000 * 60 * 60      // 1 hour before retrying a failed attempt.

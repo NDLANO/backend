@@ -31,10 +31,6 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
 
   def ApplicationPort         = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  def ContactName: String     = propOrElse("CONTACT_NAME", "NDLA")
-  def ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
-  def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
-  def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
