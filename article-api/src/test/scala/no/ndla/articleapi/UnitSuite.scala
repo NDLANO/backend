@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi
 
+import no.ndla.articleapi.model.domain.ArticleRow
+import no.ndla.common.model.domain.article.Article
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import scala.util.Properties.setProp
@@ -29,4 +31,13 @@ trait UnitSuite extends UnitTestSuite {
   setProp("BRIGHTCOVE_API_CLIENT_ID", "some-client-id")
   setProp("BRIGHTCOVE_API_CLIENT_SECRET", "some-secret")
   setProp("SEARCH_INDEX_NAME", "article-integration-test-index")
+
+  def toArticleRow(article: Article): ArticleRow = {
+    ArticleRow(
+      rowId = article.id.get,
+      articleId = article.id.get,
+      article = Some(article)
+    )
+  }
+
 }

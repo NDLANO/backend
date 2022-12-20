@@ -151,7 +151,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $withId"
       .map(Article.fromResultSet(ar))
       .single()
-      .flatten
+      .toArticle
   }
 
   def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[Tag]): Option[Article] = {

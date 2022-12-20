@@ -24,20 +24,29 @@ trait DBArticle {
     override val tableName   = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
-    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
+    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow =
       fromResultSet(lp.resultName)(rs)
 
-    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
+    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
       implicit val formats: Formats = repositorySerializer
 
-      rs.stringOpt(lp.c("document"))
-        .map(jsonStr => {
-          val meta = read[Article](jsonStr)
-          meta.copy(
-            id = Some(rs.long(lp.c("article_id"))),
-            revision = Some(rs.int(lp.c("revision")))
-          )
-        })
+      val articleId = rs.long(lp.c("article_id"))
+      val rowId     = rs.long(lp.c("id"))
+      val document  = rs.stringOpt(lp.c("document"))
+
+      val article = document.map(jsonStr => {
+        val meta = read[Article](jsonStr)
+        meta.copy(
+          id = Some(articleId),
+          revision = Some(rs.int(lp.c("revision")))
+        )
+      })
+
+      ArticleRow(
+        rowId = rowId,
+        articleId = articleId,
+        article = article
+      )
     }
 
     val repositorySerializer: Formats = jsonEncoder +

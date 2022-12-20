@@ -11,7 +11,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleRow, DBArticle}
 import no.ndla.common.model.domain.article.Article
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -117,7 +117,7 @@ trait ArticleRepository {
       }
     }
 
-    def withId(articleId: Long): Option[Article] =
+    def withId(articleId: Long): Option[ArticleRow] =
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
@@ -126,7 +126,7 @@ trait ArticleRepository {
               """
       )
 
-    def withIdAndRevision(articleId: Long, revision: Int): Option[Article] = {
+    def withIdAndRevision(articleId: Long, revision: Int): Option[ArticleRow] = {
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
@@ -137,7 +137,7 @@ trait ArticleRepository {
 
     def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
-    ): Seq[Article] = {
+    ): Seq[ArticleRow] = {
       val ar  = Article.syntax("ar")
       val ar2 = Article.syntax("ar2")
       sql"""
@@ -155,10 +155,7 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .list()
-        .flatten
     }
-
-    def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"$externalId = any (ar.external_id)")
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"""
@@ -249,7 +246,7 @@ trait ArticleRepository {
       """
         .map(Article.fromResultSet(ar))
         .list()
-        .flatten
+        .toArticles
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
@@ -303,7 +300,7 @@ trait ArticleRepository {
 
     private def articleWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
+    )(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleRow] = {
       val ar = Article.syntax("ar")
       sql"""
            select ${ar.result.*}
@@ -312,7 +309,6 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .single()
-        .flatten
     }
 
     private def articlesWhere(
@@ -327,7 +323,7 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .list()
-        .flatten
+        .toArticles
     }
 
     def getArticleIdsFromExternalId(

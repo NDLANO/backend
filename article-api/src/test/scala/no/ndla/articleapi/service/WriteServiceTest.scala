@@ -32,7 +32,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
 
-    when(articleRepository.withId(articleId)).thenReturn(Option(article))
+    when(articleRepository.withId(articleId)).thenReturn(Option(toArticleRow(article)))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Article](0))
     )
@@ -53,7 +53,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedAndInserted = articleToUpdate
       .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
-    when(articleRepository.withId(10)).thenReturn(Some(articleToUpdate))
+    when(articleRepository.withId(10)).thenReturn(Some(toArticleRow(articleToUpdate)))
     when(articleRepository.updateArticleFromDraftApi(any[Article], anyList)(any[DBSession]))
       .thenReturn(Success(updatedAndInserted))
 
