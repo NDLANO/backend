@@ -806,7 +806,7 @@ trait DraftController {
     }
 
     get(
-      "/frontpage/:slug",
+      "/slug/:slug",
       operation(
         apiOperation[Article]("getArticleBySlug")
           .summary("Show article with a specified slug")

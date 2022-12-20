@@ -425,7 +425,7 @@ trait ArticleControllerV2 {
     }
 
     get(
-      "/frontpage/:slug",
+      "/slug/:slug",
       operation(
         apiOperation[ArticleV2]("getArticleBySlug")
           .summary("Fetch specified article.")
