@@ -291,4 +291,50 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.message should be("An article must contain at least one planned revisiondate")
   }
 
+  test("validation should fail if slug field is present but articleType is not frontpage-article") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          articleType = ArticleType.TopicArticle,
+          slug = Some("pepe")
+        )
+      )
+
+    res.errors.length should be(1)
+    res.errors.head.field should be("articleType")
+    res.errors.head.message should be(
+      s"articleType needs to be of type ${ArticleType.FrontpageArticle.entryName} when slug is defined"
+    )
+  }
+
+  test("validation should fail if articleType frontpage-article but sluig is None") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          articleType = ArticleType.FrontpageArticle,
+          slug = None
+        )
+      )
+
+    res.errors.length should be(1)
+    res.errors.head.field should be("slug")
+    res.errors.head.message should be(
+      s"slug field must be defined when articleType is of type ${ArticleType.FrontpageArticle.entryName}"
+    )
+  }
+
+  test("validation should fail if slug string is invalid") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          articleType = ArticleType.FrontpageArticle,
+          slug = Some("ugyldig slug")
+        )
+      )
+
+    res.errors.length should be(1)
+    res.errors.head.field should be("slug")
+    res.errors.head.message should be("The string contains invalid characters")
+  }
+
 }
