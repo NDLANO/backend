@@ -22,7 +22,7 @@ trait DraftApiClient {
   this: NdlaClient with Props =>
   val draftApiClient: DraftApiClient
 
-  class DraftApiClient(DraftBaseUrl: String = s"http://${props.DraftHost}") extends StrictLogging {
+  class DraftApiClient(DraftBaseUrl: String = props.DraftApiUrl) extends StrictLogging {
     private val draftApiGetAgreementEndpoint = s"$DraftBaseUrl/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty

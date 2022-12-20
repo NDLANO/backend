@@ -29,10 +29,6 @@ class DraftApiProperties extends BaseProps with StrictLogging {
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  def ContactName: String     = propOrElse("CONTACT_NAME", "NDLA")
-  def ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
-  def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
-  def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
@@ -53,16 +49,6 @@ class DraftApiProperties extends BaseProps with StrictLogging {
     ResourceType.File.toString  -> Domain,
     ResourceType.H5P.toString   -> H5PAddress
   )
-
-  def ArticleApiHost: String      = propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")
-  def ConceptApiHost: String      = propOrElse("CONCEPT_API_HOST", "concept-api.ndla-local")
-  def LearningpathApiHost: String = propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")
-  def AudioApiHost: String        = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
-  def DraftApiHost: String        = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
-  def ImageApiHost: String        = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
-  def SearchApiHost: String       = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
-  def ApiGatewayHost: String      = propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")
-  def TaxonomyUrl: String         = s"http://${propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")}"
 
   def internalApiUrls: Map[String, String] = Map(
     "article-api" -> s"http://$ArticleApiHost/intern",

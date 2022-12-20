@@ -31,10 +31,6 @@ class ArticleApiProperties extends BaseProps with StrictLogging {
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  def ContactName: String     = propOrElse("CONTACT_NAME", "NDLA")
-  def ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
-  def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
-  def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
@@ -55,10 +51,6 @@ class ArticleApiProperties extends BaseProps with StrictLogging {
   def ElasticSearchScrollKeepAlive         = "1m"
   def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
 
-  def AudioHost: String            = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
-  def ImageHost: String            = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
-  def DraftHost: String            = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
-  def SearchHost: String           = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   def MinimumAllowedTags = 3

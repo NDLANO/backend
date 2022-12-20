@@ -27,7 +27,7 @@ trait SearchApiClient {
   this: NdlaClient with ConverterService with Props =>
   val searchApiClient: SearchApiClient
 
-  class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchHost}") extends StrictLogging {
+  class SearchApiClient(SearchApiBaseUrl: String = props.SearchApiUrl) extends StrictLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
     private val indexTimeout     = 1000 * 30

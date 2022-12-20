@@ -25,21 +25,8 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  def ContactName: String     = propOrElse("CONTACT_NAME", "NDLA")
-  def ContactUrl: String      = propOrElse("CONTACT_URL", "https://ndla.no")
-  def ContactEmail: String    = propOrElse("CONTACT_EMAIL", "hjelp+api@ndla.no")
-  def TermsUrl: String        = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
-
-  def DraftApiUrl: String        = s"http://${propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")}"
-  def ArticleApiUrl: String      = s"http://${propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")}"
-  def LearningpathApiUrl: String = s"http://${propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")}"
-  def ImageApiUrl: String        = s"http://${propOrElse("IMAGE_API_HOST", "image-api.ndla-local")}"
-  def AudioApiUrl: String        = s"http://${propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")}"
-  def ApiGatewayUrl: String      = s"http://${propOrElse("API_GATEWAY_HOST", "api-gateway.ndla-local")}"
-  def GrepApiUrl: String         = s"https://${propOrElse("GREP_API_HOST", "data.udir.no")}"
-  def TaxonomyUrl: String        = s"http://${propOrElse("TAXONOMY_API_HOST", "taxonomy-api.ndla-local:5000")}"
 
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-search-api.ndla-local")
   def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
