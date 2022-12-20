@@ -659,7 +659,7 @@ trait ConverterService {
             relatedContent = updatedRelatedContent,
             revisionMeta = updatedRevisionMeta,
             responsible = responsible,
-            slug = article.slug
+            slug = article.slug.orElse(toMergeInto.slug)
           )
 
           val articleWithNewContent = article.copy(content = newContent)
