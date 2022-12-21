@@ -861,4 +861,38 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
   }
+
+  test("That mergeDeletableLanguageFields works as expected") {
+    val existing = Seq(
+      domain.ImageTitle("Hei", "nb"),
+      domain.ImageTitle("Hå", "nn"),
+      domain.ImageTitle("Ho", "en")
+    )
+
+    writeService.mergeDeletableLanguageFields[domain.ImageTitle](
+      existing,
+      Right(Some(domain.ImageTitle("Yop", "nb"))),
+      "nb"
+    ) should be(
+      Seq(
+        domain.ImageTitle("Hå", "nn"),
+        domain.ImageTitle("Ho", "en"),
+        domain.ImageTitle("Yop", "nb")
+      )
+    )
+
+    writeService.mergeDeletableLanguageFields(existing, Right(None), "nb") should be(existing)
+
+    writeService.mergeDeletableLanguageFields(
+      existing,
+      Left(null),
+      "nb"
+    ) should be(
+      Seq(
+        domain.ImageTitle("Hå", "nn"),
+        domain.ImageTitle("Ho", "en")
+      )
+    )
+
+  }
 }
