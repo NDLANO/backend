@@ -12,6 +12,7 @@ import no.ndla.common.model.domain.article.Article
 
 case class ArticleRow(
     rowId: Long,
+    revision: Int,
     articleId: Long,
     article: Option[Article]
 )

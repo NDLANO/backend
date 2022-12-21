@@ -62,11 +62,11 @@ trait ReadService {
       }
 
       article.mapArticle(addUrlsOnEmbedResources) match {
-        case None                         => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(ArticleRow(_, _, None)) => Failure(ArticleGoneException())
-        case Some(ArticleRow(_, _, Some(article))) if article.availability == Availability.everyone =>
+        case None                            => Failure(NotFoundException(s"The article with id $id was not found"))
+        case Some(ArticleRow(_, _, _, None)) => Failure(ArticleGoneException())
+        case Some(ArticleRow(_, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-        case Some(ArticleRow(_, _, Some(article))) =>
+        case Some(ArticleRow(_, _, _, Some(article))) =>
           feideApiClient
             .getFeideExtendedUser(feideAccessToken)
             .flatMap(feideUser =>

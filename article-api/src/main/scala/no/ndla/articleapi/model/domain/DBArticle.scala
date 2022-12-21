@@ -33,17 +33,19 @@ trait DBArticle {
       val articleId = rs.long(lp.c("article_id"))
       val rowId     = rs.long(lp.c("id"))
       val document  = rs.stringOpt(lp.c("document"))
+      val revision  = rs.int(lp.c("revision"))
 
       val article = document.map(jsonStr => {
         val meta = read[Article](jsonStr)
         meta.copy(
           id = Some(articleId),
-          revision = Some(rs.int(lp.c("revision")))
+          revision = Some(revision)
         )
       })
 
       ArticleRow(
         rowId = rowId,
+        revision = revision,
         articleId = articleId,
         article = article
       )
