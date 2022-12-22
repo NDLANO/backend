@@ -98,8 +98,7 @@ trait ArticleControllerV2 {
       "A comma separated list of codes from GREP API the resources should be filtered by."
     )
 
-    private val feideToken  = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
-    private val articleSlug = Param[String]("slug", "Slug of the article that is to be fecthed.")
+    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -334,7 +333,7 @@ trait ArticleControllerV2 {
       operation(
         apiOperation[ArticleV2]("getArticleById")
           .summary("Fetch specified article.")
-          .description("Returns the article for the specified id.")
+          .description("Returns the article for the specified id, id#revision or slug.")
           .parameters(
             asHeaderParam(correlationId),
             asHeaderParam(feideToken),
@@ -346,19 +345,18 @@ trait ArticleControllerV2 {
           .responseMessages(response404, response500)
       )
     ) {
-      parseArticleIdAndRevision(params(this.articleId.paramName)) match {
-        case (Failure(_), _) =>
-          val ex = digitsOnlyError(articleId.paramName).exception
-          errorHandler(ex)
-        case (Success(articleId), inlineRevision) =>
-          val language = paramOrDefault(this.language.paramName, AllLanguages)
-          val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-          val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken) match {
-            case Success(cachableArticle) => cachableArticle.Ok()
-            case Failure(ex)              => errorHandler(ex)
-          }
+      (parseArticleIdAndRevision(params(this.articleId.paramName)) match {
+        case (Failure(_), _) =>
+          readService.getArticleBySlug(params(this.articleId.paramName), language, fallback)
+        case (Success(articleId), inlineRevision) =>
+          val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
+          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken)
+      }) match {
+        case Success(cachableArticle) => cachableArticle.Ok()
+        case Failure(ex)              => errorHandler(ex)
       }
     }
 
@@ -421,31 +419,6 @@ trait ArticleControllerV2 {
       readService.getArticleIdsByExternalId(externalId) match {
         case Some(idObject) => idObject
         case None           => NotFound()
-      }
-    }
-
-    get(
-      "/slug/:slug",
-      operation(
-        apiOperation[ArticleV2]("getArticleBySlug")
-          .summary("Fetch specified article.")
-          .description("Returns the article for the specified slug.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asPathParam(articleSlug),
-            asQueryParam(language),
-            asQueryParam(fallback)
-          )
-          .responseMessages(response404, response500)
-      )
-    ) {
-      val slug     = params(this.articleSlug.paramName)
-      val language = paramOrDefault(this.language.paramName, AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
-      readService.getArticleBySlug(slug, language, fallback) match {
-        case Success(article) => article
-        case Failure(ex)      => errorHandler(ex)
       }
     }
   }

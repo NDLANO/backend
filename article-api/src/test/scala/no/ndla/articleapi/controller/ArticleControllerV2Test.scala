@@ -66,9 +66,35 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("/<article_id> should return 400 if the id is not valid") {
-    get(s"/test/one") {
-      status should equal(400)
+  test("/<article_id> should return 200 if parameter is correctly formated (urn:article:<id>#<revision>") {
+    val articleId2             = 23
+    val revision               = 5
+    val articleUrnWithRevision = s"urn:article:$articleId2#$revision"
+
+    when(readService.withIdV2(articleId2, "*"))
+      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    get(s"/test/$articleUrnWithRevision") {
+      status should equal(200)
+    }
+  }
+
+  test("/<article_id> should return 200 if slug was sent as parameter") {
+    val slug = "someslug"
+
+    when(readService.getArticleBySlug(any, any, any))
+      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    get(s"/test/$slug") {
+      status should equal(200)
+    }
+  }
+
+  test("/<article_id> default behavior should be to find by slug") {
+    val malformedUrn = s"urn:article:malformed#hue"
+
+    when(readService.getArticleBySlug(any, any, any))
+      .thenReturn(Failure(api.NotFoundException("Not found")))
+    get(s"/test/$malformedUrn") {
+      status should equal(404)
     }
   }
 

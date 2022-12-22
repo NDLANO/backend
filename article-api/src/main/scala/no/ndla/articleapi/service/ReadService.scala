@@ -79,10 +79,10 @@ trait ReadService {
       }
     }
 
-    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
       articleRepository.withSlug(slug) match {
         case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(article) => converterService.toApiArticleV2(article, language, fallback)
+        case Some(article) => Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
       }
     }
 
