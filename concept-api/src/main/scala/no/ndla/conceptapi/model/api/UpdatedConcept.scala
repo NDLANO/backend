@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.model.api
 
+import no.ndla.common.model.api.Deletable
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
