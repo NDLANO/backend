@@ -79,7 +79,7 @@ trait WriteService {
         language: String,
         fallback: Boolean
     ): Try[api.ArticleV2] = {
-      articleRepository.withId(articleId) match {
+      articleRepository.withId(articleId).toArticle match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
           val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)

@@ -35,6 +35,7 @@ trait ErrorHelpers {
     val ACCESS_DENIED        = "ACCESS DENIED"
     val WINDOW_TOO_LARGE     = "RESULT_WINDOW_TOO_LARGE"
     val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
+    val ARTICLE_GONE         = "ARTICLE_GONE"
 
     val VALIDATION_DESCRIPTION = "Validation Error"
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
@@ -54,12 +55,15 @@ trait ErrorHelpers {
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."
 
+    val ARTICLE_GONE_DESCRIPTION = "The article you are searching for seems to have vanished 👻"
+
     val GenericError: Error         = Error(GENERIC, GENERIC_DESCRIPTION)
     val IndexMissingError: Error    = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
     val InvalidSearchContext: Error = Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
 
     case class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION)
         extends RuntimeException(message)
+    case class ArticleGoneException(message: String = ARTICLE_GONE_DESCRIPTION) extends RuntimeException(message)
   }
 
 }

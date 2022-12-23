@@ -101,7 +101,7 @@ class ArticleRepositoryTest
     val Success(res: Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
     res.id.isDefined should be(true)
-    repository.withId(res.id.get).get should be(sampleArticle)
+    repository.withId(res.id.get).get.article.get should be(sampleArticle)
   }
 
   test("Fetching external ids works as expected") {
@@ -162,9 +162,9 @@ class ArticleRepositoryTest
     val art3 =
       repository.updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)), List.empty).get
 
-    repository.withId(1) should be(Some(art1))
-    repository.withId(2) should be(Some(art2))
-    repository.withId(3) should be(Some(art3))
+    repository.withId(1).get.article should be(Some(art1))
+    repository.withId(2).get.article should be(Some(art2))
+    repository.withId(3).get.article should be(Some(art3))
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
@@ -247,7 +247,7 @@ class ArticleRepositoryTest
       List("6000", "10")
     )
 
-    val Right(relatedId) = repository.withId(1).get.relatedContent.head
+    val Right(relatedId) = repository.withId(1).toArticle.get.relatedContent.head
     relatedId.toLong should be(2L)
   }
 
