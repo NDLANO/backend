@@ -71,7 +71,7 @@ trait ArticleControllerV2 {
     )
     private val pageNo    = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize  = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
+    private val articleId = Param[String]("article_id", "Id or slug of the article that is to be fecthed.")
     private val revision =
       Param[Option[Int]]("revision", "Revision of article to fetch. If not provided the current revision is returned.")
     private val articleTypes = Param[Option[String]](
