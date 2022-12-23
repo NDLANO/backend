@@ -51,7 +51,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val articleId       = 1
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    when(readService.withIdV2(articleId, lang, fallback = false, None, None))
+      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -59,7 +60,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Failure(api.NotFoundException("Not found")))
+    when(readService.withIdV2(articleId, lang, fallback = false, None, None))
+      .thenReturn(Failure(api.NotFoundException("Not found")))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(404)
@@ -71,7 +73,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     val revision               = 5
     val articleUrnWithRevision = s"urn:article:$articleId2#$revision"
 
-    when(readService.withIdV2(articleId2, "*"))
+    when(readService.withIdV2(articleId2, "*", fallback = false, None, None))
       .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
     get(s"/test/$articleUrnWithRevision") {
       status should equal(200)

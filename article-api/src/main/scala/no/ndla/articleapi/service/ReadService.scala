@@ -14,7 +14,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelpers, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
@@ -22,7 +22,7 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.{ArticleType, Availability, Content}
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -39,10 +39,12 @@ trait ReadService {
     with ArticleSearchService
     with SearchConverterService
     with MemoizeHelpers
-    with Props =>
+    with Props
+    with ErrorHelpers =>
   val readService: ReadService
 
   class ReadService extends StrictLogging {
+    import ErrorHelpers.ArticleGoneException
 
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
@@ -50,22 +52,21 @@ trait ReadService {
     def withIdV2(
         id: Long,
         language: String,
-        fallback: Boolean = false,
-        revision: Option[Int] = None,
-        feideAccessToken: Option[String] = None
+        fallback: Boolean,
+        revision: Option[Int],
+        feideAccessToken: Option[String]
     ): Try[Cachable[api.ArticleV2]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
       }
 
-      lazy val notFound = Failure(NotFoundException(s"The article with id $id was not found"))
-
-      article.map(addUrlsOnEmbedResources) match {
-        case None => notFound
-        case Some(article) if article.availability == Availability.everyone =>
+      article.mapArticle(addUrlsOnEmbedResources) match {
+        case None                               => Failure(NotFoundException(s"The article with id $id was not found"))
+        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-        case Some(article) =>
+        case Some(ArticleRow(_, _, _, _, Some(article))) =>
           feideApiClient
             .getFeideExtendedUser(feideAccessToken)
             .flatMap(feideUser =>
@@ -81,8 +82,12 @@ trait ReadService {
 
     def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
       articleRepository.withSlug(slug) match {
-        case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(article) => Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+        case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
+          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+        case Some(ArticleRow(_, _, _, _, Some(article))) =>
+          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
       }
     }
 
@@ -159,12 +164,6 @@ trait ReadService {
         case revisions => Success(revisions)
       }
     }
-
-    def getContentByExternalId(externalId: String): Option[Content] =
-      articleRepository.withExternalId(externalId)
-
-    def getArticleIdByExternalId(externalId: String): Option[Long] =
-      articleRepository.getIdFromExternalId(externalId)
 
     def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
       articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
@@ -258,7 +257,7 @@ trait ReadService {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
         val offset         = (page - 1) * pageSize
-        val domainArticles = articleRepository.withIds(articleIds, offset, pageSize)
+        val domainArticles = articleRepository.withIds(articleIds, offset, pageSize).toArticles
         val isFeideNeeded  = domainArticles.exists(article => article.availability == Availability.teacher)
         val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
         filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))

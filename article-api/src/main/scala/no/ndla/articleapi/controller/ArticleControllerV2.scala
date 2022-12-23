@@ -52,6 +52,7 @@ trait ArticleControllerV2 {
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
+    val response410 = ResponseMessage(410, "Gone", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val correlationId =
@@ -342,7 +343,7 @@ trait ArticleControllerV2 {
             asQueryParam(fallback),
             asQueryParam(revision)
           )
-          .responseMessages(response404, response500)
+          .responseMessages(response404, response410, response500)
       )
     ) {
       val language = paramOrDefault(this.language.paramName, AllLanguages)

@@ -32,7 +32,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val newImageMeta = NewImageMetaInformationV2(
     "title",
-    "alt text",
+    Some("alt text"),
     Copyright(License("by", "", None), "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
     Seq.empty,
     "",
@@ -294,7 +294,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "en",
       Some("Title"),
-      Some("AltText"),
+      Right(Some("AltText")),
       None,
       None,
       None,
@@ -321,7 +321,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nb",
       Some("Title"),
-      Some("AltText"),
+      Right(Some("AltText")),
       None,
       None,
       None,
@@ -347,7 +347,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nb",
       Some("Title"),
-      Some("AltText"),
+      Right(Some("AltText")),
       Some(
         Copyright(
           License("testLic", "License for testing", None),
@@ -415,7 +415,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val toUpdate = UpdateImageMetaInformation(
       "nn",
       None,
-      None,
+      Right(None),
       None,
       None,
       None,
@@ -542,7 +542,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
-      alttext = None,
+      alttext = Right(None),
       copyright = None,
       tags = None,
       caption = None,
@@ -631,7 +631,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val upd = UpdateImageMetaInformation(
       language = "nb",
       title = Some("new title"),
-      alttext = None,
+      alttext = Right(None),
       copyright = None,
       tags = None,
       caption = None,
@@ -860,5 +860,39 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageRepository, times(1)).update(any, any)(any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
+  }
+
+  test("That mergeDeletableLanguageFields works as expected") {
+    val existing = Seq(
+      domain.ImageTitle("Hei", "nb"),
+      domain.ImageTitle("Hå", "nn"),
+      domain.ImageTitle("Ho", "en")
+    )
+
+    writeService.mergeDeletableLanguageFields[domain.ImageTitle](
+      existing,
+      Right(Some(domain.ImageTitle("Yop", "nb"))),
+      "nb"
+    ) should be(
+      Seq(
+        domain.ImageTitle("Hå", "nn"),
+        domain.ImageTitle("Ho", "en"),
+        domain.ImageTitle("Yop", "nb")
+      )
+    )
+
+    writeService.mergeDeletableLanguageFields(existing, Right(None), "nb") should be(existing)
+
+    writeService.mergeDeletableLanguageFields(
+      existing,
+      Left(null),
+      "nb"
+    ) should be(
+      Seq(
+        domain.ImageTitle("Hå", "nn"),
+        domain.ImageTitle("Ho", "en")
+      )
+    )
+
   }
 }

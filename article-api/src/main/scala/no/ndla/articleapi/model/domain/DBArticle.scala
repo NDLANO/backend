@@ -26,27 +26,38 @@ trait DBArticle {
     override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
+    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow =
+      fromResultSet(lp.resultName)(rs)
+
     val repositorySerializer: Formats = jsonEncoder +
       FieldSerializer[Article](ignore("id") orElse ignore("slug"))
 
-    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
-      fromResultSet(lp.resultName)(rs)
-
-    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
+    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
       implicit val formats: Formats = repositorySerializer
 
-      rs.stringOpt(lp.c("document"))
-        .map(jsonStr => {
-          val meta = read[Article](jsonStr)
-          val slug = rs.stringOpt(lp.c("slug"))
-          meta.copy(
-            id = Some(rs.long(lp.c("article_id"))),
-            revision = Some(rs.int(lp.c("revision"))),
-            slug = slug
-          )
-        })
-    }
+      val articleId = rs.long(lp.c("article_id"))
+      val rowId     = rs.long(lp.c("id"))
+      val document  = rs.stringOpt(lp.c("document"))
+      val revision  = rs.int(lp.c("revision"))
+      val slug      = rs.stringOpt(lp.c("slug"))
 
+      val article = document.map(jsonStr => {
+        val meta = read[Article](jsonStr)
+        meta.copy(
+          id = Some(articleId),
+          revision = Some(revision),
+          slug = slug
+        )
+      })
+
+      ArticleRow(
+        rowId = rowId,
+        revision = revision,
+        articleId = articleId,
+        slug = slug,
+        article = article
+      )
+    }
   }
 
 }

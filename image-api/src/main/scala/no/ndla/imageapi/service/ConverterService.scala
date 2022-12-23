@@ -289,7 +289,7 @@ trait ConverterService {
         new ImageMetaInformation(
           id = None,
           titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
-          alttexts = Seq(asDomainAltText(imageMeta.alttext, imageMeta.language)),
+          alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
           images = Seq.empty,
           copyright = toDomainCopyright(imageMeta.copyright),
           tags = if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language)) else Seq.empty,

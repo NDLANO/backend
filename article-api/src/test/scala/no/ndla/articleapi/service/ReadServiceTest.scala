@@ -61,7 +61,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(articleRepository.withId(1)).thenReturn(Option(article))
+    when(articleRepository.withId(1)).thenReturn(Some(toArticleRow(article)))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult: Try[Cachable[api.ArticleV2]] = Cachable.yes(
@@ -71,7 +71,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         "nb"
       )
     )
-    readService.withIdV2(1, "nb") should equal(expectedResult)
+    readService.withIdV2(1, "nb", fallback = false, None, None) should equal(expectedResult)
   }
 
   test("addIdAndUrlOnResource adds an id and url attribute on embed-resoures with a data-resource_id attribute") {
@@ -164,7 +164,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.everyone)
 
-    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.withIds(any, any, any)(any))
+      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
@@ -190,7 +191,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), "")
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.withIds(any, any, any)(any))
+      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
@@ -216,7 +218,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), "")
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.withIds(any, any, any)(any))
+      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
@@ -241,7 +244,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
 
-    when(articleRepository.withIds(any, any, any)(any)).thenReturn(Seq(article1, article2, article3))
+    when(articleRepository.withIds(any, any, any)(any))
+      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 

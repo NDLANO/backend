@@ -37,7 +37,10 @@ object imageapi extends Module {
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    imports = Seq("no.ndla.imageapi.model.api._"),
+    imports = Seq(
+      "no.ndla.imageapi.model.api._",
+      "no.ndla.imageapi.model.api.UpdateImageMetaInformation._"
+    ),
     exports = Seq(
       "Image",
       "ImageMetaInformationV2",
