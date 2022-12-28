@@ -54,6 +54,7 @@ export interface IArticle {
   relatedContent: (IRelatedContentLink | number)[]
   revisions: IRevisionMeta[]
   responsible?: IDraftResponsible
+  slug?: string
 }
 
 export interface IArticleContent {
@@ -182,6 +183,7 @@ export interface INewArticle {
   relatedContent: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
   responsibleId?: string
+  slug?: string
 }
 
 export interface INewArticleMetaImage {
@@ -258,6 +260,7 @@ export interface IUpdatedArticle {
   relatedContent?: (IRelatedContentLink | number)[]
   revisionMeta?: IRevisionMeta[]
   responsibleId?: (null | string)
+  slug?: string
 }
 
 export interface IUpdatedUserData {
