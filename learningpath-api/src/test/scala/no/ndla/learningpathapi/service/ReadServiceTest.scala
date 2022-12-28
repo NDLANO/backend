@@ -342,7 +342,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
 
     val subFolder1 = domain.Folder(
@@ -353,7 +354,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
 
     val subFolder2 = domain.Folder(
@@ -364,7 +366,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       status = FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
 
     val resource1 = domain.Resource(
@@ -407,7 +410,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = subFolder1UUID.toString, name = "subFolder1")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None
+          rank = None,
+          created = created
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -420,10 +424,12 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
             api.Breadcrumb(id = subFolder2UUID.toString, name = "subFolder2")
           ),
           parentId = Some(mainFolderUUID.toString),
-          rank = None
+          rank = None,
+          created = created
         )
       ),
-      rank = None
+      rank = None,
+      created = created
     )
 
     val whgaterh = mainFolder.copy(

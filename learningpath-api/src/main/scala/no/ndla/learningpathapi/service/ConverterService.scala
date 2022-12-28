@@ -734,7 +734,8 @@ trait ConverterService {
                 resources = resources.sortBy(_.rank),
                 breadcrumbs = crumbs,
                 parentId = folder.parentId.map(_.toString),
-                rank = folder.rank
+                rank = folder.rank,
+                created = folder.created
               )
             })
         )
@@ -754,7 +755,8 @@ trait ConverterService {
         parentId = existing.parentId,
         name = name,
         status = status,
-        rank = existing.rank
+        rank = existing.rank,
+        created = existing.created
       )
     }
 

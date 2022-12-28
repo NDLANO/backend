@@ -14,6 +14,7 @@ import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.ext.EnumNameSerializer
 import scalikejdbc._
 
+import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
@@ -27,7 +28,8 @@ case class NewFolderData(
       id: UUID,
       feideId: FeideID,
       resources: List[Resource],
-      subfolders: List[Folder]
+      subfolders: List[Folder],
+      created: LocalDateTime
   ): Folder = {
     Folder(
       id = id,
@@ -37,7 +39,8 @@ case class NewFolderData(
       status = status,
       resources = resources,
       subfolders = subfolders,
-      rank = rank
+      rank = rank,
+      created = created
     )
   }
 }
@@ -49,6 +52,7 @@ case class Folder(
     name: String,
     status: FolderStatus.Value,
     rank: Option[Int],
+    created: LocalDateTime,
     resources: List[Resource],
     subfolders: List[Folder]
 ) extends FeideContent
@@ -92,6 +96,7 @@ trait DBFolder {
       val name     = rs.string(colNameWrapper("name"))
       val status   = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
       val rank     = rs.intOpt(colNameWrapper("rank"))
+      val created  = rs.localDateTime(colNameWrapper("created"))
 
       for {
         id     <- id
@@ -104,7 +109,8 @@ trait DBFolder {
         status = status,
         resources = List.empty,
         subfolders = List.empty,
-        rank = rank
+        rank = rank,
+        created = created
       )
     }
   }

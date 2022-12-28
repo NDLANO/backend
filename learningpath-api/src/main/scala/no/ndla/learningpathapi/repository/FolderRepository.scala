@@ -20,10 +20,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import no.ndla.common.Clock
 import no.ndla.common.errors.RollbackException
 
 trait FolderRepository {
-  this: DataSource with DBFolder with DBResource with DBFolderResource =>
+  this: DataSource with DBFolder with DBResource with DBFolderResource with Clock =>
   val folderRepository: FolderRepository
 
   class FolderRepository extends StrictLogging {
@@ -54,11 +55,12 @@ trait FolderRepository {
         folderData: NewFolderData
     )(implicit session: DBSession = AutoSession): Try[Folder] =
       Try {
-        val newId = UUID.randomUUID()
+        val newId   = UUID.randomUUID()
+        val created = clock.now()
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank)
-        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank})
+        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created)
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created)
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
@@ -66,7 +68,8 @@ trait FolderRepository {
           id = newId,
           feideId = feideId,
           resources = List.empty,
-          subfolders = List.empty
+          subfolders = List.empty,
+          created = created
         )
       }
 
@@ -343,11 +346,11 @@ trait FolderRepository {
     ): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
                 $sqlFilterClause
@@ -370,11 +373,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id, parent_id, feide_id, name, status
+                SELECT id, parent_id, feide_id, name, status, rank, created
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id, child.parent_id, child.feide_id, child.name, child.status
+                SELECT child.id, child.parent_id, child.feide_id, child.name, child.status, child.rank, child.created
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.id = child.parent_id
             )

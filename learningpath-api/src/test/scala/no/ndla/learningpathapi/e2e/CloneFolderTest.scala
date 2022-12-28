@@ -143,7 +143,8 @@ class CloneFolderTest
         List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child1")),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val parentChild2 = api.Folder(
@@ -155,7 +156,8 @@ class CloneFolderTest
         List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child2")),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(2)
+      rank = Some(2),
+      created = testClock.now()
     )
 
     val parentChild3 = api.Resource(
@@ -176,7 +178,8 @@ class CloneFolderTest
       breadcrumbs = List(api.Breadcrumb(id = customId, name = "parent")),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -236,7 +239,8 @@ class CloneFolderTest
         List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child1")),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val parentChild2 = api.Folder(
@@ -248,7 +252,8 @@ class CloneFolderTest
         List(api.Breadcrumb(id = customId, name = "parent"), api.Breadcrumb(id = customId, name = "p_child2")),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(2)
+      rank = Some(2),
+      created = testClock.now()
     )
 
     val parentChild3 = api.Resource(
@@ -269,7 +274,8 @@ class CloneFolderTest
       breadcrumbs = List(api.Breadcrumb(id = customId, name = "parent")),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -314,7 +320,8 @@ class CloneFolderTest
       ),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val parentChild2 = api.Folder(
@@ -329,7 +336,8 @@ class CloneFolderTest
       ),
       subfolders = List.empty,
       resources = List.empty,
-      rank = Some(2)
+      rank = Some(2),
+      created = testClock.now()
     )
 
     val parentChild3 = api.Resource(
@@ -353,7 +361,8 @@ class CloneFolderTest
       ),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val expectedFolder = api.Folder(
@@ -364,7 +373,8 @@ class CloneFolderTest
       breadcrumbs = List(api.Breadcrumb(id = customId, name = destinationFolder.name)),
       subfolders = List(parent),
       resources = List.empty,
-      rank = Some(1)
+      rank = Some(1),
+      created = testClock.now()
     )
 
     val response = scalaj.http

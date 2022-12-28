@@ -1902,6 +1902,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that folder is created if depth count is below the limit") {
+    val created   = clock.now()
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
@@ -1914,7 +1915,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val apiFolder = api.Folder(
       id = folderId.toString,
@@ -1924,7 +1926,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1948,6 +1951,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that folder is not created if name already exists as a sibling") {
+    val created   = clock.now()
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
@@ -1960,7 +1964,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -1970,7 +1975,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1997,6 +2003,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that folder is not updated if name already exists as a sibling") {
+    val created      = clock.now()
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
@@ -2010,7 +2017,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -2020,7 +2028,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2048,6 +2057,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("that folder status is updated even when name is not changed") {
+    val created      = clock.now()
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
@@ -2061,7 +2071,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
     val siblingFolder = domain.Folder(
@@ -2072,7 +2083,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val expectedFolder = api.Folder(
       id = folderId.toString,
@@ -2082,7 +2094,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created
     )
     val belowLimit = props.MaxFolderDepth - 2
 

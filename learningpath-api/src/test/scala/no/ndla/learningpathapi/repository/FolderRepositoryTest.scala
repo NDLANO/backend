@@ -148,6 +148,9 @@ class FolderRepositoryTest
   }
 
   test("that updateFolder updates all fields correctly") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val folderData = NewFolderData(parentId = None, name = "new", status = FolderStatus.PRIVATE, rank = None)
     val updatedFolder = Folder(
       id = UUID.randomUUID(),
@@ -157,7 +160,8 @@ class FolderRepositoryTest
       status = FolderStatus.SHARED,
       rank = None,
       resources = List.empty,
-      subfolders = List.empty
+      subfolders = List.empty,
+      created = created
     )
     val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED)
 
@@ -289,7 +293,8 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         resources = List.empty,
         subfolders = List.empty,
-        rank = None
+        rank = None,
+        created = clock.now()
       )
 
     val mainParent = base.copy(
@@ -339,7 +344,8 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None
+        rank = None,
+        created = clock.now()
       )
 
     val baseNewFolderData = domain.NewFolderData(
@@ -495,7 +501,8 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None
+        rank = None,
+        created = clock.now()
       )
 
     val baseNewFolderData = domain.NewFolderData(
@@ -551,6 +558,16 @@ class FolderRepositoryTest
     val resultFiltered =
       repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED)(ReadOnlyAutoSession)
     resultFiltered should be(Success(Some(expectedResultFiltered)))
+  }
+
+  test("that retrieving folder with subfolder via getFolderAndChildrenSubfolders works as expected") {
+    implicit val session: AutoSession.type = AutoSession
+
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument.copy(parentId = Some(folder1.get.id)))
+
+    val res = repository.getFolderAndChildrenSubfolders(folder1.get.id)
+    res.get.get should be(folder1.get.copy(subfolders = List(folder2.get)))
   }
 
 }
