@@ -11,16 +11,16 @@ import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{
   ArticleContent,
-  Introduction,
-  Description,
   ArticleMetaImage,
+  Author,
+  Description,
+  Introduction,
+  RequiredLibrary,
   Tag,
   Title,
-  Author,
-  RequiredLibrary,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Draft, Copyright, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -30,6 +30,7 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
+import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation._
 
 import java.time.LocalDateTime
@@ -85,7 +86,8 @@ trait ContentValidator {
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateRevisionMeta(article.revisionMeta)
+        validateRevisionMeta(article.revisionMeta) ++
+        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists)
 
       if (validationErrors.isEmpty) {
         Success(article)

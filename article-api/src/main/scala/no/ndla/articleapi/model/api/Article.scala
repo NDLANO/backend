@@ -32,12 +32,13 @@ case class ArticleV2(
     @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime,
     @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
     @(ApiModelProperty @field)(description = "When the article was last published") published: LocalDateTime,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
+    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard,frontpage-article") articleType: String,
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Seq[String],
     @(ApiModelProperty @field)(description = "A list of conceptIds connected to the article") conceptIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Seq[RelatedContent],
-    @(ApiModelProperty @field)(description = "The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime]
+    @(ApiModelProperty @field)(description = "The date for the next planned revision which indicates when the article might be outdated") revisionDate: Option[LocalDateTime],
+    @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
 )
 // format: on

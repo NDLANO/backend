@@ -8,9 +8,10 @@
 
 package no.ndla.articleapi.controller
 
+import enumeratum.Json4s
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Article
-import no.ndla.common.model.domain.{Author, Availability}
+import no.ndla.common.model.domain.{ArticleType, Author, Availability}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
@@ -19,7 +20,8 @@ import org.scalatra.test.scalatest.ScalatraFunSuite
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
+  implicit val formats: Formats =
+    DefaultFormats + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(ArticleType)
 
   val author = Author("forfatter", "Henrik")
 

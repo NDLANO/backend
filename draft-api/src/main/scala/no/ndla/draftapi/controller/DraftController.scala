@@ -83,6 +83,7 @@ trait DraftController {
       "grep-codes",
       "A comma separated list of codes from GREP API the resources should be filtered by."
     )
+    private val articleSlug = Param[String]("slug", "Slug of the article that is to be fecthed.")
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
@@ -800,6 +801,40 @@ trait DraftController {
               case Success(_)  => Ok()
               case Failure(ex) => errorHandler(ex)
             }
+        }
+      }
+    }
+
+    get(
+      "/slug/:slug",
+      operation(
+        apiOperation[Article]("getArticleBySlug")
+          .summary("Show article with a specified slug")
+          .description("Shows the article for the specified slug.")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(articleSlug),
+            asQueryParam(language),
+            asQueryParam(fallback)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response404, response500)
+      )
+    ) {
+      val userInfo = user.getUser
+      val slug     = params(this.articleSlug.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      val article       = readService.getArticleBySlug(slug, language, fallback)
+      val currentOption = article.map(_.status.current).toOption
+      val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
+        currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
+        currentOption.contains(DraftStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
+      doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
+        article match {
+          case Success(a)  => a
+          case Failure(ex) => errorHandler(ex)
         }
       }
     }

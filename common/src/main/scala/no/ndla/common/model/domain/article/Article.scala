@@ -11,6 +11,7 @@ package no.ndla.common.model.domain.article
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
+  ArticleType,
   Availability,
   Content,
   Description,
@@ -40,10 +41,11 @@ case class Article(
     updated: LocalDateTime,
     updatedBy: String,
     published: LocalDateTime,
-    articleType: String,
+    articleType: ArticleType,
     grepCodes: Seq[String],
     conceptIds: Seq[Long],
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
-    revisionDate: Option[LocalDateTime]
+    revisionDate: Option[LocalDateTime],
+    slug: Option[String]
 ) extends Content

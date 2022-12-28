@@ -38,5 +38,6 @@ case class UpdatedArticle(
     @(ApiModelProperty @field)(description = "Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: Option[String],
     @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
     @(ApiModelProperty @field)(description = "A list of all revisions of the article") revisionMeta: Option[Seq[RevisionMeta]],
-    @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String]
+    @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String],
+    @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
 )

@@ -37,7 +37,8 @@ trait ArticleRepository {
       Try {
         sql"""update ${Article.table}
               set document=$dataObject,
-                  external_id=ARRAY[$externalIds]::text[]
+                  external_id=ARRAY[$externalIds]::text[],
+                  slug=${article.slug}
               where article_id=${article.id} and revision=${article.revision}
           """.update()
       } match {
@@ -48,8 +49,8 @@ trait ArticleRepository {
           logger.info(s"No article with id ${article.id} and revision ${article.revision} exists, creating...")
           Try {
             sql"""
-                  insert into ${Article.table} (article_id, document, external_id, revision)
-                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
+                  insert into ${Article.table} (article_id, document, external_id, revision, slug)
+                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, ${article.slug})
               """.updateAndReturnGeneratedKey()
           }.map(_ => article)
 
@@ -76,7 +77,7 @@ trait ArticleRepository {
       val numRows =
         sql"""
              update ${Article.table}
-             set document=null
+             set document=null, slug=null
              where article_id=$articleId
              and revision=$revision
            """.update()
@@ -116,6 +117,8 @@ trait ArticleRepository {
         Success(articleId)
       }
     }
+
+    def withSlug(slug: String): Option[ArticleRow] = articleWhere(sqls"ar.slug=$slug")
 
     def withId(articleId: Long): Option[ArticleRow] =
       articleWhere(
@@ -338,6 +341,17 @@ trait ArticleRepository {
           )
         )
         .single()
+    }
+
+    def slugExists(slug: String, articleId: Option[Long])(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Boolean = {
+      val sq = articleId match {
+        case None     => sql"select count(*) from ${Article.table} where slug = $slug"
+        case Some(id) => sql"select count(*) from ${Article.table} where slug = $slug and article_id != $id"
+      }
+      val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
+      count > 0L
     }
 
   }

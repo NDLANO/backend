@@ -14,6 +14,7 @@ case class ArticleRow(
     rowId: Long,
     revision: Int,
     articleId: Long,
+    slug: Option[String],
     article: Option[Article]
 )
 

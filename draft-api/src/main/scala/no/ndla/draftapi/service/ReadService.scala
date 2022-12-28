@@ -59,6 +59,13 @@ trait ReadService {
       }
     }
 
+    def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.Article] = {
+      draftRepository.withSlug(slug) match {
+        case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(article) => converterService.toApiArticle(article, language, fallback)
+      }
+    }
+
     def getArticles(id: Long, language: String, fallback: Boolean): Seq[api.Article] = {
       draftRepository
         .articlesWithId(id)

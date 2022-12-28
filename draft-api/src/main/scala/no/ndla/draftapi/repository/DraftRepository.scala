@@ -9,6 +9,7 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.errors.RollbackException
 import no.ndla.common.model.domain.EditorNote
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.auth.UserInfo
@@ -30,6 +31,19 @@ trait DraftRepository {
   class ArticleRepository extends StrictLogging with Repository[Draft] {
     implicit val formats: Formats = DBArticle.repositorySerializer
 
+    def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+      try {
+        DB.localTx { session =>
+          func(session) match {
+            case Failure(ex)    => throw RollbackException(ex)
+            case Success(value) => Success(value)
+          }
+        }
+      } catch {
+        case RollbackException(ex) => Failure(ex)
+      }
+    }
+
     def insert(article: Draft)(implicit session: DBSession = AutoSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()
@@ -37,8 +51,8 @@ trait DraftRepository {
       dataObject.setValue(write(article))
 
       val dbId = sql"""
-            insert into ${DBArticle.table} (document, revision, article_id)
-            values ($dataObject, $startRevision, ${article.id})
+            insert into ${DBArticle.table} (document, revision, article_id, slug)
+            values ($dataObject, $startRevision, ${article.id}, ${article.slug})
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id}, with revision $startRevision (with db id $dbId)")
@@ -60,13 +74,14 @@ trait DraftRepository {
 
       val dbId: Long =
         sql"""
-             insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id)
+             insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
              values (ARRAY[${externalIds}]::text[],
                      ARRAY[${externalSubjectIds}]::text[],
                      ${dataObject},
                      $startRevision,
                      $uuid,
-                     ${article.id})
+                     ${article.id},
+                     ${article.slug})
           """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new article: ${article.id} (with db id $dbId)")
@@ -104,13 +119,14 @@ trait DraftRepository {
 
             val dbId: Long =
               sql"""
-                 insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id)
+                 insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
                  values (ARRAY[${externalIds}]::text[],
                          ARRAY[${externalSubjectIds}]::text[],
                          ${dataObject},
                          $articleRevision,
                          $uuid,
-                         ${articleId})
+                         ${articleId},
+                         ${article.slug})
               """.updateAndReturnGeneratedKey()
 
             logger.info(s"Inserted new article: ${articleId} (with db id $dbId)")
@@ -159,7 +175,7 @@ trait DraftRepository {
       val count =
         sql"""
               update ${DBArticle.table}
-              set document=$dataObject, revision=$newRevision
+              set document=$dataObject, revision=$newRevision, slug=${article.slug}
               where article_id=${article.id}
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
@@ -214,7 +230,8 @@ trait DraftRepository {
                  revision=1,
                  external_id=ARRAY[$externalIds]::text[],
                  external_subject_id=ARRAY[$externalSubjectIds]::text[],
-                 import_id=$uuid
+                 import_id=$uuid,
+                 slug=${article.slug}
               """
           )
           .where
@@ -403,6 +420,19 @@ trait DraftRepository {
             where ar.document is not NULL and $externalId = any (ar.external_id)"""
         .map(rs => ImportId(rs.stringOpt("import_id")))
         .single()
+    }
+
+    def withSlug(slug: String): Option[Draft] = articleWhere(sqls"ar.slug=$slug")
+
+    def slugExists(slug: String, articleId: Option[Long])(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Boolean = {
+      val sq = articleId match {
+        case None     => sql"select count(*) from ${DBArticle.table} where slug = $slug"
+        case Some(id) => sql"select count(*) from ${DBArticle.table} where slug = $slug and article_id != $id"
+      }
+      val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
+      count > 0L
     }
 
   }

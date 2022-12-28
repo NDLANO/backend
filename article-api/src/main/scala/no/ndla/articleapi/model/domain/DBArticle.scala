@@ -8,8 +8,9 @@
 
 package no.ndla.articleapi.model.domain
 
+import enumeratum.Json4s
 import no.ndla.articleapi.Props
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.article.Article
 import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
@@ -20,12 +21,16 @@ import scalikejdbc._
 trait DBArticle {
   this: Props =>
   object Article extends SQLSyntaxSupport[Article] {
-    val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
-    override val tableName   = "contentdata"
+    val jsonEncoder: Formats = DefaultFormats.withLong +
+      new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(ArticleType)
+    override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow =
       fromResultSet(lp.resultName)(rs)
+
+    val repositorySerializer: Formats = jsonEncoder +
+      FieldSerializer[Article](ignore("id") orElse ignore("slug"))
 
     def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
       implicit val formats: Formats = repositorySerializer
@@ -34,12 +39,14 @@ trait DBArticle {
       val rowId     = rs.long(lp.c("id"))
       val document  = rs.stringOpt(lp.c("document"))
       val revision  = rs.int(lp.c("revision"))
+      val slug      = rs.stringOpt(lp.c("slug"))
 
       val article = document.map(jsonStr => {
         val meta = read[Article](jsonStr)
         meta.copy(
           id = Some(articleId),
-          revision = Some(revision)
+          revision = Some(revision),
+          slug = slug
         )
       })
 
@@ -47,14 +54,10 @@ trait DBArticle {
         rowId = rowId,
         revision = revision,
         articleId = articleId,
+        slug = slug,
         article = article
       )
     }
-
-    val repositorySerializer: Formats = jsonEncoder +
-      FieldSerializer[Article](
-        ignore("id")
-      )
   }
 
 }

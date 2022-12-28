@@ -72,7 +72,7 @@ trait ArticleControllerV2 {
     )
     private val pageNo    = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize  = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
+    private val articleId = Param[String]("article_id", "Id or slug of the article that is to be fecthed.")
     private val revision =
       Param[Option[Int]]("revision", "Revision of article to fetch. If not provided the current revision is returned.")
     private val articleTypes = Param[Option[String]](
@@ -334,7 +334,7 @@ trait ArticleControllerV2 {
       operation(
         apiOperation[ArticleV2]("getArticleById")
           .summary("Fetch specified article.")
-          .description("Returns the article for the specified id.")
+          .description("Returns the article for the specified id, id#revision or slug.")
           .parameters(
             asHeaderParam(correlationId),
             asHeaderParam(feideToken),
@@ -346,19 +346,18 @@ trait ArticleControllerV2 {
           .responseMessages(response404, response410, response500)
       )
     ) {
-      parseArticleIdAndRevision(params(this.articleId.paramName)) match {
-        case (Failure(_), _) =>
-          val ex = digitsOnlyError(articleId.paramName).exception
-          errorHandler(ex)
-        case (Success(articleId), inlineRevision) =>
-          val language = paramOrDefault(this.language.paramName, AllLanguages)
-          val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-          val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
+      val language = paramOrDefault(this.language.paramName, AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken) match {
-            case Success(cachableArticle) => cachableArticle.Ok()
-            case Failure(ex)              => errorHandler(ex)
-          }
+      (parseArticleIdAndRevision(params(this.articleId.paramName)) match {
+        case (Failure(_), _) =>
+          readService.getArticleBySlug(params(this.articleId.paramName), language, fallback)
+        case (Success(articleId), inlineRevision) =>
+          val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
+          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken)
+      }) match {
+        case Success(cachableArticle) => cachableArticle.Ok()
+        case Failure(ex)              => errorHandler(ex)
       }
     }
 

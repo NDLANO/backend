@@ -53,7 +53,8 @@ trait DBArticle {
     val repositorySerializer = jsonEncoder +
       FieldSerializer[Draft](
         ignore("id") orElse
-          ignore("revision")
+          ignore("revision") orElse
+          ignore("slug")
       )
 
     override val tableName       = "articledata"
@@ -64,9 +65,11 @@ trait DBArticle {
     def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
       implicit val formats = jsonEncoder
       val meta             = read[Draft](rs.string(lp.c("document")))
+      val slug             = rs.stringOpt(lp.c("slug"))
       meta.copy(
         id = Some(rs.long(lp.c("article_id"))),
-        revision = Some(rs.int(lp.c("revision")))
+        revision = Some(rs.int(lp.c("revision"))),
+        slug = slug
       )
     }
   }

@@ -31,7 +31,8 @@ case class ArticleApiArticle(
     conceptIds: Seq[Long],
     availability: Availability.Value,
     relatedContent: Seq[RelatedContent],
-    revisionDate: Option[LocalDateTime]
+    revisionDate: Option[LocalDateTime],
+    slug: Option[String]
 )
 case class ArticleApiTitle(title: String, language: String)
 case class ArticleApiContent(content: String, language: String)

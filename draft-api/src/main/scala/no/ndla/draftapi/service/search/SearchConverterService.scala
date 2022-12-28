@@ -10,6 +10,7 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
 import no.ndla.draftapi.model.domain.{Agreement, SearchResult}
 import no.ndla.draftapi.model.search._
@@ -34,7 +35,7 @@ trait SearchConverterService {
     implicit val formats: Formats =
       SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.DraftStatus)
 
-    def asSearchableArticle(ai: common.draft.Draft): SearchableArticle = {
+    def asSearchableArticle(ai: Draft): SearchableArticle = {
 
       val defaultTitle = ai.title
         .sortBy(title => {
@@ -190,7 +191,7 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def asSearchableTags(article: common.draft.Draft): Seq[SearchableTag] = {
+    def asSearchableTags(article: Draft): Seq[SearchableTag] = {
       article.tags.flatMap(articleTags =>
         articleTags.tags.map(tag =>
           SearchableTag(
@@ -201,7 +202,7 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableGrepCodes(article: common.draft.Draft): Seq[SearchableGrepCode] =
+    def asSearchableGrepCodes(article: Draft): Seq[SearchableGrepCode] =
       article.grepCodes.map(code => SearchableGrepCode(code))
   }
 }

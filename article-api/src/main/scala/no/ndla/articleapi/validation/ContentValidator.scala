@@ -10,11 +10,11 @@ package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DraftApiClient
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
-  ArticleType,
   Author,
   Description,
   Introduction,
@@ -26,6 +26,7 @@ import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
+import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
 
 import java.time.LocalDateTime
@@ -33,7 +34,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftApiClient with Props =>
+  this: DraftApiClient with ArticleRepository with Props =>
   val contentValidator: ContentValidator
 
   class ContentValidator() {
@@ -44,11 +45,10 @@ trait ContentValidator {
       val metaValidation =
         if (isImported) None else validateNonEmpty("metaDescription", article.metaDescription)
       val validationErrors =
-        validateArticleType(article.articleType) ++
+        validateRevisionDate(article.revisionDate) ++
           validateNonEmpty("content", article.content) ++
           validateNonEmpty("title", article.title) ++
-          metaValidation ++
-          validateRevisionDate(article.revisionDate)
+          metaValidation
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -67,8 +67,8 @@ trait ContentValidator {
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateArticleType(article.articleType) ++
-        validateRevisionDate(article.revisionDate)
+        validateRevisionDate(article.revisionDate) ++
+        validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
       if (validationErrors.isEmpty) {
         Success(article)
       } else {
@@ -88,19 +88,6 @@ trait ContentValidator {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
       } else
         None
-    }
-
-    private def validateArticleType(articleType: String): Seq[ValidationMessage] = {
-      ArticleType.valueOf(articleType) match {
-        case None =>
-          Seq(
-            ValidationMessage(
-              "articleType",
-              s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"
-            )
-          )
-        case _ => Seq.empty
-      }
     }
 
     private def validateArticleContent(contents: Seq[ArticleContent]): Seq[ValidationMessage] = {

@@ -423,13 +423,14 @@ trait ConverterService {
             article.updated,
             article.updatedBy,
             article.published,
-            article.articleType,
+            article.articleType.entryName,
             supportedLanguages,
             article.grepCodes,
             article.conceptIds,
             availability = article.availability.toString,
             article.relatedContent.map(toApiRelatedContent),
-            article.revisionDate
+            article.revisionDate,
+            article.slug
           )
         )
       } else {

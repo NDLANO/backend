@@ -423,7 +423,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
 
     val expectedSettings = TestData.searchSettings.copy(
       searchLanguage = "*",
-      articleTypes = List("standard", "topic-article"),
+      articleTypes = List("standard", "topic-article", "frontpage-article"),
       shouldScroll = true,
       sort = Sort.ByTitleAsc
     )

@@ -9,6 +9,7 @@ package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{LearningPath, Title}
@@ -101,7 +102,8 @@ object TestData {
     availability = "everyone",
     Seq.empty,
     Seq.empty,
-    responsible = None
+    responsible = None,
+    None
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
@@ -127,7 +129,8 @@ object TestData {
     None,
     None,
     None,
-    Right(None)
+    Right(None),
+    None
   )
 
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
@@ -209,6 +212,7 @@ object TestData {
     availability = "everyone",
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 
@@ -256,10 +260,11 @@ object TestData {
     availability = "everyone",
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 
-  val sampleTopicArticle: common.draft.Draft = common.draft.Draft(
+  val sampleTopicArticle: Draft = Draft(
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
@@ -285,10 +290,11 @@ object TestData {
     common.Availability.everyone,
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 
-  val sampleArticleWithPublicDomain: common.draft.Draft = common.draft.Draft(
+  val sampleArticleWithPublicDomain: Draft = Draft(
     Option(1),
     Option(1),
     common.Status(DRAFT, Set.empty),
@@ -314,10 +320,11 @@ object TestData {
     common.Availability.everyone,
     Seq.empty,
     common.draft.RevisionMeta.default,
+    None,
     None
   )
 
-  val sampleDomainArticle: common.draft.Draft = common.draft.Draft(
+  val sampleDomainArticle: Draft = Draft(
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),
@@ -343,6 +350,7 @@ object TestData {
     common.Availability.everyone,
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 
@@ -377,15 +385,16 @@ object TestData {
     availability = None,
     Seq.empty,
     None,
+    None,
     None
   )
 
-  val sampleArticleWithByNcSa: common.draft.Draft =
+  val sampleArticleWithByNcSa: Draft =
     sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
-  val sampleArticleWithCopyrighted: common.draft.Draft =
+  val sampleArticleWithCopyrighted: Draft =
     sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
-  val sampleDomainArticleWithHtmlFault: common.draft.Draft = common.draft.Draft(
+  val sampleDomainArticleWithHtmlFault: Draft = Draft(
     Option(articleId),
     Option(2),
     common.Status(DRAFT, Set.empty),
@@ -420,6 +429,7 @@ object TestData {
     common.Availability.everyone,
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 
@@ -470,6 +480,7 @@ object TestData {
     availability = "everyone",
     Seq.empty,
     Seq.empty,
+    None,
     None
   )
 

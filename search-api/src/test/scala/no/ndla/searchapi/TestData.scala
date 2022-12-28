@@ -171,12 +171,13 @@ object TestData {
     today.minusDays(2),
     "ndalId54321",
     today.minusDays(2),
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleDomainArticle = Article(
@@ -195,12 +196,13 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleDomainArticle2 = Article(
@@ -219,12 +221,13 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    LearningResourceType.Article.toString,
+    ArticleType.Standard,
     Seq.empty,
     Seq.empty,
     Availability.everyone,
     Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -350,7 +353,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article9: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -364,7 +367,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article10: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -380,7 +383,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article11: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -401,7 +404,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.TopicArticle.toString
+    articleType = ArticleType.TopicArticle
   )
 
   val article12: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -424,7 +427,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.Article.toString
+    articleType = ArticleType.Standard
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -443,7 +446,7 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = LearningResourceType.Article.toString,
+    articleType = ArticleType.Standard,
     availability = Availability.teacher
   )
 
@@ -479,12 +482,13 @@ object TestData {
     updated = today,
     updatedBy = "",
     published = today,
-    articleType = LearningResourceType.Article.toString,
+    articleType = ArticleType.Standard,
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
     availability = Availability.everyone,
     relatedContent = Seq.empty,
-    None
+    None,
+    slug = None
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -513,7 +517,8 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsible = None
+    responsible = None,
+    slug = None
   )
 
   val draftStatus         = Status(DraftStatus.DRAFT, Set.empty)
@@ -570,7 +575,8 @@ object TestData {
     availability = Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
-    responsible = None
+    responsible = None,
+    slug = None
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
