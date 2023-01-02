@@ -20,6 +20,7 @@ import no.ndla.language.Language
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}
+import cats.implicits._
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.tailrec
@@ -72,39 +73,24 @@ trait InternController {
     }
 
     post("/index") {
-      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val indexResults = for {
-        articleIndex   <- createIndexFuture(articleIndexService)
-        agreementIndex <- createIndexFuture(agreementIndexService)
-        tagIndex       <- createIndexFuture(tagIndexService)
-        grepIndex      <- createIndexFuture(grepCodesIndexService)
-      } yield (articleIndex, agreementIndex, tagIndex, grepIndex)
+      implicit val ec: ExecutionContextExecutorService =
+        ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+      val articleIndex   = createIndexFuture(articleIndexService)
+      val agreementIndex = createIndexFuture(agreementIndexService)
+      val tagIndex       = createIndexFuture(tagIndexService)
+      val grepIndex      = createIndexFuture(grepCodesIndexService)
+      val indexResults   = Future.sequence(List(articleIndex, agreementIndex, tagIndex, grepIndex))
 
-      Await.result(indexResults, Duration.Inf) match {
-        case (Success(articleResult), Success(agreementResult), Success(tagResult), Success(grepResult)) =>
-          val indexTimes = List(
-            articleResult.millisUsed,
-            agreementResult.millisUsed,
-            tagResult.millisUsed,
-            grepResult.millisUsed
-          )
-
+      Await.result(indexResults, Duration.Inf).sequence match {
+        case Failure(ex) =>
+          logger.warn(ex.getMessage, ex)
+          InternalServerError(ex.getMessage)
+        case Success(results) =>
+          val maxTime = results.map(rr => rr.millisUsed).max
           val result =
-            s"Completed all indexes in ${indexTimes.max} ms."
+            s"Completed all indexes in ${maxTime} ms."
           logger.info(result)
           Ok(result)
-        case (Failure(articleFail), _, _, _) =>
-          logger.warn(articleFail.getMessage, articleFail)
-          InternalServerError(articleFail.getMessage)
-        case (_, Failure(agreementFail), _, _) =>
-          logger.warn(agreementFail.getMessage, agreementFail)
-          InternalServerError(agreementFail.getMessage)
-        case (_, _, Failure(tagFail), _) =>
-          logger.warn(tagFail.getMessage, tagFail)
-          InternalServerError(tagFail.getMessage)
-        case (_, _, _, Failure(grepFail)) =>
-          logger.warn(grepFail.getMessage, grepFail)
-          InternalServerError(grepFail.getMessage)
       }
     }
 
