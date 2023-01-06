@@ -19,7 +19,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.SearchResult
+import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 
@@ -163,6 +163,9 @@ trait MultiSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
+      val articleTypeFilter = Some(
+        boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
+      )
       val taxonomyContextTypeFilter   = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects)
@@ -178,6 +181,7 @@ trait MultiSearchService {
       List(
         licenseFilter,
         idFilter,
+        articleTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
         taxonomyResourceTypesFilter,

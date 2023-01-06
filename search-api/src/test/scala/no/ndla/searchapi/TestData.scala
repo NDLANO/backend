@@ -450,6 +450,26 @@ object TestData {
     availability = Availability.teacher
   )
 
+  val article14: Article = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(14),
+    title = List(Title("Forsideartikkel", "nb")),
+    slug = Some("forsideartikkel"),
+    content = List(
+      ArticleContent(
+        s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\" />",
+        "nb"
+      )
+    ),
+    tags = List(Tag(List(""), "nb")),
+    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"345\">", "nb")),
+    introduction = List(Introduction("Ekstra", "nb")),
+    metaDescription = List(common.Description("", "nb")),
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
+    published = today.minusDays(5),
+    articleType = ArticleType.FrontpageArticle
+  )
+
   val articlesToIndex: Seq[Article] = List(
     article1,
     article2,
@@ -463,7 +483,8 @@ object TestData {
     article10,
     article11,
     article12,
-    article13
+    article13,
+    article14
   )
 
   val emptyDomainArticle: Article = Article(
@@ -769,8 +790,7 @@ object TestData {
     visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\">", "nb")),
     tags = List(Tag(List(""), "nb")),
     created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.Standard
+    updated = today.minusDays(5)
   )
 
   val draft13: Draft = TestData.sampleDraftWithPublicDomain.copy(
@@ -807,7 +827,6 @@ object TestData {
     tags = List(Tag(List(""), "nb")),
     created = today.minusDays(10),
     updated = today.minusDays(5),
-    articleType = ArticleType.Standard,
     status = Status(
       current = DraftStatus.ARCHIVED,
       other = Set.empty
@@ -830,6 +849,22 @@ object TestData {
     articleType = ArticleType.TopicArticle
   )
 
+  val draft16: Draft = TestData.sampleDraftWithPublicDomain.copy(
+    id = Option(16),
+    title = List(Title("Engler og demoner", "nb")),
+    slug = Some("engler-og-demoner"),
+    introduction = List(Introduction("Religion", "nb")),
+    metaDescription = List(common.Description("metareligion", "nb")),
+    content = List(
+      ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")
+    ),
+    visualElement = List.empty,
+    tags = List(Tag(List("engel"), "nb")),
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
+    articleType = ArticleType.FrontpageArticle
+  )
+
   val draftsToIndex: List[Draft] = List(
     draft1,
     draft2,
@@ -845,7 +880,8 @@ object TestData {
     draft12,
     draft13,
     draft14,
-    draft15
+    draft15,
+    draft16
   )
 
   val paul              = Author("author", "Truly Weird Rand Paul")
@@ -1402,7 +1438,8 @@ object TestData {
     aggregatePaths = List.empty,
     embedResource = List.empty,
     embedId = None,
-    availability = List.empty
+    availability = List.empty,
+    articleTypes = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1433,7 +1470,8 @@ object TestData {
     revisionDateFilterFrom = None,
     revisionDateFilterTo = None,
     excludeRevisionHistory = false,
-    responsibleIdFilter = List.empty
+    responsibleIdFilter = List.empty,
+    articleTypes = List.empty
   )
 
   val searchableResourceTypes = List(

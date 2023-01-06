@@ -7,10 +7,9 @@
 
 package no.ndla.searchapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl.{simpleStringQuery, _}
-import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
+import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
@@ -22,7 +21,9 @@ import no.ndla.searchapi.model.api.ErrorHelpers
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
+
 import java.time.{LocalDateTime, ZoneOffset}
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -179,6 +180,9 @@ trait MultiDraftSearchService {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 
+      val articleTypeFilter = Some(
+        boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
+      )
       val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects)
@@ -188,6 +192,7 @@ trait MultiDraftSearchService {
       List(
         licenseFilter,
         idFilter,
+        articleTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
         taxonomyTopicFilter,
