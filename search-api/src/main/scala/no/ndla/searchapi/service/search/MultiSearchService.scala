@@ -7,7 +7,6 @@
 
 package no.ndla.searchapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
@@ -19,10 +18,11 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHelpers
-import no.ndla.searchapi.model.domain.{LearningResourceType, SearchResult}
+import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
