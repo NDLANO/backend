@@ -113,7 +113,7 @@ trait SearchController {
     private val articleTypes =
       Param[Option[Seq[String]]](
         "article-types",
-        s"A comma separated list of article-types the search should be filtered by. Available values is ${ArticleType.values
+        s"A comma separated list of article-types the search should be filtered by. Available values is ${ArticleType.all
             .mkString(", ")}"
       )
     private val contextTypes =
