@@ -41,5 +41,6 @@ case class MultiDraftSearchSettings(
     revisionDateFilterFrom: Option[LocalDateTime],
     revisionDateFilterTo: Option[LocalDateTime],
     excludeRevisionHistory: Boolean,
-    responsibleIdFilter: List[String]
+    responsibleIdFilter: List[String],
+    articleTypes: List[String]
 )

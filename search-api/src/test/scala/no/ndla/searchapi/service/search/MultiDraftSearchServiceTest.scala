@@ -7,14 +7,15 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
+import no.ndla.searchapi.TestEnvironment
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
-import no.ndla.searchapi.TestEnvironment
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
@@ -222,7 +223,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
         multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId54321"))
       )
     val hits = results.results
-    results.totalCount should be(11)
+    results.totalCount should be(12)
     hits.head.id should be(1)
     hits.head.contexts.head.learningResourceType should be("standard")
     hits(1).id should be(2)
@@ -493,6 +494,27 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search2.results.map(_.id) should be(Seq(8, 9, 10, 11, 13, 15))
   }
 
+  test("That filtering on article-type works") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", articleTypes = List(ArticleType.Standard.entryName))
+    )
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", articleTypes = List(ArticleType.TopicArticle.entryName))
+    )
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", articleTypes = List(ArticleType.FrontpageArticle.entryName))
+    )
+
+    search.totalCount should be(7)
+    search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 12))
+
+    search2.totalCount should be(6)
+    search2.results.map(_.id) should be(Seq(8, 9, 10, 11, 13, 15))
+
+    search3.totalCount should be(1)
+    search3.results.map(_.id) should be(Seq(16))
+  }
+
   test("That filtering on multiple context-types returns every type") {
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
@@ -527,15 +549,15 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"))
       )
-    search2.totalCount should be(19)
-    search2.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15))
+    search2.totalCount should be(20)
+    search2.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16))
 
     val Success(search3) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("nb"))
       )
-    search3.totalCount should be(16)
-    search3.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15))
+    search3.totalCount should be(17)
+    search3.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16))
   }
 
   test("That filtering on supportedLanguages should still prioritize the selected language") {

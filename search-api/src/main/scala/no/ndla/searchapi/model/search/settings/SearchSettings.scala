@@ -8,8 +8,7 @@
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.domain.Availability
-import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.domain.LearningResourceType
+import no.ndla.searchapi.model.domain.{LearningResourceType, Sort}
 
 case class SearchSettings(
     query: Option[String],
@@ -31,5 +30,6 @@ case class SearchSettings(
     aggregatePaths: List[String],
     embedResource: List[String],
     embedId: Option[String],
-    availability: List[Availability.Value]
+    availability: List[Availability.Value],
+    articleTypes: List[String]
 )

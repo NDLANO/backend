@@ -9,10 +9,11 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.language.Language.AllLanguages
-import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.scalatra.NdlaSwaggerSupport
+import no.ndla.language.Language.AllLanguages
+import no.ndla.network.clients.FeideApiClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient
@@ -26,7 +27,6 @@ import no.ndla.searchapi.service.search.{
   SearchService
 }
 import no.ndla.searchapi.service.{ApiSearchService, SearchClients}
-import no.ndla.network.clients.FeideApiClient
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -100,11 +100,6 @@ trait SearchController {
     private val apiTypes =
       Param[Option[Seq[String]]]("types", "A comma separated list of types to search in. f.ex articles,images")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
-    private val levels =
-      Param[Option[Seq[String]]](
-        "levels",
-        "A comma separated list of levels the learning resources should be filtered by."
-      )
     private val subjects =
       Param[Option[Seq[String]]](
         "subjects",
@@ -115,10 +110,17 @@ trait SearchController {
         "topics",
         "A comma separated list of parent topics the learning resources should be filtered by."
       )
+    private val articleTypes =
+      Param[Option[Seq[String]]](
+        "article-types",
+        s"A comma separated list of article-types the search should be filtered by. Available values is ${ArticleType.all
+            .mkString(", ")}"
+      )
     private val contextTypes =
       Param[Option[Seq[String]]](
         "context-types",
-        "A comma separated list of context-types the learning resources should be filtered by."
+        s"A comma separated list of context-types the learning resources should be filtered by. Available values is ${LearningResourceType.values
+            .mkString(", ")}"
       )
     private val groupTypes =
       Param[Option[Seq[String]]](
@@ -141,7 +143,6 @@ trait SearchController {
         |Used in conjunction with the parameter resource-types to filter additional resource-types.
       """.stripMargin
     )
-
     private val includeMissingResourceTypeGroup = Param[Option[Boolean]](
       "missing-group",
       "Whether to include group without resource-types for group-search. Defaults to false."
@@ -239,7 +240,6 @@ trait SearchController {
             asQueryParam(subjects),
             asQueryParam(sort),
             asQueryParam(learningResourceIds),
-            asQueryParam(levels),
             asQueryParam(contextTypes),
             asQueryParam(languageFilter),
             asQueryParam(relevanceFilter),
@@ -298,7 +298,8 @@ trait SearchController {
             aggregatePaths = aggregatePaths,
             embedResource = embedResource,
             embedId = embedId,
-            availability = availability
+            availability = availability,
+            articleTypes = List.empty
           )
 
           groupSearch(settings, includeMissingResourceTypeGroup)
@@ -410,6 +411,7 @@ trait SearchController {
       val pageSize                 = intOrDefault(this.pageSize.paramName, DefaultPageSize)
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
       val idList                   = paramAsListOfLong(this.learningResourceIds.paramName)
+      val articleTypes             = paramAsListOfString(this.articleTypes.paramName)
       val resourceTypes            = paramAsListOfString(this.resourceTypes.paramName)
       val license                  = paramOrNone(this.license.paramName)
       val sort                     = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
@@ -444,7 +446,8 @@ trait SearchController {
           aggregatePaths = aggregatePaths,
           embedResource = embedResource,
           embedId = embedId,
-          availability = availability
+          availability = availability,
+          articleTypes = articleTypes
         )
       )
     }
@@ -455,6 +458,7 @@ trait SearchController {
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
       val language                 = paramOrDefault(this.language.paramName, AllLanguages)
       val idList                   = paramAsListOfLong(this.learningResourceIds.paramName)
+      val articleTypes             = paramAsListOfString(this.articleTypes.paramName)
       val resourceTypes            = paramAsListOfString(this.resourceTypes.paramName)
       val license                  = paramOrNone(this.license.paramName)
       val query                    = paramOrNone(this.query.paramName)
@@ -506,7 +510,8 @@ trait SearchController {
         revisionDateFilterFrom = revisionDateFrom,
         revisionDateFilterTo = revisionDateTo,
         excludeRevisionHistory = excludeRevisionHistory,
-        responsibleIdFilter = responsibleIds
+        responsibleIdFilter = responsibleIds,
+        articleTypes = articleTypes
       )
     }
 
@@ -554,11 +559,11 @@ trait SearchController {
             asHeaderParam(feideToken),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
+            asQueryParam(articleTypes),
             asQueryParam(contextTypes),
             asQueryParam(language),
             asQueryParam(learningResourceIds),
             asQueryParam(resourceTypes),
-            asQueryParam(levels),
             asQueryParam(license),
             asQueryParam(query),
             asQueryParam(sort),
@@ -600,11 +605,11 @@ trait SearchController {
             asHeaderParam(correlationId),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
+            asQueryParam(articleTypes),
             asQueryParam(contextTypes),
             asQueryParam(language),
             asQueryParam(learningResourceIds),
             asQueryParam(resourceTypes),
-            asQueryParam(levels),
             asQueryParam(license),
             asQueryParam(query),
             asQueryParam(noteQuery),
@@ -627,6 +632,7 @@ trait SearchController {
             asQueryParam(responsibleIdFilter)
           )
           .authorizations("oauth2")
+          .responseMessages(response403)
           .responseMessages(response500)
       )
     ) {

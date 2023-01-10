@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -454,6 +454,27 @@ class MultiSearchServiceTest
     search2.results.map(_.id) should be(Seq(8, 9, 10, 11))
   }
 
+  test("That filtering on article-type works") {
+    val Success(search) = multiSearchService.matchingQuery(
+      searchSettings.copy(language = "*", articleTypes = List(ArticleType.Standard.entryName))
+    )
+    val Success(search2) = multiSearchService.matchingQuery(
+      searchSettings.copy(language = "*", articleTypes = List(ArticleType.TopicArticle.entryName))
+    )
+    val Success(search3) = multiSearchService.matchingQuery(
+      searchSettings.copy(language = "*", articleTypes = List(ArticleType.FrontpageArticle.entryName))
+    )
+
+    search.totalCount should be(7)
+    search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 12))
+
+    search2.totalCount should be(4)
+    search2.results.map(_.id) should be(Seq(8, 9, 10, 11))
+
+    search3.totalCount should be(1)
+    search3.results.map(_.id) should be(Seq(14))
+  }
+
   test("That filtering on multiple context-types returns every type") {
     val Success(search) =
       multiSearchService.matchingQuery(
@@ -487,13 +508,13 @@ class MultiSearchServiceTest
 
     val Success(search2) =
       multiSearchService.matchingQuery(searchSettings.copy(language = "*", supportedLanguages = List("en", "nb")))
-    search2.totalCount should be(17)
-    search2.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12))
+    search2.totalCount should be(18)
+    search2.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 14))
 
     val Success(search3) =
       multiSearchService.matchingQuery(searchSettings.copy(language = "*", supportedLanguages = List("nb")))
-    search3.totalCount should be(14)
-    search3.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12))
+    search3.totalCount should be(15)
+    search3.results.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14))
   }
 
   test("That filtering on supportedLanguages should still prioritize the selected language") {
@@ -647,7 +668,7 @@ class MultiSearchServiceTest
     val Success(search1) = multiSearchService.matchingQuery(
       searchSettings.copy(language = AllLanguages, sort = Sort.ByIdAsc, filterByNoResourceType = true)
     )
-    search1.results.map(_.id).sorted should be(Seq(6, 8, 9, 10, 11))
+    search1.results.map(_.id).sorted should be(Seq(6, 8, 9, 10, 11, 14))
   }
 
   test("Search query should not be decompounded (only indexed documents)") {

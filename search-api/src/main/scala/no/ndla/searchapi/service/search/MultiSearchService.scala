@@ -7,7 +7,6 @@
 
 package no.ndla.searchapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
@@ -23,6 +22,7 @@ import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -163,6 +163,9 @@ trait MultiSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
+      val articleTypeFilter = Some(
+        boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
+      )
       val taxonomyContextTypeFilter   = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
       val taxonomySubjectFilter       = subjectFilter(settings.subjects)
@@ -178,6 +181,7 @@ trait MultiSearchService {
       List(
         licenseFilter,
         idFilter,
+        articleTypeFilter,
         languageFilter,
         taxonomySubjectFilter,
         taxonomyResourceTypesFilter,
