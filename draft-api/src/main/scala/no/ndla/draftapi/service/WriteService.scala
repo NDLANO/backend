@@ -460,7 +460,6 @@ trait WriteService {
             relatedContent = Seq.empty,
             tags = Seq.empty,
             revisionMeta = Seq.empty,
-            responsible = None,
             // LanguageField ordering shouldn't matter:
             visualElement = article.visualElement.sorted,
             content = article.content.sorted,
