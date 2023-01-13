@@ -515,7 +515,7 @@ object TestData {
   val emptyDomainDraft: Draft = Draft(
     id = None,
     revision = None,
-    status = Status(DraftStatus.DRAFT, Set.empty),
+    status = Status(DraftStatus.PLANNED, Set.empty),
     title = Seq.empty,
     content = Seq.empty,
     copyright = None,
@@ -542,8 +542,8 @@ object TestData {
     slug = None
   )
 
-  val draftStatus         = Status(DraftStatus.DRAFT, Set.empty)
-  val importedDraftStatus = Status(DraftStatus.DRAFT, Set(DraftStatus.IMPORTED))
+  val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
+  val importedDraftStatus = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
   val draftPublicDomainCopyright: draft.Copyright =
     draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
@@ -676,7 +676,7 @@ object TestData {
       EditorNote(
         "kakemonster",
         "ndalId54321",
-        Status(DraftStatus.DRAFT, Set.empty),
+        Status(DraftStatus.PLANNED, Set.empty),
         today.minusDays(30)
       )
     ),
@@ -684,7 +684,7 @@ object TestData {
       EditorNote(
         "kultgammeltnotat",
         "ndalId12345",
-        Status(DraftStatus.DRAFT, Set.empty),
+        Status(DraftStatus.PLANNED, Set.empty),
         today.minusDays(31)
       )
     ),
@@ -748,7 +748,7 @@ object TestData {
 
   val draft10: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(10),
-    status = Status(DraftStatus.PROPOSAL, Set.empty),
+    status = Status(DraftStatus.IN_PROGRESS, Set.empty),
     title = List(Title("This article is in english", "en")),
     introduction = List(Introduction("Engulsk", "en")),
     metaDescription = List.empty,
@@ -763,7 +763,7 @@ object TestData {
 
   val draft11: Draft = TestData.sampleDraftWithPublicDomain.copy(
     id = Option(11),
-    status = Status(DraftStatus.PROPOSAL, Set.empty),
+    status = Status(DraftStatus.IN_PROGRESS, Set.empty),
     title = List(Title("Katter", "nb"), Title("Cats", "en")),
     introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),

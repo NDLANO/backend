@@ -21,18 +21,18 @@ class V16__NotesWithUserAndTimestampTest extends UnitSuite with TestEnvironment 
         | "notes": [ "Notat1", "Notat2" ],
         | "status": {
         |   "other": [],
-        |   "current": "DRAFT"
+        |   "current": "IN_PROCESS"
         | }
         |}""".stripMargin
 
     val expected =
-      s"""{"updatedBy":"User1","created":"2018-08-07T13:05:10Z","updated":"2018-08-07T13:05:15Z","notes":[{"note":"Notat1","user":"System","status":{"current":"DRAFT","other":[]},"timestamp":"2018-08-07T13:05:15Z"},{"note":"Notat2","user":"System","status":{"current":"DRAFT","other":[]},"timestamp":"2018-08-07T13:05:15Z"}],"status":{"other":[],"current":"DRAFT"}}"""
+      s"""{"updatedBy":"User1","created":"2018-08-07T13:05:10Z","updated":"2018-08-07T13:05:15Z","notes":[{"note":"Notat1","user":"System","status":{"current":"IN_PROCESS","other":[]},"timestamp":"2018-08-07T13:05:15Z"},{"note":"Notat2","user":"System","status":{"current":"IN_PROCESS","other":[]},"timestamp":"2018-08-07T13:05:15Z"}],"status":{"other":[],"current":"IN_PROCESS"}}"""
     migration.convertNotes(old) should be(expected)
   }
 
   test("migration not do anything if the document already has new note format") {
     val old =
-      s"""{"updatedBy":"User1","created":"2018-08-07T13:05:10Z","updated":"2018-08-07T13:05:15Z","notes":[{"note":"Notat1","user":"User1","status":{"current":"DRAFT","other":[]},"timestamp":"2018-08-07T13:05:15Z"}],"status":{"other":[],"current":"DRAFT"}}"""
+      s"""{"updatedBy":"User1","created":"2018-08-07T13:05:10Z","updated":"2018-08-07T13:05:15Z","notes":[{"note":"Notat1","user":"User1","status":{"current":"IN_PROCESS","other":[]},"timestamp":"2018-08-07T13:05:15Z"}],"status":{"other":[],"current":"IN_PROCESS"}}"""
 
     migration.convertNotes(old) should be(old)
   }

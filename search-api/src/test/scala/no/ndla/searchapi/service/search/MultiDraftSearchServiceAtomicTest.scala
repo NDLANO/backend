@@ -351,7 +351,7 @@ class MultiDraftSearchServiceAtomicTest
   test("That hits from revision log is not included when exclude param is set") {
     val today = LocalDateTime.now().withNano(0)
 
-    val status = Status(current = DraftStatus.DRAFT, other = Set.empty)
+    val status = Status(current = DraftStatus.PLANNED, other = Set.empty)
     val mkNote = (n: String) => EditorNote(n, "some-user", status, today)
 
     val draft1 = TestData.draft1.copy(

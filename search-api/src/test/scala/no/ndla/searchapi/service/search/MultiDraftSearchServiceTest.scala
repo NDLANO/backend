@@ -694,7 +694,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.PROPOSAL)
+        statusFilter = List(DraftStatus.IN_PROGRESS)
       )
     )
     search1.results.map(_.id) should be(Seq(10, 11))
@@ -724,7 +724,7 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     val expectedIds        = (expectedArticleIds).sorted
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.PROPOSAL))
+      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.IN_PROGRESS))
     )
     search1.results.map(_.id) should be(expectedIds)
 

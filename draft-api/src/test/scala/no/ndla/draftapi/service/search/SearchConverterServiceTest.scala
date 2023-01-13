@@ -16,7 +16,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That converting to searchable article creates list of users") {
     val article = TestData.sampleDomainArticle.copy(
-      notes = Seq(EditorNote("Note", "user", Status(DraftStatus.DRAFT, Set.empty), TestData.today))
+      notes = Seq(EditorNote("Note", "user", Status(DraftStatus.PLANNED, Set.empty), TestData.today))
     )
     val converted = service.asSearchableArticle(article)
     converted.notes should be(Seq("Note"))

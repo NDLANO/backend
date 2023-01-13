@@ -42,7 +42,7 @@ trait DraftController {
   val draftController: DraftController
 
   class DraftController(implicit val swagger: Swagger) extends NdlaController {
-    import props.{InitialScrollContextKeywords, DefaultPageSize}
+    import props.{DefaultPageSize, InitialScrollContextKeywords}
 
     protected implicit override val jsonFormats: Formats =
       DefaultFormats.withLong + Json4s.serializer(PartialArticleFields) ++ JavaTimeSerializers.all
@@ -359,11 +359,9 @@ trait DraftController {
       val language  = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback  = booleanOrDefault(this.fallback.paramName, default = false)
 
-      val article       = readService.withId(articleId, language, fallback)
-      val currentOption = article.map(_.status.current).toOption
-      val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
-        currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
-        currentOption.contains(DraftStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
+      val article        = readService.withId(articleId, language, fallback)
+      val currentOption  = article.map(_.status.current).toOption
+      val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
       doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
         article match {
           case Success(a)  => a
@@ -826,11 +824,9 @@ trait DraftController {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      val article       = readService.getArticleBySlug(slug, language, fallback)
-      val currentOption = article.map(_.status.current).toOption
-      val isPublicStatus = currentOption.contains(DraftStatus.USER_TEST.toString) ||
-        currentOption.contains(DraftStatus.QUALITY_ASSURED_DELAYED.toString) ||
-        currentOption.contains(DraftStatus.QUEUED_FOR_PUBLISHING_DELAYED.toString)
+      val article        = readService.getArticleBySlug(slug, language, fallback)
+      val currentOption  = article.map(_.status.current).toOption
+      val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
       doOrAccessDenied(userInfo.canWrite || isPublicStatus) {
         article match {
           case Success(a)  => a

@@ -17,13 +17,13 @@ class R__RemoveStatusPublishedArticlesTest extends UnitSuite with TestEnvironmen
 
   test("published articles should only have imported as other status") {
     val importedAndQuality =
-      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED, DraftStatus.QUALITY_ASSURED))
+      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED, DraftStatus.END_CONTROL))
     val imported = Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
     val publishedNotImported =
-      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.QUALITY_ASSURED, DraftStatus.PROPOSAL))
+      Status(current = DraftStatus.PUBLISHED, other = Set(DraftStatus.END_CONTROL, DraftStatus.IN_PROGRESS))
     val published = Status(current = DraftStatus.PUBLISHED, other = Set())
     val notPublished =
-      Status(current = DraftStatus.DRAFT, other = Set(DraftStatus.QUALITY_ASSURED, DraftStatus.IMPORTED))
+      Status(current = DraftStatus.PLANNED, other = Set(DraftStatus.END_CONTROL, DraftStatus.IMPORTED))
 
     migration.updateStatus(importedAndQuality) should be(imported)
     migration.updateStatus(imported) should be(imported)
