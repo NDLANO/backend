@@ -259,7 +259,7 @@ trait SeriesController {
       )
     ) {
       authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleWithAdminAccess)
 
       val seriesId = long(this.seriesId.paramName)
       writeService.deleteSeries(seriesId) match {
@@ -284,7 +284,7 @@ trait SeriesController {
       )
     ) {
       authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleWithAdminAccess)
 
       val seriesId = long(this.seriesId.paramName)
       val language = params(this.pathLanguage.paramName)
@@ -311,7 +311,7 @@ trait SeriesController {
       )
     ) {
       authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleWithAdminAccess)
 
       val newSeries = extract[api.NewSeries](request.body)
 
@@ -338,7 +338,7 @@ trait SeriesController {
       )
     ) {
       authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleWithAdminAccess)
       val id           = long(this.seriesId.paramName)
       val updateSeries = extract[api.NewSeries](request.body)
 

@@ -72,7 +72,8 @@ class AudioSearchServiceTest
     description = Seq(domain.Description("TestSeriesDesc", "nb")),
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,
-    created = TestData.yesterday
+    created = TestData.yesterday,
+    hasRSS = true
   )
 
   val audio1: domain.AudioMetaInformation = domain.AudioMetaInformation(

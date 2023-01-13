@@ -48,7 +48,8 @@ trait ConverterService {
         description = mergeLanguageField(existingSeries.description, newDescription),
         coverPhoto = coverPhoto,
         updated = LocalDateTime.now(),
-        created = existingSeries.created
+        created = existingSeries.created,
+        hasRSS = updatedSeries.hasRSS.getOrElse(existingSeries.hasRSS)
       )
     }
 
@@ -69,7 +70,8 @@ trait ConverterService {
         coverPhoto = coverPhoto,
         episodes = None,
         updated = createdDate,
-        created = createdDate
+        created = createdDate,
+        hasRSS = newSeries.hasRSS.getOrElse(false)
       )
     }
 
@@ -91,7 +93,8 @@ trait ConverterService {
         description = series.description.filterNot(_.language == language),
         coverPhoto = series.coverPhoto,
         updated = LocalDateTime.now(),
-        created = series.created
+        created = series.created,
+        hasRSS = false
       )
     }
 
@@ -312,9 +315,10 @@ trait ConverterService {
         revision = series.revision,
         title = title,
         description = description,
-        episodes = episodes,
         coverPhoto = coverPhoto,
-        supportedLanguages = series.supportedLanguages
+        episodes = episodes,
+        supportedLanguages = series.supportedLanguages,
+        hasRSS = series.hasRSS
       )
     }
 

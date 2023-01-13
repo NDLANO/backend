@@ -672,7 +672,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
+      hasRSS = Some(true)
     )
 
     writeService.newSeries(updateSeries).isFailure should be(true)
@@ -712,7 +713,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
+      hasRSS = None
     )
 
     writeService.updateSeries(1, updateSeries).isFailure should be(true)
@@ -763,7 +765,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
+      hasRSS = Some(false)
     )
 
     val result = writeService.newSeries(updateSeries)
@@ -813,7 +816,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       coverPhotoAltText = "nyalt",
       episodes = Set(2),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
+      hasRSS = Some(true)
     )
 
     val result = writeService.updateSeries(1, updateSeries)
@@ -854,7 +858,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       coverPhotoAltText = "nyalt",
       episodes = Set(1),
       language = "nb",
-      revision = Some(55)
+      revision = Some(55),
+      hasRSS = Some(true)
     )
 
     val result = writeService.updateSeries(1, updateSeries)
