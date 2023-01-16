@@ -16,7 +16,7 @@ object Status {
 
   def default = {
     Status(
-      current = ConceptStatus.DRAFT,
+      current = ConceptStatus.IN_PROGRESS,
       other = Set.empty
     )
   }

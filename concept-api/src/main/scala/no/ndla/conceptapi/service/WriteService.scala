@@ -106,7 +106,7 @@ trait WriteService {
         Success(changed)
       } else {
         val oldStatus             = existing.status.current
-        val newStatusIfNotDefined = if (oldStatus == PUBLISHED) DRAFT else oldStatus
+        val newStatusIfNotDefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
         val newStatus             = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
 
         converterService

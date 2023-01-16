@@ -57,7 +57,7 @@ object TestData {
     Set("nn", "nb"),
     Seq(42),
     api.Status(
-      current = "DRAFT",
+      current = "IN_PROGRESS",
       other = Seq.empty
     ),
     Some(api.VisualElement(visualElementStringWithUrl, "nb"))
@@ -152,7 +152,7 @@ object TestData {
     Set("nn", "nb"),
     Seq(42),
     api.Status(
-      current = "DRAFT",
+      current = "IN_PROGRESS",
       other = Seq.empty
     ),
     Some(api.VisualElement(visualElementStringWithUrl, "nb"))

@@ -48,13 +48,13 @@ class ConceptApiClientTest extends UnitSuite with TestEnvironment {
     val idPath5 = s"$draftPath/500"
     val idPath6 = s"$draftPath/600"
 
-    doReturn(Success(DraftConcept(100, ConceptStatus("DRAFT"))))
+    doReturn(Success(DraftConcept(100, ConceptStatus("IN_PROGRESS"))))
       .when(conceptApiClient)
       .get[DraftConcept](eqTo(idPath1), any, any)(any)
-    doReturn(Success(DraftConcept(200, ConceptStatus("QUEUED_FOR_LANGUAGE"))))
+    doReturn(Success(DraftConcept(200, ConceptStatus("LANGUAGE"))))
       .when(conceptApiClient)
       .get[DraftConcept](eqTo(idPath2), any, any)(any)
-    doReturn(Success(DraftConcept(300, ConceptStatus("TRANSLATED"))))
+    doReturn(Success(DraftConcept(300, ConceptStatus("FOR_APPROVAL"))))
       .when(conceptApiClient)
       .get[DraftConcept](eqTo(idPath3), any, any)(any)
     doReturn(Success(DraftConcept(400, ConceptStatus("UNPUBLISHED"))))

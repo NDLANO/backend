@@ -140,7 +140,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(Title("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     subjectIds = Set("urn:subject:10"),
-    status = Status(current = ConceptStatus.QUALITY_ASSURED, other = Set.empty)
+    status = Status(current = ConceptStatus.END_CONTROL, other = Set.empty)
   )
 
   val concept9: Concept = TestData.sampleConcept.copy(
@@ -162,7 +162,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     updated = LocalDateTime.now().minusDays(1),
     subjectIds = Set("urn:subject:2"),
-    status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED)),
+    status = Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
     updatedBy = Seq("Test1"),
     visualElement = List(
       VisualElement(
@@ -615,12 +615,12 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     statusSearch1.totalCount should be(2)
     statusSearch1.results.map(_.id) should be(Seq(9, 10))
 
-    val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED")))
+    val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("FOR_APPROVAL")))
     statusSearch2.totalCount should be(1)
     statusSearch2.results.map(_.id) should be(Seq(10))
 
     val Success(statusSearch3) =
-      draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUALITY_ASSURED")))
+      draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("FOR_APPROVAL", "END_CONTROL")))
     statusSearch3.totalCount should be(2)
     statusSearch3.results.map(_.id) should be(Seq(8, 10))
   }
