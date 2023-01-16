@@ -34,7 +34,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   val InProcessStatus            = common.Status(IN_PROGRESS, Set.empty)
   val ArchivedStatus             = common.Status(ARCHIVED, Set(PUBLISHED))
   val InProcessArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
-  val PublishedArticle: Draft  = TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus)
+  val PublishedArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus)
   val UnpublishedArticle: Draft  = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
 
   test("doTransition should succeed when performing a legal transition") {
@@ -218,7 +218,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val proposalArticle = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
     val (Failure(ex: IllegalStatusStateTransition), _) =
       doTransitionWithoutSideEffect(proposalArticle, PUBLISHED, TestData.userWithWriteAccess, false)
-    ex.getMessage should equal("Cannot go to PUBLISHED when article is IN_PROCESS")
+    ex.getMessage should equal("Cannot go to PUBLISHED when article is IN_PROGRESS")
   }
 
   test("PUBLISHED should be removed when transitioning to UNPUBLISHED") {

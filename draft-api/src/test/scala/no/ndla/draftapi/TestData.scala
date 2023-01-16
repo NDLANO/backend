@@ -548,7 +548,7 @@ object TestData {
   val statusWithInProcess: common.Status      = common.Status(IN_PROGRESS, Set.empty)
   val statusWithExternalReview: common.Status = common.Status(EXTERNAL_REVIEW, Set.empty)
   val statusWithInternalReview: common.Status = common.Status(INTERNAL_REVIEW, Set.empty)
-  val statusWithEndControl: common.Status = common.Status(END_CONTROL, Set.empty)
+  val statusWithEndControl: common.Status     = common.Status(END_CONTROL, Set.empty)
 
   val sampleLearningPath: LearningPath = LearningPath(1, Title("Title", "nb"))
 

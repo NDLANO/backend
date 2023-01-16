@@ -285,7 +285,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("updateArticle should use user-defined status if defined") {
     val existing       = TestData.sampleDomainArticle.copy(status = TestData.statusWithPlanned)
-    val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = Some("IN_PROCESS"))
+    val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = Some("IN_PROGRESS"))
     when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
     val Success(result) = service.updateArticle(
       existing.id.get,
@@ -297,7 +297,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None
     )
-    result.status should equal(api.Status("IN_PROCESS", Seq.empty))
+    result.status should equal(api.Status("IN_PROGRESS", Seq.empty))
   }
 
   test(
@@ -317,7 +317,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None
     )
-    result.status should equal(api.Status("IN_PROCESS", Seq("PUBLISHED")))
+    result.status should equal(api.Status("IN_PROGRESS", Seq("PUBLISHED")))
   }
 
   test("updateArticle should use current status if user-defined status is not set") {
@@ -336,7 +336,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         None,
         None
       )
-      result.status should equal(api.Status("IN_PROCESS", Seq.empty))
+      result.status should equal(api.Status("IN_PROGRESS", Seq.empty))
     }
 
     {
