@@ -31,7 +31,7 @@ case class Article(
     @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime,
     @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
     @(ApiModelProperty @field)(description = "When the article was last published") published: LocalDateTime,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
+    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "The notes for this article draft") notes: Seq[EditorNote],
     @(ApiModelProperty @field)(description = "The labels attached to this article; meant for editors.") editorLabels: Seq[String],

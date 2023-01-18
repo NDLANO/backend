@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 object DraftStatus extends Enumeration {
 
   val IMPORTED, PLANNED, IN_PROGRESS, EXTERNAL_REVIEW, INTERNAL_REVIEW, QUALITY_ASSURANCE, LANGUAGE, FOR_APPROVAL,
-      END_CONTROL, PUBLISHED, UNPUBLISHED, ARCHIVED = Value
+      END_CONTROL, PUBLISH_DELAYED, PUBLISHED, UNPUBLISHED, ARCHIVED = Value
 
   def valueOfOrError(s: String): Try[DraftStatus.Value] =
     valueOf(s) match {

@@ -25,7 +25,7 @@ case class ArticleSummaryV2(
     @(ApiModelProperty @field)(description = "A meta image for the article") metaImage: Option[ArticleMetaImage],
     @(ApiModelProperty @field)(description = "The full url to where the complete information about the article can be found") url: String,
     @(ApiModelProperty @field)(description = "Describes the license of the article") license: String,
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
+    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: String,
     @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: LocalDateTime,
     @(ApiModelProperty @field)(description = "A list of available languages for this article") supportedLanguages: Seq[String],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API attached to this article") grepCodes: Seq[String],

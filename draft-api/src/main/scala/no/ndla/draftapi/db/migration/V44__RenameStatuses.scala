@@ -74,7 +74,7 @@ class V44__RenameStatuses extends BaseJavaMigration {
       case "QUEUED_FOR_PUBLISHING"         => "END_CONTROL"
       case "QUALITY_ASSURED"               => "END_CONTROL"
       case "QUALITY_ASSURED_DELAYED"       => "END_CONTROL"
-      case "QUEUED_FOR_PUBLISHING_DELAYED" => "END_CONTROL"
+      case "QUEUED_FOR_PUBLISHING_DELAYED" => "PUBLISH_DELAYED"
       case "AWAITING_UNPUBLISHING"         => "PUBLISHED"
       case "AWAITING_ARCHIVING"            => "PUBLISHED"
       case x                               => x
