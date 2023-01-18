@@ -237,9 +237,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
     adminTrans(LANGUAGE.toString) should be(
       Seq(
-        LANGUAGE.toString,
         IN_PROGRESS.toString,
         INTERNAL_REVIEW.toString,
+        LANGUAGE.toString,
         FOR_APPROVAL.toString,
         PUBLISHED.toString,
         ARCHIVED.toString
@@ -247,9 +247,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     adminTrans(FOR_APPROVAL.toString) should be(
       Seq(
-        FOR_APPROVAL.toString,
         IN_PROGRESS.toString,
         INTERNAL_REVIEW.toString,
+        FOR_APPROVAL.toString,
         END_CONTROL.toString,
         PUBLISHED.toString,
         ARCHIVED.toString
