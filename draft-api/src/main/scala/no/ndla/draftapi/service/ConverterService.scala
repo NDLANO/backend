@@ -596,9 +596,17 @@ trait ConverterService {
         if (isNewLanguage) Seq(s"Ny språkvariant '${article.language.getOrElse("und")}' ble lagt til.")
         else Seq.empty
 
+      val changedResponsible =
+        article.responsibleId match {
+          case Right(Some(newId)) if !toMergeInto.responsible.map(_.responsibleId).contains(newId) =>
+            Seq("Ansvarlig endret.")
+          case _ => Seq.empty
+        }
+      val allNewNotes = newLanguageEditorNote ++ changedResponsible
+
       val addedNotes = article.notes match {
-        case Some(n) => newNotes(n ++ newLanguageEditorNote, user, toMergeInto.status)
-        case None    => newNotes(newLanguageEditorNote, user, toMergeInto.status)
+        case Some(n) => newNotes(n ++ allNewNotes, user, toMergeInto.status)
+        case None    => newNotes(allNewNotes, user, toMergeInto.status)
       }
 
       addedNotes.map(n => toMergeInto.notes ++ n)

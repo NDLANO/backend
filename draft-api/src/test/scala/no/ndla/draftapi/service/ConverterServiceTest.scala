@@ -12,7 +12,7 @@ import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -921,6 +921,53 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
 
     res1.relatedContent should be(List(Right(1L)))
+  }
+
+  test("Changing responsible for article will add note") {
+
+    val updatedArticleWithNotes =
+      TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"), notes = Some(Seq("fleibede")))
+
+    val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
+
+    val existingRepsonsible = DraftResponsible("oldId", TestData.today.minusDays(1))
+
+    val Success(res1) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
+        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+
+    val Success(res2) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = None),
+        updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+    val Success(res3) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
+        updatedArticleWithNotes.copy(language = Some("nb")),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+
+    res1.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
+    res2.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
+    res3.notes.map(_.note) should be(Seq("swoop", "fleibede"))
+
   }
 
 }

@@ -24,7 +24,8 @@ case class Series(
     @(ApiModelProperty @field)(description = "The description of the series") description: Description,
     @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhoto: CoverPhoto,
     @(ApiModelProperty @field)(description = "The metainfo of the episodes in the series") episodes: Option[Seq[AudioMetaInformation]],
-    @(ApiModelProperty @field)(description = "A list of available languages for this series") supportedLanguages: Seq[String]
+    @(ApiModelProperty @field)(description = "A list of available languages for this series") supportedLanguages: Seq[String],
+    @(ApiModelProperty @field)(description = "Specifies if this series generates rss-feed") hasRSS: Boolean
 )
 // format: on
 object Series {

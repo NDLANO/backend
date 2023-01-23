@@ -107,6 +107,7 @@ export interface INewSeries {
   episodes: number[]
   language: string
   revision?: number
+  hasRSS?: boolean
 }
 
 export interface IPodcastMeta {
@@ -136,6 +137,7 @@ export interface ISeries {
   coverPhoto: ICoverPhoto
   episodes?: IAudioMetaInformation[]
   supportedLanguages: string[]
+  hasRSS: boolean
 }
 
 export interface ISeriesSearchParams {
