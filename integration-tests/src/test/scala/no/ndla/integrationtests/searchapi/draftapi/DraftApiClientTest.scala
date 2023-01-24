@@ -96,7 +96,7 @@ class DraftApiClientTest
     val searchable = searchConverterService
       .asSearchableDraft(
         fetchedDraft,
-        searchapi.TestData.taxonomyTestBundle,
+        Some(searchapi.TestData.taxonomyTestBundle),
         Some(searchapi.TestData.emptyGrepBundle)
       )
 

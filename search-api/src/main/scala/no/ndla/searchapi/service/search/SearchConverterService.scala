@@ -183,10 +183,15 @@ trait SearchConverterService {
 
     def asSearchableArticle(
         ai: Article,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[SearchableArticle] = {
-      val taxonomyForArticle   = getTaxonomyContexts(ai.id.get, "article", taxonomyBundle, filterVisibles = true)
+      val articleId = ai.id.get
+      val taxonomyForArticle = taxonomyBundle match {
+        case Some(bundle) => getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true)
+        case None         => taxonomyApiClient.getSearchableTaxonomy(s"urn:article:$articleId", filterVisibles = true)
+      }
+
       val traits               = getArticleTraits(ai.content)
       val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
@@ -248,9 +253,14 @@ trait SearchConverterService {
 
     }
 
-    def asSearchableLearningPath(lp: LearningPath, taxonomyBundle: TaxonomyBundle): Try[SearchableLearningPath] = {
-      val taxonomyForLearningPath =
-        getTaxonomyContexts(lp.id.get, "learningpath", taxonomyBundle, filterVisibles = true)
+    def asSearchableLearningPath(
+        lp: LearningPath,
+        taxonomyBundle: Option[TaxonomyBundle]
+    ): Try[SearchableLearningPath] = {
+      val taxonomyForLearningPath = taxonomyBundle match {
+        case Some(bundle) => getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true)
+        case None => taxonomyApiClient.getSearchableTaxonomy(s"urn:learningpath:${lp.id.get}", filterVisibles = true)
+      }
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
@@ -289,10 +299,17 @@ trait SearchConverterService {
 
     def asSearchableDraft(
         draft: Draft,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[SearchableDraft] = {
-      val taxonomyForDraft     = getTaxonomyContexts(draft.id.get, "article", taxonomyBundle, filterVisibles = false)
+      val taxonomyForDraft = {
+        val draftId = draft.id.get
+        taxonomyBundle match {
+          case Some(bundle) => getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false)
+          case None         => taxonomyApiClient.getSearchableTaxonomy(s"urn:article:$draftId", filterVisibles = false)
+        }
+      }
+
       val traits               = getArticleTraits(draft.content)
       val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(draft.content, draft.visualElement, draft.metaImage)
@@ -412,15 +429,6 @@ trait SearchConverterService {
           Some(lang)
         case _ =>
           keyToLanguage(result.sourceAsMap.keys)
-      }
-    }
-
-    def asApiLearningPathIntroduction(
-        learningStep: Option[SearchableLearningStep]
-    ): List[api.learningpath.Introduction] = {
-      learningStep.map(_.description) match {
-        case Some(desc) => desc.languageValues.map(lv => api.learningpath.Introduction(lv.value, lv.language)).toList
-        case None       => List.empty
       }
     }
 

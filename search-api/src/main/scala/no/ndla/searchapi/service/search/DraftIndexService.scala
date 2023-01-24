@@ -37,7 +37,7 @@ trait DraftIndexService {
     override def createIndexRequest(
         domainModel: Draft,
         indexName: String,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableDraft(domainModel, taxonomyBundle, grepBundle) match {

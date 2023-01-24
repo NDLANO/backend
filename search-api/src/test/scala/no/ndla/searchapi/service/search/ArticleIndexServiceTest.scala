@@ -55,9 +55,9 @@ class ArticleIndexServiceTest
   implicit val formats: Formats       = SearchableLanguageFormats.JSonFormatsWithMillis
 
   test("That articles are indexed correctly") {
-    articleIndexService.indexDocument(article5, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article6, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get
-    articleIndexService.indexDocument(article7, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle)).get
+    articleIndexService.indexDocument(article5, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
+    articleIndexService.indexDocument(article6, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
+    articleIndexService.indexDocument(article7, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle)).get
 
     blockUntil(() => { articleIndexService.countDocuments == 3 })
 
@@ -69,11 +69,23 @@ class ArticleIndexServiceTest
     val articles = sources.map(source => read[SearchableArticle](source))
 
     val Success(expectedArticle5) =
-      searchConverterService.asSearchableArticle(article5, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
+      searchConverterService.asSearchableArticle(
+        article5,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle)
+      )
     val Success(expectedArticle6) =
-      searchConverterService.asSearchableArticle(article6, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
+      searchConverterService.asSearchableArticle(
+        article6,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle)
+      )
     val Success(expectedArticle7) =
-      searchConverterService.asSearchableArticle(article7, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
+      searchConverterService.asSearchableArticle(
+        article7,
+        Some(TestData.taxonomyTestBundle),
+        Some(TestData.emptyGrepBundle)
+      )
 
     val Some(actualArticle5) = articles.find(p => p.id == article5.id.get)
     val Some(actualArticle6) = articles.find(p => p.id == article6.id.get)
