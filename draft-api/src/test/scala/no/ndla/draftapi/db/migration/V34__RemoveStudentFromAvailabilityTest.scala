@@ -7,7 +7,6 @@
 
 package no.ndla.draftapi.db.migration
 
-import no.ndla.draftapi.db.migration.V34__RemoveStudentFromAvailability
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class V34__RemoveStudentFromAvailabilityTest extends UnitSuite with TestEnvironment {

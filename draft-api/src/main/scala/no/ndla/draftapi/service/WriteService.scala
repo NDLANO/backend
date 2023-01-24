@@ -17,7 +17,7 @@ import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, PROPOSAL, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -107,7 +107,7 @@ trait WriteService {
         case Some(article) =>
           for {
             newId <- draftRepository.newEmptyArticle()
-            status = common.Status(DRAFT, Set.empty)
+            status = common.Status(PLANNED, Set.empty)
             notes <- converterService.newNotes(
               Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
               userInfo,
@@ -530,7 +530,7 @@ trait WriteService {
         Success(convertedArticle)
       } else {
         val oldStatus            = existingArticle.status.current
-        val newStatusIfUndefined = if (oldStatus == PUBLISHED) PROPOSAL else oldStatus
+        val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
 
         updatedApiArticle.status
           .map(DraftStatus.valueOfOrError)
@@ -645,7 +645,7 @@ trait WriteService {
           oldNdlaUpdatedDate
         )
         articleWithStatus <- converterService
-          .updateStatus(DRAFT, convertedArticle, user, isImported = false)
+          .updateStatus(PLANNED, convertedArticle, user, isImported = false)
           .attempt
           .unsafeRunSync()
           .toTry

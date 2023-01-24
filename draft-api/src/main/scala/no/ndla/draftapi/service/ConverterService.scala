@@ -14,7 +14,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{RelatedContentLink, domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
-import no.ndla.common.model.domain.draft.DraftStatus.{DRAFT, IMPORTED}
+import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, IMPORTED}
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -53,8 +53,8 @@ trait ConverterService {
         .toSeq
 
       val status = externalIds match {
-        case Nil => common.Status(DRAFT, Set.empty)
-        case _   => common.Status(DRAFT, Set(IMPORTED))
+        case Nil => common.Status(PLANNED, Set.empty)
+        case _   => common.Status(PLANNED, Set(IMPORTED))
       }
 
       val newAvailability = common.Availability.valueOf(newArticle.availability).getOrElse(common.Availability.everyone)
@@ -729,8 +729,8 @@ trait ConverterService {
           Failure(new ValidationException(errors = Seq(error)))
         case Some(lang) =>
           val status =
-            if (isImported) common.Status(DRAFT, Set(IMPORTED))
-            else common.Status(DRAFT, Set.empty)
+            if (isImported) common.Status(PLANNED, Set(IMPORTED))
+            else common.Status(PLANNED, Set.empty)
 
           val mergedNotes = article.notes.map(n => newNotes(n, user, status)) match {
             case Some(Failure(ex))    => Failure(ex)

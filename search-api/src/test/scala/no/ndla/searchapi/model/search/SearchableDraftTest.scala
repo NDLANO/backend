@@ -87,7 +87,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
     val original = SearchableDraft(
       id = 100,
-      draftStatus = Status(DraftStatus.DRAFT.toString, Seq(DraftStatus.PROPOSAL.toString)),
+      draftStatus = Status(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
       title = titles,
       content = contents,
       visualElement = visualElements,

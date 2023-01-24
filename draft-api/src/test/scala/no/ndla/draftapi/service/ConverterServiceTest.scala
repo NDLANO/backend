@@ -11,22 +11,9 @@ import cats.effect.unsafe.implicits.global
 import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Availability,
-  Description,
-  EditorNote,
-  Introduction,
-  RequiredLibrary,
-  Status,
-  Tag,
-  Title,
-  VisualElement
-}
-import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
+import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -120,7 +107,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = None, title = Some("kakemonster"))
     val res =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -138,7 +125,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"), title = Some("kakemonster"))
     val Success(res) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set())),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -166,20 +153,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
     val articleId: Long = 1
     val article: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.DRAFT, Set()))
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
-    noTrans(DRAFT.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(IN_PROGRESS.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(EXTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(INTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(END_CONTROL.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
+    noTrans(FOR_APPROVAL.toString) should contain(DraftStatus.ARCHIVED.toString)
     noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should contain(DraftStatus.ARCHIVED.toString)
     noTrans(UNPUBLISHED.toString) should contain(DraftStatus.ARCHIVED.toString)
   }
 
@@ -192,17 +176,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
 
     noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(INTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(END_CONTROL.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED.toString)
+    noTrans(FOR_APPROVAL.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
   }
 
@@ -212,23 +193,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
-        status = Status(DraftStatus.DRAFT, Set(DraftStatus.PUBLISHED))
+        status = Status(DraftStatus.PLANNED, Set(DraftStatus.PUBLISHED))
       )
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
     noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(DRAFT.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(PROPOSAL.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(USER_TEST.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(AWAITING_QUALITY_ASSURANCE.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(QUALITY_ASSURED_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(TRANSLATED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(INTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(END_CONTROL.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED)
+    noTrans(FOR_APPROVAL.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(AWAITING_UNPUBLISHING.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
   }
 
@@ -238,18 +216,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     // format: off
     writeTrans(IMPORTED.toString).length should be(adminTrans(IMPORTED.toString).length)
-    writeTrans(DRAFT.toString).length should be < adminTrans(DRAFT.toString).length
-    writeTrans(PROPOSAL.toString).length should be < adminTrans(PROPOSAL.toString).length
-    writeTrans(USER_TEST.toString).length should be < adminTrans(USER_TEST.toString).length
-    writeTrans(AWAITING_QUALITY_ASSURANCE.toString).length should be < adminTrans(AWAITING_QUALITY_ASSURANCE.toString).length
-    writeTrans(QUALITY_ASSURED.toString).length should be < adminTrans(QUALITY_ASSURED.toString).length
-    writeTrans(QUALITY_ASSURED_DELAYED.toString).length should be < adminTrans(QUALITY_ASSURED_DELAYED.toString).length
-    writeTrans(QUEUED_FOR_PUBLISHING.toString).length should be < adminTrans(QUEUED_FOR_PUBLISHING.toString).length
-    writeTrans(QUEUED_FOR_LANGUAGE.toString).length should be < adminTrans(QUEUED_FOR_LANGUAGE.toString).length
-    writeTrans(TRANSLATED.toString).length should be < adminTrans(TRANSLATED.toString).length
-    writeTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString).length should be < adminTrans(QUEUED_FOR_PUBLISHING_DELAYED.toString).length
+    writeTrans(PLANNED.toString).length should be(adminTrans(PLANNED.toString).length)
+    writeTrans(IN_PROGRESS.toString).length should be < adminTrans(IN_PROGRESS.toString).length
+    writeTrans(EXTERNAL_REVIEW.toString).length should be < adminTrans(EXTERNAL_REVIEW.toString).length
+    writeTrans(INTERNAL_REVIEW.toString).length should be < adminTrans(INTERNAL_REVIEW.toString).length
+    writeTrans(END_CONTROL.toString).length should be < adminTrans(END_CONTROL.toString).length
+    writeTrans(LANGUAGE.toString).length should be < adminTrans(LANGUAGE.toString).length
+    writeTrans(FOR_APPROVAL.toString).length should be < adminTrans(FOR_APPROVAL.toString).length
     writeTrans(PUBLISHED.toString).length should be < adminTrans(PUBLISHED.toString).length
-    writeTrans(AWAITING_UNPUBLISHING.toString).length should be < adminTrans(AWAITING_UNPUBLISHING.toString).length
     writeTrans(UNPUBLISHED.toString).length should be < adminTrans(UNPUBLISHED.toString).length
     // format: on
   }
@@ -261,22 +235,22 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should have transitions in inserted order") {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    adminTrans(QUEUED_FOR_LANGUAGE.toString) should be(
+    adminTrans(LANGUAGE.toString) should be(
       Seq(
-        DRAFT.toString,
-        PROPOSAL.toString,
-        QUEUED_FOR_LANGUAGE.toString,
-        TRANSLATED.toString,
-        ARCHIVED.toString,
-        PUBLISHED.toString
+        IN_PROGRESS.toString,
+        INTERNAL_REVIEW.toString,
+        LANGUAGE.toString,
+        FOR_APPROVAL.toString,
+        PUBLISHED.toString,
+        ARCHIVED.toString
       )
     )
-    adminTrans(TRANSLATED.toString) should be(
+    adminTrans(FOR_APPROVAL.toString) should be(
       Seq(
-        PROPOSAL.toString,
-        TRANSLATED.toString,
-        AWAITING_QUALITY_ASSURANCE.toString,
-        QUALITY_ASSURED.toString,
+        IN_PROGRESS.toString,
+        INTERNAL_REVIEW.toString,
+        FOR_APPROVAL.toString,
+        END_CONTROL.toString,
         PUBLISHED.toString,
         ARCHIVED.toString
       )
@@ -285,7 +259,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("newNotes should fail if empty strings are recieved") {
     service
-      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(DraftStatus.PROPOSAL, Set.empty))
+      .newNotes(Seq("", "jonas"), UserInfo.apply("Kari"), Status(DraftStatus.IN_PROGRESS, Set.empty))
       .isFailure should be(true)
   }
 
@@ -513,10 +487,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       title = Some("kakemonster"),
       notes = Some(Seq("fleibede"))
     )
-    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -525,7 +499,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithoutNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -534,7 +508,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -543,7 +517,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res4) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = Seq.empty),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithNotes,
         isImported = false,
         TestData.userWithWriteAccess,
@@ -559,7 +533,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should not be able to go to ARCHIVED if published") {
-    val status  = Status(DraftStatus.DRAFT, other = Set(DraftStatus.PUBLISHED))
+    val status  = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
     val article = TestData.sampleDomainArticle.copy(status = status)
     val Failure(res: IllegalStatusStateTransition) =
       service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false).unsafeRunSync()
@@ -572,10 +546,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"))
     val updatedArticleWithNotes =
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"), notes = Some(Seq("fleibede")))
-    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
     val Success(res1) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -584,7 +558,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res2) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("nb")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -593,7 +567,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val Success(res3) =
       service.toDomainArticle(
-        TestData.sampleDomainArticle.copy(status = Status(DRAFT, Set()), notes = existingNotes),
+        TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes.copy(language = Some("sna")),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -954,14 +928,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticleWithNotes =
       TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"), notes = Some(Seq("fleibede")))
 
-    val existingNotes = Seq(EditorNote("swoop", "", Status(DRAFT, Set()), TestData.today))
+    val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
 
     val existingRepsonsible = DraftResponsible("oldId", TestData.today.minusDays(1))
 
     val Success(res1) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
-          .copy(status = Status(DRAFT, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -972,7 +946,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
-          .copy(status = Status(DRAFT, Set()), notes = existingNotes, responsible = None),
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = None),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
         isImported = false,
         TestData.userWithWriteAccess,
@@ -982,7 +956,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
-          .copy(status = Status(DRAFT, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
+          .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb")),
         isImported = false,
         TestData.userWithWriteAccess,

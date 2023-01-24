@@ -96,7 +96,8 @@ trait DBConcept {
 }
 
 object ConceptStatus extends Enumeration {
-  val DRAFT, PUBLISHED, QUALITY_ASSURED, QUEUED_FOR_LANGUAGE, TRANSLATED, UNPUBLISHED, ARCHIVED = Value
+  val IN_PROGRESS, EXTERNAL_REVIEW, INTERNAL_REVIEW, QUALITY_ASSURANCE, LANGUAGE, FOR_APPROVAL, END_CONTROL, PUBLISHED,
+      UNPUBLISHED, ARCHIVED = Value
 
   def valueOfOrError(s: String): Try[ConceptStatus.Value] =
     valueOf(s) match {

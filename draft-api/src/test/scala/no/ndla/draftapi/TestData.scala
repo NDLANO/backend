@@ -68,7 +68,7 @@ object TestData {
     id = 1,
     oldNdlaUrl = None,
     revision = 1,
-    status = api.Status(DRAFT.toString, Seq.empty),
+    status = api.Status(PLANNED.toString, Seq.empty),
     title = Some(api.ArticleTitle("title", "nb")),
     content = Some(api.ArticleContent("this is content", "nb")),
     copyright = Some(
@@ -172,7 +172,7 @@ object TestData {
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    api.Status(DRAFT.toString, Seq.empty),
+    api.Status(PLANNED.toString, Seq.empty),
     Some(api.ArticleTitle("title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
@@ -220,7 +220,7 @@ object TestData {
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    api.Status(USER_TEST.toString, Seq.empty),
+    api.Status(EXTERNAL_REVIEW.toString, Seq.empty),
     Some(api.ArticleTitle("title", "nb")),
     Some(api.ArticleContent("content", "nb")),
     Some(
@@ -267,7 +267,7 @@ object TestData {
   val sampleTopicArticle: Draft = Draft(
     Option(1),
     Option(1),
-    common.Status(DRAFT, Set.empty),
+    common.Status(PLANNED, Set.empty),
     Seq(common.Title("test", "en")),
     Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
@@ -297,7 +297,7 @@ object TestData {
   val sampleArticleWithPublicDomain: Draft = Draft(
     Option(1),
     Option(1),
-    common.Status(DRAFT, Set.empty),
+    common.Status(PLANNED, Set.empty),
     Seq(common.Title("test", "en")),
     Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
     Some(publicDomainCopyright),
@@ -327,7 +327,7 @@ object TestData {
   val sampleDomainArticle: Draft = Draft(
     Option(articleId),
     Option(2),
-    common.Status(DRAFT, Set.empty),
+    common.Status(PLANNED, Set.empty),
     Seq(common.Title("title", "nb")),
     Seq(common.ArticleContent("content", "nb")),
     Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
@@ -397,7 +397,7 @@ object TestData {
   val sampleDomainArticleWithHtmlFault: Draft = Draft(
     Option(articleId),
     Option(2),
-    common.Status(DRAFT, Set.empty),
+    common.Status(PLANNED, Set.empty),
     Seq(common.Title("test", "en")),
     Seq(
       common.ArticleContent(
@@ -437,7 +437,7 @@ object TestData {
     1,
     None,
     1,
-    api.Status(DRAFT.toString, Seq.empty),
+    api.Status(PLANNED.toString, Seq.empty),
     Some(api.ArticleTitle("test", "en")),
     Some(
       api.ArticleContent(
@@ -543,13 +543,12 @@ object TestData {
       None
     )
   )
-  val statusWithAwaitingPublishing                 = Set(DRAFT, QUEUED_FOR_PUBLISHING)
-  val statusWithPublished: common.Status           = common.Status(PUBLISHED, Set.empty)
-  val statusWithDraft: common.Status               = common.Status(DRAFT, Set.empty)
-  val statusWithProposal: common.Status            = common.Status(PROPOSAL, Set.empty)
-  val statusWithUserTest: common.Status            = common.Status(USER_TEST, Set.empty)
-  val statusWithAwaitingQA: common.Status          = common.Status(AWAITING_QUALITY_ASSURANCE, Set.empty)
-  val statusWithQueuedForPublishing: common.Status = common.Status(QUEUED_FOR_PUBLISHING, Set.empty)
+  val statusWithPublished: common.Status      = common.Status(PUBLISHED, Set.empty)
+  val statusWithPlanned: common.Status        = common.Status(PLANNED, Set.empty)
+  val statusWithInProcess: common.Status      = common.Status(IN_PROGRESS, Set.empty)
+  val statusWithExternalReview: common.Status = common.Status(EXTERNAL_REVIEW, Set.empty)
+  val statusWithInternalReview: common.Status = common.Status(INTERNAL_REVIEW, Set.empty)
+  val statusWithEndControl: common.Status     = common.Status(END_CONTROL, Set.empty)
 
   val sampleLearningPath: LearningPath = LearningPath(1, Title("Title", "nb"))
 

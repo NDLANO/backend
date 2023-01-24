@@ -29,7 +29,7 @@ case class UpdatedArticle(
     @(ApiModelProperty @field)(description = "A visual element for the article. May be anything from an image to a video or H5P") visualElement: Option[String],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Option[Copyright],
     @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Option[Seq[RequiredLibrary]],
-    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: Option[String],
+    @(ApiModelProperty @field)(description = "The type of article this is. Possible values are frontpage-article, standard, topic-article") articleType: Option[String],
     @(ApiModelProperty @field)(description = "The notes for this article draft") notes: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "The labels attached to this article; meant for editors.") editorLabels: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
