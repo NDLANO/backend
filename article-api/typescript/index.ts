@@ -100,6 +100,7 @@ export interface IArticleV2 {
   availability: string
   relatedContent: (IRelatedContentLink | number)[]
   revisionDate?: string
+  slug?: string
 }
 
 export interface IAuthor {
