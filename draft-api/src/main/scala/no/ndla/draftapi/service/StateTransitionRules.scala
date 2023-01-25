@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
-import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
+import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles, WriteRoles}
 import no.ndla.draftapi.integration.{
   ArticleApiClient,
   ConceptApiClient,
@@ -109,6 +109,16 @@ trait StateTransitionRules {
       }
     })
 
+    private val articleHasBeenPublished: Option[IgnoreFunction] = Some((maybeArticle, transition) => {
+      maybeArticle match {
+        case None => false
+        case Some(art) =>
+          val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
+          val isFromPublishedTransition = transition.from == PUBLISHED
+          hasBeenPublished || isFromPublishedTransition
+      }
+    })
+
     import StateTransition._
 
     // format: off
@@ -122,6 +132,8 @@ trait StateTransitionRules {
        IN_PROGRESS           -> IN_PROGRESS,
       (IN_PROGRESS           -> EXTERNAL_REVIEW)       keepCurrentOnTransition,
       (IN_PROGRESS           -> INTERNAL_REVIEW)       keepCurrentOnTransition,
+      (IN_PROGRESS           -> QUALITY_ASSURANCE)     .require(WriteRoles, articleHasBeenPublished) keepStates Set(IMPORTED, PUBLISHED),
+      (IN_PROGRESS           -> LANGUAGE)              .require(WriteRoles, articleHasBeenPublished) keepStates Set(IMPORTED, PUBLISHED),
       (IN_PROGRESS           -> PUBLISHED)             keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect publishWithSoftValidation,
       (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) keepStates Set(IMPORTED) illegalStatuses Set(PUBLISHED),
        EXTERNAL_REVIEW       -> IN_PROGRESS            keepStates Set(IMPORTED, PUBLISHED),
