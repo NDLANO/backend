@@ -109,6 +109,9 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a folder works as expected") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder3 = repository.insertFolder("feide", TestData.baseFolderDocument)
@@ -161,7 +164,8 @@ class FolderRepositoryTest
       rank = None,
       resources = List.empty,
       subfolders = List.empty,
-      created = created
+      created = created,
+      updated = created
     )
     val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED)
 
@@ -294,7 +298,8 @@ class FolderRepositoryTest
         resources = List.empty,
         subfolders = List.empty,
         rank = None,
-        created = clock.now()
+        created = clock.now(),
+        updated = clock.now()
       )
 
     val mainParent = base.copy(
@@ -335,6 +340,9 @@ class FolderRepositoryTest
   }
 
   test("inserting and fetching nested folders with resources works as expected") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val base =
       domain.Folder(
         id = UUID.randomUUID(),
@@ -345,7 +353,8 @@ class FolderRepositoryTest
         subfolders = List.empty,
         resources = List.empty,
         rank = None,
-        created = clock.now()
+        created = created,
+        updated = created
       )
 
     val baseNewFolderData = domain.NewFolderData(
@@ -492,6 +501,9 @@ class FolderRepositoryTest
   }
 
   test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val base =
       domain.Folder(
         id = UUID.randomUUID(),
@@ -502,7 +514,8 @@ class FolderRepositoryTest
         subfolders = List.empty,
         resources = List.empty,
         rank = None,
-        created = clock.now()
+        created = created,
+        updated = created
       )
 
     val baseNewFolderData = domain.NewFolderData(

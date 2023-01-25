@@ -57,10 +57,11 @@ trait FolderRepository {
       Try {
         val newId   = UUID.randomUUID()
         val created = clock.now()
+        val updated = created
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created)
-        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created)
+        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated)
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated)
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
@@ -69,7 +70,8 @@ trait FolderRepository {
           feideId = feideId,
           resources = List.empty,
           subfolders = List.empty,
-          created = created
+          created = created,
+          updated = updated
         )
       }
 
@@ -346,11 +348,11 @@ trait FolderRepository {
     ): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
                 $sqlFilterClause
@@ -373,11 +375,11 @@ trait FolderRepository {
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id, parent_id, feide_id, name, status, rank, created
+                SELECT parent.*
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id, child.parent_id, child.feide_id, child.name, child.status, child.rank, child.created
+                SELECT child.*
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.id = child.parent_id
             )

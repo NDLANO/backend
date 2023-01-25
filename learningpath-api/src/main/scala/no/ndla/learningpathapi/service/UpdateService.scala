@@ -815,7 +815,7 @@ trait UpdateService {
             val newRank = idx + 1
             val found   = rankables.find(_.sortId == id)
             found match {
-              case Some(Folder(folderId, _, _, _, _, _, _, _, _)) =>
+              case Some(Folder(folderId, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
               case Some(FolderResource(folderId, resourceId, _)) =>
                 folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)

@@ -133,7 +133,8 @@ object TestData {
     subfolders = List.empty,
     resources = List.empty,
     rank = None,
-    created = today
+    created = today,
+    updated = today
   )
 
   val baseFolderDocument: NewFolderData = NewFolderData(
@@ -157,7 +158,8 @@ object TestData {
     breadcrumbs = List.empty,
     parentId = None,
     rank = None,
-    created = today
+    created = today,
+    updated = today
   )
 
   val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(

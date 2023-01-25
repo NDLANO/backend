@@ -537,7 +537,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List(resource),
       subfolders = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -548,7 +549,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -559,7 +561,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List(folderData1),
       resources = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -570,7 +573,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List(folderData2, folderData3),
       resources = List(resource),
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
@@ -594,7 +598,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(subFolder3UUID.toString),
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -608,7 +613,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -622,7 +628,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = Some(mainFolderUUID.toString),
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -635,7 +642,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       ),
       parentId = None,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
 
     val Success(result) =
@@ -656,7 +664,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      created = clock.now()
+      created = clock.now(),
+      updated = clock.now()
     )
     val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("shared"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)

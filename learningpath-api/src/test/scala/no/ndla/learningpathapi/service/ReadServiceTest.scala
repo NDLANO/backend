@@ -343,7 +343,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
 
     val subFolder1 = domain.Folder(
@@ -355,7 +356,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
 
     val subFolder2 = domain.Folder(
@@ -367,7 +369,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       resources = List.empty,
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
 
     val resource1 = domain.Resource(
@@ -411,7 +414,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = None,
-          created = created
+          created = created,
+          updated = created
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -425,11 +429,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           ),
           parentId = Some(mainFolderUUID.toString),
           rank = None,
-          created = created
+          created = created,
+          updated = created
         )
       ),
       rank = None,
-      created = created
+      created = created,
+      updated = created
     )
 
     val whgaterh = mainFolder.copy(

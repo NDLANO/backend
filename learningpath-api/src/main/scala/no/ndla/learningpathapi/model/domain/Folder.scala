@@ -29,7 +29,8 @@ case class NewFolderData(
       feideId: FeideID,
       resources: List[Resource],
       subfolders: List[Folder],
-      created: LocalDateTime
+      created: LocalDateTime,
+      updated: LocalDateTime
   ): Folder = {
     Folder(
       id = id,
@@ -40,7 +41,8 @@ case class NewFolderData(
       resources = resources,
       subfolders = subfolders,
       rank = rank,
-      created = created
+      created = created,
+      updated = updated
     )
   }
 }
@@ -53,6 +55,7 @@ case class Folder(
     status: FolderStatus.Value,
     rank: Option[Int],
     created: LocalDateTime,
+    updated: LocalDateTime,
     resources: List[Resource],
     subfolders: List[Folder]
 ) extends FeideContent
@@ -97,6 +100,7 @@ trait DBFolder {
       val status   = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
       val rank     = rs.intOpt(colNameWrapper("rank"))
       val created  = rs.localDateTime(colNameWrapper("created"))
+      val updated  = rs.localDateTime(colNameWrapper("updated"))
 
       for {
         id     <- id
@@ -110,7 +114,8 @@ trait DBFolder {
         resources = List.empty,
         subfolders = List.empty,
         rank = rank,
-        created = created
+        created = created,
+        updated = updated
       )
     }
   }
