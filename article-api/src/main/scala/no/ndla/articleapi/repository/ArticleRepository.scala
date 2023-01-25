@@ -118,14 +118,14 @@ trait ArticleRepository {
       }
     }
 
-    def withSlug(slug: String): Option[ArticleRow] = articleWhere(sqls"ar.slug=$slug")
+    def withSlug(slug: String): Option[ArticleRow] = articleWhere(sqls"ar.slug=$slug ORDER BY revision DESC LIMIT 1")
 
     def withId(articleId: Long): Option[ArticleRow] =
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
-              ORDER BY revision
-              DESC LIMIT 1
+              ORDER BY revision DESC
+              LIMIT 1
               """
       )
 
