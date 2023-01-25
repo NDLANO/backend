@@ -269,4 +269,20 @@ class ArticleRepositoryTest
     resultAfter.size should be(0)
   }
 
+  test("That fetching with slugs works as expected with revisions") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val articleId = 110
+    val article   = TestData.sampleDomainArticle.copy(id = Some(articleId), slug = Some("Detti-er-ein-slug"))
+
+    val article1 = article.copy(revision = 1.some)
+    val article2 = article.copy(revision = 2.some)
+    val article3 = article.copy(revision = 3.some)
+
+    repository.updateArticleFromDraftApi(article1, List.empty).get
+    repository.updateArticleFromDraftApi(article2, List.empty).get
+    repository.updateArticleFromDraftApi(article3, List.empty).get
+
+    repository.withSlug("Detti-er-ein-slug").get.article.get should be(article3)
+  }
+
 }
