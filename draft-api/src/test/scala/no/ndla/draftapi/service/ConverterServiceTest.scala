@@ -240,6 +240,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         IN_PROGRESS.toString,
         INTERNAL_REVIEW.toString,
         LANGUAGE.toString,
+        QUALITY_ASSURANCE.toString,
         FOR_APPROVAL.toString,
         PUBLISHED.toString,
         ARCHIVED.toString
@@ -249,6 +250,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Seq(
         IN_PROGRESS.toString,
         INTERNAL_REVIEW.toString,
+        LANGUAGE.toString,
         FOR_APPROVAL.toString,
         END_CONTROL.toString,
         PUBLISHED.toString,
