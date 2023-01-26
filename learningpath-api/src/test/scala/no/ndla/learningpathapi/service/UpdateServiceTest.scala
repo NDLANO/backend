@@ -23,6 +23,7 @@ import no.ndla.learningpathapi.model.api.{
   NewLearningPathV2,
   NewLearningStepV2,
   NewResource,
+  UpdatedFolder,
   UpdatedLearningPathV2,
   UpdatedLearningStepV2
 }
@@ -2256,5 +2257,51 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)
+  }
+
+  test("that isOperationAllowedOrAccessDenied denies access if user is student and wants to share a folder") {
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+
+    val updatedFolder   = UpdatedFolder(name = None, status = Some("shared"))
+    val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
+    result.getMessage should be("You do not have necessary permissions to share folders.")
+  }
+
+  test(
+    "that isOperationAllowedOrAccessDenied denies access if user is student and wants to update a folder during exam"
+  ) {
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(readService.isMyNDLAWriteRestricted).thenReturn(true)
+
+    val updatedFolder   = UpdatedFolder(name = Some("asd"), status = None)
+    val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
+    result.getMessage should be("You do not have write access while write restriction is active.")
+  }
+
+  test("that isOperationAllowedOrAccessDenied allows student to update a folder outside of the examination time") {
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(readService.isMyNDLAWriteRestricted).thenReturn(false)
+
+    val updatedFolder = UpdatedFolder(name = Some("asd"), status = None)
+    val result        = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
+    result.isSuccess should be(true)
+  }
+
+  test(
+    "that isOperationAllowedOrAccessDenied allows teacher to cut the cake and eat it too"
+  ) {
+    val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.TEACHER)
+    when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(readService.isMyNDLAWriteRestricted).thenReturn(true)
+
+    val folderWithUpdatedName   = UpdatedFolder(name = Some("asd"), status = None)
+    val folderWithUpdatedStatus = UpdatedFolder(name = None, status = Some("shared"))
+    val result1 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedName)
+    val result2 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedStatus)
+    result1.isSuccess should be(true)
+    result2.isSuccess should be(true)
   }
 }

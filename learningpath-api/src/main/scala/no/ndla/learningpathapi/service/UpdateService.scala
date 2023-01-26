@@ -446,15 +446,40 @@ trait UpdateService {
       }
     }
 
+    private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[domain.MyNDLAUser] = {
+      readService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+    }
+
     private[service] def canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(
         feideId: FeideID,
         feideAccessToken: Option[FeideAccessToken]
     ): Try[_] = {
-      readService
-        .getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(AutoSession)
+      getMyNDLAUser(feideId, feideAccessToken)
         .flatMap(myNDLAUser => {
           if (canWriteNow(myNDLAUser)) Success(())
           else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        })
+    }
+
+    private[service] def isOperationAllowedOrAccessDenied(
+        feideId: FeideID,
+        feideAccessToken: Option[FeideAccessToken],
+        updatedFolder: UpdatedFolder
+    ): Try[_] = {
+      getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
+        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
+          Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+        else if (!canWriteNow(myNDLAUser))
+          Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        else Success(())
+      })
+    }
+
+    private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[_] = {
+      getMyNDLAUser(feideId, feideAccessToken)
+        .flatMap(myNDLAUser => {
+          if (myNDLAUser.isTeacher) Success(())
+          else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
         })
     }
 
@@ -671,7 +696,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId        <- feideApiClient.getFeideID(feideAccessToken)
-        _              <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _              <- isOperationAllowedOrAccessDenied(feideId, feideAccessToken, updatedFolder)
         existingFolder <- folderRepository.folderWithId(id)
         _              <- existingFolder.isOwner(feideId)
         converted      <- Try(converterService.mergeFolder(existingFolder, updatedFolder))
@@ -877,7 +902,7 @@ trait UpdateService {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
         feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
         folder     <- folderRepository.folderWithId(folderId)
         _          <- folder.isOwner(feideId)
         ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
