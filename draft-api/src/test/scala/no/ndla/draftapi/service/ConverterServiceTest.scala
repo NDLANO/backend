@@ -187,6 +187,24 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
   }
 
+  test("stateTransitionsToApi should filter some transitions based on publishing status") {
+    val articleId: Long = 1
+    val unpublished: Draft =
+      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
+    when(draftRepository.withId(articleId)).thenReturn(Some(unpublished))
+    val Success(transOne) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    transOne(IN_PROGRESS.toString) should not contain (DraftStatus.LANGUAGE.toString)
+
+    val published: Draft =
+      TestData.sampleArticleWithPublicDomain.copy(
+        id = Some(articleId),
+        status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED))
+      )
+    when(draftRepository.withId(articleId)).thenReturn(Some(published))
+    val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
+  }
+
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
 
     val articleId = 1
