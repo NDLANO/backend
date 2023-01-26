@@ -10,21 +10,13 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.auth.UserInfo
+import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
+import no.ndla.draftapi.integration._
 import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
-import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles, WriteRoles}
-import no.ndla.draftapi.integration.{
-  ArticleApiClient,
-  ConceptApiClient,
-  H5PApiClient,
-  LearningPath,
-  LearningpathApiClient,
-  SearchApiClient,
-  TaxonomyApiClient
-}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.SideEffect.SideEffect
