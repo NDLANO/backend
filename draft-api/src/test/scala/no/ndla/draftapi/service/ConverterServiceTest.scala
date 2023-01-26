@@ -256,9 +256,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     adminTrans(LANGUAGE.toString) should be(
       Seq(
         IN_PROGRESS.toString,
-        INTERNAL_REVIEW.toString,
-        LANGUAGE.toString,
         QUALITY_ASSURANCE.toString,
+        LANGUAGE.toString,
         FOR_APPROVAL.toString,
         PUBLISHED.toString,
         ARCHIVED.toString
@@ -267,7 +266,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     adminTrans(FOR_APPROVAL.toString) should be(
       Seq(
         IN_PROGRESS.toString,
-        INTERNAL_REVIEW.toString,
         LANGUAGE.toString,
         FOR_APPROVAL.toString,
         END_CONTROL.toString,
