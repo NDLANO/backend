@@ -1917,7 +1917,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val apiFolder = api.Folder(
       id = folderId.toString,
@@ -1929,7 +1930,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1968,7 +1970,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -1980,7 +1983,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2023,7 +2027,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -2035,7 +2040,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2079,7 +2085,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
     val siblingFolder = domain.Folder(
@@ -2092,7 +2099,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val expectedFolder = api.Folder(
       id = folderId.toString,
@@ -2104,7 +2112,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 

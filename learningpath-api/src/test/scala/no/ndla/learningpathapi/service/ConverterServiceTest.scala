@@ -486,6 +486,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toNewFolderData transforms correctly") {
+    val lastShared = LocalDateTime.now()
+    when(clock.now()).thenReturn(lastShared)
+
     val folderUUID = UUID.randomUUID()
     val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
     val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("shared"))
@@ -496,12 +499,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(folderUUID),
       name = "kenkaku",
       status = domain.FolderStatus.PRIVATE,
-      rank = None
+      rank = None,
+      lastShared = None
     )
 
     service.toNewFolderData(newFolder1, Some(folderUUID), None).get should be(expected1)
     service.toNewFolderData(newFolder2, Some(folderUUID), None).get should be(
-      expected1.copy(status = domain.FolderStatus.SHARED)
+      expected1.copy(status = domain.FolderStatus.SHARED, lastShared = Some(lastShared))
     )
     service.toNewFolderData(newFolder3, Some(folderUUID), None).get should be(
       expected1.copy(status = domain.FolderStatus.PRIVATE)
@@ -538,7 +542,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       subfolders = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -550,7 +555,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -562,7 +568,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -574,7 +581,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List(resource),
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
@@ -599,7 +607,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(subFolder3UUID.toString),
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -614,7 +623,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(mainFolderUUID.toString),
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -629,7 +639,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(mainFolderUUID.toString),
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -643,7 +654,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = None,
       rank = None,
       created = created,
-      updated = created
+      updated = created,
+      lastShared = None
     )
 
     val Success(result) =
@@ -652,6 +664,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("updateFolder updates folder correctly") {
+    val lastShared = LocalDateTime.now()
+    when(clock.now()).thenReturn(lastShared)
+
     val folderUUID = UUID.randomUUID()
     val parentUUID = UUID.randomUUID()
 
@@ -665,14 +680,15 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       resources = List.empty,
       rank = None,
       created = clock.now(),
-      updated = clock.now()
+      updated = clock.now(),
+      lastShared = None
     )
     val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("shared"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
     val updatedWithGarbageData =
       api.UpdatedFolder(name = Some("huehueuheasdasd+++"), status = Some("det å joike er noe kult"))
 
-    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.SHARED)
+    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.SHARED, lastShared = Some(lastShared))
     val expected2 = existing.copy(name = "folderData1", status = FolderStatus.PRIVATE)
     val expected3 = existing.copy(name = "huehueuheasdasd+++", status = FolderStatus.PRIVATE)
 
