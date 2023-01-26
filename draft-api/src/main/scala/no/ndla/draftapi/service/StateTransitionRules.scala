@@ -10,21 +10,13 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.auth.UserInfo
-import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.auth.UserInfo.{DirectPublishRoles, PublishRoles}
-import no.ndla.draftapi.integration.{
-  ArticleApiClient,
-  ConceptApiClient,
-  H5PApiClient,
-  LearningPath,
-  LearningpathApiClient,
-  SearchApiClient,
-  TaxonomyApiClient
-}
+import no.ndla.draftapi.integration._
+import no.ndla.draftapi.model.api.{ErrorHelpers, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.SideEffect.SideEffect
@@ -109,6 +101,16 @@ trait StateTransitionRules {
       }
     })
 
+    private val articleHasBeenPublished: Option[IgnoreFunction] = Some((maybeArticle, transition) => {
+      maybeArticle match {
+        case None => false
+        case Some(art) =>
+          val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
+          val isFromPublishedTransition = transition.from == PUBLISHED
+          hasBeenPublished || isFromPublishedTransition
+      }
+    })
+
     import StateTransition._
 
     // format: off
@@ -122,6 +124,8 @@ trait StateTransitionRules {
        IN_PROGRESS           -> IN_PROGRESS,
       (IN_PROGRESS           -> EXTERNAL_REVIEW)       keepCurrentOnTransition,
       (IN_PROGRESS           -> INTERNAL_REVIEW)       keepCurrentOnTransition,
+      (IN_PROGRESS           -> QUALITY_ASSURANCE)     .require(PublishRoles, articleHasBeenPublished) keepStates Set(IMPORTED, PUBLISHED),
+      (IN_PROGRESS           -> LANGUAGE)              .require(PublishRoles, articleHasBeenPublished) keepStates Set(IMPORTED, PUBLISHED),
       (IN_PROGRESS           -> PUBLISHED)             keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect publishWithSoftValidation,
       (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) keepStates Set(IMPORTED) illegalStatuses Set(PUBLISHED),
        EXTERNAL_REVIEW       -> IN_PROGRESS            keepStates Set(IMPORTED, PUBLISHED),
@@ -138,22 +142,23 @@ trait StateTransitionRules {
       (QUALITY_ASSURANCE     -> IN_PROGRESS)           keepStates Set(IMPORTED, PUBLISHED),
       (QUALITY_ASSURANCE     -> INTERNAL_REVIEW)       keepStates Set(IMPORTED, PUBLISHED),
        QUALITY_ASSURANCE     -> QUALITY_ASSURANCE,
-      (QUALITY_ASSURANCE     -> LANGUAGE)              keepStates Set(IMPORTED, PUBLISHED),
+      (QUALITY_ASSURANCE     -> LANGUAGE)              keepStates Set(IMPORTED, PUBLISHED) require DirectPublishRoles,
       (QUALITY_ASSURANCE     -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) keepStates Set(IMPORTED) illegalStatuses Set(PUBLISHED),
       (QUALITY_ASSURANCE     -> PUBLISHED)             keepStates Set(IMPORTED) require PublishRoles withSideEffect publishArticle,
        LANGUAGE              -> IN_PROGRESS,
-      (LANGUAGE              -> INTERNAL_REVIEW)       keepCurrentOnTransition,
+      (LANGUAGE              -> QUALITY_ASSURANCE)     keepCurrentOnTransition,
        LANGUAGE              -> LANGUAGE,
-       LANGUAGE              -> FOR_APPROVAL,
+      (LANGUAGE              -> FOR_APPROVAL)          keepStates Set(IMPORTED, PUBLISHED) require DirectPublishRoles,
       (LANGUAGE              -> PUBLISHED)             keepStates Set(IMPORTED) require PublishRoles withSideEffect publishArticle,
       (LANGUAGE              -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) keepStates Set(IMPORTED) illegalStatuses Set(PUBLISHED),
       (FOR_APPROVAL          -> IN_PROGRESS)           keepStates Set(IMPORTED, PUBLISHED),
-      (FOR_APPROVAL          -> INTERNAL_REVIEW)       keepStates Set(IMPORTED, PUBLISHED),
+      (FOR_APPROVAL          -> LANGUAGE)              keepStates Set(IMPORTED, PUBLISHED),
        FOR_APPROVAL          -> FOR_APPROVAL,
       (FOR_APPROVAL          -> END_CONTROL)           keepStates Set(IMPORTED, PUBLISHED) withSideEffect validateArticleApiArticle,
       (FOR_APPROVAL          -> PUBLISHED)             keepStates Set(IMPORTED) require PublishRoles withSideEffect publishArticle,
       (FOR_APPROVAL          -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) keepStates Set(IMPORTED) illegalStatuses Set(PUBLISHED),
       (END_CONTROL           -> IN_PROGRESS)           keepStates Set(IMPORTED, PUBLISHED),
+      (END_CONTROL           -> FOR_APPROVAL)          keepStates Set(IMPORTED, PUBLISHED),
       (END_CONTROL           -> END_CONTROL)           withSideEffect validateArticleApiArticle,
       (END_CONTROL           -> PUBLISH_DELAYED)       keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect validateArticleApiArticle,
       (END_CONTROL           -> PUBLISHED)             keepStates Set(IMPORTED) require DirectPublishRoles withSideEffect publishArticle,
