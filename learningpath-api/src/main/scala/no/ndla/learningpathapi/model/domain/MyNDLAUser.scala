@@ -60,6 +60,7 @@ case class MyNDLAUser(
   // Keeping FEIDE and our data in sync
   def wasUpdatedLast24h: Boolean = LocalDateTime.now().isBefore(lastUpdated.minusSeconds(10))
 
+  def isStudent: Boolean = userRole == UserRole.STUDENT
   def isTeacher: Boolean = userRole == UserRole.TEACHER
 }
 

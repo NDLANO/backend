@@ -297,6 +297,7 @@ trait FolderController {
           .summary("Change status for given folder and all its subfolders")
           .description("Change status for given folder and all its subfolders")
           .parameters(
+            asHeaderParam(feideToken),
             asPathParam(folderId),
             asQueryParam(folderStatus)
           )
