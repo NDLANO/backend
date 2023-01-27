@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.{api => commonApi}
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{Description, Author, Availability, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
@@ -242,8 +243,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         metaDescription = Some(Seq(api.ArticleMetaDescription("nyDesc", "nb"))),
         relatedContent = Some(
           Seq(
-            Left(api.RelatedContentLink("New Title", "New Url")),
-            Left(api.RelatedContentLink("Newer Title", "Newer Url")),
+            Left(commonApi.RelatedContentLink("New Title", "New Url")),
+            Left(commonApi.RelatedContentLink("Newer Title", "Newer Url")),
             Right(42L)
           )
         ),
