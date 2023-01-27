@@ -100,9 +100,10 @@ trait ContentValidator {
     def validateArticleApiArticle(id: Long, importValidate: Boolean): Try[ContentId] = {
       draftRepository.withId(id) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
-        case Some(art) =>
-          articleApiClient
-            .validateArticle(converterService.toArticleApiArticle(art), importValidate)
+        case Some(draft) =>
+          converterService
+            .toArticleApiArticle(draft)
+            .flatMap(article => articleApiClient.validateArticle(article, importValidate))
             .map(_ => ContentId(id))
       }
     }
@@ -118,7 +119,7 @@ trait ContentValidator {
         case Some(existing) =>
           converterService
             .toDomainArticle(existing, updatedArticle, isImported = false, user, None, None)
-            .map(converterService.toArticleApiArticle)
+            .flatMap(converterService.toArticleApiArticle)
             .flatMap(articleApiClient.validateArticle(_, importValidate))
             .map(_ => ContentId(id))
       }

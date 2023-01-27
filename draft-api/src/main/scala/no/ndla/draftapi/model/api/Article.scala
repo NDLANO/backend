@@ -7,8 +7,11 @@
 
 package no.ndla.draftapi.model.api
 
+import no.ndla.common.model.api.RelatedContent
+
 import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 
 // format: off

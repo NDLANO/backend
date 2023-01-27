@@ -13,14 +13,12 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
-import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
@@ -375,7 +373,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         )
         .unsafeRunSync()
     )
-    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[api.ArticleApiArticle], any[Boolean])
+    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[common.article.Article], any[Boolean])
   }
 
   test("publishArticle should call h5p api") {

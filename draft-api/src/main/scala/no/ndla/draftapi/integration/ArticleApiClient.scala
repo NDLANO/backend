@@ -8,8 +8,9 @@
 package no.ndla.draftapi.integration
 
 import cats.implicits._
+import enumeratum.Json4s
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
@@ -36,7 +37,9 @@ trait ArticleApiClient {
     private val deleteTimeout    = 1000 * 10 // 10 seconds
     private val timeout          = 1000 * 15
     private implicit val format: Formats =
-      DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all
+      DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(
+        ArticleType
+      )
 
     def partialPublishArticle(
         id: Long,
@@ -50,20 +53,23 @@ trait ArticleApiClient {
 
     def updateArticle(
         id: Long,
-        article: Draft,
+        draft: Draft,
         externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
     ): Try[Draft] = {
-
-      val articleApiArticle = converterService.toArticleApiArticle(article)
-      postWithData[api.ArticleApiArticle, api.ArticleApiArticle](
-        s"$InternalEndpoint/article/$id",
-        articleApiArticle,
-        "external-id"           -> externalIds.mkString(","),
-        "use-import-validation" -> useImportValidation.toString,
-        "use-soft-validation"   -> useSoftValidation.toString
-      ).map(_ => article)
+      converterService
+        .toArticleApiArticle(draft)
+        .map(article =>
+          postWithData[common.article.Article, common.article.Article](
+            s"$InternalEndpoint/article/$id",
+            article,
+            "external-id"           -> externalIds.mkString(","),
+            "use-import-validation" -> useImportValidation.toString,
+            "use-soft-validation"   -> useSoftValidation.toString
+          )
+        )
+        .map(_ => draft)
     }
 
     def unpublishArticle(article: Draft): Try[Draft] = {
@@ -75,8 +81,8 @@ trait ArticleApiClient {
       delete[ContentId](s"$InternalEndpoint/article/$id/")
     }
 
-    def validateArticle(article: api.ArticleApiArticle, importValidate: Boolean): Try[api.ArticleApiArticle] = {
-      postWithData[api.ArticleApiArticle, api.ArticleApiArticle](
+    def validateArticle(article: common.article.Article, importValidate: Boolean): Try[common.article.Article] = {
+      postWithData[common.article.Article, common.article.Article](
         s"$InternalEndpoint/validate/article",
         article,
         ("import_validate", importValidate.toString)
@@ -142,7 +148,7 @@ trait ArticleApiClient {
       grepCodes: Option[Seq[String]],
       license: Option[String],
       metaDescription: Option[Seq[api.ArticleMetaDescription]],
-      relatedContent: Option[Seq[api.RelatedContent]],
+      relatedContent: Option[Seq[common.RelatedContent]],
       tags: Option[Seq[api.ArticleTag]],
       revisionDate: Either[Null, Option[LocalDateTime]] // Left means `null` which deletes `revisionDate`
   ) {
@@ -159,7 +165,7 @@ trait ArticleApiClient {
     def withTags(tags: Seq[common.Tag]): PartialPublishArticle =
       copy(tags = tags.map(t => api.ArticleTag(t.tags, t.language)).some)
     def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticle =
-      copy(relatedContent = relatedContent.map(converterService.toApiRelatedContent).some)
+      copy(relatedContent = relatedContent.some)
     def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticle =
       copy(metaDescription =
         meta

@@ -11,6 +11,7 @@ import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.RelatedContentLink
+import no.ndla.common.model.{api => commonApi, domain}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -29,7 +30,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
-import no.ndla.draftapi.model.api.{ArticleApiArticle, PartialArticleFields}
+import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.domain.Agreement
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -375,9 +376,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithEndControl)
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
       when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(existing))
-      when(articleApiClient.validateArticle(any[ArticleApiArticle], any[Boolean])).thenAnswer((i: InvocationOnMock) => {
-        Success(i.getArgument[ArticleApiArticle](0))
-      })
+      when(articleApiClient.validateArticle(any[domain.article.Article], any[Boolean])).thenAnswer(
+        (i: InvocationOnMock) => {
+          Success(i.getArgument[domain.article.Article](0))
+        }
+      )
       val Success(result) = service.updateArticle(
         existing.id.get,
         updatedArticle,
@@ -706,7 +709,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag"))
     )
 
@@ -743,7 +746,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(api.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
@@ -822,7 +825,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag")),
       conceptIds = Some(Seq(1, 2, 3))
     )
@@ -862,7 +865,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(api.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.conceptIds should be(Seq(1, 2, 3))
@@ -1033,7 +1036,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq(api.ArticleMetaDescription("oldDesc", "nb"))),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq(api.ArticleTag(Seq("old", "tag"), "nb"))),
       revisionDate = Right(Some(tomorrow))
     )
@@ -1042,7 +1045,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Some(Seq("A", "B")),
       license = Some("CC-BY-4.0"),
       metaDescription = Some(Seq.empty),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty),
       revisionDate = Right(Some(tomorrow))
     )
@@ -1058,7 +1061,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           api.ArticleMetaDescription("oldDescccc", "nn")
         )
       ),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(
         Seq(
           api.ArticleTag(Seq("old", "tag"), "nb"),
@@ -1081,7 +1084,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates relatedContent") {
-    val apiRelatedContent1    = api.RelatedContentLink("url1", "title1")
+    val apiRelatedContent1    = commonApi.RelatedContentLink("url1", "title1")
     val domainRelatedContent1 = RelatedContentLink("url1", "title1")
     val relatedContent2       = 2
 
@@ -1181,7 +1184,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       metaDescription = Some("newMeta"),
-      relatedContent = Some(Seq(Left(api.RelatedContentLink("title1", "url2")), Right(12L))),
+      relatedContent = Some(Seq(Left(commonApi.RelatedContentLink("title1", "url2")), Right(12L))),
       tags = Some(Seq("new", "tag"))
     )
 
@@ -1218,7 +1221,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.grepCodes should be(Seq("a", "b", "c"))
     result1.copyright.get.license.get.license should be("COPYRIGHTED")
     result1.metaDescription.get.metaDescription should be("newMeta")
-    result1.relatedContent.head.leftSide should be(Left(api.RelatedContentLink("title1", "url2")))
+    result1.relatedContent.head.leftSide should be(Left(commonApi.RelatedContentLink("title1", "url2")))
     result1.relatedContent.reverse.head should be(Right(12L))
     result1.tags.get.tags should be(Seq("new", "tag"))
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
