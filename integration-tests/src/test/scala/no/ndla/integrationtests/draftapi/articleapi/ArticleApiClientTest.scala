@@ -164,19 +164,21 @@ class ArticleApiClientTest
   }
 
   test("that verifying an article returns 200 if valid") {
-    val articleApiArticle = converterService.toArticleApiArticle(testArticle)
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
+    val result = converterService
+      .toArticleApiArticle(testArticle)
+      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false))
+    println(result)
     result.isSuccess should be(true)
   }
 
   test("that verifying an article returns 400 if invalid") {
-    val articleApiArticle =
-      converterService.toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    val result          = articleApiCient.validateArticle(articleApiArticle, importValidate = false)
+    val result = converterService
+      .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
+      .flatMap(article => articleApiCient.validateArticle(article, importValidate = false))
     result.isSuccess should be(false)
   }
 }
