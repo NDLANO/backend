@@ -11,7 +11,7 @@ package no.ndla.searchapi.controller
 import no.ndla.common.model.domain.Availability
 import no.ndla.searchapi.auth.{Role, UserInfo}
 import no.ndla.searchapi.model.domain
-import no.ndla.searchapi.model.domain.SearchParams
+import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
@@ -144,7 +144,13 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     }
 
     val expectedSettings =
-      TestData.multiDraftSearchSettings.copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true)
+      TestData.multiDraftSearchSettings.copy(
+        fallback = true,
+        language = "nn",
+        pageSize = 10,
+        shouldScroll = true,
+        sort = Sort.ByRelevanceDesc
+      )
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
     verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
@@ -168,7 +174,13 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     }
 
     val expectedSettings =
-      TestData.searchSettings.copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true)
+      TestData.searchSettings.copy(
+        fallback = true,
+        language = "nn",
+        pageSize = 10,
+        shouldScroll = true,
+        sort = Sort.ByRelevanceDesc
+      )
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
     verify(multiDraftSearchService, times(0)).matchingQuery(any[MultiDraftSearchSettings])
@@ -182,7 +194,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10)
+    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc)
 
     get("/test/", params = Seq.empty, headers = Seq()) {
       val expectedSettings = baseSettings.copy(availability = List())
@@ -204,7 +216,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10)
+    val baseSettings = TestData.searchSettings.copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc)
     val teacherToken = "abcd"
 
     get("/test/", params = Seq.empty, headers = Seq("FeideAuthorization" -> teacherToken)) {

@@ -80,8 +80,7 @@ trait SearchController {
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.
-             The following are supported: ${Sort.all.mkString(", ")}.
-             Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
+             The following are supported: ${Sort.all.mkString(", ")}. Default is by -relevance (desc).""".stripMargin
     )
 
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
@@ -262,7 +261,7 @@ trait SearchController {
       val subjects      = paramAsListOfString(this.subjects.paramName)
       val sort = Sort
         .valueOf(paramOrDefault(this.sort.paramName, ""))
-        .getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByIdAsc)
+        .getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc)
       val idList                   = paramAsListOfLong(this.learningResourceIds.paramName)
       val contextTypes             = paramAsListOfString(this.contextTypes.paramName)
       val supportedLanguagesFilter = paramAsListOfString(this.languageFilter.paramName)
@@ -433,7 +432,7 @@ trait SearchController {
           license = license,
           page = page,
           pageSize = pageSize,
-          sort = sort.getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByIdAsc),
+          sort = sort.getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc),
           withIdIn = idList,
           subjects = subjects,
           resourceTypes = resourceTypes ++ anotherResourceTypes,
@@ -490,7 +489,7 @@ trait SearchController {
         license = license,
         page = page,
         pageSize = pageSize,
-        sort = sort.getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByIdAsc),
+        sort = sort.getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc),
         withIdIn = idList,
         subjects = subjects,
         topics = topics,
