@@ -66,10 +66,11 @@ trait StateTransitionRules {
       }
 
     private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean) => {
-      val article          = converterService.toArticleApiArticle(draft)
-      val validatedArticle = articleApiClient.validateArticle(article.get, isImported)
-      val d                = validatedArticle.map(_ => draft)
-      d
+      val validatedArticle = converterService.toArticleApiArticle(draft) match {
+        case Failure(ex)      => Failure(ex)
+        case Success(article) => articleApiClient.validateArticle(article, isImported)
+      }
+      validatedArticle.map(_ => draft)
     }
 
     private def publishArticleSideEffect(useSoftValidation: Boolean = false): SideEffect =

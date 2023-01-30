@@ -297,10 +297,10 @@ trait ConverterService {
 
     def updateStatus(
         status: DraftStatus.Value,
-        article: Draft,
+        draft: Draft,
         user: UserInfo,
         isImported: Boolean
-    ): IO[Try[Draft]] = StateTransitionRules.doTransition(article, status, user, isImported)
+    ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
     def toApiResponsible(responsible: DraftResponsible): api.DraftResponsible =
       api.DraftResponsible(
@@ -502,7 +502,7 @@ trait ConverterService {
 
     def toArticleApiArticle(draft: Draft): Try[common.article.Article] = {
       draft.copyright match {
-        case None => Failure(NotFoundException("Copyright was not found"))
+        case None => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
         case Some(copyright) =>
           Success(
             common.article.Article(
