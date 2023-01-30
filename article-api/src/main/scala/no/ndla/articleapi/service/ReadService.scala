@@ -81,7 +81,7 @@ trait ReadService {
     }
 
     def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[Cachable[api.ArticleV2]] = {
-      articleRepository.withSlug(slug) match {
+      articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
         case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
