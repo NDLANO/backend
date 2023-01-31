@@ -908,7 +908,7 @@ trait UpdateService {
           name = childFolder.name,
           status = FolderStatus.PRIVATE,
           rank = childFolder.rank,
-          lastShared = None
+          shared = None
         )
         folderRepository
           .insertFolder(feideId, newFolder)

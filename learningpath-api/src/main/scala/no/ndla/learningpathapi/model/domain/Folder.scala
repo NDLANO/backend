@@ -23,7 +23,7 @@ case class NewFolderData(
     name: String,
     status: FolderStatus.Value,
     rank: Option[Int],
-    lastShared: Option[LocalDateTime]
+    shared: Option[LocalDateTime]
 ) {
   def toFullFolder(
       id: UUID,
@@ -44,7 +44,7 @@ case class NewFolderData(
       rank = rank,
       created = created,
       updated = updated,
-      lastShared = lastShared
+      shared = shared
     )
   }
 }
@@ -60,7 +60,7 @@ case class Folder(
     updated: LocalDateTime,
     resources: List[Resource],
     subfolders: List[Folder],
-    lastShared: Option[LocalDateTime]
+    shared: Option[LocalDateTime]
 ) extends FeideContent
     with Rankable
     with CopyableFolder {
@@ -96,15 +96,15 @@ trait DBFolder {
     def fromResultSet(rs: WrappedResultSet): Try[Folder] = fromResultSet((s: String) => s)(rs)
 
     def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[Folder] = {
-      val id         = rs.get[Try[UUID]](colNameWrapper("id"))
-      val parentId   = rs.get[Option[UUID]](colNameWrapper("parent_id"))
-      val feideId    = rs.string(colNameWrapper("feide_id"))
-      val name       = rs.string(colNameWrapper("name"))
-      val status     = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
-      val rank       = rs.intOpt(colNameWrapper("rank"))
-      val created    = rs.localDateTime(colNameWrapper("created"))
-      val updated    = rs.localDateTime(colNameWrapper("updated"))
-      val lastShared = rs.localDateTimeOpt(colNameWrapper("last_shared"))
+      val id       = rs.get[Try[UUID]](colNameWrapper("id"))
+      val parentId = rs.get[Option[UUID]](colNameWrapper("parent_id"))
+      val feideId  = rs.string(colNameWrapper("feide_id"))
+      val name     = rs.string(colNameWrapper("name"))
+      val status   = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
+      val rank     = rs.intOpt(colNameWrapper("rank"))
+      val created  = rs.localDateTime(colNameWrapper("created"))
+      val updated  = rs.localDateTime(colNameWrapper("updated"))
+      val shared   = rs.localDateTimeOpt(colNameWrapper("shared"))
 
       for {
         id     <- id
@@ -120,7 +120,7 @@ trait DBFolder {
         rank = rank,
         created = created,
         updated = updated,
-        lastShared = lastShared
+        shared = shared
       )
     }
   }

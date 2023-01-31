@@ -60,8 +60,8 @@ trait FolderRepository {
         val updated = created
 
         sql"""
-        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, last_shared)
-        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, ${folderData.lastShared})
+        insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared)
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, ${folderData.shared})
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
@@ -115,7 +115,8 @@ trait FolderRepository {
       sql"""
           update ${DBFolder.table}
           set name=${folder.name},
-              status=${folder.status.toString}
+              status=${folder.status.toString},
+              shared=${folder.shared}
           where id=$id and feide_id=$feideId
       """.update()
     } match {
@@ -348,11 +349,11 @@ trait FolderRepository {
     ): Try[Option[Folder]] = Try {
       sql"""-- Big recursive block which fetches the folder with `id` and also its children recursively
             WITH RECURSIVE childs AS (
-                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated, last_shared as f_last_shared
+                SELECT id AS f_id, parent_id AS f_parent_id, feide_id AS f_feide_id, name as f_name, status as f_status, rank AS f_rank, created as f_created, updated as f_updated, shared as f_shared
                 FROM ${DBFolder.table} parent
                 WHERE id = $id
                 UNION ALL
-                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated, child.last_shared as f_last_shared
+                SELECT child.id AS f_id, child.parent_id AS f_parent_id, child.feide_id AS f_feide_id, child.name AS f_name, child.status as f_status, child.rank AS f_rank, child.created as f_created, child.updated as f_updated, child.shared as f_shared
                 FROM ${DBFolder.table} child
                 JOIN childs AS parent ON parent.f_id = child.parent_id
                 $sqlFilterClause

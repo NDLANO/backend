@@ -700,8 +700,8 @@ trait ConverterService {
         parentId: Option[UUID],
         newRank: Option[Int]
     ): Try[domain.NewFolderData] = {
-      val newStatus     = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-      val newLastShared = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
+      val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
+      val newShared = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
 
       Success(
         NewFolderData(
@@ -709,7 +709,7 @@ trait ConverterService {
           name = newFolder.name,
           status = newStatus,
           rank = newRank,
-          lastShared = newLastShared
+          shared = newShared
         )
       )
     }
@@ -739,7 +739,7 @@ trait ConverterService {
                 rank = folder.rank,
                 created = folder.created,
                 updated = folder.updated,
-                lastShared = folder.lastShared
+                shared = folder.shared
               )
             })
         )
@@ -748,9 +748,9 @@ trait ConverterService {
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
-      val name       = updated.name.getOrElse(existing.name)
-      val status     = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
-      val lastShared = if (status == FolderStatus.SHARED) Some(clock.now()) else None
+      val name   = updated.name.getOrElse(existing.name)
+      val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
+      val shared = if (status == FolderStatus.SHARED) Some(clock.now()) else None
 
       domain.Folder(
         id = existing.id,
@@ -763,7 +763,7 @@ trait ConverterService {
         rank = existing.rank,
         created = existing.created,
         updated = clock.now(),
-        lastShared = lastShared
+        shared = shared
       )
     }
 

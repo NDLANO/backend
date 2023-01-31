@@ -113,21 +113,21 @@ class CloneFolderTest
   def prepareFolderToClone(): UUID = {
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val parent =
-      NewFolderData(parentId = None, name = "parent", status = FolderStatus.SHARED, rank = Some(1), lastShared = None)
+      NewFolderData(parentId = None, name = "parent", status = FolderStatus.SHARED, rank = Some(1), shared = None)
     val pId = folderRepository.insertFolder(feideId, folderData = parent).get.id
     val pChild1 = NewFolderData(
       parentId = Some(pId),
       name = "p_child1",
       status = FolderStatus.SHARED,
       rank = Some(1),
-      lastShared = None
+      shared = None
     )
     val pChild2 = NewFolderData(
       parentId = Some(pId),
       name = "p_child2",
       status = FolderStatus.SHARED,
       rank = Some(2),
-      lastShared = None
+      shared = None
     )
     folderRepository.insertFolder(feideId, folderData = pChild1)
     folderRepository.insertFolder(feideId, folderData = pChild2)
@@ -159,7 +159,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild2 = api.Folder(
@@ -174,7 +174,7 @@ class CloneFolderTest
       rank = Some(2),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild3 = api.Resource(
@@ -198,7 +198,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -232,7 +232,7 @@ class CloneFolderTest
       name = "doesnt matter",
       status = FolderStatus.PRIVATE,
       rank = Some(10),
-      lastShared = None
+      shared = None
     )
     val noCloneId = folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned).get.id
     val folderThatShouldNotBeCloned2 = NewFolderData(
@@ -240,7 +240,7 @@ class CloneFolderTest
       name = "doesnt matter2",
       status = FolderStatus.PRIVATE,
       rank = Some(11),
-      lastShared = None
+      shared = None
     )
     folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned2).get.id
     val childrenFolderThatShouldNotBeCloned = NewFolderData(
@@ -248,7 +248,7 @@ class CloneFolderTest
       name = "doesnt matter3",
       status = FolderStatus.PRIVATE,
       rank = Some(1),
-      lastShared = None
+      shared = None
     )
     folderRepository.insertFolder(feideId, folderData = childrenFolderThatShouldNotBeCloned).get.id
 
@@ -264,7 +264,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild2 = api.Folder(
@@ -279,7 +279,7 @@ class CloneFolderTest
       rank = Some(2),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild3 = api.Resource(
@@ -303,7 +303,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -338,7 +338,7 @@ class CloneFolderTest
         name = "destination",
         status = FolderStatus.PRIVATE,
         rank = Some(1),
-        lastShared = None
+        shared = None
       )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
@@ -357,7 +357,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild2 = api.Folder(
@@ -375,7 +375,7 @@ class CloneFolderTest
       rank = Some(2),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val parentChild3 = api.Resource(
@@ -402,7 +402,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val expectedFolder = api.Folder(
@@ -416,7 +416,7 @@ class CloneFolderTest
       rank = Some(1),
       created = testClock.now(),
       updated = testClock.now(),
-      lastShared = None
+      shared = None
     )
 
     val response = scalaj.http
@@ -483,7 +483,7 @@ class CloneFolderTest
     destinationResourcesAfter.get.length should be(0)
   }
 
-  test("that sharing a folder will update lastShared to current date") {
+  test("that sharing a folder will update shared field to current date") {
     when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val destinationFolder =
@@ -492,7 +492,7 @@ class CloneFolderTest
         name = "destination",
         status = FolderStatus.PRIVATE,
         rank = Some(1),
-        lastShared = None
+        shared = None
       )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
@@ -507,7 +507,7 @@ class CloneFolderTest
 
     val result = read[api.Folder](response.body)
     println(result)
-    result.lastShared should be(Some(testClock.now().withNano(0)))
+    result.shared should be(Some(testClock.now().withNano(0)))
   }
 
 }

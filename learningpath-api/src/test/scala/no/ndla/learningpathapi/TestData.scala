@@ -135,7 +135,7 @@ object TestData {
     rank = None,
     created = today,
     updated = today,
-    lastShared = None
+    shared = None
   )
 
   val baseFolderDocument: NewFolderData = NewFolderData(
@@ -143,7 +143,7 @@ object TestData {
     name = "some-name",
     status = FolderStatus.PRIVATE,
     rank = None,
-    lastShared = None
+    shared = None
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
@@ -162,7 +162,7 @@ object TestData {
     rank = None,
     created = today,
     updated = today,
-    lastShared = None
+    shared = None
   )
 
   val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(

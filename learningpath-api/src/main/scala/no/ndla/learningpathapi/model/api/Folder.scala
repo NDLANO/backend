@@ -28,7 +28,7 @@ case class Folder(
     @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
     @(ApiModelProperty @field)(description = "When the folder was created") created: LocalDateTime,
     @(ApiModelProperty @field)(description = "When the folder was updated") updated: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the folder was last shared") lastShared: Option[LocalDateTime]
+    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[LocalDateTime]
 ) extends FolderData with CopyableFolder
 // format: on
 
@@ -57,7 +57,7 @@ object FolderData {
       rank: Option[Int],
       created: LocalDateTime,
       updated: LocalDateTime,
-      lastShared: Option[LocalDateTime]
+      shared: Option[LocalDateTime]
   ): FolderData = {
     Folder(
       id,
@@ -70,7 +70,7 @@ object FolderData {
       rank,
       created,
       updated,
-      lastShared
+      shared
     )
   }
 
