@@ -36,7 +36,8 @@ case class Concept(
     subjectIds: Set[String],
     articleIds: Seq[Long],
     status: Status,
-    visualElement: Seq[VisualElement]
+    visualElement: Seq[VisualElement],
+    responsible: Option[ConceptResponsible]
 ) {
 
   lazy val supportedLanguages: Set[String] =
@@ -76,7 +77,8 @@ trait DBConcept {
         meta.subjectIds,
         meta.articleIds,
         meta.status,
-        meta.visualElement
+        meta.visualElement,
+        meta.responsible
       )
     }
 

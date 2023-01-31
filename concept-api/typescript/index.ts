@@ -22,6 +22,7 @@ export interface IConcept {
   articleIds: number[]
   status: IStatus
   visualElement?: IVisualElement
+  responsible?: IConceptResponsible
 }
 
 export interface IConceptContent {
@@ -33,6 +34,11 @@ export interface IConceptMetaImage {
   url: string
   alt: string
   language: string
+}
+
+export interface IConceptResponsible {
+  responsibleId: string
+  lastUpdated: string
 }
 
 export interface IConceptSearchParams {
@@ -133,6 +139,7 @@ export interface INewConcept {
   subjectIds?: string[]
   articleIds?: number[]
   visualElement?: string
+  responsibleId?: string
 }
 
 export interface INewConceptMetaImage {
@@ -171,6 +178,7 @@ export interface IUpdatedConcept {
   articleIds?: number[]
   status?: string
   visualElement?: string
+  responsible?: (null | string)
 }
 
 export interface IValidationError {

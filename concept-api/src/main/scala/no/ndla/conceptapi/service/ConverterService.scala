@@ -54,6 +54,8 @@ trait ConverterService {
 
         val visualElement = findByLanguageOrBestEffort(concept.visualElement, language).map(toApiVisualElement)
 
+        val responsible = concept.responsible.map(toApiConceptResponsible)
+
         Success(
           api.Concept(
             id = concept.id.get,
@@ -71,7 +73,8 @@ trait ConverterService {
             supportedLanguages = concept.supportedLanguages,
             articleIds = concept.articleIds,
             status = toApiStatus(concept.status),
-            visualElement = visualElement
+            visualElement = visualElement,
+            responsible = responsible
           )
         )
       } else {
@@ -136,6 +139,9 @@ trait ConverterService {
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
+    def toApiConceptResponsible(responsible: domain.ConceptResponsible): api.ConceptResponsible =
+      api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
+
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       Success(
         domain.Concept(
@@ -156,7 +162,9 @@ trait ConverterService {
           articleIds = concept.articleIds.getOrElse(Seq.empty),
           status = Status.default,
           visualElement =
-            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq
+            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
+          responsible =
+            concept.responsibleId.map(responsibleId => domain.ConceptResponsible(responsibleId, clock.now()))
         )
       )
     }
@@ -218,6 +226,12 @@ trait ConverterService {
         else toMergeInto.updatedBy
       }
 
+      val responsible = updateConcept.responsible match {
+        case Left(_)                    => None
+        case Right(Some(responsibleId)) => Some(domain.ConceptResponsible(responsibleId, clock.now()))
+        case Right(None)                => toMergeInto.responsible
+      }
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -232,7 +246,8 @@ trait ConverterService {
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
         articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
-        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement)
+        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
+        responsible = responsible
       )
     }
 
@@ -262,7 +277,10 @@ trait ConverterService {
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
-        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq
+        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
+        responsible = concept.visualElement.map(responsibleId =>
+          domain.ConceptResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
+        )
       )
     }
 
