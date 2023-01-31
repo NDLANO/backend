@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.model.api
 
-import no.ndla.common.model.api.Deletable
+import no.ndla.common.model.api.{Deletable, RelatedContent}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import java.time.LocalDateTime

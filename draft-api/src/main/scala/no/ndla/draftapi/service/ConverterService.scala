@@ -11,7 +11,7 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{RelatedContentLink, domain => common}
+import no.ndla.common.model.{RelatedContentLink, domain => common, api => commonApi}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, IMPORTED}
@@ -141,7 +141,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[common.RelatedContent] = {
+    def toDomainRelatedContent(relatedContent: Seq[commonApi.RelatedContent]): Seq[common.RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -297,10 +297,10 @@ trait ConverterService {
 
     def updateStatus(
         status: DraftStatus.Value,
-        article: Draft,
+        draft: Draft,
         user: UserInfo,
         isImported: Boolean
-    ): IO[Try[Draft]] = StateTransitionRules.doTransition(article, status, user, isImported)
+    ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
     def toApiResponsible(responsible: DraftResponsible): api.DraftResponsible =
       api.DraftResponsible(
@@ -427,12 +427,11 @@ trait ConverterService {
 
     def toApiAuthor(author: common.Author): api.Author = api.Author(author.`type`, author.name)
 
-    def toApiRelatedContent(relatedContent: common.RelatedContent): api.RelatedContent = {
+    def toApiRelatedContent(relatedContent: common.RelatedContent): commonApi.RelatedContent = {
       relatedContent match {
-        case Left(x)  => Left(api.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(commonApi.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
-
     }
 
     def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
@@ -454,16 +453,13 @@ trait ConverterService {
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toArticleApiCopyright(copyright: common.draft.Copyright): api.ArticleApiCopyright = {
-      def toArticleApiAuthor(author: common.Author): api.ArticleApiAuthor =
-        api.ArticleApiAuthor(author.`type`, author.name)
-
-      api.ArticleApiCopyright(
+    def toArticleApiCopyright(copyright: common.draft.Copyright): common.article.Copyright = {
+      common.article.Copyright(
         copyright.license.getOrElse(""),
         copyright.origin.getOrElse(""),
-        copyright.creators.map(toArticleApiAuthor),
-        copyright.processors.map(toArticleApiAuthor),
-        copyright.rightsholders.map(toArticleApiAuthor),
+        copyright.creators,
+        copyright.processors,
+        copyright.rightsholders,
         copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
@@ -500,37 +496,41 @@ trait ConverterService {
       }
     }
 
-    def getNextRevision(article: Draft): Option[common.draft.RevisionMeta] = getNextRevision(
-      article.revisionMeta
-    )
+    def getNextRevision(draft: Draft): Option[common.draft.RevisionMeta] = getNextRevision(draft.revisionMeta)
     def getNextRevision(revisions: Seq[common.draft.RevisionMeta]): Option[common.draft.RevisionMeta] =
       revisions.filterNot(_.status == common.draft.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
-    def toArticleApiArticle(article: Draft): api.ArticleApiArticle = {
-      api.ArticleApiArticle(
-        revision = article.revision,
-        title = article.title.map(t => api.ArticleApiTitle(t.title, t.language)),
-        content = article.content.map(c => api.ArticleApiContent(c.content, c.language)),
-        copyright = article.copyright.map(toArticleApiCopyright),
-        tags = article.tags.map(t => api.ArticleApiTag(t.tags, t.language)),
-        requiredLibraries =
-          article.requiredLibraries.map(r => api.ArticleApiRequiredLibrary(r.mediaType, r.name, r.url)),
-        visualElement = article.visualElement.map(v => api.ArticleApiVisualElement(v.resource, v.language)),
-        introduction = article.introduction.map(i => api.ArticleApiIntroduction(i.introduction, i.language)),
-        metaDescription = article.metaDescription.map(m => api.ArticleApiMetaDescription(m.content, m.language)),
-        metaImage = article.metaImage.map(m => api.ArticleApiMetaImage(m.imageId, m.altText, m.language)),
-        created = article.created,
-        updated = article.updated,
-        updatedBy = article.updatedBy,
-        published = article.published,
-        articleType = article.articleType.entryName,
-        grepCodes = article.grepCodes,
-        conceptIds = article.conceptIds,
-        availability = article.availability,
-        relatedContent = article.relatedContent.map(toApiRelatedContent),
-        revisionDate = getNextRevision(article.revisionMeta).map(_.revisionDate),
-        slug = article.slug
-      )
+    def toArticleApiArticle(draft: Draft): Try[common.article.Article] = {
+      draft.copyright match {
+        case None => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
+        case Some(copyright) =>
+          Success(
+            common.article.Article(
+              id = draft.id,
+              revision = draft.revision,
+              title = draft.title,
+              content = draft.content,
+              copyright = toArticleApiCopyright(copyright),
+              tags = draft.tags,
+              requiredLibraries = draft.requiredLibraries,
+              visualElement = draft.visualElement,
+              introduction = draft.introduction,
+              metaDescription = draft.metaDescription,
+              metaImage = draft.metaImage,
+              created = draft.created,
+              updated = draft.updated,
+              updatedBy = draft.updatedBy,
+              published = draft.published,
+              articleType = draft.articleType,
+              grepCodes = draft.grepCodes,
+              conceptIds = draft.conceptIds,
+              availability = draft.availability,
+              relatedContent = draft.relatedContent,
+              revisionDate = getNextRevision(draft.revisionMeta).map(_.revisionDate),
+              slug = draft.slug
+            )
+          )
+      }
     }
 
     private def languageFieldIsDefined(article: api.UpdatedArticle): Boolean = {

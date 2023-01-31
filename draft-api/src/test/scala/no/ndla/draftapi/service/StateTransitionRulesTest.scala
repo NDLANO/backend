@@ -13,14 +13,13 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.mapping.License.CC_BY
 import org.mockito.ArgumentCaptor
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
-import scala.collection.immutable.Seq
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
@@ -361,21 +360,76 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should be called when transitioning to END_CONTROL") {
     val articleId = 7
-    val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
-    val status    = common.Status(END_CONTROL, Set.empty)
+    val draft = Draft(
+      id = Some(articleId),
+      revision = None,
+      status = common.Status(PLANNED, Set.empty),
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright =
+        Some(common.draft.Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      notes = Seq.empty,
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq.empty,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = None,
+      slug = None
+    )
+    val article = common.article.Article(
+      id = Some(articleId),
+      revision = None,
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright = common.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionDate = None,
+      slug = None
+    )
+    val status = common.Status(END_CONTROL, Set.empty)
+
+    when(converterService.toArticleApiArticle(any[Draft])).thenReturn(Success(article))
 
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == END_CONTROL)
     transitionsToTest.foreach(t =>
       StateTransitionRules
         .doTransition(
-          article.copy(status = status.copy(current = t.from)),
+          draft.copy(status = status.copy(current = t.from)),
           END_CONTROL,
           TestData.userWithPublishAccess,
           false
         )
         .unsafeRunSync()
     )
-    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[api.ArticleApiArticle], any[Boolean])
+    verify(articleApiClient, times(transitionsToTest.size)).validateArticle(any[common.article.Article], any[Boolean])
   }
 
   test("publishArticle should call h5p api") {

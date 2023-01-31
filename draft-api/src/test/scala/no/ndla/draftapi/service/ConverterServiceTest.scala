@@ -8,11 +8,12 @@
 package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
+import no.ndla.common
 import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftResponsible, DraftStatus}
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -986,6 +987,73 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     res2.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
     res3.notes.map(_.note) should be(Seq("swoop", "fleibede"))
 
+  }
+
+  test("that toArticleApiArticle transforms Draft to Article correctly") {
+    val articleId = 42
+    val draft = Draft(
+      id = Some(articleId),
+      revision = Some(3),
+      status = Status(PLANNED, Set.empty),
+      title = Seq(Title("articleTitle", "nb")),
+      content = Seq(ArticleContent("content", "nb")),
+      copyright = Some(Copyright(Some(CC_BY.toString), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+      tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
+      requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
+      visualElement = Seq(VisualElement("e", "nb")),
+      introduction = Seq(Introduction("intro", "nb")),
+      metaDescription = Seq(Description("desc", "nb")),
+      metaImage = Seq(ArticleMetaImage("id", "alt", "nb")),
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "meg",
+      published = clock.now(),
+      articleType = ArticleType.FrontpageArticle,
+      notes = Seq(EditorNote("note", "meg", Status(PLANNED, Set.empty), clock.now())),
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq("asd", "kek"),
+      grepCodes = Seq("grep", "codes"),
+      conceptIds = Seq(1, 2),
+      availability = Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = None,
+      slug = Some("kjempe-slug")
+    )
+    val article = common.model.domain.article.Article(
+      id = Some(articleId),
+      revision = Some(3),
+      title = Seq(Title("articleTitle", "nb")),
+      content = Seq(ArticleContent("content", "nb")),
+      copyright =
+        common.model.domain.article.Copyright(CC_BY.toString, "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+      tags = Seq(Tag(Seq("a", "b", "zz"), "nb")),
+      requiredLibraries = Seq(RequiredLibrary("asd", "library", "www/libra.ry")),
+      visualElement = Seq(VisualElement("e", "nb")),
+      introduction = Seq(Introduction("intro", "nb")),
+      metaDescription = Seq(Description("desc", "nb")),
+      metaImage = Seq(ArticleMetaImage("id", "alt", "nb")),
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "meg",
+      published = clock.now(),
+      articleType = ArticleType.FrontpageArticle,
+      grepCodes = Seq("grep", "codes"),
+      conceptIds = Seq(1, 2),
+      availability = Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionDate = None,
+      slug = Some("kjempe-slug")
+    )
+
+    val result = service.toArticleApiArticle(draft)
+    result should be(Success(article))
+  }
+
+  test("that toArticleApiArticle fails if copyright is not present") {
+    val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
+    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft)
+    result1.errors.head.message should be("Copyright must be present when publishing an article")
   }
 
 }

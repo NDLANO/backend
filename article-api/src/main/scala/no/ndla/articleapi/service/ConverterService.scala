@@ -18,6 +18,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.common
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.RelatedContentLink
@@ -326,7 +327,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[RelatedContent] = {
+    def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
@@ -454,9 +455,9 @@ trait ConverterService {
       )
     }
 
-    def toApiRelatedContent(relatedContent: RelatedContent): api.RelatedContent = {
+    def toApiRelatedContent(relatedContent: RelatedContent): common.model.api.RelatedContent = {
       relatedContent match {
-        case Left(x)  => Left(api.RelatedContentLink(url = x.url, title = x.title))
+        case Left(x)  => Left(common.model.api.RelatedContentLink(url = x.url, title = x.title))
         case Right(x) => Right(x)
       }
 

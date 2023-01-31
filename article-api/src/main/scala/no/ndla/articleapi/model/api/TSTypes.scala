@@ -2,6 +2,7 @@ package no.ndla.articleapi.model.api
 
 import com.scalatsi.TypescriptType.TSNull
 import com.scalatsi._
+import no.ndla.common.model.api.RelatedContentLink
 import no.ndla.common.model.domain.Availability
 
 object TSTypes {

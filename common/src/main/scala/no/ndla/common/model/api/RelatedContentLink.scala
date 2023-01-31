@@ -5,9 +5,10 @@
  * See LICENSE
  */
 
-package no.ndla.draftapi.model.api
+package no.ndla.common.model.api
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import scala.annotation.meta.field
 
 @ApiModel(description = "External link related to the article")
