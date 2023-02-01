@@ -700,6 +700,43 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result3 should be(expected3)
   }
 
+  test("that mergeFolder works correctly for shared field and folder status update") {
+    val sharedBefore = LocalDateTime.now().minusDays(1)
+    val sharedNow    = LocalDateTime.now()
+    when(clock.now()).thenReturn(sharedNow)
+
+    val existingBase = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = "u",
+      parentId = Some(UUID.randomUUID()),
+      name = "folderData1",
+      status = domain.FolderStatus.SHARED,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = None,
+      created = clock.now(),
+      updated = clock.now(),
+      shared = Some(sharedBefore)
+    )
+    val existingShared  = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
+    val existingPrivate = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+    val updatedShared   = api.UpdatedFolder(name = None, status = Some("shared"))
+    val updatedPrivate  = api.UpdatedFolder(name = None, status = Some("private"))
+    val expected1       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
+    val expected2       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+    val expected3       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedNow))
+    val expected4       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+
+    val result1 = service.mergeFolder(existingShared, updatedShared)
+    val result2 = service.mergeFolder(existingShared, updatedPrivate)
+    val result3 = service.mergeFolder(existingPrivate, updatedShared)
+    val result4 = service.mergeFolder(existingPrivate, updatedPrivate)
+    result1 should be(expected1)
+    result2 should be(expected2)
+    result3 should be(expected3)
+    result4 should be(expected4)
+  }
+
   test("that toApiResource converts correctly") {
     val created = LocalDateTime.now()
     when(clock.now()).thenReturn(created)

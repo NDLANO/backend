@@ -748,7 +748,13 @@ trait ConverterService {
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
       val name   = updated.name.getOrElse(existing.name)
       val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
-      val shared = if (status == FolderStatus.SHARED) Some(clock.now()) else None
+
+      val shared = (existing.status, status) match {
+        case (FolderStatus.PRIVATE, FolderStatus.SHARED) => Some(clock.now())
+        case (FolderStatus.SHARED, FolderStatus.SHARED)  => existing.shared
+        case (FolderStatus.SHARED, FolderStatus.PRIVATE) => None
+        case _                                           => None
+      }
 
       domain.Folder(
         id = existing.id,
