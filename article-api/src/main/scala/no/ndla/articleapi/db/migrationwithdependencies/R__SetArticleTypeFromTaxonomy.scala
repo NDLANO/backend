@@ -14,16 +14,17 @@ import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
-import scalaj.http.Http
 import scalikejdbc.{DB, DBSession, _}
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
 class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJavaMigration {
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val TaxonomyApiEndpoint           = s"${props.Domain}/taxonomy/v1"
-  private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
+  private val taxonomyTimeout               = 20.seconds
 
   case class TaxonomyResource(contentUri: Option[String])
 
@@ -33,7 +34,7 @@ class R__SetArticleTypeFromTaxonomy(props: ArticleApiProperties) extends BaseJav
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response  <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
+      response  <- Try(simpleHttpClient.send(quickRequest.get(uri"$url").readTimeout(taxonomyTimeout)))
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 

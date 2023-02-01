@@ -8,14 +8,14 @@
 package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
-import scalaj.http.Http
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class ConceptStatus(current: String)
@@ -64,9 +64,9 @@ trait ConceptApiClient {
     ): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
-        Http((conceptBaseUrl / path).toString)
-          .timeout(timeout, timeout)
-          .params(params)
+        quickRequest
+          .get(uri"$conceptBaseUrl/$path".withParams(params: _*))
+          .readTimeout(timeout.millis)
       )
     }
 
@@ -74,10 +74,9 @@ trait ConceptApiClient {
         mf: Manifest[A]
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http((conceptBaseUrl / path).toString)
-          .timeout(timeout, timeout)
-          .params(params)
-          .method("PUT")
+        quickRequest
+          .put(uri"$conceptBaseUrl/$path".withParams(params: _*))
+          .readTimeout(timeout.millis)
       ) match {
         case Success(res) => Success(res)
         case Failure(ex)  => Failure(ex)

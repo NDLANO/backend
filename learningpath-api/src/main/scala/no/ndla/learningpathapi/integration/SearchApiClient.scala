@@ -11,14 +11,17 @@ import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import no.ndla.common.model.domain.learningpath.EmbedType
 import no.ndla.network.NdlaClient
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import sttp.client3.quick._
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain._
+import no.ndla.network.model.NdlaRequest
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
+import sttp.client3.Response
 
 import scala.annotation.unused
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -28,7 +31,7 @@ trait SearchApiClient {
 
   class SearchApiClient extends StrictLogging {
     import props.SearchApiHost
-    private val IndexTimeout = 90 * 1000 // 90 seconds
+    private val IndexTimeout = 90.seconds
     @unused
     private val SearchApiBaseUrl = s"http://$SearchApiHost"
     implicit val formats: Formats =
@@ -40,9 +43,9 @@ trait SearchApiClient {
         new EnumNameSerializer(EmbedType)
 
     def deleteLearningPathDocument(id: Long): Try[_] = {
-      val req = Http(s"http://$SearchApiHost/intern/learningpath/$id")
-        .method("DELETE")
-        .timeout(IndexTimeout, IndexTimeout)
+      val req = quickRequest
+        .delete(uri"http://$SearchApiHost/intern/learningpath/$id")
+        .readTimeout(IndexTimeout)
 
       doRawRequest(req)
     }
@@ -53,11 +56,11 @@ trait SearchApiClient {
       val future = Future {
         val body = write(document)
 
-        val req = Http(s"http://$SearchApiHost/intern/learningpath/")
-          .method("POST")
+        val req = quickRequest
+          .post(uri"http://$SearchApiHost/intern/learningpath/")
           .header("Content-Type", "application/json")
-          .postData(body)
-          .timeout(IndexTimeout, IndexTimeout)
+          .body(body)
+          .readTimeout(IndexTimeout)
 
         doRawRequest(req)
       }
@@ -67,7 +70,7 @@ trait SearchApiClient {
           req match {
             case Failure(ex) =>
               logger.error(s"Failed when calling search-api for indexing '$idString': '${ex.getMessage}'", ex)
-            case Success(response) if response.isError =>
+            case Success(response) if !response.isSuccess =>
               logger.error(
                 s"Failed when calling search-api for indexing '$idString': '${response.code}' -> '${response.body}'"
               )
@@ -81,10 +84,10 @@ trait SearchApiClient {
       future
     }
 
-    private def doRawRequest(request: HttpRequest): Try[HttpResponse[String]] = {
+    private def doRawRequest(request: NdlaRequest): Try[Response[String]] = {
       ndlaClient.fetchRawWithForwardedAuth(request) match {
         case Success(r) =>
-          if (r.is2xx)
+          if (r.code.isSuccess)
             Success(r)
           else
             Failure(

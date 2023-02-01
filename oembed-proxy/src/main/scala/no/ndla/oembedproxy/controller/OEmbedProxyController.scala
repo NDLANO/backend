@@ -70,7 +70,7 @@ trait OEmbedProxyController {
         NotFound(Error(REMOTE_ERROR, hre.getMessage))
       case hre: HttpRequestException =>
         val msg = hre.httpResponse.map(response =>
-          s": Received '${response.code}' '${response.statusLine}'. Body was '${response.body}'"
+          s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
         )
         logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
         BadGateway(Error(REMOTE_ERROR, hre.getMessage))

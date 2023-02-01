@@ -9,10 +9,11 @@
 package no.ndla.network
 
 import no.ndla.common.CorrelationID
-import no.ndla.network.model.HttpRequestException
+import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import org.json4s.Formats
 import org.json4s.jackson.JsonMethods._
-import scalaj.http.{HttpRequest, HttpResponse}
+import sttp.client3.{Response, SimpleHttpClient}
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,14 +21,15 @@ trait NdlaClient {
   val ndlaClient: NdlaClient
 
   class NdlaClient {
+    val client: SimpleHttpClient                 = simpleHttpClient
     implicit val formats: Formats                = org.json4s.DefaultFormats
     private val ResponseErrorBodyCharacterCutoff = 1000
 
-    def fetch[A](request: HttpRequest)(implicit mf: Manifest[A]): Try[A] = {
+    def fetch[A](request: NdlaRequest)(implicit mf: Manifest[A]): Try[A] = {
       doFetch(addCorrelationId(request))
     }
 
-    def fetchWithBasicAuth[A](request: HttpRequest, user: String, password: String)(implicit
+    def fetchWithBasicAuth[A](request: NdlaRequest, user: String, password: String)(implicit
         mf: Manifest[A],
         formats: Formats = formats
     ): Try[A] = {
@@ -35,40 +37,39 @@ trait NdlaClient {
     }
 
     def fetchWithForwardedAuth[A](
-        request: HttpRequest
+        request: NdlaRequest
     )(implicit mf: Manifest[A], formats: Formats = formats): Try[A] = {
       doFetch(addCorrelationId(addForwardedAuth(request)))
     }
 
     /** Useful if response body is not json. */
-    def fetchRawWithForwardedAuth(request: HttpRequest): Try[HttpResponse[String]] = {
+    def fetchRawWithForwardedAuth(request: NdlaRequest): Try[Response[String]] = {
       doRequest(addCorrelationId(addForwardedAuth(request)))
     }
 
-    private def doFetch[A](request: HttpRequest)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
+    private def doFetch[A](request: NdlaRequest)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       for {
         httpResponse <- doRequest(request)
         bodyObject   <- parseResponse[A](httpResponse)(mf, formats)
       } yield bodyObject
     }
 
-    private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
-      Try(request.asString).flatMap(response => {
-        response.isError match {
-          case false => Success(response)
-          case true => {
-            Failure(
-              new HttpRequestException(
-                s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
-                Some(response)
-              )
+    private def doRequest(request: NdlaRequest): Try[Response[String]] = {
+      Try(client.send(request)).flatMap { response =>
+        if (response.isSuccess) {
+          Success(response)
+        } else {
+          Failure(
+            new HttpRequestException(
+              s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
+              Some(response)
             )
-          }
+          )
         }
-      })
+      }
     }
 
-    private def parseResponse[A](response: HttpResponse[String])(implicit mf: Manifest[A], formats: Formats): Try[A] = {
+    private def parseResponse[A](response: Response[String])(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       Try(parse(response.body).camelizeKeys.extract[A]) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex)        =>
@@ -84,15 +85,17 @@ trait NdlaClient {
       }
     }
 
-    private def addCorrelationId(request: HttpRequest) = CorrelationID.get match {
+    private def addCorrelationId[T](request: NdlaRequest) = CorrelationID.get match {
       case None                => request
       case Some(correlationId) => request.header("X-Correlation-ID", correlationId)
     }
 
-    private def addBasicAuth(request: HttpRequest, user: String, password: String) = request.auth(user, password)
+    private def addBasicAuth[T](request: NdlaRequest, user: String, password: String) = {
+      request.auth.basic(user, password)
+    }
 
-    private def addForwardedAuth(request: HttpRequest) = AuthUser.getHeader match {
-      case Some(auth) => request.header("Authorization", auth)
+    private def addForwardedAuth[T](request: NdlaRequest) = AuthUser.getHeader match {
+      case Some(auth) => request.header("Authorization", auth, replaceExisting = true)
       case None       => request
     }
   }

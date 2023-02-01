@@ -1,7 +1,9 @@
 package no.ndla.common
 
 import com.typesafe.scalalogging.StrictLogging
-import scalaj.http.{Http, HttpResponse}
+import sttp.client3.quick._
+
+import scala.concurrent.duration.DurationInt
 
 trait Warmup {
   var isWarmedUp: Boolean = false
@@ -11,17 +13,15 @@ trait Warmup {
 object Warmup extends StrictLogging {
   def warmupRequest(port: Int, path: String, params: Map[String, String]): Unit = {
     val startTime = System.currentTimeMillis()
-    val url       = s"http://localhost:$port$path"
-    val response = Http(url)
-      .params(params)
-      .header("X-Correlation-ID", "WARMUP")
-      .timeout(15000, 15000)
-      .asString
+    val url       = uri"http://localhost:$port?$params".withWholePath(path)
 
-    response match {
-      case HttpResponse(_, code, _) =>
-        val time = System.currentTimeMillis() - startTime
-        logger.info(s"Warming up with $url -> ($code) and it took ${time}ms")
-    }
+    val request = quickRequest
+      .get(url)
+      .readTimeout(15.seconds)
+      .header("X-Correlation-ID", "WARMUP")
+
+    val response = simpleHttpClient.send(request)
+    val time     = System.currentTimeMillis() - startTime
+    logger.info(s"Warming up with $url -> (${response.code}) and it took ${time}ms")
   }
 }

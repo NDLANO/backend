@@ -11,9 +11,10 @@ package no.ndla.learningpathapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.learningpathapi.Props
 import no.ndla.network.NdlaClient
-import no.ndla.network.model.HttpRequestException
-import scalaj.http.{Http, HttpRequest}
+import no.ndla.network.model.{HttpRequestException, NdlaRequest}
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
 trait ImageApiClientComponent {
@@ -21,29 +22,23 @@ trait ImageApiClientComponent {
   val imageApiClient: ImageApiClient
 
   class ImageApiClient extends StrictLogging {
-    val ImageImportTimeout = 10 * 1000 // 10 seconds
-    val ExternalId         = ":external_id"
+    private val ImageImportTimeout = 10.seconds
 
-    val byExternalIdEndpoint =
-      s"http://${props.ImageApiHost}/intern/extern/$ExternalId"
-
-    val importImageEndpoint =
-      s"http://${props.ImageApiHost}/intern/import/$ExternalId"
-
-    def imageMetaWithExternalId(externalId: String): Option[ImageMetaInformation] =
-      doRequest(Http(byExternalIdEndpoint.replace(ExternalId, externalId)))
+    def imageMetaWithExternalId(externalId: String): Option[ImageMetaInformation] = {
+      doRequest(quickRequest.get(uri"http://${props.ImageApiHost}/intern/extern/$externalId"))
+    }
 
     def imageMetaOnUrl(url: String): Option[ImageMetaInformation] =
-      doRequest(Http(url))
+      doRequest(quickRequest.get(uri"$url"))
 
     def importImage(externalId: String): Option[ImageMetaInformation] =
       doRequest(
-        Http(importImageEndpoint.replace(ExternalId, externalId))
-          .timeout(ImageImportTimeout, ImageImportTimeout)
-          .method("POST")
+        quickRequest
+          .post(uri"http://${props.ImageApiHost}/intern/import/$externalId")
+          .readTimeout(ImageImportTimeout)
       )
 
-    private def doRequest(httpRequest: HttpRequest): Option[ImageMetaInformation] = {
+    private def doRequest(httpRequest: NdlaRequest): Option[ImageMetaInformation] = {
       ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](httpRequest) match {
         case Success(metaInfo) => Some(metaInfo)
         case Failure(hre: HttpRequestException) =>

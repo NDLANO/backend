@@ -18,7 +18,7 @@ import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
-import scalaj.http.Http
+import sttp.client3.quick._
 import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.{Failure, Success, Try}
@@ -68,14 +68,16 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiPropertie
     requestBody
       .flatMap(body => {
         Try(
-          Http(s"https://$auth0Host/oauth/token")
-            .header("Content-Type", "application/json")
-            .postData(write(body))
-            .asString
+          simpleHttpClient.send(
+            quickRequest
+              .post(uri"https://$auth0Host/oauth/token")
+              .header("Content-Type", "application/json")
+              .body(write(body))
+          )
         )
       })
       .map(res =>
-        if (res.code == 200) {
+        if (res.code.code == 200) {
           read[Auth0TokenResponseBody](res.body).access_token
         } else {
           throw new RuntimeException("Could not fetch auth0 token for listing users with roles.")
@@ -86,16 +88,18 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiPropertie
   private def getAuth0Response(token: String, page: Int, pageSize: Int) = {
     val url = s"https://$auth0Host/api/v2/users"
     Try(
-      Http(url)
-        .header("Authorization", s"Bearer $token")
-        .method("GET")
-        .params(
-          "search_engine" -> "v3",
-          "q" -> """app_metadata.roles:"learningpath:write" || app_metadata.roles:"learningpath:admin" || app_metadata.roles:"learningpath:publish"""",
-          "page"     -> page.toString,
-          "per_page" -> pageSize.toString
-        )
-        .asString
+      simpleHttpClient.send(
+        quickRequest
+          .get(
+            uri"$url".withParams(
+              "search_engine" -> "v3",
+              "q" -> """app_metadata.roles:"learningpath:write" || app_metadata.roles:"learningpath:admin" || app_metadata.roles:"learningpath:publish"""",
+              "page"     -> page.toString,
+              "per_page" -> pageSize.toString
+            )
+          )
+          .header("Authorization", s"Bearer $token")
+      )
     ) match {
       case Failure(ex) =>
         println(s"Could not fetch users at page '$page' with page-size '$pageSize' on url '$url'.")

@@ -10,7 +10,7 @@ package no.ndla.draftapi.db.migration
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.prop
 import no.ndla.common.errors.ValidationException
-import no.ndla.network.model.HttpRequestException
+import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s
 import org.json4s.JsonAST.{JArray, JString}
@@ -21,13 +21,14 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import sttp.client3.quick._
 import scalikejdbc._
+import sttp.client3.Response
 
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -41,7 +42,7 @@ class BrightcoveApiClient {
   private lazy val BrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   private lazy val ClientId            = prop("BRIGHTCOVE_API_CLIENT_ID")
   private lazy val ClientSecret        = prop("BRIGHTCOVE_API_CLIENT_SECRET")
-  private val timeout                  = 20 * 1000 // 20 Seconds
+  private val timeout                  = 20.seconds
 
   private var accessToken: Option[StoredToken] = None
 
@@ -69,19 +70,21 @@ class BrightcoveApiClient {
 
   def fetch(id: String, token: StoredToken): Try[BrightcoveData] = {
     doRequest(
-      Http(s"https://cms.api.brightcove.com/v1/accounts/$BrightcoveAccountId/videos/$id")
+      quickRequest
+        .get(uri"https://cms.api.brightcove.com/v1/accounts/$BrightcoveAccountId/videos/$id")
         .header("Authorization", s"Bearer ${token.accessToken}")
-        .timeout(timeout, timeout)
+        .readTimeout(timeout)
     )
       .flatMap(e => extract[BrightcoveData](e.body))
   }
 
   private def fetchAccessToken(): Try[BrightcoveToken] = {
     doRequest(
-      Http("https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials")
-        .method("POST")
-        .auth(ClientId, ClientSecret)
-        .timeout(timeout, timeout)
+      quickRequest
+        .post(uri"https://oauth.brightcove.com/v4/access_token?grant_type=client_credentials")
+        .auth
+        .basic(ClientId, ClientSecret)
+        .readTimeout(timeout)
     )
       .flatMap(e => extract[BrightcoveToken](e.body))
   }
@@ -93,17 +96,17 @@ class BrightcoveApiClient {
     }
   }
 
-  private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
-    Try(request.asString).flatMap(response => {
-      if (response.isError) {
+  private def doRequest(request: NdlaRequest): Try[Response[String]] = {
+    Try(simpleHttpClient.send(request)).flatMap(response => {
+      if (response.isSuccess) {
+        Success(response)
+      } else {
         Failure(
           new HttpRequestException(
-            s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
+            s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
             Some(response)
           )
         )
-      } else {
-        Success(response)
       }
     })
   }

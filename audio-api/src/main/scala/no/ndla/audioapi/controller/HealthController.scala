@@ -13,7 +13,8 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.scalatra.BaseHealthController
 import no.ndla.network.ApplicationUrl
 import org.scalatra.{ActionResult, InternalServerError, Ok}
-import scalaj.http.{Http, HttpResponse}
+import sttp.client3.Response
+import sttp.client3.quick._
 
 trait HealthController {
   this: AudioRepository with Props =>
@@ -29,12 +30,12 @@ trait HealthController {
       ApplicationUrl.clear()
     }
 
-    def getApiResponse(url: String): HttpResponse[String] = {
-      Http(url).execute()
+    def getApiResponse(url: String): Response[String] = {
+      simpleHttpClient.send(quickRequest.get(uri"$url"))
     }
 
-    def getReturnCode(imageResponse: HttpResponse[String]): ActionResult = {
-      imageResponse.code match {
+    def getReturnCode(imageResponse: Response[String]): ActionResult = {
+      imageResponse.code.code match {
         case 200 => Ok()
         case _   => InternalServerError()
       }

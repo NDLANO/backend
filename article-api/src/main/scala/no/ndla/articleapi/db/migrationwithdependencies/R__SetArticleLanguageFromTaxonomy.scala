@@ -8,17 +8,9 @@
 package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  Description,
-  Introduction,
-  Tag,
-  Title,
-  VisualElement
-}
 import no.ndla.articleapi.{ArticleApiProperties, Props}
 import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.domain._
 import no.ndla.language.Language
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
@@ -26,9 +18,10 @@ import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalaj.http.Http
 import scalikejdbc._
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
@@ -40,7 +33,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
 
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   private val TaxonomyApiEndpoint           = s"${props.Domain}/taxonomy/v1"
-  private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
+  private val taxonomyTimeout               = 20.seconds
 
   case class TaxonomyResource(contentUri: Option[String], id: Option[String])
 
@@ -54,7 +47,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response  <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
+      response  <- Try(simpleHttpClient.send(quickRequest.get(uri"$url").readTimeout(taxonomyTimeout)))
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 
@@ -78,7 +71,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     val url = "http://api.topic.ndla.no/rest/v1/keywords/?filter%5Bnode%5D=ndlanode_" + externalId.toString
 
     val keywordsT = for {
-      response  <- Try(Http(url).asString)
+      response  <- Try(simpleHttpClient.send(quickRequest.get(uri"$url")))
       extracted <- Try(parse(response.body).extract[Keywords])
     } yield extracted
 

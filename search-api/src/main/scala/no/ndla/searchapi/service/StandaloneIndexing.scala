@@ -13,7 +13,7 @@ import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
@@ -67,11 +67,15 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
 
     val body = Serialization.write(payload)
 
-    Http(url = propOrElse("SLACK_URL", "https://slack.com/api/chat.postMessage"))
-      .postData(data = body)
-      .header("Content-Type", "application/json")
-      .header("Authorization", s"Bearer ${prop(s"SLACK_TOKEN")}")
-      .asString
+    val url = propOrElse("SLACK_URL", "https://slack.com/api/chat.postMessage")
+
+    simpleHttpClient.send(
+      quickRequest
+        .post(uri"$url")
+        .body(body)
+        .header("Content-Type", "application/json")
+        .header("Authorization", s"Bearer ${prop(s"SLACK_TOKEN")}")
+    )
   }
 
   def doStandaloneIndexing(): Nothing = {

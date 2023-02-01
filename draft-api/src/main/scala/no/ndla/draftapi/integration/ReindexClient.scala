@@ -9,10 +9,10 @@ package no.ndla.draftapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.Props
-import scalaj.http.Http
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import sttp.client3.quick._
 
 trait ReindexClient {
   this: Props =>
@@ -21,14 +21,25 @@ trait ReindexClient {
   class ReindexClient extends StrictLogging {
     import props.internalApiUrls
 
-    private def reindexArticles() =
-      Http(s"${internalApiUrls("article-api")}/index").postForm.execute()
+    private def reindexArticles() = {
+      val req = quickRequest.post(uri"${internalApiUrls("article-api")}/index")
+      simpleHttpClient.send(req)
+    }
 
-    private def reindexAudios() = Http(s"${internalApiUrls("audio-api")}/index").postForm.execute()
+    private def reindexAudios() = {
+      val req = quickRequest.post(uri"${internalApiUrls("audio-api")}/index")
+      simpleHttpClient.send(req)
+    }
 
-    private def reindexDrafts() = Http(s"${internalApiUrls("draft-api")}/index").postForm.execute()
+    private def reindexDrafts() = {
+      val req = quickRequest.post(uri"${internalApiUrls("draft-api")}/index")
+      simpleHttpClient.send(req)
+    }
 
-    private def reindexImages() = Http(s"${internalApiUrls("image-api")}/index").postForm.execute()
+    private def reindexImages() = {
+      val req = quickRequest.post(uri"${internalApiUrls("image-api")}/index")
+      simpleHttpClient.send(req)
+    }
 
     def reindexAll() = {
       logger.info("Calling for API's to reindex")

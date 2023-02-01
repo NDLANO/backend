@@ -12,12 +12,14 @@ import no.ndla.learningpathapi.model.domain.{LearningPath, TaxonomyUpdateExcepti
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import org.json4s.native.Serialization.write
-import scalaj.http.{Http, HttpResponse}
+import sttp.client3.quick._
 import cats.implicits._
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
+import sttp.client3.Response
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -27,7 +29,7 @@ trait TaxonomyApiClient {
   class TaxonomyApiClient extends StrictLogging {
     import props.{TaxonomyUrl, DefaultLanguage}
     implicit val formats                   = org.json4s.DefaultFormats
-    private val taxonomyTimeout            = 20 * 1000 // 20 Seconds
+    private val taxonomyTimeout            = 20.seconds
     private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
 
@@ -90,9 +92,9 @@ trait TaxonomyApiClient {
         resourceTypeId = LearningPathResourceTypeId
       )
       postRaw[ResourceResourceType](s"$TaxonomyApiEndpoint/resource-resourcetypes", resourceType) match {
-        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.is2xx) => Success(resourceId)
-        case Failure(ex)                                                          => Failure(ex)
-        case Success(_)                                                           => Success(resourceId)
+        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) => Success(resourceId)
+        case Failure(ex)                                                              => Failure(ex)
+        case Success(_)                                                               => Success(resourceId)
       }
     }
 
@@ -115,7 +117,7 @@ trait TaxonomyApiClient {
             case _ => Failure(new TaxonomyUpdateException("Could not get location after inserting resource"))
           }
 
-        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.is2xx) =>
+        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
           ex.httpResponse.flatMap(_.header("location")) match {
             case Some(locationHeader) if locationHeader.nonEmpty => Success(locationHeader)
             case _                                               => Failure(ex)
@@ -208,7 +210,7 @@ trait TaxonomyApiClient {
     def updateResource(resource: TaxonomyResource): Try[TaxonomyResource] = {
       put[String, TaxonomyResource](s"$TaxonomyApiEndpoint/resources/${resource.id}", resource) match {
         case Success(_) => Success(resource)
-        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.is2xx) =>
+        case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
           Success(resource)
         case Failure(ex) => Failure(ex)
       }
@@ -222,7 +224,10 @@ trait TaxonomyApiClient {
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(url).timeout(taxonomyTimeout, taxonomyTimeout).header("VersionHash", "default").params(params)
+        quickRequest
+          .get(uri"$url".withParams(params: _*))
+          .readTimeout(taxonomyTimeout)
+          .header("VersionHash", "default")
       )
     }
 
@@ -231,12 +236,11 @@ trait TaxonomyApiClient {
         format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(url)
-          .timeout(taxonomyTimeout, taxonomyTimeout)
-          .postData(write(data)(format))
-          .method("put")
+        quickRequest
+          .put(uri"$url".withParams(params: _*))
+          .readTimeout(taxonomyTimeout)
+          .body(write(data)(format))
           .header("content-type", "application/json")
-          .params(params.toMap)
       )
     }
 
@@ -245,11 +249,11 @@ trait TaxonomyApiClient {
     ): Try[B] = {
       logger.info(s"Doing call to $url")
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(url)
-          .put(write(data))
-          .timeout(taxonomyTimeout, taxonomyTimeout)
+        quickRequest
+          .put(uri"$url".withParams(params: _*))
+          .body(write(data))
+          .readTimeout(taxonomyTimeout)
           .header("content-type", "application/json")
-          .params(params)
       ) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
@@ -260,13 +264,13 @@ trait TaxonomyApiClient {
         endpointUrl: String,
         data: B,
         params: (String, String)*
-    ): Try[HttpResponse[String]] = {
+    ): Try[Response[String]] = {
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(endpointUrl)
-          .postData(write(data))
-          .timeout(taxonomyTimeout, taxonomyTimeout)
+        quickRequest
+          .post(uri"$endpointUrl".withParams(params.toMap))
+          .body(write(data))
+          .readTimeout(taxonomyTimeout)
           .header("content-type", "application/json")
-          .params(params)
       ) match {
         case Success(resp) => Success(resp)
         case Failure(ex)   => Failure(ex)
@@ -275,7 +279,9 @@ trait TaxonomyApiClient {
 
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
+        quickRequest
+          .delete(uri"$url".withParams(params: _*))
+          .readTimeout(taxonomyTimeout)
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())

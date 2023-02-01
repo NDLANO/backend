@@ -18,11 +18,11 @@ import no.ndla.searchapi.model.api.TaxonomyException
 import no.ndla.searchapi.model.search.SearchableTaxonomyContext
 import no.ndla.searchapi.model.taxonomy._
 import org.json4s.{DefaultFormats, Formats}
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import java.util.concurrent.Executors
 import scala.concurrent._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -33,7 +33,7 @@ trait TaxonomyApiClient {
     import props.TaxonomyUrl
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
     private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
-    private val timeoutSeconds                = 600
+    private val timeoutSeconds                = 600.seconds
 
     def getAllResources: Try[List[Resource]] =
       getPaginated[Resource](s"$TaxonomyApiEndpoint/resources/page", 500).map(_.distinct)
@@ -117,7 +117,7 @@ trait TaxonomyApiClient {
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(url).timeout(timeoutSeconds * 1000, timeoutSeconds * 1000).params(params)
+        quickRequest.get(uri"$url?$params").readTimeout(timeoutSeconds)
       )
     }
 
@@ -137,7 +137,7 @@ trait TaxonomyApiClient {
 
         val pages        = pageRange.map(pageNum => Future(fetchPage(pageNum)))
         val mergedFuture = Future.sequence(pages)
-        val awaited      = Await.result(mergedFuture, Duration(timeoutSeconds, "seconds"))
+        val awaited      = Await.result(mergedFuture, timeoutSeconds)
 
         awaited.toList.sequence.map(_.flatMap(_.results))
       })

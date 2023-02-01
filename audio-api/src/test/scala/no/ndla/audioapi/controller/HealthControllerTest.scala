@@ -13,17 +13,18 @@ import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import org.scalatra.test.scalatest.ScalatraFunSuite
-import scalaj.http.HttpResponse
+import sttp.client3.Response
+import sttp.model.StatusCode
 
 import java.time.LocalDateTime
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
 
-  val httpResponseMock: HttpResponse[String] = mock[HttpResponse[String]]
+  val httpResponseMock: Response[String] = mock[Response[String]]
 
   lazy val controller = new HealthController {
-    override def getApiResponse(url: String): HttpResponse[String] = httpResponseMock
+    override def getApiResponse(url: String): Response[String] = httpResponseMock
   }
 
   controller.setWarmedUp()
@@ -52,11 +53,11 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   )
 
   addServlet(controller, "/")
-  when(httpResponseMock.code).thenReturn(404)
+  when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
   when(audioRepository.getRandomAudio()).thenReturn(None)
 
   test("that /health returns 200 on success") {
-    when(httpResponseMock.code).thenReturn(200)
+    when(httpResponseMock.code).thenReturn(StatusCode.Ok)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     get("/") {
@@ -65,7 +66,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("that /health returns 500 on failure") {
-    when(httpResponseMock.code).thenReturn(500)
+    when(httpResponseMock.code).thenReturn(StatusCode.InternalServerError)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     get("/") {
@@ -74,7 +75,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("that /health returns 200 on no images") {
-    when(httpResponseMock.code).thenReturn(404)
+    when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
     when(audioRepository.getRandomAudio()).thenReturn(None)
 
     get("/") {

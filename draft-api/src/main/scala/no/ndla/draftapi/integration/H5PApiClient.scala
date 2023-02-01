@@ -15,10 +15,10 @@ import no.ndla.draftapi.model.api.H5PException
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import org.json4s.DefaultFormats
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -28,7 +28,7 @@ trait H5PApiClient {
 
   class H5PApiClient extends StrictLogging {
     private val H5PApi                        = s"${props.H5PAddress}/v1"
-    private val h5pTimeout                    = 20 * 1000 // 20 Seconds
+    private val h5pTimeout                    = 20.seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
     def publishH5Ps(paths: Seq[String]): Try[Unit] = {
@@ -85,11 +85,10 @@ trait H5PApiClient {
         logger.info(s"Doing call to $url")
         threadInfo.setRequestInfo()
         ndlaClient.fetchRawWithForwardedAuth(
-          Http(url)
-            .method("PUT")
-            .timeout(h5pTimeout, h5pTimeout)
+          quickRequest
+            .put(uri"$url".withParams(params: _*))
             .header("content-type", "application/json")
-            .params(params)
+            .readTimeout(h5pTimeout)
         ) match {
           case Success(_)  => Success(())
           case Failure(ex) => Failure(ex)

@@ -67,7 +67,7 @@ trait NdlaController {
         InternalServerError(Error(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION))
       case h: HttpRequestException =>
         h.httpResponse match {
-          case Some(resp) if resp.is4xx => BadRequest(body = resp.body)
+          case Some(resp) if resp.code.isClientError => BadRequest(body = resp.body)
           case _ =>
             logger.error(s"Problem with remote service: ${h.getMessage}")
             BadGateway(body = GenericError)

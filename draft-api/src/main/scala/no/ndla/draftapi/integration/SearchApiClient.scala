@@ -16,9 +16,10 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import org.json4s.native.Serialization.write
-import scalaj.http.Http
+import org.json4s.native.Serialization
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -31,7 +32,7 @@ trait SearchApiClient {
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"
     private val SearchEndpoint          = s"$SearchApiBaseUrl/search-api/v1/search/editorial/"
     private val SearchEndpointPublished = s"$SearchApiBaseUrl/search-api/v1/search/"
-    private val indexTimeout            = 1000 * 60
+    private val indexTimeout            = 60.seconds
 
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
@@ -72,11 +73,10 @@ trait SearchApiClient {
 
       Future {
         ndlaClient.fetchWithForwardedAuth[A](
-          Http(endpointUrl)
-            .postData(write(data))
-            .timeout(indexTimeout, indexTimeout)
-            .method("POST")
-            .params(params.toMap)
+          quickRequest
+            .post(uri"$endpointUrl".withParams(params: _*))
+            .body(Serialization.write(data))
+            .readTimeout(indexTimeout)
             .header("content-type", "application/json")
         )
       }
@@ -108,7 +108,7 @@ trait SearchApiClient {
         mf: Manifest[A],
         formats: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(endpointUrl).method("GET").params(params.toMap))
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.get(uri"$endpointUrl".withParams(params: _*)))
     }
   }
 

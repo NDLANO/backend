@@ -8,13 +8,13 @@
 package no.ndla.conceptapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.typesafe.dsl._
 import no.ndla.conceptapi.Props
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
-import scalaj.http.Http
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
 case class ImageAltText(alttext: String, language: String)
@@ -34,7 +34,7 @@ trait ImageApiClient {
     def get[T](path: String, params: Map[String, String], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
       ndlaClient.fetchWithForwardedAuth[T](
-        Http(((baseUrl / path).addParams(params.toList)).toString).timeout(timeout, timeout)
+        quickRequest.get(uri"$baseUrl/$path".withParams(params)).readTimeout(timeout.millis)
       )
     }
   }
