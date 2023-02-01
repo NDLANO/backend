@@ -486,6 +486,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("toNewFolderData transforms correctly") {
+    val shared = LocalDateTime.now()
+    when(clock.now()).thenReturn(shared)
+
     val folderUUID = UUID.randomUUID()
     val newFolder1 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("private"))
     val newFolder2 = api.NewFolder(name = "kenkaku", parentId = Some(folderUUID.toString), status = Some("shared"))
@@ -536,7 +539,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       resources = List(resource),
       subfolders = List.empty,
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val folderData2 = domain.Folder(
       id = subFolder2UUID,
@@ -546,7 +552,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.SHARED,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val folderData3 = domain.Folder(
       id = subFolder3UUID,
@@ -556,7 +565,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List(folderData1),
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val mainFolder = domain.Folder(
       id = mainFolderUUID,
@@ -566,7 +578,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.SHARED,
       subfolders = List(folderData2, folderData3),
       resources = List(resource),
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val apiResource = api.Resource(
       id = resourceUUID.toString,
@@ -589,7 +604,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder1UUID.toString, name = "folderData1")
       ),
       parentId = Some(subFolder3UUID.toString),
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val apiData2 = api.Folder(
       id = subFolder2UUID.toString,
@@ -602,7 +620,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder2UUID.toString, name = "folderData2")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val apiData3 = api.Folder(
       id = subFolder3UUID.toString,
@@ -615,7 +636,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = subFolder3UUID.toString, name = "folderData3")
       ),
       parentId = Some(mainFolderUUID.toString),
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
     val expected = api.Folder(
       id = mainFolderUUID.toString,
@@ -627,7 +651,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.Breadcrumb(id = mainFolderUUID.toString, name = "mainFolder")
       ),
       parentId = None,
-      rank = None
+      rank = None,
+      created = created,
+      updated = created,
+      shared = None
     )
 
     val Success(result) =
@@ -636,6 +663,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("updateFolder updates folder correctly") {
+    val shared = LocalDateTime.now()
+    when(clock.now()).thenReturn(shared)
+
     val folderUUID = UUID.randomUUID()
     val parentUUID = UUID.randomUUID()
 
@@ -647,14 +677,17 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       status = domain.FolderStatus.PRIVATE,
       subfolders = List.empty,
       resources = List.empty,
-      rank = None
+      rank = None,
+      created = clock.now(),
+      updated = clock.now(),
+      shared = None
     )
     val updatedWithData    = api.UpdatedFolder(name = Some("newNamae"), status = Some("shared"))
     val updatedWithoutData = api.UpdatedFolder(name = None, status = None)
     val updatedWithGarbageData =
       api.UpdatedFolder(name = Some("huehueuheasdasd+++"), status = Some("det å joike er noe kult"))
 
-    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.SHARED)
+    val expected1 = existing.copy(name = "newNamae", status = FolderStatus.SHARED, shared = Some(shared))
     val expected2 = existing.copy(name = "folderData1", status = FolderStatus.PRIVATE)
     val expected3 = existing.copy(name = "huehueuheasdasd+++", status = FolderStatus.PRIVATE)
 
@@ -665,6 +698,43 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result1 should be(expected1)
     result2 should be(expected2)
     result3 should be(expected3)
+  }
+
+  test("that mergeFolder works correctly for shared field and folder status update") {
+    val sharedBefore = LocalDateTime.now().minusDays(1)
+    val sharedNow    = LocalDateTime.now()
+    when(clock.now()).thenReturn(sharedNow)
+
+    val existingBase = domain.Folder(
+      id = UUID.randomUUID(),
+      feideId = "u",
+      parentId = Some(UUID.randomUUID()),
+      name = "folderData1",
+      status = domain.FolderStatus.SHARED,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = None,
+      created = clock.now(),
+      updated = clock.now(),
+      shared = Some(sharedBefore)
+    )
+    val existingShared  = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
+    val existingPrivate = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+    val updatedShared   = api.UpdatedFolder(name = None, status = Some("shared"))
+    val updatedPrivate  = api.UpdatedFolder(name = None, status = Some("private"))
+    val expected1       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
+    val expected2       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+    val expected3       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedNow))
+    val expected4       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
+
+    val result1 = service.mergeFolder(existingShared, updatedShared)
+    val result2 = service.mergeFolder(existingShared, updatedPrivate)
+    val result3 = service.mergeFolder(existingPrivate, updatedShared)
+    val result4 = service.mergeFolder(existingPrivate, updatedPrivate)
+    result1 should be(expected1)
+    result2 should be(expected2)
+    result3 should be(expected3)
+    result4 should be(expected4)
   }
 
   test("that toApiResource converts correctly") {

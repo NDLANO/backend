@@ -25,7 +25,10 @@ case class Folder(
     @(ApiModelProperty @field)(description = "List of parent folders to resource") breadcrumbs: List[Breadcrumb],
     @(ApiModelProperty @field)(description = "List of subfolders") subfolders: List[FolderData],
     @(ApiModelProperty @field)(description = "List of resources") resources: List[Resource],
-    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int]
+    @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
+    @(ApiModelProperty @field)(description = "When the folder was created") created: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the folder was updated") updated: LocalDateTime,
+    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[LocalDateTime]
 ) extends FolderData with CopyableFolder
 // format: on
 
@@ -51,7 +54,10 @@ object FolderData {
       breadcrumbs: List[Breadcrumb],
       subfolders: List[FolderData],
       resources: List[Resource],
-      rank: Option[Int]
+      rank: Option[Int],
+      created: LocalDateTime,
+      updated: LocalDateTime,
+      shared: Option[LocalDateTime]
   ): FolderData = {
     Folder(
       id,
@@ -61,7 +67,10 @@ object FolderData {
       breadcrumbs,
       subfolders,
       resources,
-      rank
+      rank,
+      created,
+      updated,
+      shared
     )
   }
 

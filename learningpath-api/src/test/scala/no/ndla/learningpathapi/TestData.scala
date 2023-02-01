@@ -132,7 +132,10 @@ object TestData {
     status = domain.FolderStatus.PRIVATE,
     subfolders = List.empty,
     resources = List.empty,
-    rank = None
+    rank = None,
+    created = today,
+    updated = today,
+    shared = None
   )
 
   val baseFolderDocument: NewFolderData = NewFolderData(
@@ -155,7 +158,10 @@ object TestData {
     resources = List.empty,
     breadcrumbs = List.empty,
     parentId = None,
-    rank = None
+    rank = None,
+    created = today,
+    updated = today,
+    shared = None
   )
 
   val emptyMyNDLAUser: domain.MyNDLAUser = domain.MyNDLAUser(

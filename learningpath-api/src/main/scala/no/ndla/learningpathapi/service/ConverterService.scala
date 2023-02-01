@@ -734,7 +734,10 @@ trait ConverterService {
                 resources = resources.sortBy(_.rank),
                 breadcrumbs = crumbs,
                 parentId = folder.parentId.map(_.toString),
-                rank = folder.rank
+                rank = folder.rank,
+                created = folder.created,
+                updated = folder.updated,
+                shared = folder.shared
               )
             })
         )
@@ -746,6 +749,13 @@ trait ConverterService {
       val name   = updated.name.getOrElse(existing.name)
       val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
 
+      val shared = (existing.status, status) match {
+        case (FolderStatus.PRIVATE, FolderStatus.SHARED) => Some(clock.now())
+        case (FolderStatus.SHARED, FolderStatus.SHARED)  => existing.shared
+        case (FolderStatus.SHARED, FolderStatus.PRIVATE) => None
+        case _                                           => None
+      }
+
       domain.Folder(
         id = existing.id,
         resources = existing.resources,
@@ -754,7 +764,10 @@ trait ConverterService {
         parentId = existing.parentId,
         name = name,
         status = status,
-        rank = existing.rank
+        rank = existing.rank,
+        created = existing.created,
+        updated = clock.now(),
+        shared = shared
       )
     }
 

@@ -109,6 +109,9 @@ class FolderRepositoryTest
   }
 
   test("that inserting and retrieving a folder works as expected") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument)
     val folder3 = repository.insertFolder("feide", TestData.baseFolderDocument)
@@ -148,7 +151,11 @@ class FolderRepositoryTest
   }
 
   test("that updateFolder updates all fields correctly") {
-    val folderData = NewFolderData(parentId = None, name = "new", status = FolderStatus.PRIVATE, rank = None)
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
+    val folderData =
+      NewFolderData(parentId = None, name = "new", status = FolderStatus.PRIVATE, rank = None)
     val updatedFolder = Folder(
       id = UUID.randomUUID(),
       feideId = "feide",
@@ -157,7 +164,10 @@ class FolderRepositoryTest
       status = FolderStatus.SHARED,
       rank = None,
       resources = List.empty,
-      subfolders = List.empty
+      subfolders = List.empty,
+      created = created,
+      updated = created,
+      shared = None
     )
     val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED)
 
@@ -246,7 +256,8 @@ class FolderRepositoryTest
 
   test("that getFolderResources works as expected") {
     val created = LocalDateTime.now()
-    val doc     = NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
+    val doc =
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
 
     val folder1 = repository.insertFolder("feide", doc)
     val folder2 = repository.insertFolder("feide", doc.copy(parentId = Some(folder1.get.id)))
@@ -289,7 +300,10 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         resources = List.empty,
         subfolders = List.empty,
-        rank = None
+        rank = None,
+        created = clock.now(),
+        updated = clock.now(),
+        shared = None
       )
 
     val mainParent = base.copy(
@@ -330,6 +344,9 @@ class FolderRepositoryTest
   }
 
   test("inserting and fetching nested folders with resources works as expected") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val base =
       domain.Folder(
         id = UUID.randomUUID(),
@@ -339,7 +356,10 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None
+        rank = None,
+        created = created,
+        updated = created,
+        shared = None
       )
 
     val baseNewFolderData = domain.NewFolderData(
@@ -418,7 +438,8 @@ class FolderRepositoryTest
     "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
   ) {
     val created = LocalDateTime.now()
-    val doc     = NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
+    val doc =
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -451,7 +472,8 @@ class FolderRepositoryTest
   }
 
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
-    val doc = NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+    val doc =
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -470,7 +492,8 @@ class FolderRepositoryTest
   }
 
   test("that updateFolderStatusInBulk updates status of chosen folders") {
-    val doc = NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+    val doc =
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -486,6 +509,9 @@ class FolderRepositoryTest
   }
 
   test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
+    val created = LocalDateTime.now().withNano(0)
+    when(clock.now()).thenReturn(created)
+
     val base =
       domain.Folder(
         id = UUID.randomUUID(),
@@ -495,7 +521,10 @@ class FolderRepositoryTest
         status = FolderStatus.SHARED,
         subfolders = List.empty,
         resources = List.empty,
-        rank = None
+        rank = None,
+        created = created,
+        updated = created,
+        shared = None
       )
 
     val baseNewFolderData = domain.NewFolderData(
@@ -551,6 +580,16 @@ class FolderRepositoryTest
     val resultFiltered =
       repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED)(ReadOnlyAutoSession)
     resultFiltered should be(Success(Some(expectedResultFiltered)))
+  }
+
+  test("that retrieving folder with subfolder via getFolderAndChildrenSubfolders works as expected") {
+    implicit val session: AutoSession.type = AutoSession
+
+    val folder1 = repository.insertFolder("feide", TestData.baseFolderDocument)
+    val folder2 = repository.insertFolder("feide", TestData.baseFolderDocument.copy(parentId = Some(folder1.get.id)))
+
+    val res = repository.getFolderAndChildrenSubfolders(folder1.get.id)
+    res.get.get should be(folder1.get.copy(subfolders = List(folder2.get)))
   }
 
 }
