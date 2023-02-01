@@ -49,7 +49,7 @@ object StateTransition {
     StateTransition(
       from,
       to,
-      Set(DraftStatus.IMPORTED, DraftStatus.PUBLISHED),
+      Set(DraftStatus.PUBLISHED),
       Seq.empty[SideEffect],
       addCurrentStateToOthersOnTransition = false,
       UserInfo.WriteRoles,

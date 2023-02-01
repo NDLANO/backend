@@ -542,7 +542,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleDomainArticle.copy(
         id = Some(5),
         title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
-        status = Status(DraftStatus.PUBLISHED, Set(DraftStatus.IMPORTED)),
+        status = Status(DraftStatus.PUBLISHED, Set.empty),
         updated = yesterday,
         created = yesterday.minusDays(1),
         published = yesterday
@@ -594,7 +594,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleDomainArticle.copy(
       id = Some(5),
       title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
-      status = Status(DraftStatus.PUBLISHED, Set(DraftStatus.IMPORTED)),
+      status = Status(DraftStatus.PUBLISHED, Set.empty),
       updated = yesterday,
       created = yesterday.minusDays(1),
       published = yesterday

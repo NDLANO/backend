@@ -317,10 +317,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   }
 
   test("published article keeps revison on import") {
-    val article = TestData.sampleDomainArticle.copy(
-      status = Status(DraftStatus.IMPORTED, Set.empty),
-      revision = Some(1)
-    )
+    val article = TestData.sampleDomainArticle.copy(revision = Some(1))
     repository.insert(article)
     val oldCount         = repository.articlesWithId(article.id.get).size
     val publishedArticle = article.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))

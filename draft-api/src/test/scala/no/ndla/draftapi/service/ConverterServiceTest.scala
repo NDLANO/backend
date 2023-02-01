@@ -176,7 +176,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
 
-    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED.toString)
@@ -217,7 +216,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(articleId)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
-    noTrans(IMPORTED.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED)
@@ -234,7 +232,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(writeTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
 
     // format: off
-    writeTrans(IMPORTED.toString).length should be(adminTrans(IMPORTED.toString).length)
     writeTrans(PLANNED.toString).length should be(adminTrans(PLANNED.toString).length)
     writeTrans(IN_PROGRESS.toString).length should be < adminTrans(IN_PROGRESS.toString).length
     writeTrans(EXTERNAL_REVIEW.toString).length should be < adminTrans(EXTERNAL_REVIEW.toString).length
@@ -249,7 +246,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should have transitions from all statuses if admin") {
     val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    adminTrans.size should be(DraftStatus.values.size)
+    adminTrans.size should be(DraftStatus.values.size - 1)
   }
 
   test("stateTransitionsToApi should have transitions in inserted order") {
@@ -283,7 +280,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Merging language fields of article should not delete not updated fields") {
-    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
       revision = Some(4),
@@ -323,7 +320,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should replace every field correctly") {
-    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
       revision = Some(4),
@@ -411,7 +408,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeArticleLanguageFields should merge every field correctly") {
-    val status = Status(DraftStatus.PUBLISHED, other = Set(DraftStatus.IMPORTED))
+    val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
     val art = Draft(
       id = Some(3),
       revision = Some(4),
