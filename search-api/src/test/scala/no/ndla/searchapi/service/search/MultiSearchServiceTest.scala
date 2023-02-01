@@ -64,10 +64,12 @@ class MultiSearchServiceTest
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      articlesToIndex.map(article => articleIndexService.indexDocument(article, taxonomyTestBundle, Some(grepBundle)))
+      articlesToIndex.map(article =>
+        articleIndexService.indexDocument(article, Some(taxonomyTestBundle), Some(grepBundle))
+      )
 
       learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle))
+        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle))
       )
 
       blockUntil(() => {

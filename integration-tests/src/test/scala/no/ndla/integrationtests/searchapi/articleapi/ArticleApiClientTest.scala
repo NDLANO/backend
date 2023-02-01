@@ -110,7 +110,7 @@ class ArticleApiClientTest
     val chunks                                = articleApiClient.getChunks[Article].toList
     val fetchedArticle                        = Await.result(chunks.head, Duration.Inf).get.head
     val searchable = searchConverterService
-      .asSearchableArticle(fetchedArticle, TestData.taxonomyTestBundle, Some(TestData.emptyGrepBundle))
+      .asSearchableArticle(fetchedArticle, Some(TestData.taxonomyTestBundle), Some(TestData.emptyGrepBundle))
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

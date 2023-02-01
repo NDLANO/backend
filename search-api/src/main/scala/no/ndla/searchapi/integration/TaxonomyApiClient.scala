@@ -11,11 +11,13 @@ import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
+import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
+import no.ndla.searchapi.model.search.SearchableTaxonomyContext
 import no.ndla.searchapi.model.taxonomy._
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.Http
 
 import java.util.concurrent.Executors
@@ -59,6 +61,14 @@ trait TaxonomyApiClient {
 
     def getAllRelevances: Try[List[Relevance]] =
       get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
+
+    def getSearchableTaxonomy(contentUri: String, filterVisibles: Boolean): Try[List[SearchableTaxonomyContext]] = {
+      implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis
+      get[List[SearchableTaxonomyContext]](
+        s"$TaxonomyApiEndpoint/queries/$contentUri",
+        "filterVisibles" -> filterVisibles.toString
+      )
+    }
 
     val getTaxonomyBundle: Memoize[Try[TaxonomyBundle]] = Memoize(() => getTaxonomyBundleUncached)
 
@@ -105,7 +115,7 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
+    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         Http(url).timeout(timeoutSeconds * 1000, timeoutSeconds * 1000).params(params)
       )

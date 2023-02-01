@@ -58,10 +58,12 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, taxonomyTestBundle, Some(emptyGrepBundle)))
+      draftsToIndex.map(draft =>
+        draftIndexService.indexDocument(draft, Some(taxonomyTestBundle), Some(emptyGrepBundle))
+      )
 
       learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(lp, taxonomyTestBundle, Some(emptyGrepBundle))
+        learningPathIndexService.indexDocument(lp, Some(taxonomyTestBundle), Some(emptyGrepBundle))
       )
 
       blockUntil(() => {

@@ -120,7 +120,7 @@ trait InternController {
 
     get("/dump/article/:article_id") {
       val articleId = long("article_id")
-      articleRepository.withId(articleId) match {
+      articleRepository.withId(articleId).map(_.article) match {
         case Some(value) => Ok(value)
         case None        => NotFound()
       }

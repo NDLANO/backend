@@ -90,9 +90,9 @@ class MultiDraftSearchServiceAtomicTest
       )
     )
     val draft3 = TestData.draft1.copy(id = Some(3))
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
 
     blockUntil(() => draftIndexService.countDocuments == 3)
 
@@ -167,10 +167,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4),
       revisionMeta = Seq()
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
 
     blockUntil(() => draftIndexService.countDocuments == 4)
 
@@ -245,10 +245,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4),
       revisionMeta = Seq()
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
 
     blockUntil(() => draftIndexService.countDocuments == 4)
 
@@ -307,10 +307,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4),
       revisionMeta = Seq()
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).get
-    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).get
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).get
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).get
 
     blockUntil(() => draftIndexService.countDocuments == 4)
 
@@ -383,9 +383,9 @@ class MultiDraftSearchServiceAtomicTest
       notes = Seq(),
       previousVersionsNotes = Seq()
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
 
     blockUntil(() => draftIndexService.countDocuments == 3)
 
@@ -425,9 +425,9 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(3),
       responsible = Some(DraftResponsible("hei", TestData.today))
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
 
     blockUntil(() => draftIndexService.countDocuments == 3)
 
@@ -489,10 +489,10 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(4),
       responsible = None
     )
-    draftIndexService.indexDocument(draft1, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft2, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft3, taxonomyTestBundle, Some(grepBundle)).failIfFailure
-    draftIndexService.indexDocument(draft4, taxonomyTestBundle, Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
 
     blockUntil(() => draftIndexService.countDocuments == 4)
 
@@ -659,11 +659,11 @@ class MultiDraftSearchServiceAtomicTest
     }
 
     {
-      draftIndexService.indexDocument(draft1, taxonomyBundle, Some(grepBundle)).failIfFailure
-      draftIndexService.indexDocument(draft2, taxonomyBundle, Some(grepBundle)).failIfFailure
-      draftIndexService.indexDocument(draft3, taxonomyBundle, Some(grepBundle)).failIfFailure
-      draftIndexService.indexDocument(draft4, taxonomyBundle, Some(grepBundle)).failIfFailure
-      draftIndexService.indexDocument(draft5, taxonomyBundle, Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft1, Some(taxonomyBundle), Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft2, Some(taxonomyBundle), Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft3, Some(taxonomyBundle), Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft4, Some(taxonomyBundle), Some(grepBundle)).failIfFailure
+      draftIndexService.indexDocument(draft5, Some(taxonomyBundle), Some(grepBundle)).failIfFailure
       blockUntil(() => draftIndexService.countDocuments == 5)
     }
 

@@ -37,7 +37,7 @@ trait LearningPathIndexService {
     override def createIndexRequest(
         domainModel: LearningPath,
         indexName: String,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableLearningPath(domainModel, taxonomyBundle) match {

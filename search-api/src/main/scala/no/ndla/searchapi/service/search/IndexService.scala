@@ -44,13 +44,11 @@ trait IndexService {
     def createIndexRequest(
         domainModel: D,
         indexName: String,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
-      val taxonomyBundleT = taxonomyApiClient.getTaxonomyBundle()
-
       val grepBundle = grepApiClient.getGrepBundle() match {
         case Success(bundle) => Some(bundle)
         case Failure(_) =>
@@ -60,18 +58,10 @@ trait IndexService {
           None
       }
 
-      taxonomyBundleT match {
-        case Failure(ex) =>
-          logger.error(
-            s"Taxonomy could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}",
-            ex
-          )
-          Failure(ex)
-        case Success(taxonomyBundle) => indexDocument(imported, taxonomyBundle, grepBundle)
-      }
+      indexDocument(imported, None, grepBundle)
     }
 
-    def indexDocument(imported: D, taxonomyBundle: TaxonomyBundle, grepBundle: Option[GrepBundle]): Try[D] = {
+    def indexDocument(imported: D, taxonomyBundle: Option[TaxonomyBundle], grepBundle: Option[GrepBundle]): Try[D] = {
       for {
         _       <- createIndexIfNotExists()
         request <- createIndexRequest(imported, searchIndex, taxonomyBundle, grepBundle)
@@ -96,11 +86,10 @@ trait IndexService {
 
     def reindexDocument(id: Long)(implicit mf: Manifest[D]): Try[D] = {
       for {
-        taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
-        grepBundle     <- grepApiClient.getGrepBundle()
-        _              <- createIndexIfNotExists()
-        toIndex        <- apiClient.getSingle[D](id)
-        request        <- createIndexRequest(toIndex, searchIndex, taxonomyBundle, Some(grepBundle))
+        grepBundle <- grepApiClient.getGrepBundle()
+        _          <- createIndexIfNotExists()
+        toIndex    <- apiClient.getSingle[D](id)
+        request    <- createIndexRequest(toIndex, searchIndex, None, Some(grepBundle))
         _ <- e4sClient.execute {
           request
         }
@@ -185,7 +174,9 @@ trait IndexService {
       if (contents.isEmpty) {
         Future.successful { Success(0) }
       } else {
-        val req = contents.map(content => createIndexRequest(content, indexName, taxonomyBundle, Some(grepBundle)))
+        val req = contents.map(content => {
+          createIndexRequest(content, indexName, Some(taxonomyBundle), Some(grepBundle))
+        })
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 

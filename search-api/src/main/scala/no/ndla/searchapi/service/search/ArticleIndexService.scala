@@ -36,7 +36,7 @@ trait ArticleIndexService {
     override def createIndexRequest(
         domainModel: Article,
         indexName: String,
-        taxonomyBundle: TaxonomyBundle,
+        taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableArticle(domainModel, taxonomyBundle, grepBundle) match {
