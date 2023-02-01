@@ -57,6 +57,9 @@ export interface IFolder {
   subfolders: IFolderData[]
   resources: IResource[]
   rank?: number
+  created: string
+  updated: string
+  shared?: string
 }
 
 export type IFolderData = IFolder
