@@ -58,10 +58,11 @@ trait FolderRepository {
         val newId   = UUID.randomUUID()
         val created = clock.now()
         val updated = created
+        val shared  = if (folderData.status == FolderStatus.SHARED) Some(clock.now()) else None
 
         sql"""
         insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared)
-        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, ${folderData.shared})
+        values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, $shared)
         """.update()
 
         logger.info(s"Inserted new folder with id: $newId")
@@ -71,7 +72,8 @@ trait FolderRepository {
           resources = List.empty,
           subfolders = List.empty,
           created = created,
-          updated = updated
+          updated = updated,
+          shared = shared
         )
       }
 

@@ -22,8 +22,7 @@ case class NewFolderData(
     parentId: Option[UUID],
     name: String,
     status: FolderStatus.Value,
-    rank: Option[Int],
-    shared: Option[LocalDateTime]
+    rank: Option[Int]
 ) {
   def toFullFolder(
       id: UUID,
@@ -31,7 +30,8 @@ case class NewFolderData(
       resources: List[Resource],
       subfolders: List[Folder],
       created: LocalDateTime,
-      updated: LocalDateTime
+      updated: LocalDateTime,
+      shared: Option[LocalDateTime]
   ): Folder = {
     Folder(
       id = id,

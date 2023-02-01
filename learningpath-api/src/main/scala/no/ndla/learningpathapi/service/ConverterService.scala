@@ -701,15 +701,13 @@ trait ConverterService {
         newRank: Option[Int]
     ): Try[domain.NewFolderData] = {
       val newStatus = domain.FolderStatus.valueOf(newFolder.status).getOrElse(domain.FolderStatus.PRIVATE)
-      val newShared = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
 
       Success(
         NewFolderData(
           parentId = parentId,
           name = newFolder.name,
           status = newStatus,
-          rank = newRank,
-          shared = newShared
+          rank = newRank
         )
       )
     }

@@ -142,8 +142,7 @@ object TestData {
     parentId = None,
     name = "some-name",
     status = FolderStatus.PRIVATE,
-    rank = None,
-    shared = None
+    rank = None
   )
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(

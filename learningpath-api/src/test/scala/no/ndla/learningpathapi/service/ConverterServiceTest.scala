@@ -499,13 +499,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       parentId = Some(folderUUID),
       name = "kenkaku",
       status = domain.FolderStatus.PRIVATE,
-      rank = None,
-      shared = None
+      rank = None
     )
 
     service.toNewFolderData(newFolder1, Some(folderUUID), None).get should be(expected1)
     service.toNewFolderData(newFolder2, Some(folderUUID), None).get should be(
-      expected1.copy(status = domain.FolderStatus.SHARED, shared = Some(shared))
+      expected1.copy(status = domain.FolderStatus.SHARED)
     )
     service.toNewFolderData(newFolder3, Some(folderUUID), None).get should be(
       expected1.copy(status = domain.FolderStatus.PRIVATE)

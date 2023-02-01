@@ -113,21 +113,19 @@ class CloneFolderTest
   def prepareFolderToClone(): UUID = {
     val folderRepository = learningpathApi.componentRegistry.folderRepository
     val parent =
-      NewFolderData(parentId = None, name = "parent", status = FolderStatus.SHARED, rank = Some(1), shared = None)
+      NewFolderData(parentId = None, name = "parent", status = FolderStatus.SHARED, rank = Some(1))
     val pId = folderRepository.insertFolder(feideId, folderData = parent).get.id
     val pChild1 = NewFolderData(
       parentId = Some(pId),
       name = "p_child1",
       status = FolderStatus.SHARED,
-      rank = Some(1),
-      shared = None
+      rank = Some(1)
     )
     val pChild2 = NewFolderData(
       parentId = Some(pId),
       name = "p_child2",
       status = FolderStatus.SHARED,
-      rank = Some(2),
-      shared = None
+      rank = Some(2)
     )
     folderRepository.insertFolder(feideId, folderData = pChild1)
     folderRepository.insertFolder(feideId, folderData = pChild2)
@@ -231,24 +229,21 @@ class CloneFolderTest
       parentId = Some(sourceFolderId),
       name = "doesnt matter",
       status = FolderStatus.PRIVATE,
-      rank = Some(10),
-      shared = None
+      rank = Some(10)
     )
     val noCloneId = folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned).get.id
     val folderThatShouldNotBeCloned2 = NewFolderData(
       parentId = Some(noCloneId),
       name = "doesnt matter2",
       status = FolderStatus.PRIVATE,
-      rank = Some(11),
-      shared = None
+      rank = Some(11)
     )
     folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned2).get.id
     val childrenFolderThatShouldNotBeCloned = NewFolderData(
       parentId = Some(sourceFolderId),
       name = "doesnt matter3",
       status = FolderStatus.PRIVATE,
-      rank = Some(1),
-      shared = None
+      rank = Some(1)
     )
     folderRepository.insertFolder(feideId, folderData = childrenFolderThatShouldNotBeCloned).get.id
 
@@ -337,8 +332,7 @@ class CloneFolderTest
         parentId = None,
         name = "destination",
         status = FolderStatus.PRIVATE,
-        rank = Some(1),
-        shared = None
+        rank = Some(1)
       )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
@@ -491,8 +485,7 @@ class CloneFolderTest
         parentId = None,
         name = "destination",
         status = FolderStatus.PRIVATE,
-        rank = Some(1),
-        shared = None
+        rank = Some(1)
       )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
