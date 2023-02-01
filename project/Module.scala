@@ -54,7 +54,7 @@ trait Module {
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
-      "-target:jvm-17",
+      "-release:17",
       "-unchecked",
       "-deprecation",
       "-feature",
