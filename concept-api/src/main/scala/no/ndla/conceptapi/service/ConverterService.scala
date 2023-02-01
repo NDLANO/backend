@@ -262,6 +262,12 @@ trait ConverterService {
         case Left(_)     => Seq.empty
       }
 
+      val responsible = concept.responsible match {
+        case Left(_)                    => None
+        case Right(Some(responsibleId)) => Some(domain.ConceptResponsible(responsibleId, clock.now()))
+        case Right(_)                   => None
+      }
+
       domain.Concept(
         id = Some(id),
         revision = None,
@@ -278,9 +284,7 @@ trait ConverterService {
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
         visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
-        responsible = concept.visualElement.map(responsibleId =>
-          domain.ConceptResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
-        )
+        responsible = responsible
       )
     }
 

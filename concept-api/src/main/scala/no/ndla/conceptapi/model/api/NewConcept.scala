@@ -24,6 +24,6 @@ case class NewConcept(
     @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleIds: Option[Seq[Long]],
     @(ApiModelProperty @field)(description = "A visual element for the concept. May be anything from an image to a video or H5P") visualElement: Option[String],
-    @(ApiModelProperty @field)(description = "DLA ID representing the editor responsible for this article") responsibleId: Option[String]
+    @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Option[String]
 )
 // format: on

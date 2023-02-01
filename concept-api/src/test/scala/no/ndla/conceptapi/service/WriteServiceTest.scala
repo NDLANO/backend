@@ -136,7 +136,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(Seq(69L)),
       None,
       None,
-      Right(None)
+      Right(Some("123"))
     )
 
     val expectedConcept = concept.copy(
@@ -150,7 +150,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
-      articleIds = Seq(69L)
+      articleIds = Seq(69L),
+      responsible = Some(api.ConceptResponsible("123", today))
     )
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")) should equal(Success(expectedConcept))
@@ -211,6 +212,32 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     conceptCaptor.getValue.revision should be(Some(951))
     conceptCaptor.getValue.title should be(Seq(Title(updatedTitle, "en")))
+  }
+
+  test("That update function updates only responsible properly") {
+    val responsibleId = "ResponsibleId"
+    val updatedApiConcept =
+      api.UpdatedConcept(
+        "nb",
+        None,
+        None,
+        Right(None),
+        None,
+        None,
+        None,
+        None,
+        Some(Seq.empty),
+        None,
+        None,
+        Right(Some(responsibleId))
+      )
+    val expectedConcept = concept.copy(
+      updated = today,
+      supportedLanguages = Set("nb"),
+      articleIds = Seq.empty,
+      responsible = Some(api.ConceptResponsible( responsibleId, today))
+    )
+    service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }
 
 }
