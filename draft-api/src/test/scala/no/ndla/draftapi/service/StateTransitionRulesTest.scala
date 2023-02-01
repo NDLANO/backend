@@ -26,9 +26,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   import StateTransitionRules.doTransitionWithoutSideEffect
 
   val PlannedStatus              = common.Status(PLANNED, Set(END_CONTROL))
-  val PlannedWithPublishedStatus = common.Status(PLANNED, Set(IMPORTED, PUBLISHED))
-  val PublishedStatus            = common.Status(PUBLISHED, Set(IMPORTED))
-  val ExternalReviewStatus       = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS, IMPORTED))
+  val PlannedWithPublishedStatus = common.Status(PLANNED, Set(PUBLISHED))
+  val PublishedStatus            = common.Status(PUBLISHED, Set.empty)
+  val ExternalReviewStatus       = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
   val UnpublishedStatus          = common.Status(UNPUBLISHED, Set.empty)
   val InProcessStatus            = common.Status(IN_PROGRESS, Set.empty)
   val ArchivedStatus             = common.Status(ARCHIVED, Set(PUBLISHED))
@@ -45,7 +45,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should keep some states when performing a legal transition") {
-    val expected = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS, IMPORTED))
+    val expected = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
     val (Success(res), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = ExternalReviewStatus),
@@ -55,7 +55,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res.status should equal(expected)
 
-    val expected2 = common.Status(IN_PROGRESS, Set(IMPORTED, PUBLISHED))
+    val expected2 = common.Status(IN_PROGRESS, Set(PUBLISHED))
     val (Success(res2), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -68,7 +68,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition every state change to Archived should succeed") {
-    val expected1 = common.Status(ARCHIVED, Set(IMPORTED))
+    val expected1 = common.Status(ARCHIVED, Set.empty)
     val (Success(res1), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -98,7 +98,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res3.status should equal(expected3)
 
-    val expected4 = common.Status(ARCHIVED, Set(IMPORTED))
+    val expected4 = common.Status(ARCHIVED, Set.empty)
     val (Success(res4), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = ExternalReviewStatus),
@@ -118,7 +118,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res5.status should equal(expected5)
 
-    val expected6 = common.Status(ARCHIVED, Set(IMPORTED))
+    val expected6 = common.Status(ARCHIVED, Set.empty)
     val (Success(res6), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -175,7 +175,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should unpublish the article when transitioning to UNPUBLISHED") {
-    val expectedStatus  = common.Status(UNPUBLISHED, Set(IMPORTED))
+    val expectedStatus  = common.Status(UNPUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
 
