@@ -445,18 +445,20 @@ class TagValidator {
       usedAttributes: Map[TagAttributes.Value, String],
       resourceType: ResourceType.Value
   ): Seq[ValidationMessage] = {
-    usedAttributes.get(TagAttributes.DataUrl) match {
-      case Some(url)
-          if attrs.validSrcDomains.nonEmpty && !attrs.validSrcDomains.get.exists(
-            url.hostOption.getOrElse("").toString.matches
-          ) =>
-        Seq(
-          ValidationMessage(
-            fieldName,
-            s"An $EmbedTagName HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
-                .mkString(", ")}"
+    (usedAttributes.get(TagAttributes.DataUrl), attrs.validSrcDomains) match {
+      case (Some(url), Some(sourceDomains)) =>
+        val urlHost               = url.hostOption.map(_.toString).getOrElse("")
+        val urlMatchesValidDomain = sourceDomains.exists(domain => urlHost.matches(domain))
+
+        if (urlMatchesValidDomain) Seq.empty
+        else
+          Seq(
+            ValidationMessage(
+              fieldName,
+              s"An $EmbedTagName HTML tag with ${TagAttributes.DataResource}=$resourceType can only contain ${TagAttributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains
+                  .mkString(", ")}"
+            )
           )
-        )
       case _ => Seq.empty
     }
   }
