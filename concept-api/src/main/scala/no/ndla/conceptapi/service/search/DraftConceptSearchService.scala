@@ -133,6 +133,9 @@ trait DraftConceptSearchService {
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter     = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
       val userFilter    = orFilter(settings.userFilter, "updatedBy")
+      val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
+        termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
+      }
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | AllLanguages      => (None, "*")
@@ -151,7 +154,8 @@ trait DraftConceptSearchService {
           tagFilter,
           statusFilter,
           userFilter,
-          embedResourceAndIdFilter
+          embedResourceAndIdFilter,
+          responsibleIdFilter
         )
 
       val filteredSearch = queryBuilder.filter(filters.flatten)

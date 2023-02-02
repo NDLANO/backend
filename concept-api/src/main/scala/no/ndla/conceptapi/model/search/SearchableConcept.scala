@@ -7,8 +7,10 @@
 
 package no.ndla.conceptapi.model.search
 
+import no.ndla.common.model.domain.Responsible
 import no.ndla.conceptapi.model.domain
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+
 import java.time.LocalDateTime
 
 case class SearchableConcept(
@@ -28,5 +30,6 @@ case class SearchableConcept(
     visualElement: SearchableLanguageValues,
     articleIds: Seq[Long],
     created: LocalDateTime,
-    source: Option[String]
+    source: Option[String],
+    responsible: Option[Responsible]
 )
