@@ -8,8 +8,8 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status, Title}
+import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleContent, Responsible, EditorNote, Status, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
@@ -415,15 +415,15 @@ class MultiDraftSearchServiceAtomicTest
   test("That responsibleId is filterable") {
     val draft1 = TestData.draft1.copy(
       id = Some(1),
-      responsible = Some(DraftResponsible("hei", TestData.today))
+      responsible = Some(Responsible("hei", TestData.today))
     )
     val draft2 = TestData.draft1.copy(
       id = Some(2),
-      responsible = Some(DraftResponsible("hei2", TestData.today))
+      responsible = Some(Responsible("hei2", TestData.today))
     )
     val draft3 = TestData.draft1.copy(
       id = Some(3),
-      responsible = Some(DraftResponsible("hei", TestData.today))
+      responsible = Some(Responsible("hei", TestData.today))
     )
     draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
     draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
@@ -475,15 +475,15 @@ class MultiDraftSearchServiceAtomicTest
   test("That responsible lastUpdated is sortable") {
     val draft1 = TestData.draft1.copy(
       id = Some(1),
-      responsible = Some(DraftResponsible("hei", TestData.today.minusDays(5)))
+      responsible = Some(Responsible("hei", TestData.today.minusDays(5)))
     )
     val draft2 = TestData.draft1.copy(
       id = Some(2),
-      responsible = Some(DraftResponsible("hei2", TestData.today.minusDays(2)))
+      responsible = Some(Responsible("hei2", TestData.today.minusDays(2)))
     )
     val draft3 = TestData.draft1.copy(
       id = Some(3),
-      responsible = Some(DraftResponsible("hei", TestData.today.minusDays(3)))
+      responsible = Some(Responsible("hei", TestData.today.minusDays(3)))
     )
     val draft4 = TestData.draft1.copy(
       id = Some(4),

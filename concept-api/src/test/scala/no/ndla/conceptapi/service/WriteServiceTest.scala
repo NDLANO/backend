@@ -235,7 +235,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       supportedLanguages = Set("nb"),
       articleIds = Seq.empty,
-      responsible = Some(api.ConceptResponsible( responsibleId, today))
+      responsible = Some(api.ConceptResponsible(responsibleId, today))
     )
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }

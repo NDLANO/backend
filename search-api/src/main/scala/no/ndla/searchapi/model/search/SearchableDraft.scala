@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.model.domain.ArticleMetaImage
-import no.ndla.common.model.domain.draft.{DraftResponsible, RevisionMeta}
+import no.ndla.common.model.domain.{ArticleMetaImage, Responsible}
+import no.ndla.common.model.domain.draft.RevisionMeta
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 import java.time.LocalDateTime
@@ -39,5 +39,5 @@ case class SearchableDraft(
     embedResourcesAndIds: List[EmbedValues],
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
-    responsible: Option[DraftResponsible]
+    responsible: Option[Responsible]
 )

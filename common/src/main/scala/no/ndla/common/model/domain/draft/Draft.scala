@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.{
   Introduction,
   RelatedContent,
   RequiredLibrary,
+  Responsible,
   Status,
   Tag,
   Title,
@@ -52,7 +53,7 @@ case class Draft(
     availability: Availability.Value = Availability.everyone,
     relatedContent: Seq[RelatedContent],
     revisionMeta: Seq[RevisionMeta],
-    responsible: Option[DraftResponsible],
+    responsible: Option[Responsible],
     slug: Option[String]
 ) extends Content {
 

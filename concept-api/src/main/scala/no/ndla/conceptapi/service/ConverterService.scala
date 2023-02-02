@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.Copyright
@@ -139,7 +139,7 @@ trait ConverterService {
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
-    def toApiConceptResponsible(responsible: domain.ConceptResponsible): api.ConceptResponsible =
+    def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
       api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
@@ -163,8 +163,7 @@ trait ConverterService {
           status = Status.default,
           visualElement =
             concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
-          responsible =
-            concept.responsibleId.map(responsibleId => domain.ConceptResponsible(responsibleId, clock.now()))
+          responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now()))
         )
       )
     }
@@ -228,7 +227,7 @@ trait ConverterService {
 
       val responsible = updateConcept.responsible match {
         case Left(_)                    => None
-        case Right(Some(responsibleId)) => Some(domain.ConceptResponsible(responsibleId, clock.now()))
+        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
         case Right(None)                => toMergeInto.responsible
       }
 
@@ -264,7 +263,7 @@ trait ConverterService {
 
       val responsible = concept.responsible match {
         case Left(_)                    => None
-        case Right(Some(responsibleId)) => Some(domain.ConceptResponsible(responsibleId, clock.now()))
+        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
         case Right(_)                   => None
       }
 
