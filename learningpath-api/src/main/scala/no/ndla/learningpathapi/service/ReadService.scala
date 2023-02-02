@@ -450,7 +450,8 @@ trait ReadService {
         numberOfFolders   <- folderRepository.numberOfFolders()
         numberOfResources <- folderRepository.numberOfResources()
         numberOfTags      <- folderRepository.numberOfTags()
-        stats = Stats(numberOfUsers, numberOfFolders, numberOfResources, numberOfTags)
+        numberOfSubjects  <- userRepository.numberOfSubjects()
+        stats = Stats(numberOfUsers, numberOfFolders, numberOfResources, numberOfTags, numberOfSubjects)
       } yield stats
     }
   }

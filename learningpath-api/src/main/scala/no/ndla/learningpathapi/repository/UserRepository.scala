@@ -31,6 +31,7 @@ trait UserRepository {
   val userRepository: UserRepository
 
   class UserRepository extends StrictLogging {
+
     implicit val formats: Formats = DBMyNDLAUser.repositorySerializer
 
     def getSession(readOnly: Boolean): DBSession =
@@ -105,6 +106,11 @@ trait UserRepository {
         .map(rs => rs.long("count"))
         .single()
     }
-  }
 
+    def numberOfSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(favoriteSubject) from (select distinct jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+  }
 }
