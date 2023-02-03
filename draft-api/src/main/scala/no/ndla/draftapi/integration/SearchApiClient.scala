@@ -77,7 +77,7 @@ trait SearchApiClient {
             .post(uri"$endpointUrl".withParams(params: _*))
             .body(Serialization.write(data))
             .readTimeout(indexTimeout)
-            .header("content-type", "application/json")
+            .header("content-type", "application/json", replaceExisting = true)
         )
       }
     }

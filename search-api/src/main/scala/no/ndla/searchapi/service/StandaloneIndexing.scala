@@ -73,7 +73,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
       quickRequest
         .post(uri"$url")
         .body(body)
-        .header("Content-Type", "application/json")
+        .header("Content-Type", "application/json", replaceExisting = true)
         .header("Authorization", s"Bearer ${prop(s"SLACK_TOKEN")}")
     )
   }

@@ -58,7 +58,7 @@ trait SearchApiClient {
 
         val req = quickRequest
           .post(uri"http://$SearchApiHost/intern/learningpath/")
-          .header("Content-Type", "application/json")
+          .header("Content-Type", "application/json", replaceExisting = true)
           .body(body)
           .readTimeout(IndexTimeout)
 

@@ -240,7 +240,7 @@ trait TaxonomyApiClient {
           .put(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
           .body(write(data)(format))
-          .header("content-type", "application/json")
+          .header("content-type", "application/json", replaceExisting = true)
       )
     }
 
@@ -253,7 +253,7 @@ trait TaxonomyApiClient {
           .put(uri"$url".withParams(params: _*))
           .body(write(data))
           .readTimeout(taxonomyTimeout)
-          .header("content-type", "application/json")
+          .header("content-type", "application/json", replaceExisting = true)
       ) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
@@ -270,7 +270,7 @@ trait TaxonomyApiClient {
           .post(uri"$endpointUrl".withParams(params.toMap))
           .body(write(data))
           .readTimeout(taxonomyTimeout)
-          .header("content-type", "application/json")
+          .header("content-type", "application/json", replaceExisting = true)
       ) match {
         case Success(resp) => Success(resp)
         case Failure(ex)   => Failure(ex)

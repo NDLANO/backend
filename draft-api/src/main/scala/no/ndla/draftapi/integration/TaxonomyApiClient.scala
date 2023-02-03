@@ -246,15 +246,15 @@ trait TaxonomyApiClient {
     private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
         formats: org.json4s.Formats
     ): Try[B] = {
-      logger.info(s"Doing call to $url")
-      ndlaClient.fetchRawWithForwardedAuth(
-        quickRequest
-          .put(uri"$url".withParams(params: _*))
-          .body(write(data))
-          .readTimeout(taxonomyTimeout)
-          .header("content-type", "application/json")
-          .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
-      ) match {
+      val uri = uri"$url".withParams(params: _*)
+      logger.info(s"Doing call to $uri")
+      val request = quickRequest
+        .put(uri)
+        .body(write(data))
+        .readTimeout(taxonomyTimeout)
+        .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
+        .header("Content-Type", "application/json", replaceExisting = true)
+      ndlaClient.fetchRawWithForwardedAuth(request) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
       }

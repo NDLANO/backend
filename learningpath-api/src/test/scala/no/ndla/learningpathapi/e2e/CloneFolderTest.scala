@@ -502,7 +502,7 @@ class CloneFolderTest
         .patch(uri"$learningpathApiFolderUrl/$destinationFolderId")
         .readTimeout(10.seconds)
         .header("FeideAuthorization", s"Bearer asd")
-        .header("Content-Type", "application/json")
+        .header("Content-Type", "application/json", true)
         .body("""{"status":"shared"}""")
     )
 

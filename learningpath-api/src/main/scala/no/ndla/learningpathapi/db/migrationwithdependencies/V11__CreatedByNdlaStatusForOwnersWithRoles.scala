@@ -71,7 +71,7 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiPropertie
           simpleHttpClient.send(
             quickRequest
               .post(uri"https://$auth0Host/oauth/token")
-              .header("Content-Type", "application/json")
+              .header("Content-Type", "application/json", replaceExisting = true)
               .body(write(body))
           )
         )

@@ -124,7 +124,7 @@ trait ArticleApiClient {
         quickRequest
           .patch(uri"$endpointUrl".withParams(params: _*))
           .body(Serialization.write(data))
-          .header("content-type", "application/json")
+          .header("content-type", "application/json", replaceExisting = true)
           .readTimeout(timeout)
       )
     }
@@ -137,7 +137,7 @@ trait ArticleApiClient {
         quickRequest
           .post(uri"$endpointUrl".withParams(params: _*))
           .body(Serialization.write(data))
-          .header("content-type", "application/json")
+          .header("content-type", "application/json", replaceExisting = true)
       )
     }
   }
