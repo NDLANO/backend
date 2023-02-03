@@ -10,6 +10,7 @@ package no.ndla.oembedproxy.service
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
+import no.ndla.network.model.NdlaRequest
 import no.ndla.oembedproxy.Props
 import no.ndla.oembedproxy.caching.{Memoize, MemoizeHelpers}
 import no.ndla.oembedproxy.model.{DoNotUpdateMemoizeException, OEmbedEndpoint, OEmbedProvider}
@@ -22,7 +23,7 @@ import no.ndla.oembedproxy.service.OEmbedConverterService.{
 import org.json4s.DefaultFormats
 
 import scala.util.{Failure, Success}
-import scalaj.http.{Http, HttpRequest}
+import sttp.client3.quick._
 
 trait ProviderService {
   this: NdlaClient with Props with MemoizeHelpers =>
@@ -111,11 +112,11 @@ trait ProviderService {
 
     def _loadProviders(): List[OEmbedProvider] = {
       NdlaApiProvider :: TedProvider :: H5PProvider :: YoutubeProvider :: IssuuProvider :: loadProvidersFromRequest(
-        Http(props.JSonProviderUrl)
+        quickRequest.get(uri"${props.JSonProviderUrl}")
       )
     }
 
-    def loadProvidersFromRequest(request: HttpRequest): List[OEmbedProvider] = {
+    def loadProvidersFromRequest(request: NdlaRequest): List[OEmbedProvider] = {
       val providersTry = ndlaClient.fetch[List[OEmbedProvider]](request)
       providersTry match {
         // Only keep providers with at least one endpoint with at least one url
@@ -124,7 +125,7 @@ trait ProviderService {
             .filter(_.endpoints.nonEmpty)
             .filter(_.endpoints.forall(endpoint => endpoint.url.isDefined))
         case Failure(ex) =>
-          logger.error(s"Failed to load providers from ${request.url}.")
+          logger.error(s"Failed to load providers from ${request.uri}.")
           throw new DoNotUpdateMemoizeException(ex.getMessage)
       }
     }

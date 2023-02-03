@@ -17,8 +17,8 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
 import org.postgresql.util.PGobject
-import scalaj.http.{Http, HttpResponse}
 import scalikejdbc.{DB, DBSession, _}
+import sttp.client3.quick._
 
 import java.util.concurrent.Executors
 import scala.collection.mutable
@@ -116,13 +116,14 @@ class V13__StoreNDLAStepsAsIframeTypes(props: LearningpathApiProperties) extends
   }
 
   def getNewUrl(url: String): Try[String] = {
-    val response = Http(s"http://$ApiGatewayHost/oembed-proxy/v1/oembed").param("url", url).asString
+    val request  = quickRequest.get(uri"http://$ApiGatewayHost/oembed-proxy/v1/oembed?url=$url")
+    val response = simpleHttpClient.send(request)
     response match {
-      case resp if resp.isError =>
+      case resp if !resp.isSuccess =>
         logger.error(s"Could not fetch oembed for $url -> ${resp.code}:\n\t${resp.body}")
         Failure(new RuntimeException(s"Failed to fetch oembed for $url"))
-      case HttpResponse(body, code, headers) =>
-        val oembed = read[OembedResponse](body)
+      case response =>
+        val oembed = read[OembedResponse](response.body)
         getUrlFromIframe(oembed.html)
     }
   }

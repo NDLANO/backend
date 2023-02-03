@@ -13,8 +13,9 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.jsoup.Jsoup
-import scalaj.http.Http
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class OembedResponse(html: String)
@@ -25,7 +26,7 @@ trait OembedProxyClient {
 
   class OembedProxyClient extends StrictLogging {
     import props.ApiGatewayHost
-    private val OembedProxyTimeout = 90 * 1000 // 90 seconds
+    private val OembedProxyTimeout = 90.seconds
     private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"
     implicit val formats: Formats  = org.json4s.DefaultFormats
 
@@ -47,7 +48,9 @@ trait OembedProxyClient {
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(url).timeout(OembedProxyTimeout, OembedProxyTimeout).params(params))
+      ndlaClient.fetchWithForwardedAuth[A](
+        quickRequest.get(uri"$url".withParams(params.toMap)).readTimeout(OembedProxyTimeout)
+      )
     }
   }
 

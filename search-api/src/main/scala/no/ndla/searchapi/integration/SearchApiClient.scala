@@ -22,7 +22,7 @@ import no.ndla.searchapi.model.domain.learningpath._
 import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, SearchParams}
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -114,7 +114,8 @@ trait SearchApiClient {
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +
           Json4s.serializer(RevisionStatus)
-      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).toString).timeout(timeout, timeout).params(params))
+      val request = quickRequest.get(uri"$baseUrl/$path?$params").readTimeout(timeout.millis)
+      ndlaClient.fetchWithForwardedAuth[T](request)
     }
 
     protected def search[T <: ApiSearchResults](

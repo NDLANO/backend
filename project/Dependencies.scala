@@ -8,9 +8,9 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.8"
+    val ScalaV                = "2.13.10"
     val ScalatraV             = "2.8.4"
-    val HikariConnectionPoolV = "4.0.1"
+    val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.10"
     val Log4JV                = "2.19.0"
@@ -26,21 +26,23 @@ object Dependencies {
     val FlywayV               = "7.5.3"
     val PostgresV             = "42.5.1"
     val ScalaTsiV             = "0.6.0"
-    val Http4sV               = "0.23.16"
-    val TapirV                = "1.2.2"
-    val ApiSpecV              = "0.3.1"
+    val Http4sV               = "0.23.18"
+    val TapirV                = "1.2.7"
+    val ApiSpecV              = "0.3.2"
+    val SttpV                 = "3.8.10"
     val CirceV                = "0.14.2"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
     val JsoupV                = "1.15.3"
     val JavaMelodyV           = "1.91.0"
-    val ScalaJV               = "2.4.2"
 
     lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
 
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres    = "org.postgresql"   % "postgresql"  % PostgresV
     lazy val hikari      = "com.zaxxer"       % "HikariCP"    % HikariConnectionPoolV
+
+    lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
 
     lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.0"
     lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"

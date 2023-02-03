@@ -9,11 +9,11 @@ package no.ndla.draftapi.db.migrationwithdependencies
 
 import enumeratum.Json4s
 import no.ndla.common.model.domain.{
-  ArticleType,
   ArticleContent,
-  Introduction,
-  Description,
   ArticleMetaImage,
+  ArticleType,
+  Description,
+  Introduction,
   Tag,
   Title,
   VisualElement
@@ -29,9 +29,10 @@ import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalaj.http.Http
 import scalikejdbc._
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
@@ -45,7 +46,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     new EnumNameSerializer(DraftStatus) +
     Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"${props.Domain}/taxonomy/v1"
-  private val taxonomyTimeout     = 20 * 1000 // 20 Seconds
+  private val taxonomyTimeout     = 20.seconds
 
   case class TaxonomyResource(contentUri: Option[String], id: Option[String])
 
@@ -73,7 +74,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response  <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
+      response  <- Try(simpleHttpClient.send(quickRequest.get(uri"$url").readTimeout(taxonomyTimeout)))
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 
@@ -100,7 +101,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     val url = "http://api.topic.ndla.no/rest/v1/keywords/?filter%5Bnode%5D=ndlanode_" + externalId.toString
 
     val keywordsT = for {
-      response  <- Try(Http(url).asString)
+      response  <- Try(simpleHttpClient.send(quickRequest.get(uri"$url")))
       extracted <- Try(parse(response.body).extract[Keywords])
     } yield extracted
 

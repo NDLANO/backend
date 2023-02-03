@@ -10,22 +10,23 @@ package no.ndla.draftapi.integration
 import cats.implicits._
 import enumeratum.Json4s
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
 import no.ndla.draftapi.model.api
+import no.ndla.draftapi.model.api.{ArticleApiValidationError, ContentId}
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.jackson.JsonMethods.parse
-import org.json4s.native.Serialization.write
+import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats}
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import java.time.LocalDateTime
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
@@ -34,8 +35,8 @@ trait ArticleApiClient {
 
   class ArticleApiClient(ArticleBaseUrl: String = s"http://${props.ArticleApiHost}") {
     private val InternalEndpoint = s"$ArticleBaseUrl/intern"
-    private val deleteTimeout    = 1000 * 10 // 10 seconds
-    private val timeout          = 1000 * 15
+    private val deleteTimeout    = 10.seconds
+    private val timeout          = 15.seconds
     private implicit val format: Formats =
       DefaultFormats.withLong + new EnumNameSerializer(Availability) ++ JavaTimeSerializers.all + Json4s.serializer(
         ArticleType
@@ -103,7 +104,7 @@ trait ArticleApiClient {
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(endpointUrl).method("POST").params(params.toMap))
+      ndlaClient.fetchWithForwardedAuth[A](quickRequest.post(uri"$endpointUrl".withParams(params: _*)))
     }
 
     private def delete[A](endpointUrl: String, params: (String, String)*)(implicit
@@ -111,7 +112,7 @@ trait ArticleApiClient {
         format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(endpointUrl).method("DELETE").params(params.toMap).timeout(deleteTimeout, deleteTimeout)
+        quickRequest.delete(uri"$endpointUrl".withParams(params: _*)).readTimeout(deleteTimeout)
       )
     }
 
@@ -120,12 +121,11 @@ trait ArticleApiClient {
         format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(endpointUrl)
-          .postData(write(data))
-          .timeout(timeout, timeout)
-          .method("PATCH")
-          .params(params.toMap)
-          .header("content-type", "application/json")
+        quickRequest
+          .patch(uri"$endpointUrl".withParams(params: _*))
+          .body(Serialization.write(data))
+          .header("content-type", "application/json", replaceExisting = true)
+          .readTimeout(timeout)
       )
     }
 
@@ -134,11 +134,10 @@ trait ArticleApiClient {
         format: org.json4s.Formats
     ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(endpointUrl)
-          .postData(write(data))
-          .method("POST")
-          .params(params.toMap)
-          .header("content-type", "application/json")
+        quickRequest
+          .post(uri"$endpointUrl".withParams(params: _*))
+          .body(Serialization.write(data))
+          .header("content-type", "application/json", replaceExisting = true)
       )
     }
   }

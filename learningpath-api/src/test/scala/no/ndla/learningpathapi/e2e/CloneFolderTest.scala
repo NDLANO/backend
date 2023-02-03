@@ -22,6 +22,9 @@ import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
+import sttp.client3.quick._
+
+import scala.concurrent.duration.DurationInt
 
 class CloneFolderTest
     extends IntegrationSuite(
@@ -202,12 +205,12 @@ class CloneFolderTest
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersBefore.get.length should be(0)
 
-    val response = scalaj.http
-      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
-      .method("POST")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .asString
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$learningpathApiFolderUrl/clone/$sourceFolderId")
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+    )
 
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
@@ -304,12 +307,13 @@ class CloneFolderTest
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersBefore.get.length should be(0)
 
-    val response = scalaj.http
-      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
-      .method("POST")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .asString
+    val response =
+      simpleHttpClient.send(
+        quickRequest
+          .post(uri"$learningpathApiFolderUrl/clone/$sourceFolderId")
+          .readTimeout(10.seconds)
+          .header("FeideAuthorization", s"Bearer asd")
+      )
 
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
@@ -413,13 +417,15 @@ class CloneFolderTest
       shared = None
     )
 
-    val response = scalaj.http
-      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
-      .method("POST")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .param("destination-folder-id", destinationFolderId.toString)
-      .asString
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(
+          uri"$learningpathApiFolderUrl/clone/$sourceFolderId"
+            .withParam("destination-folder-id", destinationFolderId.toString)
+        )
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+    )
 
     val deserialized = read[api.Folder](response.body)
     val result       = replaceIdRecursively(deserialized, customId)
@@ -432,13 +438,15 @@ class CloneFolderTest
     val sourceFolderId = prepareFolderToClone()
     val wrongId        = UUID.randomUUID()
 
-    val response = scalaj.http
-      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
-      .method("POST")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .param("destination-folder-id", wrongId.toString)
-      .asString
+    val response = simpleHttpClient
+      .send(
+        quickRequest
+          .post(
+            uri"$learningpathApiFolderUrl/clone/$sourceFolderId".addParam("destination-folder-id", wrongId.toString)
+          )
+          .header("FeideAuthorization", s"Bearer asd")
+          .readTimeout(10.seconds)
+      )
 
     val error = read[api.Error](response.body)
     error.code should be("NOT_FOUND")
@@ -464,12 +472,12 @@ class CloneFolderTest
     destinationFoldersBefore.get.length should be(0)
     destinationResourcesBefore.get.length should be(0)
 
-    scalaj.http
-      .Http(s"$learningpathApiFolderUrl/clone/$sourceFolderId")
-      .method("POST")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .asString
+    simpleHttpClient.send(
+      quickRequest
+        .post(uri"$learningpathApiFolderUrl/clone/$sourceFolderId")
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+    )
 
     val destinationFoldersAfter   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     val destinationResourcesAfter = folderRepository.resourcesWithFeideId(destinationFeideId, 10)
@@ -489,14 +497,14 @@ class CloneFolderTest
       )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
-    val response = scalaj.http
-      .Http(s"$learningpathApiFolderUrl/$destinationFolderId")
-      .timeout(10000, 10000)
-      .header("FeideAuthorization", s"Bearer asd")
-      .header("Content-Type", "application/json")
-      .postData("""{"status":"shared"}""")
-      .method("PATCH")
-      .asString
+    val response = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"$learningpathApiFolderUrl/$destinationFolderId")
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+        .header("Content-Type", "application/json", replaceExisting = true)
+        .body("""{"status":"shared"}""")
+    )
 
     val result = read[api.Folder](response.body)
     println(result)

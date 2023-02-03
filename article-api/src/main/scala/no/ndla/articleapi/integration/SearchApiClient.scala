@@ -17,9 +17,10 @@ import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization.write
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import java.util.concurrent.Executors
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -30,7 +31,7 @@ trait SearchApiClient {
   class SearchApiClient(SearchApiBaseUrl: String = props.SearchApiUrl) extends StrictLogging {
 
     private val InternalEndpoint = s"$SearchApiBaseUrl/intern"
-    private val indexTimeout     = 1000 * 30
+    private val indexTimeout     = 30.seconds
 
     def indexArticle(article: Article): Article = {
       implicit val formats: Formats =
@@ -72,21 +73,20 @@ trait SearchApiClient {
 
       Future {
         ndlaClient.fetchWithForwardedAuth[A](
-          Http(endpointUrl)
-            .postData(write(data))
-            .timeout(indexTimeout, indexTimeout)
-            .method("POST")
-            .params(params.toMap)
-            .header("content-type", "application/json")
+          quickRequest
+            .post(uri"$endpointUrl".withParams(params.toMap))
+            .body(write(data))
+            .readTimeout(indexTimeout)
+            .header("content-type", "application/json", replaceExisting = true)
         )
       }
     }
 
     def deleteArticle(id: Long): Long = {
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(s"$InternalEndpoint/article/$id")
-          .timeout(indexTimeout, indexTimeout)
-          .method("DELETE")
+        quickRequest
+          .delete(uri"$InternalEndpoint/article/$id")
+          .readTimeout(indexTimeout)
       )
 
       id

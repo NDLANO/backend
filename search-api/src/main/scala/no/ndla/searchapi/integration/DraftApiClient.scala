@@ -15,10 +15,10 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.{ArticleApiSearchResults, SearchParams}
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
+import sttp.client3.quick._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
-import scalaj.http.{Http, HttpRequest}
 
 trait DraftApiClient {
   this: NdlaClient with SearchApiClient with Props =>
@@ -42,7 +42,8 @@ trait DraftApiClient {
 
     def getAgreementCopyright(agreementId: Long): Option[article.Copyright] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
-      val request: HttpRequest = Http(s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString))
+      val url                       = s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString)
+      val request                   = quickRequest.get(uri"$url")
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright.toDomainCopyright)
         case _       => None

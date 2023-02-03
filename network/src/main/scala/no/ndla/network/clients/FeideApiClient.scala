@@ -8,14 +8,17 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException}
+import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.implicits.TryQuestionMark
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import sttp.client3.Response
+import sttp.client3.quick._
+import sttp.model.Uri
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 case class Membership(primarySchool: Option[Boolean])
@@ -55,10 +58,10 @@ trait FeideApiClient {
 
   class FeideApiClient extends StrictLogging {
 
-    private val feideTimeout           = 1000 * 30
-    private val openIdUserInfoEndpoint = "https://auth.dataporten.no/openid/userinfo"
-    private val feideUserInfoEndpoint  = "https://api.dataporten.no/userinfo/v1/userinfo"
-    private val feideGroupEndpoint     = "https://groups-api.dataporten.no/groups/me/groups"
+    private val feideTimeout           = 30.seconds
+    private val openIdUserInfoEndpoint = uri"https://auth.dataporten.no/openid/userinfo"
+    private val feideUserInfoEndpoint  = uri"https://api.dataporten.no/userinfo/v1/userinfo"
+    private val feideGroupEndpoint     = uri"https://groups-api.dataporten.no/groups/me/groups"
 
     private def fetchOpenIdUser(accessToken: FeideAccessToken): Try[FeideOpenIdUserInfo] =
       fetchAndParse[FeideOpenIdUserInfo](accessToken, openIdUserInfoEndpoint)
@@ -67,10 +70,11 @@ trait FeideApiClient {
     private def fetchFeideGroupInfo(accessToken: FeideAccessToken): Try[Seq[FeideGroup]] =
       fetchAndParse[Seq[FeideGroup]](accessToken, feideGroupEndpoint)
 
-    private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: String)(implicit mf: Manifest[T]): Try[T] = {
+    private def fetchAndParse[T](accessToken: FeideAccessToken, endpoint: Uri)(implicit mf: Manifest[T]): Try[T] = {
       val request =
-        Http(endpoint)
-          .timeout(feideTimeout, feideTimeout)
+        quickRequest
+          .get(endpoint)
+          .readTimeout(feideTimeout)
           .header("Authorization", s"Bearer $accessToken")
 
       implicit val formats: DefaultFormats.type = DefaultFormats
@@ -80,7 +84,7 @@ trait FeideApiClient {
       } yield parsed
     }
 
-    private def parseResponse[T](response: HttpResponse[String])(implicit mf: Manifest[T], formats: Formats): Try[T] = {
+    private def parseResponse[T](response: Response[String])(implicit mf: Manifest[T], formats: Formats): Try[T] = {
       Try(JsonMethods.parse(response.body).camelizeKeys.extract[T]) match {
         case Success(extracted) => Success(extracted)
         case Failure(ex) =>
@@ -89,19 +93,18 @@ trait FeideApiClient {
       }
     }
 
-    private def doRequest(request: HttpRequest): Try[HttpResponse[String]] = {
-      Try(request.asString).flatMap(response => {
-        if (response.isError) {
+    private def doRequest(request: NdlaRequest): Try[Response[String]] = {
+      Try(simpleHttpClient.send(request)).flatMap { response =>
+        if (response.isSuccess) {
+          Success(response)
+        } else
           Failure(
             new HttpRequestException(
-              s"Received error ${response.code} ${response.statusLine} when calling ${request.url}. Body was ${response.body}",
+              s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
               Some(response)
             )
           )
-        } else {
-          Success(response)
-        }
-      })
+      }
     }
 
     private def findOrganization(feideGroups: Seq[FeideGroup]): Try[String] = {
@@ -136,7 +139,7 @@ trait FeideApiClient {
       feideResponse match {
         case Failure(ex: HttpRequestException) =>
           val code = ex.httpResponse.map(_.code)
-          if (code.contains(403) || code.contains(401)) {
+          if (code.exists(_.code == 403) || code.exists(_.code == 401)) {
             Failure(
               AccessDeniedException(
                 "User could not be authenticated with feide and such is missing required role(s) to perform this operation"

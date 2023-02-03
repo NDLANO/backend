@@ -8,12 +8,11 @@
 
 package no.ndla.oembedproxy.service
 
-import no.ndla.network.model.HttpRequestException
+import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.oembedproxy.caching.Memoize
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.scalatest.TryValues._
-import scalaj.http.HttpRequest
 
 import scala.util.{Failure, Success}
 
@@ -66,7 +65,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That get returns a failure with HttpRequestException when receiving http error") {
-    when(ndlaClient.fetch[OEmbed](any[HttpRequest])(any[Manifest[OEmbed]]))
+    when(ndlaClient.fetch[OEmbed](any[NdlaRequest])(any[Manifest[OEmbed]]))
       .thenReturn(Failure(new HttpRequestException("An error occured")))
     val oembedTry = oEmbedService.get("https://www.youtube.com/abc", None, None)
     oembedTry.isFailure should be(true)
@@ -74,7 +73,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That get returns a Success with an oEmbed when http call is successful") {
-    when(ndlaClient.fetch[OEmbed](any[HttpRequest])(any[Manifest[OEmbed]]))
+    when(ndlaClient.fetch[OEmbed](any[NdlaRequest])(any[Manifest[OEmbed]]))
       .thenReturn(Success(OEmbedResponse))
     val oembedTry = oEmbedService.get("https://ndla.no/abc", None, None)
     oembedTry.isSuccess should be(true)

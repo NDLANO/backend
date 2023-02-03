@@ -16,9 +16,9 @@ import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.GrepException
 import no.ndla.searchapi.model.grep._
 import org.json4s.DefaultFormats
-import scalaj.http.Http
+import sttp.client3.quick._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -74,7 +74,8 @@ trait GrepApiClient {
     }
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetch[A](Http(url).timeout(60000, 60000).params(params))
+      val request = quickRequest.get(uri"$url?$params").readTimeout(60.seconds)
+      ndlaClient.fetch[A](request)
     }
   }
 }

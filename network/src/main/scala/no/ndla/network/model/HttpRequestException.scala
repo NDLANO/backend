@@ -8,11 +8,11 @@
 
 package no.ndla.network.model
 
-import scalaj.http.HttpResponse
+import sttp.client3.Response
 
-class HttpRequestException(message: String, val httpResponse: Option[HttpResponse[String]] = None)
+class HttpRequestException(message: String, val httpResponse: Option[Response[String]] = None)
     extends RuntimeException(message) {
-  def is404: Boolean = httpResponse.exists(_.isCodeInRange(404, 404))
+  def is404: Boolean = httpResponse.exists(_.code.code == 404)
 }
 
 class AuthorizationException(message: String) extends RuntimeException(message)

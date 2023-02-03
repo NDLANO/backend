@@ -7,9 +7,9 @@ import Dependencies._
 object networklib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
+      sttp,
       "org.json4s"           %% "json4s-jackson"          % Json4SV,
       "org.json4s"           %% "json4s-native"           % Json4SV,
-      "org.scalaj"           %% "scalaj-http"             % ScalaJV,
       "org.scalatest"        %% "scalatest"               % ScalaTestV % "test",
       "org.mockito"          %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"          %% "mockito-scala-scalatest" % MockitoV   % "test",

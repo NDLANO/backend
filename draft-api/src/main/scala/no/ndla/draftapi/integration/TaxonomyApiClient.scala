@@ -18,8 +18,9 @@ import no.ndla.network.NdlaClient
 import org.apache.logging.log4j.ThreadContext
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
-import scalaj.http.Http
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
@@ -29,7 +30,7 @@ trait TaxonomyApiClient {
 
   class TaxonomyApiClient extends StrictLogging {
     private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
-    private val taxonomyTimeout               = 20 * 1000 // 20 Seconds
+    private val taxonomyTimeout               = 20.seconds
     implicit val formats: DefaultFormats.type = DefaultFormats
 
     def updateTaxonomyIfExists(articleId: Long, article: Draft): Try[Long] = {
@@ -212,10 +213,10 @@ trait TaxonomyApiClient {
 
     private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] =
       ndlaClient.fetchWithForwardedAuth[A](
-        Http(url)
-          .timeout(taxonomyTimeout, taxonomyTimeout)
+        quickRequest
+          .get(uri"$url".withParams(params: _*))
+          .readTimeout(taxonomyTimeout)
           .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
-          .params(params)
       )
 
     def queryResource(articleId: Long): Try[List[Resource]] =
@@ -234,7 +235,9 @@ trait TaxonomyApiClient {
 
     private[integration] def delete(url: String, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
-        Http(url).method("DELETE").timeout(taxonomyTimeout, taxonomyTimeout).params(params)
+        quickRequest
+          .delete(uri"$url".withParams(params: _*))
+          .readTimeout(taxonomyTimeout)
       ) match {
         case Failure(ex) => Failure(ex)
         case Success(_)  => Success(())
@@ -243,15 +246,15 @@ trait TaxonomyApiClient {
     private[integration] def putRaw[B <: AnyRef](url: String, data: B, params: (String, String)*)(implicit
         formats: org.json4s.Formats
     ): Try[B] = {
-      logger.info(s"Doing call to $url")
-      ndlaClient.fetchRawWithForwardedAuth(
-        Http(url)
-          .put(write(data))
-          .timeout(taxonomyTimeout, taxonomyTimeout)
-          .header("content-type", "application/json")
-          .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
-          .params(params)
-      ) match {
+      val uri = uri"$url".withParams(params: _*)
+      logger.info(s"Doing call to $uri")
+      val request = quickRequest
+        .put(uri)
+        .body(write(data))
+        .readTimeout(taxonomyTimeout)
+        .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
+        .header("Content-Type", "application/json", replaceExisting = true)
+      ndlaClient.fetchRawWithForwardedAuth(request) match {
         case Success(_)  => Success(data)
         case Failure(ex) => Failure(ex)
       }

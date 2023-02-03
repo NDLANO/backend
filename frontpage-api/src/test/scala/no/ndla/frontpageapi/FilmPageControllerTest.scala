@@ -10,7 +10,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.{Host, Port}
 import org.http4s.ember.server.EmberServerBuilder
-import scalaj.http.Http
+import sttp.client3.quick._
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment {
 
@@ -41,14 +41,16 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
 
   test("Should return 200 when frontpage exist") {
     when(readService.filmFrontPage(None)).thenReturn(Some(TestData.apiFilmFrontPage))
-    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage").method("GET").asString
-    response.code should equal(200)
+    val response =
+      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage"))
+    response.code.code should equal(200)
   }
 
   test("Should return 404 when no frontpage found") {
     when(readService.filmFrontPage(None)).thenReturn(None)
-    val response = Http(s"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage").method("GET").asString
-    response.code should equal(404)
+    val response =
+      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage"))
+    response.code.code should equal(404)
   }
 
 }

@@ -12,9 +12,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.model.{OEmbed, OEmbedProvider, ProviderNotSupportedException}
 import org.json4s.DefaultFormats
+import sttp.client3.quick._
 
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
-import scalaj.http.{Http, HttpOptions}
 
 trait OEmbedServiceComponent extends StrictLogging {
   this: NdlaClient with ProviderService =>
@@ -23,7 +24,7 @@ trait OEmbedServiceComponent extends StrictLogging {
   class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None) {
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-    val remoteTimeout: Int = 10 * 1000 // 10 Seconds
+    val remoteTimeout = 10.seconds
 
     private lazy val providers = optionalProviders.toList.flatten ++ providerService
       .loadProviders()
@@ -36,10 +37,12 @@ trait OEmbedServiceComponent extends StrictLogging {
         maxWidth: Option[String],
         maxHeight: Option[String]
     ): Try[OEmbed] = {
+      val uri = uri"${provider.requestUrl(url, maxWidth, maxHeight)}"
       ndlaClient.fetch[OEmbed](
-        Http(provider.requestUrl(url, maxWidth, maxHeight))
-          .option(HttpOptions.followRedirects(true))
-          .timeout(remoteTimeout, remoteTimeout)
+        quickRequest
+          .get(uri)
+          .followRedirects(true)
+          .readTimeout(remoteTimeout)
       )
     }
 

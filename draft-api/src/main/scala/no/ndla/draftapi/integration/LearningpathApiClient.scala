@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.network.NdlaClient
-import scalaj.http.Http
+import sttp.client3.quick._
 
 import scala.util.Try
 
@@ -30,7 +30,8 @@ trait LearningpathApiClient {
         mf: Manifest[A],
         format: org.json4s.Formats
     ): Try[A] = {
-      ndlaClient.fetchWithForwardedAuth[A](Http(endpointUrl).method("GET").params(params.toMap))
+      val request = quickRequest.get(uri"$endpointUrl".withParams(params: _*))
+      ndlaClient.fetchWithForwardedAuth[A](request)
     }
 
   }

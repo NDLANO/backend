@@ -9,9 +9,8 @@
 package no.ndla.learningpathapi.integration
 
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
-import no.ndla.network.model.HttpRequestException
+import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import org.json4s.Formats
-import scalaj.http.HttpRequest
 
 import scala.util.{Failure, Success}
 
@@ -23,7 +22,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
 
   test("That some metaInfo is returned when images is found") {
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -40,7 +39,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(true)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -54,7 +53,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
     val exception = mock[HttpRequestException]
     when(exception.is404).thenReturn(false)
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )
@@ -72,7 +71,7 @@ class ImageApiClientTest extends UnitSuite with UnitTestEnvironment {
   test("That exception is returned for a randomly chosen exception") {
     val exception = mock[NoSuchElementException]
     when(
-      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[HttpRequest])(
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](any[NdlaRequest])(
         any[Manifest[ImageMetaInformation]],
         any[Formats]
       )

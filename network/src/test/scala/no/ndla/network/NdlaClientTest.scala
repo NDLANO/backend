@@ -9,10 +9,12 @@
 package no.ndla.network
 
 import no.ndla.common.CorrelationID
+import no.ndla.network.model.NdlaRequest
 
 import javax.servlet.http.HttpServletRequest
 import org.scalatest.TryValues._
-import scalaj.http.{HttpRequest, HttpResponse}
+import sttp.client3.{Response, SimpleHttpClient, SpecifyAuthScheme, UriContext}
+import sttp.model.StatusCode
 
 class NdlaClientTest extends UnitSuite with NdlaClient {
 
@@ -26,22 +28,25 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
       |}
     """.stripMargin
 
-  val ndlaClient: NdlaClient = new NdlaClient
+  val httpClientMock = mock[SimpleHttpClient]
+  val ndlaClient: NdlaClient = new NdlaClient {
+    override val client = httpClientMock
+  }
 
   override def beforeEach() = {
     CorrelationID.clear()
+    reset(httpClientMock)
   }
 
   test("That a HttpRequestException is returned when receiving an http-error") {
-    val httpRequestMock  = mock[HttpRequest]
-    val httpResponseMock = mock[HttpResponse[String]]
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpRequestMock.url).thenReturn("someUrl")
-
-    when(httpResponseMock.isError).thenReturn(true)
-    when(httpResponseMock.code).thenReturn(123)
-    when(httpResponseMock.statusLine).thenReturn("status")
+    when(httpRequestMock.uri).thenReturn(uri"someUrl")
+    when(httpResponseMock.isSuccess).thenReturn(false)
+    when(httpResponseMock.code).thenReturn(StatusCode(123))
+    when(httpResponseMock.statusText).thenReturn("status")
     when(httpResponseMock.body).thenReturn("body-with-error")
 
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
@@ -54,11 +59,11 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
   test("That a HttpRequestException is returned when response is not parseable") {
     val unparseableResponse = "This string cannot be parsed to a TestObject"
-    val httpRequestMock     = mock[HttpRequest]
-    val httpResponseMock    = mock[HttpResponse[String]]
+    val httpRequestMock     = mock[NdlaRequest]
+    val httpResponseMock    = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpResponseMock.isError).thenReturn(false)
+    when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(unparseableResponse)
 
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
@@ -67,11 +72,11 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That a testObject is returned when no error is returned and content is parseable") {
-    val httpRequestMock  = mock[HttpRequest]
-    val httpResponseMock = mock[HttpResponse[String]]
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpResponseMock.isError).thenReturn(false)
+    when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
@@ -85,12 +90,11 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   test("That CorrelationID is added to request if set on ThreadContext") {
     CorrelationID.set(Some("correlation-id"))
 
-    val httpRequestMock  = mock[HttpRequest]
-    val httpResponseMock = mock[HttpResponse[String]]
-
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
+    when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpRequestMock.header(eqTo("X-Correlation-ID"), eqTo("correlation-id"))).thenReturn(httpRequestMock)
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpResponseMock.isError).thenReturn(false)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
@@ -105,12 +109,15 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     val user     = "user"
     val password = "password"
 
-    val httpRequestMock  = mock[HttpRequest]
-    val httpResponseMock = mock[HttpResponse[String]]
+    val httpRequestMock  = mock[NdlaRequest]
+    val httpResponseMock = mock[Response[String]]
+    val authMock         = mock[SpecifyAuthScheme[Any, String, Any]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
+    doReturn(authMock).when(httpRequestMock).auth
 
-    when(httpRequestMock.auth(eqTo(user), eqTo(password))).thenReturn(httpRequestMock)
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpResponseMock.isError).thenReturn(false)
+    doReturn(httpRequestMock).when(authMock).basic(any, any)
+
+    when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     val result = ndlaClient.fetchWithBasicAuth[TestObject](httpRequestMock, user, password)
@@ -118,23 +125,24 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
 
-    verify(httpRequestMock, times(1)).auth(eqTo(user), eqTo(password))
+    verify(authMock, times(1)).basic(eqTo(user), eqTo(password))
     verify(httpRequestMock, never).header(any[String], any[String])
   }
 
   test("That Authorization header is added to request if set on Thread") {
     val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
-    val httpRequestMock    = mock[HttpRequest]
-    val httpResponseMock   = mock[HttpResponse[String]]
-    val authHeaderKey      = "Authorization"
-    val authHeader         = "abc"
+    val httpRequestMock    = mock[NdlaRequest]
+    val httpResponseMock   = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
+
+    val authHeaderKey = "Authorization"
+    val authHeader    = "abc"
 
     when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
     AuthUser.set(servletRequestMock)
 
-    when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeader))).thenReturn(httpRequestMock)
-    when(httpRequestMock.asString).thenReturn(httpResponseMock)
-    when(httpResponseMock.isError).thenReturn(false)
+    doReturn(httpRequestMock).when(httpRequestMock).header(eqTo(authHeaderKey), eqTo(authHeader), any)
+    when(httpResponseMock.isSuccess).thenReturn(true)
     when(httpResponseMock.body).thenReturn(ParseableContent)
 
     val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
@@ -142,22 +150,24 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     result.get.id should equal("1")
     result.get.verdi should equal("This is the value")
 
-    verify(httpRequestMock, times(1)).header(eqTo(authHeaderKey), eqTo(authHeader))
+    verify(httpRequestMock, times(1)).header(eqTo(authHeaderKey), eqTo(authHeader), any)
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
     val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
-    val httpRequestMock    = mock[HttpRequest]
-    val authHeaderKey      = "Authorization"
-    val authHeader         = "abc"
+    val httpRequestMock    = mock[NdlaRequest]
+    val httpResponseMock   = mock[Response[String]]
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
+    val authHeaderKey = "Authorization"
+    val authHeader    = "abc"
+    when(httpResponseMock.body).thenReturn("")
+    when(httpResponseMock.isSuccess).thenReturn(true)
+    when(httpResponseMock.code).thenReturn(StatusCode(204))
 
     when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
     AuthUser.set(servletRequestMock)
 
-    val response = HttpResponse("", 204, Map.empty)
-
-    when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeader))).thenReturn(httpRequestMock)
-    when(httpRequestMock.asString).thenReturn(response)
+    when(httpRequestMock.header(eqTo(authHeaderKey), eqTo(authHeader), any)).thenReturn(httpRequestMock)
 
     val result = ndlaClient.fetchWithForwardedAuth[TestObject](httpRequestMock)
     result.isSuccess should be(false)
@@ -165,6 +175,6 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     val rawResult = ndlaClient.fetchRawWithForwardedAuth(httpRequestMock)
     rawResult.isSuccess should be(true)
     rawResult.get.body should be("")
-    rawResult.get.code should be(204)
+    rawResult.get.code.code should be(204)
   }
 }
