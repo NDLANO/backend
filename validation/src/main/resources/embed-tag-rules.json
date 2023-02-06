@@ -145,7 +145,8 @@
           "data-title",
           "data-caption",
           "data-imageid"
-        ]
+        ],
+        ["data-title"]
       ],
       "validSrcDomains": [
         ".*.ndla.no",
