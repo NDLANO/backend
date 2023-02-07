@@ -7,7 +7,6 @@
 
 package no.ndla.searchapi.integration
 
-import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
@@ -36,28 +35,28 @@ trait TaxonomyApiClient {
     private val timeoutSeconds                = 600.seconds
 
     def getAllResources: Try[List[Resource]] =
-      getPaginated[Resource](s"$TaxonomyApiEndpoint/resources/page", 500).map(_.distinct)
+      get[List[Resource]](s"$TaxonomyApiEndpoint/resources/")
 
     def getAllSubjects: Try[List[TaxSubject]] =
-      getPaginated[TaxSubject](s"$TaxonomyApiEndpoint/subjects/page", 500).map(_.distinct)
+      get[List[TaxSubject]](s"$TaxonomyApiEndpoint/subjects/")
 
     def getAllTopics: Try[List[Topic]] =
-      getPaginated[Topic](s"$TaxonomyApiEndpoint/topics/page", 500).map(_.distinct)
+      get[List[Topic]](s"$TaxonomyApiEndpoint/topics/")
 
     def getAllResourceTypes: Try[List[ResourceType]] =
       get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
 
     def getAllTopicResourceConnections: Try[List[TopicResourceConnection]] =
-      getPaginated[TopicResourceConnection](s"$TaxonomyApiEndpoint/topic-resources/page", 5000).map(_.distinct)
+      get[List[TopicResourceConnection]](s"$TaxonomyApiEndpoint/topic-resources/")
 
     def getAllTopicSubtopicConnections: Try[List[TopicSubtopicConnection]] =
-      getPaginated[TopicSubtopicConnection](s"$TaxonomyApiEndpoint/topic-subtopics/page", 1000).map(_.distinct)
+      get[List[TopicSubtopicConnection]](s"$TaxonomyApiEndpoint/topic-subtopics/")
 
     def getAllResourceResourceTypeConnections: Try[List[ResourceResourceTypeConnection]] =
       get[List[ResourceResourceTypeConnection]](s"$TaxonomyApiEndpoint/resource-resourcetypes/").map(_.distinct)
 
     def getAllSubjectTopicConnections: Try[List[SubjectTopicConnection]] =
-      getPaginated[SubjectTopicConnection](s"$TaxonomyApiEndpoint/subject-topics/page", 1000).map(_.distinct)
+      get[List[SubjectTopicConnection]](s"$TaxonomyApiEndpoint/subject-topics/")
 
     def getAllRelevances: Try[List[Relevance]] =
       get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
@@ -120,28 +119,5 @@ trait TaxonomyApiClient {
         quickRequest.get(uri"$url?$params").readTimeout(timeoutSeconds)
       )
     }
-
-    private def getPaginated[T](url: String, pageSize: Int)(implicit
-        mf: Manifest[T]
-    ): Try[List[T]] = {
-      def fetchPage(page: Int, pageSize: Int = pageSize): Try[PaginationPage[T]] =
-        get[PaginationPage[T]](s"$url", "page" -> page.toString, "pageSize" -> pageSize.toString)
-
-      fetchPage(1, 1).flatMap(firstPage => {
-        val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
-        val pageRange = 1 to numPages
-
-        val numThreads = Math.max(20, numPages)
-        implicit val executionContext: ExecutionContextExecutorService =
-          ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
-
-        val pages        = pageRange.map(pageNum => Future(fetchPage(pageNum)))
-        val mergedFuture = Future.sequence(pages)
-        val awaited      = Await.result(mergedFuture, timeoutSeconds)
-
-        awaited.toList.sequence.map(_.flatMap(_.results))
-      })
-    }
   }
 }
-case class PaginationPage[T](totalCount: Long, results: List[T])
