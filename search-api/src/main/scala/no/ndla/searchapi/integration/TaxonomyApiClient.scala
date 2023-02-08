@@ -121,3 +121,4 @@ trait TaxonomyApiClient {
     }
   }
 }
+
