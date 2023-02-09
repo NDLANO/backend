@@ -23,9 +23,6 @@ import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.testcontainers.containers.PostgreSQLContainer
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
-
 class DraftApiClientTest
     extends IntegrationSuite(EnablePostgresContainer = true, EnableElasticsearchContainer = true)
     with UnitSuite
@@ -82,7 +79,7 @@ class DraftApiClientTest
 
   val exampleToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
-  val authHeaderMap = Map("Authorization" -> s"Bearer $exampleToken")
+  val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
 
   test("that dumping drafts returns drafts in serializable format") {
     setupArticles()
@@ -90,9 +87,8 @@ class DraftApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
-    implicit val ec  = ExecutionContext.global
     val chunks       = draftApiClient.getChunks[Draft].toList
-    val fetchedDraft = Await.result(chunks.head, Duration.Inf).get.head
+    val fetchedDraft = chunks.head.get.head
     val searchable = searchConverterService
       .asSearchableDraft(
         fetchedDraft,
