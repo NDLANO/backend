@@ -35,14 +35,13 @@ class AudioApiProperties extends BaseProps with StrictLogging {
   val AudioControllerPath  = "/audio-api/v1/audio/"
   val SeriesControllerPath = "/audio-api/v1/series/"
 
-  def MetaUserName: String   = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String   = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String   = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String     = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int          = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String     = prop(PropertyKeys.MetaSchemaKey)
-  val MetaInitialConnections = 3
-  val MetaMaxConnections     = 10
+  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   val MaxAudioFileSizeBytes: Int = 1024 * 1024 * 100 // 100 MiB
 

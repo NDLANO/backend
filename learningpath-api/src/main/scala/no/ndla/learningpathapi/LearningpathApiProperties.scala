@@ -32,8 +32,6 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  def MetaMaxConnections = 10
-
   def SearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "learningpaths")
   def SearchDocument      = "learningpath"
   def DefaultPageSize     = 10
@@ -117,6 +115,7 @@ class LearningpathApiProperties extends BaseProps with StrictLogging {
   def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
   def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String =
     propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")
