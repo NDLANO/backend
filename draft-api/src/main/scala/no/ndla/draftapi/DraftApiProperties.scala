@@ -36,7 +36,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
   def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = 10
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 

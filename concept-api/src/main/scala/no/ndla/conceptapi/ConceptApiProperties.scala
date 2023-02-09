@@ -32,14 +32,13 @@ class ConceptApiProperties extends BaseProps with StrictLogging {
   def ApplicationPort         = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = 10
-
+  def MetaUserName: String         = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String         = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String         = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String           = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int                = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String           = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections           = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")

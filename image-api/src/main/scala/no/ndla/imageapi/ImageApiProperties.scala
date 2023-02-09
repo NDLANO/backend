@@ -95,8 +95,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val ImageScalingUltraMinSize: Int = 640
   val ImageScalingUltraMaxSize: Int = 2080
 
-  val MetaMaxConnections = 10
-
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
   def MetaResource: String = prop(PropertyKeys.MetaResourceKey)

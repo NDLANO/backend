@@ -38,7 +38,7 @@ class ArticleApiProperties extends BaseProps with StrictLogging {
   def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
   def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = 10
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
   def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
