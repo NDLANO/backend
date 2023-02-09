@@ -10,6 +10,7 @@ package no.ndla.frontpageapi
 import cats.data.Kleisli
 import cats.effect.IO
 import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.Clock
 import no.ndla.frontpageapi.controller._
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.api.ErrorHelpers
@@ -33,6 +34,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with DBSubjectFrontPageData
     with DBFrontPageData
     with ErrorHelpers
+    with Clock
     with Props
     with DBMigrator
     with ConverterService
@@ -45,6 +47,8 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val migrator                      = new DBMigrator
   override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
+
+  override val clock = new SystemClock
 
   override val subjectPageRepository   = new SubjectPageRepository
   override val frontPageRepository     = new FrontPageRepository

@@ -7,6 +7,8 @@
 
 package no.ndla.frontpageapi.model.api
 
+import no.ndla.common.Clock
+
 import java.time.LocalDateTime
 import no.ndla.frontpageapi.Props
 
@@ -23,7 +25,7 @@ case class UnauthorizedError(code: String, description: String, occuredAt: Local
 case class ForbiddenError(code: String, description: String, occuredAt: LocalDateTime)
 
 trait ErrorHelpers {
-  this: Props =>
+  this: Props with Clock =>
 
   object ErrorHelpers {
     val GENERIC              = "GENERIC"
@@ -40,12 +42,12 @@ trait ErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: GenericError                    = GenericError(GENERIC, GENERIC_DESCRIPTION, LocalDateTime.now)
-    def notFound: NotFoundError                  = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, LocalDateTime.now)
-    def badRequest(msg: String): BadRequestError = BadRequestError(BAD_REQUEST, msg, LocalDateTime.now)
+    def generic: GenericError                    = GenericError(GENERIC, GENERIC_DESCRIPTION, clock.now())
+    def notFound: NotFoundError                  = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
+    def badRequest(msg: String): BadRequestError = BadRequestError(BAD_REQUEST, msg, clock.now())
     def unprocessableEntity(msg: String): UnprocessableEntityError =
-      UnprocessableEntityError(UNPROCESSABLE_ENTITY, msg, LocalDateTime.now)
-    def unauthorized: UnauthorizedError = UnauthorizedError(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, LocalDateTime.now)
-    def forbidden: ForbiddenError       = ForbiddenError(FORBIDDEN, FORBIDDEN_DESCRIPTION, LocalDateTime.now)
+      UnprocessableEntityError(UNPROCESSABLE_ENTITY, msg, clock.now())
+    def unauthorized: UnauthorizedError = UnauthorizedError(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
+    def forbidden: ForbiddenError       = ForbiddenError(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
   }
 }
