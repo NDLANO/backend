@@ -7,6 +7,7 @@
 
 package no.ndla.frontpageapi.repository
 
+import cats.implicits._
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.domain.{DBSubjectFrontPageData, SubjectFrontPageData}
 import org.log4s.getLogger
@@ -54,6 +55,23 @@ trait SubjectPageRepository {
 
     def withId(subjectId: Long): Option[SubjectFrontPageData] =
       subjectPageWhere(sqls"su.id=${subjectId.toInt}")
+
+    def withIds(subjectIds: List[Long], offset: Long, pageSize: Long)(implicit
+        session: DBSession = AutoSession
+    ): Try[List[SubjectFrontPageData]] = Try {
+      val su = DBSubjectFrontPageData.syntax("su")
+      sql"""
+          select ${su.result.*}
+          from ${DBSubjectFrontPageData.as(su)}
+          where su.document is not NULL
+          and su.id in ($subjectIds)
+          offset $offset
+          limit $pageSize
+         """
+        .map(DBSubjectFrontPageData.fromDb(su))
+        .list()
+        .sequence
+    }.flatten
 
     def getIdFromExternalId(externalId: String)(implicit sesstion: DBSession = AutoSession): Try[Option[Long]] = {
       Try(
