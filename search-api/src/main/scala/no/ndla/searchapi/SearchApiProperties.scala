@@ -45,7 +45,7 @@ class SearchApiProperties extends BaseProps with StrictLogging {
 
   def DefaultPageSize                            = 10
   def MaxPageSize                                = 10000
-  def IndexBulkSize                              = 100
+  def IndexBulkSize                              = 1000
   def ElasticSearchIndexMaxResultWindow          = 10000
   def ElasticSearchScrollKeepAlive               = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
