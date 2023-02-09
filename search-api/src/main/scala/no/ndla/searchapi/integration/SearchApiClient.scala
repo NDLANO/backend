@@ -114,7 +114,7 @@ trait SearchApiClient {
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +
           Json4s.serializer(RevisionStatus)
-      val url = s"$baseUrl/$path"
+      val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
       ndlaClient.fetchWithForwardedAuth[T](request)
     }
