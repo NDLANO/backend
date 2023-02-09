@@ -46,6 +46,7 @@ trait IndexService {
     ): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
+      val taxonomyBundleT = taxonomyApiClient.getTaxonomyBundle()
       val grepBundle = grepApiClient.getGrepBundle() match {
         case Success(bundle) => Some(bundle)
         case Failure(_) =>
@@ -54,8 +55,16 @@ trait IndexService {
           )
           None
       }
-
-      indexDocument(imported, None, grepBundle)
+      // Reinsert fetching bundle to be able to deploy to prod until we have av functioning taxonomy.
+      taxonomyBundleT match {
+        case Failure(ex) =>
+          logger.error(
+            s"Taxonomy could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}",
+            ex
+          )
+          Failure(ex)
+        case Success(taxonomyBundle) => indexDocument(imported, Some(taxonomyBundle), grepBundle)
+      }
     }
 
     def indexDocument(imported: D, taxonomyBundle: Option[TaxonomyBundle], grepBundle: Option[GrepBundle]): Try[D] = {
