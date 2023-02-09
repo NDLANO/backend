@@ -47,6 +47,7 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should return 404 when no frontpage found") {
+    when(clock.now()).thenCallRealMethod()
     when(readService.filmFrontPage(None)).thenReturn(None)
     val response =
       simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/filmfrontpage"))

@@ -14,16 +14,15 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.frontpageapi.controller.{NdlaMiddleware, Service}
-import no.ndla.frontpageapi.model.api.{ErrorHelpers, GenericError}
+import no.ndla.frontpageapi.model.api.{BadRequestError, ErrorHelpers, GenericError}
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
+import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.model.ValuedEndpointOutput
-
-import scala.annotation.unused
 
 trait Routes {
   this: Service with NdlaMiddleware with ErrorHelpers =>
@@ -40,16 +39,23 @@ trait Routes {
       noDocServices.map(_.getBinding) :+ swaggerBinding
     }
 
-    def failureResponse(@unused _error: String): ValuedEndpointOutput[_] = {
+    private def failureResponse(error: String): ValuedEndpointOutput[_] = {
+      logger.error(s"Failure handler got: $error")
       ValuedEndpointOutput(jsonBody[GenericError], ErrorHelpers.generic)
     }
 
+    private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
+      ValuedEndpointOutput(jsonBody[BadRequestError], ErrorHelpers.badRequest(failureMsg))
+    })
+
     def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
       val swaggerEndpoints = services.flatMap(_.builtEndpoints)
-      val options          = Http4sServerOptions.customiseInterceptors[IO].defaultHandlers(failureResponse).options
-      val routes           = Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
-
-      routes
+      val options = Http4sServerOptions
+        .customiseInterceptors[IO]
+        .defaultHandlers(failureResponse)
+        .decodeFailureHandler(decodeFailureHandler)
+        .options
+      Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
     }
 
     def getFallbackRoute: Response[IO] = {
