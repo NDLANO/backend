@@ -16,7 +16,7 @@ import scalikejdbc._
 import io.circe.syntax._
 import io.circe.generic.auto._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait SubjectPageRepository {
   this: DataSource with DBSubjectFrontPageData =>
@@ -53,7 +53,7 @@ trait SubjectPageRepository {
         .map(_ => subj)
     }
 
-    def withId(subjectId: Long): Option[SubjectFrontPageData] =
+    def withId(subjectId: Long): Try[Option[SubjectFrontPageData]] =
       subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 
     def withIds(subjectIds: List[Long], offset: Long, pageSize: Long)(implicit
@@ -91,24 +91,13 @@ trait SubjectPageRepository {
 
     private def subjectPageWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Option[SubjectFrontPageData] = {
+    )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[SubjectFrontPageData]] = Try {
       val su = DBSubjectFrontPageData.syntax("su")
-
-      Try(
-        sql"select ${su.result.*} from ${DBSubjectFrontPageData.as(su)} where su.document is not NULL and $whereClause"
-          .map(DBSubjectFrontPageData.fromDb(su))
-          .single()
-      ) match {
-        case Success(Some(Success(s))) => Some(s)
-        case Success(Some(Failure(ex))) =>
-          ex.printStackTrace()
-          None
-        case Failure(ex) =>
-          ex.printStackTrace()
-          None
-        case _ => None
-      }
-    }
+      sql"select ${su.result.*} from ${DBSubjectFrontPageData.as(su)} where su.document is not NULL and $whereClause"
+        .map(DBSubjectFrontPageData.fromDb(su))
+        .single()
+        .sequence
+    }.flatten
 
   }
 }

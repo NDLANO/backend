@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.service
 
 import cats.implicits._
-import no.ndla.common.errors.ValidationException
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
@@ -26,18 +26,20 @@ trait ReadService {
       else Success(subjectIds)
     }
 
-    def getIdFromExternalId(nid: String): Try[Option[SubjectPageId]] =
-      subjectPageRepository.getIdFromExternalId(nid) match {
-        case Success(Some(id)) => Success(Some(SubjectPageId(id)))
-        case Success(None)     => Success(None)
-        case Failure(ex)       => Failure(ex)
+    def getIdFromExternalId(nid: String): Try[SubjectPageId] =
+      subjectPageRepository.getIdFromExternalId(nid).flatMap {
+        case Some(id) => Success(SubjectPageId(id))
+        case None     => Failure(NotFoundException(s"Subject page with external id $nid was not found"))
       }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean = false): Option[api.SubjectPageData] =
+    def subjectPage(id: Long, language: String, fallback: Boolean = false): Try[api.SubjectPageData] =
       subjectPageRepository
         .withId(id)
-        .map(sub => ConverterService.toApiSubjectPage(sub, language, fallback))
-        .collect { case Success(sub) => sub }
+        .flatMap {
+          case None              => Failure(NotFoundException(s"Subject page with id $id was not found"))
+          case Some(subjectPage) => Success(subjectPage)
+        }
+        .flatMap(sub => ConverterService.toApiSubjectPage(sub, language, fallback))
 
     def getSubjectPageByIds(
         subjectIds: List[Long],
@@ -51,7 +53,8 @@ trait ReadService {
         ids          <- validateSubjectPageIdsOrError(subjectIds)
         subjectPages <- subjectPageRepository.withIds(ids, offset, pageSize)
         api          <- subjectPages.traverse(subject => ConverterService.toApiSubjectPage(subject, language, fallback))
-      } yield api
+        z            <- Failure(ValidationException("yes", "hehe"))
+      } yield z
     }
 
     def frontPage: Option[api.FrontPageData] = {
