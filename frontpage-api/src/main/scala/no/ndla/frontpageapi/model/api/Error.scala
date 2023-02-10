@@ -8,10 +8,12 @@
 package no.ndla.frontpageapi.model.api
 
 import no.ndla.common.Clock
+import no.ndla.common.errors.NotFoundException
 
 import java.time.LocalDateTime
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
+import org.log4s.{Logger, getLogger}
 
 sealed trait Error {
   val code: String
@@ -28,6 +30,8 @@ case class ForbiddenError(code: String, description: String, occuredAt: LocalDat
 trait ErrorHelpers {
   this: Props with Clock =>
 
+  val logger: Logger = getLogger
+
   object ErrorHelpers {
     val GENERIC              = "GENERIC"
     val NOT_FOUND            = "NOT_FOUND"
@@ -43,20 +47,23 @@ trait ErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: GenericError   = GenericError(GENERIC, GENERIC_DESCRIPTION, clock.now())
-    def notFound: NotFoundError = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
-
-    def returnError(ex: Throwable): Error = {
-      ex match {
-        case a: ValidationException => unprocessableEntity(a.getMessage)
-        case _                      => generic
-      }
-    }
-
-    def badRequest(msg: String): BadRequestError = BadRequestError(BAD_REQUEST, msg, clock.now())
+    def generic: GenericError                       = GenericError(GENERIC, GENERIC_DESCRIPTION, clock.now())
+    def notFound: NotFoundError                     = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
+    def notFoundWithMsg(msg: String): NotFoundError = NotFoundError(NOT_FOUND, msg, clock.now())
+    def badRequest(msg: String): BadRequestError    = BadRequestError(BAD_REQUEST, msg, clock.now())
     def unprocessableEntity(msg: String): UnprocessableEntityError =
       UnprocessableEntityError(UNPROCESSABLE_ENTITY, msg, clock.now())
     def unauthorized: UnauthorizedError = UnauthorizedError(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
     def forbidden: ForbiddenError       = ForbiddenError(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
+
+    def returnError(ex: Throwable): Error = {
+      ex match {
+        case v: ValidationException => unprocessableEntity(v.getMessage)
+        case n: NotFoundException   => notFoundWithMsg(n.getMessage)
+        case _ =>
+          logger.error(ex)(ex.toString)
+          generic
+      }
+    }
   }
 }

@@ -13,13 +13,12 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.frontpageapi.Props
 import io.circe.generic.auto._
-import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait InternController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
@@ -29,57 +28,45 @@ trait InternController {
     override val prefix        = "intern"
     override val enableSwagger = false
 
+    implicit class handleErrorOrOkClass[T](t: Try[T]) {
+      def handleErrorsOrOk: Either[Error, T] = {
+        t match {
+          case Success(value) => value.asRight
+          case Failure(ex)    => ErrorHelpers.returnError(ex).asLeft
+        }
+      }
+    }
+
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
         .in("subjectpage" / "external" / path[String]("externalId").description("old NDLA node id"))
         .summary("Get subject page id from external id")
         .out(jsonBody[SubjectPageId])
-        .errorOut(oneOf(oneOfVariant(GenericError), oneOfVariant(NotFoundError)))
-        .serverLogicPure { nid =>
-          readService.getIdFromExternalId(nid) match {
-            case Success(Some(id)) => id.asRight
-            case Success(None)     => ErrorHelpers.notFound.asLeft
-            case Failure(_)        => ErrorHelpers.generic.asLeft
-          }
-        },
+        .errorOut(oneOf[Error](oneOfVariant(GenericError), oneOfVariant(NotFoundError)))
+        .serverLogicPure { nid => readService.getIdFromExternalId(nid).handleErrorsOrOk },
       endpoint.post
         .summary("Create new subject page")
         .in("subjectpage")
         .in(jsonBody[NewSubjectFrontPageData])
-        .errorOut(oneOf(oneOfVariant(BadRequestError), oneOfVariant(GenericError)))
+        .errorOut(oneOf[Error](oneOfVariant(BadRequestError), oneOfVariant(GenericError)))
         .out(jsonBody[SubjectPageData])
-        .serverLogicPure { subjectPage =>
-          writeService.newSubjectPage(subjectPage) match {
-            case Success(s)                       => s.asRight
-            case Failure(ex: ValidationException) => ErrorHelpers.badRequest(ex.getMessage).asLeft
-            case Failure(_)                       => ErrorHelpers.generic.asLeft
-          }
-        },
+        .serverLogicPure { subjectPage => writeService.newSubjectPage(subjectPage).handleErrorsOrOk },
       endpoint.put
         .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
         .in(jsonBody[NewSubjectFrontPageData])
-        .errorOut(oneOf(oneOfVariant(BadRequestError), oneOfVariant(GenericError), oneOfVariant(NotFoundError)))
+        .in(query[Boolean]("fallback").default(false))
+        .errorOut(oneOf[Error](oneOfVariant(BadRequestError), oneOfVariant(GenericError), oneOfVariant(NotFoundError)))
         .summary("Update subject page")
         .out(jsonBody[SubjectPageData])
-        .serverLogicPure { case (id, subjectPage) =>
-          writeService.updateSubjectPage(id, subjectPage, props.DefaultLanguage) match {
-            case Success(s)                       => s.asRight
-            case Failure(_: NotFoundException)    => ErrorHelpers.notFound.asLeft
-            case Failure(ex: ValidationException) => ErrorHelpers.badRequest(ex.getMessage).asLeft
-            case Failure(_)                       => ErrorHelpers.generic.asLeft
-          }
+        .serverLogicPure { case (id, subjectPage, fallback) =>
+          writeService.updateSubjectPage(id, subjectPage, props.DefaultLanguage, fallback).handleErrorsOrOk
         },
       endpoint.post
         .summary("Update front page")
         .in(jsonBody[FrontPageData])
-        .errorOut(oneOf(oneOfVariant(GenericError)))
+        .errorOut(oneOf[Error](oneOfVariant(GenericError)))
         .out(jsonBody[FrontPageData])
-        .serverLogicPure { frontPage =>
-          writeService.updateFrontPage(frontPage) match {
-            case Success(s) => s.asRight
-            case Failure(_) => ErrorHelpers.generic.asLeft
-          }
-        }
+        .serverLogicPure { frontPage => writeService.updateFrontPage(frontPage).handleErrorsOrOk }
     )
   }
 }

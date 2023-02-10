@@ -8,7 +8,7 @@
 package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.auth.Role
-import no.ndla.frontpageapi.{Props}
+import no.ndla.frontpageapi.Props
 
 import cats.effect.IO
 import cats.implicits._

@@ -8,9 +8,8 @@
 package no.ndla.frontpageapi.model.domain
 
 object Errors {
-  case class NotFoundException(id: Long) extends RuntimeException(s"The page with id $id was not found")
   case class LanguageNotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
-      extends RuntimeException(message)
+      extends RuntimeException(s"$message, supportedLanguages: [${supportedLanguages.mkString(",")}]")
   case class ValidationException(message: String)          extends RuntimeException(message)
   case class OperationNotAllowedException(message: String) extends RuntimeException(message)
   case class MissingIdException()

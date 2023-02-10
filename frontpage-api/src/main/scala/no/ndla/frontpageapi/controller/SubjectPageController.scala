@@ -18,7 +18,6 @@ import no.ndla.frontpageapi.model.api.{
   SubjectPageData,
   UpdatedSubjectFrontPageData
 }
-import no.ndla.frontpageapi.model.domain.Errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.frontpageapi.Props
 import sttp.tapir._
@@ -51,6 +50,13 @@ trait SubjectPageController {
       }
     }
 
+    private def authenticatedOrError(maybeUser: Option[UserInfo]): Either[Error, UserInfo] =
+      maybeUser match {
+        case Some(user) if user.canWrite => user.asRight
+        case Some(_)                     => ErrorHelpers.forbidden.asLeft
+        case None                        => ErrorHelpers.unauthorized.asLeft
+      }
+
     import UserInfo._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
@@ -61,10 +67,7 @@ trait SubjectPageController {
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputs)
         .serverLogicPure { case (id, language, fallback) =>
-          readService.subjectPage(id, language, fallback) match {
-            case Some(s) => s.asRight
-            case None    => ErrorHelpers.notFound.asLeft
-          }
+          readService.subjectPage(id, language, fallback).handleErrorsOrOk
         },
       endpoint.get
         .summary("Fetch subject pages that matches ids parameter")
@@ -87,21 +90,11 @@ trait SubjectPageController {
         .in(jsonBody[NewSubjectFrontPageData])
         .out(jsonBody[SubjectPageData])
         .errorOut(
-          oneOf(oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
+          oneOf[Error](oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
         )
-        .serverSecurityLogicPure {
-          case Some(user) if user.canWrite => user.asRight
-          case Some(_)                     => ErrorHelpers.forbidden.asLeft
-          case None                        => ErrorHelpers.unauthorized.asLeft
-        }
+        .serverSecurityLogicPure { maybeUser => authenticatedOrError(maybeUser) }
         .serverLogicPure { _ => newSubjectFrontPageData =>
-          {
-            writeService.newSubjectPage(newSubjectFrontPageData) match {
-              case Success(s)                       => s.asRight
-              case Failure(ex: ValidationException) => ErrorHelpers.unprocessableEntity(ex.getMessage).asLeft
-              case Failure(_)                       => ErrorHelpers.generic.asLeft
-            }
-          }
+          writeService.newSubjectPage(newSubjectFrontPageData).handleErrorsOrOk
         },
       endpoint.patch
         .summary("Update subject page")
@@ -112,23 +105,18 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
         .errorOut(
-          oneOf(oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
+          oneOf[Error](
+            oneOfVariant(GenericError),
+            oneOfVariant(ForbiddenError),
+            oneOfVariant(UnprocessableEntityError),
+            oneOfVariant(NotFoundError)
+          )
         )
-        .serverSecurityLogicPure {
-          case Some(user) if user.canWrite => user.asRight
-          case Some(_)                     => ErrorHelpers.forbidden.asLeft
-          case None                        => ErrorHelpers.unauthorized.asLeft
-        }
+        .serverSecurityLogicPure { maybeUser => authenticatedOrError(maybeUser) }
         .serverLogicPure { _ =>
           { case (subjectPage, id, language, fallback) =>
-            writeService.updateSubjectPage(id, subjectPage, language) match {
-              case Success(s)                       => s.asRight
-              case Failure(_: NotFoundException)    => ErrorHelpers.notFound.asLeft
-              case Failure(ex: ValidationException) => ErrorHelpers.unprocessableEntity(ex.getMessage).asLeft
-              case Failure(_)                       => ErrorHelpers.generic.asLeft
-            }
+            writeService.updateSubjectPage(id, subjectPage, language, fallback).handleErrorsOrOk
           }
-
         }
     )
   }
