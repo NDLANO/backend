@@ -87,7 +87,8 @@ trait DraftConceptController {
         userFilter: Seq[String],
         shouldScroll: Boolean,
         embedResource: Option[String],
-        embedId: Option[String]
+        embedId: Option[String],
+        responsibleId: List[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -102,7 +103,8 @@ trait DraftConceptController {
         userFilter = userFilter,
         shouldScroll = shouldScroll,
         embedResource = embedResource,
-        embedId = embedId
+        embedId = embedId,
+        responsibleIdFilter = responsibleId
       )
 
       val result = query match {
@@ -167,7 +169,8 @@ trait DraftConceptController {
             asQueryParam(statusFilter),
             asQueryParam(userFilter),
             asQueryParam(embedResource),
-            asQueryParam(embedId)
+            asQueryParam(embedId),
+            asQueryParam(responsibleIdFilter)
           )
           .authorizations("oauth2")
           .responseMessages(response500)
@@ -190,6 +193,7 @@ trait DraftConceptController {
         val shouldScroll       = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
         val embedResource      = paramOrNone(this.embedResource.paramName)
         val embedId            = paramOrNone(this.embedId.paramName)
+        val responsibleIds     = paramAsListOfString(this.responsibleIdFilter.paramName)
 
         search(
           query,
@@ -205,7 +209,8 @@ trait DraftConceptController {
           usersToFilterBy,
           shouldScroll,
           embedResource,
-          embedId
+          embedId,
+          responsibleIds
         )
 
       }
@@ -296,6 +301,7 @@ trait DraftConceptController {
             val shouldScroll   = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
             val embedResource  = searchParams.embedResource
             val embedId        = searchParams.embedId
+            val responsibleId  = searchParams.responsibleIds
 
             search(
               query,
@@ -311,7 +317,8 @@ trait DraftConceptController {
               userFilter,
               shouldScroll,
               embedResource,
-              embedId
+              embedId,
+              responsibleId
             )
           case Failure(ex) => errorHandler(ex)
         }

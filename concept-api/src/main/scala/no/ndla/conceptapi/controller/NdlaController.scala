@@ -134,7 +134,8 @@ trait NdlaController {
 
     protected val exactTitleMatch =
       Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
-
+    protected val responsibleIdFilter =
+      Param[Option[Seq[String]]]("responsible-ids", "List of responsible ids to filter by (OR filter)")
     def doOrAccessDenied(hasAccess: Boolean)(w: => Any): Any = {
       if (hasAccess) {
         w

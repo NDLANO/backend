@@ -1,15 +1,15 @@
 /*
  * Part of NDLA common.
- * Copyright (C) 2022 NDLA
+ * Copyright (C) 2023 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.common.model.domain.draft
+package no.ndla.common.model.domain
 
 import java.time.LocalDateTime
 
-case class DraftResponsible(
+case class Responsible(
     responsibleId: String,
     lastUpdated: LocalDateTime
 )

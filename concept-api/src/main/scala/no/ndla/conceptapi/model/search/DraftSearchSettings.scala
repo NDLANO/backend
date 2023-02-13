@@ -24,7 +24,8 @@ case class DraftSearchSettings(
     userFilter: Seq[String],
     shouldScroll: Boolean,
     embedResource: Option[String],
-    embedId: Option[String]
+    embedId: Option[String],
+    responsibleIdFilter: List[String]
 )
 
 trait DraftSearchSettingsHelper {
@@ -44,7 +45,8 @@ trait DraftSearchSettingsHelper {
         userFilter = Seq.empty,
         shouldScroll = false,
         embedResource = None,
-        embedId = None
+        embedId = None,
+        responsibleIdFilter = List.empty
       )
     }
   }

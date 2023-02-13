@@ -163,6 +163,10 @@ trait SearchService {
         case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
         case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
         case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedAsc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedDesc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
       }
     }
 
@@ -176,6 +180,10 @@ trait SearchService {
         case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
         case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
         case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedAsc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
+        case Sort.ByResponsibleLastUpdatedDesc =>
+          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
       }
     }
 

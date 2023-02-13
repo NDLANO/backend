@@ -10,7 +10,7 @@ package no.ndla.conceptapi.service
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.Copyright
@@ -54,6 +54,8 @@ trait ConverterService {
 
         val visualElement = findByLanguageOrBestEffort(concept.visualElement, language).map(toApiVisualElement)
 
+        val responsible = concept.responsible.map(toApiConceptResponsible)
+
         Success(
           api.Concept(
             id = concept.id.get,
@@ -71,7 +73,8 @@ trait ConverterService {
             supportedLanguages = concept.supportedLanguages,
             articleIds = concept.articleIds,
             status = toApiStatus(concept.status),
-            visualElement = visualElement
+            visualElement = visualElement,
+            responsible = responsible
           )
         )
       } else {
@@ -136,6 +139,9 @@ trait ConverterService {
     def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
       api.VisualElement(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
+    def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
+      api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
+
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       Success(
         domain.Concept(
@@ -156,7 +162,8 @@ trait ConverterService {
           articleIds = concept.articleIds.getOrElse(Seq.empty),
           status = Status.default,
           visualElement =
-            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq
+            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
+          responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now()))
         )
       )
     }
@@ -218,6 +225,12 @@ trait ConverterService {
         else toMergeInto.updatedBy
       }
 
+      val responsible = updateConcept.responsible match {
+        case Left(_)                    => None
+        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
+        case Right(None)                => toMergeInto.responsible
+      }
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -232,7 +245,8 @@ trait ConverterService {
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
         articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
-        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement)
+        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
+        responsible = responsible
       )
     }
 
@@ -245,6 +259,12 @@ trait ConverterService {
       val newMetaImage = concept.metaImage match {
         case Right(meta) => meta.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
         case Left(_)     => Seq.empty
+      }
+
+      val responsible = concept.responsible match {
+        case Left(_)                    => None
+        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
+        case Right(_)                   => None
       }
 
       domain.Concept(
@@ -262,7 +282,8 @@ trait ConverterService {
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
-        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq
+        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
+        responsible = responsible
       )
     }
 

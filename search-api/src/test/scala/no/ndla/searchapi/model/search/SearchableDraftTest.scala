@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.model.domain.ArticleMetaImage
-import no.ndla.common.model.domain.draft.{DraftResponsible, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleMetaImage, Responsible}
+import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.domain.LearningResourceType
@@ -112,7 +112,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       revisionMeta = revisionMeta,
       nextRevision = revisionMeta.lastOption,
-      responsible = Some(DraftResponsible("some responsible", TestData.today))
+      responsible = Some(Responsible("some responsible", TestData.today))
     )
 
     val json         = write(original)

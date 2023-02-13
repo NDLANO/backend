@@ -27,7 +27,7 @@ object TestData {
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
   val authHeaderWithAllRoles =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXMtdGVzdDpwdWJsaXNoIGRyYWZ0cy10ZXN0OndyaXRlIGRyYWZ0cy10ZXN0OnNldF90b19wdWJsaXNoIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIxmtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXMtdGVzdDpwdWJsaXNoIGRyYWZ0cy10ZXN0OndyaXRlIGRyYWZ0cy10ZXN0OnNldF90b19wdWJsaXNoIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
 
   val userWithNoRoles     = UserInfo("unit test", Set.empty)
   val userWithWriteAccess = UserInfo("unit test", Set(Role.WRITE))
@@ -60,7 +60,8 @@ object TestData {
       current = "IN_PROGRESS",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementStringWithUrl, "nb"))
+    Some(api.VisualElement(visualElementStringWithUrl, "nb")),
+    responsible = None
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -78,7 +79,8 @@ object TestData {
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement(visualElementString, "nb"))
+    visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
+    responsible = None
   )
 
   val sampleConcept = domain.Concept(
@@ -97,7 +99,8 @@ object TestData {
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb"))
+    visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb")),
+    responsible = None
   )
 
   val domainConcept = domain.Concept(
@@ -115,7 +118,8 @@ object TestData {
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
     articleIds = Seq(42),
     status = Status.default,
-    visualElement = Seq(domain.VisualElement(visualElementString, "nb"))
+    visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
+    responsible = None
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
@@ -133,7 +137,8 @@ object TestData {
     subjectIds = Set.empty,
     articleIds = Seq.empty,
     status = Status.default,
-    visualElement = Seq.empty
+    visualElement = Seq.empty,
+    responsible = None
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -155,7 +160,8 @@ object TestData {
       current = "IN_PROGRESS",
       other = Seq.empty
     ),
-    Some(api.VisualElement(visualElementStringWithUrl, "nb"))
+    Some(api.VisualElement(visualElementStringWithUrl, "nb")),
+    responsible = None
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(
@@ -169,11 +175,12 @@ object TestData {
     subjectIds = None,
     articleIds = None,
     status = None,
-    visualElement = None
+    visualElement = None,
+    Right(None)
   )
 
   val sampleNewConcept =
-    api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(Seq(42)), None)
+    api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(Seq(42)), None, None)
 
   val emptyApiNewConcept = api.NewConcept(
     language = "",
@@ -185,10 +192,24 @@ object TestData {
     tags = None,
     subjectIds = None,
     articleIds = None,
-    visualElement = None
+    visualElement = None,
+    responsibleId = None
   )
 
   val updatedConcept =
-    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Some(Seq(12L)), None, None)
+    api.UpdatedConcept(
+      "nb",
+      None,
+      Some("Innhold"),
+      Right(None),
+      None,
+      None,
+      None,
+      None,
+      Some(Seq(12L)),
+      None,
+      None,
+      Right(None)
+    )
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

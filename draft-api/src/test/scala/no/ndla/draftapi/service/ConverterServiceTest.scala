@@ -13,7 +13,7 @@ import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftResponsible, DraftStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus}
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -946,7 +946,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
 
-    val existingRepsonsible = DraftResponsible("oldId", TestData.today.minusDays(1))
+    val existingRepsonsible = Responsible("oldId", TestData.today.minusDays(1))
 
     val Success(res1) =
       service.toDomainArticle(

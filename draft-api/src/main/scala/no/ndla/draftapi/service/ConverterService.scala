@@ -13,8 +13,9 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.{RelatedContentLink, domain => common, api => commonApi}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.draft.{Draft, DraftResponsible, DraftStatus}
-import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, IMPORTED}
+import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.{Clock, DateParser}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -65,7 +66,7 @@ trait ConverterService {
       }
 
       val responsible = newArticle.responsibleId.map(responsibleId =>
-        DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now())
+        Responsible(responsibleId = responsibleId, lastUpdated = clock.now())
       )
 
       newNotes(newArticle.notes, user, status).map(notes =>
@@ -302,7 +303,7 @@ trait ConverterService {
         isImported: Boolean
     ): IO[Try[Draft]] = StateTransitionRules.doTransition(draft, status, user, isImported)
 
-    def toApiResponsible(responsible: DraftResponsible): api.DraftResponsible =
+    def toApiResponsible(responsible: Responsible): api.DraftResponsible =
       api.DraftResponsible(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
@@ -643,7 +644,7 @@ trait ConverterService {
 
       val responsible = article.responsibleId match {
         case Left(_)                    => None
-        case Right(Some(responsibleId)) => Some(DraftResponsible(responsibleId, clock.now()))
+        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
         case Right(None)                => toMergeInto.responsible
       }
 
@@ -749,7 +750,7 @@ trait ConverterService {
 
           val responsible = article.responsibleId
             .getOrElse(None)
-            .map(responsibleId => DraftResponsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
 
           mergedNotes.map(notes =>
             Draft(

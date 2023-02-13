@@ -29,6 +29,7 @@ case class Concept(
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Set[String],
     @(ApiModelProperty @field)(description = "Article ids to which the concept is connected to") articleIds: Seq[Long],
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,
-    @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement]
+    @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement],
+    @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible]
     // format: on
 )

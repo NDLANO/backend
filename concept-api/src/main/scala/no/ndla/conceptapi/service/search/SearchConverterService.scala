@@ -162,7 +162,8 @@ trait SearchConverterService {
         ),
         articleIds = c.articleIds,
         created = c.created,
-        source = c.source
+        source = c.source,
+        responsible = c.responsible
       )
     }
 
