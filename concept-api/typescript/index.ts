@@ -120,6 +120,7 @@ export interface IDraftConceptSearchParams {
   users: string[]
   embedResource?: string
   embedId?: string
+  responsibleIds: string[]
 }
 
 export interface ILicense {
