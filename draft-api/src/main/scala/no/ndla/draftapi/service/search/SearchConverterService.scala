@@ -109,7 +109,8 @@ trait SearchConverterService {
         notes = notes,
         users = users,
         grepCodes = searchableArticle.grepCodes,
-        status = status
+        status = status,
+        updated = searchableArticle.lastUpdated
       )
     }
 

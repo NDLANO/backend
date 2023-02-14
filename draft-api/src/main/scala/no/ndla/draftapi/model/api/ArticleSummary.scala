@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 import org.scalatra.swagger.annotations.ApiModel
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
+import java.time.LocalDateTime
 import scala.annotation.meta.field
 
 // format: off
@@ -27,5 +28,6 @@ case class ArticleSummary(
     @(ApiModelProperty @field)(description = "The notes for this draft article") notes: Seq[String],
     @(ApiModelProperty @field)(description = "The users saved for this draft article") users: Seq[String],
     @(ApiModelProperty @field)(description = "The codes from GREP API registered for this draft article") grepCodes: Seq[String],
-    @(ApiModelProperty @field)(description = "The status of this article", allowableValues = "CREATED,IMPORTED,DRAFT,SKETCH,USER_TEST,QUALITY_ASSURED,AWAITING_QUALITY_ASSURANCE") status: Status
+    @(ApiModelProperty @field)(description = "The status of this article", allowableValues = "CREATED,IMPORTED,DRAFT,SKETCH,USER_TEST,QUALITY_ASSURED,AWAITING_QUALITY_ASSURANCE") status: Status,
+    @(ApiModelProperty @field)(description = "When the article was last updated") updated: LocalDateTime
 )
