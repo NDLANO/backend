@@ -1,5 +1,7 @@
 // DO NOT EDIT: generated file by scala-tsi
 
+export type Error = (IUnauthorizedError | IForbiddenError | INotFoundError | IBadRequestError | IGenericError | IUnprocessableEntityError)
+
 export interface IAboutFilmSubject {
   title: string
   description: string
@@ -13,14 +15,19 @@ export interface IAboutSubject {
   visualElement: IVisualElement
 }
 
+export interface IBadRequestError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "BadRequestError"
+}
+
 export interface IBannerImage {
   mobileUrl?: string
   mobileId?: number
   desktopUrl: string
   desktopId: number
 }
-
-export type IError = never
 
 export interface IFilmFrontPageData {
   name: string
@@ -29,9 +36,23 @@ export interface IFilmFrontPageData {
   slideShow: string[]
 }
 
+export interface IForbiddenError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "ForbiddenError"
+}
+
 export interface IFrontPageData {
   topical: string[]
   categories: ISubjectCollection[]
+}
+
+export interface IGenericError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "GenericError"
 }
 
 export interface IMovieTheme {
@@ -101,6 +122,13 @@ export interface INewSubjectFrontPageData {
   goTo?: string[]
 }
 
+export interface INotFoundError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "NotFoundError"
+}
+
 export interface ISubjectCollection {
   name: string
   subjects: ISubjectFilters[]
@@ -127,6 +155,20 @@ export interface ISubjectPageData {
   latestContent?: string[]
   goTo: string[]
   supportedLanguages: string[]
+}
+
+export interface IUnauthorizedError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "UnauthorizedError"
+}
+
+export interface IUnprocessableEntityError {
+  code: string
+  description: string
+  occuredAt: string
+  type: "UnprocessableEntityError"
 }
 
 export interface IUpdatedSubjectFrontPageData {
