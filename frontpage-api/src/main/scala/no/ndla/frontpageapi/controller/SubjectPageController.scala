@@ -12,6 +12,7 @@ import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api.{
+  Error,
   ErrorHelpers,
   NewSubjectFrontPageData,
   SubjectPageData,
@@ -23,9 +24,10 @@ import no.ndla.frontpageapi.Props
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait SubjectPageController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
@@ -34,10 +36,20 @@ trait SubjectPageController {
   class SubjectPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
 
-    private val errorOutputs = oneOf(
+    private val errorOutputs = oneOf[Error](
       oneOfVariant(NotFoundError),
-      oneOfVariant(GenericError)
+      oneOfVariant(GenericError),
+      oneOfDefaultVariant(GenericError)
     )
+
+    implicit class handleErrorOrOkClass[T](t: Try[T]) {
+      def handleErrorsOrOk: Either[Error, T] = {
+        t match {
+          case Success(value) => value.asRight
+          case Failure(ex)    => ErrorHelpers.returnError(ex).asLeft
+        }
+      }
+    }
 
     import UserInfo._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
@@ -53,6 +65,21 @@ trait SubjectPageController {
             case Some(s) => s.asRight
             case None    => ErrorHelpers.notFound.asLeft
           }
+        },
+      endpoint.get
+        .summary("Fetch subject pages that matches ids parameter")
+        .in("ids")
+        .in(query[CommaSeparated[Long]]("ids"))
+        .in(query[String]("language").default(props.DefaultLanguage))
+        .in(query[Boolean]("fallback").default(false))
+        .in(query[Int]("page-size").default(props.DefaultPageSize))
+        .in(query[Int]("page").default(1))
+        .out(jsonBody[List[SubjectPageData]])
+        .errorOut(errorOutputs)
+        .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
+          val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
+          val parsedPage     = if (page < 1) 1 else page
+          readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage).handleErrorsOrOk
         },
       endpoint.post
         .summary("Create new subject page")

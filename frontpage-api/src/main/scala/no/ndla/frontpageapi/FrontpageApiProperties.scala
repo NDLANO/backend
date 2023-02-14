@@ -36,6 +36,7 @@ class FrontpageApiProperties extends BaseProps {
   lazy val MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   lazy val MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
   lazy val MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  val DefaultPageSize           = 10
 
   lazy val Domain: String    = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val RawImageApiUrl: String = s"$Domain/image-api/raw"
