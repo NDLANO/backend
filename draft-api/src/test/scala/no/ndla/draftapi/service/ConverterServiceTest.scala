@@ -986,6 +986,51 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   }
 
+  test("Changing responsible for article will update timestamp") {
+
+    val updatedArticle      = TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"))
+    val yesterday           = TestData.today.minusDays(1)
+    val existingRepsonsible = Responsible("oldId", yesterday)
+
+    val Success(res1) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+    val Success(res2) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = None),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+    val Success(res3) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("oldId"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+
+    res1.responsible.get.responsibleId should be("nyid")
+    res1.responsible.get.lastUpdated should not be (yesterday)
+    res2.responsible.get.responsibleId should be("nyid")
+    res2.responsible.get.lastUpdated should not be (yesterday)
+    res3.responsible.get.responsibleId should be("oldId")
+    res3.responsible.get.lastUpdated should be(yesterday)
+  }
+
   test("that toArticleApiArticle transforms Draft to Article correctly") {
     val articleId = 42
     val draft = Draft(
