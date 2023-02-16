@@ -12,9 +12,8 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api._
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.scalatra.NdlaControllerBase
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.NdlaControllerBase
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
 import org.scalatra._
@@ -26,13 +25,6 @@ trait NdlaController {
   abstract class NdlaController extends NdlaControllerBase {
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
-      AuthUser.clear()
     }
 
     import ErrorHelpers._

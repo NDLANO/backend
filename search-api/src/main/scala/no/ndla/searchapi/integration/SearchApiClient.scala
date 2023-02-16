@@ -75,7 +75,7 @@ trait SearchApiClient {
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
       )
-      val reqs = RequestInfo()
+      val reqs = RequestInfo.fromThreadContext()
       reqs.setRequestInfo()
       get[DomainDumpResults[T]](dumpDomainPath, params, timeout = 120000) match {
         case Success(result) =>

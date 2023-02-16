@@ -11,9 +11,9 @@ package no.ndla.searchapi.controller
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{ArticleType, Availability}
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.auth.{Role, User}
 import no.ndla.searchapi.integration.SearchApiClient

@@ -1,17 +1,17 @@
 /*
- * Part of NDLA common.
+ * Part of NDLA network.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.common.scalatra
+package no.ndla.network.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CorrelationID
 import no.ndla.common.RequestLogger.afterRequestLogString
 import no.ndla.common.configuration.BaseProps
+import no.ndla.network.model.RequestInfo
 import org.eclipse.jetty.server.{Request, RequestLog, Response}
 
 class NdlaRequestLogger[PROPS <: BaseProps](props: PROPS) extends RequestLog with StrictLogging {
@@ -31,6 +31,6 @@ class NdlaRequestLogger[PROPS <: BaseProps](props: PROPS) extends RequestLog wit
       )
     )
 
-    CorrelationID.clear()
+    RequestInfo.clear()
   }
 }

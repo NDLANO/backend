@@ -18,8 +18,12 @@ object CorrelationID {
   private val correlationID = new ThreadLocal[String]
 
   def set(request: HttpServletRequest): Unit = {
-    val maybeHeaderValue = Option(request.getHeader(Constants.CorrelationIdHeader))
+    val maybeHeaderValue = fromRequest(request)
     this.set(maybeHeaderValue)
+  }
+
+  def fromRequest(request: HttpServletRequest): Option[String] = {
+    Option(request.getHeader(Constants.CorrelationIdHeader))
   }
 
   def set(correlationId: Option[String]): Unit = {

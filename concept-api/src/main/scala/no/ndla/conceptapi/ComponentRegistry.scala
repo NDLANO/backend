@@ -23,7 +23,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 
 class ComponentRegistry(properties: ConceptApiProperties)
     extends BaseComponentRegistry[ConceptApiProperties]

@@ -8,40 +8,51 @@
 package no.ndla.network.model
 
 import no.ndla.common.CorrelationID
-import no.ndla.network.AuthUser
-import org.apache.logging.log4j.ThreadContext
+import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
+
+import javax.servlet.http.HttpServletRequest
 
 /** Helper class to help keep Thread specific request information in futures. */
 case class RequestInfo(
-    CorrelationId: Option[String],
-    AuthHeader: Option[String],
-    UserId: Option[String],
-    Roles: List[String],
-    Name: Option[String],
-    ClientId: Option[String]
+    correlationId: Option[String],
+    authUser: AuthUser,
+    taxonomyVersion: String,
+    applicationUrl: String
 ) {
   def setRequestInfo(): Unit = {
-    ThreadContext.put(RequestInfo.CorrelationIdKey, CorrelationId.getOrElse(""))
-    CorrelationID.set(CorrelationId)
-    AuthUser.setHeader(AuthHeader.getOrElse(""))
-    UserId.foreach(AuthUser.setId)
-    AuthUser.setRoles(Roles)
-    Name.foreach(AuthUser.setName)
-    ClientId.foreach(AuthUser.setClientId)
+    TaxonomyData.set(taxonomyVersion)
+    authUser.setThreadContext()
+    CorrelationID.set(correlationId)
+    ApplicationUrl.set(applicationUrl)
   }
+
 }
 
 object RequestInfo {
-  val CorrelationIdKey = "correlationID"
 
-  def apply(): RequestInfo = {
-    val correlationId = CorrelationID.get
-    val authHeader    = AuthUser.getHeader
-    val userId        = AuthUser.get
-    val roles         = AuthUser.getRoles
-    val name          = AuthUser.getName
-    val clientId      = AuthUser.getClientId
-
-    RequestInfo(correlationId, authHeader, userId, roles, name, clientId)
+  def fromRequest(request: HttpServletRequest): RequestInfo = {
+    new RequestInfo(
+      correlationId = CorrelationID.fromRequest(request),
+      authUser = AuthUser.fromRequest(request),
+      taxonomyVersion = TaxonomyData.getFromRequest(request),
+      applicationUrl = ApplicationUrl.fromRequest(request)
+    )
   }
+
+  def fromThreadContext(): RequestInfo = {
+    val correlationId   = CorrelationID.get
+    val authUser        = AuthUser.fromThreadContext()
+    val taxonomyVersion = TaxonomyData.get
+    val applicationUrl  = ApplicationUrl.get
+
+    new RequestInfo(correlationId, authUser, taxonomyVersion, applicationUrl)
+  }
+
+  def clear(): Unit = {
+    TaxonomyData.clear()
+    CorrelationID.clear()
+    AuthUser.clear()
+    ApplicationUrl.clear()
+  }
+
 }

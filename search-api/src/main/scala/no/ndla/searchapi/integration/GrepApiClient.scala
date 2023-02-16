@@ -48,7 +48,7 @@ trait GrepApiClient {
       val startFetch                            = System.currentTimeMillis()
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(3))
 
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
 
       /** Calls function in separate thread and converts Try to Future */
       def tryToFuture[T](x: () => Try[T]) = Future { requestInfo.setRequestInfo(); x() }.flatMap(Future.fromTry)

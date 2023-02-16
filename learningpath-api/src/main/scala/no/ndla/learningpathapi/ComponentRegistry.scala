@@ -11,7 +11,6 @@ package no.ndla.learningpathapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.learningpathapi.controller.{
   ConfigController,
   FolderController,
@@ -51,6 +50,7 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: LearningpathApiProperties)

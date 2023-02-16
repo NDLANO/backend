@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
@@ -19,7 +18,7 @@ import no.ndla.conceptapi.model.api.{
   ValidationError
 }
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -38,13 +37,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      AuthUser.clear()
-      ApplicationUrl.clear()
     }
 
     import ErrorHelpers._

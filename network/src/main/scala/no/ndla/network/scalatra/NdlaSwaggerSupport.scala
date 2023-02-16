@@ -1,12 +1,12 @@
 /*
- * Part of NDLA common.
+ * Part of NDLA network.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.common.scalatra
+package no.ndla.network.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps

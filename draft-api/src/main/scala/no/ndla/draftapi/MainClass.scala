@@ -8,7 +8,7 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.scalatra.NdlaScalatraServer
+import no.ndla.network.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
 class MainClass(props: DraftApiProperties) extends StrictLogging {

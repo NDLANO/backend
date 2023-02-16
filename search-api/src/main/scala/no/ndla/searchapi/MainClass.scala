@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.booleanPropOrFalse
-import no.ndla.common.scalatra.NdlaScalatraServer
+import no.ndla.network.scalatra.NdlaScalatraServer
 import no.ndla.searchapi.service.StandaloneIndexing
 import org.eclipse.jetty.server.Server
 
