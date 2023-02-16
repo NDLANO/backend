@@ -131,7 +131,7 @@ trait StateTransitionRules {
         user: UserInfo
     ): IO[Try[domain.Concept]] = {
       val (convertedArticle, sideEffect) = doTransitionWithoutSideEffect(current, to, user)
-      val requestInfo                    = RequestInfo()
+      val requestInfo                    = RequestInfo.fromThreadContext()
       IO {
         requestInfo.setRequestInfo()
         convertedArticle.flatMap(concept => sideEffect(concept))

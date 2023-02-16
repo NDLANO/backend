@@ -8,7 +8,6 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.DataSource
 import no.ndla.draftapi.model.api.{
@@ -20,9 +19,8 @@ import no.ndla.draftapi.model.api.{
   ValidationError
 }
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.apache.logging.log4j.ThreadContext
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -37,15 +35,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ThreadContext.put(TaxonomyVersionIdKey, Option(request.getHeader(TaxonomyVersionHeader)).getOrElse("default"))
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      ThreadContext.remove(TaxonomyVersionIdKey)
-      AuthUser.clear()
-      ApplicationUrl.clear()
     }
 
     import ErrorHelpers._

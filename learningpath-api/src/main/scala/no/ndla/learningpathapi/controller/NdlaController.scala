@@ -10,13 +10,13 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits._
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.integration.DataSource
 import no.ndla.learningpathapi.model.api.{Error, ErrorHelpers, ImportReport, ValidationError}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.service.ConverterService
+import no.ndla.network.AuthUser
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
@@ -34,13 +34,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
-      AuthUser.clear()
     }
 
     // This lets us return Try[T] and handle errors automatically, otherwise return 200 OK :^)

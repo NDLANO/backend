@@ -14,8 +14,7 @@ import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.language.Language
-import no.ndla.network.NdlaClient
-import org.apache.logging.log4j.ThreadContext
+import no.ndla.network.{NdlaClient, TaxonomyData}
 import org.json4s.jackson.Serialization.write
 import org.json4s.{DefaultFormats, Formats}
 import sttp.client3.quick._
@@ -26,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
   val taxonomyApiClient: TaxonomyApiClient
-  import props.{TaxonomyUrl, DefaultLanguage, TaxonomyVersionHeader, TaxonomyVersionIdKey}
+  import props.{DefaultLanguage, TaxonomyUrl, TaxonomyVersionHeader}
 
   class TaxonomyApiClient extends StrictLogging {
     private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
@@ -211,13 +210,14 @@ trait TaxonomyApiClient {
       putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/topics/$resourceId/metadata", body)
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] =
+    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
           .get(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
-          .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
+          .header(TaxonomyVersionHeader, TaxonomyData.get)
       )
+    }
 
     def queryResource(articleId: Long): Try[List[Resource]] =
       get[List[Resource]](s"$TaxonomyApiEndpoint/resources", "contentURI" -> s"urn:article:$articleId")
@@ -252,7 +252,7 @@ trait TaxonomyApiClient {
         .put(uri)
         .body(write(data))
         .readTimeout(taxonomyTimeout)
-        .header(TaxonomyVersionHeader, ThreadContext.get(TaxonomyVersionIdKey))
+        .header(TaxonomyVersionHeader, TaxonomyData.get)
         .header("Content-Type", "application/json", replaceExisting = true)
       ndlaClient.fetchRawWithForwardedAuth(request) match {
         case Success(_)  => Success(data)

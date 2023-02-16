@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.common.scalatra.BaseHealthController
+import no.ndla.network.scalatra.BaseHealthController
 
 trait HealthController {
   val healthController: HealthController

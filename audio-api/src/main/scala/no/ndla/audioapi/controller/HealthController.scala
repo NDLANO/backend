@@ -10,8 +10,7 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.common.scalatra.BaseHealthController
-import no.ndla.network.ApplicationUrl
+import no.ndla.network.scalatra.BaseHealthController
 import org.scalatra.{ActionResult, InternalServerError, Ok}
 import sttp.client3.Response
 import sttp.client3.quick._
@@ -21,14 +20,6 @@ trait HealthController {
   val healthController: HealthController
 
   class HealthController extends BaseHealthController {
-
-    before() {
-      ApplicationUrl.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
-    }
 
     def getApiResponse(url: String): Response[String] = {
       simpleHttpClient.send(quickRequest.get(uri"$url"))

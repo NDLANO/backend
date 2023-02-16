@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.model.api.{
   Error,
   Folder,
@@ -22,6 +21,7 @@ import no.ndla.learningpathapi.model.api.{
 }
 import no.ndla.learningpathapi.model.domain.FolderSortObject.{FolderSorting, ResourceSorting, RootFolderSorting}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._

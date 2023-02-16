@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api._
@@ -18,6 +17,7 @@ import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConve
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok

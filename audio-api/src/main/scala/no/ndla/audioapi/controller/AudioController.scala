@@ -28,8 +28,8 @@ import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._

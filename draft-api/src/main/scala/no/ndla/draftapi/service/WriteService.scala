@@ -865,7 +865,7 @@ trait WriteService {
           implicit val executionContext: ExecutionContextExecutorService =
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
-          val requestInfo    = RequestInfo()
+          val requestInfo    = RequestInfo.fromThreadContext()
           val fut = Future {
             requestInfo.setRequestInfo()
             articleApiClient.partialPublishArticle(id, partialArticle)
@@ -889,7 +889,7 @@ trait WriteService {
         partialBulk: api.PartialBulkArticles
     ): Try[api.MultiPartialPublishResult] = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
 
       val futures = partialBulk.articleIds.map(id =>
         Future {

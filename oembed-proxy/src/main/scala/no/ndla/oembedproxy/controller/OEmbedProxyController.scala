@@ -8,9 +8,8 @@
 
 package no.ndla.oembedproxy.controller
 
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
 import org.json4s.{DefaultFormats, Formats}
@@ -51,11 +50,6 @@ trait OEmbedProxyController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
     }
 
     import ErrorHelpers._

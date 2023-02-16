@@ -7,13 +7,13 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.{ValidationError, Error}
 import no.ndla.learningpathapi.model.api.config.{ConfigMeta, ConfigMetaRestricted, UpdateConfigValue}
 import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.ResponseMessage
 

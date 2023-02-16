@@ -7,12 +7,12 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers}
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, ReadService}
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.FileUploadSupport

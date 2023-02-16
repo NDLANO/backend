@@ -80,7 +80,7 @@ trait H5PApiClient {
     private[integration] def putNothing(url: String, params: (String, String)*)(implicit
         ec: ExecutionContext
     ): Future[Try[Unit]] = {
-      val threadInfo = RequestInfo()
+      val threadInfo = RequestInfo.fromThreadContext()
       Future {
         logger.info(s"Doing call to $url")
         threadInfo.setRequestInfo()

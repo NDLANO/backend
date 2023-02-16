@@ -234,7 +234,7 @@ trait StateTransitionRules {
         isImported: Boolean
     ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
-      val requestInfo                     = RequestInfo()
+      val requestInfo                     = RequestInfo.fromThreadContext()
       IO {
         requestInfo.setRequestInfo()
         convertedArticle.flatMap(articleBeforeSideEffect => {
