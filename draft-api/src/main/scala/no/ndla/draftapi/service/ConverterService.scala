@@ -645,7 +645,7 @@ trait ConverterService {
       val responsible = (article.responsibleId, toMergeInto.responsible) match {
         case (Left(_), _)                       => None
         case (Right(Some(responsibleId)), None) => Some(Responsible(responsibleId, clock.now()))
-        case (Right(Some(responsibleId)), existing) if (existing.get.responsibleId != responsibleId) =>
+        case (Right(Some(responsibleId)), Some(existing)) if existing.responsibleId != responsibleId =>
           Some(Responsible(responsibleId, clock.now()))
         case (Right(_), existing) => existing
       }
