@@ -179,7 +179,7 @@ export interface IUpdatedConcept {
   articleIds?: number[]
   status?: string
   visualElement?: string
-  responsible?: (null | string)
+  responsibleId?: (null | string)
 }
 
 export interface IValidationError {
