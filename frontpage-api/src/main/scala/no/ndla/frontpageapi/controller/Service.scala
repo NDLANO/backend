@@ -6,16 +6,11 @@
  */
 package no.ndla.frontpageapi.controller
 
-import no.ndla.frontpageapi.model.api.ErrorHelpers
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.generic.auto._
-import no.ndla.frontpageapi.model.api._
+import no.ndla.frontpageapi.model.api.ErrorHelpers
 import org.http4s.HttpRoutes
-import sttp.model.StatusCode
 import sttp.tapir._
-import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 
 trait Service {
@@ -41,18 +36,5 @@ trait Service {
         )
       })
     }
-
-    protected val NotFoundError: EndpointOutput[NotFoundError] =
-      statusCode(StatusCode.NotFound).and(jsonBody[NotFoundError])
-    protected val GenericError: EndpointOutput[GenericError] =
-      statusCode(StatusCode.InternalServerError).and(jsonBody[GenericError])
-    protected val BadRequestError: EndpointOutput[BadRequestError] =
-      statusCode(StatusCode.BadRequest).and(jsonBody[BadRequestError])
-    protected val UnprocessableEntityError: EndpointOutput[UnprocessableEntityError] =
-      statusCode(StatusCode.UnprocessableEntity).and(jsonBody[UnprocessableEntityError])
-    protected val ForbiddenError: EndpointOutput[ForbiddenError] =
-      statusCode(StatusCode.Forbidden).and(jsonBody[ForbiddenError])
-    protected val UnauthorizedError: EndpointOutput[UnauthorizedError] =
-      statusCode(StatusCode.Unauthorized).and(jsonBody[UnauthorizedError])
   }
 }

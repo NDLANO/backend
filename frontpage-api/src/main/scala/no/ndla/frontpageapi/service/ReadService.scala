@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.service
 
 import cats.implicits._
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits._
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException}
@@ -35,11 +35,11 @@ trait ReadService {
         case Failure(ex)       => Failure(ex)
       }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean = false): Option[api.SubjectPageData] =
-      subjectPageRepository
-        .withId(id)
-        .map(sub => ConverterService.toApiSubjectPage(sub, language, fallback))
-        .collect { case Success(sub) => sub }
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageData] = {
+      val maybeSubject = subjectPageRepository.withId(id).?
+      val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
+      converted.toTry(NotFoundException(id))
+    }
 
     def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[api.SubjectPageData]] = {
       val offset    = pageSize * (page - 1)

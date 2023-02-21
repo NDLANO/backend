@@ -42,7 +42,6 @@ trait SubjectPageRepository {
       })
     }
 
-
     def updateSubjectPage(
         subj: SubjectFrontPageData
     )(implicit session: DBSession = AutoSession): Try[SubjectFrontPageData] = {
@@ -54,7 +53,9 @@ trait SubjectPageRepository {
         .map(_ => subj)
     }
 
-    def all(offset: Int, limit: Int)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[SubjectFrontPageData]] = {
+    def all(offset: Int, limit: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[SubjectFrontPageData]] = {
       val su = DBSubjectFrontPageData.syntax("su")
       Try {
         sql"""
@@ -71,7 +72,7 @@ trait SubjectPageRepository {
       }.flatten
     }
 
-    def withId(subjectId: Long): Option[SubjectFrontPageData] =
+    def withId(subjectId: Long): Try[Option[SubjectFrontPageData]] =
       subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 
     def withIds(subjectIds: List[Long], offset: Long, pageSize: Long)(implicit
@@ -109,7 +110,7 @@ trait SubjectPageRepository {
 
     private def subjectPageWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Option[SubjectFrontPageData] = {
+    )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[SubjectFrontPageData]] = {
       val su = DBSubjectFrontPageData.syntax("su")
 
       Try(
@@ -117,14 +118,10 @@ trait SubjectPageRepository {
           .map(DBSubjectFrontPageData.fromDb(su))
           .single()
       ) match {
-        case Success(Some(Success(s))) => Some(s)
-        case Success(Some(Failure(ex))) =>
-          ex.printStackTrace()
-          None
-        case Failure(ex) =>
-          ex.printStackTrace()
-          None
-        case _ => None
+        case Success(Some(Success(s)))  => Success(Some(s))
+        case Success(Some(Failure(ex))) => Failure(ex)
+        case Success(None)              => Success(None)
+        case Failure(ex)                => Failure(ex)
       }
     }
 
