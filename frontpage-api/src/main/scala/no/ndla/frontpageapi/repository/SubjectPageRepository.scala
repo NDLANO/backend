@@ -42,6 +42,7 @@ trait SubjectPageRepository {
       })
     }
 
+
     def updateSubjectPage(
         subj: SubjectFrontPageData
     )(implicit session: DBSession = AutoSession): Try[SubjectFrontPageData] = {
@@ -51,6 +52,23 @@ trait SubjectPageRepository {
 
       Try(sql"update ${DBSubjectFrontPageData.table} set document=${dataObject} where id=${subj.id}".update())
         .map(_ => subj)
+    }
+
+    def all(offset: Int, limit: Int)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[SubjectFrontPageData]] = {
+      val su = DBSubjectFrontPageData.syntax("su")
+      Try {
+        sql"""
+            select ${su.result.*}
+            from ${DBSubjectFrontPageData.as(su)}
+            where su.document is not null
+            order by su.id
+            offset $offset
+            limit $limit
+         """
+          .map(DBSubjectFrontPageData.fromDb(su))
+          .list()
+          .sequence
+      }.flatten
     }
 
     def withId(subjectId: Long): Option[SubjectFrontPageData] =

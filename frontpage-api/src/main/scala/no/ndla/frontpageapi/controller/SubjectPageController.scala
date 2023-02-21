@@ -54,6 +54,19 @@ trait SubjectPageController {
     import UserInfo._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
+        .summary("Fetch all subjectpages")
+        .in(query[Int]("page").default(1))
+        .in(query[Int]("page-size").default(props.DefaultPageSize))
+        .in(query[String]("language").default(props.DefaultLanguage))
+        .in(query[Boolean]("fallback").default(false))
+        .errorOut(errorOutputs)
+        .out(jsonBody[List[SubjectPageData]])
+        .serverLogicPure { case (page, pageSize, language, fallback) =>
+          readService
+            .subjectPages(page, pageSize, language, fallback)
+            .handleErrorsOrOk
+        },
+      endpoint.get
         .summary("Get data to display on a subject page")
         .in(path[Long]("subjectpage-id").description("The subjectpage id"))
         .in(query[String]("language").default(props.DefaultLanguage))
@@ -79,7 +92,9 @@ trait SubjectPageController {
         .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
           val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
           val parsedPage     = if (page < 1) 1 else page
-          readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage).handleErrorsOrOk
+          readService
+            .getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
+            .handleErrorsOrOk
         },
       endpoint.post
         .summary("Create new subject page")
