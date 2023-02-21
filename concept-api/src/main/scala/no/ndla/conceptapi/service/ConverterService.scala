@@ -225,7 +225,7 @@ trait ConverterService {
         else toMergeInto.updatedBy
       }
 
-      val responsible = updateConcept.responsible match {
+      val responsible = updateConcept.responsibleId match {
         case Left(_)                    => None
         case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
         case Right(None)                => toMergeInto.responsible
@@ -261,7 +261,7 @@ trait ConverterService {
         case Left(_)     => Seq.empty
       }
 
-      val responsible = concept.responsible match {
+      val responsible = concept.responsibleId match {
         case Left(_)                    => None
         case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
         case Right(_)                   => None
