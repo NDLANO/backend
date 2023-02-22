@@ -13,31 +13,32 @@ object Dependencies {
     val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
-    val ScalaTestV            = "3.2.10"
+    val ScalaTestV            = "3.2.15"
     val Log4JV                = "2.19.0"
     val JettyV                = "9.4.48.v20220622"
     val AwsSdkV               = "1.12.276"
-    val MockitoV              = "1.16.49"
+    val MockitoV              = "1.17.12"
     val Elastic4sV            = "8.5.0"
     val JacksonV              = "2.14.1"
-    val CatsEffectV           = "3.4.1"
+    val CatsEffectV           = "3.4.8"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
     val FlywayV               = "7.5.3"
-    val PostgresV             = "42.5.1"
-    val ScalaTsiV             = "0.6.0"
+    val PostgresV             = "42.5.4"
+    val ScalaTsiV             = "0.8.2"
     val Http4sV               = "0.23.18"
     val TapirV                = "1.2.7"
     val ApiSpecV              = "0.3.2"
     val SttpV                 = "3.8.10"
-    val CirceV                = "0.14.2"
+    val CirceV                = "0.14.3"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
     val JsoupV                = "1.15.3"
     val JavaMelodyV           = "1.91.0"
+    val EnumeratumV           = "1.7.2"
 
-    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "3.5.0"
+    lazy val scalaUri = "io.lemonlabs" %% "scala-uri" % "4.0.3"
 
     lazy val scalikejdbc = "org.scalikejdbc" %% "scalikejdbc" % ScalikeJDBCV
     lazy val postgres    = "org.postgresql"   % "postgresql"  % PostgresV
@@ -45,9 +46,9 @@ object Dependencies {
 
     lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
 
-    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % "1.7.0"
-    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"
-    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % "1.7.0"
+    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % EnumeratumV
+    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % EnumeratumV cross CrossVersion.for3Use2_13
+    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % EnumeratumV
 
     lazy val database = Seq(
       scalikejdbc,
@@ -55,13 +56,26 @@ object Dependencies {
       hikari
     )
 
+    private lazy val scalaTestAndMockitoBase: Seq[ModuleID] = Seq(
+      "org.scalatest" %% "scalatest"               % ScalaTestV,
+      "org.mockito"   %% "mockito-scala"           % MockitoV,
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV
+    )
+
+    /** This should only be used if we want to include scalatest and mockito in the main build (not only tests).
+      * Otherwise use [[scalaTestAndMockito]]
+      */
+    lazy val scalaTestAndMockitoInMain = scalaTestAndMockitoBase.map(_ cross CrossVersion.for3Use2_13)
+
+    lazy val scalaTestAndMockito = scalaTestAndMockitoInMain.map(_ % "test" cross CrossVersion.for3Use2_13)
+
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val scalatra = Seq(
-      "org.scalatra" %% "scalatra"           % ScalatraV,
-      "org.scalatra" %% "scalatra-json"      % ScalatraV,
-      "org.scalatra" %% "scalatra-swagger"   % ScalatraV,
-      "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
+      "org.scalatra" %% "scalatra"           % ScalatraV cross CrossVersion.for3Use2_13,
+      "org.scalatra" %% "scalatra-json"      % ScalatraV cross CrossVersion.for3Use2_13,
+      "org.scalatra" %% "scalatra-swagger"   % ScalatraV cross CrossVersion.for3Use2_13,
+      "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test" cross CrossVersion.for3Use2_13
     )
 
     lazy val elastic4s = Seq(

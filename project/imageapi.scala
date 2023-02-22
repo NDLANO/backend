@@ -14,15 +14,12 @@ object imageapi extends Module {
       scalaUri,
       enumeratum,
       sttp,
-      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
-      "javax.servlet"       % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
+      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV  % "container;compile",
+      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV  % "container",
+      "javax.servlet"       % "javax.servlet-api"               % "4.0.1" % "container;provided;test",
       "org.json4s"         %% "json4s-native"                   % Json4SV,
       "com.amazonaws"       % "aws-java-sdk-s3"                 % AwsSdkV,
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV,
       "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
       "org.jsoup"           % "jsoup"                           % JsoupV,
@@ -33,7 +30,7 @@ object imageapi extends Module {
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.8.2",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.8.2",
       "commons-io"                % "commons-io"   % "2.11.0"
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ scalaTestAndMockito
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(

@@ -18,7 +18,7 @@ object commonlib extends Module {
       "org.eclipse.jetty"   % "jetty-plus"        % JettyV  % "container",
       "javax.servlet"       % "javax.servlet-api" % "4.0.1" % "container;provided;test",
       "net.bull.javamelody" % "javamelody-core"   % JavaMelodyV
-    ) ++ scalatra
+    ) ++ scalatra ++ scalaTestAndMockito
   )
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "common",

@@ -5,7 +5,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object mappinglib extends Module {
-  lazy val dependencies: Seq[ModuleID] = Seq("org.scalatest" %% "scalatest" % ScalaTestV % "test")
+  lazy val dependencies: Seq[ModuleID] = scalaTestAndMockito
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "mapping",

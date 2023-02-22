@@ -15,9 +15,9 @@ object learningpathapi extends Module {
       enumeratum,
       enumeratumJson4s,
       sttp,
-      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
-      "javax.servlet"       % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
+      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV  % "container;compile",
+      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV  % "container",
+      "javax.servlet"       % "javax.servlet-api"               % "4.0.1" % "container;provided;test",
       "org.json4s"         %% "json4s-native"                   % Json4SV,
       "org.json4s"         %% "json4s-ast"                      % Json4SV,
       "org.json4s"         %% "json4s-core"                     % Json4SV,
@@ -28,11 +28,8 @@ object learningpathapi extends Module {
       "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
       "org.jrobin"          % "jrobin"                          % "1.5.9",
       "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"        % "flyway-core"                     % FlywayV
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
+    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides ++ scalaTestAndMockito
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(

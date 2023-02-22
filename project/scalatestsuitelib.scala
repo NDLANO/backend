@@ -5,13 +5,10 @@ import sbt._
 
 object scalatestsuitelib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
-    "org.scalatest"     %% "scalatest"               % ScalaTestV,
-    "org.mockito"       %% "mockito-scala"           % MockitoV,
-    "org.mockito"       %% "mockito-scala-scalatest" % MockitoV,
-    "org.testcontainers" % "elasticsearch"           % TestContainersV,
-    "org.testcontainers" % "testcontainers"          % TestContainersV,
-    "org.testcontainers" % "postgresql"              % TestContainersV
-  ) ++ database ++ vulnerabilityOverrides
+    "org.testcontainers" % "elasticsearch"  % TestContainersV,
+    "org.testcontainers" % "testcontainers" % TestContainersV,
+    "org.testcontainers" % "postgresql"     % TestContainersV
+  ) ++ database ++ vulnerabilityOverrides ++ scalaTestAndMockitoInMain
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     name := "scalatestsuite",

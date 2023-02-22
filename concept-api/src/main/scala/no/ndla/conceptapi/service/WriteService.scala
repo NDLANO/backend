@@ -19,6 +19,7 @@ import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation._
 import no.ndla.language.Language
+import cats.effect.unsafe.implicits.global
 
 import scala.util.{Failure, Success, Try}
 
