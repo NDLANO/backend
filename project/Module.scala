@@ -33,6 +33,9 @@ object Module {
 }
 
 trait Module {
+  val isScala3Yet: Boolean = false
+  val sVersion: String     = if (isScala3Yet) Scala3V else ScalaV
+
   lazy val settings: Seq[Def.Setting[_]]                     = Seq.empty
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
   lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
@@ -51,10 +54,9 @@ trait Module {
     Compile / mainClass := this.MainClass,
     organization        := "ndla",
     version             := "0.0.1",
-    scalaVersion        := ScalaV,
+    scalaVersion        := sVersion,
     javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
-      "-release:17",
       "-unchecked",
       "-deprecation",
       "-feature",

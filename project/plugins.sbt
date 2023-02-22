@@ -5,3 +5,6 @@ addSbtPlugin("com.scalatsi"      % "sbt-scala-tsi"   % "0.5.1")
 addSbtPlugin("com.typesafe.sbt"  % "sbt-git"         % "1.0.0")
 addSbtPlugin("se.marcuslonnberg" % "sbt-docker"      % "1.8.2")
 addSbtPlugin("au.com.onegeek"    % "sbt-dotenv"      % "2.1.204")
+
+// TODO: Remove when scala 3 is upgradified
+addSbtPlugin("ch.epfl.scala" % "sbt-scala3-migrate" % "0.5.1")
