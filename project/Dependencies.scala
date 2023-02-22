@@ -9,7 +9,7 @@ object Dependencies {
 
   object versions {
     val ScalaV                = "2.13.8"
-    val Scala3V               = "3.1.1"
+    val Scala3V               = "3.2.2"
     val ScalatraV             = "2.8.4"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"

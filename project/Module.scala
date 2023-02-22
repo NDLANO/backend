@@ -59,15 +59,10 @@ trait Module {
     scalacOptions := Seq(
       "-unchecked",
       "-deprecation",
-      "-feature",
-      "-Xlint",
-      "-Wconf:src=src_managed/.*:silent",
-      "-Wconf:cat=lint-byname-implicit:silent" // https://github.com/scala/bug/issues/12072
+      "-feature"
     ),
     javaOptions ++= reflectiveAccessOptions,
     scalacOptions ++= CIOptions,
-    // Disable warns about non-exhaustive match in tests as they are very useful there.
-    Test / scalacOptions ++= Seq("-Wconf:cat=other-match-analysis:silent"),
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
       .envOrNone("NDLA_RELEASES")
