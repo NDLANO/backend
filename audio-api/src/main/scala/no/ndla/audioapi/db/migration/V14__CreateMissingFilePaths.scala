@@ -13,9 +13,10 @@ import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
+import org.json4s.DefaultFormats
 
 class V14__CreateMissingFilePaths extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   case class LanguageObject(language: String)
   case class FilePathObject(filePath: String, fileSize: Long, language: String, mimeType: String)
 
@@ -42,7 +43,7 @@ class V14__CreateMissingFilePaths extends BaseJavaMigration {
       .orElse(sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).lastOption)
   }
 
-  val languagePriority = List(
+  val languagePriority: List[String] = List(
     "nb",
     "nn",
     "unknown",

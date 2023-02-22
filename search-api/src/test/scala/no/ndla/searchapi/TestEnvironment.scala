@@ -60,40 +60,40 @@ trait TestEnvironment
     with SearchApiInfo {
   override val props = new SearchApiProperties
 
-  val searchController = mock[SearchController]
-  val healthController = mock[HealthController]
-  val internController = mock[InternController]
-  val resourcesApp     = mock[ResourcesApp]
+  val searchController: SearchController = mock[SearchController]
+  val healthController: HealthController = mock[HealthController]
+  val internController: InternController = mock[InternController]
+  val resourcesApp: ResourcesApp     = mock[ResourcesApp]
 
-  val ndlaClient               = mock[NdlaClient]
+  val ndlaClient: NdlaClient               = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
 
-  val taxonomyApiClient = mock[TaxonomyApiClient]
-  val grepApiClient     = mock[GrepApiClient]
+  val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
+  val grepApiClient: GrepApiClient     = mock[GrepApiClient]
 
-  val draftApiClient        = mock[DraftApiClient]
-  val learningPathApiClient = mock[LearningPathApiClient]
-  val imageApiClient        = mock[ImageApiClient]
-  val audioApiClient        = mock[AudioApiClient]
-  val articleApiClient      = mock[ArticleApiClient]
-  val feideApiClient        = mock[FeideApiClient]
-  val redisClient           = mock[RedisClient]
+  val draftApiClient: DraftApiClient        = mock[DraftApiClient]
+  val learningPathApiClient: LearningPathApiClient = mock[LearningPathApiClient]
+  val imageApiClient: ImageApiClient        = mock[ImageApiClient]
+  val audioApiClient: AudioApiClient        = mock[AudioApiClient]
+  val articleApiClient: ArticleApiClient      = mock[ArticleApiClient]
+  val feideApiClient: FeideApiClient        = mock[FeideApiClient]
+  val redisClient: RedisClient           = mock[RedisClient]
 
-  val SearchClients = Map[String, SearchApiClient](
+  val SearchClients: Map[String,SearchApiClient] = Map[String, SearchApiClient](
     "articles"      -> draftApiClient,
     "learningpaths" -> learningPathApiClient,
     "images"        -> imageApiClient,
     "audios"        -> audioApiClient
   )
 
-  val searchService            = mock[ApiSearchService]
-  val converterService         = mock[ConverterService]
-  val searchConverterService   = mock[SearchConverterService]
-  val multiSearchService       = mock[MultiSearchService]
-  val articleIndexService      = mock[ArticleIndexService]
-  val learningPathIndexService = mock[LearningPathIndexService]
-  val draftIndexService        = mock[DraftIndexService]
-  val multiDraftSearchService  = mock[MultiDraftSearchService]
+  val searchService: ApiSearchService            = mock[ApiSearchService]
+  val converterService: ConverterService         = mock[ConverterService]
+  val searchConverterService: SearchConverterService   = mock[SearchConverterService]
+  val multiSearchService: MultiSearchService       = mock[MultiSearchService]
+  val articleIndexService: ArticleIndexService      = mock[ArticleIndexService]
+  val learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
+  val draftIndexService: DraftIndexService        = mock[DraftIndexService]
+  val multiDraftSearchService: MultiDraftSearchService  = mock[MultiDraftSearchService]
 
-  val user = mock[User]
+  val user: User = mock[User]
 }

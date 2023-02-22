@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
-  implicit val swagger = new ImageSwagger
+  implicit val swagger: ImageSwagger = new ImageSwagger
   val imageName        = "ndla_logo.jpg"
   val imageGifName     = "ndla_logo.gif"
   val imageSvgName     = "logo.svg"
@@ -32,7 +32,7 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   val id    = 1
   val idGif = 1
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
     when(readService.getImageFileName(id, None)).thenReturn(Some(TestData.bjorn.images.head.fileName))

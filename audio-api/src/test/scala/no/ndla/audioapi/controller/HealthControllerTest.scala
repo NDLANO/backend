@@ -18,25 +18,26 @@ import sttp.client3.Response
 import sttp.model.StatusCode
 
 import java.time.LocalDateTime
+import org.json4s.DefaultFormats
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   val httpResponseMock: Response[String] = mock[Response[String]]
 
-  lazy val controller = new HealthController {
+  lazy val controller: HealthController = new HealthController {
     override def getApiResponse(url: String): Response[String] = httpResponseMock
   }
 
   controller.setWarmedUp()
 
-  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
 
-  val copyrighted =
+  val copyrighted: Copyright =
     Copyright("copyrighted", Some("New York"), Seq(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, None)
 
-  val audioMeta = domain.AudioMetaInformation(
+  val audioMeta: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
     Some(1),
     Seq(Title("Batmen er på vift med en bil", "nb")),

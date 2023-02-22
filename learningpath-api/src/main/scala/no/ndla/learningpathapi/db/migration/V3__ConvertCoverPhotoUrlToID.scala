@@ -17,9 +17,9 @@ import scalikejdbc._
 
 class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -54,7 +54,7 @@ class V3__ConvertCoverPhotoUrlToID extends BaseJavaMigration {
     pattern.findFirstMatchIn(oldCoverPhotoUrl.path.toString).map(_.group(1)).get
   }
 
-  def update(learningPath: V3_DBLearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V3_DBLearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(learningPath.document)

@@ -50,7 +50,7 @@ trait AgreementRepository {
     def withId(id: Long): Option[Agreement] =
       agreementWhere(sqls"agr.id=${id.toInt}")
 
-    def delete(id: Long)(implicit session: DBSession = AutoSession) = {
+    def delete(id: Long)(implicit session: DBSession = AutoSession): Int = {
       sql"delete from ${DBAgreement.table} where id = $id".update()
     }
 

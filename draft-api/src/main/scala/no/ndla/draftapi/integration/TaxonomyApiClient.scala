@@ -178,7 +178,7 @@ trait TaxonomyApiClient {
         })
     }
 
-    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean) = {
+    def updateTaxonomyMetadataIfExists(articleId: Long, visible: Boolean): Try[Long] = {
       for {
         resources                      <- queryResource(articleId)
         existingResourceMetadataWithId <- resources.traverse(res => getResourceMetadata(res.id).map((res.id, _)))

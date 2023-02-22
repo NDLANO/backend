@@ -14,7 +14,7 @@ import org.mockito.Mockito.{reset, when}
 
 class ApplicationUrlTest extends UnitSuite {
 
-  val httpRequest = mock[HttpServletRequest]
+  val httpRequest: HttpServletRequest = mock[HttpServletRequest]
   val servername  = "unittest.testesen.no"
   val scheme      = "testscheme"
   val port        = 666

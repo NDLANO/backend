@@ -18,11 +18,11 @@ import org.scalatra.test.scalatest.ScalatraFunSuite
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val swagger = new OEmbedSwagger
+  implicit val swagger: OEmbedSwagger = new OEmbedSwagger
   lazy val controller  = new OEmbedProxyController
   addServlet(controller, props.OembedProxyControllerMountPoint)
 
-  val oembed = OEmbed(
+  val oembed: OEmbed = OEmbed(
     `type` = "rich",
     version = "1.0",
     title = Some("Title"),

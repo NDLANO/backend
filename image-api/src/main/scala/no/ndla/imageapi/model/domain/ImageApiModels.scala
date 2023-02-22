@@ -52,10 +52,10 @@ case class EditorNote(timeStamp: LocalDateTime, updatedBy: String, note: String)
 case class ImageDimensions(width: Int, height: Int)
 
 object ModelReleasedStatus extends Enumeration {
-  val YES            = Value("yes")
-  val NO             = Value("no")
-  val NOT_APPLICABLE = Value("not-applicable")
-  val NOT_SET        = Value("not-set")
+  val YES: Value            = Value("yes")
+  val NO: Value             = Value("no")
+  val NOT_APPLICABLE: Value = Value("not-applicable")
+  val NOT_SET: Value        = Value("not-set")
 
   def valueOfOrError(s: String): Try[this.Value] =
     valueOf(s) match {

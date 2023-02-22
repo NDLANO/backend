@@ -131,7 +131,7 @@ class ArticleApiClientTest
   }
 
   val dataFixer         = new LocalArticleApiTestData
-  val articleApiBaseUrl = s"http://localhost:$articleApiPort"
+  val articleApiBaseUrl: String = s"http://localhost:$articleApiPort"
 
   test("that updating articles should work") {
     dataFixer.setupArticles()

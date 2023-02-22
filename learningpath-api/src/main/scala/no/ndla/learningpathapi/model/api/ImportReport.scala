@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi.model.api
 
 object ImportStatus extends Enumeration {
-  val OK    = Value("OK")
-  val ERROR = Value("ERROR")
+  val OK: Value    = Value("OK")
+  val ERROR: Value = Value("ERROR")
 }
 case class ImportReport(nid: String, status: ImportStatus.Value, messages: Seq[String], id: Option[Long])
     extends RuntimeException(s"$nid - $status: ${messages.mkString(",")}")

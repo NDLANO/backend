@@ -27,7 +27,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val readService      = new ReadService
   override val converterService = new ConverterService
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     val applicationUrl = mock[HttpServletRequest]
     when(applicationUrl.getServerPort).thenReturn(80)
     when(applicationUrl.getHeader(any[String])).thenReturn(null)

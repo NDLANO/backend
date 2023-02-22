@@ -16,7 +16,7 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
   var basicHtmlValidator: TextValidator = _
   var noHtmlValidator: TextValidator    = _
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     basicHtmlValidator = new TextValidator(allowHtml = true)
     noHtmlValidator = new TextValidator(allowHtml = false)
   }

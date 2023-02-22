@@ -75,9 +75,9 @@ trait ErrorHelpers {
     val UNAUTHORIZED         = "UNAUTHORIZED"
     val FORBIDDEN            = "FORBIDDEN"
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    val NOT_FOUND_DESCRIPTION = s"The page you requested does not exist"
+    val NOT_FOUND_DESCRIPTION: String = s"The page you requested does not exist"
 
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"

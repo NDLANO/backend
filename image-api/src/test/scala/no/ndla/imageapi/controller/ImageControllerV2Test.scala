@@ -54,7 +54,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
     override def contentLength: Long = content.length
   }
 
-  val sampleUploadFile = PretendFile(Array[Byte](-1, -40, -1), "image/jpeg", "image.jpg")
+  val sampleUploadFile: PretendFile = PretendFile(Array[Byte](-1, -40, -1), "image/jpeg", "image.jpg")
 
   val sampleNewImageMetaV2: String =
     """

@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(DraftStatus)
 
-  val searchableArticle1 = SearchableArticle(
+  val searchableArticle1: SearchableArticle = SearchableArticle(
     id = 10.toLong,
     title = SearchableLanguageValues(Seq(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
     content = SearchableLanguageValues(Seq(LanguageValue("nb", "innhold"), LanguageValue("en", "content"))),

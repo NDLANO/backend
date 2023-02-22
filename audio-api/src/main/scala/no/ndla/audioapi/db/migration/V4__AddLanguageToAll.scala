@@ -14,9 +14,10 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
+import org.json4s.DefaultFormats
 
 class V4__AddLanguageToAll extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -55,7 +56,7 @@ class V4__AddLanguageToAll extends BaseJavaMigration {
       .list()
   }
 
-  def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V4_AudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))

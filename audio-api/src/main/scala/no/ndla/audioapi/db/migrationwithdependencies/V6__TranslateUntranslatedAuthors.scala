@@ -15,11 +15,12 @@ import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc._
+import org.json4s.Formats
 
 class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJavaMigration with StrictLogging {
   import props._
   // Translates authors that wasn't translated in V5
-  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -63,7 +64,7 @@ class V6__TranslateUntranslatedAuthors(props: AudioApiProperties) extends BaseJa
     )
   }
 
-  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))

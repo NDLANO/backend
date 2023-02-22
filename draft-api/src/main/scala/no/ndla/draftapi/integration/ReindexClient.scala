@@ -13,6 +13,7 @@ import no.ndla.draftapi.Props
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import sttp.client3.quick._
+import sttp.client3.Response
 
 trait ReindexClient {
   this: Props =>
@@ -41,7 +42,7 @@ trait ReindexClient {
       simpleHttpClient.send(req)
     }
 
-    def reindexAll() = {
+    def reindexAll(): Future[Response[String]] = {
       logger.info("Calling for API's to reindex")
       Future {
         reindexArticles()

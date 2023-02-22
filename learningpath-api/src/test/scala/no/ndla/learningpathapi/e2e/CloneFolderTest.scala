@@ -77,8 +77,8 @@ class CloneFolderTest
   val testClock = learningpathApi.componentRegistry.clock
 
   val learningpathApiServer: Server = learningpathApi.startServer()
-  val learningpathApiBaseUrl        = s"http://localhost:$learningpathApiPort"
-  val learningpathApiFolderUrl      = s"$learningpathApiBaseUrl/learningpath-api/v1/folders"
+  val learningpathApiBaseUrl: String        = s"http://localhost:$learningpathApiPort"
+  val learningpathApiFolderUrl: String      = s"$learningpathApiBaseUrl/learningpath-api/v1/folders"
 
   override def beforeEach(): Unit = {
     super.beforeEach()

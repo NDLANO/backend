@@ -12,12 +12,13 @@ import org.json4s.JsonAST.{JArray, JField, JObject, JString}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
+import org.json4s.DefaultFormats
 
 class V2__RenameMetaImageId extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -40,7 +41,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from articledata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
@@ -66,7 +67,7 @@ class V2__RenameMetaImageId extends BaseJavaMigration {
     compact(render(newArticle))
   }
 
-  def updateArticle(document: String, id: Long)(implicit session: DBSession) = {
+  def updateArticle(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

@@ -14,6 +14,7 @@ import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import scala.util.Success
+import no.ndla.common.model.domain.draft.Draft
 
 class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
@@ -32,7 +33,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val article1 = TestData.sampleDomainArticle.copy(
+  val article1: Draft = TestData.sampleDomainArticle.copy(
     tags = Seq(
       Tag(
         Seq("test", "testing", "testemer"),
@@ -41,7 +42,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     )
   )
 
-  val article2 = TestData.sampleDomainArticle.copy(
+  val article2: Draft = TestData.sampleDomainArticle.copy(
     tags = Seq(
       Tag(
         Seq("test"),
@@ -50,7 +51,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     )
   )
 
-  val article3 = TestData.sampleDomainArticle.copy(
+  val article3: Draft = TestData.sampleDomainArticle.copy(
     tags = Seq(
       Tag(
         Seq("hei", "test", "testing"),
@@ -63,7 +64,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     )
   )
 
-  val article4 = TestData.sampleDomainArticle.copy(
+  val article4: Draft = TestData.sampleDomainArticle.copy(
     tags = Seq(
       Tag(
         Seq("kyllingfilet", "filetkylling"),
@@ -72,7 +73,7 @@ class TagSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer
     )
   )
 
-  val articlesToIndex = Seq(article1, article2, article3, article4)
+  val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     tagIndexService.createIndexWithName(props.DraftTagSearchIndex)

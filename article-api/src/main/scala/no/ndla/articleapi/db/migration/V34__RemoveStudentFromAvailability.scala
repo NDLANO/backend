@@ -14,7 +14,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
-  implicit val formats = DefaultFormats
+  implicit val formats: DefaultFormats.type = DefaultFormats
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

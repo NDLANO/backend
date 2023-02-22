@@ -157,7 +157,7 @@ trait NdlaControllerBase {
       }
     }
 
-    val digitsOnlyError = (paramName: String) =>
+    val digitsOnlyError: String => Failure[Nothing] = (paramName: String) =>
       Failure(
         new ValidationException(
           errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))

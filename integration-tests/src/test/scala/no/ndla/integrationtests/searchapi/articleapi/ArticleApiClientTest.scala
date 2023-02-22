@@ -63,7 +63,7 @@ class ArticleApiClientTest
 
   val articleApi               = new articleapi.MainClass(articleApiProperties)
   val articleApiServer: Server = articleApi.startServer()
-  val articleApiBaseUrl        = s"http://localhost:$articleApiPort"
+  val articleApiBaseUrl: String        = s"http://localhost:$articleApiPort"
 
   override def afterAll(): Unit = {
     super.afterAll()

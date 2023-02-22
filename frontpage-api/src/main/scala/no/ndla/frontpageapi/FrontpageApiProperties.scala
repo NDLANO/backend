@@ -25,7 +25,7 @@ class FrontpageApiProperties extends BaseProps {
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val NumThreads: Int         = propOrElse("NUM_THREADS", "200").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
-  val Auth0LoginEndpoint      = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val Auth0LoginEndpoint: String      = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val SecretsFile = "frontpage-api.secrets"
 
@@ -35,7 +35,7 @@ class FrontpageApiProperties extends BaseProps {
   lazy val MetaServer: String   = prop(PropertyKeys.MetaServerKey)
   lazy val MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   lazy val MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  lazy val MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  lazy val MetaMaxConnections: Int   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
   val DefaultPageSize           = 10
 
   lazy val Domain: String    = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))

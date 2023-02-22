@@ -26,6 +26,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.model.domain.Content
 
 trait MultiDraftSearchService {
   this: Elastic4sClient
@@ -40,8 +41,8 @@ trait MultiDraftSearchService {
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive, SearchIndexes}
-    override val searchIndex   = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
-    override val indexServices = List(draftIndexService, learningPathIndexService)
+    override val searchIndex: List[String]   = List(SearchIndexes(SearchType.Drafts), SearchIndexes(SearchType.LearningPaths))
+    override val indexServices: List[IndexService[_ <: Content]] = List(draftIndexService, learningPathIndexService)
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
 

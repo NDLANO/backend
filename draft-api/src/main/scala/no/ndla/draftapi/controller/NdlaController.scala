@@ -69,23 +69,23 @@ trait NdlaController {
         InternalServerError(body = GenericError)
     }
 
-    protected val correlationId =
+    protected val correlationId: Param[Option[String]] =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
-    protected val pageNo   = Param[Option[Int]]("page", "The page number of the search hits to display.")
-    protected val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    protected val sort = Param[Option[String]](
+    protected val pageNo: Param[Option[Int]]   = Param[Option[Int]]("page", "The page number of the search hits to display.")
+    protected val pageSize: Param[Option[Int]] = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+    protected val sort: Param[Option[String]] = Param[Option[String]](
       "sort",
       """The sorting used on results.
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
-    protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
-    protected val language     = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-    protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
-    protected val license      = Param[Option[String]]("license", "Return only results with provided license.")
-    protected val fallback =
+    protected val deprecatedNodeId: Param[Long] = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
+    protected val language: Param[Option[String]]     = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+    protected val pathLanguage: Param[String] = Param[String]("language", "The ISO 639-1 language code describing language.")
+    protected val license: Param[Option[String]]      = Param[Option[String]]("license", "Return only results with provided license.")
+    protected val fallback: Param[Option[Boolean]] =
       Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
-    protected val scrollId = Param[Option[String]](
+    protected val scrollId: Param[Option[String]] = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
           .mkString("[", ",", "]")}.

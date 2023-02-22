@@ -11,6 +11,7 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.network.AuthUser
 
 import scala.util.{Failure, Success}
+import scala.util.Try
 
 case class UserInfo(userId: String, roles: Set[LearningPathRole.Value]) {
   def isAdmin: Boolean                        = roles.contains(LearningPathRole.ADMIN)
@@ -22,7 +23,7 @@ case class UserInfo(userId: String, roles: Set[LearningPathRole.Value]) {
 }
 
 object UserInfo extends StrictLogging {
-  val PublicReadUser = UserInfo("PublicReadUser", Set.empty)
+  val PublicReadUser: UserInfo = UserInfo("PublicReadUser", Set.empty)
 
   def apply(name: String): UserInfo = {
     new UserInfo(
@@ -31,12 +32,12 @@ object UserInfo extends StrictLogging {
     )
   }
 
-  def getUser                   = AuthUser.get.map(UserInfo.apply)
+  def getUser: Option[UserInfo]                   = AuthUser.get.map(UserInfo.apply)
   def getUserOrPublic: UserInfo = getUser.getOrElse(PublicReadUser)
 
   def get: Option[UserInfo] = AuthUser.get.orElse(AuthUser.getClientId).map(UserInfo.apply)
 
-  def getWithUserIdOrAdmin = {
+  def getWithUserIdOrAdmin: Try[UserInfo] = {
     AuthUser.get match {
       case Some(userId) => Success(UserInfo(userId))
       case None =>

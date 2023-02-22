@@ -40,17 +40,17 @@ trait ErrorHelpers {
     val VALIDATION_DESCRIPTION = "Validation Error"
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
 
-    val INDEX_MISSING_DESCRIPTION =
+    val INDEX_MISSING_DESCRIPTION: String =
       s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
     val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
-    val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
+    val DATABASE_UNAVAILABLE_DESCRIPTION: String = s"Database seems to be unavailable, retrying connection."
 
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."

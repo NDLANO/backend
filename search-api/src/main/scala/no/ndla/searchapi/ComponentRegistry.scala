@@ -61,7 +61,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   override val props: SearchApiProperties = properties
   import props._
 
-  implicit val swagger = new SearchSwagger
+  implicit val swagger: SearchSwagger = new SearchSwagger
 
   lazy val searchController = new SearchController
   lazy val healthController = new HealthController
@@ -81,7 +81,7 @@ class ComponentRegistry(properties: SearchApiProperties)
   lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
   lazy val feideApiClient        = new FeideApiClient
   lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
-  lazy val SearchClients = Map[String, SearchApiClient](
+  lazy val SearchClients: Map[String,SearchApiClient] = Map[String, SearchApiClient](
     draftApiClient.name        -> draftApiClient,
     learningPathApiClient.name -> learningPathApiClient,
     imageApiClient.name        -> imageApiClient,

@@ -17,9 +17,9 @@ import scalikejdbc._
 
 class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
     logger.info("Starting V2__RemoveFullFromImagePath DB Migration")
@@ -48,7 +48,7 @@ class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
     imageMeta.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(imageMeta: V2_DBImageMetaInformation)(implicit session: DBSession) = {
+  def update(imageMeta: V2_DBImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imageMeta.document)

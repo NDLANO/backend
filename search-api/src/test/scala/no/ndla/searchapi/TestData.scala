@@ -35,6 +35,7 @@ import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, Search
 import no.ndla.searchapi.model.taxonomy._
 
 import java.time.LocalDateTime
+import no.ndla.common.model.domain
 
 object TestData {
 
@@ -45,11 +46,11 @@ object TestData {
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
   val today: LocalDateTime = LocalDateTime.now().withNano(0)
 
-  val sampleArticleTitle         = ArticleApiTitle("tittell", "nb")
-  val sampleArticleVisualElement = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
-  val sampleArticleIntro         = ArticleApiIntro("intro", "nb")
+  val sampleArticleTitle: ArticleApiTitle         = ArticleApiTitle("tittell", "nb")
+  val sampleArticleVisualElement: ArticleApiVisualElement = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
+  val sampleArticleIntro: ArticleApiIntro         = ArticleApiIntro("intro", "nb")
 
-  val sampleArticleSearch = ArticleApiSearchResults(
+  val sampleArticleSearch: ArticleApiSearchResults = ArticleApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -78,7 +79,7 @@ object TestData {
     )
   )
 
-  val sampleImageSearch = ImageApiSearchResults(
+  val sampleImageSearch: ImageApiSearchResults = ImageApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -105,7 +106,7 @@ object TestData {
     )
   )
 
-  val sampleLearningpath = LearningpathApiSearchResults(
+  val sampleLearningpath: LearningpathApiSearchResults = LearningpathApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -142,7 +143,7 @@ object TestData {
     )
   )
 
-  val sampleAudio = AudioApiSearchResults(
+  val sampleAudio: AudioApiSearchResults = AudioApiSearchResults(
     totalCount = 2,
     page = 1,
     pageSize = 10,
@@ -155,7 +156,7 @@ object TestData {
 
   val (articleId, externalId) = (1, "751234")
 
-  val sampleArticleWithPublicDomain = Article(
+  val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
     Seq(Title("test", "en")),
@@ -180,7 +181,7 @@ object TestData {
     slug = None
   )
 
-  val sampleDomainArticle = Article(
+  val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
     Seq(Title("title", "nb")),
@@ -205,7 +206,7 @@ object TestData {
     slug = None
   )
 
-  val sampleDomainArticle2 = Article(
+  val sampleDomainArticle2: Article = Article(
     None,
     None,
     Seq(Title("test", "en")),
@@ -542,13 +543,13 @@ object TestData {
     slug = None
   )
 
-  val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
-  val importedDraftStatus = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
+  val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
+  val importedDraftStatus: Status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED))
 
   val draftPublicDomainCopyright: draft.Copyright =
     draft.Copyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, None)
 
-  val draftByNcSaCopyright = draft.Copyright(
+  val draftByNcSaCopyright: draft.Copyright = draft.Copyright(
     Some("by-nc-sa"),
     Some("Gotham City"),
     List(Author("Forfatter", "DC Comics")),
@@ -559,7 +560,7 @@ object TestData {
     None
   )
 
-  val draftCopyrighted = draft.Copyright(
+  val draftCopyrighted: draft.Copyright = draft.Copyright(
     Some("copyrighted"),
     Some("New York"),
     List(Author("Forfatter", "Clark Kent")),
@@ -570,7 +571,7 @@ object TestData {
     None
   )
 
-  val sampleDraftWithPublicDomain = Draft(
+  val sampleDraftWithPublicDomain: Draft = Draft(
     id = Option(1),
     revision = Option(1),
     status = draftStatus,
@@ -884,13 +885,13 @@ object TestData {
     draft16
   )
 
-  val paul              = Author("author", "Truly Weird Rand Paul")
+  val paul: Author              = Author("author", "Truly Weird Rand Paul")
   val license           = "publicdomain"
-  val copyright         = common.learningpath.Copyright(license, List(paul))
-  val visibleMetadata   = Some(Metadata(Seq.empty, visible = true))
-  val invisibleMetadata = Some(Metadata(Seq.empty, visible = false))
+  val copyright: domain.learningpath.Copyright         = common.learningpath.Copyright(license, List(paul))
+  val visibleMetadata: Some[Metadata]   = Some(Metadata(Seq.empty, visible = true))
+  val invisibleMetadata: Some[Metadata] = Some(Metadata(Seq.empty, visible = false))
 
-  val DefaultLearningPath = LearningPath(
+  val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
     revision = None,
     externalId = None,
@@ -982,18 +983,18 @@ object TestData {
     learningPath6
   )
 
-  val subjects = List(
+  val subjects: List[TaxSubject] = List(
     TaxSubject("urn:subject:1", "Matte", None, Some("/subject:1"), visibleMetadata, List.empty),
     TaxSubject("urn:subject:2", "Historie", None, Some("/subject:2"), visibleMetadata, List.empty),
     TaxSubject("urn:subject:3", "Religion", None, Some("/subject:3"), invisibleMetadata, List.empty)
   )
 
-  val relevances = List(
+  val relevances: List[Relevance] = List(
     Relevance("urn:relevance:core", "Kjernestoff", List.empty),
     Relevance("urn:relevance:supplementary", "Tilleggsstoff", List.empty)
   )
 
-  val resourceTypes = List(
+  val resourceTypes: List[ResourceType] = List(
     ResourceType("urn:resourcetype:learningpath", "Læringssti", None, List.empty),
     ResourceType(
       "urn:resourcetype:subjectMaterial",
@@ -1029,7 +1030,7 @@ object TestData {
     )
   )
 
-  val resources = List(
+  val resources: List[Resource] = List(
     Resource(
       "urn:resource:1",
       article1.title.head.title,
@@ -1136,7 +1137,7 @@ object TestData {
     )
   )
 
-  val topics = List(
+  val topics: List[Topic] = List(
     Topic(
       "urn:topic:1",
       article8.title.head.title,
@@ -1179,7 +1180,7 @@ object TestData {
     )
   )
 
-  val subjectTopicConnections = List(
+  val subjectTopicConnections: List[SubjectTopicConnection] = List(
     SubjectTopicConnection(
       "urn:subject:1",
       "urn:topic:1",
@@ -1214,7 +1215,7 @@ object TestData {
     )
   )
 
-  val topicResourceConnections = List(
+  val topicResourceConnections: List[TopicResourceConnection] = List(
     TopicResourceConnection(
       "urn:topic:1",
       "urn:resource:1",
@@ -1353,7 +1354,7 @@ object TestData {
     )
   )
 
-  val topicSubtopicConnections = List(
+  val topicSubtopicConnections: List[TopicSubtopicConnection] = List(
     TopicSubtopicConnection(
       "urn:topic:1",
       "urn:topic:2",
@@ -1364,7 +1365,7 @@ object TestData {
     )
   )
 
-  val resourceResourceTypeConnections = List(
+  val resourceResourceTypeConnections: List[ResourceResourceTypeConnection] = List(
     ResourceResourceTypeConnection("urn:resource:1", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:1"),
     ResourceResourceTypeConnection("urn:resource:2", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:2"),
     ResourceResourceTypeConnection("urn:resource:2", "urn:resourcetype:academicArticle", "urn:resource-resourcetype:3"),
@@ -1386,7 +1387,7 @@ object TestData {
     )
   )
 
-  val taxonomyTestBundle = TaxonomyBundle(
+  val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(
     relevances = relevances,
     resourceResourceTypeConnections = resourceResourceTypeConnections,
     resourceTypes = resourceTypes,
@@ -1398,13 +1399,13 @@ object TestData {
     topics = topics
   )
 
-  val emptyGrepBundle = GrepBundle(
+  val emptyGrepBundle: GrepBundle = GrepBundle(
     kjerneelementer = List.empty,
     kompetansemaal = List.empty,
     tverrfagligeTemaer = List.empty
   )
 
-  val grepBundle = emptyGrepBundle.copy(
+  val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
       GrepElement("KE12", Seq(GrepTitle("default", "Utforsking og problemløysing"))),
       GrepElement("KE34", Seq(GrepTitle("default", "Abstraksjon og generalisering")))
@@ -1474,7 +1475,7 @@ object TestData {
     articleTypes = List.empty
   )
 
-  val searchableResourceTypes = List(
+  val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
     SearchableTaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
@@ -1485,7 +1486,7 @@ object TestData {
     )
   )
 
-  val singleSearchableTaxonomyContext =
+  val singleSearchableTaxonomyContext: SearchableTaxonomyContext =
     SearchableTaxonomyContext(
       id = "urn:resource:101",
       subjectId = "urn:subject:1",
@@ -1504,7 +1505,7 @@ object TestData {
       isPrimaryConnection = true
     )
 
-  val searchableTaxonomyContexts = List(
+  val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(
     singleSearchableTaxonomyContext
   )
 }

@@ -16,9 +16,10 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.{Success, Try}
+import org.json4s.Formats
 
 class V15__RemoveVisualElementFromStandard extends BaseJavaMigration {
-  implicit val formats = org.json4s.DefaultFormats + Json4s.serializer(ArticleType)
+  implicit val formats: Formats = org.json4s.DefaultFormats + Json4s.serializer(ArticleType)
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

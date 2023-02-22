@@ -13,7 +13,7 @@ import no.ndla.learningpathapi.UnitSuite
 class StatusValidatorTest extends UnitSuite {
 
   var validator: StatusValidator = _
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new StatusValidator
   }
 

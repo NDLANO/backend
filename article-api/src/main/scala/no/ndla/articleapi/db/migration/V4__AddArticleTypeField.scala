@@ -13,12 +13,13 @@ import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
+import org.json4s.DefaultFormats
 
 class V4__AddUpdatedColoums extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -35,17 +36,17 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
-  def allArticles(offset: Long)(implicit session: DBSession) = {
+  def allArticles(offset: Long)(implicit session: DBSession): List[V4_DBArticleMetaInformation] = {
     sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
       .map(rs => V4_DBArticleMetaInformation(rs.long("id"), rs.string("document")))
       .list()
   }
 
-  def convertArticleUpdate(articleMeta: V4_DBArticleMetaInformation) = {
+  def convertArticleUpdate(articleMeta: V4_DBArticleMetaInformation): V4_DBArticleMetaInformation = {
     val oldDocument = parse(articleMeta.document)
 
     val updatedDocument = oldDocument mapField {
@@ -59,7 +60,7 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
     articleMeta.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(articleMeta: V4_DBArticleMetaInformation)(implicit session: DBSession) = {
+  def update(articleMeta: V4_DBArticleMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(articleMeta.document)

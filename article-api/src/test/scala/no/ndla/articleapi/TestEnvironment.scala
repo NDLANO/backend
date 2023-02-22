@@ -67,33 +67,33 @@ trait TestEnvironment
     with DBMigrator {
   val props: ArticleApiProperties = new ArticleApiProperties
   val TestData: TestData          = new TestData
-  val migrator                    = mock[DBMigrator]
+  val migrator: DBMigrator        = mock[DBMigrator]
 
-  val articleSearchService = mock[ArticleSearchService]
-  val articleIndexService  = mock[ArticleIndexService]
+  val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
+  val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
 
-  val internController    = mock[InternController]
-  val articleControllerV2 = mock[ArticleControllerV2]
+  val internController: InternController       = mock[InternController]
+  val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController = mock[HealthController]
+  val healthController: HealthController = mock[HealthController]
 
-  val dataSource        = mock[HikariDataSource]
-  val articleRepository = mock[ArticleRepository]
+  val dataSource: HikariDataSource         = mock[HikariDataSource]
+  val articleRepository: ArticleRepository = mock[ArticleRepository]
 
-  val converterService = mock[ConverterService]
-  val readService      = mock[ReadService]
-  val writeService     = mock[WriteService]
-  val contentValidator = mock[ContentValidator]
+  val converterService: ConverterService = mock[ConverterService]
+  val readService: ReadService           = mock[ReadService]
+  val writeService: WriteService         = mock[WriteService]
+  val contentValidator: ContentValidator = mock[ContentValidator]
 
-  val ndlaClient             = mock[NdlaClient]
-  val searchConverterService = mock[SearchConverterService]
-  var e4sClient              = mock[NdlaE4sClient]
-  val draftApiClient         = mock[DraftApiClient]
-  val searchApiClient        = mock[SearchApiClient]
-  val feideApiClient         = mock[FeideApiClient]
-  val redisClient            = mock[RedisClient]
+  val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
+  val draftApiClient: DraftApiClient                 = mock[DraftApiClient]
+  val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  val redisClient: RedisClient                       = mock[RedisClient]
 
-  val clock    = mock[SystemClock]
-  val authUser = mock[AuthUser]
-  val authRole = new AuthRole
+  val clock: SystemClock = mock[SystemClock]
+  val authUser: AuthUser = mock[AuthUser]
+  val authRole           = new AuthRole
 }

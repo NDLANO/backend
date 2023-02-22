@@ -31,6 +31,7 @@ import org.scalatest.Outcome
 
 import java.time.LocalDateTime
 import scala.util.Success
+import no.ndla.common.model.domain.article
 
 class ArticleSearchServiceTest
     extends IntegrationSuite(EnableElasticsearchContainer = true)
@@ -54,7 +55,7 @@ class ArticleSearchServiceTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa =
+  val byNcSa: Copyright =
     Copyright(
       CC_BY_NC_SA.toString,
       "Gotham City",
@@ -66,7 +67,7 @@ class ArticleSearchServiceTest
       None
     )
 
-  val publicDomain =
+  val publicDomain: Copyright =
     Copyright(
       PublicDomain.toString,
       "Metropolis",
@@ -78,7 +79,7 @@ class ArticleSearchServiceTest
       None
     )
 
-  val copyrighted =
+  val copyrighted: Copyright =
     Copyright(
       Copyrighted.toString,
       "New York",
@@ -90,9 +91,9 @@ class ArticleSearchServiceTest
       None
     )
 
-  val today = LocalDateTime.now()
+  val today: LocalDateTime = LocalDateTime.now()
 
-  val article1 = TestData.sampleArticleWithByNcSa.copy(
+  val article1: article.Article = TestData.sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
     introduction = List(Introduction("Batmen", "nb")),
@@ -106,7 +107,7 @@ class ArticleSearchServiceTest
     grepCodes = Seq("KV123", "KV456")
   )
 
-  val article2 = TestData.sampleArticleWithPublicDomain.copy(
+  val article2: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     introduction = List(Introduction("Pingvinen", "nb")),
@@ -117,7 +118,7 @@ class ArticleSearchServiceTest
     grepCodes = Seq("KV123", "KV456")
   )
 
-  val article3 = TestData.sampleArticleWithPublicDomain.copy(
+  val article3: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(3),
     title = List(Title("Donald Duck kjører bil", "nb")),
     introduction = List(Introduction("Donald Duck", "nb")),
@@ -128,7 +129,7 @@ class ArticleSearchServiceTest
     grepCodes = Seq("KV456")
   )
 
-  val article4 = TestData.sampleArticleWithCopyrighted.copy(
+  val article4: article.Article = TestData.sampleArticleWithCopyrighted.copy(
     id = Option(4),
     title = List(Title("Superman er ute og flyr", "nb")),
     introduction = List(Introduction("Superman", "nb")),
@@ -139,7 +140,7 @@ class ArticleSearchServiceTest
     updated = today
   )
 
-  val article5 = TestData.sampleArticleWithPublicDomain.copy(
+  val article5: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(5),
     title = List(Title("Hulken løfter biler", "nb")),
     introduction = List(Introduction("Hulken", "nb")),
@@ -149,7 +150,7 @@ class ArticleSearchServiceTest
     updated = today.minusDays(35)
   )
 
-  val article6 = TestData.sampleArticleWithPublicDomain.copy(
+  val article6: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(6),
     title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(Introduction("Loke og Tor", "nb")),
@@ -164,7 +165,7 @@ class ArticleSearchServiceTest
     updated = today.minusDays(25)
   )
 
-  val article7 = TestData.sampleArticleWithPublicDomain.copy(
+  val article7: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(7),
     title = List(Title("Yggdrasil livets tre", "nb")),
     introduction = List(Introduction("Yggdrasil", "nb")),
@@ -174,7 +175,7 @@ class ArticleSearchServiceTest
     updated = today.minusDays(15)
   )
 
-  val article8 = TestData.sampleArticleWithPublicDomain.copy(
+  val article8: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(8),
     title = List(Title("Baldur har mareritt", "nb")),
     introduction = List(Introduction("Baldur", "nb")),
@@ -185,7 +186,7 @@ class ArticleSearchServiceTest
     articleType = ArticleType.TopicArticle
   )
 
-  val article9 = TestData.sampleArticleWithPublicDomain.copy(
+  val article9: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(9),
     title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(Introduction("Baldur", "nb")),
@@ -196,7 +197,7 @@ class ArticleSearchServiceTest
     articleType = ArticleType.TopicArticle
   )
 
-  val article10 = TestData.sampleArticleWithPublicDomain.copy(
+  val article10: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(10),
     title = List(Title("This article is in english", "en")),
     introduction = List(Introduction("Engulsk", "en")),
@@ -207,7 +208,7 @@ class ArticleSearchServiceTest
     articleType = ArticleType.TopicArticle
   )
 
-  val article11 = TestData.sampleArticleWithPublicDomain.copy(
+  val article11: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(11),
     title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
     introduction = List(
@@ -223,7 +224,7 @@ class ArticleSearchServiceTest
     articleType = ArticleType.TopicArticle
   )
 
-  val article12 = TestData.sampleArticleWithPublicDomain.copy(
+  val article12: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(12),
     title = List(Title("availability - Hemmelig lærer artikkel", "nb")),
     introduction = List(Introduction("Lærer", "nb")),
@@ -236,7 +237,7 @@ class ArticleSearchServiceTest
     availability = Availability.teacher
   )
 
-  val article13 = TestData.sampleArticleWithPublicDomain.copy(
+  val article13: article.Article = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(13),
     title = List(Title("availability - Hemmelig student artikkel", "nb")),
     introduction = List(Introduction("Student", "nb")),
@@ -249,7 +250,7 @@ class ArticleSearchServiceTest
     availability = Availability.everyone
   )
 
-  override def beforeAll() = if (elasticSearchContainer.isSuccess) {
+  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     articleIndexService.createIndexWithName(ArticleSearchIndex)
 
     articleIndexService.indexDocument(article1)

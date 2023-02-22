@@ -22,18 +22,19 @@ import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}
+import no.ndla.mapping.LicenseDefinition
 
 class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
 
   override val converterService = new ConverterService
-  implicit val swagger          = new ImageSwagger
+  implicit val swagger: ImageSwagger          = new ImageSwagger
   lazy val controller           = new InternController
   addServlet(controller, "/*")
-  val updated = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
-  val BySa = getLicense(CC_BY.toString).get
+  val BySa: LicenseDefinition = getLicense(CC_BY.toString).get
 
-  val DefaultApiImageMetaInformation = api.ImageMetaInformationV2(
+  val DefaultApiImageMetaInformation: api.ImageMetaInformationV2 = api.ImageMetaInformationV2(
     "1",
     s"${props.ImageApiUrlBase}1",
     ImageTitle("", "nb"),
@@ -87,7 +88,7 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     editorNotes = Seq.empty
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(imageRepository, imageIndexService)
   }
 

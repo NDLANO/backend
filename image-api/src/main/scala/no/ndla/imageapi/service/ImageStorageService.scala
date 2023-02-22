@@ -29,7 +29,7 @@ trait ImageStorageService {
   class AmazonImageStorageService extends StrictLogging {
     import props.{StorageName, ValidMimeTypes}
     case class NdlaImage(s3Object: S3Object, fileName: String) extends ImageStream {
-      lazy val imageContent = {
+      lazy val imageContent: Array[Byte] = {
         val content = IOUtils.toByteArray(s3Object.getObjectContent)
         s3Object.getObjectContent.close()
         content

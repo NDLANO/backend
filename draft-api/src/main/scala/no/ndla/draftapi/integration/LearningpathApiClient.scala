@@ -13,13 +13,14 @@ import no.ndla.network.NdlaClient
 import sttp.client3.quick._
 
 import scala.util.Try
+import org.json4s.DefaultFormats
 
 trait LearningpathApiClient {
   this: NdlaClient with ConverterService with Props =>
   val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
-    implicit val format          = org.json4s.DefaultFormats
+    implicit val format: DefaultFormats.type          = org.json4s.DefaultFormats
     private val InternalEndpoint = s"http://${props.LearningpathApiHost}/intern"
 
     def getLearningpathsWithPaths(paths: Seq[String]): Try[Seq[LearningPath]] = {

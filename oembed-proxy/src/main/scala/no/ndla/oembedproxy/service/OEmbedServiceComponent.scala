@@ -16,6 +16,7 @@ import sttp.client3.quick._
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
+import scala.concurrent.duration.FiniteDuration
 
 trait OEmbedServiceComponent extends StrictLogging {
   this: NdlaClient with ProviderService =>
@@ -24,7 +25,7 @@ trait OEmbedServiceComponent extends StrictLogging {
   class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None) {
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-    val remoteTimeout = 10.seconds
+    val remoteTimeout: FiniteDuration = 10.seconds
 
     private lazy val providers = optionalProviders.toList.flatten ++ providerService
       .loadProviders()

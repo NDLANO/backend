@@ -14,7 +14,7 @@ import org.mockito.Mockito.when
 class V3__AddUpdatedColoumsTest extends UnitSuite {
 
   class V3__MockedMigration extends V3__AddUpdatedColoums {
-    override val timeService = mock[TimeService]
+    override val timeService: TimeService = mock[TimeService]
   }
 
   val migration = new V3__MockedMigration

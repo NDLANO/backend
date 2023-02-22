@@ -25,6 +25,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 import java.time.LocalDateTime
+import org.json4s.Formats
 
 class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigration with StrictLogging {
   import props.{
@@ -36,7 +37,7 @@ class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigrat
     rightsholderTypes
   }
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
-  implicit val formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
+  implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
@@ -118,7 +119,7 @@ class V6__AddAgreementToImages(props: ImageApiProperties) extends BaseJavaMigrat
     }
   }
 
-  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession) = {
+  def update(imagemetadata: V6_ImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(imagemetadata))

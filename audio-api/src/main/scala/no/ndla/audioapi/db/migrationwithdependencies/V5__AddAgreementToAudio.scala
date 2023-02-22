@@ -16,10 +16,11 @@ import org.postgresql.util.PGobject
 import scalikejdbc._
 
 import java.time.LocalDateTime
+import org.json4s.DefaultFormats
 
 class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigration with StrictLogging {
   // Authors are now split into three categories `creators`, `processors` and `rightsholders` as well as added agreementId and valid period
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   import props._
 
   override def migrate(context: Context): Unit = {
@@ -99,7 +100,7 @@ class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigrati
     }
   }
 
-  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V5_AudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(audioMeta))

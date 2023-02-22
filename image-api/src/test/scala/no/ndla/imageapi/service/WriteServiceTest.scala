@@ -32,7 +32,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newFileName               = "AbCdeF.mp3"
   val fileMock1: FileItem       = mock[FileItem]
 
-  val newImageMeta = NewImageMetaInformationV2(
+  val newImageMeta: NewImageMetaInformationV2 = NewImageMetaInformationV2(
     "title",
     Some("alt text"),
     Copyright(License("by", "", None), "", Seq.empty, Seq.empty, Seq.empty, None, None, None),
@@ -42,9 +42,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Some(ModelReleasedStatus.YES.toString)
   )
 
-  def updated() = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  def updated(): LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
-  val domainImageMeta =
+  val domainImageMeta: ImageMetaInformation =
     converterService
       .asDomainImageMetaInformationV2(newImageMeta)
       .get

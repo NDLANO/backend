@@ -45,12 +45,12 @@ trait FolderController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val response204 = ResponseMessage(204, "No content", None)
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access not granted", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-    val response502 = ResponseMessage(502, "Remote error", Some("Error"))
+    val response204: ResponseMessage = ResponseMessage(204, "No content", None)
+    val response400: ResponseMessage = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403: ResponseMessage = ResponseMessage(403, "Access not granted", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response502: ResponseMessage = ResponseMessage(502, "Remote error", Some("Error"))
 
     private val folderId      = Param[UUID]("folder_id", "UUID of the folder.")
     private val folderIdQuery = Param[Option[UUID]]("folder-id", "UUID of the folder.")

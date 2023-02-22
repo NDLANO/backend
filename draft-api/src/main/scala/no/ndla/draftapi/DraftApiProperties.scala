@@ -22,7 +22,7 @@ trait Props extends HasBaseProps {
 
 class DraftApiProperties extends BaseProps with StrictLogging {
   def ApplicationName              = "draft-api"
-  def Auth0LoginEndpoint           = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def Auth0LoginEndpoint: String           = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   def DraftRoleWithWriteAccess     = "drafts:write"
   def DraftRoleWithPublishAccess   = "drafts:publish"
   def ArticleRoleWithPublishAccess = "articles:publish"
@@ -36,13 +36,13 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
   def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
   def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaMaxConnections: Int   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  def externalApiUrls = Map(
+  def externalApiUrls: Map[String,String] = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image"                 -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
@@ -60,10 +60,10 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
-  def BrightcoveVideoScriptUrl =
+  def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
   def H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
-  def NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
+  def NRKVideoScriptUrl: Seq[String] = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
   def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-draft-api.ndla-local")
   def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
@@ -80,7 +80,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def IndexBulkSize                        = 200
   def ElasticSearchIndexMaxResultWindow    = 10000
   def ElasticSearchScrollKeepAlive         = "1m"
-  def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  def InitialScrollContextKeywords: List[String]         = List("0", "initial", "start", "first")
 
   def TaxonomyVersionHeader = "VersionHash"
 
@@ -96,7 +96,7 @@ class DraftApiProperties extends BaseProps with StrictLogging {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  def supportedUploadExtensions = Set(
+  def supportedUploadExtensions: Set[String] = Set(
     ".csv",
     ".doc",
     ".docx",

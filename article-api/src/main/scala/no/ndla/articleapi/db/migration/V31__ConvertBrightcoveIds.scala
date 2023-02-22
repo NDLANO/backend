@@ -117,7 +117,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
 
   val Brightcove = new BrightcoveApiClient
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 

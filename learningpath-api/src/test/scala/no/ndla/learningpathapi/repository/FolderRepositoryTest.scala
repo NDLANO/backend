@@ -43,7 +43,7 @@ class FolderRepositoryTest
     super.withFixture(test)
   }
 
-  def emptyTestDatabase = {
+  def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from folders;".execute()(session)
       sql"delete from resources;".execute()(session)

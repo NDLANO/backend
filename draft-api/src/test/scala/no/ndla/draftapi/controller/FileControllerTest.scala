@@ -25,7 +25,7 @@ class FileControllerTest extends UnitSuite with TestEnvironment with ScalatraFun
 
   lazy val controller = new FileController
   addServlet(controller, "/test")
-  val exampleFile = BytesPart("hello.pdf", "Hello".getBytes, "application/pdf")
+  val exampleFile: BytesPart = BytesPart("hello.pdf", "Hello".getBytes, "application/pdf")
 
   override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)

@@ -20,8 +20,8 @@ import java.time.LocalDateTime
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
   override val validationService = new ValidationService
 
-  val fileMock  = mock[FileItem]
-  def updated() = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val fileMock: FileItem  = mock[FileItem]
+  def updated(): LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
 
   val sampleImageMeta = new ImageMetaInformation(
     id = Some(1),
@@ -50,7 +50,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     editorNotes = Seq.empty
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(fileMock)
   }
 

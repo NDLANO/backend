@@ -24,9 +24,9 @@ trait DBFolderResource {
   this: Props =>
 
   object DBFolderResource extends SQLSyntaxSupport[FolderResource] {
-    implicit val formats         = DefaultFormats
+    implicit val formats: DefaultFormats.type         = DefaultFormats
     override val tableName       = "folder_resources"
-    lazy override val schemaName = Some(props.MetaSchema)
+    lazy override val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[FolderResource])(rs: WrappedResultSet): Try[FolderResource] =
       fromResultSet(s => lp.resultName.c(s), rs)

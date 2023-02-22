@@ -58,7 +58,7 @@ class LearningpathApiClientTest
 
   val learningpathApi               = new learningpathapi.MainClass(learningpathApiProperties)
   val learningpathApiServer: Server = learningpathApi.startServer()
-  val learningpathApiBaseUrl        = s"http://localhost:$learningpathApiPort"
+  val learningpathApiBaseUrl: String        = s"http://localhost:$learningpathApiPort"
 
   override def afterAll(): Unit = {
     super.afterAll()

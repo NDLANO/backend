@@ -14,11 +14,12 @@ import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
+import org.json4s.DefaultFormats
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
-  implicit val jsonFormats = org.json4s.DefaultFormats
-  implicit val swagger     = new LearningpathSwagger
+  implicit val jsonFormats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val swagger: LearningpathSwagger     = new LearningpathSwagger
 
   lazy val controller = new InternController
   addServlet(controller, "/*")

@@ -70,7 +70,7 @@ trait ProviderService {
       addYoutubeTimestampIfdefinedInRequest
     )
 
-    val H5PApprovedUrls = List(props.NdlaH5PApprovedUrl)
+    val H5PApprovedUrls: List[String] = List(props.NdlaH5PApprovedUrl)
 
     val H5PEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(Some(H5PApprovedUrls), Some(s"${props.NdlaH5POembedProvider}/oembed"), None, None)
@@ -78,7 +78,7 @@ trait ProviderService {
     val H5PProvider: OEmbedProvider =
       OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
 
-    val TedApprovedUrls = List(
+    val TedApprovedUrls: List[String] = List(
       "https://www.ted.com/talks/*",
       "http://www.ted.com/talks/*",
       "https://ted.com/talks/*",
@@ -97,7 +97,7 @@ trait ProviderService {
       OEmbedEndpoint(Some(TedApprovedUrls), Some("https://www.ted.com/services/v1/oembed.json"), None, None)
     val TedProvider: OEmbedProvider = OEmbedProvider("Ted", "https://ted.com", List(TedEndpoint), removeQueryString)
 
-    val IssuuApprovedUrls = List("http://issuu.com/*", "https://issuu.com/*")
+    val IssuuApprovedUrls: List[String] = List("http://issuu.com/*", "https://issuu.com/*")
 
     val IssuuEndpoint: OEmbedEndpoint =
       OEmbedEndpoint(Some(IssuuApprovedUrls), Some("https://issuu.com/oembed"), None, None, List(("iframe", "true")))

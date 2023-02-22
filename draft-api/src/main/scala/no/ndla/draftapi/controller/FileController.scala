@@ -31,10 +31,10 @@ trait FileController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400: ResponseMessage = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val file     = Param("file", "File to upload")
     private val filePath = Param[String]("path", "Path to file. Eg: resources/awdW2CaX.png")

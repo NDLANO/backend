@@ -17,6 +17,7 @@ import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.SearchableLanguageFormats
 import org.json4s.native.Serialization.write
+import org.json4s.Formats
 
 trait TagIndexService {
   this: SearchConverterService
@@ -28,7 +29,7 @@ trait TagIndexService {
   val tagIndexService: TagIndexService
 
   class TagIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableTag] {
-    implicit val formats                                      = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats                                      = SearchableLanguageFormats.JSonFormats
     override val documentType: String                         = props.TagSearchDocument
     override val searchIndex: String                          = props.TagSearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository

@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 
 class V5__AddLanguageToAll extends BaseJavaMigration {
 
-  implicit val formats =
+  implicit val formats: Formats =
     org.json4s.DefaultFormats +
       FieldSerializer[V5_LearningPath](
         ignore("id") orElse
@@ -41,7 +41,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(EmbedType)
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -85,7 +85,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       .list()
   }
 
-  def update(learningPath: V5_LearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V5_LearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(learningPath))
@@ -94,7 +94,7 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       .update()
   }
 
-  def update(learningStep: V5_LearningStep)(implicit session: DBSession) = {
+  def update(learningStep: V5_LearningStep)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(learningStep))

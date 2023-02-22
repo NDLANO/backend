@@ -24,32 +24,32 @@ trait Props extends HasBaseProps {
 class ArticleApiProperties extends BaseProps with StrictLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
-  def ApplicationName          = "article-api"
-  def Auth0LoginEndpoint       = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
-  def RoleWithWriteAccess      = "articles:write"
-  def DraftRoleWithWriteAccess = "drafts:write"
+  def ApplicationName            = "article-api"
+  def Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  def RoleWithWriteAccess        = "articles:write"
+  def DraftRoleWithWriteAccess   = "drafts:write"
 
   def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   def DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaUserName: String    = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String    = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String    = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String      = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int           = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String      = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections: Int = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
-  def SearchServer: String                 = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
-  def RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  def ArticleSearchIndex: String           = propOrElse("SEARCH_INDEX_NAME", "articles")
-  def ArticleSearchDocument                = "article"
-  def DefaultPageSize                      = 10
-  def MaxPageSize                          = 10000
-  def IndexBulkSize                        = 200
-  def ElasticSearchIndexMaxResultWindow    = 10000
-  def ElasticSearchScrollKeepAlive         = "1m"
-  def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  def SearchServer: String                       = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
+  def RunWithSignedSearchRequests: Boolean       = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+  def ArticleSearchIndex: String                 = propOrElse("SEARCH_INDEX_NAME", "articles")
+  def ArticleSearchDocument                      = "article"
+  def DefaultPageSize                            = 10
+  def MaxPageSize                                = 10000
+  def IndexBulkSize                              = 200
+  def ElasticSearchIndexMaxResultWindow          = 10000
+  def ElasticSearchScrollKeepAlive               = "1m"
+  def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
   def ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
@@ -121,7 +121,7 @@ class ArticleApiProperties extends BaseProps with StrictLogging {
   def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
-  def BrightcoveVideoScriptUrl =
+  def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
   def H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
   def NRKVideoScriptUrl: Seq[String] =

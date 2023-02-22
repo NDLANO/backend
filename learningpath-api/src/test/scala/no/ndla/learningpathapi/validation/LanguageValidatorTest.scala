@@ -14,7 +14,7 @@ class LanguageValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LanguageValidator = _
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new LanguageValidator
     resetMocks()
   }

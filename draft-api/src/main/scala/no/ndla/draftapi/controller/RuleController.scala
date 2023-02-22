@@ -22,8 +22,8 @@ trait RuleController {
 
     registerModel[Error]()
 
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     get(
       "/html/",

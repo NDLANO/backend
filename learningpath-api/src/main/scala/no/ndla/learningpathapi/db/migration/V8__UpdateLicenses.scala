@@ -17,7 +17,7 @@ import scalikejdbc.{DB, DBSession, _}
 class V8__UpdateLicenses extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -96,7 +96,7 @@ class V8__UpdateLicenses extends BaseJavaMigration {
     compact(render(newPath))
   }
 
-  def updateLearningPath(id: Long, document: String)(implicit session: DBSession) = {
+  def updateLearningPath(id: Long, document: String)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)
@@ -105,7 +105,7 @@ class V8__UpdateLicenses extends BaseJavaMigration {
       .update()
   }
 
-  def updateLearningStep(id: Long, document: String)(implicit session: DBSession) = {
+  def updateLearningStep(id: Long, document: String)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

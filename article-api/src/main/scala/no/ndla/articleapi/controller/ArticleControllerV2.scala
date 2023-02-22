@@ -49,11 +49,11 @@ trait ArticleControllerV2 {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response410 = ResponseMessage(410, "Gone", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response400: ResponseMessage = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response410: ResponseMessage = ResponseMessage(410, "Gone", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
@@ -85,7 +85,7 @@ trait ArticleControllerV2 {
     )
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
-    protected val scrollId = Param[Option[String]](
+    protected val scrollId: Param[Option[String]] = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
           .mkString("[", ",", "]")}.

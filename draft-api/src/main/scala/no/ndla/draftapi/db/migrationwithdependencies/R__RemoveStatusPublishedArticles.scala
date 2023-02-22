@@ -64,7 +64,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
       .list()
   }
 
-  def updateArticle(article: Draft)(implicit session: DBSession) = {
+  def updateArticle(article: Draft)(implicit session: DBSession): Long = {
     val newArticle = article.copy(status = updateStatus(article.status))
     saveArticle(newArticle)
   }

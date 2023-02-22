@@ -18,12 +18,12 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
 }
 
 object UserInfo {
-  val UnauthorizedUser = UserInfo("unauthorized", Set.empty)
+  val UnauthorizedUser: UserInfo = UserInfo("unauthorized", Set.empty)
 
-  val PublishRoles       = Set(Role.WRITE, Role.PUBLISH)
-  val DirectPublishRoles = PublishRoles + Role.ADMIN
-  val WriteRoles         = Set(Role.WRITE)
-  val ReadRoles          = Set(Role.WRITE)
+  val PublishRoles: Set[Role.Value]       = Set(Role.WRITE, Role.PUBLISH)
+  val DirectPublishRoles: Set[Role.Value] = PublishRoles + Role.ADMIN
+  val WriteRoles: Set[Role.Value]         = Set(Role.WRITE)
+  val ReadRoles: Set[Role.Value]          = Set(Role.WRITE)
 
   def apply(name: String): UserInfo = UserInfo(name, AuthUser.getRoles.flatMap(Role.valueOf).toSet)
 

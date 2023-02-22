@@ -1,7 +1,5 @@
 import Dependencies.{testWith, versions}
 
-ThisBuild / scalaVersion := versions.ScalaV
-
 // Modules / API's
 lazy val `article-api`: Project = Module.setup(
   project in file("./article-api/"),

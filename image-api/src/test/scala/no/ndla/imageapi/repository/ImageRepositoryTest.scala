@@ -40,7 +40,7 @@ class ImageRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     res.isSuccess
   }
 
-  def emptyTestDatabase =
+  def emptyTestDatabase: Boolean =
     DB autoCommit (implicit session => {
       sql"delete from imagemetadata;".execute()(session)
     })

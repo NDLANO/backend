@@ -21,7 +21,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   val license = "publicdomain"
 
-  val ValidLearningStep = LearningStep(
+  val ValidLearningStep: LearningStep = LearningStep(
     id = None,
     revision = None,
     externalId = None,
@@ -36,7 +36,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new LearningStepValidator
     resetMocks()
   }

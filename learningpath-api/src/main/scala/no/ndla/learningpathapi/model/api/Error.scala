@@ -39,26 +39,26 @@ trait ErrorHelpers {
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
     val DELETE_FAVORITE        = "DELETE_FAVORITE"
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
     val VALIDATION_DESCRIPTION = "Validation Error"
 
     val RESOURCE_OUTDATED_DESCRIPTION =
       "The resource is outdated. Please try fetching before submitting again."
 
-    val INDEX_MISSING_DESCRIPTION =
+    val INDEX_MISSING_DESCRIPTION: String =
       s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${props.ContactEmail} if the error persists."
 
-    val WindowTooLargeError = Error(
+    val WindowTooLargeError: Error = Error(
       WINDOW_TOO_LARGE,
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
     )
-    val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
-    val DatabaseUnavailableError =
+    val IndexMissingError: Error = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
+    val DatabaseUnavailableError: Error =
       Error(DATABASE_UNAVAILABLE, s"Database seems to be unavailable, retrying connection.")
     val MISSING_STATUS_ERROR = "Parameter was not a valid status."
 
-    val InvalidSearchContext = Error(
+    val InvalidSearchContext: Error = Error(
       INVALID_SEARCH_CONTEXT,
       "The search-context specified was not expected. Please create one by searching from page 1."
     )

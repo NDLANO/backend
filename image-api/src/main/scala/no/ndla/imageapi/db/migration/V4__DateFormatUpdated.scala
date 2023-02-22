@@ -23,7 +23,7 @@ class V4__DateFormatUpdated extends BaseJavaMigration with StrictLogging {
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   val timeService               = new TimeService2()
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
     logger.info("Starting V4__DateFormatUpdated DB Migration")
@@ -52,7 +52,7 @@ class V4__DateFormatUpdated extends BaseJavaMigration with StrictLogging {
     imageMeta.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(imageMeta: V4__DBImageMetaInformation)(implicit session: DBSession) = {
+  def update(imageMeta: V4__DBImageMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(imageMeta.document)

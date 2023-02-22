@@ -45,10 +45,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
 
-  val PUBLISHED_OWNER = UserInfo("eier1", Set.empty)
-  val PRIVATE_OWNER   = UserInfo("eier2", Set.empty)
+  val PUBLISHED_OWNER: UserInfo = UserInfo("eier1", Set.empty)
+  val PRIVATE_OWNER: UserInfo   = UserInfo("eier2", Set.empty)
 
-  val STEP1 = domain.LearningStep(
+  val STEP1: LearningStep = domain.LearningStep(
     Some(1),
     Some(1),
     None,
@@ -63,7 +63,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP2 = domain.LearningStep(
+  val STEP2: LearningStep = domain.LearningStep(
     Some(2),
     Some(1),
     None,
@@ -78,7 +78,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP3 = domain.LearningStep(
+  val STEP3: LearningStep = domain.LearningStep(
     Some(3),
     Some(1),
     None,
@@ -93,7 +93,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP4 = domain.LearningStep(
+  val STEP4: LearningStep = domain.LearningStep(
     Some(4),
     Some(1),
     None,
@@ -108,7 +108,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP5 = domain.LearningStep(
+  val STEP5: LearningStep = domain.LearningStep(
     Some(5),
     Some(1),
     None,
@@ -123,7 +123,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val STEP6 = domain.LearningStep(
+  val STEP6: LearningStep = domain.LearningStep(
     Some(6),
     Some(1),
     None,
@@ -138,20 +138,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     status = StepStatus.ACTIVE
   )
 
-  val NEW_STEPV2 =
+  val NEW_STEPV2: NewLearningStepV2 =
     NewLearningStepV2("Tittel", Some("Beskrivelse"), "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
 
-  val UPDATED_STEPV2 =
+  val UPDATED_STEPV2: UpdatedLearningStepV2 =
     UpdatedLearningStepV2(1, Option("Tittel"), "nb", Some("Beskrivelse"), None, Some(false), None, None)
 
-  val rubio        = Author("author", "Little Marco")
+  val rubio: Author        = Author("author", "Little Marco")
   val license      = "publicdomain"
-  val copyright    = Copyright(license, List(rubio))
-  val apiRubio     = api.Author("author", "Little Marco")
-  val apiLicense   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val apiCopyright = api.Copyright(apiLicense, List(apiRubio))
+  val copyright: Copyright    = Copyright(license, List(rubio))
+  val apiRubio: api.Author     = api.Author("author", "Little Marco")
+  val apiLicense: api.License   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val apiCopyright: api.Copyright = api.Copyright(apiLicense, List(apiRubio))
 
-  val PUBLISHED_LEARNINGPATH = domain.LearningPath(
+  val PUBLISHED_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PUBLISHED_ID),
     Some(1),
     Some("1"),
@@ -169,7 +169,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
 
-  val PUBLISHED_LEARNINGPATH_NO_STEPS = domain.LearningPath(
+  val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = domain.LearningPath(
     Some(PUBLISHED_ID),
     Some(1),
     Some("1"),
@@ -187,7 +187,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  val PRIVATE_LEARNINGPATH = domain.LearningPath(
+  val PRIVATE_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -205,7 +205,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
 
-  val PRIVATE_LEARNINGPATH_NO_STEPS = domain.LearningPath(
+  val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -223,7 +223,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  val DELETED_LEARNINGPATH = domain.LearningPath(
+  val DELETED_LEARNINGPATH: LearningPath = domain.LearningPath(
     Some(PRIVATE_ID),
     Some(1),
     None,
@@ -240,13 +240,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright,
     Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
   )
-  val NEW_PRIVATE_LEARNINGPATHV2 = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
-  val NEW_COPIED_LEARNINGPATHV2  = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
+  val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2 = NewLearningPathV2("Tittel", "Beskrivelse", None, Some(1), List(), "nb", apiCopyright)
+  val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2  = NewCopyLearningPathV2("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
-  val UPDATED_PRIVATE_LEARNINGPATHV2 =
+  val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2 =
     UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
-  val UPDATED_PUBLISHED_LEARNINGPATHV2 =
+  val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2 =
     UpdatedLearningPathV2(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
 
   override def beforeEach(): Unit = {

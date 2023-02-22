@@ -30,11 +30,11 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton   = api.Author("author", "Crooked Hillary")
-  val license   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
-  val copyright = api.Copyright(license, List(clinton))
+  val clinton: api.Author   = api.Author("author", "Crooked Hillary")
+  val license: api.License   = api.License("publicdomain", Some("Public Domain"), Some("https://creativecommons.org/about/pdm"))
+  val copyright: api.Copyright = api.Copyright(license, List(clinton))
 
-  val apiLearningPath = api.LearningPathV2(
+  val apiLearningPath: api.LearningPathV2 = api.LearningPathV2(
     1,
     1,
     None,
@@ -55,9 +55,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None
   )
-  val domainLearningStep = LearningStep(None, None, None, None, 1, List(), List(), List(), StepType.INTRODUCTION, None)
+  val domainLearningStep: LearningStep = LearningStep(None, None, None, None, 1, List(), List(), List(), StepType.INTRODUCTION, None)
 
-  val domainLearningStep2 = LearningStep(
+  val domainLearningStep2: LearningStep = LearningStep(
     Some(1),
     Some(1),
     None,
@@ -69,12 +69,12 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     StepType.INTRODUCTION,
     None
   )
-  val apiTags = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
+  val apiTags: List[api.LearningPathTags] = List(api.LearningPathTags(Seq("tag"), DefaultLanguage))
 
-  val randomDate                = LocalDateTime.now()
+  val randomDate: LocalDateTime                = LocalDateTime.now()
   var service: ConverterService = _
 
-  val domainLearningPath = LearningPath(
+  val domainLearningPath: LearningPath = LearningPath(
     Some(1),
     Some(1),
     None,
@@ -92,7 +92,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     service = new ConverterService
   }
 

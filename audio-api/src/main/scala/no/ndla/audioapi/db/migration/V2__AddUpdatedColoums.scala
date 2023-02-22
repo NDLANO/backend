@@ -14,13 +14,14 @@ import scalikejdbc._
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.json4s.DefaultFormats
 
 class V2__AddUpdatedColoums extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   val timeService      = new TimeService()
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -44,7 +45,7 @@ class V2__AddUpdatedColoums extends BaseJavaMigration {
     audioMeta.copy(document = compact(render(mergedDoc)))
   }
 
-  def update(audioMeta: V2_DBAudioMetaInformation)(implicit session: DBSession) = {
+  def update(audioMeta: V2_DBAudioMetaInformation)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(audioMeta.document)

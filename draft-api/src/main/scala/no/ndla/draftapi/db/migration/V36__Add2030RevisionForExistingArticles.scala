@@ -15,6 +15,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 import java.time.{LocalDateTime, Month}
+import org.json4s.Formats
 
 class V36__Add2030RevisionForExistingArticles extends BaseJavaMigration {
   override def migrate(context: Context): Unit = {
@@ -64,7 +65,7 @@ class V36__Add2030RevisionForExistingArticles extends BaseJavaMigration {
   }
 
   private val revisionDate     = LocalDateTime.of(2030, Month.JANUARY, 1, 0, 0)
-  private implicit val formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
+  private implicit val formats: Formats = DefaultFormats.withLong ++ JavaTimeSerializers.all
   private val revDate          = Extraction.decompose(revisionDate)
 
   private[migration] def convertArticleUpdate(document: String): String = {

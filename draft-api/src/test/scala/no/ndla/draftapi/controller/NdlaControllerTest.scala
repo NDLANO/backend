@@ -14,7 +14,7 @@ import org.json4s.DefaultFormats
 
 class NdlaControllerTest extends UnitSuite with TestEnvironment {
 
-  val ndlaController = new NdlaController {
+  val ndlaController: NdlaController = new NdlaController {
     override protected implicit def swagger: SwaggerEngine = ???
 
     override protected def applicationDescription: String = ???

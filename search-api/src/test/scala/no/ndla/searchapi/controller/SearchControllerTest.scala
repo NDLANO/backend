@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.util.Success
 
 class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val swagger = new SearchSwagger
+  implicit val swagger: SearchSwagger = new SearchSwagger
 
   lazy val controller = new SearchController
   addServlet(controller, "/test")

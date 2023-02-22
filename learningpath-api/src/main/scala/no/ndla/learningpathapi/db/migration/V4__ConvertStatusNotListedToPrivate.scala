@@ -16,9 +16,9 @@ import scalikejdbc._
 
 class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -42,7 +42,7 @@ class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
     learningPath.copy(document = compact(render(updatedDocument)))
   }
 
-  def update(learningPath: V4_DBLearningPath)(implicit session: DBSession) = {
+  def update(learningPath: V4_DBLearningPath)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(learningPath.document)

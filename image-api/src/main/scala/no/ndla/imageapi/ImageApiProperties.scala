@@ -24,7 +24,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val ApplicationName    = "image-api"
-  val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val RoleWithWriteAccess = "images:write"
 
@@ -33,13 +33,13 @@ class ImageApiProperties extends BaseProps with StrictLogging {
 
   val HealthControllerPath = "/health"
   val ImageApiBasePath     = "/image-api"
-  val ApiDocsPath          = s"$ImageApiBasePath/api-docs"
-  val ImageControllerPath  = s"$ImageApiBasePath/v2/images"
-  val RawControllerPath    = s"$ImageApiBasePath/raw"
+  val ApiDocsPath: String          = s"$ImageApiBasePath/api-docs"
+  val ImageControllerPath: String  = s"$ImageApiBasePath/v2/images"
+  val RawControllerPath: String    = s"$ImageApiBasePath/raw"
 
-  val ValidFileExtensions = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
+  val ValidFileExtensions: Seq[String] = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
 
-  val ValidMimeTypes = Seq(
+  val ValidMimeTypes: Seq[String] = Seq(
     "image/bmp",
     "image/gif",
     "image/jpeg",
@@ -51,7 +51,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "image/svg+xml"
   )
 
-  val oldCreatorTypes = List(
+  val oldCreatorTypes: List[String] = List(
     "opphavsmann",
     "fotograf",
     "kunstner",
@@ -65,7 +65,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "komponist"
   )
 
-  val creatorTypes = List(
+  val creatorTypes: List[String] = List(
     "originator",
     "photographer",
     "artist",
@@ -79,12 +79,12 @@ class ImageApiProperties extends BaseProps with StrictLogging {
     "composer"
   )
 
-  val oldProcessorTypes =
+  val oldProcessorTypes: List[String] =
     List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
+  val processorTypes: List[String] = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
 
-  val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  val rightsholderTypes    = List("rightsholder", "publisher", "distributor", "supplier")
+  val oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
+  val rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
 
   val allowedAuthors: Seq[String] = creatorTypes ++ processorTypes ++ rightsholderTypes
 
@@ -95,7 +95,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val ImageScalingUltraMinSize: Int = 640
   val ImageScalingUltraMaxSize: Int = 2080
 
-  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  def MetaMaxConnections: Int   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
   def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
   def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
@@ -117,7 +117,7 @@ class ImageApiProperties extends BaseProps with StrictLogging {
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val ElasticSearchIndexMaxResultWindow    = 10000
   val ElasticSearchScrollKeepAlive         = "1m"
-  val InitialScrollContextKeywords         = List("0", "initial", "start", "first")
+  val InitialScrollContextKeywords: List[String]         = List("0", "initial", "start", "first")
 
   lazy val Domain: String     = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiUrlBase: String = Domain + ImageControllerPath + "/"

@@ -41,7 +41,7 @@ trait ErrorHelpers {
 
     val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 
-    val GENERIC_DESCRIPTION =
+    val GENERIC_DESCRIPTION: String =
       s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
 
     val FileTooBigError: Error = Error(
@@ -49,9 +49,9 @@ trait ErrorHelpers {
       s"The file is too big. Max file size is ${props.MaxAudioFileSizeBytes / 1024 / 1024} MiB"
     )
 
-    val WINDOW_TOO_LARGE_DESCRIPTION =
+    val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
-    val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
+    val DATABASE_UNAVAILABLE_DESCRIPTION: String = s"Database seems to be unavailable, retrying connection."
 
     val InvalidSearchContext: Error = Error(
       INVALID_SEARCH_CONTEXT,

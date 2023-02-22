@@ -103,14 +103,14 @@ trait DBLearningStep {
       new EnumNameSerializer(EmbedType)
     )
 
-    val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningStep](
+    val repositorySerializer: List[Object] = jsonSerializer :+ FieldSerializer[LearningStep](
       serializer = ignore("id").orElse(ignore("learningPathId")).orElse(ignore("externalId")).orElse(ignore("revision"))
     )
 
-    val jsonEncoder = DefaultFormats ++ jsonSerializer
+    val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer
 
     override val tableName  = "learningsteps"
-    override val schemaName = Some(props.MetaSchema)
+    override val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep =
       fromResultSet(ls.resultName)(rs)

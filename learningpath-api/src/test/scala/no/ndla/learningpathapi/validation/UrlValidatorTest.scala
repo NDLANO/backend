@@ -14,7 +14,7 @@ class UrlValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: UrlValidator = _
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     validator = new UrlValidator
   }
 

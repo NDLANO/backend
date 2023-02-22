@@ -21,6 +21,7 @@ import sttp.client3.Response
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
+import org.json4s.DefaultFormats
 
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
@@ -28,7 +29,7 @@ trait TaxonomyApiClient {
 
   class TaxonomyApiClient extends StrictLogging {
     import props.{TaxonomyUrl, DefaultLanguage}
-    implicit val formats                   = org.json4s.DefaultFormats
+    implicit val formats: DefaultFormats.type                   = org.json4s.DefaultFormats
     private val taxonomyTimeout            = 20.seconds
     private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"

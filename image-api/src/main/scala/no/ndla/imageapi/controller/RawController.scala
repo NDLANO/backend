@@ -44,8 +44,8 @@ trait RawController {
 
     registerModel[Error]()
 
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
+    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getImageParams: List[Parameter] = List(
       headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),

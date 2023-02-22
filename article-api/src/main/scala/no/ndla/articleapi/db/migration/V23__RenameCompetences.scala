@@ -11,12 +11,13 @@ import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
+import org.json4s.DefaultFormats
 
 class V23__RenameCompetences extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -39,7 +40,7 @@ class V23__RenameCompetences extends BaseJavaMigration {
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
@@ -62,7 +63,7 @@ class V23__RenameCompetences extends BaseJavaMigration {
     compact(render(newArticle))
   }
 
-  def updateArticle(document: String, id: Long)(implicit session: DBSession) = {
+  def updateArticle(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

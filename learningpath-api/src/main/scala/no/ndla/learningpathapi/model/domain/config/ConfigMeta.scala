@@ -50,7 +50,7 @@ trait DBConfigMeta {
       Json4s.serializer(ConfigKey) ++ JavaTimeSerializers.all
 
     override val tableName  = "configtable"
-    override val schemaName = Some(props.MetaSchema)
+    override val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): ConfigMeta = fromResultSet(c.resultName)(rs)
 

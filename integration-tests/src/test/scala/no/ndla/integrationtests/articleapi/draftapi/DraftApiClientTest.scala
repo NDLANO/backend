@@ -41,7 +41,7 @@ class DraftApiClientTest
 
   val draftApi               = new draftapi.MainClass(draftApiProperties)
   val draftApiServer: Server = draftApi.startServer()
-  val draftApiBaseUrl        = s"http://localhost:$draftApiPort"
+  val draftApiBaseUrl: String        = s"http://localhost:$draftApiPort"
 
   override def afterAll(): Unit = {
     super.afterAll()

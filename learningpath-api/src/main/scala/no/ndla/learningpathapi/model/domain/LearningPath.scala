@@ -91,7 +91,7 @@ case class LearningPath(
 
   def canEdit(userInfo: UserInfo): Boolean = canEditLearningpath(userInfo).isSuccess
 
-  def lsLength = learningsteps.map(_.length).getOrElse(0)
+  def lsLength: Int = learningsteps.map(_.length).getOrElse(0)
 
   def validateSeqNo(seqNo: Int): Unit = {
     if (seqNo < 0 || seqNo > lsLength - 1) {
@@ -165,14 +165,14 @@ trait DBLearningPath {
       new EnumNameSerializer(LearningPathVerificationStatus)
     )
 
-    val repositorySerializer = jsonSerializer :+ FieldSerializer[LearningPath](
+    val repositorySerializer: List[Object] = jsonSerializer :+ FieldSerializer[LearningPath](
       ignore("id").orElse(ignore("learningsteps")).orElse(ignore("externalId")).orElse(ignore("revision"))
     )
 
     val jsonEncoder: Formats = DefaultFormats ++ jsonSerializer ++ JavaTimeSerializers.all
 
     override val tableName  = "learningpaths"
-    override val schemaName = Some(props.MetaSchema)
+    override val schemaName: Some[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
       fromResultSet(lp.resultName)(rs)

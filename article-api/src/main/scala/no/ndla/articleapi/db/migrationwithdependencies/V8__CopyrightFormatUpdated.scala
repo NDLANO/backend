@@ -17,13 +17,15 @@ import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
 import java.time.LocalDateTime
+import org.json4s.Formats
 
 class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMigration {
   import props._
 
-  implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
+  implicit val formats: Formats =
+    org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -48,7 +50,7 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
@@ -120,7 +122,7 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
 
   }
 
-  def updateArticle(articleMeta: V7_Article)(implicit session: DBSession) = {
+  def updateArticle(articleMeta: V7_Article)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))

@@ -21,18 +21,18 @@ trait ImagesApiInfo {
 
   object ImagesApiInfo {
 
-    val contactInfo = ContactInfo(
+    val contactInfo: ContactInfo = ContactInfo(
       props.ContactName,
       props.ContactUrl,
       props.ContactEmail
     )
 
-    val licenseInfo = LicenseInfo(
+    val licenseInfo: LicenseInfo = LicenseInfo(
       "GPL v3.0",
       "http://www.gnu.org/licenses/gpl-3.0.en.html"
     )
 
-    val apiInfo = ApiInfo(
+    val apiInfo: ApiInfo = ApiInfo(
       "Image API",
       "Searching and fetching all images used in the NDLA platform.\n\n" +
         "The Image API provides an endpoint for searching in and fetching images used in NDLA resources. Meta-data are " +

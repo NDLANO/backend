@@ -28,13 +28,13 @@ import scala.util.{Failure, Success, Try}
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   import StateTransitionRules.doTransitionWithoutSideEffect
 
-  val PlannedStatus              = common.Status(PLANNED, Set(END_CONTROL))
-  val PlannedWithPublishedStatus = common.Status(PLANNED, Set(PUBLISHED))
-  val PublishedStatus            = common.Status(PUBLISHED, Set.empty)
-  val ExternalReviewStatus       = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
-  val UnpublishedStatus          = common.Status(UNPUBLISHED, Set.empty)
-  val InProcessStatus            = common.Status(IN_PROGRESS, Set.empty)
-  val ArchivedStatus             = common.Status(ARCHIVED, Set(PUBLISHED))
+  val PlannedStatus: common.Status              = common.Status(PLANNED, Set(END_CONTROL))
+  val PlannedWithPublishedStatus: common.Status = common.Status(PLANNED, Set(PUBLISHED))
+  val PublishedStatus: common.Status            = common.Status(PUBLISHED, Set.empty)
+  val ExternalReviewStatus: common.Status       = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
+  val UnpublishedStatus: common.Status          = common.Status(UNPUBLISHED, Set.empty)
+  val InProcessStatus: common.Status            = common.Status(IN_PROGRESS, Set.empty)
+  val ArchivedStatus: common.Status             = common.Status(ARCHIVED, Set(PUBLISHED))
   val responsible                = common.Responsible("someid", TestData.today)
   val InProcessArticle: Draft =
     TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus, responsible = Some(responsible))

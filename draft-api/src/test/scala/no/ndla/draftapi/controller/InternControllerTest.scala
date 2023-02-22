@@ -15,10 +15,11 @@ import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreI
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
+import org.json4s.DefaultFormats
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val formats = org.json4s.DefaultFormats
-  implicit val swagger = new DraftSwagger
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val swagger: DraftSwagger = new DraftSwagger
 
   lazy val controller = new InternController
   addServlet(controller, "/test")

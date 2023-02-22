@@ -9,16 +9,16 @@
 package no.ndla.mapping
 
 object License extends Enumeration {
-  val CC0          = Value("CC0-1.0")
-  val PublicDomain = Value("PD")
-  val Copyrighted  = Value("COPYRIGHTED")
-  val CC_BY        = Value("CC-BY-4.0")
-  val CC_BY_SA     = Value("CC-BY-SA-4.0")
-  val CC_BY_NC     = Value("CC-BY-NC-4.0")
-  val CC_BY_ND     = Value("CC-BY-ND-4.0")
-  val CC_BY_NC_SA  = Value("CC-BY-NC-SA-4.0")
-  val CC_BY_NC_ND  = Value("CC-BY-NC-ND-4.0")
-  val NA           = Value("N/A")
+  val CC0: Value          = Value("CC0-1.0")
+  val PublicDomain: Value = Value("PD")
+  val Copyrighted: Value  = Value("COPYRIGHTED")
+  val CC_BY: Value        = Value("CC-BY-4.0")
+  val CC_BY_SA: Value     = Value("CC-BY-SA-4.0")
+  val CC_BY_NC: Value     = Value("CC-BY-NC-4.0")
+  val CC_BY_ND: Value     = Value("CC-BY-ND-4.0")
+  val CC_BY_NC_SA: Value  = Value("CC-BY-NC-SA-4.0")
+  val CC_BY_NC_ND: Value  = Value("CC-BY-NC-ND-4.0")
+  val NA: Value           = Value("N/A")
 
   private val licenseToLicenseDefinitionsSeq = Seq(
     LicenseDefinition(

@@ -60,7 +60,7 @@ trait DBResource {
   object DBResource extends SQLSyntaxSupport[Resource] {
     implicit val formats: Formats = DefaultFormats
     override val tableName        = "resources"
-    lazy override val schemaName  = Some(props.MetaSchema)
+    lazy override val schemaName: Some[String]  = Some(props.MetaSchema)
 
     val JSonSerializer: FieldSerializer[Resource] = FieldSerializer[Resource](
       ignore("id") orElse
