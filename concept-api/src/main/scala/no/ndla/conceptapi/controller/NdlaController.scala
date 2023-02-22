@@ -17,6 +17,7 @@ import no.ndla.conceptapi.model.api.{
   OperationNotAllowedException,
   ValidationError
 }
+import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -92,8 +93,8 @@ trait NdlaController {
     protected val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
     protected val sort = Param[Option[String]](
       "sort",
-      """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+      s"""The sorting used on results.
+             The following are supported: ${Sort.values.mkString(",")}
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
