@@ -82,6 +82,7 @@ export interface IConceptSummary {
   visualElement?: IVisualElement
   articleIds: number[]
   source?: string
+  responsible?: IConceptResponsible
 }
 
 export interface IConceptTags {
