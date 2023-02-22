@@ -225,10 +225,12 @@ trait ConverterService {
         else toMergeInto.updatedBy
       }
 
-      val responsible = updateConcept.responsibleId match {
-        case Left(_)                    => None
-        case Right(Some(responsibleId)) => Some(Responsible(responsibleId, clock.now()))
-        case Right(None)                => toMergeInto.responsible
+      val responsible = (updateConcept.responsibleId, toMergeInto.responsible) match {
+        case (Left(_), _)                       => None
+        case (Right(Some(responsibleId)), None) => Some(Responsible(responsibleId, clock.now()))
+        case (Right(Some(responsibleId)), Some(existing)) if existing.responsibleId != responsibleId =>
+          Some(Responsible(responsibleId, clock.now()))
+        case (Right(_), existing) => existing
       }
 
       toMergeInto.copy(
