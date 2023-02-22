@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.{Tag, Title}
-import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
+import no.ndla.conceptapi.model.api.{ConceptResponsible, ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Concept, SearchResult}
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.model.{api, domain}
@@ -205,6 +205,8 @@ trait SearchConverterService {
         )
       })
 
+      val responsible = searchableConcept.responsible.map(r => ConceptResponsible(r.responsibleId, r.lastUpdated))
+
       api.ConceptSummary(
         id = searchableConcept.id,
         title = title,
@@ -221,7 +223,8 @@ trait SearchConverterService {
         visualElement = visualElement,
         articleIds = searchableConcept.articleIds,
         created = searchableConcept.created,
-        source = searchableConcept.source
+        source = searchableConcept.source,
+        responsible = responsible
       )
     }
 
