@@ -14,6 +14,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.model.{domain => common}
 import no.ndla.mapping.License.CC_BY_SA
+import org.mockito.Mockito.when
 
 import java.time.LocalDateTime
 import scala.util.Success

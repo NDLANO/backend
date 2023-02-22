@@ -11,7 +11,8 @@ import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.domain.{AgreementSearchSettings, SearchResult}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.Success

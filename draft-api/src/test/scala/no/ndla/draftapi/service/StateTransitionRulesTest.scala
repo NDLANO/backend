@@ -17,6 +17,8 @@ import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Tit
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -284,7 +286,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("unpublishArticle should succeed if article is not used in a learningstep") {
     reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
-    val articleId = 7
+    val articleId = 7L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val paths = Seq(
       s"/article-iframe/*/$articleId",

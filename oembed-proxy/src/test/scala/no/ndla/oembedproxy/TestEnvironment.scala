@@ -14,7 +14,8 @@ import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.Mockito.reset
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends OEmbedProxyController

@@ -21,6 +21,8 @@ import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
 import java.util.UUID

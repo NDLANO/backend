@@ -13,8 +13,9 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{api => commonApi}
 import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.domain.{Description, Author, Availability, RequiredLibrary, Tag, Title}
+import no.ndla.common.model.domain.{Author, Availability, Description, RequiredLibrary, Tag, Title}
 import no.ndla.common.model.domain.article.Copyright
+import org.mockito.Mockito.when
 
 import java.time.LocalDateTime
 import scala.util.Success

@@ -8,12 +8,12 @@
 
 package no.ndla.network
 
-import org.mockito.scalatest.MockitoSugar
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
-import scala.util.Properties.{setProp, propOrNone, clearProp}
+import scala.util.Properties.{clearProp, propOrNone, setProp}
 
 abstract class UnitSuite
     extends AnyFunSuite

@@ -56,18 +56,18 @@ object Dependencies {
       hikari
     )
 
-    private lazy val scalaTestAndMockitoBase: Seq[ModuleID] = Seq(
-      "org.scalatest" %% "scalatest"               % ScalaTestV,
-      "org.mockito"   %% "mockito-scala"           % MockitoV,
-      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV
-    )
-
     /** This should only be used if we want to include scalatest and mockito in the main build (not only tests).
       * Otherwise use [[scalaTestAndMockito]]
       */
-    lazy val scalaTestAndMockitoInMain = scalaTestAndMockitoBase.map(_ cross CrossVersion.for3Use2_13)
+    lazy val scalaTestAndMockitoInMain = Seq(
+      "org.scalatest"     %% "scalatest"   % ScalaTestV,
+      "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0"
+    )
 
-    lazy val scalaTestAndMockito = scalaTestAndMockitoInMain.map(_ % "test" cross CrossVersion.for3Use2_13)
+    lazy val scalaTestAndMockito = Seq(
+      "org.scalatest"     %% "scalatest"   % ScalaTestV % "test",
+      "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % "test"
+    )
 
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 

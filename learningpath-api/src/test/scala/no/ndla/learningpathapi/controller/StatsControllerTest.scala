@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.controller
 import no.ndla.learningpathapi.model.api.Stats
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
+import org.mockito.Mockito.when
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 class StatsControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

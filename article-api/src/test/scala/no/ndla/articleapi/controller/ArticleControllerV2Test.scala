@@ -14,7 +14,8 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.Availability
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}

@@ -30,6 +30,8 @@ import no.ndla.learningpathapi.model.api.{
 import no.ndla.learningpathapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.domain.config.{ConfigKey, ConfigMeta}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{doReturn, never, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -1885,8 +1887,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
-      .thenReturn(Success(parentId))
+    doReturn(Success(parentId)).when(converterService).toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
@@ -1938,8 +1939,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
-      .thenReturn(Success(parentId))
+    doReturn(Success(parentId)).when(converterService).toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
@@ -1991,8 +1991,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
-      .thenReturn(Success(parentId))
+    doReturn(Success(parentId)).when(converterService).toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
@@ -2048,8 +2047,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
-      .thenReturn(Success(parentId))
+    doReturn(Success(parentId)).when(converterService).toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
@@ -2120,8 +2118,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(converterService.toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId")))
-      .thenReturn(Success(parentId))
+    doReturn(Success(parentId)).when(converterService).toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
     when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))

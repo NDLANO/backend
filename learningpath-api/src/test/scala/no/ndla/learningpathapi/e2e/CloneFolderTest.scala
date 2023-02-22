@@ -17,6 +17,8 @@ import org.eclipse.jetty.server.Server
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.native.Serialization._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doCallRealMethod, reset, spy, when}
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.time.LocalDateTime
@@ -461,11 +463,12 @@ class CloneFolderTest
     val sourceFolderId   = prepareFolderToClone()
 
     // We want to fail on the next to last insertion to ensure that the previous insertions will be rollbacked
-    when(learningpathApi.componentRegistry.folderRepository.insertFolder(any, any)(any))
-      .thenCallRealMethod()
-      .andThenCallRealMethod()
-      .andThen(Failure(new RuntimeException("bad")))
-      .andThenCallRealMethod()
+    doCallRealMethod()
+      .doCallRealMethod()
+      .doReturn(Failure(new RuntimeException("bad")))
+      .doCallRealMethod()
+      .when(learningpathApi.componentRegistry.folderRepository)
+      .insertFolder(any, any)(any)
 
     val destinationFoldersBefore   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     val destinationResourcesBefore = folderRepository.resourcesWithFeideId(destinationFeideId, 10)

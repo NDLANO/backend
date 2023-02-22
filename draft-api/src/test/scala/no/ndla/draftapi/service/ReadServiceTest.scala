@@ -12,6 +12,8 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttributes}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}

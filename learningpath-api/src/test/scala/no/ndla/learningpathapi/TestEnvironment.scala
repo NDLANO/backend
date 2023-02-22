@@ -42,7 +42,8 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.Mockito.reset
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends LearningpathControllerV2

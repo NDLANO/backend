@@ -15,6 +15,9 @@ import no.ndla.searchapi.model.domain.{SearchParams, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{never, reset, times, verify, when, withSettings}
+import org.mockito.quality.Strictness
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.{LocalDateTime, Month}
@@ -234,7 +237,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That retrieving datetime strings from request works") {
-    val requestMock = mock[HttpServletRequest](withSettings.lenient())
+    val requestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.LENIENT))
 
     val expectedDate = LocalDateTime.of(2025, Month.JANUARY, 2, 13, 39, 5)
 

@@ -12,6 +12,8 @@ import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.oembedproxy.caching.Memoize
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import org.scalatest.TryValues._
 
 import scala.util.{Failure, Success}

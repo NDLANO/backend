@@ -13,8 +13,11 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.common.model.{domain => common}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{reset, times, verify, when, withSettings}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.quality.Strictness
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 
@@ -208,7 +211,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
       .thenReturn(Failure(new ValidationException(errors = Seq())))
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
-      .thenReturn(Success(mock[ObjectMetadata](withSettings.lenient())))
+      .thenReturn(Success(mock[ObjectMetadata](withSettings.strictness(Strictness.LENIENT))))
 
     writeService.storeNewAudio(newAudioMeta, fileMock1).isFailure should be(true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(any[DBSession])
@@ -824,8 +827,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.updateSeries(1, updateSeries)
     result.isSuccess should be(true)
 
-    verify(audioRepository, times(1)).setSeriesId(eqTo(1), eqTo(None))(any[DBSession])
-    verify(audioRepository, times(1)).setSeriesId(eqTo(2), eqTo(Some(1)))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(1L), eqTo(None))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(2L), eqTo(Some(1)))(any[DBSession])
   }
 
   test("That successful updating doesnt update existing episodes") {

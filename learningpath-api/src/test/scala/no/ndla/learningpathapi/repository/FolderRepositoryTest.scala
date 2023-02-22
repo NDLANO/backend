@@ -9,7 +9,7 @@ package no.ndla.learningpathapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.learningpathapi.model.domain
-import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, NewFolderData, FolderStatus, ResourceDocument}
+import no.ndla.learningpathapi.model.domain.{DBFolderResource, Folder, FolderStatus, NewFolderData, ResourceDocument}
 import no.ndla.learningpathapi.{TestData, TestEnvironment}
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.scalatest.Outcome
@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 import cats.implicits._
+import org.mockito.Mockito.when
 
 class FolderRepositoryTest
     extends IntegrationSuite(EnablePostgresContainer = true)

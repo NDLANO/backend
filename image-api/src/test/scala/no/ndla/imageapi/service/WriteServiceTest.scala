@@ -15,6 +15,8 @@ import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.ApplicationUrl
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{doReturn, reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
@@ -217,7 +219,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.storeNewImage(newImageMeta, fileMock1).isFailure should be(true)
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
     verify(imageStorage, times(1)).deleteObject(any[String])
-    verify(imageIndexService, times(1)).deleteDocument(eqTo(1))
+    verify(imageIndexService, times(1)).deleteDocument(eqTo(1L))
   }
 
   test("storeNewImage should return Success if creation of new image file succeeded") {
@@ -722,7 +724,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Deleting language version should delete file if only used by that language") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
 
     val image = domain.ImageFileData(
@@ -793,7 +795,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("Deleting language version should not delete file if it used by more languages") {
     reset(validationService, imageRepository, imageStorage)
-    val imageId  = 100
+    val imageId  = 100L
     val coolDate = LocalDateTime.now()
 
     val image = domain.ImageFileData(
@@ -828,7 +830,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
+
     when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
+
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))

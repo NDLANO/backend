@@ -8,6 +8,8 @@
 package no.ndla.draftapi.integration
 
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{doReturn, never, reset, spy, times, verify}
 
 import scala.util.Success
 

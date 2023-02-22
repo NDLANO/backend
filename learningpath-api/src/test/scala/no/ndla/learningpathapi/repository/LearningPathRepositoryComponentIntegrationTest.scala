@@ -18,6 +18,7 @@ import no.ndla.learningpathapi._
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.tag.IntegrationTest
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 import scalikejdbc._
 

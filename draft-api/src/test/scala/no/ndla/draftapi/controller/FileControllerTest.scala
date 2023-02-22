@@ -11,6 +11,8 @@ import no.ndla.draftapi.model.api.UploadedFile
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.read
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.BytesPart
 import org.scalatra.test.scalatest.ScalatraFunSuite

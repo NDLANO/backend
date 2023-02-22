@@ -16,6 +16,8 @@ import no.ndla.mapping.License.{CC_BY, getLicense}
 import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization._
+import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.time.LocalDateTime

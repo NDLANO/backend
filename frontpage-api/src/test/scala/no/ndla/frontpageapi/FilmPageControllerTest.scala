@@ -10,6 +10,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.{Host, Port}
 import org.http4s.ember.server.EmberServerBuilder
+import org.mockito.Mockito.when
 import sttp.client3.quick._
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment {

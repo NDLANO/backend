@@ -11,6 +11,8 @@ package no.ndla.learningpathapi.integration
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import org.json4s.Formats
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 
 import scala.util.{Failure, Success}
 

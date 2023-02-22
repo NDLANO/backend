@@ -18,7 +18,8 @@ import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.{read, write}
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.LocalDateTime
@@ -344,7 +345,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     when(
       writeService
         .updateArticle(
-          eqTo(1.toLong),
+          eqTo(1L),
           any[api.UpdatedArticle],
           any[List[String]],
           any[Seq[String]],
@@ -370,7 +371,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(missingExpected),
         any[List[String]],
         any[Seq[String]],
@@ -384,7 +385,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(nullExpected),
         any[List[String]],
         any[Seq[String]],
@@ -398,7 +399,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with ScalatraFu
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
       verify(writeService, times(1)).updateArticle(
-        eqTo(1),
+        eqTo(1L),
         eqTo(existingExpected),
         any[List[String]],
         any[Seq[String]],

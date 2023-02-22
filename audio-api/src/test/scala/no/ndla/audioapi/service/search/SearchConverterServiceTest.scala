@@ -14,6 +14,8 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, _}
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
 import java.time.LocalDateTime

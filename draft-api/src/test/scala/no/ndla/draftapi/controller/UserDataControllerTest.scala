@@ -11,6 +11,8 @@ import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api.UpdatedUserData
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.postgresql.util.{PSQLException, PSQLState}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 

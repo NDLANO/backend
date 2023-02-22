@@ -14,7 +14,8 @@ import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
@@ -132,7 +133,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1L), any[UpdatedConcept], any[UserInfo])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -148,17 +149,17 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[UserInfo])
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[UserInfo])
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[UserInfo])
     }
   }
 
@@ -177,7 +178,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     reset(writeService)
     when(
       writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo])
+        .updateConcept(eqTo(1L), any[UpdatedConcept], any[UserInfo])
     )
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
@@ -194,17 +195,17 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(missingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(missingExpected), any[UserInfo])
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(nullExpected), any[UserInfo])
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1L), eqTo(existingExpected), any[UserInfo])
     }
   }
 

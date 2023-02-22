@@ -22,6 +22,7 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.mapping.License.{CC_BY_SA, NA}
+import org.mockito.Mockito.when
 
 import scala.util.Failure
 

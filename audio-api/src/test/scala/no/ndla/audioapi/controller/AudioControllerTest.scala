@@ -12,7 +12,9 @@ import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{doNothing, reset, times, verify, when, withSettings}
+import org.mockito.quality.Strictness
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -100,7 +102,7 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    val runtimeMock = mock[RuntimeException](withSettings.lenient())
+    val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
     doNothing.when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 

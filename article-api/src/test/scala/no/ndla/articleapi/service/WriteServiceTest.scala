@@ -10,6 +10,8 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Article
+import org.mockito.ArgumentMatchers.{any, anyList}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
@@ -54,7 +56,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
     when(articleRepository.withId(10)).thenReturn(Some(toArticleRow(articleToUpdate)))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], anyList)(any[DBSession]))
+    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(any[DBSession]))
       .thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))

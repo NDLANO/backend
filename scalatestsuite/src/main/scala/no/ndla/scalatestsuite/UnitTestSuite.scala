@@ -7,15 +7,15 @@
 
 package no.ndla.scalatestsuite
 
-import org.mockito.scalatest.MockitoSugar
 import org.scalatest._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 import java.io.IOException
 import java.net.ServerSocket
 import scala.util.Properties.{propOrNone, setProp}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 abstract class UnitTestSuite
     extends AnyFunSuite

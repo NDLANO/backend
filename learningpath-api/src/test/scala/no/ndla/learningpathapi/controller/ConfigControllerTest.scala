@@ -13,6 +13,8 @@ import no.ndla.learningpathapi.model.domain.UserInfo
 import no.ndla.learningpathapi.model.domain.config.ConfigKey
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.LocalDateTime

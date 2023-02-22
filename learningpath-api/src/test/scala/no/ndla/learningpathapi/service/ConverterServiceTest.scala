@@ -19,7 +19,9 @@ import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{when, withSettings}
+import org.mockito.quality.Strictness
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -331,7 +333,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That createUrlToLearningPath does not include private in path for private learningpath") {
-    val httpServletRequest = mock[HttpServletRequest](withSettings.lenient())
+    val httpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.LENIENT))
     when(httpServletRequest.getServerPort).thenReturn(80)
     when(httpServletRequest.getScheme).thenReturn("http")
     when(httpServletRequest.getServerName).thenReturn("api-gateway.ndla-local")

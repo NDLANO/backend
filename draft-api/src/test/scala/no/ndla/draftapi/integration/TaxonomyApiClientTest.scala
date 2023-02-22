@@ -11,7 +11,8 @@ import cats.implicits._
 import no.ndla.common.model.domain.Title
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.Formats
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{doAnswer, doReturn, reset, spy, times, verify}
 import org.mockito.invocation.InvocationOnMock
 
 import scala.concurrent.TimeoutException

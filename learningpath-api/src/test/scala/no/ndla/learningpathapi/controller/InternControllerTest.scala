@@ -8,6 +8,8 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doReturn, reset, verify, verifyNoMoreInteractions, when, never}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import scalikejdbc.DBSession
 

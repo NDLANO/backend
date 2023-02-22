@@ -13,6 +13,7 @@ import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.Mockito.when
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}

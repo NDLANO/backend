@@ -10,6 +10,9 @@ package no.ndla.network
 
 import no.ndla.common.CorrelationID
 import no.ndla.network.model.NdlaRequest
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{doReturn, never, reset, times, verify, when, withSettings}
+import org.mockito.quality.Strictness
 
 import javax.servlet.http.HttpServletRequest
 import org.scalatest.TryValues._
@@ -40,14 +43,14 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
 
   test("That a HttpRequestException is returned when receiving an http-error") {
     val httpRequestMock  = mock[NdlaRequest]
-    val httpResponseMock = mock[Response[String]]
-    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
+    val httpResponseMock = mock[Response[String]](withSettings().strictness(Strictness.LENIENT))
 
     when(httpRequestMock.uri).thenReturn(uri"someUrl")
     when(httpResponseMock.isSuccess).thenReturn(false)
-    when(httpResponseMock.code).thenReturn(StatusCode(123))
+    when(httpResponseMock.code.code).thenReturn(123)
     when(httpResponseMock.statusText).thenReturn("status")
     when(httpResponseMock.body).thenReturn("body-with-error")
+    when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
 
     val result = ndlaClient.fetch[TestObject](httpRequestMock)
 
@@ -130,7 +133,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That Authorization header is added to request if set on Thread") {
-    val servletRequestMock = mock[HttpServletRequest](withSettings.lenient())
+    val servletRequestMock = mock[HttpServletRequest](withSettings.strictness(Strictness.LENIENT))
     val httpRequestMock    = mock[NdlaRequest]
     val httpResponseMock   = mock[Response[String]]
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
@@ -162,7 +165,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     val authHeader    = "abc"
     when(httpResponseMock.body).thenReturn("")
     when(httpResponseMock.isSuccess).thenReturn(true)
-    when(httpResponseMock.code).thenReturn(StatusCode(204))
+    when(httpResponseMock.code.code).thenReturn(204)
 
     when(servletRequestMock.getHeader(eqTo(authHeaderKey))).thenReturn(authHeader)
     AuthUser.set(servletRequestMock)

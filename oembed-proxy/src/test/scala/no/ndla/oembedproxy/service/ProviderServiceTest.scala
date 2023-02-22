@@ -11,6 +11,8 @@ package no.ndla.oembedproxy.service
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import sttp.client3.quick._
 
 import scala.util.{Failure, Success}

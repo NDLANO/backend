@@ -13,6 +13,8 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {

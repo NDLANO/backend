@@ -12,6 +12,7 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
+import org.mockito.Mockito.when
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import sttp.client3.Response
 import sttp.model.StatusCode
@@ -53,11 +54,11 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   )
 
   addServlet(controller, "/")
-  when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
+  when(httpResponseMock.code.code).thenReturn(404)
   when(audioRepository.getRandomAudio()).thenReturn(None)
 
   test("that /health returns 200 on success") {
-    when(httpResponseMock.code).thenReturn(StatusCode.Ok)
+    when(httpResponseMock.code.code).thenReturn(200)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     get("/") {
@@ -66,7 +67,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("that /health returns 500 on failure") {
-    when(httpResponseMock.code).thenReturn(StatusCode.InternalServerError)
+    when(httpResponseMock.code.code).thenReturn(500)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
     get("/") {
@@ -75,7 +76,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("that /health returns 200 on no images") {
-    when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
+    when(httpResponseMock.code.code).thenReturn(404)
     when(audioRepository.getRandomAudio()).thenReturn(None)
 
     get("/") {

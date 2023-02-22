@@ -13,6 +13,8 @@ import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
@@ -26,7 +28,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val today: LocalDateTime     = LocalDateTime.now()
   val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service                  = new WriteService()
-  val conceptId                = 13
+  val conceptId                = 13L
   val userInfo: UserInfo       = UserInfo.SystemUser
 
   val concept: api.Concept =
@@ -176,7 +178,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
+    when(draftConceptRepository.withId(any)).thenReturn(Some(concept))
 
     val updated = service.deleteLanguage(concept.id.get, "nn", userInfo)
     verify(draftConceptRepository).update(conceptCaptor.capture())

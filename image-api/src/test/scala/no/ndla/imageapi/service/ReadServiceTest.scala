@@ -16,6 +16,8 @@ import no.ndla.network.ApplicationUrl
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{doReturn, reset, times, verify, when}
 import scalikejdbc.DBSession
 
 import javax.servlet.http.HttpServletRequest

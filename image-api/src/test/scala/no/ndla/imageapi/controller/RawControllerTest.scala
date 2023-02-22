@@ -9,6 +9,9 @@ package no.ndla.imageapi.controller
 
 import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{when, withSettings}
+import org.mockito.quality.Strictness
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.io.ByteArrayInputStream
@@ -46,7 +49,8 @@ class RawControllerTest extends UnitSuite with ScalatraSuite with TestEnvironmen
   }
 
   test("That GET /image.jpg returns 404 if image was not found") {
-    when(imageStorage.get(any[String])).thenReturn(Failure(mock[ImageNotFoundException](withSettings.lenient())))
+    when(imageStorage.get(any[String]))
+      .thenReturn(Failure(mock[ImageNotFoundException](withSettings.strictness(Strictness.LENIENT))))
     get(s"/$imageName") {
       status should equal(404)
     }

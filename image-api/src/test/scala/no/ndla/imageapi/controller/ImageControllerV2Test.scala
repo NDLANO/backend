@@ -22,7 +22,9 @@ import no.ndla.mapping.License.CC_BY
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.JsonParser
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{reset, times, verify, when, withSettings}
+import org.mockito.quality.Strictness
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -281,7 +283,7 @@ class ImageControllerV2Test extends UnitSuite with ScalatraSuite with TestEnviro
 
   test("That POST / returns 500 if an unexpected error occurs") {
     reset(writeService)
-    val exceptionMock = mock[RuntimeException](withSettings.lenient())
+    val exceptionMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
     when(writeService.storeNewImage(any[NewImageMetaInformationV2], any[FileItem]))
       .thenReturn(Failure(exceptionMock))
 

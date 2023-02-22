@@ -12,6 +12,8 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import java.time.LocalDateTime

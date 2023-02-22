@@ -14,6 +14,7 @@ import no.ndla.draftapi._
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.model.domain._
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.mockito.Mockito.when
 import org.scalatest.Outcome
 import scalikejdbc._
 

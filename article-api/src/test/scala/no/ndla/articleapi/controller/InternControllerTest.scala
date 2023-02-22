@@ -15,6 +15,8 @@ import no.ndla.common.model.domain.{ArticleType, Author, Availability}
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers}
 import org.json4s.native.Serialization._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}

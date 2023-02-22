@@ -17,6 +17,8 @@ import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.network.clients.FeideExtendedUserInfo
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{times, verify, when}
 import scalikejdbc.DBSession
 
 import java.time.LocalDateTime
@@ -27,8 +29,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   var service: ReadService = _
 
-  val PUBLISHED_ID = 1
-  val PRIVATE_ID   = 2
+  val PUBLISHED_ID = 1L
+  val PRIVATE_ID   = 2L
 
   val PUBLISHED_OWNER: UserInfo = UserInfo("published_owner", Set.empty)
   val PRIVATE_OWNER: UserInfo   = UserInfo("private_owner", Set.empty)

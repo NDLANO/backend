@@ -9,8 +9,8 @@
 package no.ndla.network
 
 import javax.servlet.http.HttpServletRequest
-
 import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito.{reset, when}
 
 class ApplicationUrlTest extends UnitSuite {
 

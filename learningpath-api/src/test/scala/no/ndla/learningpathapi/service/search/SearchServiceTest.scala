@@ -18,6 +18,8 @@ import no.ndla.learningpathapi.model.domain.{Description, _}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.doReturn
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime

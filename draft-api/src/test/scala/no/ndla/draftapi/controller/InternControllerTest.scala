@@ -10,6 +10,8 @@ package no.ndla.draftapi.controller
 import no.ndla.draftapi._
 import no.ndla.draftapi.model.api.ContentId
 import no.ndla.draftapi.model.domain.ImportId
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}

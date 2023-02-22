@@ -15,6 +15,8 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{doCallRealMethod, when}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
@@ -230,7 +232,7 @@ class AudioSearchServiceTest
     when(converterService.withAgreementCopyright(audio5))
       .thenReturn(audio5.copy(copyright = audio5.copyright.copy(license = "gnu")))
 
-    when(converterService.findAndConvertDomainToApiField(any, any, any)(any)).thenCallRealMethod()
+    doCallRealMethod().when(converterService).findAndConvertDomainToApiField(any, any, any())(any)
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()

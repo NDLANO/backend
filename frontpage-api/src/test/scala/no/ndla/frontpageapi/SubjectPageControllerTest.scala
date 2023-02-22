@@ -13,6 +13,7 @@ import com.comcast.ip4s.{Host, Port}
 import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
 import org.http4s.ember.server.EmberServerBuilder
+import org.mockito.Mockito.when
 import sttp.client3.quick._
 
 import java.time.LocalDateTime
