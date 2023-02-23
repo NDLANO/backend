@@ -9,8 +9,10 @@ package no.ndla.frontpageapi.service
 
 import cats.implicits._
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits._
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
+import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -33,11 +35,27 @@ trait ReadService {
         case Failure(ex)       => Failure(ex)
       }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean = false): Option[api.SubjectPageData] =
-      subjectPageRepository
-        .withId(id)
-        .map(sub => ConverterService.toApiSubjectPage(sub, language, fallback))
-        .collect { case Success(sub) => sub }
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageData] = {
+      val maybeSubject = subjectPageRepository.withId(id).?
+      val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
+      converted.toTry(NotFoundException(id))
+    }
+
+    def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[api.SubjectPageData]] = {
+      val offset    = pageSize * (page - 1)
+      val data      = subjectPageRepository.all(offset, pageSize).?
+      val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
+      val filtered  = filterOutNotFoundExceptions(converted)
+      filtered.sequence
+    }
+
+    private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
+      exceptions.filter {
+        case Failure(_: NotFoundException)         => false
+        case Failure(_: LanguageNotFoundException) => false
+        case _                                     => true
+      }
+    }
 
     def getSubjectPageByIds(
         subjectIds: List[Long],
