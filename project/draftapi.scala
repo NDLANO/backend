@@ -13,7 +13,6 @@ object draftapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
-      enumeratumJson4s,
       sttp,
       "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV        % "container;compile",
       "org.eclipse.jetty"   % "jetty-plus"                      % JettyV        % "container",

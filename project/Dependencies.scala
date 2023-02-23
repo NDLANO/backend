@@ -8,9 +8,9 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.8"
+    val ScalaV                = "3.2.2"
     val Scala3V               = "3.2.2"
-    val ScalatraV             = "2.8.4"
+    val ScalatraV             = "3.0.0-M3"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.15"
@@ -30,7 +30,7 @@ object Dependencies {
     val Http4sV               = "0.23.18"
     val TapirV                = "1.2.7"
     val ApiSpecV              = "0.3.2"
-    val SttpV                 = "3.8.10"
+    val SttpV                 = "3.8.11"
     val CirceV                = "0.14.3"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
@@ -46,9 +46,8 @@ object Dependencies {
 
     lazy val sttp = "com.softwaremill.sttp.client3" %% "core" % SttpV
 
-    lazy val enumeratum       = "com.beachape" %% "enumeratum"        % EnumeratumV
-    lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % EnumeratumV cross CrossVersion.for3Use2_13
-    lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % EnumeratumV
+    lazy val enumeratum      = "com.beachape" %% "enumeratum"       % EnumeratumV
+    lazy val enumeratumCirce = "com.beachape" %% "enumeratum-circe" % EnumeratumV
 
     lazy val database = Seq(
       scalikejdbc,
@@ -72,10 +71,10 @@ object Dependencies {
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
     lazy val scalatra = Seq(
-      "org.scalatra" %% "scalatra"           % ScalatraV cross CrossVersion.for3Use2_13,
-      "org.scalatra" %% "scalatra-json"      % ScalatraV cross CrossVersion.for3Use2_13,
-      "org.scalatra" %% "scalatra-swagger"   % ScalatraV cross CrossVersion.for3Use2_13,
-      "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test" cross CrossVersion.for3Use2_13
+      "org.scalatra" %% "scalatra"           % ScalatraV,
+      "org.scalatra" %% "scalatra-json"      % ScalatraV,
+      "org.scalatra" %% "scalatra-swagger"   % ScalatraV,
+      "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
     )
 
     lazy val elastic4s = Seq(

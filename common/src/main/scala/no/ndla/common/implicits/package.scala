@@ -1,8 +1,6 @@
 package no.ndla.common
 
 import scala.util.{Failure, Success, Try}
-import scala.reflect.macros.blackbox
-import scala.language.experimental.macros
 
 package object implicits {
 
@@ -18,54 +16,31 @@ package object implicits {
     * // In case `theFunction` returns Success(10) `doStuff` will return Success("hello 10").
     * // In case `theFunction` return Failure(RuntimeException("bad")), `doStuff` will return `Failure(RuntimeException("bad"))`
     *
-    * def doStuff(): Try[String] = {
+    * def doStuff(): Try[String] = permitTry {
     *   val x: Try[Int] = theFunction().?
     *   Success(s"hello $x")
     * }
     * }}}
     */
 
-  def tryQuestionMarkOperator(c: blackbox.Context): c.Tree = {
-    import c.universe._
-    c.prefix.tree match {
-      case q"$_[$tp]($self)" =>
-        q"""
-           import scala.util.{Failure, Success, Try}
-           $self match {
-             case Success(value) => value
-             case Failure(ex)    => return Failure(ex)
-           }
-           """
-      case _ => c.abort(c.enclosingPosition, "This is a bug with the tryQuestionMarkOperator macro")
+  case class PermittedTryContext()
+
+  case class ControlFlowException[EX](returnValue: Try[EX]) extends RuntimeException()
+  def permitTry[A](f: PermittedTryContext ?=> Try[A]): Try[A] = {
+    try{
+      f(using PermittedTryContext())
+    } catch {
+      case x: ControlFlowException[A] => x.returnValue
+      case throwable => throw throwable
     }
   }
-  implicit class TryQuestionMark[A](private val self: Try[A]) extends AnyVal {
 
-    /** See [[tryQuestionMarkOperator]] docs above */
-    def ? : A = macro tryQuestionMarkOperator
-  }
-
-  def optionQuestionMarkOperator(c: blackbox.Context): c.Tree = {
-    import c.universe._
-    c.prefix.tree match {
-      case q"$_[$tp]($self)" =>
-        q"""
-           $self match {
-             case Some(value) => value
-             case None        => return None
-           }
-           """
-      case _ => c.abort(c.enclosingPosition, "This is a bug with the optionQuestionMarkOperator macro")
-    }
-  }
-  implicit class OptionImplicit[T](private val self: Option[T]) extends AnyVal {
-    def ? : T = macro optionQuestionMarkOperator
-    def toTry(t: Throwable): Try[T] = {
+  implicit class ctxctx[A](self: Try[A]) {
+    def ?(using PermittedTryContext): A = {
       self match {
-        case Some(v) => Success(v)
-        case None    => Failure(t)
+        case Failure(ex) => throw new ControlFlowException[A](Failure(ex))
+        case Success(value) => value
       }
     }
   }
-
 }
