@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.model.domain
 
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
@@ -36,7 +36,8 @@ case class Concept(
     subjectIds: Set[String],
     articleIds: Seq[Long],
     status: Status,
-    visualElement: Seq[VisualElement]
+    visualElement: Seq[VisualElement],
+    responsible: Option[Responsible]
 ) {
 
   lazy val supportedLanguages: Set[String] =
@@ -76,7 +77,8 @@ trait DBConcept {
         meta.subjectIds,
         meta.articleIds,
         meta.status,
-        meta.visualElement
+        meta.visualElement,
+        meta.responsible
       )
     }
 

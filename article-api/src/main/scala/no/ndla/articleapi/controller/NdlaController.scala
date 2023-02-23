@@ -12,8 +12,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.{Error, ErrorHelpers, NotFoundException, ValidationError}
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.scalatra.NdlaControllerBase
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -30,13 +29,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      AuthUser.clear()
-      ApplicationUrl.clear()
     }
 
     override def ndlaErrorHandler: NdlaErrorHandler = {

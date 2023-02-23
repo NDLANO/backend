@@ -10,11 +10,10 @@ package no.ndla.searchapi.controller
 
 import enumeratum.Json4s
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
-import no.ndla.common.scalatra.NdlaControllerBase
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.network.scalatra.NdlaControllerBase
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{Error, ErrorHelpers, TaxonomyException}
@@ -47,13 +46,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      AuthUser.clear()
-      ApplicationUrl.clear()
     }
 
     import ErrorHelpers._

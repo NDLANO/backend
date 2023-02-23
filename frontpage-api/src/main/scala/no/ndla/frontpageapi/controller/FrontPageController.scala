@@ -23,11 +23,6 @@ trait FrontPageController {
   class FrontPageController() extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "frontpage"
 
-    private val errorOutputs = oneOf(
-      oneOfVariant(NotFoundError),
-      oneOfVariant(GenericError)
-    )
-
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
         .summary("Get data to display on the front page")

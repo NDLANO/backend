@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.{nestedField, _}
-import com.sksamuel.elastic4s.fields.ElasticField
+import com.sksamuel.elastic4s.fields.{ElasticField, ObjectField}
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
@@ -82,6 +82,13 @@ trait DraftConceptIndexService {
           keywordField("resource"),
           keywordField("id"),
           keywordField("language")
+        ),
+        ObjectField(
+          "responsible",
+          properties = Seq(
+            keywordField("responsibleId"),
+            dateField("lastUpdated")
+          )
         )
       )
       val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++

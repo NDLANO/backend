@@ -82,7 +82,6 @@ class DraftApiProperties extends BaseProps with StrictLogging {
   def ElasticSearchScrollKeepAlive         = "1m"
   def InitialScrollContextKeywords         = List("0", "initial", "start", "first")
 
-  def TaxonomyVersionIdKey  = "versionHash"
   def TaxonomyVersionHeader = "VersionHash"
 
   def AttachmentStorageName: String =

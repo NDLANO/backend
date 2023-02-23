@@ -9,8 +9,10 @@ package no.ndla.frontpageapi.service
 
 import cats.implicits._
 import no.ndla.common.errors.{NotFoundException, ValidationException}
+import no.ndla.common.implicits._
 import no.ndla.frontpageapi.model.api
 import no.ndla.frontpageapi.model.api.SubjectPageId
+import no.ndla.frontpageapi.model.domain.Errors.LanguageNotFoundException
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 
 import scala.util.{Failure, Success, Try}
@@ -32,14 +34,27 @@ trait ReadService {
         case None     => Failure(NotFoundException(s"Subject page with external id $nid was not found"))
       }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean = false): Try[api.SubjectPageData] =
-      subjectPageRepository
-        .withId(id)
-        .flatMap {
-          case None              => Failure(NotFoundException(s"Subject page with id $id was not found"))
-          case Some(subjectPage) => Success(subjectPage)
-        }
-        .flatMap(sub => ConverterService.toApiSubjectPage(sub, language, fallback))
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[api.SubjectPageData] = {
+      val maybeSubject = subjectPageRepository.withId(id).?
+      val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
+      converted.toTry(NotFoundException(s"Subject page with id $id was not found"))
+    }
+
+    def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[api.SubjectPageData]] = {
+      val offset    = pageSize * (page - 1)
+      val data      = subjectPageRepository.all(offset, pageSize).?
+      val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
+      val filtered  = filterOutNotFoundExceptions(converted)
+      filtered.sequence
+    }
+
+    private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
+      exceptions.filter {
+        case Failure(_: NotFoundException)         => false
+        case Failure(_: LanguageNotFoundException) => false
+        case _                                     => true
+      }
+    }
 
     def getSubjectPageByIds(
         subjectIds: List[Long],
@@ -53,8 +68,7 @@ trait ReadService {
         ids          <- validateSubjectPageIdsOrError(subjectIds)
         subjectPages <- subjectPageRepository.withIds(ids, offset, pageSize)
         api          <- subjectPages.traverse(subject => ConverterService.toApiSubjectPage(subject, language, fallback))
-        z            <- Failure(ValidationException("yes", "hehe"))
-      } yield z
+      } yield api
     }
 
     def frontPage: Option[api.FrontPageData] = {

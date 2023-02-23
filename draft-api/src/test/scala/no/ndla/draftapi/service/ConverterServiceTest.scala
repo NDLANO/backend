@@ -13,7 +13,7 @@ import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftResponsible, DraftStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus}
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
@@ -946,7 +946,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val existingNotes = Seq(EditorNote("swoop", "", Status(PLANNED, Set()), TestData.today))
 
-    val existingRepsonsible = DraftResponsible("oldId", TestData.today.minusDays(1))
+    val existingRepsonsible = Responsible("oldId", TestData.today.minusDays(1))
 
     val Success(res1) =
       service.toDomainArticle(
@@ -984,6 +984,51 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     res2.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
     res3.notes.map(_.note) should be(Seq("swoop", "fleibede"))
 
+  }
+
+  test("Changing responsible for article will update timestamp") {
+
+    val updatedArticle      = TestData.sampleApiUpdateArticle.copy(title = Some("kakemonster"))
+    val yesterday           = TestData.today.minusDays(1)
+    val existingRepsonsible = Responsible("oldId", yesterday)
+
+    val Success(res1) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+    val Success(res2) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = None),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("nyid"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+    val Success(res3) =
+      service.toDomainArticle(
+        TestData.sampleDomainArticle
+          .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
+        updatedArticle.copy(language = Some("nb"), responsibleId = Right(Some("oldId"))),
+        isImported = false,
+        TestData.userWithWriteAccess,
+        None,
+        None
+      )
+
+    res1.responsible.get.responsibleId should be("nyid")
+    res1.responsible.get.lastUpdated should not be (yesterday)
+    res2.responsible.get.responsibleId should be("nyid")
+    res2.responsible.get.lastUpdated should not be (yesterday)
+    res3.responsible.get.responsibleId should be("oldId")
+    res3.responsible.get.lastUpdated should be(yesterday)
   }
 
   test("that toArticleApiArticle transforms Draft to Article correctly") {

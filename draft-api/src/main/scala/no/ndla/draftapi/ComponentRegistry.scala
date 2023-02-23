@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
@@ -25,6 +24,7 @@ import no.ndla.draftapi.service._
 import no.ndla.draftapi.service.search._
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: DraftApiProperties)

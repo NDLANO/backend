@@ -170,7 +170,7 @@ trait StateTransitionRules {
       (PUBLISH_DELAYED       -> PUBLISHED)             require DirectPublishRoles withSideEffect publishArticle,
       (PUBLISH_DELAYED       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED),
       (PUBLISHED             -> IN_PROGRESS)           keepStates Set(PUBLISHED) keepCurrentOnTransition,
-      (PUBLISHED             -> UNPUBLISHED)           require DirectPublishRoles withSideEffect unpublishArticle,
+      (PUBLISHED             -> UNPUBLISHED)           keepStates Set.empty require DirectPublishRoles withSideEffect unpublishArticle,
       (PUBLISHED             -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle,
        UNPUBLISHED           -> UNPUBLISHED,
       (UNPUBLISHED           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation,
@@ -234,7 +234,7 @@ trait StateTransitionRules {
         isImported: Boolean
     ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
-      val requestInfo                     = RequestInfo()
+      val requestInfo                     = RequestInfo.fromThreadContext()
       IO {
         requestInfo.setRequestInfo()
         convertedArticle.flatMap(articleBeforeSideEffect => {

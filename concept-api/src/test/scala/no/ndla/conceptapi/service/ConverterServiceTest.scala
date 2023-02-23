@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
@@ -52,7 +53,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept("nb", Some("heisann"), None, Right(None), None, None, None, None, Some(Seq(42L)), None, None)
+      UpdatedConcept(
+        "nb",
+        Some("heisann"),
+        None,
+        Right(None),
+        None,
+        None,
+        None,
+        None,
+        Some(Seq(42L)),
+        None,
+        None,
+        Right(None)
+      )
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         title = Seq(
@@ -69,7 +83,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept("nn", None, Some("Nytt innhald"), Right(None), None, None, None, None, Some(Seq(42L)), None, None)
+      UpdatedConcept(
+        "nn",
+        None,
+        Some("Nytt innhald"),
+        Right(None),
+        None,
+        None,
+        None,
+        None,
+        Some(Seq(42L)),
+        None,
+        None,
+        Right(None)
+      )
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         content = Seq(
@@ -97,7 +124,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         None,
         Some(Seq(42L)),
         None,
-        None
+        None,
+        Right(None)
       )
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
@@ -142,7 +170,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       Some(Seq(42L)),
       None,
-      None
+      None,
+      Right(None)
     )
     converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
@@ -409,5 +438,35 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val dummy      = TestData.emptyApiNewConcept
 
     converterService.toDomainConcept(dummy, updateWith) should be(Success(afterUpdate))
+  }
+
+  test("toDomainConcept updates timestamp on responsible when id is changed") {
+    val updated = LocalDateTime.now()
+    when(clock.now()).thenReturn(updated)
+
+    val responsible    = Responsible("oldId", updated.minusDays(1))
+    val newResponsible = Responsible("newId", updated)
+
+    val withOldResponsible = TestData.domainConcept.copy(
+      responsible = Some(responsible),
+      updated = updated
+    )
+    val withNewResponsible = TestData.domainConcept.copy(
+      responsible = Some(newResponsible),
+      updated = updated
+    )
+    val withoutResponsible = TestData.domainConcept.copy(
+      updated = updated
+    )
+
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("newId")))
+    converterService.toDomainConcept(withOldResponsible, updateWith, userInfo) should be(withNewResponsible)
+
+    val updateWith2 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("oldId")))
+    converterService.toDomainConcept(withOldResponsible, updateWith2, userInfo) should be(withOldResponsible)
+
+    val updateWith3 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Left(null))
+    converterService.toDomainConcept(withOldResponsible, updateWith3, userInfo) should be(withoutResponsible)
+
   }
 }

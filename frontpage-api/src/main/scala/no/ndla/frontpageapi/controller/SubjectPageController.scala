@@ -10,6 +10,7 @@ package no.ndla.frontpageapi.controller
 import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api.{
   Error,
@@ -18,37 +19,22 @@ import no.ndla.frontpageapi.model.api.{
   SubjectPageData,
   UpdatedSubjectFrontPageData
 }
+import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.frontpageapi.Props
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 
-import scala.util.{Failure, Success, Try}
-
 trait SubjectPageController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
   val subjectPageController: SubjectPageController
 
+  import ErrorHelpers.handleErrorOrOkClass
+
   class SubjectPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
-
-    private val errorOutputs = oneOf[Error](
-      oneOfVariant(NotFoundError),
-      oneOfVariant(GenericError),
-      oneOfDefaultVariant(GenericError)
-    )
-
-    implicit class handleErrorOrOkClass[T](t: Try[T]) {
-      def handleErrorsOrOk: Either[Error, T] = {
-        t match {
-          case Success(value) => value.asRight
-          case Failure(ex)    => ErrorHelpers.returnError(ex).asLeft
-        }
-      }
-    }
 
     private def authenticatedOrError(maybeUser: Option[UserInfo]): Either[Error, UserInfo] =
       maybeUser match {
@@ -60,6 +46,19 @@ trait SubjectPageController {
     import UserInfo._
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
+        .summary("Fetch all subjectpages")
+        .in(query[Int]("page").default(1))
+        .in(query[Int]("page-size").default(props.DefaultPageSize))
+        .in(query[String]("language").default(props.DefaultLanguage))
+        .in(query[Boolean]("fallback").default(false))
+        .errorOut(errorOutputs)
+        .out(jsonBody[List[SubjectPageData]])
+        .serverLogicPure { case (page, pageSize, language, fallback) =>
+          readService
+            .subjectPages(page, pageSize, language, fallback)
+            .handleErrorsOrOk
+        },
+      endpoint.get
         .summary("Get data to display on a subject page")
         .in(path[Long]("subjectpage-id").description("The subjectpage id"))
         .in(query[String]("language").default(props.DefaultLanguage))
@@ -67,7 +66,9 @@ trait SubjectPageController {
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputs)
         .serverLogicPure { case (id, language, fallback) =>
-          readService.subjectPage(id, language, fallback).handleErrorsOrOk
+          readService
+            .subjectPage(id, language, fallback)
+            .handleErrorsOrOk
         },
       endpoint.get
         .summary("Fetch subject pages that matches ids parameter")
@@ -82,18 +83,25 @@ trait SubjectPageController {
         .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
           val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
           val parsedPage     = if (page < 1) 1 else page
-          readService.getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage).handleErrorsOrOk
+          readService
+            .getSubjectPageByIds(ids.values, language, fallback, parsedPageSize, parsedPage)
+            .handleErrorsOrOk
         },
       endpoint.post
         .summary("Create new subject page")
         .securityIn(auth.bearer[Option[UserInfo]]())
         .in(jsonBody[NewSubjectFrontPageData])
         .out(jsonBody[SubjectPageData])
-        .errorOut(
-          oneOf[Error](oneOfVariant(GenericError), oneOfVariant(ForbiddenError), oneOfVariant(UnprocessableEntityError))
-        )
+        .errorOut(errorOutputs)
         .serverSecurityLogicPure { maybeUser => authenticatedOrError(maybeUser) }
         .serverLogicPure { _ => newSubjectFrontPageData =>
+          {
+            writeService
+              .newSubjectPage(newSubjectFrontPageData)
+              .partialOverride { case ex: ValidationException =>
+                ErrorHelpers.unprocessableEntity(ex.getMessage)
+              }
+          }
           writeService.newSubjectPage(newSubjectFrontPageData).handleErrorsOrOk
         },
       endpoint.patch
@@ -104,14 +112,7 @@ trait SubjectPageController {
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
-        .errorOut(
-          oneOf[Error](
-            oneOfVariant(GenericError),
-            oneOfVariant(ForbiddenError),
-            oneOfVariant(UnprocessableEntityError),
-            oneOfVariant(NotFoundError)
-          )
-        )
+        .errorOut(errorOutputs)
         .serverSecurityLogicPure { maybeUser => authenticatedOrError(maybeUser) }
         .serverLogicPure { _ =>
           { case (subjectPage, id, language, fallback) =>

@@ -1,18 +1,18 @@
 /*
- * Part of NDLA common.
+ * Part of NDLA network.
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.common.scalatra
+package no.ndla.network.scalatra
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CorrelationID
 import no.ndla.common.RequestLogger.beforeRequestLogString
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.network.model.RequestInfo
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -34,7 +34,7 @@ trait NdlaControllerBase {
     def ndlaErrorHandler: NdlaErrorHandler
 
     before() {
-      CorrelationID.set(request)
+      RequestInfo.fromRequest(request).setRequestInfo()
 
       logger.info(
         beforeRequestLogString(request.getMethod, request.getRequestURI, request.queryString)

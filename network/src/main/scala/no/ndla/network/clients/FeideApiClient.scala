@@ -32,10 +32,17 @@ case class FeideExtendedUserInfo(
     eduPersonPrincipalName: String
 ) {
 
-  def isTeacher: Boolean = {
+  private def isStudentAffiliation: Boolean = this.eduPersonAffiliation.contains("student")
+  private def isTeacherAffiliation: Boolean = {
     this.eduPersonAffiliation.contains("staff") ||
     this.eduPersonAffiliation.contains("faculty") ||
     this.eduPersonAffiliation.contains("employee")
+  }
+
+  def isTeacher: Boolean = {
+    if (this.isStudentAffiliation) false
+    else if (this.isTeacherAffiliation) true
+    else false
   }
 
   def availabilities: Seq[Availability.Value] = {

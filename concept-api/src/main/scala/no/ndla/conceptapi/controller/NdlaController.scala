@@ -8,7 +8,6 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{
@@ -18,8 +17,9 @@ import no.ndla.conceptapi.model.api.{
   OperationNotAllowedException,
   ValidationError
 }
+import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -38,13 +38,6 @@ trait NdlaController {
 
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      AuthUser.clear()
-      ApplicationUrl.clear()
     }
 
     import ErrorHelpers._
@@ -100,8 +93,8 @@ trait NdlaController {
     protected val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
     protected val sort = Param[Option[String]](
       "sort",
-      """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+      s"""The sorting used on results.
+             The following are supported: ${Sort.values.mkString(",")}
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
@@ -134,7 +127,8 @@ trait NdlaController {
 
     protected val exactTitleMatch =
       Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
-
+    protected val responsibleIdFilter =
+      Param[Option[Seq[String]]]("responsible-ids", "List of responsible ids to filter by (OR filter)")
     def doOrAccessDenied(hasAccess: Boolean)(w: => Any): Any = {
       if (hasAccess) {
         w

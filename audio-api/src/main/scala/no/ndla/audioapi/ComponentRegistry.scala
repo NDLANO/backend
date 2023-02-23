@@ -23,12 +23,12 @@ import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
-import no.ndla.audioapi.service.search.{AudioIndexService, _}
+import no.ndla.audioapi.service.search._
 import no.ndla.audioapi.service._
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 
 class ComponentRegistry(properties: AudioApiProperties)

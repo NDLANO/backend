@@ -136,7 +136,7 @@ trait InternController {
     }
 
     post("/index/draft") {
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
       val draftIndex = Future {
         requestInfo.setRequestInfo()
         ("drafts", draftIndexService.indexDocuments())
@@ -146,7 +146,7 @@ trait InternController {
     }
 
     post("/index/article") {
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
       val articleIndex = Future {
         requestInfo.setRequestInfo()
         ("articles", articleIndexService.indexDocuments())
@@ -156,7 +156,7 @@ trait InternController {
     }
 
     post("/index/learningpath") {
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
       val learningPathIndex = Future {
         requestInfo.setRequestInfo()
         ("learningpaths", learningPathIndexService.indexDocuments())
@@ -177,7 +177,7 @@ trait InternController {
       bundles match {
         case Failure(ex) => errorHandler(ex)
         case Success((taxonomyBundle, grepBundle)) =>
-          val requestInfo = RequestInfo()
+          val requestInfo = RequestInfo.fromThreadContext()
           val indexes = List(
             Future {
               requestInfo.setRequestInfo()

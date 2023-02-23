@@ -10,21 +10,19 @@ package no.ndla.searchapi.integration
 import com.typesafe.scalalogging.StrictLogging
 import enumeratum.Json4s
 import io.lemonlabs.uri.typesafe.dsl._
-import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionStatus}
 import no.ndla.common.model.domain.learningpath.EmbedType
+import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ApiSearchException
-import no.ndla.searchapi.model.domain.LearningResourceType
 import no.ndla.searchapi.model.domain.learningpath._
-import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, SearchParams}
+import no.ndla.searchapi.model.domain.{ApiSearchResults, DomainDumpResults, LearningResourceType, SearchParams}
 import org.json4s.Formats
 import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
 import sttp.client3.quick._
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.math.ceil
@@ -51,9 +49,8 @@ trait SearchApiClient {
       }
     }
 
-    def getChunks[T](implicit mf: Manifest[T], ec: ExecutionContext): Iterator[Future[Try[Seq[T]]]] = {
-      val fut     = getChunk(0, 0)
-      val initial = Await.result(fut, 10.minutes)
+    def getChunks[T](implicit mf: Manifest[T]): Iterator[Try[Seq[T]]] = {
+      val initial = getChunk(0, 0)
 
       initial match {
         case Success(initSearch) =>
@@ -62,38 +59,33 @@ trait SearchApiClient {
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
           val pages    = Seq.range(1, numPages + 1)
 
-          val iterator: Iterator[Future[Try[Seq[T]]]] = pages.iterator.map(p => {
-            getChunk[T](p, pageSize).map(_.map(_.results))
+          val iterator: Iterator[Try[Seq[T]]] = pages.iterator.map(p => {
+            getChunk[T](p, pageSize).map(_.results)
           })
 
           iterator
         case Failure(ex) =>
           logger.error(s"Could not fetch initial chunk from $baseUrl/$dumpDomainPath")
-          Iterator(Future(Failure(ex)))
+          Iterator(Failure(ex))
       }
     }
 
-    private def getChunk[T](page: Int, pageSize: Int)(implicit
-        mf: Manifest[T],
-        ec: ExecutionContext
-    ): Future[Try[DomainDumpResults[T]]] = {
+    private def getChunk[T](page: Int, pageSize: Int)(implicit mf: Manifest[T]): Try[DomainDumpResults[T]] = {
       val params = Map(
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
       )
-      val reqs = RequestInfo()
-      Future {
-        reqs.setRequestInfo()
-        get[DomainDumpResults[T]](dumpDomainPath, params, timeout = 120000) match {
-          case Success(result) =>
-            logger.info(s"Fetched chunk of ${result.results.size} $name from ${baseUrl.addParams(params)}")
-            Success(result)
-          case Failure(ex) =>
-            logger.error(
-              s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
-            )
-            Failure(ex)
-        }
+      val reqs = RequestInfo.fromThreadContext()
+      reqs.setRequestInfo()
+      get[DomainDumpResults[T]](dumpDomainPath, params, timeout = 120000) match {
+        case Success(result) =>
+          logger.info(s"Fetched chunk of ${result.results.size} $name from ${baseUrl.addParams(params)}")
+          Success(result)
+        case Failure(ex) =>
+          logger.error(
+            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
+          )
+          Failure(ex)
       }
     }
 
@@ -114,7 +106,8 @@ trait SearchApiClient {
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +
           Json4s.serializer(RevisionStatus)
-      val request = quickRequest.get(uri"$baseUrl/$path?$params").readTimeout(timeout.millis)
+      val url     = s"$baseUrl/$path"
+      val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
       ndlaClient.fetchWithForwardedAuth[T](request)
     }
 

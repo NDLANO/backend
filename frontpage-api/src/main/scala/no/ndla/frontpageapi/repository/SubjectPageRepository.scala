@@ -53,6 +53,25 @@ trait SubjectPageRepository {
         .map(_ => subj)
     }
 
+    def all(offset: Int, limit: Int)(implicit
+        session: DBSession = ReadOnlyAutoSession
+    ): Try[List[SubjectFrontPageData]] = {
+      val su = DBSubjectFrontPageData.syntax("su")
+      Try {
+        sql"""
+            select ${su.result.*}
+            from ${DBSubjectFrontPageData.as(su)}
+            where su.document is not null
+            order by su.id
+            offset $offset
+            limit $limit
+         """
+          .map(DBSubjectFrontPageData.fromDb(su))
+          .list()
+          .sequence
+      }.flatten
+    }
+
     def withId(subjectId: Long): Try[Option[SubjectFrontPageData]] =
       subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 

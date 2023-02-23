@@ -9,7 +9,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.scalatra.NdlaScalatraServer
+import no.ndla.network.scalatra.NdlaScalatraServer
 import org.eclipse.jetty.server.Server
 
 class MainClass(props: ArticleApiProperties) extends StrictLogging {

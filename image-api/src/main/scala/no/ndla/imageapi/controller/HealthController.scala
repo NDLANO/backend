@@ -8,24 +8,14 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.scalatra.BaseHealthController
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.network.ApplicationUrl
+import no.ndla.network.scalatra.BaseHealthController
 
 trait HealthController {
   this: ImageRepository with Props =>
   val healthController: HealthController
 
-  class HealthController extends BaseHealthController {
-
-    before() {
-      ApplicationUrl.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
-    }
-  }
+  class HealthController extends BaseHealthController {}
 
 }

@@ -11,7 +11,6 @@ package no.ndla.imageapi
 import com.amazonaws.services.s3.AmazonS3
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.imageapi.auth.{Role, User}
 import no.ndla.imageapi.controller.{
   BaseImageController,
@@ -37,6 +36,7 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 

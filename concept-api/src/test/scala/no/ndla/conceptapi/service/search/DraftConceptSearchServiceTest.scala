@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
@@ -131,7 +131,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     copyright = Some(byNcSa),
     title = List(Title("Yggdrasil livets tre", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    updatedBy = Seq("Test1", "test1")
+    updatedBy = Seq("Test1", "test1"),
+    responsible = Some(Responsible("test2", TestData.yesterday.minusDays(1)))
   )
 
   val concept8: Concept = TestData.sampleConcept.copy(
@@ -140,7 +141,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(Title("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     subjectIds = Set("urn:subject:10"),
-    status = Status(current = ConceptStatus.END_CONTROL, other = Set.empty)
+    status = Status(current = ConceptStatus.END_CONTROL, other = Set.empty),
+    responsible = Some(Responsible("test1", TestData.yesterday))
   )
 
   val concept9: Concept = TestData.sampleConcept.copy(
@@ -151,7 +153,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     subjectIds = Set("urn:subject:1", "urn:subject:100"),
     status = Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
-    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en"))
+    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
+    responsible = Some(Responsible("test1", today))
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -200,7 +203,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     userFilter = Seq.empty,
     shouldScroll = false,
     embedResource = None,
-    embedId = None
+    embedId = None,
+    responsibleIdFilter = List.empty
   )
 
   override def beforeAll(): Unit = {
@@ -528,6 +532,34 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     search.totalCount should be(2)
     search.results.map(_.id) should be(Seq(9, 10))
+  }
+
+  test("that filtering with responsible id should work as expected") {
+    draftConceptSearchService.all(searchSettings.copy(responsibleIdFilter = List.empty)).get.results.size should be(10)
+    draftConceptSearchService
+      .all(searchSettings.copy(responsibleIdFilter = List("test1", "test2")))
+      .get
+      .results
+      .map(_.id) should be(Seq(7, 8, 9))
+    draftConceptSearchService
+      .all(searchSettings.copy(responsibleIdFilter = List("test1")))
+      .get
+      .results
+      .map(_.id) should be(Seq(8, 9))
+  }
+
+  test("that sorting responsible with lastUpdated should work as expected") {
+    draftConceptSearchService
+      .all(searchSettings.copy(responsibleIdFilter = List("test1", "test2"), sort = Sort.ByResponsibleLastUpdatedAsc))
+      .get
+      .results
+      .map(_.id) should be(Seq(7, 8, 9))
+    draftConceptSearchService
+      .all(searchSettings.copy(responsibleIdFilter = List("test1", "test2"), sort = Sort.ByResponsibleLastUpdatedDesc))
+      .get
+      .results
+      .map(_.id) should be(Seq(9, 8, 7))
+
   }
 
   test("that filtering for tags works as expected") {

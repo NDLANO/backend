@@ -8,8 +8,8 @@
 
 package no.ndla.oembedproxy
 
-import no.ndla.common.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.network.NdlaClient
+import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers

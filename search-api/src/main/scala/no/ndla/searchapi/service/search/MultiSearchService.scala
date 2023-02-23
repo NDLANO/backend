@@ -198,7 +198,7 @@ trait MultiSearchService {
       val threadPoolSize = if (searchIndex.nonEmpty) searchIndex.size else 1
       implicit val ec: ExecutionContextExecutor =
         ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threadPoolSize))
-      val requestInfo = RequestInfo()
+      val requestInfo = RequestInfo.fromThreadContext()
 
       val articleFuture = Future {
         requestInfo.setRequestInfo()

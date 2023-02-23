@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
@@ -21,6 +20,7 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger._

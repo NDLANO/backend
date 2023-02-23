@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.scalatra.NdlaScalatraBootstrapBase
-
+import no.ndla.network.scalatra.NdlaScalatraBootstrapBase
 import javax.servlet.ServletContext
 
 class ScalatraBootstrap extends NdlaScalatraBootstrapBase[ComponentRegistry] {

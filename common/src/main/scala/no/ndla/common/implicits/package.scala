@@ -40,6 +40,8 @@ package object implicits {
     }
   }
   implicit class TryQuestionMark[A](private val self: Try[A]) extends AnyVal {
+
+    /** See [[tryQuestionMarkOperator]] docs above */
     def ? : A = macro tryQuestionMarkOperator
   }
 

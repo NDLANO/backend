@@ -9,13 +9,12 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.scalatra.NdlaSwaggerSupport
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.integration.DataSource
 import no.ndla.imageapi.model._
 import no.ndla.imageapi.model.api.{Error, ErrorHelpers, ValidationError}
 import no.ndla.imageapi.model.domain.ImageStream
-import no.ndla.network.{ApplicationUrl, AuthUser}
+import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 import org.scalatra._
@@ -27,13 +26,6 @@ trait NdlaController {
   abstract class NdlaController extends NdlaSwaggerSupport {
     before() {
       contentType = formats("json")
-      ApplicationUrl.set(request)
-      AuthUser.set(request)
-    }
-
-    after() {
-      ApplicationUrl.clear()
-      AuthUser.clear()
     }
 
     import ErrorHelpers._

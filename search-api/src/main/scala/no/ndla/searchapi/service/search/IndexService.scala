@@ -24,9 +24,6 @@ import no.ndla.searchapi.model.domain.ReindexResult
 import no.ndla.searchapi.model.grep.GrepBundle
 import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
-import java.util.concurrent.Executors
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
@@ -132,27 +129,19 @@ trait IndexService {
         taxonomyBundle: TaxonomyBundle,
         grepBundle: GrepBundle
     )(implicit mf: Manifest[D]): Try[(Int, Int)] = {
-      implicit val executionContext: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(3))
 
-      val stream = apiClient.getChunks[D]
-      val futures = stream
-        .map(_.flatMap {
-          case Failure(ex) => Future.successful(Failure(ex))
+      val chunks = apiClient.getChunks[D]
+      val results = chunks
+        .map({
+          case Failure(ex) => Failure(ex)
           case Success(c) =>
-            indexDocuments(c, indexName, taxonomyBundle, grepBundle).map(numIndexed =>
-              Success((numIndexed.getOrElse(0), c.size))
-            )
-
+            indexDocuments(c, indexName, taxonomyBundle, grepBundle).map(numIndexed => (numIndexed, c.size))
         })
         .toList
 
-      val chunks = Await.result(Future.sequence(futures), Duration.Inf)
-      executionContext.shutdown()
-
-      chunks.collect { case Failure(ex) => Failure(ex) } match {
+      results.collect { case Failure(ex) => Failure(ex) } match {
         case Nil =>
-          val successfulChunks = chunks.collect { case Success((chunkIndexed, chunkSize)) =>
+          val successfulChunks = results.collect { case Success((chunkIndexed, chunkSize)) =>
             (chunkIndexed, chunkSize)
           }
 
@@ -168,11 +157,14 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[D], indexName: String, taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(
-        implicit ec: ExecutionContext
-    ): Future[Try[Int]] = {
+    def indexDocuments(
+        contents: Seq[D],
+        indexName: String,
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: GrepBundle
+    ): Try[Int] = {
       if (contents.isEmpty) {
-        Future.successful { Success(0) }
+        Success(0)
       } else {
         val req = contents.map(content => {
           createIndexRequest(content, indexName, Some(taxonomyBundle), Some(grepBundle))
@@ -180,25 +172,23 @@ trait IndexService {
         val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
         val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
-        Future {
-          if (indexRequests.nonEmpty) {
-            val response = e4sClient.execute {
-              bulk(indexRequests)
-            }
-
-            response match {
-              case Success(r) =>
-                val numFailed = r.result.failures.size + failedToCreateRequests.size
-                logger.info(s"Indexed ${contents.size} documents ($documentType). No of failed items: $numFailed")
-                Success(contents.size - numFailed)
-              case Failure(ex) =>
-                logger.error(s"Failed to index ${contents.size} documents ($documentType): ${ex.getMessage}", ex)
-                Failure(ex)
-            }
-          } else {
-            logger.error(s"All ${contents.size} requests failed to be created.")
-            Failure(ElasticIndexingException("No indexReqeusts were created successfully."))
+        if (indexRequests.nonEmpty) {
+          val response = e4sClient.execute {
+            bulk(indexRequests)
           }
+
+          response match {
+            case Success(r) =>
+              val numFailed = r.result.failures.size + failedToCreateRequests.size
+              logger.info(s"Indexed ${contents.size} documents ($documentType). No of failed items: $numFailed")
+              Success(contents.size - numFailed)
+            case Failure(ex) =>
+              logger.error(s"Failed to index ${contents.size} documents ($documentType): ${ex.getMessage}", ex)
+              Failure(ex)
+          }
+        } else {
+          logger.error(s"All ${contents.size} requests failed to be created.")
+          Failure(ElasticIndexingException("No indexReqeusts were created successfully."))
         }
       }
     }

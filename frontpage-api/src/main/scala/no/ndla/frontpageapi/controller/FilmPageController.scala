@@ -8,21 +8,21 @@ package no.ndla.frontpageapi.controller
 
 import cats.effect.IO
 import cats.implicits._
+import io.circe.generic.auto._
+import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api._
+import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import io.circe.generic.auto._
-import no.ndla.frontpageapi.auth.UserInfo
-import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
-
-import scala.util.{Failure, Success}
 
 trait FilmPageController {
   this: ReadService with WriteService with ErrorHelpers with Service =>
   val filmPageController: FilmPageController
+
+  import ErrorHelpers.handleErrorOrOkClass
 
   class FilmPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "filmfrontpage"
@@ -31,7 +31,7 @@ trait FilmPageController {
         .summary("Get data to display on the film front page")
         .in(query[Option[String]]("language"))
         .out(jsonBody[FilmFrontPageData])
-        .errorOut(oneOf(oneOfVariant(GenericError), oneOfVariant(NotFoundError)))
+        .errorOut(errorOutputs)
         .serverLogicPure { language =>
           readService.filmFrontPage(language) match {
             case Some(s) => s.asRight
@@ -40,14 +40,7 @@ trait FilmPageController {
         },
       endpoint.post
         .summary("Update film front page")
-        .errorOut(
-          oneOf(
-            oneOfVariant(GenericError),
-            oneOfVariant(UnprocessableEntityError),
-            oneOfVariant(ForbiddenError),
-            oneOfVariant(UnauthorizedError)
-          )
-        )
+        .errorOut(errorOutputs)
         .in(jsonBody[NewOrUpdatedFilmFrontPageData])
         .out(jsonBody[FilmFrontPageData])
         .securityIn(auth.bearer[Option[UserInfo]]())
@@ -57,11 +50,8 @@ trait FilmPageController {
           case None                        => ErrorHelpers.unauthorized.asLeft
         }
         .serverLogicPure { _ => filmFrontPage =>
-          writeService.updateFilmFrontPage(filmFrontPage) match {
-            case Success(s) => s.asRight
-            case Failure(ex: ValidationException) =>
-              ErrorHelpers.unprocessableEntity(ex.getMessage).asLeft
-            case Failure(_) => ErrorHelpers.generic.asLeft
+          writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
+            ErrorHelpers.unprocessableEntity(ex.getMessage)
           }
         }
     )
