@@ -258,6 +258,28 @@ trait ImageControllerV3 {
     }
 
     get(
+      "/ids/",
+      operation(
+        apiOperation[List[ImageMetaInformationV3]]("getImagesByIds")
+          .summary("Fetch images that matches ids parameter.")
+          .description("Fetch images that matches ids parameter.")
+          .parameters(
+            asQueryParam(imageIds),
+            asQueryParam(language)
+          )
+          .responseMessages(response500)
+      )
+    ) {
+      val imageIds = paramAsListOfLong(this.imageIds.paramName)
+      val language = paramOrNone(this.language.paramName)
+
+      readService.getImagesByIdsV3(imageIds, language) match {
+        case Success(images) => Ok(images)
+        case Failure(ex)     => errorHandler(ex)
+      }
+    }
+
+    get(
       "/external_id/:external_id",
       operation(
         apiOperation[ImageMetaInformationV3]("findImageByExternalIdV3")

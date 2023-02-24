@@ -40,6 +40,12 @@ trait ImageRepository {
       }
     }
 
+    def withIds(ids: List[Long]): List[ImageMetaInformation] = {
+      DB readOnly { implicit session =>
+        imageMetaInformationsWhere(sqls"im.id in ($ids)")
+      }
+    }
+
     def withExternalId(externalId: String): Option[ImageMetaInformation] = {
       DB readOnly { implicit session =>
         imageMetaInformationWhere(sqls"im.external_id = $externalId")
