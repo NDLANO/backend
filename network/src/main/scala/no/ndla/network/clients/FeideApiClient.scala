@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.model.{FeideAccessToken, FeideID, HttpRequestException, NdlaRequest}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.errors.AccessDeniedException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits._
 import org.json4s.native.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import sttp.client3.Response
@@ -170,7 +170,7 @@ trait FeideApiClient {
       } yield feideId
     }
 
-    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = {
+    def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = permitTry {
       val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
       val feideExtendedUser = (maybeFeideUser match {
@@ -180,7 +180,7 @@ trait FeideApiClient {
       redisClient.updateCacheAndReturnFeideUser(accessToken, feideExtendedUser)
     }
 
-    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = {
+    def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
       val organization = (maybeOrganization match {

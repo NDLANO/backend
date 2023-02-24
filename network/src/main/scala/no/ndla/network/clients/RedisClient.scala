@@ -8,7 +8,7 @@
 package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits._
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization._
@@ -28,7 +28,7 @@ trait RedisClient {
     val feideUserField  = "feideUser"
     val feideGroupField = "feideGroup"
 
-    private def getKeyExpireTime(key: String): Try[Long] = {
+    private def getKeyExpireTime(key: String): Try[Long] = permitTry {
       val existingExpireTime = jedis.ttl(key).?
       val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
       Success(newExpireTime)
