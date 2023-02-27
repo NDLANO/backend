@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.oembedproxy.Props
+import no.ndla.oembedproxy.{OEmbedProxyProperties, Props}
 import no.ndla.oembedproxy.model.DoNotUpdateMemoizeException
 
 class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefreshCache: Boolean)
@@ -57,8 +57,8 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
     }
   }
 }
-trait MemoizeHelpers {
-  this: Props =>
+
+class MemoizeHelpers(using props: OEmbedProxyProperties) {
   import props.{ProviderListRetryTimeInMs, ProviderListCacheAgeInMs}
 
   object Memoize {

@@ -17,10 +17,7 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
   }
 }
 
-trait OEmbedProxyInfo {
-  this: Props =>
-
-  object OEmbedProxyInfo {
+  class OEmbedProxyInfo(props: OEmbedProxyProperties) {
 
     val contactInfo: ContactInfo = ContactInfo(
       props.ContactName,
@@ -42,9 +39,8 @@ trait OEmbedProxyInfo {
     )
   }
 
-  class OEmbedSwagger extends Swagger("2.0", "1.0", OEmbedProxyInfo.apiInfo) {
-    addAuthorization(
-      OAuth(List(), List(ImplicitGrant(LoginEndpoint(props.Auth0LoginEndpoint), "access_token")))
-    )
-  }
+class OEmbedSwagger(using props: OEmbedProxyProperties) extends Swagger("2.0", "1.0", new OEmbedProxyInfo(props).apiInfo) {
+  addAuthorization(
+    OAuth(List(), List(ImplicitGrant(LoginEndpoint(props.Auth0LoginEndpoint), "access_token")))
+  )
 }
