@@ -3,11 +3,11 @@ import sbt.Keys._
 import sbt._
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
 import sbtassembly._
-//import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
-//  typescriptExports,
-//  typescriptGenerationImports,
-//  typescriptOutputFile
-//}
+import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
+  typescriptExports,
+  typescriptGenerationImports,
+  typescriptOutputFile
+}
 import com.typesafe.sbt.SbtGit.git
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbtassembly.AssemblyKeys._
@@ -173,9 +173,9 @@ trait Module {
 
   protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
     Seq(
-//      typescriptGenerationImports := imports,
-//      typescriptExports           := exports,
-//      typescriptOutputFile        := baseDirectory.value / "typescript" / "index.ts"
+      typescriptGenerationImports := imports,
+      typescriptExports           := exports,
+      typescriptOutputFile        := baseDirectory.value / "typescript" / "index.ts"
     )
   }
 }

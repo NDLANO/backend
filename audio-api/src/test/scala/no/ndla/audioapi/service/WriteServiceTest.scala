@@ -108,20 +108,20 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
     when(fileMock1.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
-    when(fileMock1.size).thenReturn(1024)
+    when(fileMock1.size).thenReturn(1024L)
     when(fileMock1.name).thenReturn("test.mp3")
 
     when(fileMock2.getContentType).thenReturn(Some("audio/mp3"))
     when(fileMock2.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
-    when(fileMock2.size).thenReturn(2048)
+    when(fileMock2.size).thenReturn(2048L)
     when(fileMock2.name).thenReturn("test2.mp3")
 
-    when(s3ObjectMock.getContentLength).thenReturn(1024)
+    when(s3ObjectMock.getContentLength).thenReturn(1024L)
     when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
 
     reset(audioRepository, audioIndexService, tagIndexService, audioStorage)
     when(audioRepository.insert(any[domain.AudioMetaInformation])(any[DBSession]))
-      .thenReturn(domainAudioMeta.copy(id = Some(1), revision = Some(1)))
+      .thenReturn(domainAudioMeta.copy(id = Some(1L), revision = Some(1)))
   }
 
   test("converter to domain should set updatedBy from authUser and updated date") {
@@ -790,8 +790,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val episodesMap = Map(
-      1L -> TestData.samplePodcast.copy(id = Some(1)),
-      2L -> TestData.samplePodcast.copy(id = Some(2))
+      1L -> TestData.samplePodcast.copy(id = Some(1L)),
+      2L -> TestData.samplePodcast.copy(id = Some(2L))
     )
 
     val series = TestData.SampleSeries
@@ -828,7 +828,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.isSuccess should be(true)
 
     verify(audioRepository, times(1)).setSeriesId(eqTo(1L), eqTo(None))(any[DBSession])
-    verify(audioRepository, times(1)).setSeriesId(eqTo(2L), eqTo(Some(1)))(any[DBSession])
+    verify(audioRepository, times(1)).setSeriesId(eqTo(2L), eqTo(Some(1L)))(any[DBSession])
   }
 
   test("That successful updating doesnt update existing episodes") {

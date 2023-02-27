@@ -9,7 +9,7 @@ object searchapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.searchapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-//      scalaTsi,
+      scalaTsi,
       scalaUri,
       enumeratum,
       "org.jsoup"           % "jsoup"                           % JsoupV,

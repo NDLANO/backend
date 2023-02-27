@@ -10,7 +10,7 @@ object conceptapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-//      scalaTsi,
+      scalaTsi,
       scalaUri,
       enumeratum,
       "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV  % "container;compile",

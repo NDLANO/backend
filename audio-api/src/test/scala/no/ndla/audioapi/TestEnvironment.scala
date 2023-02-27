@@ -102,7 +102,7 @@ trait TestEnvironment
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
   val clock: SystemClock = mock[SystemClock]
-  val authUser: AuthUser = mock[AuthUser]
+  val authUser: AuthUserC = mock[AuthUserC]
   val authRole           = new AuthRole
 
 }

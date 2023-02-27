@@ -7,19 +7,20 @@
 
 package no.ndla.audioapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
+import no.ndla.search.BaseIndexService
 import org.json4s.native.Serialization.write
 
 import scala.util.{Success, Try}
 
 trait TagIndexService {
-  this: SearchConverterService with IndexService with AudioRepository with Props =>
+  this: SearchConverterService with IndexService with AudioRepository with Props with BaseIndexService =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends StrictLogging with IndexService[AudioMetaInformation, SearchableTag] {

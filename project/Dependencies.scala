@@ -18,7 +18,7 @@ object Dependencies {
     val JettyV                = "9.4.48.v20220622"
     val AwsSdkV               = "1.12.276"
     val MockitoV              = "1.17.12"
-    val Elastic4sV            = "8.5.0"
+    val Elastic4sV            = "8.5.3"
     val JacksonV              = "2.14.1"
     val CatsEffectV           = "3.4.8"
     val ElasticsearchV        = "7.16.2"

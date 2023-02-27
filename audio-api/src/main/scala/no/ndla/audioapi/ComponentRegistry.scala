@@ -116,7 +116,7 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val tagSearchService       = new TagSearchService
 
   lazy val authRole = new AuthRole
-  lazy val authUser = new AuthUser
+  lazy val authUser = new AuthUserC
   lazy val clock    = new SystemClock
 
 }

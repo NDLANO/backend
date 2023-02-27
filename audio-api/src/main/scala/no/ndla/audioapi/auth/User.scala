@@ -12,9 +12,9 @@ import no.ndla.network.AuthUser
 
 trait User {
 
-  val authUser: AuthUser
+  val authUser: AuthUserC
 
-  class AuthUser {
+  class AuthUserC {
     def assertHasId(): Unit = userOrClientid()
 
     def userOrClientid(): String = {

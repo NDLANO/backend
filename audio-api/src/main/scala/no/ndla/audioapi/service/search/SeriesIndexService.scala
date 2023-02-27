@@ -9,7 +9,7 @@
 package no.ndla.audioapi.service.search
 
 import com.sksamuel.elastic4s.fields.ElasticField
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.sksamuel.elastic4s.requests.mappings.dynamictemplate.DynamicTemplateRequest
@@ -18,13 +18,18 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
 
 trait SeriesIndexService {
-  this: Elastic4sClient with SearchConverterService with IndexService with SeriesRepository with Props =>
+  this: Elastic4sClient
+    with SearchConverterService
+    with IndexService
+    with SeriesRepository
+    with Props
+    with BaseIndexService =>
 
   val seriesIndexService: SeriesIndexService
 

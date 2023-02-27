@@ -9,7 +9,7 @@ object articleapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.articleapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-//      scalaTsi,
+      scalaTsi,
       scalaUri,
       enumeratum,
       sttp,
