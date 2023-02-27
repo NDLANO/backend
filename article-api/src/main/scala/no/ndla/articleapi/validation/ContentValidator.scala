@@ -9,7 +9,8 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.integration.DraftApiClient
+import no.ndla.articleapi.integration.{DataSource, DraftApiClient}
+import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{
@@ -25,6 +26,7 @@ import no.ndla.common.model.domain.{
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.NdlaClient
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
@@ -34,7 +36,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: DraftApiClient with ArticleRepository with Props =>
+  this: DraftApiClient with ArticleRepository with Props with NdlaClient with DBArticle with DataSource =>
   val contentValidator: ContentValidator
 
   class ContentValidator() {

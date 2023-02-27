@@ -9,6 +9,7 @@
 package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleRow, DBArticle}
@@ -16,12 +17,12 @@ import no.ndla.common.model.domain.article.Article
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc._
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
-  this: DataSource with DBArticle =>
+  this: DataSource with DBArticle with Props =>
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging with Repository[Article] {

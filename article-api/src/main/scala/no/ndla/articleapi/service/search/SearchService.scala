@@ -8,23 +8,36 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.integration.{DataSource, DraftApiClient}
+import no.ndla.common.Clock
+import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
+import no.ndla.network.NdlaClient
 import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
 
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService {
-  this: Elastic4sClient with ConverterService with StrictLogging with Props =>
+  this: Elastic4sClient
+    with ConverterService
+    with StrictLogging
+    with Props
+    with Clock
+    with ArticleRepository
+    with DraftApiClient
+    with NdlaClient
+    with DBArticle
+    with DataSource =>
 
   trait SearchService[T] {
     val searchIndex: String
