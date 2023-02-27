@@ -30,7 +30,7 @@ import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
 
 import java.time.LocalDateTime
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {

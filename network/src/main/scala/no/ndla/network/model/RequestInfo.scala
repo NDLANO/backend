@@ -8,14 +8,14 @@
 package no.ndla.network.model
 
 import no.ndla.common.CorrelationID
-import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
+import no.ndla.network.{ApplicationUrl, AuthUser, AuthUserObj, TaxonomyData}
 
 import javax.servlet.http.HttpServletRequest
 
 /** Helper class to help keep Thread specific request information in futures. */
 case class RequestInfo(
     correlationId: Option[String],
-    authUser: AuthUser,
+    authUser: AuthUserObj,
     taxonomyVersion: String,
     applicationUrl: String
 ) {

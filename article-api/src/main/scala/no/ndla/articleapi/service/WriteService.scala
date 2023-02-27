@@ -9,7 +9,6 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
@@ -26,7 +25,6 @@ trait WriteService {
     with ConverterService
     with ContentValidator
     with ArticleIndexService
-    with User
     with ReadService
     with SearchApiClient =>
   val writeService: WriteService

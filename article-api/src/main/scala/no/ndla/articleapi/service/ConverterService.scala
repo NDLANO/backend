@@ -11,7 +11,6 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain._
@@ -49,7 +48,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ArticleRepository with DraftApiClient with User with Props =>
+  this: Clock with ArticleRepository with DraftApiClient with Props =>
   val converterService: ConverterService
 
   import props._

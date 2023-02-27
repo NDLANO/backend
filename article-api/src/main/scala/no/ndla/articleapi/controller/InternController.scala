@@ -9,7 +9,7 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api.PartialPublishArticle
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.articleapi.repository.ArticleRepository
@@ -33,7 +33,6 @@ trait InternController {
     with ArticleRepository
     with IndexService
     with ArticleIndexService
-    with User
     with Role
     with ContentValidator
     with Props

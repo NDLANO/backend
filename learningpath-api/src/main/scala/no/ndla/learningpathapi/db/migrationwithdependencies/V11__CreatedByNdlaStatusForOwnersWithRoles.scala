@@ -19,7 +19,7 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import sttp.client3.quick._
-import scalikejdbc.{DB, DBSession, _}
+import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 

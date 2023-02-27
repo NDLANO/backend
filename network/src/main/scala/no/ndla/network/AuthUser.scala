@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest
 import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.NdlaHttpRequest
 
-case class AuthUser(
+case class AuthUserObj(
     userId: Option[String],
     userRoles: List[String],
     userName: Option[String],
@@ -45,10 +45,10 @@ object AuthUser {
   private val clientId   = ThreadLocal.withInitial[Option[String]](() => None)
   private val authHeader = ThreadLocal.withInitial[Option[String]](() => None)
 
-  def fromRequest(request: HttpServletRequest): AuthUser = fromRequest(NdlaHttpRequest(request))
-  def fromRequest(request: NdlaHttpRequest): AuthUser = {
+  def fromRequest(request: HttpServletRequest): AuthUserObj = fromRequest(NdlaHttpRequest(request))
+  def fromRequest(request: NdlaHttpRequest): AuthUserObj = {
     val jWTExtractor = JWTExtractor(request)
-    new AuthUser(
+    new AuthUserObj(
       userId = jWTExtractor.extractUserId(),
       userRoles = jWTExtractor.extractUserRoles(),
       userName = jWTExtractor.extractUserName(),
@@ -56,8 +56,8 @@ object AuthUser {
       authHeader = request.getHeader("Authorization")
     )
   }
-  def fromThreadContext(): AuthUser = {
-    new AuthUser(
+  def fromThreadContext(): AuthUserObj = {
+    new AuthUserObj(
       userId = AuthUser.get,
       userRoles = AuthUser.getRoles,
       userName = AuthUser.getName,
@@ -69,11 +69,11 @@ object AuthUser {
   def set(request: HttpServletRequest): Unit = set(NdlaHttpRequest(request))
   def set(request: NdlaHttpRequest): Unit    = fromRequest(request).setThreadContext()
 
-  private def setId(user: String): Unit           = userId.set(Option(user))
-  private def setRoles(roles: List[String]): Unit = userRoles.set(roles)
-  private def setName(name: String): Unit         = userName.set(Option(name))
-  private def setClientId(client: String): Unit   = clientId.set(Option(client))
-  def setHeader(header: String): Unit             = authHeader.set(Option(header))
+  def setId(user: String): Unit           = userId.set(Option(user))
+  def setRoles(roles: List[String]): Unit = userRoles.set(roles)
+  def setName(name: String): Unit         = userName.set(Option(name))
+  def setClientId(client: String): Unit   = clientId.set(Option(client))
+  def setHeader(header: String): Unit     = authHeader.set(Option(header))
 
   def get: Option[String]         = userId.get
   def getRoles: List[String]      = userRoles.get

@@ -57,9 +57,8 @@ trait Module {
     scalaVersion        := sVersion,
     javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
-      "-explain",
       "-unchecked",
-      "-deprecation",
+      // "-deprecation",
       "-feature"
     ),
     javaOptions ++= reflectiveAccessOptions,
