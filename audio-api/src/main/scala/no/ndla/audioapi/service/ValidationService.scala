@@ -11,9 +11,9 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DraftApiClient
-import no.ndla.audioapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense

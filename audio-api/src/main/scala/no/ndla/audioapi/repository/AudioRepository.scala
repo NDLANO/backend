@@ -40,6 +40,12 @@ trait AudioRepository {
       }
     }
 
+    def withIds(ids: List[Long]): Try[List[AudioMetaInformation]] = {
+      DB readOnly { implicit session =>
+        audioMetaInformationsWhere(sqls"au.id in ($ids)")
+      }
+    }
+
     def withExternalId(externalId: String): Option[AudioMetaInformation] = {
       DB readOnly { implicit session =>
         audioMetaInformationWhere(sqls"au.external_id = $externalId")

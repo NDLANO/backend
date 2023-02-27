@@ -8,10 +8,12 @@
 
 package no.ndla.audioapi.service
 
+import cats.implicits._
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.NotFoundException
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{SearchConverterService, TagSearchService}
+import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
@@ -52,6 +54,16 @@ trait ReadService {
       audioRepository
         .withExternalId(externalId)
         .flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
+
+    def getAudiosByIds(audioIds: List[Long], language: Option[String]): Try[List[api.AudioMetaInformation]] = {
+      for {
+        ids <-
+          if (audioIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+          else Success(audioIds)
+        domainAudios <- audioRepository.withIds(ids)
+        api          <- domainAudios.traverse(audio => converterService.toApiAudioMetaInformation(audio, language))
+      } yield api
+    }
 
     def getMetaAudioDomainDump(pageNo: Int, pageSize: Int): api.AudioMetaDomainDump = {
       val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
