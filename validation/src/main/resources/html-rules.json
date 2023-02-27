@@ -184,6 +184,9 @@
     "th",
     "caption",
     "colgroup",
-    "col"
+    "col",
+    "dl",
+    "dt",
+    "dd"
   ]
 }
