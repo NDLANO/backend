@@ -43,4 +43,8 @@ package object implicits {
       }
     }
   }
+
+  extension [T](opt: Option[T]) {
+    def toTry(throwable: Throwable): Try[T] = Failure(throwable)
+  }
 }
