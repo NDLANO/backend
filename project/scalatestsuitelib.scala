@@ -1,5 +1,4 @@
 import Dependencies.versions._
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._
 
@@ -16,5 +15,5 @@ object scalatestsuitelib extends Module {
   ) ++
     commonSettings
 
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  override lazy val disableTSI: Boolean = true
 }

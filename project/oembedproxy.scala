@@ -1,6 +1,5 @@
 import Dependencies.versions._
 import com.earldouglas.xwp.JettyPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._
 import sbtdocker.DockerPlugin
@@ -33,7 +32,5 @@ object oembedproxy extends Module {
     DockerPlugin
   )
 
-  override lazy val disablePlugins = Seq(
-    ScalaTsiPlugin
-  )
+  override lazy val disableTSI: Boolean = true
 }

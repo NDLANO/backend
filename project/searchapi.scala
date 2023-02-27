@@ -1,5 +1,4 @@
 import com.earldouglas.xwp.JettyPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys._
 import sbtdocker.DockerPlugin
@@ -10,7 +9,7 @@ object searchapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.searchapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
+//      scalaTsi,
       scalaUri,
       enumeratum,
       "org.jsoup"           % "jsoup"                           % JsoupV,
@@ -56,7 +55,6 @@ object searchapi extends Module {
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
-    ScalaTsiPlugin
   )
 
 }

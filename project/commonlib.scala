@@ -2,7 +2,6 @@ import sbt.Keys._
 import sbt._
 import Dependencies.versions._
 import com.earldouglas.xwp.JettyPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
 
 object commonlib extends Module {
   lazy val dependencies: Seq[ModuleID] = withLogging(
@@ -26,5 +25,5 @@ object commonlib extends Module {
     JettyPlugin
   )
 
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  override lazy val disableTSI: Boolean = true
 }

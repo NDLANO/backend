@@ -1,4 +1,3 @@
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys._
 import Dependencies.versions._
@@ -23,5 +22,5 @@ object networklib extends Module {
   ) ++
     commonSettings
 
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  override lazy val disableTSI: Boolean = true
 }

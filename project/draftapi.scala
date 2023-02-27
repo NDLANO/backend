@@ -1,5 +1,4 @@
 import com.earldouglas.xwp.JettyPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys.{libraryDependencies, name}
 import sbtdocker.DockerPlugin
@@ -10,7 +9,7 @@ object draftapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.draftapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
+//      scalaTsi,
       scalaUri,
       enumeratum,
       sttp,
@@ -62,7 +61,6 @@ object draftapi extends Module {
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
-    ScalaTsiPlugin
   )
 
 }

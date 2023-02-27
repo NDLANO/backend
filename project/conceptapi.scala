@@ -1,7 +1,6 @@
 import Dependencies._
 import Dependencies.versions._
 import com.earldouglas.xwp.JettyPlugin
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin
@@ -11,7 +10,7 @@ object conceptapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
+//      scalaTsi,
       scalaUri,
       enumeratum,
       "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV  % "container;compile",
@@ -55,7 +54,6 @@ object conceptapi extends Module {
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
     JettyPlugin,
-    ScalaTsiPlugin,
     AssemblyPlugin
   )
 

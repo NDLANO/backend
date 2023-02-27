@@ -1,4 +1,3 @@
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt._
 import sbt.Keys._
 import sbtdocker.DockerPlugin
@@ -9,7 +8,7 @@ object frontpageapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.frontpageapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
-      scalaTsi,
+//      scalaTsi,
       enumeratum,
       enumeratumCirce,
       "io.circe"                      %% "circe-generic"           % CirceV,
@@ -54,7 +53,6 @@ object frontpageapi extends Module {
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
     DockerPlugin,
-    ScalaTsiPlugin
   )
 
 }

@@ -1,7 +1,6 @@
 import Dependencies.versions._
 import sbt.Keys._
 import sbt._
-import com.scalatsi.plugin.ScalaTsiPlugin
 
 object searchlib extends Module {
   lazy val dependencies: Seq[ModuleID] = Seq(
@@ -15,5 +14,5 @@ object searchlib extends Module {
   ) ++
     commonSettings
 
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
+  override lazy val disableTSI: Boolean = true
 }
