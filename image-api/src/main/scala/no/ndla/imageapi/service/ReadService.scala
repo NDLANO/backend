@@ -19,6 +19,7 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import cats.implicits._
+import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
@@ -60,6 +61,14 @@ trait ReadService {
       imageRepository
         .withId(imageId)
         .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language))
+
+    def getImagesByIdsV3(ids: List[Long], language: Option[String]): Try[List[ImageMetaInformationV3]] = {
+      if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
+      else
+        imageRepository
+          .withIds(ids)
+          .traverse(image => converterService.asApiImageMetaInformationV3(image, language))
+    }
 
     private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       Try(pathParts(3).toLong) match {

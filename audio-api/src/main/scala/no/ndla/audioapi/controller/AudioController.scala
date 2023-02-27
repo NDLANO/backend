@@ -20,14 +20,13 @@ import no.ndla.audioapi.model.api.{
   SearchParams,
   TagsSearchResult,
   UpdatedAudioMetaInformation,
-  ValidationError,
-  ValidationException,
-  ValidationMessage
+  ValidationError
 }
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.language.Language
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import org.json4s.ext.EnumNameSerializer
@@ -93,7 +92,11 @@ trait AudioController {
       "page-size",
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
     )
-    private val audioId      = Param[String]("audio_id", "Id of audio.")
+    private val audioId = Param[String]("audio_id", "Id of audio.")
+    private val audioIds = Param[Option[String]](
+      "ids",
+      "Return only audios that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
     private val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
     private val metadataNewAudio =
       Param[NewAudioMetaInformation]("metadata", "The metadata for the audio file to submit.")
@@ -300,6 +303,28 @@ trait AudioController {
       readService.withId(id, language) match {
         case Some(audio) => Ok(audio)
         case None        => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Audio with id $id not found"))
+      }
+    }
+
+    get(
+      "/ids/",
+      operation(
+        apiOperation[List[AudioMetaInformation]]("getAudiosByIds")
+          .summary("Fetch audio that matches ids parameter.")
+          .description("Fetch audios that matches ids parameter.")
+          .parameters(
+            asQueryParam(audioIds),
+            asQueryParam(language)
+          )
+          .responseMessages(response404, response500)
+      )
+    ) {
+      val audioIds = paramAsListOfLong(this.audioIds.paramName)
+      val language = paramOrNone(this.language.paramName)
+
+      readService.getAudiosByIds(audioIds, language) match {
+        case Success(images) => Ok(images)
+        case Failure(ex)     => errorHandler(ex)
       }
     }
 

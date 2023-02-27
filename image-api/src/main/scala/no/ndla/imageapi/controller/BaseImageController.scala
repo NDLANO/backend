@@ -100,6 +100,10 @@ trait BaseImageController {
       s"Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: ${ModelReleasedStatus.values
           .mkString(",")}"
     )
+    protected val imageIds = Param[Option[String]](
+      "ids",
+      "Return only images that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+    )
 
     configureMultipartHandling(MultipartConfig(maxFileSize = Some(MaxImageFileSizeBytes)))
   }

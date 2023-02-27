@@ -11,7 +11,7 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
 import no.ndla.audioapi.model.api._
-import no.ndla.common.errors.AccessDeniedException
+import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.NdlaControllerBase
 import no.ndla.search.NdlaSearchException

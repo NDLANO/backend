@@ -10,12 +10,13 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.auth.User
-import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException, ValidationException}
+import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.scalatra.servlet.FileItem

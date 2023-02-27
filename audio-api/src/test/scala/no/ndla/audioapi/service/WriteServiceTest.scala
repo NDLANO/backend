@@ -13,6 +13,7 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.common.model.{domain => common}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import org.mockito.invocation.InvocationOnMock
 import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
