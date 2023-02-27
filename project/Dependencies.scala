@@ -8,8 +8,8 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "3.2.2"
-    val Scala3V               = "3.2.2"
+    val ScalaV                = "3.3.0-RC3"
+    val Scala3V               = ScalaV
     val ScalatraV             = "3.0.0-M3"
     val HikariConnectionPoolV = "5.0.1"
     val ScalaLoggingV         = "3.9.5"
