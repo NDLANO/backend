@@ -28,8 +28,8 @@ case class StateTransition(
   def keepStates(toKeep: Set[DraftStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
   def withSideEffect(sideEffect: SideEffect): StateTransition     = copy(sideEffects = sideEffects :+ sideEffect)
 
-  def require(roles: Set[Role.Value], ignoreIf: Option[IgnoreFunction] = None): StateTransition =
-    copy(requiredRoles = roles, ignoreRolesIf = ignoreIf.map(requiredRoles -> _))
+  def require(roles: Set[Role.Value], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
+    copy(requiredRoles = roles, ignoreRolesIf = ignoreRoleRequirementIf.map(requiredRoles -> _))
 
   def hasRequiredRoles(user: UserInfo, article: Option[Draft]): Boolean = {
     val ignore = ignoreRolesIf match {
