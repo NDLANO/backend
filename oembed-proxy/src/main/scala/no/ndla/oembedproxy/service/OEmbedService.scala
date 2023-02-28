@@ -18,7 +18,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
 import scala.concurrent.duration.FiniteDuration
 
-class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None)(using providerService: ProviderService, ndlaClient: NdlaClient) {
+class OEmbedService(optionalProviders: Option[List[OEmbedProvider]])(using providerService: ProviderService, ndlaClient: NdlaClient) {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   val remoteTimeout: FiniteDuration = 10.seconds

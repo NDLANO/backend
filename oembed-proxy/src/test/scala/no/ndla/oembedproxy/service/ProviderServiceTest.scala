@@ -9,11 +9,12 @@
 package no.ndla.oembedproxy.service
 
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
-import no.ndla.oembedproxy.model._
-import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.model.*
+import no.ndla.network.NdlaClient
+import no.ndla.oembedproxy.{OEmbedProxyProperties, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import sttp.client3.quick._
+import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
 
@@ -33,9 +34,9 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     )
   )
 
-  implicit val ndlac: NdlaClient         = ndlaClient
-  implicit val p2: OEmbedProxyProperties = props
-  override val providerService           = new ProviderService
+  implicit val ndlaccc: NdlaClient              = ndlaClient
+  implicit val propolini: OEmbedProxyProperties = props
+  override val providerService                  = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"

@@ -33,9 +33,6 @@ object Module {
 }
 
 trait Module {
-  val isScala3Yet: Boolean = false
-  val sVersion: String     = ScalaV
-
   lazy val settings: Seq[Def.Setting[_]]                     = Seq.empty
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
   lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
@@ -55,7 +52,7 @@ trait Module {
     Compile / mainClass := this.MainClass,
     organization        := "ndla",
     version             := "0.0.1",
-    scalaVersion        := sVersion,
+    scalaVersion        := "3.2.2",
     javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
       "-unchecked",
@@ -70,18 +67,7 @@ trait Module {
       .envOrNone("NDLA_RELEASES")
       .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
       .toSeq
-  ) ++ loadEnvFile() ++ fmtSettings
-
-  private def loadEnvFile(): Seq[Def.Setting[_]] = {
-    if (sys.env.get("DISABLE_SUB_DOTENV").contains("true")) Seq.empty
-    else
-      Seq(
-        fork := true,
-        envVars ++= {
-          parseFile(baseDirectory.value / ".env").getOrElse(Map.empty)
-        }
-      )
-  }
+  ) ++ fmtSettings
 
   def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {
     // Many sub-dependencies might pull in slf4j-api, and since there might

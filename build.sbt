@@ -56,17 +56,17 @@ lazy val `concept-api` = Module.setup(
   )
 )
 
-//lazy val `frontpage-api` = Module.setup(
-//  project in file("./frontpage-api/"),
-//  frontpageapi,
-//  deps = Seq(
-//    network,
-//    mapping,
-//    language,
-//    common,
-//    testWith(scalatestsuite)
-//  )
-//)
+lazy val `frontpage-api` = Module.setup(
+  project in file("./frontpage-api/"),
+  frontpageapi,
+  deps = Seq(
+    network,
+    mapping,
+    language,
+    common,
+    testWith(scalatestsuite)
+  )
+)
 
 lazy val `image-api` = Module.setup(
   project in file("./image-api/"),
