@@ -131,7 +131,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should fail when performing an illegal transition") {
-    val (res, _) = doTransitionWithoutSideEffect(InProcessArticle, END_CONTROL, TestData.userWithPublishAccess, false)
+    val (res, _) = doTransitionWithoutSideEffect(InProcessArticle, FOR_APPROVAL, TestData.userWithPublishAccess, false)
     res.isFailure should be(true)
   }
 

@@ -128,6 +128,7 @@ trait StateTransitionRules {
       (IN_PROGRESS           -> INTERNAL_REVIEW)       keepCurrentOnTransition,
       (IN_PROGRESS           -> QUALITY_ASSURANCE)     .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED),
       (IN_PROGRESS           -> LANGUAGE)              .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED),
+      (IN_PROGRESS           -> END_CONTROL)           .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED) withSideEffect validateArticleApiArticle,
       (IN_PROGRESS           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation,
       (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED),
        EXTERNAL_REVIEW       -> IN_PROGRESS            keepStates Set(PUBLISHED),
