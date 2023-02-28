@@ -8,26 +8,23 @@
 
 package no.ndla.oembedproxy.model
 
-import no.ndla.oembedproxy.Props
+import no.ndla.oembedproxy.{OEmbedProxyProperties, Props}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import scala.annotation.meta.field
 
-trait ErrorHelpers {
-  this: Props =>
+class ErrorHelpers(using props: OEmbedProxyProperties) {
+  val GENERIC                = "GENERIC"
+  val PARAMETER_MISSING      = "PARAMETER MISSING"
+  val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
+  val REMOTE_ERROR           = "REMOTE ERROR"
 
-  object ErrorHelpers {
-    val GENERIC                = "GENERIC"
-    val PARAMETER_MISSING      = "PARAMETER MISSING"
-    val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
-    val REMOTE_ERROR           = "REMOTE ERROR"
-
-    val GenericError: Error = Error(
-      GENERIC,
-      s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    )
-  }
+  val GenericError: Error = Error(
+    GENERIC,
+    s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
+  )
 }
 
 @ApiModel(description = "Information about errors")

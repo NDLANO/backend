@@ -33,7 +33,9 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     )
   )
 
-  override val providerService = new ProviderService
+  implicit val ndlac: NdlaClient         = ndlaClient
+  implicit val p2: OEmbedProxyProperties = props
+  override val providerService           = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"

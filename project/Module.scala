@@ -34,7 +34,7 @@ object Module {
 
 trait Module {
   val isScala3Yet: Boolean = false
-  val sVersion: String     = if (isScala3Yet) Scala3V else ScalaV
+  val sVersion: String     = ScalaV
 
   lazy val settings: Seq[Def.Setting[_]]                     = Seq.empty
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
@@ -60,7 +60,8 @@ trait Module {
     scalacOptions := Seq(
       "-unchecked",
       // "-deprecation",
-      "-feature"
+      "-feature",
+      "-explain"
     ),
     javaOptions ++= reflectiveAccessOptions,
     scalacOptions ++= CIOptions,

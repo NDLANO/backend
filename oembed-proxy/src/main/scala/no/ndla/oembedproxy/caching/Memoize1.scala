@@ -61,7 +61,7 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
 class MemoizeHelpers(using props: OEmbedProxyProperties) {
   import props.{ProviderListRetryTimeInMs, ProviderListCacheAgeInMs}
 
-  object Memoize {
+  object Memoizer {
 
     def apply[R](f: () => R) =
       new Memoize(ProviderListCacheAgeInMs, ProviderListRetryTimeInMs, f, autoRefreshCache = false)

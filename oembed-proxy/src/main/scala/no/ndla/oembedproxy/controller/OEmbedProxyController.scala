@@ -10,19 +10,18 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.oembedproxy.model._
-import no.ndla.oembedproxy.service.OEmbedServiceComponent
+import no.ndla.oembedproxy.OEmbedProxyProperties
+import no.ndla.oembedproxy.model.*
+import no.ndla.oembedproxy.service.OEmbedService
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra._
+import org.scalatra.*
 import org.scalatra.swagger.{ResponseMessage, Swagger}
 
 import scala.util.{Failure, Success}
 
-trait OEmbedProxyController {
-  this: OEmbedServiceComponent with ErrorHelpers with NdlaControllerBase with NdlaSwaggerSupport =>
-  val oEmbedProxyController: OEmbedProxyController
 
-  class OEmbedProxyController(implicit val swagger: Swagger) extends NdlaControllerBase with NdlaSwaggerSupport {
+class OEmbedProxyController(using val swagger: Swagger, oEmbedService: OEmbedService, props: OEmbedProxyProperties, eh: ErrorHelpers) extends NdlaControllerBase with NdlaSwaggerSupport {
+    import eh._
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     protected val applicationDescription =
@@ -52,7 +51,6 @@ trait OEmbedProxyController {
       contentType = formats("json")
     }
 
-    import ErrorHelpers._
 
     override def ndlaErrorHandler: NdlaErrorHandler = {
       case pme: ParameterMissingException =>
@@ -103,6 +101,5 @@ trait OEmbedProxyController {
           }
       }
     }
-  }
 
 }

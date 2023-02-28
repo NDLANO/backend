@@ -13,24 +13,18 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
-import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
+import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties) extends BaseComponentRegistry[OEmbedProxyProperties] {
-  
-  given props: OEmbedProxyProperties = properties
-
-  given swagger: OEmbedSwagger = new OEmbedSwagger
-
-  given providerService: ProviderService       = new ProviderService
-
-  given oEmbedService: OEmbedService          = new OEmbedService
-
-  given ndlaClient: NdlaClient             = new NdlaClient
-
-  given oEmbedProxyController: OembedProxyController  = new OEmbedProxyController
-
-  given resourcesApp: ResourcesApp           = new ResourcesApp
-
-  given healthController: HealthController       = new HealthController
-
+  override val props: OEmbedProxyProperties                 = properties
+  implicit val p: OEmbedProxyProperties                     = props
+  implicit val swagger: OEmbedSwagger                       = new OEmbedSwagger()
+  implicit val errorHelpers: ErrorHelpers                   = new ErrorHelpers
+  implicit val providerService: ProviderService             = new ProviderService
+  implicit val oEmbedService: OEmbedService                 = new OEmbedService
+  implicit val ndlaClient: NdlaClient                       = new NdlaClient
+  implicit val oEmbedProxyController: OEmbedProxyController = new OEmbedProxyController
+  implicit val resourcesApp: ResourcesApp                   = new ResourcesApp
+  override val healthController: HealthController           = new HealthController
+  implicit val h: HealthController                          = healthController
 }

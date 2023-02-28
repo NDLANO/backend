@@ -24,7 +24,7 @@ import sttp.client3.quick.*
 class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties) extends StrictLogging  {
 
   implicit val formats: DefaultFormats = org.json4s.DefaultFormats
-  val memoizeHelpers = new MemoizeHelpers
+  val memoizeHelpers = new MemoizeHelpers()
   import memoizeHelpers._
 
   val NdlaFrontendEndpoint: OEmbedEndpoint =
@@ -100,7 +100,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
   val IssuuProvider: OEmbedProvider =
     OEmbedProvider("Issuu", "https://issuu.com", List(IssuuEndpoint), removeQueryStringAndFragment)
 
-  val loadProviders: Memoize[List[OEmbedProvider]] = Memoize(() => {
+  val loadProviders: Memoize[List[OEmbedProvider]] = Memoizer(() => {
     logger.info("Provider cache was not found or out of date, fetching providers")
     _loadProviders()
   })

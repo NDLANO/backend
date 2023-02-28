@@ -8,13 +8,14 @@
 
 package no.ndla.oembedproxy.service
 
+import no.ndla.network.NdlaClient
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
 import no.ndla.oembedproxy.caching.Memoize
-import no.ndla.oembedproxy.model._
-import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import no.ndla.oembedproxy.model.*
+import no.ndla.oembedproxy.{OEmbedProxyProperties, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
-import org.scalatest.TryValues._
+import org.mockito.Mockito.*
+import org.scalatest.TryValues.*
 
 import scala.util.{Failure, Success}
 
@@ -53,11 +54,13 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
     Some("<iframe src='http://ndla.no/en/node/128905/oembed' allowfullscreen></iframe>")
   )
 
-  override val oEmbedService = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize        = new Memoize(0, 0, () => List[OEmbedProvider](), false)
-  override val providerService: ProviderService = new ProviderService {
+  implicit val ndlac: NdlaClient         = ndlaClient
+  implicit val p2: OEmbedProxyProperties = props
+  override implicit val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }
+  override val oEmbedService = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
+  val providerMemoize        = new Memoize(0, 0, () => List[OEmbedProvider](), false)
 
   test("That get returns Failure(ProviderNotSupportedException) when no providers support the url") {
     val Failure(ex: ProviderNotSupportedException) =

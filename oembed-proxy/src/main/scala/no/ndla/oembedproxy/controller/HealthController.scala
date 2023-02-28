@@ -10,8 +10,4 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.network.scalatra.BaseHealthController
 
-trait HealthController {
-  val healthController: HealthController
-
-  class HealthController extends BaseHealthController {}
-}
+class HealthController extends BaseHealthController {}

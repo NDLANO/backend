@@ -13,30 +13,20 @@ import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
-import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
+import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar.mock
 
-trait TestEnvironment
-    extends OEmbedProxyController
-    with OEmbedServiceComponent
-    with NdlaClient
-    with ProviderService
-    with MockitoSugar
-    with HealthController
-    with Props
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
-    with MemoizeHelpers
-    with ErrorHelpers
-    with OEmbedProxyInfo {
-  override val props = new OEmbedProxyProperties
+trait TestEnvironment {
+  implicit val props: OEmbedProxyProperties = new OEmbedProxyProperties
 
-  val oEmbedService: OEmbedService                 = mock[OEmbedService]
-  val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
-  val ndlaClient: NdlaClient                       = mock[NdlaClient]
-  val providerService: ProviderService             = mock[ProviderService]
-  val healthController: HealthController           = mock[HealthController]
+  implicit val oEmbedService: OEmbedService                 = mock[OEmbedService]
+  implicit val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
+  implicit val ndlaClient: NdlaClient                       = mock[NdlaClient]
+  implicit val providerService: ProviderService             = mock[ProviderService]
+  implicit val healthController: HealthController           = mock[HealthController]
+  implicit val errorHelpers: ErrorHelpers                   = new ErrorHelpers
 
   def resetMocks(): Unit = {
     reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)
