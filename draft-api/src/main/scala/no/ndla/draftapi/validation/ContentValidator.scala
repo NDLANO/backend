@@ -9,6 +9,7 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.draft.DraftStatus.IMPORTED
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -20,7 +21,7 @@ import no.ndla.common.model.domain.{
   Title,
   VisualElement
 }
-import no.ndla.common.model.domain.draft.{Copyright, Draft, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -76,6 +77,12 @@ trait ContentValidator {
 
     }
 
+    private def validateResponsible(draft: Draft): Option[ValidationMessage] = {
+      Option.when(draft.responsible.isEmpty && draft.status.current == DraftStatus.PUBLISHED) {
+        ValidationMessage("responsibleId", s"Responsible needs to be set if the status is not ${DraftStatus.PUBLISHED}")
+      }
+    }
+
     def validateArticle(article: Draft): Try[Draft] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c)) ++
         article.introduction.flatMap(i => validateIntroduction(i)) ++
@@ -87,7 +94,8 @@ trait ContentValidator {
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v)) ++
         validateRevisionMeta(article.revisionMeta) ++
-        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists)
+        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
+        validateResponsible(article)
 
       if (validationErrors.isEmpty) {
         Success(article)
