@@ -665,4 +665,23 @@ class EmbedTagValidatorTest extends UnitSuite {
     embedTagValidator.numDirectEqualSiblings(embed) should be(3)
   }
 
+  test("validate should return no errors when data-title is used as a standalone tag in iframe") {
+    val attrs = generateAttributes(
+      Map(
+        // Iframe Required
+        TagAttributes.DataResource.toString -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType.toString     -> ResourceType.IframeContent.toString,
+        TagAttributes.DataUrl.toString      -> "https://google.ndla.no/",
+        // Iframe Optional-1
+        TagAttributes.DataWidth.toString  -> "700",
+        TagAttributes.DataHeight.toString -> "500",
+        // Iframe Optional that i want to test
+        TagAttributes.DataTitle.toString -> "Min tittel"
+      )
+    )
+
+    val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    res.size should be(0)
+  }
+
 }
