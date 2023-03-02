@@ -9,7 +9,6 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.DateParser
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.draft.DraftStatus.IMPORTED
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,

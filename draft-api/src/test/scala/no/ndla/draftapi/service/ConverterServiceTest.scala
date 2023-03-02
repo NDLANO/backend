@@ -549,8 +549,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should not be able to go to ARCHIVED if published") {
-    val status  = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
-    val article = TestData.sampleDomainArticle.copy(status = status)
+    val status = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
+    val article =
+      TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
     val Failure(res: IllegalStatusStateTransition) =
       service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false).unsafeRunSync()
 

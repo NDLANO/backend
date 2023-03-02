@@ -10,9 +10,9 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.{domain => common}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -33,9 +33,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   val UnpublishedStatus          = common.Status(UNPUBLISHED, Set.empty)
   val InProcessStatus            = common.Status(IN_PROGRESS, Set.empty)
   val ArchivedStatus             = common.Status(ARCHIVED, Set(PUBLISHED))
-  val InProcessArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
-  val PublishedArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus)
-  val UnpublishedArticle: Draft  = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
+  val responsible                = common.Responsible("someid", TestData.today)
+  val InProcessArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus, responsible = Some(responsible))
+  val PublishedArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus, responsible = Some(responsible))
+  val UnpublishedArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus, responsible = Some(responsible))
 
   test("doTransition should succeed when performing a legal transition") {
     val expected = common.Status(PUBLISHED, Set.empty)
@@ -388,7 +392,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       availability = common.Availability.everyone,
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
-      responsible = None,
+      responsible = Some(Responsible("hei", clock.now())),
       slug = None
     )
     val article = common.article.Article(

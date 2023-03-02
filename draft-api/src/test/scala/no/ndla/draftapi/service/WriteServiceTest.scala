@@ -11,7 +11,7 @@ import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.{api => commonApi, domain}
+import no.ndla.common.model.{domain, api => commonApi}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,
@@ -21,6 +21,7 @@ import no.ndla.common.model.domain.{
   Description,
   Introduction,
   RequiredLibrary,
+  Responsible,
   Status,
   Tag,
   Title,
@@ -58,7 +59,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val agreementId = 14
 
   val article: Draft =
-    TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
+    TestData.sampleArticleWithPublicDomain.copy(
+      id = Some(articleId),
+      created = yesterday,
+      updated = yesterday,
+      responsible = Some(Responsible("hei", clock.now()))
+    )
 
   val topicArticle: Draft =
     TestData.sampleTopicArticle.copy(id = Some(articleId), created = yesterday, updated = yesterday)
@@ -285,7 +291,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("updateArticle should use user-defined status if defined") {
-    val existing       = TestData.sampleDomainArticle.copy(status = TestData.statusWithPlanned)
+    val existing = TestData.sampleDomainArticle.copy(
+      status = TestData.statusWithPlanned,
+      responsible = Some(Responsible("hei", TestData.today))
+    )
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = Some("IN_PROGRESS"))
     when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
     val Success(result) = service.updateArticle(
@@ -306,7 +315,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   ) {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = None)
 
-    val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithPublished)
+    val existing = TestData.sampleDomainArticle.copy(
+      status = TestData.statusWithPublished,
+      responsible = Some(Responsible("hei", TestData.today))
+    )
     when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
     val Success(result) = service.updateArticle(
       existing.id.get,
@@ -325,7 +337,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = None)
 
     {
-      val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+      val existing = TestData.sampleDomainArticle.copy(
+        status = TestData.statusWithInProcess,
+        responsible = Some(Responsible("hei", TestData.today))
+      )
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
       val Success(result) = service.updateArticle(
         existing.id.get,
@@ -341,7 +356,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     }
 
     {
-      val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithExternalReview)
+      val existing = TestData.sampleDomainArticle.copy(
+        status = TestData.statusWithExternalReview,
+        responsible = Some(Responsible("hei", TestData.today))
+      )
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
       val Success(result) = service.updateArticle(
         existing.id.get,
@@ -357,7 +375,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     }
 
     {
-      val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithInternalReview)
+      val existing = TestData.sampleDomainArticle.copy(
+        status = TestData.statusWithInternalReview,
+        responsible = Some(Responsible("hei", TestData.today))
+      )
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
       val Success(result) = service.updateArticle(
         existing.id.get,
@@ -373,7 +394,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     }
 
     {
-      val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithEndControl)
+      val existing = TestData.sampleDomainArticle.copy(
+        status = TestData.statusWithEndControl,
+        responsible = Some(Responsible("hei", TestData.today))
+      )
       when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
       when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(existing))
       when(articleApiClient.validateArticle(any[domain.article.Article], any[Boolean])).thenAnswer(
@@ -469,8 +493,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService)
     reset(searchApiClient)
 
-    val articleToUpdate = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
-    val user            = UserInfo("Pelle", Set(Role.WRITE))
+    val articleToUpdate = TestData.sampleDomainArticle.copy(
+      id = Some(10),
+      updated = yesterday,
+      responsible = Some(Responsible("hei", TestData.today))
+    )
+    val user = UserInfo("Pelle", Set(Role.WRITE))
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user, isImported = false)
       .attempt
@@ -516,7 +544,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleDomainArticle.copy(
         id = Some(5),
         content =
-          Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn"))
+          Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn")),
+        responsible = Some(Responsible("hei", TestData.today))
       )
     val nbArticle =
       article.copy(
@@ -780,7 +809,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = Some(TestData.publicDomainCopyright.copy(license = Some("oldLicense"), origin = None)),
       metaDescription = Seq.empty,
       relatedContent = Seq.empty,
-      tags = Seq.empty
+      tags = Seq.empty,
+      responsible = Some(Responsible("hei", TestData.today))
     )
 
     when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
@@ -839,7 +869,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Seq.empty,
       relatedContent = Seq.empty,
       tags = Seq.empty,
-      conceptIds = Seq.empty
+      conceptIds = Seq.empty,
+      responsible = Some(Responsible("hei", TestData.today))
     )
 
     when(draftRepository.withId(existing.id.get)).thenReturn(Some(existing))
