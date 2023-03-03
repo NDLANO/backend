@@ -382,7 +382,7 @@ class FolderRepositoryTest
         "/testPath",
         "resourceType",
         LocalDateTime.now().withNano(0),
-        ResourceDocument(List(), 1)
+        ResourceDocument(List(), "1")
       )
       .failIfFailure
     val insertedConnection =
@@ -549,7 +549,7 @@ class FolderRepositoryTest
         "/testPath",
         "resourceType",
         LocalDateTime.now().withNano(0),
-        ResourceDocument(List(), 1)
+        ResourceDocument(List(), "1")
       )
       .failIfFailure
     val insertedConnection =
