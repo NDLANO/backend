@@ -190,7 +190,7 @@ export interface INewResource {
   resourceType: string
   path: string
   tags?: string[]
-  resourceId: number
+  resourceId: string
 }
 
 export interface IResource {
@@ -199,7 +199,7 @@ export interface IResource {
   path: string
   created: string
   tags: string[]
-  resourceId: number
+  resourceId: string
   rank?: number
 }
 
@@ -223,5 +223,5 @@ export interface IUpdatedFolder {
 
 export interface IUpdatedResource {
   tags?: string[]
-  resourceId?: number
+  resourceId?: string
 }
