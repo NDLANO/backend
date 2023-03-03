@@ -77,8 +77,12 @@ trait ContentValidator {
     }
 
     private def validateResponsible(draft: Draft): Option[ValidationMessage] = {
-      Option.when(draft.responsible.isEmpty && draft.status.current == DraftStatus.PUBLISHED) {
-        ValidationMessage("responsibleId", s"Responsible needs to be set if the status is not ${DraftStatus.PUBLISHED}")
+      val statusRequiresResponsible = DraftStatus.thatRequiresResponsible.contains(draft.status.current)
+      Option.when(draft.responsible.isEmpty && statusRequiresResponsible) {
+        ValidationMessage(
+          "responsibleId",
+          s"Responsible needs to be set if the status is not ${DraftStatus.thatDoesNotRequireResponsible}"
+        )
       }
     }
 

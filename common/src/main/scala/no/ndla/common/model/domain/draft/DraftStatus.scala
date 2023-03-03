@@ -27,4 +27,7 @@ object DraftStatus extends Enumeration {
     }
 
   def valueOf(s: String): Option[DraftStatus.Value] = values.find(_.toString == s.toUpperCase)
+
+  val thatDoesNotRequireResponsible: Seq[DraftStatus.Value] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
+  val thatRequiresResponsible: DraftStatus.ValueSet = this.values.filterNot(thatDoesNotRequireResponsible.contains)
 }
