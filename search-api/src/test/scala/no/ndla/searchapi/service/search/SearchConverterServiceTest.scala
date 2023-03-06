@@ -131,7 +131,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(taxonomyApiClient.getTaxonomyBundle)
-      .thenReturn(new Memoize[Try[TaxonomyBundle]](0, () => Success(emptyBundle)))
+      .thenReturn(new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle)))
   }
 
   test("That asSearchableArticle converts titles with correct language") {

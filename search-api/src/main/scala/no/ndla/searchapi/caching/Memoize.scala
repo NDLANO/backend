@@ -8,32 +8,32 @@
 
 package no.ndla.searchapi.caching
 
-import java.util.concurrent.Executors
-
 import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.duration.Duration
+import java.util.concurrent.Executors
+import scala.collection.mutable.{Map => MutableMap}
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success}
 
-class Memoize[R](maxCacheAgeMs: Long, f: () => R) extends (() => R) with StrictLogging {
+class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
   implicit val ec: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
 
-  case class CacheValue(value: R, lastUpdated: Long) {
+  case class CacheValue(input: I, value: R, lastUpdated: Long) {
 
     def isExpired: Boolean =
       lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
-  private[this] var cache: Option[CacheValue]              = None
-  private[this] var isUpdating: Option[Future[CacheValue]] = None
+  private[this] val cache: MutableMap[I, CacheValue]              = MutableMap.empty
+  private[this] val isUpdating: MutableMap[I, Future[CacheValue]] = MutableMap.empty
 
-  private def scheduleRenewCache(): Future[CacheValue] = synchronized {
+  private def scheduleRenewCache(input: I): Future[CacheValue] = synchronized {
     val fut = Future {
-      CacheValue(f(), System.currentTimeMillis())
+      CacheValue(input, f(input), System.currentTimeMillis())
     }
 
-    isUpdating = Some(fut)
+    isUpdating.put(input, fut)
 
     fut.onComplete {
       case Success(value) => updateCache(value)
@@ -42,28 +42,22 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R) extends (() => R) with StrictL
     fut
   }
 
-  def apply(): R = {
-    cache match {
+  def apply(input: I): R = {
+    cache.get(input) match {
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
       case _ =>
-        val fut = isUpdating match {
-          case Some(future) => future
-          case None         => scheduleRenewCache()
+        val fut = isUpdating.get(input) match {
+          case Some(value) => value
+          case None        => scheduleRenewCache(input)
         }
 
-        Await.result(fut, Duration.Inf).value
+        Await.result(fut, 20.minutes).value
     }
   }
 
   def updateCache(result: CacheValue): Unit = {
-    isUpdating = None
-    cache = Some(result)
+    isUpdating.remove(result.input)
+    cache.put(result.input, result)
     System.gc()
   }
-}
-
-object Memoize {
-
-  def apply[R](f: () => R) =
-    new Memoize(1000 * 60, f)
 }

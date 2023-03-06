@@ -189,7 +189,12 @@ trait SearchConverterService {
       val articleId = ai.id.get
       val taxonomyForArticle = taxonomyBundle match {
         case Some(bundle) => getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true)
-        case None         => taxonomyApiClient.getSearchableTaxonomy(s"urn:article:$articleId", filterVisibles = true)
+        case None =>
+          taxonomyApiClient.getSearchableTaxonomy(
+            s"urn:article:$articleId",
+            filterVisibles = true,
+            shouldUsePublishedTax = true
+          )
       }
 
       val traits               = getArticleTraits(ai.content)
@@ -259,7 +264,12 @@ trait SearchConverterService {
     ): Try[SearchableLearningPath] = {
       val taxonomyForLearningPath = taxonomyBundle match {
         case Some(bundle) => getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true)
-        case None => taxonomyApiClient.getSearchableTaxonomy(s"urn:learningpath:${lp.id.get}", filterVisibles = true)
+        case None =>
+          taxonomyApiClient.getSearchableTaxonomy(
+            s"urn:learningpath:${lp.id.get}",
+            filterVisibles = true,
+            shouldUsePublishedTax = true
+          )
       }
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
@@ -306,7 +316,12 @@ trait SearchConverterService {
         val draftId = draft.id.get
         taxonomyBundle match {
           case Some(bundle) => getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false)
-          case None         => taxonomyApiClient.getSearchableTaxonomy(s"urn:article:$draftId", filterVisibles = false)
+          case None =>
+            taxonomyApiClient.getSearchableTaxonomy(
+              s"urn:article:$draftId",
+              filterVisibles = false,
+              shouldUsePublishedTax = false
+            )
         }
       }
 
