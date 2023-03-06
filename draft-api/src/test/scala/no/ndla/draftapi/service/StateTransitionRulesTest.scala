@@ -9,9 +9,10 @@ package no.ndla.draftapi.service
 
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.{domain => common}
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
+import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -32,9 +33,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   val UnpublishedStatus          = common.Status(UNPUBLISHED, Set.empty)
   val InProcessStatus            = common.Status(IN_PROGRESS, Set.empty)
   val ArchivedStatus             = common.Status(ARCHIVED, Set(PUBLISHED))
-  val InProcessArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
-  val PublishedArticle: Draft    = TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus)
-  val UnpublishedArticle: Draft  = TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus)
+  val responsible                = common.Responsible("someid", TestData.today)
+  val InProcessArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus, responsible = Some(responsible))
+  val PublishedArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus, responsible = Some(responsible))
+  val UnpublishedArticle: Draft =
+    TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus, responsible = Some(responsible))
 
   test("doTransition should succeed when performing a legal transition") {
     val expected = common.Status(PUBLISHED, Set.empty)
@@ -387,7 +392,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       availability = common.Availability.everyone,
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
-      responsible = None,
+      responsible = Some(Responsible("hei", clock.now())),
       slug = None
     )
     val article = common.article.Article(
@@ -476,6 +481,200 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val argumentArticle: Draft   = captor.getValue
     val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
     argumentArticleWithNotes should equal(expectedArticle)
+  }
+
+  test("That publishing article results in responsibleId being reset") {
+    val articleId         = 100L
+    val beforeResponsible = Responsible("heisann", clock.now())
+    val draft = Draft(
+      id = Some(articleId),
+      revision = None,
+      status = common.Status(PLANNED, Set.empty),
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright = Some(
+        common.draft.Copyright(
+          Some(CC_BY.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          None
+        )
+      ),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "updated",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      notes = Seq.empty,
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq.empty,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = Some(beforeResponsible),
+      slug = None
+    )
+    val status            = common.Status(PLANNED, Set.empty)
+    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
+    when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
+    when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[Draft](1)
+      Success(x)
+    })
+    for (t <- transitionsToTest) {
+      val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
+      val result = StateTransitionRules
+        .doTransition(fromDraft, PUBLISHED, TestData.userWithAdminAccess, isImported = false)
+        .unsafeRunSync()
+
+      if (result.get.responsible.isDefined) {
+        fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
+      }
+    }
+  }
+
+  test("That archiving article results in responsibleId being reset") {
+    val articleId         = 100L
+    val beforeResponsible = Responsible("heisann", clock.now())
+    val draft = Draft(
+      id = Some(articleId),
+      revision = None,
+      status = common.Status(PLANNED, Set.empty),
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright = Some(
+        common.draft.Copyright(
+          Some(CC_BY.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          None
+        )
+      ),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "updated",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      notes = Seq.empty,
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq.empty,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = Some(beforeResponsible),
+      slug = None
+    )
+    val status            = common.Status(PLANNED, Set.empty)
+    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
+    when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
+    when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[Draft](1)
+      Success(x)
+    })
+    when(taxonomyApiClient.queryTopic(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryResource(100L)).thenReturn(Success(List()))
+    when(articleApiClient.unpublishArticle(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Draft](0)))
+    for (t <- transitionsToTest) {
+      val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
+      val result = StateTransitionRules
+        .doTransition(fromDraft, ARCHIVED, TestData.userWithAdminAccess, isImported = false)
+        .unsafeRunSync()
+
+      if (result.get.responsible.isDefined) {
+        fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
+      }
+    }
+  }
+
+  test("That unpublishing article results in responsibleId being reset") {
+    val articleId         = 100L
+    val beforeResponsible = Responsible("heisann", clock.now())
+    val draft = Draft(
+      id = Some(articleId),
+      revision = None,
+      status = common.Status(PLANNED, Set.empty),
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright = Some(
+        common.draft.Copyright(
+          Some(CC_BY.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          None
+        )
+      ),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "updated",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      notes = Seq.empty,
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq.empty,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = Some(beforeResponsible),
+      slug = None
+    )
+    val status            = common.Status(PLANNED, Set.empty)
+    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
+    when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
+    when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[Draft](1)
+      Success(x)
+    })
+    when(taxonomyApiClient.queryTopic(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryResource(100L)).thenReturn(Success(List()))
+    when(articleApiClient.unpublishArticle(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Draft](0)))
+    when(searchApiClient.draftsWhereUsed(100L)).thenReturn(Seq())
+    when(searchApiClient.publishedWhereUsed(100L)).thenReturn(Seq())
+    for (t <- transitionsToTest) {
+      val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
+      val result = StateTransitionRules
+        .doTransition(fromDraft, UNPUBLISHED, TestData.userWithAdminAccess, isImported = false)
+        .unsafeRunSync()
+
+      if (result.get.responsible.isDefined) {
+        fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
+      }
+    }
   }
 
 }
