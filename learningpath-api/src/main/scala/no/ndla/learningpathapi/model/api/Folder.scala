@@ -97,7 +97,7 @@ case class Resource(
     @(ApiModelProperty @field)(description = "Relative path of this resource") path: String,
     @(ApiModelProperty @field)(description = "When the resource was created") created: LocalDateTime,
     @(ApiModelProperty @field)(description = "List of tags") tags: List[String],
-    @(ApiModelProperty @field)(description = "The id of the resource, useful for fetching metadata for the resource") resourceId: Long,
+    @(ApiModelProperty @field)(description = "The id of the resource, useful for fetching metadata for the resource") resourceId: String,
     @(ApiModelProperty @field)(description = "The which rank the resource appears in a sorted sequence") rank: Option[Int]
 ) extends CopyableResource
 // format: on
@@ -108,12 +108,12 @@ case class NewResource(
     @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
     @(ApiModelProperty @field)(
       description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: Long
+    ) resourceId: String
 )
 
 case class UpdatedResource(
     @(ApiModelProperty @field)(description = "List of tags") tags: Option[List[String]],
     @(ApiModelProperty @field)(
       description = "The id of the resource, useful for fetching metadata for the resource"
-    ) resourceId: Option[Long]
+    ) resourceId: Option[String]
 )

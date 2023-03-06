@@ -383,7 +383,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       path = "/subject/1/topic/1/resource/4",
       created = created,
       tags = List.empty,
-      resourceId = 1,
+      resourceId = "1",
       connection = None
     )
 
@@ -400,7 +400,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           tags = List.empty,
           path = "/subject/1/topic/1/resource/4",
           created = created,
-          resourceId = 1,
+          resourceId = "1",
           rank = None
         )
       ),

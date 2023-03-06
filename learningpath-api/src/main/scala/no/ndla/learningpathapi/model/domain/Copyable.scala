@@ -22,5 +22,5 @@ trait CopyableResource {
   val resourceType: String
   val path: String
   val tags: List[String]
-  val resourceId: Long
+  val resourceId: String
 }

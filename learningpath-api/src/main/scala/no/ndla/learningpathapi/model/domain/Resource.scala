@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.Try
 
-case class ResourceDocument(tags: List[String], resourceId: Long) {
+case class ResourceDocument(tags: List[String], resourceId: String) {
   def toFullResource(
       id: UUID,
       path: String,
@@ -46,7 +46,7 @@ case class Resource(
     path: String,
     resourceType: String,
     tags: List[String],
-    resourceId: Long,
+    resourceId: String,
     connection: Option[FolderResource]
 ) extends FeideContent
     with Rankable

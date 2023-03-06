@@ -120,7 +120,7 @@ object TestData {
     path = "",
     created = LocalDateTime.now(),
     tags = List.empty,
-    resourceId = 1,
+    resourceId = "1",
     connection = None
   )
 
@@ -147,7 +147,7 @@ object TestData {
 
   val baseResourceDocument: ResourceDocument = ResourceDocument(
     tags = List.empty,
-    resourceId = 1
+    resourceId = "1"
   )
 
   val emptyApiFolder: api.Folder = api.Folder(

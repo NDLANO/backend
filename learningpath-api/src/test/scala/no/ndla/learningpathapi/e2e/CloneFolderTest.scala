@@ -133,7 +133,7 @@ class CloneFolderTest
     folderRepository.insertFolder(feideId, folderData = pChild1)
     folderRepository.insertFolder(feideId, folderData = pChild2)
 
-    val document = ResourceDocument(tags = List("a", "b"), resourceId = 1)
+    val document = ResourceDocument(tags = List("a", "b"), resourceId = "1")
     val rId      = folderRepository.insertResource(feideId, "/path", "article", testClock.now(), document).get.id
     folderRepository.createFolderResourceConnection(pId, rId, 1)
 
@@ -184,7 +184,7 @@ class CloneFolderTest
       path = "/path",
       created = testClock.now(),
       tags = List("a", "b"),
-      resourceId = 1,
+      resourceId = "1",
       rank = Some(1)
     )
 
@@ -286,7 +286,7 @@ class CloneFolderTest
       path = "/path",
       created = testClock.now(),
       tags = List("a", "b"),
-      resourceId = 1,
+      resourceId = "1",
       rank = Some(1)
     )
 
@@ -382,7 +382,7 @@ class CloneFolderTest
       path = "/path",
       created = testClock.now(),
       tags = List("a", "b"),
-      resourceId = 1,
+      resourceId = "1",
       rank = Some(1)
     )
 

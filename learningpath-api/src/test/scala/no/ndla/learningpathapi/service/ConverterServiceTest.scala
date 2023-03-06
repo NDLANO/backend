@@ -528,7 +528,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = 1,
+        resourceId = "1",
         connection = None
       )
     val folderData1 = domain.Folder(
@@ -589,7 +589,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       tags = List("a", "b", "c"),
       created = created,
       path = "/subject/1/topic/1/resource/4",
-      resourceId = 1,
+      resourceId = "1",
       rank = None
     )
     val apiData1 = api.Folder(
@@ -750,7 +750,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = 1,
+        resourceId = "1",
         connection = None
       )
     val expected =
@@ -760,7 +760,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         path = "/subject/1/topic/1/resource/4",
         created = created,
         tags = List("a", "b", "c"),
-        resourceId = 1,
+        resourceId = "1",
         rank = None
       )
 
@@ -775,16 +775,16 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         resourceType = "audio",
         path = "/subject/1/topic/1/resource/4",
         tags = Some(List("a", "b")),
-        resourceId = 1
+        resourceId = "1"
       )
     val newResource2 =
-      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = 2)
+      api.NewResource(resourceType = "audio", path = "/subject/1/topic/1/resource/4", tags = None, resourceId = "2")
     val expected1 =
       domain.ResourceDocument(
         tags = List("a", "b"),
-        resourceId = 1
+        resourceId = "1"
       )
-    val expected2 = expected1.copy(tags = List.empty, resourceId = 2)
+    val expected2 = expected1.copy(tags = List.empty, resourceId = "2")
 
     service.toDomainResource(newResource1) should be(expected1)
     service.toDomainResource(newResource2) should be(expected2)
