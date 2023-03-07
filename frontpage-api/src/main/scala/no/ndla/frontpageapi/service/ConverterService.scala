@@ -185,7 +185,7 @@ trait ConverterService {
       } yield merged
     }
 
-    private def toDomainLayout(layout: String): Try[domain.LayoutType.Value] = {
+    private def toDomainLayout(layout: String): Try[domain.LayoutType] = {
       LayoutType.fromString(layout)
     }
 

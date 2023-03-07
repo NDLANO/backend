@@ -19,7 +19,7 @@ import org.scalatest.TryValues._
 import sttp.client3.{Response, SimpleHttpClient, SpecifyAuthScheme, UriContext}
 import sttp.model.StatusCode
 
-class NdlaClientTest extends UnitSuite with NdlaClient {
+class NdlaClientTest extends UnitSuite {
 
   case class TestObject(id: String, verdi: String)
 

@@ -12,7 +12,6 @@ object frontpageapi extends Module {
       enumeratum,
       enumeratumCirce,
       "io.circe"                      %% "circe-generic"           % CirceV,
-      "io.circe"                      %% "circe-generic-extras"    % CirceV cross CrossVersion.for3Use2_13,
       "io.circe"                      %% "circe-literal"           % CirceV,
       "io.circe"                      %% "circe-parser"            % CirceV,
       "org.http4s"                    %% "http4s-server"           % Http4sV,
@@ -52,7 +51,7 @@ object frontpageapi extends Module {
     tsSettings
 
   override lazy val plugins: Seq[sbt.Plugins] = Seq(
-    DockerPlugin,
+    DockerPlugin
   )
 
 }

@@ -21,9 +21,6 @@ import scala.util.{Failure, Success}
 
 class V3__introduce_layout extends BaseJavaMigration {
 
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)

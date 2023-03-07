@@ -30,7 +30,7 @@ object Dependencies {
     val TapirV                = "1.2.7"
     val ApiSpecV              = "0.3.2"
     val SttpV                 = "3.8.11"
-    val CirceV                = "0.14.3"
+    val CirceV                = "0.14.4"
     val ScalikeJDBCV          = "4.0.0"
     val TestContainersV       = "1.15.1"
     val JsoupV                = "1.15.3"

@@ -6,18 +6,23 @@
  */
 
 package no.ndla.frontpageapi.model.domain
+import enumeratum._
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-case class Layout(`type`: LayoutType.Value)
+case class Layout(`type`: LayoutType)
 
-object LayoutType extends Enumeration {
-  val Single: LayoutType.Value  = Value("single")
-  val Double: LayoutType.Value  = Value("double")
-  val Stacked: LayoutType.Value = Value("stacked")
+sealed trait LayoutType extends EnumEntry
+case object LayoutType extends CirceEnum[LayoutType] with Enum[LayoutType] {
 
-  def fromString(string: String): Try[LayoutType.Value] =
+  case object Single  extends LayoutType
+  case object Double  extends LayoutType
+  case object Stacked extends LayoutType
+
+  val values = findValues
+
+  def fromString(string: String): Try[LayoutType] =
     LayoutType.values.find(_.toString == string) match {
       case Some(v) => Success(v)
       case None    => Failure(ValidationException(s"'$string' is an invalid layout"))

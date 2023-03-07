@@ -20,10 +20,6 @@ import scalikejdbc._
 import scala.util.{Failure, Success}
 
 class V5__add_meta_description extends BaseJavaMigration {
-
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)

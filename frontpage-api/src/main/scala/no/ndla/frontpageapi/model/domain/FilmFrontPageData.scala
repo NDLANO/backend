@@ -9,7 +9,7 @@ package no.ndla.frontpageapi.model.domain
 
 import cats.implicits._
 import io.circe.generic.auto._
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
 import no.ndla.frontpageapi.Props
@@ -25,8 +25,8 @@ case class FilmFrontPageData(
 )
 
 object FilmFrontPageData {
-  implicit val decoder: Decoder[FilmFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[FilmFrontPageData] = deriveEncoder
+  implicit val decoder: Decoder[FilmFrontPageData] = semiauto.deriveDecoder
+  implicit val encoder: Encoder[FilmFrontPageData] = semiauto.deriveEncoder
 
   private[domain] def decodeJson(json: String): Try[FilmFrontPageData] = {
     parse(json).flatMap(_.as[FilmFrontPageData]).toTry

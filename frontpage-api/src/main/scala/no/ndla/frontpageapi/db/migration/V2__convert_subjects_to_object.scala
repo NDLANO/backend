@@ -8,7 +8,6 @@
 package no.ndla.frontpageapi.db.migration
 
 import io.circe.generic.auto._
-import io.circe.generic.semiauto._
 import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
@@ -20,10 +19,6 @@ import scalikejdbc._
 import scala.util.{Failure, Success}
 
 class V2__convert_subjects_to_object extends BaseJavaMigration {
-
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)

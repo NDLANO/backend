@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi.model.domain
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto
 import io.circe.generic.auto._
 import io.circe.parser._
 import no.ndla.frontpageapi.Props
@@ -21,7 +21,7 @@ import scala.util.Try
 case class FrontPageData(topical: List[String], categories: List[SubjectCollection])
 
 object FrontPageData {
-  implicit val encoder: Encoder[FrontPageData] = deriveEncoder
+  implicit val encoder: Encoder[FrontPageData] = semiauto.deriveEncoder
 
   private[domain] def decodeJson(json: String): Try[FrontPageData] = {
     parse(json).flatMap(_.as[FrontPageData]).toTry

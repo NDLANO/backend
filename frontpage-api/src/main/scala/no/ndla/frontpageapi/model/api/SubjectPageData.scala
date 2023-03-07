@@ -7,7 +7,7 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto
 import io.circe.generic.auto._
 import io.circe._
 
@@ -30,7 +30,7 @@ case class SubjectPageData(
 )
 
 object SubjectPageData {
-  implicit def encoder: Encoder[SubjectPageData] = deriveEncoder[SubjectPageData]
+  implicit def encoder: Encoder[SubjectPageData] = semiauto.deriveEncoder[SubjectPageData]
 
-  implicit def decoder: Decoder[SubjectPageData] = deriveDecoder[SubjectPageData]
+  implicit def decoder: Decoder[SubjectPageData] = semiauto.deriveDecoder[SubjectPageData]
 }

@@ -9,6 +9,7 @@ package no.ndla.frontpageapi.model.domain
 
 import cats.implicits._
 import io.circe.generic.auto._
+import io.circe.generic.semiauto
 import io.circe.parser._
 import io.circe.{Decoder, Encoder}
 import no.ndla.frontpageapi.Props
@@ -21,7 +22,7 @@ case class SubjectFrontPageData(
     id: Option[Long],
     name: String,
     filters: Option[List[String]],
-    layout: LayoutType.Value,
+    layout: LayoutType,
     twitter: Option[String],
     facebook: Option[String],
     bannerImage: BannerImage,
@@ -38,8 +39,8 @@ case class SubjectFrontPageData(
 }
 
 object SubjectFrontPageData {
-  implicit val layoutDecoder: Decoder[LayoutType.Value] = Decoder.decodeEnumeration(LayoutType)
-  implicit val layoutEncoder: Encoder[LayoutType.Value] = Encoder.encodeEnumeration(LayoutType)
+  implicit val layoutDecoder: Decoder[LayoutType] = semiauto.deriveDecoder
+  implicit val layoutEncoder: Encoder[LayoutType] = semiauto.deriveEncoder
 
   private[domain] def decodeJson(json: String, id: Long): Try[SubjectFrontPageData] = {
     parse(json).flatMap(_.as[SubjectFrontPageData]).map(_.copy(id = id.some)).toTry

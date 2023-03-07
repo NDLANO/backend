@@ -10,6 +10,8 @@ package no.ndla.frontpageapi.controller
 import cats.effect.IO
 import cats.implicits._
 import no.ndla.frontpageapi.model.api._
+import no.ndla.frontpageapi.model.api.SubjectPageId._
+import no.ndla.frontpageapi.model.api.NewOrUpdatedAboutSubject._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.frontpageapi.Props
 import io.circe.generic.auto._
