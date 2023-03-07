@@ -52,13 +52,14 @@ trait Module {
     Compile / mainClass := this.MainClass,
     organization        := "ndla",
     version             := "0.0.1",
-    scalaVersion        := "3.2.2",
+    scalaVersion        := "3.3.0-RC3",
     javacOptions ++= Seq("-source", "17", "-target", "17"),
     scalacOptions := Seq(
       "-unchecked",
       // "-deprecation",
       "-feature",
-      "-explain"
+//      "-explain"
+      "-Xmax-inlines", "128"
     ),
     javaOptions ++= reflectiveAccessOptions,
     scalacOptions ++= CIOptions,

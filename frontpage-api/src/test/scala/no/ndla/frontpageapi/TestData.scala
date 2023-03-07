@@ -104,7 +104,7 @@ object TestData {
     Some("ndla_samfunn"),
     Some("NDLAsamfunnsfag"),
     api.NewOrUpdateBannerImage(Some(29668), 29668),
-    Seq(
+    List(
       api.NewOrUpdatedAboutSubject(
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
@@ -112,7 +112,7 @@ object TestData {
         api.NewOrUpdatedVisualElement("image", "123", Some("alt text"))
       )
     ),
-    Seq(api.NewOrUpdatedMetaDescription("meta", "nb")),
+    List(api.NewOrUpdatedMetaDescription("meta", "nb")),
     Some("urn:resource:1:170252"),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),

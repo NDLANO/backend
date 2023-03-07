@@ -13,17 +13,17 @@ import scala.util.{Failure, Success, Try}
 
 case class Layout(`type`: LayoutType)
 
-sealed trait LayoutType extends EnumEntry
+sealed trait LayoutType(override val entryName: String) extends EnumEntry
 case object LayoutType extends CirceEnum[LayoutType] with Enum[LayoutType] {
 
-  case object Single  extends LayoutType
-  case object Double  extends LayoutType
-  case object Stacked extends LayoutType
+  case object Single  extends LayoutType("single")
+  case object Double  extends LayoutType("double")
+  case object Stacked extends LayoutType("stacked")
 
   val values = findValues
 
   def fromString(string: String): Try[LayoutType] =
-    LayoutType.values.find(_.toString == string) match {
+    LayoutType.values.find(_.entryName == string) match {
       case Some(v) => Success(v)
       case None    => Failure(ValidationException(s"'$string' is an invalid layout"))
     }

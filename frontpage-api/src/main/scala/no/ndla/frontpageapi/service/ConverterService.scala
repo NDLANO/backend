@@ -84,7 +84,7 @@ trait ConverterService {
                 subjectPageId,
                 sub.name,
                 sub.filters,
-                sub.layout.toString,
+                sub.layout.entryName,
                 sub.twitter,
                 sub.facebook,
                 toApiBannerImage(sub.bannerImage),
