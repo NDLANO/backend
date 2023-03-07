@@ -11,9 +11,9 @@ package no.ndla.network
 import javax.servlet.http.HttpServletRequest
 
 object TaxonomyData {
-  private val TAXONOMY_VERSION_HEADER = "VersionHash"
-  private val taxonomyVersion         = new ThreadLocal[String]
-  private val defaultVersion          = "default"
+  val TAXONOMY_VERSION_HEADER = "VersionHash"
+  private val taxonomyVersion = new ThreadLocal[String]
+  val defaultVersion          = "default"
 
   def set(value: String): Unit = {
     val taxonomyVersionValue = Option(value).getOrElse(defaultVersion)

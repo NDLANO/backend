@@ -17,6 +17,7 @@ import cats.implicits._
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language
 import no.ndla.learningpathapi.Props
+import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import sttp.client3.Response
 
 import scala.concurrent.duration.DurationInt
@@ -227,7 +228,7 @@ trait TaxonomyApiClient {
         quickRequest
           .get(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
-          .header("VersionHash", "default")
+          .header(TAXONOMY_VERSION_HEADER, defaultVersion)
       )
     }
 

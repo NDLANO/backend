@@ -9,6 +9,7 @@ package no.ndla.searchapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
+import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
@@ -92,7 +93,7 @@ trait TaxonomyApiClient {
     }
 
     private def getVersionHashHeader(shouldUsePublishedTax: Boolean): Map[String, String] = {
-      if (shouldUsePublishedTax) Map.empty else Map("versionHash" -> "default")
+      if (shouldUsePublishedTax) Map.empty else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
     }
 
     val getTaxonomyBundle: Memoize[Boolean, Try[TaxonomyBundle]] =
