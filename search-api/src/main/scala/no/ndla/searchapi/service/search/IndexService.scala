@@ -46,7 +46,7 @@ trait IndexService {
     ): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
-      val grepBundle = grepApiClient.getGrepBundle(()) match {
+      val grepBundle = grepApiClient.getGrepBundle() match {
         case Success(bundle) => Some(bundle)
         case Failure(_) =>
           logger.error(
@@ -71,7 +71,7 @@ trait IndexService {
     def indexDocuments(shouldUsePublishedTax: Boolean)(implicit mf: Manifest[D]): Try[ReindexResult] = {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
-        grepBundle     <- grepApiClient.getGrepBundle(())
+        grepBundle     <- grepApiClient.getGrepBundle()
       } yield (taxonomyBundle, grepBundle)
       bundles match {
         case Failure(ex) =>
@@ -83,7 +83,7 @@ trait IndexService {
 
     def reindexDocument(id: Long)(implicit mf: Manifest[D]): Try[D] = {
       for {
-        grepBundle <- grepApiClient.getGrepBundle(())
+        grepBundle <- grepApiClient.getGrepBundle()
         _          <- createIndexIfNotExists()
         toIndex    <- apiClient.getSingle[D](id)
         request    <- createIndexRequest(toIndex, searchIndex, None, Some(grepBundle))

@@ -170,7 +170,7 @@ trait InternController {
       val bundles = for {
         taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
         taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
-        grepBundle              <- grepApiClient.getGrepBundle(())
+        grepBundle              <- grepApiClient.getGrepBundle()
       } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
 
       val start = System.currentTimeMillis()

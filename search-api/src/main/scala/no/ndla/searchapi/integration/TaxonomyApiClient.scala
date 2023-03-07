@@ -84,10 +84,10 @@ trait TaxonomyApiClient {
         filterVisibles: Boolean,
         shouldUsePublishedTax: Boolean
     ): Try[List[SearchableTaxonomyContext]] = {
-      implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       get[List[SearchableTaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
-        headers = getVersionHashHeader(shouldUsePublishedTax) + Map("filterVisibles" -> filterVisibles.toString)
+        headers = getVersionHashHeader(shouldUsePublishedTax) ++ Map("filterVisibles" -> filterVisibles.toString)
       )
     }
 
@@ -100,7 +100,7 @@ trait TaxonomyApiClient {
 
     /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
     private def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
-      logger.info("Fetching taxonomy in bulk...")
+      logger.info(s"Fetching ${if (shouldUsePublishedTax) "published" else "draft"} taxonomy in bulk...")
       val startFetch                            = System.currentTimeMillis()
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(12))
 

@@ -82,7 +82,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
     val bundles = for {
       taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
       taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
-      grepBundle              <- componentRegistry.grepApiClient.getGrepBundle(())
+      grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
     } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
 
     val start = System.currentTimeMillis()
