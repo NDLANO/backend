@@ -139,7 +139,7 @@ trait InternController {
       val requestInfo = RequestInfo.fromThreadContext()
       val draftIndex = Future {
         requestInfo.setRequestInfo()
-        ("drafts", draftIndexService.indexDocuments())
+        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false))
       }
 
       resolveResultFutures(List(draftIndex))
@@ -149,7 +149,7 @@ trait InternController {
       val requestInfo = RequestInfo.fromThreadContext()
       val articleIndex = Future {
         requestInfo.setRequestInfo()
-        ("articles", articleIndexService.indexDocuments())
+        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true))
       }
 
       resolveResultFutures(List(articleIndex))
@@ -159,7 +159,7 @@ trait InternController {
       val requestInfo = RequestInfo.fromThreadContext()
       val learningPathIndex = Future {
         requestInfo.setRequestInfo()
-        ("learningpaths", learningPathIndexService.indexDocuments())
+        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true))
       }
 
       resolveResultFutures(List(learningPathIndex))
@@ -168,28 +168,29 @@ trait InternController {
     post("/index") {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
       val bundles = for {
-        taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
-        grepBundle     <- grepApiClient.getGrepBundle()
-      } yield (taxonomyBundle, grepBundle)
+        taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
+        taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
+        grepBundle              <- grepApiClient.getGrepBundle()
+      } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
 
       val start = System.currentTimeMillis()
 
       bundles match {
         case Failure(ex) => errorHandler(ex)
-        case Success((taxonomyBundle, grepBundle)) =>
+        case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
           val requestInfo = RequestInfo.fromThreadContext()
           val indexes = List(
             Future {
               requestInfo.setRequestInfo()
-              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundle, grepBundle))
+              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("articles", articleIndexService.indexDocuments(taxonomyBundle, grepBundle))
+              ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("drafts", draftIndexService.indexDocuments(taxonomyBundle, grepBundle))
+              ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle))
             }
           )
           if (runInBackground) {

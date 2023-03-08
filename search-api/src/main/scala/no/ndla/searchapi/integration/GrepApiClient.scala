@@ -40,7 +40,10 @@ trait GrepApiClient {
     def getAllTverrfagligeTemaer: Try[List[GrepElement]] =
       get[List[GrepElement]](s"$GrepApiEndpoint/tverrfaglige-temaer-lk20/").map(_.distinct)
 
-    val getGrepBundle: Memoize[Try[GrepBundle]] = Memoize(() => getGrepBundleUncached)
+    // NOTE: We add a helper so we dont have to provide `()` where this is used :^)
+    val getGrepBundle: () => Try[GrepBundle] = () => _getGrepBundle(())
+
+    private val _getGrepBundle: Memoize[Unit, Try[GrepBundle]] = new Memoize(1000 * 60, _ => getGrepBundleUncached)
 
     /** The memoized function of this [[getGrepBundle]] should probably be used in most cases */
     private def getGrepBundleUncached: Try[GrepBundle] = {

@@ -9,6 +9,7 @@ package no.ndla.searchapi.integration
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
+import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
@@ -34,63 +35,93 @@ trait TaxonomyApiClient {
     private val TaxonomyApiEndpoint           = s"$TaxonomyUrl/v1"
     private val timeoutSeconds                = 600.seconds
 
-    def getAllResources: Try[List[Resource]] =
-      get[List[Resource]](s"$TaxonomyApiEndpoint/resources/")
+    def getAllResources(shouldUsePublishedTax: Boolean): Try[List[Resource]] =
+      get[List[Resource]](s"$TaxonomyApiEndpoint/resources/", headers = getVersionHashHeader(shouldUsePublishedTax))
 
-    def getAllSubjects: Try[List[TaxSubject]] =
-      get[List[TaxSubject]](s"$TaxonomyApiEndpoint/subjects/")
+    def getAllSubjects(shouldUsePublishedTax: Boolean): Try[List[TaxSubject]] =
+      get[List[TaxSubject]](s"$TaxonomyApiEndpoint/subjects/", headers = getVersionHashHeader(shouldUsePublishedTax))
 
-    def getAllTopics: Try[List[Topic]] =
-      get[List[Topic]](s"$TaxonomyApiEndpoint/topics/")
+    def getAllTopics(shouldUsePublishedTax: Boolean): Try[List[Topic]] =
+      get[List[Topic]](s"$TaxonomyApiEndpoint/topics/", headers = getVersionHashHeader(shouldUsePublishedTax))
 
-    def getAllResourceTypes: Try[List[ResourceType]] =
-      get[List[ResourceType]](s"$TaxonomyApiEndpoint/resource-types/").map(_.distinct)
+    def getAllResourceTypes(shouldUsePublishedTax: Boolean): Try[List[ResourceType]] =
+      get[List[ResourceType]](
+        s"$TaxonomyApiEndpoint/resource-types/",
+        headers = getVersionHashHeader(shouldUsePublishedTax)
+      ).map(_.distinct)
 
-    def getAllTopicResourceConnections: Try[List[TopicResourceConnection]] =
-      get[List[TopicResourceConnection]](s"$TaxonomyApiEndpoint/topic-resources/")
+    def getAllTopicResourceConnections(shouldUsePublishedTax: Boolean): Try[List[TopicResourceConnection]] =
+      get[List[TopicResourceConnection]](
+        s"$TaxonomyApiEndpoint/topic-resources/",
+        headers = getVersionHashHeader(shouldUsePublishedTax)
+      )
 
-    def getAllTopicSubtopicConnections: Try[List[TopicSubtopicConnection]] =
-      get[List[TopicSubtopicConnection]](s"$TaxonomyApiEndpoint/topic-subtopics/")
+    def getAllTopicSubtopicConnections(shouldUsePublishedTax: Boolean): Try[List[TopicSubtopicConnection]] =
+      get[List[TopicSubtopicConnection]](
+        s"$TaxonomyApiEndpoint/topic-subtopics/",
+        headers = getVersionHashHeader(shouldUsePublishedTax)
+      )
 
-    def getAllResourceResourceTypeConnections: Try[List[ResourceResourceTypeConnection]] =
-      get[List[ResourceResourceTypeConnection]](s"$TaxonomyApiEndpoint/resource-resourcetypes/").map(_.distinct)
+    def getAllResourceResourceTypeConnections(
+        shouldUsePublishedTax: Boolean
+    ): Try[List[ResourceResourceTypeConnection]] =
+      get[List[ResourceResourceTypeConnection]](
+        s"$TaxonomyApiEndpoint/resource-resourcetypes/",
+        headers = getVersionHashHeader(shouldUsePublishedTax)
+      ).map(_.distinct)
 
-    def getAllSubjectTopicConnections: Try[List[SubjectTopicConnection]] =
-      get[List[SubjectTopicConnection]](s"$TaxonomyApiEndpoint/subject-topics/")
+    def getAllSubjectTopicConnections(shouldUsePublishedTax: Boolean): Try[List[SubjectTopicConnection]] =
+      get[List[SubjectTopicConnection]](
+        s"$TaxonomyApiEndpoint/subject-topics/",
+        headers = getVersionHashHeader(shouldUsePublishedTax)
+      )
 
-    def getAllRelevances: Try[List[Relevance]] =
-      get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/").map(_.distinct)
+    def getAllRelevances(shouldUsePublishedTax: Boolean): Try[List[Relevance]] =
+      get[List[Relevance]](s"$TaxonomyApiEndpoint/relevances/", headers = getVersionHashHeader(shouldUsePublishedTax))
+        .map(_.distinct)
 
-    def getSearchableTaxonomy(contentUri: String, filterVisibles: Boolean): Try[List[SearchableTaxonomyContext]] = {
-      implicit val formats = SearchableLanguageFormats.JSonFormatsWithMillis
+    def getSearchableTaxonomy(
+        contentUri: String,
+        filterVisibles: Boolean,
+        shouldUsePublishedTax: Boolean
+    ): Try[List[SearchableTaxonomyContext]] = {
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       get[List[SearchableTaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
-        "filterVisibles" -> filterVisibles.toString
+        headers = getVersionHashHeader(shouldUsePublishedTax) ++ Map("filterVisibles" -> filterVisibles.toString)
       )
     }
 
-    val getTaxonomyBundle: Memoize[Try[TaxonomyBundle]] = Memoize(() => getTaxonomyBundleUncached)
+    private def getVersionHashHeader(shouldUsePublishedTax: Boolean): Map[String, String] = {
+      if (shouldUsePublishedTax) Map.empty else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
+    }
+
+    val getTaxonomyBundle: Memoize[Boolean, Try[TaxonomyBundle]] =
+      new Memoize(1000 * 60, shouldUsePublishedTax => getTaxonomyBundleUncached(shouldUsePublishedTax))
 
     /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
-    private def getTaxonomyBundleUncached: Try[TaxonomyBundle] = {
-      logger.info("Fetching taxonomy in bulk...")
+    private def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
+      logger.info(s"Fetching ${if (shouldUsePublishedTax) "published" else "draft"} taxonomy in bulk...")
       val startFetch                            = System.currentTimeMillis()
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(12))
 
       val requestInfo = RequestInfo.fromThreadContext()
 
       /** Calls function in separate thread and converts Try to Future */
-      def tryToFuture[T](x: () => Try[T]) = Future { requestInfo.setRequestInfo(); x() }.flatMap(Future.fromTry)
+      def tryToFuture[T](x: Boolean => Try[T]) =
+        Future { requestInfo.setRequestInfo(); x(shouldUsePublishedTax) }.flatMap(Future.fromTry)
 
-      val relevances                      = tryToFuture(() => getAllRelevances)
-      val resourceResourceTypeConnections = tryToFuture(() => getAllResourceResourceTypeConnections)
-      val resourceTypes                   = tryToFuture(() => getAllResourceTypes)
-      val resources                       = tryToFuture(() => getAllResources)
-      val subjectTopicConnections         = tryToFuture(() => getAllSubjectTopicConnections)
-      val subjects                        = tryToFuture(() => getAllSubjects)
-      val topicResourceConnections        = tryToFuture(() => getAllTopicResourceConnections)
-      val topicSubtopicConnections        = tryToFuture(() => getAllTopicSubtopicConnections)
-      val topics                          = tryToFuture(() => getAllTopics)
+      // format: off
+      val relevances                      = tryToFuture(shouldUsePublishedTax => getAllRelevances(shouldUsePublishedTax))
+      val resourceResourceTypeConnections = tryToFuture(shouldUsePublishedTax => getAllResourceResourceTypeConnections(shouldUsePublishedTax))
+      val resourceTypes                   = tryToFuture(shouldUsePublishedTax => getAllResourceTypes(shouldUsePublishedTax))
+      val resources                       = tryToFuture(shouldUsePublishedTax => getAllResources(shouldUsePublishedTax))
+      val subjectTopicConnections         = tryToFuture(shouldUsePublishedTax => getAllSubjectTopicConnections(shouldUsePublishedTax))
+      val subjects                        = tryToFuture(shouldUsePublishedTax => getAllSubjects(shouldUsePublishedTax))
+      val topicResourceConnections        = tryToFuture(shouldUsePublishedTax => getAllTopicResourceConnections(shouldUsePublishedTax))
+      val topicSubtopicConnections        = tryToFuture(shouldUsePublishedTax => getAllTopicSubtopicConnections(shouldUsePublishedTax))
+      val topics                          = tryToFuture(shouldUsePublishedTax => getAllTopics(shouldUsePublishedTax))
+      // format: on
 
       val x = for {
         f2  <- relevances
@@ -114,9 +145,12 @@ trait TaxonomyApiClient {
       }
     }
 
-    private def get[A](url: String, params: (String, String)*)(implicit mf: Manifest[A], formats: Formats): Try[A] = {
+    private def get[A](url: String, headers: Map[String, String], params: (String, String)*)(implicit
+        mf: Manifest[A],
+        formats: Formats
+    ): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
-        quickRequest.get(uri"$url?$params").readTimeout(timeoutSeconds)
+        quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds)
       )
     }
   }

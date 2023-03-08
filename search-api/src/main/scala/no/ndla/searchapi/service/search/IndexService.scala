@@ -68,9 +68,9 @@ trait IndexService {
       } yield imported
     }
 
-    def indexDocuments()(implicit mf: Manifest[D]): Try[ReindexResult] = {
+    def indexDocuments(shouldUsePublishedTax: Boolean)(implicit mf: Manifest[D]): Try[ReindexResult] = {
       val bundles = for {
-        taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle()
+        taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
         grepBundle     <- grepApiClient.getGrepBundle()
       } yield (taxonomyBundle, grepBundle)
       bundles match {

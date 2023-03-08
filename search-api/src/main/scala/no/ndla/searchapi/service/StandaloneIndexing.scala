@@ -80,21 +80,24 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
 
   def doStandaloneIndexing(): Nothing = {
     val bundles = for {
-      taxonomyBundle <- componentRegistry.taxonomyApiClient.getTaxonomyBundle()
-      grepBundle     <- componentRegistry.grepApiClient.getGrepBundle()
-    } yield (taxonomyBundle, grepBundle)
+      taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
+      taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
+      grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
+    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)
 
     val start = System.currentTimeMillis()
 
     val reindexResult = bundles match {
       case Failure(ex) => Seq(Failure(ex))
-      case Success((taxonomyBundle, grepBundle)) =>
+      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
         def reindexWithIndexService[C <: Content](
-            indexService: componentRegistry.IndexService[C]
+            indexService: componentRegistry.IndexService[C],
+            shouldUsePublishedTax: Boolean
         )(implicit mf: Manifest[C]): Future[Try[ReindexResult]] = {
+          val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
           val reindexFuture = Future {
             indexService.indexDocuments(taxonomyBundle, grepBundle)
           }
@@ -114,9 +117,9 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         Await.result(
           Future.sequence(
             Seq(
-              reindexWithIndexService(componentRegistry.learningPathIndexService),
-              reindexWithIndexService(componentRegistry.articleIndexService),
-              reindexWithIndexService(componentRegistry.draftIndexService)
+              reindexWithIndexService(componentRegistry.learningPathIndexService, shouldUsePublishedTax = true),
+              reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
+              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false)
             )
           ),
           Duration.Inf
