@@ -35,14 +35,6 @@ class NdlaScalatraServer[PropType <: BaseProps, CR <: BaseComponentRegistry[Prop
     context.addEventListener(new SessionListener)
     val monitoringFilter = new FilterHolder(new MonitoringFilter())
     monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, props.ApplicationName)
-    props.Environment match {
-      case "local" =>
-      case _ =>
-        monitoringFilter.setInitParameter(
-          Parameter.CLOUDWATCH_NAMESPACE.getCode,
-          "NDLA/APP".replace("APP", props.ApplicationName)
-        )
-    }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
   }
 
