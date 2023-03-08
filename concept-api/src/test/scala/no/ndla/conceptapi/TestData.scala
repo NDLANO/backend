@@ -31,6 +31,7 @@ object TestData {
 
   val userWithNoRoles     = UserInfo("unit test", Set.empty)
   val userWithWriteAccess = UserInfo("unit test", Set(Role.WRITE))
+  val userWithWriteAndPublishAccess = UserInfo("unit test", Set(Role.ADMIN, Role.WRITE))
 
   val today     = LocalDateTime.now().minusDays(0)
   val yesterday = LocalDateTime.now().minusDays(1)
