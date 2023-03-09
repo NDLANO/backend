@@ -33,12 +33,23 @@ trait ContentValidator {
           concept.visualElement.flatMap(ve => validateVisualElement(ve)) ++
           concept.metaImage.flatMap(mi => validateMetaImage(mi)) ++
           validateTitles(concept.title) ++
-          concept.copyright.map(co => validateCopyright(co)).getOrElse(Seq())
+          concept.copyright.map(co => validateCopyright(co)).getOrElse(Seq()) ++
+          validateResponsible(concept)
 
       if (validationErrors.isEmpty) {
         Success(concept)
       } else {
         Failure(new ValidationException(errors = validationErrors))
+      }
+    }
+
+    private def validateResponsible(concept: Concept): Option[ValidationMessage] = {
+      val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(concept.status.current)
+      Option.when(concept.responsible.isEmpty && statusRequiresResponsible) {
+        ValidationMessage(
+          "responsibleId",
+          s"Responsible needs to be set if the status is not ${ConceptStatus.thatDoesNotRequireResponsible}"
+        )
       }
     }
 
