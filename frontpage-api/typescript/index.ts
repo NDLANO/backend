@@ -1,6 +1,6 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type Error = (INotFoundError | IGenericError | IBadRequestError | IUnprocessableEntityError | IForbiddenError | IUnauthorizedError)
+export type Error = (INotFoundError | IUnauthorizedError | IUnprocessableEntityError | IForbiddenError | IGenericError | IBadRequestError)
 
 export interface IAboutFilmSubject {
   title: string
