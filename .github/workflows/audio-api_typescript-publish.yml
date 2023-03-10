@@ -2,7 +2,7 @@ name: 'Publish typescript types: audio-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - audio-api/typescript/index.ts
 env:

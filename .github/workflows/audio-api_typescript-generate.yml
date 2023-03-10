@@ -2,7 +2,7 @@ name: 'Generate typescript types: audio-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - audio-api/**
       - project/audioapi.scala

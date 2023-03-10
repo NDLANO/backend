@@ -2,7 +2,7 @@ name: 'Publish typescript types: frontpage-api'
 on:
   push:
     branches:
-      - ikke-master
+      - ikkemaster
     paths:
       - frontpage-api/typescript/index.ts
 env:

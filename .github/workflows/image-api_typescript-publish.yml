@@ -2,7 +2,7 @@ name: 'Publish typescript types: image-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - image-api/typescript/index.ts
 env:

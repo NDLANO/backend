@@ -2,7 +2,7 @@ name: 'Generate typescript types: concept-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - concept-api/**
       - project/conceptapi.scala

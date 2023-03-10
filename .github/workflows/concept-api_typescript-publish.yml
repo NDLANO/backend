@@ -2,7 +2,7 @@ name: 'Publish typescript types: concept-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - concept-api/typescript/index.ts
 env:

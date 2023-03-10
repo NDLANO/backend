@@ -2,7 +2,7 @@ name: 'Generate typescript types: frontpage-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - frontpage-api/**
       - project/frontpageapi.scala

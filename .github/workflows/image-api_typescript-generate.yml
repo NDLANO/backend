@@ -2,7 +2,7 @@ name: 'Generate typescript types: image-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - image-api/**
       - project/imageapi.scala

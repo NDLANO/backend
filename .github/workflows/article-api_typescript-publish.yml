@@ -2,7 +2,7 @@ name: 'Publish typescript types: article-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - article-api/typescript/index.ts
 env:

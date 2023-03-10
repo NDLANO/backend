@@ -2,7 +2,7 @@ name: 'Generate typescript types: draft-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - draft-api/**
       - project/draftapi.scala

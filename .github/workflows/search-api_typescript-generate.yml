@@ -2,7 +2,7 @@ name: 'Generate typescript types: search-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - search-api/**
       - project/searchapi.scala

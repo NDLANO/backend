@@ -2,7 +2,7 @@ name: 'Publish typescript types: draft-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - draft-api/typescript/index.ts
 env:

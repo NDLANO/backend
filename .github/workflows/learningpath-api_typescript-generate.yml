@@ -2,7 +2,7 @@ name: 'Generate typescript types: learningpath-api'
 on:
   push:
     branches:
-      - master
+      - ikkemaster
     paths:
       - learningpath-api/**
       - project/learningpathapi.scala
