@@ -20,7 +20,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""
 
-  val articleToValidate: Draft = TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))
+  val articleToValidate: Draft =
+    TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = articleToValidate.copy(content = Seq(ArticleContent(validDocument, "nb")))
