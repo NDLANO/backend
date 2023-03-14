@@ -115,4 +115,7 @@ object ConceptStatus extends Enumeration {
     }
 
   def valueOf(s: String): Option[ConceptStatus.Value] = values.find(_.toString == s.toUpperCase)
+
+  val thatDoesNotRequireResponsible: Seq[ConceptStatus.Value] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
+  val thatRequiresResponsible: ConceptStatus.ValueSet = this.values.filterNot(thatDoesNotRequireResponsible.contains)
 }

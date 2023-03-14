@@ -16,8 +16,9 @@ import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, IN_PROGRESS, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -520,30 +521,27 @@ trait WriteService {
       }
     }
 
-    private def updateStatusIfNeeded(
+    private[service] def updateStatusIfNeeded(
         convertedArticle: Draft,
         existingArticle: Draft,
         updatedApiArticle: api.UpdatedArticle,
         user: UserInfo
     ): Try[Draft] = {
-      if (!shouldUpdateStatus(convertedArticle, existingArticle)) {
-        Success(convertedArticle)
-      } else {
-        val oldStatus            = existingArticle.status.current
-        val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
+      val newManualStatus           = updatedApiArticle.status.traverse(DraftStatus.valueOfOrError).?
+      val shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existingArticle)
+      if (shouldNotAutoUpdateStatus && newManualStatus.isEmpty)
+        return Success(convertedArticle)
 
-        updatedApiArticle.status
-          .map(DraftStatus.valueOfOrError)
-          .getOrElse(Success(newStatusIfUndefined))
-          .flatMap(newStatus =>
-            converterService
-              .updateStatus(newStatus, convertedArticle, user, isImported = false)
-              .attempt
-              .unsafeRunSync()
-              .toTry
-          )
-          .flatten
-      }
+      val oldStatus            = existingArticle.status.current
+      val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
+      val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
+
+      converterService
+        .updateStatus(newStatus, convertedArticle, user, isImported = false)
+        .attempt
+        .unsafeRunSync()
+        .toTry
+        .flatten
     }
 
     def updateArticle(

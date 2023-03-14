@@ -8,8 +8,9 @@
 package no.ndla.conceptapi.service
 
 import no.ndla.common.DateParser
-import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.common.model.domain.{Responsible, Tag, Title}
 import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.conceptapi.model.api.ConceptResponsible
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -30,9 +31,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val userInfo: UserInfo       = UserInfo.SystemUser
 
   val concept: api.Concept =
-    TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
+    TestData.sampleNbApiConcept.copy(
+      id = conceptId.toLong,
+      updated = today,
+      supportedLanguages = Set("nb"),
+      responsible = Some(ConceptResponsible("hei", TestData.today))
+    )
 
-  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Some(conceptId.toLong))
+  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(
+    id = Some(conceptId.toLong),
+    responsible = Some(Responsible("hei", TestData.today))
+  )
 
   def mockWithConcept(concept: domain.Concept) = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
@@ -172,13 +181,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         content = Seq(ConceptContent("Innhold", "nb"), ConceptContent("Innhald", "nn")),
         tags = Seq(Tag(Seq("tag"), "nb"), Tag(Seq("tag"), "nn")),
         visualElement = Seq(VisualElement("VisueltElement", "nb"), VisualElement("VisueltElement", "nn")),
-        metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), ConceptMetaImage("1", "Hei", "nn"))
+        metaImage = Seq(ConceptMetaImage("1", "Hei", "nb"), ConceptMetaImage("1", "Hei", "nn")),
+        status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
+        responsible = Some(Responsible("hei", TestData.today))
       )
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
     when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
-    val updated = service.deleteLanguage(concept.id.get, "nn", userInfo)
+    val updated = service.deleteLanguage(concept.id.get, "nn", userInfo).get
     verify(draftConceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
@@ -186,7 +197,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     conceptCaptor.getValue.tags.length should be(1)
     conceptCaptor.getValue.visualElement.length should be(1)
     conceptCaptor.getValue.metaImage.length should be(1)
-    updated.get.supportedLanguages should not contain "nn"
+    updated.supportedLanguages should not contain "nn"
   }
 
   test("That updating concepts updates revision") {

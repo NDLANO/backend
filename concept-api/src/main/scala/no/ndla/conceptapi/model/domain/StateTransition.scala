@@ -16,7 +16,7 @@ case class StateTransition(
     from: ConceptStatus.Value,
     to: ConceptStatus.Value,
     otherStatesToKeepOnTransition: Set[ConceptStatus.Value],
-    sideEffect: SideEffect,
+    sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
     requiredRoles: Set[Role.Value],
     illegalStatuses: Set[ConceptStatus.Value]
@@ -24,7 +24,7 @@ case class StateTransition(
 
   def keepCurrentOnTransition: StateTransition                      = copy(addCurrentStateToOthersOnTransition = true)
   def keepStates(toKeep: Set[ConceptStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
-  def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffect = sideEffect)
+  def withSideEffect(sideEffect: SideEffect): StateTransition       = copy(sideEffects = sideEffects :+ sideEffect)
   def require(roles: Set[Role.Value]): StateTransition              = copy(requiredRoles = roles)
 
   def illegalStatuses(illegalStatuses: Set[ConceptStatus.Value]): StateTransition =
@@ -38,7 +38,7 @@ object StateTransition {
       from,
       to,
       Set(ConceptStatus.PUBLISHED),
-      SideEffect.none,
+      Seq.empty[SideEffect],
       addCurrentStateToOthersOnTransition = false,
       UserInfo.WriteRoles,
       Set()
