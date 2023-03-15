@@ -184,7 +184,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, LocalDateTime.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
 
-    when(learningpathApiClient.getLearningpathsWithPaths(Seq.empty)).thenReturn(Success(Seq.empty))
+    when(learningpathApiClient.getLearningpathsWithId(any[Long])).thenReturn(Success(Seq.empty))
     when(searchApiClient.draftsWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq.empty)
     when(taxonomyApiClient.queryResource(any[Long])).thenReturn(Success(List.empty))
@@ -238,8 +238,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val articleId: Long = 7
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
-    when(learningpathApiClient.getLearningpathsWithPaths(any[Seq[String]]))
-      .thenReturn(Success(Seq(learningPath)))
+    when(learningpathApiClient.getLearningpathsWithId(any[Long])).thenReturn(Success(Seq(learningPath)))
 
     val res = StateTransitionRules.unpublishArticle(article, false)
     res.isFailure should be(true)
@@ -250,8 +249,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
-    when(learningpathApiClient.getLearningpathsWithPaths(any[Seq[String]]))
-      .thenReturn(Success(Seq.empty))
+    when(learningpathApiClient.getLearningpathsWithId(any[Long])).thenReturn(Success(Seq.empty))
     when(searchApiClient.draftsWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
     when(searchApiClient.publishedWhereUsed(any[Long])).thenReturn(Seq(SearchHit(1, Title("Title", "nb"))))
 
@@ -266,16 +264,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("unpublishArticle should fail if article is used in a learningstep with a taxonomy-url") {
     val articleId: Long = 7
-    val externalId      = "169243"
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
-    when(
-      learningpathApiClient
-        .getLearningpathsWithPaths(
-          Seq(s"/unknown/subjects/subject:15/topic:1:166611/topic:1:182229/resource:1:$externalId")
-        )
-    )
-      .thenReturn(Success(Seq(learningPath)))
+    when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
     when(draftRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(articleId.toLong))
 
     val res = StateTransitionRules.unpublishArticle(article, false)
@@ -286,15 +277,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
     val articleId = 7
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
-    val paths = Seq(
-      s"/article-iframe/*/$articleId",
-      s"/article-iframe/*/$articleId/",
-      s"/article-iframe/*/$articleId/\\?*",
-      s"/article-iframe/*/$articleId\\?*",
-      s"/article/$articleId"
-    )
-    when(learningpathApiClient.getLearningpathsWithPaths(paths))
-      .thenReturn(Success(Seq.empty))
+    when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
@@ -310,15 +293,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val articleId: Long = 7
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
-    val paths = Seq(
-      s"/article-iframe/*/$articleId",
-      s"/article-iframe/*/$articleId/",
-      s"/article-iframe/*/$articleId/\\?*",
-      s"/article-iframe/*/$articleId\\?*",
-      s"/article/$articleId"
-    )
-    when(learningpathApiClient.getLearningpathsWithPaths(paths))
-      .thenReturn(Success(Seq(learningPath)))
+    when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
 
@@ -328,15 +303,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("checkIfArticleIsUsedInLearningStep should fail if article is used in a learningstep with a taxonomy-url") {
     val articleId: Long = 7
-    val externalId      = "169243"
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
-    when(
-      learningpathApiClient.getLearningpathsWithPaths(
-        Seq(s"/unknown/subjects/subject:15/topic:1:166611/topic:1:182229/resource:1:$externalId")
-      )
-    )
-      .thenReturn(Success(Seq(learningPath)))
+    when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq(learningPath)))
     when(draftRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(articleId.toLong))
 
     val Failure(res: ValidationException) = StateTransitionRules.checkIfArticleIsInUse(article, false)
@@ -347,14 +316,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     reset(articleApiClient, taxonomyApiClient, learningpathApiClient)
     val articleId = 7
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
-    val paths = Seq(
-      s"/article-iframe/*/$articleId",
-      s"/article-iframe/*/$articleId/",
-      s"/article-iframe/*/$articleId/\\?*",
-      s"/article-iframe/*/$articleId\\?*",
-      s"/article/$articleId"
-    )
-    when(learningpathApiClient.getLearningpathsWithPaths(paths)).thenReturn(Success(Seq.empty))
+    when(learningpathApiClient.getLearningpathsWithId(articleId)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(article)).thenReturn(Success(article))
     when(taxonomyApiClient.queryResource(articleId)).thenReturn(Success(List.empty))
     when(taxonomyApiClient.queryTopic(articleId)).thenReturn(Success(List.empty))
