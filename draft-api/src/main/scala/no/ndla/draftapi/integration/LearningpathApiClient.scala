@@ -19,11 +19,11 @@ trait LearningpathApiClient {
   val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
-    implicit val format          = org.json4s.DefaultFormats
-    private val InternalEndpoint = s"http://${props.LearningpathApiHost}/intern"
+    implicit val format  = org.json4s.DefaultFormats
+    private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
 
-    def getLearningpathsWithPaths(paths: Seq[String]): Try[Seq[LearningPath]] = {
-      get[Seq[LearningPath]](s"$InternalEndpoint/containsArticle?paths=${paths.mkString(",")}")
+    def getLearningpathsWithId(articleId: Long): Try[Seq[LearningPath]] = {
+      get[Seq[LearningPath]](s"$Endpoint/contains-article/$articleId")
     }
 
     private def get[A](endpointUrl: String, params: (String, String)*)(implicit
