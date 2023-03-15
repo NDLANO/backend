@@ -318,7 +318,7 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] =
       if (shouldOnlyCopy) {
-        draftRepository.storeArticleAsNewVersion(article, Some(user))
+        draftRepository.storeArticleAsNewVersion(article, Some(user), keepResponsible = true)
       } else {
         externalIds match {
           case Nil => updateArticleAndStoreAsNewIfPublished(article, isImported, statusWasUpdated)

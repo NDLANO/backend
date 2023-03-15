@@ -107,7 +107,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
-    when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]])(any[DBSession]))
+    when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
@@ -937,7 +937,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     updated.get.notes.length should be(1)
 
     verify(draftRepository, never).updateArticle(any[Draft], anyBoolean)(any[DBSession])
-    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]])(any[DBSession])
+    verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(
+      any[DBSession]
+    )
   }
 
   test("contentWithClonedFiles clones files as expected") {
