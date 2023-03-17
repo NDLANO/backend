@@ -41,17 +41,15 @@ trait StateTransitionRules {
     private[service] val publishConcept: SideEffect =
       (concept: domain.Concept) => writeService.publishConcept(concept)
 
-    private val resetResponsible: SideEffect = (concept: domain.Concept) => Success(concept.copy(responsible = None))
-
     import StateTransition._
 
     // format: off
     val StateTransitions: Set[StateTransition] = Set(
        IN_PROGRESS        -> IN_PROGRESS,
-      (IN_PROGRESS        -> ARCHIVED)            require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (IN_PROGRESS        -> ARCHIVED)            require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED),
       (IN_PROGRESS        -> EXTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (IN_PROGRESS        -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
-      (IN_PROGRESS        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (IN_PROGRESS        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
       (EXTERNAL_REVIEW    -> IN_PROGRESS)         keepStates Set(PUBLISHED),
        EXTERNAL_REVIEW    -> EXTERNAL_REVIEW,
       (EXTERNAL_REVIEW    -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
@@ -59,35 +57,35 @@ trait StateTransitionRules {
       (INTERNAL_REVIEW    -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (INTERNAL_REVIEW    -> EXTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (INTERNAL_REVIEW    -> QUALITY_ASSURANCE)   keepStates Set(PUBLISHED),
-       ARCHIVED           -> ARCHIVED             withSideEffect resetResponsible,
+       ARCHIVED           -> ARCHIVED,
        ARCHIVED           -> IN_PROGRESS,
-      (ARCHIVED           -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (ARCHIVED           -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        QUALITY_ASSURANCE  -> QUALITY_ASSURANCE,
       (QUALITY_ASSURANCE  -> LANGUAGE)            keepStates Set(PUBLISHED) require UserInfo.PublishRoles,
-      (QUALITY_ASSURANCE  -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (QUALITY_ASSURANCE  -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
       (QUALITY_ASSURANCE  -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (QUALITY_ASSURANCE  -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
       (PUBLISHED          -> IN_PROGRESS)         keepCurrentOnTransition,
-      (PUBLISHED          -> UNPUBLISHED)         keepStates Set() require UserInfo.PublishRoles withSideEffect unpublishConcept withSideEffect resetResponsible,
-       UNPUBLISHED        -> UNPUBLISHED          withSideEffect resetResponsible,
-      (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (PUBLISHED          -> UNPUBLISHED)         keepStates Set() require UserInfo.PublishRoles withSideEffect unpublishConcept,
+       UNPUBLISHED        -> UNPUBLISHED,
+      (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
       (UNPUBLISHED        -> IN_PROGRESS),
-      (UNPUBLISHED        -> ARCHIVED)            require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (UNPUBLISHED        -> ARCHIVED)            require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED),
        LANGUAGE           -> LANGUAGE,
       (LANGUAGE           -> FOR_APPROVAL)        keepStates Set(PUBLISHED) require UserInfo.PublishRoles,
       (LANGUAGE           -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (LANGUAGE           -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
-      (LANGUAGE           -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (LANGUAGE           -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        FOR_APPROVAL       -> FOR_APPROVAL,
       (FOR_APPROVAL       -> END_CONTROL)         keepStates Set(PUBLISHED),
        FOR_APPROVAL       -> IN_PROGRESS          keepStates Set(PUBLISHED),
        FOR_APPROVAL       -> INTERNAL_REVIEW      keepStates Set(PUBLISHED),
-      (FOR_APPROVAL       -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (FOR_APPROVAL       -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        END_CONTROL        -> END_CONTROL,
       (END_CONTROL        -> FOR_APPROVAL)        keepStates Set(PUBLISHED),
       (END_CONTROL        -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (END_CONTROL        -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
-      (END_CONTROL        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
+      (END_CONTROL        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
     )
     // format: on
 
