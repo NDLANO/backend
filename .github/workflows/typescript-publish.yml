@@ -1,14 +1,13 @@
-name: 'Publish typescript types: image-api'
+name: 'Publish typescript types'
 on:
   push:
     branches:
-      - ikkemaster
+      - master
     paths:
-      - image-api/typescript/index.ts
+      - typescript/**
 env:
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
-  COMPONENT: image-api
 jobs:
   generate_typescript:
     name: Publish typescript types
@@ -19,14 +18,14 @@ jobs:
           token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: actions/setup-node@v3
         with:
-          node-version: '14.16'
+          node-version: '18.12'
       - name: Setup git
         run: |
           git config user.email "$KNOWIT_EMAIL"
           git config user.name "github-actions"
       - name: Publish typescript types
         run: |
-          cd image-api/typescript/
+          cd typescript/
           yarn
           yarn build
           yarn publish --non-interactive --access public --patch

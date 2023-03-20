@@ -1,6 +1,6 @@
 import Dependencies.versions._
 import sbt.Keys._
-import sbt._
+import sbt.{Def, _}
 import au.com.onegeek.sbtdotenv.SbtDotenv.parseFile
 import sbtassembly._
 import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
@@ -37,6 +37,7 @@ trait Module {
   lazy val configs: Seq[sbt.librarymanagement.Configuration] = Seq.empty
   lazy val plugins: Seq[sbt.Plugins]                         = Seq.empty
   lazy val disablePlugins: Seq[sbt.AutoPlugin]               = Seq.empty
+  val moduleName: String
 
   protected val MainClass: Option[String] = None
 
@@ -47,6 +48,7 @@ trait Module {
   val CIOptions: Seq[String] = if (isCI) Seq("-Xfatal-warnings") else Seq.empty
 
   lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
+    name                := this.moduleName,
     run / mainClass     := this.MainClass,
     Compile / mainClass := this.MainClass,
     organization        := "ndla",
@@ -168,16 +170,13 @@ trait Module {
     }
   }
 
-  val fmtSettings = Seq(
-    checkfmtSetting,
-    fmtSetting
-  )
+  val fmtSettings: Seq[Def.Setting[Task[Unit]]] = Seq(checkfmtSetting, fmtSetting)
 
   protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
     Seq(
       typescriptGenerationImports := imports,
       typescriptExports           := exports,
-      typescriptOutputFile        := baseDirectory.value / "typescript" / "index.ts"
+      typescriptOutputFile        := file("./typescript") / s"${this.moduleName}.ts"
     )
   }
 }

@@ -8,6 +8,8 @@ import Dependencies._
 
 object learningpathapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.learningpathapi.Main")
+  override val moduleName: String        = "learningpath-api"
+
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,
@@ -64,7 +66,6 @@ object learningpathapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "learningpath-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

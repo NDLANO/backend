@@ -1,13 +1,9 @@
-name: 'Generate typescript types: frontpage-api'
+name: 'Generate typescript types'
 on:
   push:
     branches:
-      - ikkemaster
-    paths:
-      - frontpage-api/**
-      - project/frontpageapi.scala
-      - project/Dependencies.scala
-      - project/Module.scala
+      - fix-type-script-types
+      - master
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
   AWS_DEFAULT_REGION: eu-west-1
@@ -19,7 +15,6 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   NDLA_RELEASES: ${{ secrets.NDLA_RELEASES }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
-  COMPONENT: frontpage-api
 jobs:
   generate_typescript:
     name: Generate typescript types
@@ -35,7 +30,7 @@ jobs:
           java-version: '17'
       - uses: actions/setup-node@v3
         with:
-          node-version: '14.16'
+          node-version: '18.12'
       - name: Login to ECR repo
         run: RES=$(aws sts assume-role --role-arn $CI_RELEASE_ROLE --role-session-name
           github-actions-ecr-login) AWS_ACCESS_KEY_ID=$(echo $RES | jq -r .Credentials.AccessKeyId)
@@ -46,13 +41,13 @@ jobs:
         run: echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME
           --password-stdin
       - name: Generate typescript types
-        run: sbt frontpage-api/generateTypescript
+        run: sbt generateTypescript
       - name: Commit typescript changes
         continue-on-error: true
         run: |
           git config user.email "$KNOWIT_EMAIL"
           git config user.name "github-actions"
-
-          git add frontpage-api/typescript/index.ts
+          
+          git add typescript/*
           git commit -m "AUTOMATION: Generated new typescript files"
           git push

@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 
 object scalatestsuitelib extends Module {
+  override val moduleName: String = "scalatestsuite"
   lazy val dependencies: Seq[ModuleID] = Seq(
     "org.scalatest"     %% "scalatest"               % ScalaTestV,
     "org.mockito"       %% "mockito-scala"           % MockitoV,
@@ -14,7 +15,6 @@ object scalatestsuitelib extends Module {
   ) ++ database ++ vulnerabilityOverrides
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "scalatestsuite",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

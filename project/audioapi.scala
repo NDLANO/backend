@@ -8,6 +8,7 @@ import Dependencies._
 
 object audioapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.audioapi.Main")
+  override val moduleName: String        = "audio-api"
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,
@@ -53,7 +54,6 @@ object audioapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "audio-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

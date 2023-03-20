@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 
 object languagelib extends Module {
+  override val moduleName: String = "language"
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.json4s"    %% "json4s-native" % Json4SV,
@@ -13,11 +14,9 @@ object languagelib extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "language",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings
 
   override lazy val disablePlugins = Seq(ScalaTsiPlugin)
-
 }

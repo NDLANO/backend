@@ -14,7 +14,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.frontpageapi.controller.{NdlaMiddleware, Service}
-import no.ndla.frontpageapi.model.api.{BadRequestError, ErrorHelpers, GenericError}
+import no.ndla.frontpageapi.model.api.{ErrorBody, ErrorHelpers}
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
@@ -41,11 +41,11 @@ trait Routes {
 
     private def failureResponse(error: String): ValuedEndpointOutput[_] = {
       logger.error(s"Failure handler got: $error")
-      ValuedEndpointOutput(jsonBody[GenericError], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
     }
 
     private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[BadRequestError], ErrorHelpers.badRequest(failureMsg))
+      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
     })
 
     def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {

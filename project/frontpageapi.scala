@@ -6,6 +6,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object frontpageapi extends Module {
+  override val moduleName: String        = "frontpage-api"
   override val MainClass: Option[String] = Some("no.ndla.frontpageapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
@@ -42,12 +43,11 @@ object frontpageapi extends Module {
       "SubjectPageData",
       "NewSubjectFrontPageData",
       "UpdatedSubjectFrontPageData",
-      "Error"
+      "ErrorBody"
     )
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "frontpage-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
@@ -59,5 +59,4 @@ object frontpageapi extends Module {
     DockerPlugin,
     ScalaTsiPlugin
   )
-
 }

@@ -3,6 +3,7 @@ import sbt.Keys._
 import sbt._
 
 object integrationtests extends Module {
+  override val moduleName: String = "integration-tests"
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
@@ -12,7 +13,6 @@ object integrationtests extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "integration-tests",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

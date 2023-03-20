@@ -21,42 +21,31 @@ import sttp.tapir.json.circe.jsonBody
 
 import scala.util.{Failure, Success, Try}
 
-sealed trait Error {
-  val code: String
-  val description: String
-  val occuredAt: LocalDateTime
-}
-
-case class NotFoundError(code: String, description: String, occuredAt: LocalDateTime)            extends Error
-case class GenericError(code: String, description: String, occuredAt: LocalDateTime)             extends Error
-case class BadRequestError(code: String, description: String, occuredAt: LocalDateTime)          extends Error
-case class UnprocessableEntityError(code: String, description: String, occuredAt: LocalDateTime) extends Error
-case class UnauthorizedError(code: String, description: String, occuredAt: LocalDateTime)        extends Error
-case class ForbiddenError(code: String, description: String, occuredAt: LocalDateTime)           extends Error
+case class ErrorBody(code: String, description: String, occuredAt: LocalDateTime)
 
 trait ErrorHelpers {
   this: Props with Clock =>
 
-  val NotFoundVariant: EndpointOutput[NotFoundError] =
-    statusCode(StatusCode.NotFound).and(jsonBody[NotFoundError])
+  val NotFoundVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.NotFound).and(jsonBody[ErrorBody])
 
-  val GenericVariant: EndpointOutput[GenericError] =
-    statusCode(StatusCode.InternalServerError).and(jsonBody[GenericError])
+  val GenericVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.InternalServerError).and(jsonBody[ErrorBody])
 
-  val BadRequestVariant: EndpointOutput[BadRequestError] =
-    statusCode(StatusCode.BadRequest).and(jsonBody[BadRequestError])
+  val BadRequestVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.BadRequest).and(jsonBody[ErrorBody])
 
-  val UnauthorizedVariant: EndpointOutput[UnauthorizedError] =
-    statusCode(StatusCode.Unauthorized).and(jsonBody[UnauthorizedError])
+  val UnauthorizedVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.Unauthorized).and(jsonBody[ErrorBody])
 
-  val ForbiddenVariant: EndpointOutput[ForbiddenError] =
-    statusCode(StatusCode.Forbidden).and(jsonBody[ForbiddenError])
+  val ForbiddenVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.Forbidden).and(jsonBody[ErrorBody])
 
-  val UnprocessableEntityVariant: EndpointOutput[UnprocessableEntityError] =
-    statusCode(StatusCode.UnprocessableEntity).and(jsonBody[UnprocessableEntityError])
+  val UnprocessableEntityVariant: EndpointOutput[ErrorBody] =
+    statusCode(StatusCode.UnprocessableEntity).and(jsonBody[ErrorBody])
 
-  val errorOutputs: EndpointOutput.OneOf[Error, Error] =
-    oneOf[Error](
+  val errorOutputs: EndpointOutput.OneOf[ErrorBody, ErrorBody] =
+    oneOf[ErrorBody](
       oneOfVariant(NotFoundVariant),
       oneOfVariant(GenericVariant),
       oneOfVariant(BadRequestVariant),
@@ -82,16 +71,16 @@ trait ErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: GenericError                       = GenericError(GENERIC, GENERIC_DESCRIPTION, clock.now())
-    def notFound: NotFoundError                     = NotFoundError(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
-    def notFoundWithMsg(msg: String): NotFoundError = NotFoundError(NOT_FOUND, msg, clock.now())
-    def badRequest(msg: String = BAD_REQUEST): BadRequestError = BadRequestError(BAD_REQUEST, msg, clock.now())
-    def unauthorized: UnauthorizedError = UnauthorizedError(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
-    def forbidden: ForbiddenError       = ForbiddenError(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
-    def unprocessableEntity(msg: String = UNPROCESSABLE_ENTITY): UnprocessableEntityError =
-      UnprocessableEntityError(UNPROCESSABLE_ENTITY, msg, clock.now())
+    def generic: ErrorBody                               = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now())
+    def notFound: ErrorBody                              = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
+    def notFoundWithMsg(msg: String): ErrorBody          = ErrorBody(NOT_FOUND, msg, clock.now())
+    def badRequest(msg: String = BAD_REQUEST): ErrorBody = ErrorBody(BAD_REQUEST, msg, clock.now())
+    def unauthorized: ErrorBody = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
+    def forbidden: ErrorBody    = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
+    def unprocessableEntity(msg: String = UNPROCESSABLE_ENTITY): ErrorBody =
+      ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now())
 
-    def returnError(ex: Throwable): Error = {
+    def returnError(ex: Throwable): ErrorBody = {
       ex match {
         case a: ValidationException        => badRequest(ex.getMessage)
         case ex: NotFoundException         => notFoundWithMsg(ex.getMessage)
@@ -108,7 +97,7 @@ trait ErrorHelpers {
       /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we
         * fallback to a generic 500 error.
         */
-      def handleErrorsOrOk: Either[Error, T] = {
+      def handleErrorsOrOk: Either[ErrorBody, T] = {
         t match {
           case Success(value) => value.asRight
           case Failure(ex)    => ErrorHelpers.returnError(ex).asLeft
@@ -125,7 +114,7 @@ trait ErrorHelpers {
         * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
         * generic 500 error.
         */
-      def partialOverride(callback: PartialFunction[Throwable, Error]): Either[Error, T] = {
+      def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[ErrorBody, T] = {
         t match {
           case Success(value)                          => value.asRight
           case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
