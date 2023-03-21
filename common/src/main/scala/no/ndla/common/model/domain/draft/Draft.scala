@@ -54,7 +54,8 @@ case class Draft(
     relatedContent: Seq[RelatedContent],
     revisionMeta: Seq[RevisionMeta],
     responsible: Option[Responsible],
-    slug: Option[String]
+    slug: Option[String],
+    comments: Seq[Comment]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =

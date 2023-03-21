@@ -45,4 +45,5 @@ case class Article(
     @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
     @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this article") responsible: Option[DraftResponsible],
     @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
+    @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Seq[Comment],
 )
