@@ -28,7 +28,7 @@ import no.ndla.common.model.domain.{
   VisualElement
 }
 import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
 import no.ndla.draftapi.model.api.PartialArticleFields
@@ -1315,6 +1315,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val article3 = TestData.sampleDomainArticle.copy(title = Seq(nnTitle, nbTitle))
     val article4 = TestData.sampleDomainArticle.copy(title = Seq(nbTitle, nnTitle))
+    service.shouldUpdateStatus(article3, article4) should be(false)
+  }
+
+  test("shouldUpdateStatus should returns false when comparing comments") {
+    val comment1 = Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hei")
+    val comment2 = Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hi hi")
+    val comment3 = Comment(
+      id = UUID.randomUUID(),
+      created = clock.now().minusDays(1),
+      updated = clock.now().minusDays(1),
+      content = "hello"
+    )
+
+    val article1 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2))
+    val article2 = TestData.sampleDomainArticle.copy(comments = Seq(comment2, comment3))
+    service.shouldUpdateStatus(article1, article2) should be(false)
+
+    val article3 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2, comment3))
+    val article4 = TestData.sampleDomainArticle.copy(comments = Seq.empty)
     service.shouldUpdateStatus(article3, article4) should be(false)
   }
 

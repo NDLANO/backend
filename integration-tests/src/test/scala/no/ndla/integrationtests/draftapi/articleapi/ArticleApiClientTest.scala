@@ -101,7 +101,8 @@ class ArticleApiClientTest
       )
     ),
     responsible = None,
-    slug = None
+    slug = None,
+    comments = Seq.empty
   )
 
   val exampleToken =
