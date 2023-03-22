@@ -142,12 +142,12 @@
           "data-width",
           "data-height"
         ],
+        ["data-title"],
         [
           "data-title",
           "data-caption",
           "data-imageid"
-        ],
-        ["data-title"]
+        ]
       ],
       "validSrcDomains": [
         ".*.ndla.no",
