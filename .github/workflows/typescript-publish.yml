@@ -1,5 +1,7 @@
 name: 'Publish typescript types'
 on:
+  workflow_dispatch:
+    inputs: { }
   push:
     branches:
       - master

@@ -1,8 +1,9 @@
 name: 'Generate typescript types'
 on:
+  workflow_dispatch:
+    inputs: { }
   push:
     branches:
-      - fix-type-script-types
       - master
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
