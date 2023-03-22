@@ -89,6 +89,10 @@ object TagAttributes extends Enumeration {
   val DataRecursive: TagAttributes.Value   = Value("data-recursive")
   val DataSubjectId: TagAttributes.Value   = Value("data-subject-id")
   val DataTag: TagAttributes.Value         = Value("data-tag")
+  val DataEmail: TagAttributes.Value       = Value("data-email")
+  val DataBlobColor: TagAttributes.Value   = Value("data-blob-color")
+  val DataName: TagAttributes.Value        = Value("data-name")
+  val DataSummary: TagAttributes.Value     = Value("data-summary")
 
   val DataUpperLeftY: TagAttributes.Value  = Value("data-upper-left-y")
   val DataUpperLeftX: TagAttributes.Value  = Value("data-upper-left-x")

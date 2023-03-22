@@ -259,6 +259,17 @@
           }
         ]
       }
+    },
+    "contact-block": {
+      "required": [
+        "data-resource",
+        "data-title",
+        "data-name",
+        "data-email",
+        "data-summary",
+        "data-imageid",
+        "data-blob-color"
+      ]
     }
   }
 }
