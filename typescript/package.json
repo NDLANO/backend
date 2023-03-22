@@ -13,11 +13,15 @@
     },
     "author": "ndla@knowit.no",
     "files": [
-        "lib",
-        "src",
-        "es",
-        "types",
-        "build"
+        "build",
+        "article-api",
+        "audio-api",
+        "concept-api",
+        "draft-api",
+        "frontpage-api",
+        "image-api",
+        "learningpath-api",
+        "search-api"
     ],
     "devDependencies": {
         "typescript": "^5.0.2"

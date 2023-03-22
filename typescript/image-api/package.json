@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/image-api",
+  "private": true,
+  "types": "../build/image-api.d.ts"
+}
