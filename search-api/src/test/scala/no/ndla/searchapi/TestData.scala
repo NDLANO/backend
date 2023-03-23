@@ -539,7 +539,8 @@ object TestData {
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
     responsible = None,
-    slug = None
+    slug = None,
+    comments = Seq.empty
   )
 
   val draftStatus         = Status(DraftStatus.PLANNED, Set.empty)
@@ -597,7 +598,8 @@ object TestData {
     relatedContent = Seq.empty,
     revisionMeta = Seq.empty,
     responsible = None,
-    slug = None
+    slug = None,
+    comments = Seq.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))

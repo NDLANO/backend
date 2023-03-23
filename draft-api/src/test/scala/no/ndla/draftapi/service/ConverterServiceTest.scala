@@ -13,16 +13,18 @@ import no.ndla.common.DateParser
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
-import no.ndla.common.model.domain.draft.{Copyright, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus}
 import no.ndla.common.model.domain._
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.model.api
+import no.ndla.draftapi.model.api.{NewComment, UpdatedComment}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 import org.mockito.invocation.InvocationOnMock
 
+import java.time.LocalDateTime
 import java.util.UUID
 import scala.util.{Failure, Success}
 
@@ -72,6 +74,28 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.get.title.get.language should be("nb")
     result.get.title.get.title should be(TestData.sampleDomainArticle.title.head.title)
     result.isFailure should be(false)
+  }
+
+  test("that toApiArticle sorts comments by created date, newest first") {
+    when(draftRepository.getExternalIdsFromId(any)(any)).thenReturn(List(TestData.externalId))
+    when(clock.now()).thenReturn(LocalDateTime.now())
+    val uuid                    = UUID.randomUUID()
+    val comment                 = Comment(id = uuid, created = clock.now(), updated = clock.now(), content = "c")
+    val commentCreatedToday     = comment.copy(created = clock.now())
+    val commentCreatedYesterday = comment.copy(created = clock.now().minusDays(1))
+    val commentCreatedTomorrow  = comment.copy(created = clock.now().plusDays(1))
+
+    val apiComment = api.Comment(id = uuid.toString, content = "c", created = clock.now(), updated = clock.now())
+    val expectedCreatedToday     = apiComment.copy(created = clock.now())
+    val expectedCreatedYesterday = apiComment.copy(created = clock.now().minusDays(1))
+    val expectedCreatedTomorrow  = apiComment.copy(created = clock.now().plusDays(1))
+    val expectedOrder            = List(expectedCreatedTomorrow, expectedCreatedToday, expectedCreatedYesterday)
+
+    val article = TestData.sampleDomainArticle.copy(comments =
+      List(commentCreatedToday, commentCreatedTomorrow, commentCreatedYesterday)
+    )
+    val Success(result) = service.toApiArticle(article, "nb", fallback = true)
+    result.comments should be(expectedOrder)
   }
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
@@ -308,7 +332,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = None
+      slug = None,
+      comments = Seq.empty
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -348,7 +373,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = None
+      slug = None,
+      comments = Seq.empty
     )
 
     val expectedArticle = Draft(
@@ -378,7 +404,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = None
+      slug = None,
+      comments = Seq.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -436,7 +463,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = None
+      slug = None,
+      comments = Seq.empty
     )
 
     val expectedArticle = Draft(
@@ -466,7 +494,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = None
+      slug = None,
+      comments = Seq.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -1061,7 +1090,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionMeta = Seq.empty,
       responsible = None,
-      slug = Some("kjempe-slug")
+      slug = Some("kjempe-slug"),
+      comments = Seq.empty
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),
@@ -1097,6 +1127,75 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
     val Failure(result1: ValidationException) = service.toArticleApiArticle(draft)
     result1.errors.head.message should be("Copyright must be present when publishing an article")
+  }
+
+  test("that updatedCommentToDomain creates and updates comments correctly") {
+    val uuid  = UUID.randomUUID()
+    val uuid2 = UUID.randomUUID()
+    val now   = LocalDateTime.now()
+    when(clock.now()).thenReturn(now)
+
+    val updatedComments =
+      List(UpdatedComment(id = None, content = "hei"), UpdatedComment(id = Some(uuid.toString), content = "yoo"))
+    val existingComments = Seq(Comment(id = uuid, created = now, updated = now, content = "nja"))
+    val expectedComments = Seq(
+      Comment(id = uuid2, created = now, updated = now, content = "hei"),
+      Comment(id = uuid, created = now, updated = now, content = "yoo")
+    )
+    val first :: second :: Nil = service.updatedCommentToDomain(updatedComments, existingComments)
+    first.copy(id = uuid2) should be(expectedComments.head)
+    second should be(expectedComments(1))
+  }
+
+  test("that updatedCommentToDomain only keeps updatedComments and deletes rest") {
+    val uuid  = UUID.randomUUID()
+    val uuid2 = UUID.randomUUID()
+    val uuid3 = UUID.randomUUID()
+    val now   = LocalDateTime.now()
+    when(clock.now()).thenReturn(now)
+
+    val updatedComments = List(UpdatedComment(id = Some(uuid.toString), content = "updated keep"))
+    val existingComments = Seq(
+      Comment(id = uuid, created = now, updated = now, content = "keep"),
+      Comment(id = uuid2, created = now, updated = now, content = "delete"),
+      Comment(id = uuid3, created = now, updated = now, content = "delete")
+    )
+    val expectedComments = Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep"))
+    val result           = service.updatedCommentToDomain(updatedComments, existingComments)
+    result should be(expectedComments)
+  }
+
+  test("that newCommentToDomain creates comments correctly") {
+    val uuid = UUID.randomUUID()
+    val now  = LocalDateTime.now()
+    when(clock.now()).thenReturn(now)
+
+    val newComments     = List(NewComment(content = "hei"))
+    val expectedComment = Comment(id = uuid, created = now, updated = now, content = "hei")
+    service.newCommentToDomain(newComments).head.copy(id = uuid) should be(expectedComment)
+  }
+
+  test("that updatedCommentToDomainNullDocument creates and updates comments correctly") {
+    val uuid = UUID.randomUUID()
+    val now  = LocalDateTime.now()
+    when(clock.now()).thenReturn(now)
+
+    val updatedComments =
+      List(UpdatedComment(id = None, content = "hei"), UpdatedComment(id = Some(uuid.toString), content = "yoo"))
+    val expectedComments = Success(
+      Seq(
+        Comment(id = uuid, created = now, updated = now, content = "hei"),
+        Comment(id = uuid, created = now, updated = now, content = "yoo")
+      )
+    )
+    val Success(first :: second :: Nil) = service.updatedCommentToDomainNullDocument(updatedComments)
+    first.copy(id = uuid) should be(expectedComments.get.head)
+    second should be(expectedComments.get(1))
+  }
+
+  test("that updatedCommentToDomainNullDocument fails if UUID is malformed") {
+    val updatedComments = List(UpdatedComment(id = Some("malformed-UUID"), content = "yoo"))
+    service.updatedCommentToDomainNullDocument(updatedComments).isFailure should be(true)
   }
 
 }
