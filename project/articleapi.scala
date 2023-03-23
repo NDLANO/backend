@@ -8,6 +8,8 @@ import Dependencies._
 
 object articleapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.articleapi.Main")
+  override val moduleName: String        = "article-api"
+
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       scalaTsi,
@@ -52,7 +54,6 @@ object articleapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "article-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
@@ -65,5 +66,4 @@ object articleapi extends Module {
     JettyPlugin,
     ScalaTsiPlugin
   )
-
 }

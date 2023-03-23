@@ -7,6 +7,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object draftapi extends Module {
+  override val moduleName: String        = "draft-api"
   override val MainClass: Option[String] = Some("no.ndla.draftapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
@@ -59,7 +60,6 @@ object draftapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "draft-api",
     libraryDependencies ++= dependencies
   ) ++ commonSettings ++ assemblySettings() ++ dockerSettings() ++ tsSettings
 
@@ -68,5 +68,4 @@ object draftapi extends Module {
     JettyPlugin,
     ScalaTsiPlugin
   )
-
 }

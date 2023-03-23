@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/audio-api",
+  "private": true,
+  "types": "../build/audio-api.d.ts"
+}

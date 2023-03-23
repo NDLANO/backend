@@ -8,6 +8,7 @@ import sbtassembly.AssemblyPlugin
 import sbtdocker.DockerPlugin
 
 object conceptapi extends Module {
+  override val moduleName: String        = "concept-api"
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
@@ -48,7 +49,6 @@ object conceptapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "concept-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
@@ -62,5 +62,4 @@ object conceptapi extends Module {
     ScalaTsiPlugin,
     AssemblyPlugin
   )
-
 }

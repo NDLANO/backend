@@ -5,6 +5,7 @@ import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
 
 object commonlib extends Module {
+  override val moduleName: String = "common"
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       enumeratum,
@@ -21,7 +22,6 @@ object commonlib extends Module {
     ) ++ scalatra
   )
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "common",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

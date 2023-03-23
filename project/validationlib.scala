@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 
 object validationlib extends Module {
+  override val moduleName: String = "validation"
   lazy val dependencies: Seq[ModuleID] = Seq(
     "org.scalatest" %% "scalatest"     % ScalaTestV % "test",
     "org.jsoup"      % "jsoup"         % JsoupV,
@@ -13,7 +14,6 @@ object validationlib extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "validation",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

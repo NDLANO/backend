@@ -2,3 +2,6 @@
 target/
 /.idea
 .env
+
+/typescript/node_modules
+/typescript/build

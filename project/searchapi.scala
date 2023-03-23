@@ -7,6 +7,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object searchapi extends Module {
+  override val moduleName: String        = "search-api"
   override val MainClass: Option[String] = Some("no.ndla.searchapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
@@ -48,7 +49,6 @@ object searchapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "search-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++
@@ -61,5 +61,4 @@ object searchapi extends Module {
     JettyPlugin,
     ScalaTsiPlugin
   )
-
 }

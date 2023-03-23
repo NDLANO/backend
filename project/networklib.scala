@@ -5,6 +5,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object networklib extends Module {
+  override val moduleName: String = "network"
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
       sttp,
@@ -20,7 +21,6 @@ object networklib extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "network",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings

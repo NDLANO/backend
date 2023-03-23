@@ -7,6 +7,7 @@ import Dependencies.versions._
 import Dependencies._
 
 object imageapi extends Module {
+  override val moduleName: String        = "image-api"
   override val MainClass: Option[String] = Some("no.ndla.imageapi.Main")
   lazy val dependencies: Seq[ModuleID] = withLogging(
     Seq(
@@ -57,7 +58,6 @@ object imageapi extends Module {
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    name := "image-api",
     libraryDependencies ++= dependencies
   ) ++
     commonSettings ++

@@ -1,0 +1,5 @@
+{
+  "name": "@ndla/types-backend/article-api",
+  "private": true,
+  "types": "../build/article-api.d.ts"
+}
