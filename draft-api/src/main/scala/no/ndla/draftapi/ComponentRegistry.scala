@@ -11,7 +11,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
@@ -69,6 +69,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with AmazonClient
     with ContentValidator
     with Clock
+    with UUIDUtil
     with User
     with ArticleApiClient
     with SearchApiClient
@@ -131,7 +132,8 @@ class ComponentRegistry(properties: DraftApiProperties)
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  lazy val clock = new SystemClock
+  lazy val clock    = new SystemClock
+  lazy val uuidUtil = new UUIDUtil
 
   lazy val articleApiClient      = new ArticleApiClient
   lazy val searchApiClient       = new SearchApiClient

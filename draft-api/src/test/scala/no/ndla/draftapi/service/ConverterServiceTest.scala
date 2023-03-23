@@ -1130,21 +1130,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that updatedCommentToDomain creates and updates comments correctly") {
-    val uuid  = UUID.randomUUID()
-    val uuid2 = UUID.randomUUID()
-    val now   = LocalDateTime.now()
+    val uuid = UUID.randomUUID()
+    val now  = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
+    when(uuidUtil.randomUUID()).thenReturn(uuid)
 
     val updatedComments =
       List(UpdatedComment(id = None, content = "hei"), UpdatedComment(id = Some(uuid.toString), content = "yoo"))
     val existingComments = Seq(Comment(id = uuid, created = now, updated = now, content = "nja"))
     val expectedComments = Seq(
-      Comment(id = uuid2, created = now, updated = now, content = "hei"),
+      Comment(id = uuid, created = now, updated = now, content = "hei"),
       Comment(id = uuid, created = now, updated = now, content = "yoo")
     )
-    val first :: second :: Nil = service.updatedCommentToDomain(updatedComments, existingComments)
-    first.copy(id = uuid2) should be(expectedComments.head)
-    second should be(expectedComments(1))
+    service.updatedCommentToDomain(updatedComments, existingComments) should be(expectedComments)
   }
 
   test("that updatedCommentToDomain only keeps updatedComments and deletes rest") {
@@ -1179,6 +1177,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val uuid = UUID.randomUUID()
     val now  = LocalDateTime.now()
     when(clock.now()).thenReturn(now)
+    when(uuidUtil.randomUUID()).thenReturn(uuid)
 
     val updatedComments =
       List(UpdatedComment(id = None, content = "hei"), UpdatedComment(id = Some(uuid.toString), content = "yoo"))
@@ -1188,9 +1187,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Comment(id = uuid, created = now, updated = now, content = "yoo")
       )
     )
-    val Success(first :: second :: Nil) = service.updatedCommentToDomainNullDocument(updatedComments)
-    first.copy(id = uuid) should be(expectedComments.get.head)
-    second should be(expectedComments.get(1))
+    service.updatedCommentToDomainNullDocument(updatedComments) should be(expectedComments)
   }
 
   test("that updatedCommentToDomainNullDocument fails if UUID is malformed") {

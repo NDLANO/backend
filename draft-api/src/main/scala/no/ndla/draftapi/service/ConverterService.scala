@@ -16,7 +16,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
-import no.ndla.common.{Clock, DateParser}
+import no.ndla.common.{Clock, DateParser, UUIDUtil}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.ArticleApiClient
@@ -34,7 +34,13 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with DraftRepository with ArticleApiClient with StateTransitionRules with WriteService with Props =>
+  this: Clock
+    with DraftRepository
+    with ArticleApiClient
+    with StateTransitionRules
+    with WriteService
+    with UUIDUtil
+    with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -128,7 +134,7 @@ trait ConverterService {
             )
           case None =>
             Comment(
-              id = UUID.randomUUID(),
+              id = uuidUtil.randomUUID(),
               created = clock.now(),
               updated = clock.now(),
               content = updatedComment.content
@@ -165,7 +171,7 @@ trait ConverterService {
           case None =>
             Success(
               Comment(
-                id = UUID.randomUUID(),
+                id = uuidUtil.randomUUID(),
                 created = clock.now(),
                 updated = clock.now(),
                 content = comment.content

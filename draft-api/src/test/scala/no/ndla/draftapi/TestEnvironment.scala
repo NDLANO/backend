@@ -10,7 +10,7 @@ package no.ndla.draftapi
 import com.amazonaws.services.s3.AmazonS3
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.draftapi.auth.User
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller._
@@ -66,6 +66,7 @@ trait TestEnvironment
     with FileStorageService
     with AmazonClient
     with Clock
+    with UUIDUtil
     with User
     with ArticleApiClient
     with SearchApiClient
@@ -119,7 +120,8 @@ trait TestEnvironment
   var e4sClient                                             = mock[NdlaE4sClient]
   override val learningpathApiClient: LearningpathApiClient = mock[LearningpathApiClient]
 
-  val clock = mock[SystemClock]
+  val clock    = mock[SystemClock]
+  val uuidUtil = mock[UUIDUtil]
 
   val articleApiClient  = mock[ArticleApiClient]
   val searchApiClient   = mock[SearchApiClient]
