@@ -317,7 +317,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val res = embedTagValidator.validate("content", tag)
     findErrorByMessage(
       res,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the optional attributes"
+      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute groups"
     ).size should be(1)
 
     val tag2 = generateTagWithAttrs(
@@ -329,7 +329,7 @@ class EmbedTagValidatorTest extends UnitSuite {
     val res2 = embedTagValidator.validate("content", tag2)
     findErrorByMessage(
       res2,
-      s"data-resource=${ResourceType.ConceptList} must contain all or none of the optional attributes"
+      s"data-resource=${ResourceType.ConceptList} must contain all or none of the attributes in the optional attribute groups"
     ).size should be(1)
 
   }
@@ -681,7 +681,24 @@ class EmbedTagValidatorTest extends UnitSuite {
     )
 
     val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
-    res.size should be(0)
+    res.headOption should be(None)
   }
 
+  test("validate should return no errors when data-title is used in a group in iframe") {
+    val attrs = generateAttributes(
+      Map(
+        TagAttributes.DataResource.toString -> ResourceType.IframeContent.toString,
+        TagAttributes.DataType.toString     -> ResourceType.IframeContent.toString,
+        TagAttributes.DataUrl.toString      -> "https://google.ndla.no/",
+        TagAttributes.DataWidth.toString    -> "700",
+        TagAttributes.DataHeight.toString   -> "500",
+        TagAttributes.DataTitle.toString    -> "Min tittel",
+        TagAttributes.DataCaption.toString  -> "heyho",
+        TagAttributes.DataImageId.toString  -> "123"
+      )
+    )
+
+    val res = embedTagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    res.headOption should be(None)
+  }
 }

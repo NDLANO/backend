@@ -406,38 +406,37 @@ class TagValidator {
       actualAttributes: Set[TagAttributes.Value],
       partialErrorMessage: String
   ): Seq[ValidationMessage] = {
-
     val usedOptionalAttr = actualAttributes.intersect(attrsRules.optional.flatten.toSet)
-    val a = usedOptionalAttr
-      .flatMap(attr => {
-        val attrRuleGroup = attrsRules.optional.find(_.contains(attr))
-        attrRuleGroup.map(attrRules =>
-          verifyUsedAttributesAgainstAttrRules(fieldName, attrRules, usedOptionalAttr, partialErrorMessage)
+    val fullMatchGroups = attrsRules.optional.filter(optSet => {
+      val usedFromOptSet = optSet.intersect(usedOptionalAttr)
+      val isFullMatch    = usedFromOptSet.size == optSet.size
+      isFullMatch
+    })
+
+    val allMatchedTags = fullMatchGroups.flatten.toSet
+    val unmatchedTags  = usedOptionalAttr.diff(allMatchedTags)
+
+    buildUnmatchedErrors(fieldName, unmatchedTags, attrsRules, partialErrorMessage)
+  }
+
+  private def buildUnmatchedErrors(
+      fieldName: String,
+      unmatchedTags: Set[TagAttributes.Value],
+      attrsRules: TagAttributeRules,
+      partialErrorMessage: String
+  ): Seq[ValidationMessage] =
+    if (unmatchedTags.isEmpty) { Seq.empty }
+    else {
+      unmatchedTags.toSeq.map(tag => {
+        val groupsWithTag = attrsRules.optional.filter(_.contains(tag))
+        val groupErrors   = groupsWithTag.map(x => s"[${x.mkString(",")}] (Missing: $unmatchedTags)")
+        ValidationMessage(
+          fieldName,
+          s"$partialErrorMessage must contain all or none of the attributes in the optional attribute groups: (${groupErrors
+              .mkString(", ")})"
         )
       })
-      .toSeq
-    a.flatten
-  }
-
-  private def verifyUsedAttributesAgainstAttrRules(
-      fieldName: String,
-      attrRules: Set[TagAttributes.Value],
-      usedOptionalAttrs: Set[TagAttributes.Value],
-      partialErrorMessage: String
-  ): Seq[ValidationMessage] = {
-    val usedOptionalAttrsInCurrentGroup = usedOptionalAttrs.intersect(attrRules)
-    usedOptionalAttrsInCurrentGroup.isEmpty match {
-      case false if usedOptionalAttrsInCurrentGroup != attrRules =>
-        val missingAttrs = attrRules.diff(usedOptionalAttrs).mkString(", ")
-        Seq(
-          ValidationMessage(
-            fieldName,
-            s"$partialErrorMessage must contain all or none of the optional attributes (${attrRules.mkString(", ")}). Missing $missingAttrs"
-          )
-        )
-      case _ => Seq.empty
     }
-  }
 
   private def verifySourceUrl(
       fieldName: String,
