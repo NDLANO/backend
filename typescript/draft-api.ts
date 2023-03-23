@@ -55,6 +55,7 @@ export interface IArticle {
   revisions: IRevisionMeta[]
   responsible?: IDraftResponsible
   slug?: string
+  comments: IComment[]
 }
 
 export interface IArticleContent {
@@ -108,6 +109,13 @@ export interface IArticleTitle {
 export interface IAuthor {
   type: string
   name: string
+}
+
+export interface IComment {
+  id: string
+  content: string
+  created: string
+  updated: string
 }
 
 export interface ICopyright {
@@ -185,11 +193,16 @@ export interface INewArticle {
   revisionMeta?: IRevisionMeta[]
   responsibleId?: string
   slug?: string
+  comments: INewComment[]
 }
 
 export interface INewArticleMetaImage {
   id: string
   alt: string
+}
+
+export interface INewComment {
+  content: string
 }
 
 export interface IRelatedContentLink {
@@ -262,6 +275,12 @@ export interface IUpdatedArticle {
   revisionMeta?: IRevisionMeta[]
   responsibleId?: (null | string)
   slug?: string
+  comments: IUpdatedComment[]
+}
+
+export interface IUpdatedComment {
+  id?: string
+  content: string
 }
 
 export interface IUpdatedUserData {
