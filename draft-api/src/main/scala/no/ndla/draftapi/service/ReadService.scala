@@ -26,6 +26,7 @@ import no.ndla.draftapi.service.search.{
 }
 import no.ndla.validation._
 import org.jsoup.nodes.Element
+import scalikejdbc.ReadOnlyAutoSession
 
 import scala.jdk.CollectionConverters._
 import scala.math.max
@@ -50,7 +51,7 @@ trait ReadService {
   class ReadService {
 
     def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentId] =
-      draftRepository.getIdFromExternalId(externalId.toString).map(api.ContentId)
+      draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(api.ContentId)
 
     def withId(id: Long, language: String, fallback: Boolean = false): Try[api.Article] = {
       draftRepository.withId(id).map(addUrlsOnEmbedResources) match {
@@ -86,17 +87,21 @@ trait ReadService {
 
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = draftRepository
-        .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
-        .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
-      api.ArticleDump(draftRepository.articleCount, pageNo, pageSize, lang, results)
+      draftRepository.withSession { implicit session =>
+        val results = draftRepository
+          .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+          .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
+        api.ArticleDump(draftRepository.articleCount, pageNo, pageSize, lang, results)
+      }
     }
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
-      val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results                    = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      draftRepository.withSession(implicit session => {
+        val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
+        val results = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 
-      api.ArticleDomainDump(draftRepository.articleCount, pageNo, pageSize, results)
+        api.ArticleDomainDump(draftRepository.articleCount, pageNo, pageSize, results)
+      })
     }
 
     def getAllGrepCodes(input: String, pageSize: Int, page: Int): Try[api.GrepCodesSearchResult] = {

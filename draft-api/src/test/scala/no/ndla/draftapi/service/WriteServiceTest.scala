@@ -10,30 +10,15 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.{domain, api => commonApi}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  Description,
-  Introduction,
-  RequiredLibrary,
-  Responsible,
-  Status,
-  Tag,
-  Title,
-  VisualElement
-}
 import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft._
+import no.ndla.common.model.domain._
+import no.ndla.common.model.{RelatedContentLink, domain, api => commonApi}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.domain.Agreement
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers._
@@ -81,6 +66,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentValidator
     )
 
+    doAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[DBSession => Try[_]](0)
+      x(mock[DBSession])
+    }).when(draftRepository).rollbackOnFailure(any)
+
     when(draftRepository.withId(articleId)).thenReturn(Option(article))
     when(agreementRepository.withId(agreementId)).thenReturn(Option(agreement))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
@@ -127,10 +117,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
     when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(1: Long))
-    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[api.Article]](0)
-      func(mock[DBSession])
-    })
 
     service
       .newArticle(TestData.newArticle, List.empty, Seq.empty, TestData.userWithWriteAccess, None, None, None)
@@ -1266,11 +1252,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("New articles are not made with empty-strings for empty fields") {
-    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[api.Article]](0)
-      func(mock[DBSession])
-    })
-
     val newArt = TestData.newArticle.copy(
       language = "nb",
       title = "Jonas",

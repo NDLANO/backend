@@ -21,6 +21,7 @@ import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, NotFound, Ok}
 import cats.implicits._
+import scalikejdbc.ReadOnlyAutoSession
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.tailrec
@@ -145,9 +146,9 @@ trait InternController {
 
     get("/ids") {
       paramOrNone("status").map(DraftStatus.valueOfOrError) match {
-        case Some(Success(status)) => draftRepository.idsWithStatus(status).getOrElse(List.empty)
+        case Some(Success(status)) => draftRepository.idsWithStatus(status)(ReadOnlyAutoSession).getOrElse(List.empty)
         case Some(Failure(ex))     => errorHandler(ex)
-        case None                  => draftRepository.getAllIds
+        case None                  => draftRepository.getAllIds(ReadOnlyAutoSession)
       }
     }
 
@@ -161,7 +162,7 @@ trait InternController {
 
     get("/id/:external_id") {
       val externalId = params("external_id")
-      draftRepository.getIdFromExternalId(externalId) match {
+      draftRepository.getIdFromExternalId(externalId)(ReadOnlyAutoSession) match {
         case Some(id) => id
         case None     => NotFound()
       }
@@ -190,17 +191,6 @@ trait InternController {
         val id = long("id")
         deleteArticleWithRetries(id).flatMap(id => writeService.deleteArticle(id.id)) match {
           case Success(a)  => a
-          case Failure(ex) => errorHandler(ex)
-        }
-      }
-    }
-
-    post("/empty_article/") {
-      doOrAccessDenied(user.getUser.canWrite) {
-        val externalId         = paramAsListOfString("externalId")
-        val externalSubjectIds = paramAsListOfString("externalSubjectId")
-        writeService.newEmptyArticle(externalId, externalSubjectIds) match {
-          case Success(id) => ContentId(id)
           case Failure(ex) => errorHandler(ex)
         }
       }

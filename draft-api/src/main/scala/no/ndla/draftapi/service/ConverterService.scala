@@ -27,6 +27,7 @@ import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageO
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
 import org.jsoup.nodes.Element
+import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -341,7 +342,7 @@ trait ConverterService {
       common.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
     }
 
-    private def getLinkToOldNdla(id: Long): Option[String] =
+    private def getLinkToOldNdla(id: Long)(implicit session: DBSession): Option[String] =
       draftRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
 
     private def removeUnknownEmbedTagAttributes(html: String): String = {
@@ -391,7 +392,7 @@ trait ConverterService {
         Success(
           api.Article(
             id = article.id.get,
-            oldNdlaUrl = article.id.flatMap(getLinkToOldNdla),
+            oldNdlaUrl = article.id.flatMap(id => getLinkToOldNdla(id)(ReadOnlyAutoSession)),
             revision = article.revision.get,
             status = toApiStatus(article.status),
             title = title,

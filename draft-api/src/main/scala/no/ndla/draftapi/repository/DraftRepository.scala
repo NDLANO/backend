@@ -44,7 +44,13 @@ trait DraftRepository {
       }
     }
 
-    def insert(article: Draft)(implicit session: DBSession = AutoSession): Draft = {
+    def withSession[T](func: DBSession => T): T = {
+      DB.localTx { session =>
+        func(session)
+      }
+    }
+
+    def insert(article: Draft)(implicit session: DBSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
@@ -64,7 +70,7 @@ trait DraftRepository {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         importId: Option[String]
-    )(implicit session: DBSession = AutoSession): Draft = {
+    )(implicit session: DBSession): Draft = {
       val startRevision = 1
       val dataObject    = new PGobject()
       dataObject.setType("jsonb")
@@ -89,7 +95,7 @@ trait DraftRepository {
     }
 
     def storeArticleAsNewVersion(article: Draft, user: Option[UserInfo], keepResponsible: Boolean = false)(implicit
-        session: DBSession = AutoSession
+        session: DBSession
     ): Try[Draft] = {
       article.id match {
         case None => Failure(ArticleVersioningException("Duplication of article failed."))
@@ -139,7 +145,7 @@ trait DraftRepository {
     def newEmptyArticle(
         externalIds: List[String] = List.empty,
         externalSubjectIds: Seq[String] = List.empty
-    )(implicit session: DBSession = AutoSession): Try[Long] = {
+    )(implicit session: DBSession): Try[Long] = {
       Try(sql"""
              insert into ${DBArticle.table} (external_id, external_subject_id, article_id, revision)
              values (ARRAY[${externalIds}]::text[], ARRAY[${externalSubjectIds}]::text[], NEXTVAL('article_id_sequence'), 0)
@@ -166,7 +172,7 @@ trait DraftRepository {
     def updateArticle(
         article: Draft,
         isImported: Boolean = false
-    )(implicit session: DBSession = AutoSession): Try[Draft] = {
+    )(implicit session: DBSession): Try[Draft] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -211,7 +217,7 @@ trait DraftRepository {
         externalIds: List[String],
         externalSubjectIds: Seq[String],
         importId: Option[String]
-    )(implicit session: DBSession = AutoSession): Try[Draft] = {
+    )(implicit session: DBSession): Try[Draft] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -273,7 +279,7 @@ trait DraftRepository {
         .list()
     }
 
-    def idsWithStatus(status: DraftStatus.Value)(implicit session: DBSession = AutoSession): Try[List[ArticleIds]] = {
+    def idsWithStatus(status: DraftStatus.Value)(implicit session: DBSession): Try[List[ArticleIds]] = {
       val ar = DBArticle.syntax("ar")
       Try(
         sql"select article_id, external_id from ${DBArticle
@@ -283,14 +289,14 @@ trait DraftRepository {
       )
     }
 
-    def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
+    def exists(id: Long)(implicit session: DBSession): Boolean = {
       sql"select article_id from ${DBArticle.table} where article_id=$id order by revision desc limit 1"
         .map(rs => rs.long("article_id"))
         .single()
         .isDefined
     }
 
-    def deleteArticle(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteArticle(articleId: Long)(implicit session: DBSession): Try[Long] = {
       val numRows = sql"delete from ${DBArticle.table} where article_id = $articleId".update()
       if (numRows == 1) {
         Success(articleId)
@@ -299,7 +305,7 @@ trait DraftRepository {
       }
     }
 
-    def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
+    def getIdFromExternalId(externalId: String)(implicit session: DBSession): Option[Long] = {
       sql"select article_id from ${DBArticle.table} where ${externalId} = any (external_id) order by revision desc limit 1"
         .map(rs => rs.long("article_id"))
         .single()
@@ -313,7 +319,7 @@ trait DraftRepository {
         .flatMap(Option(_))
     }
 
-    def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
+    def getExternalIdsFromId(id: Long)(implicit session: DBSession): List[String] = {
       sql"select external_id from ${DBArticle.table} where article_id=${id.toInt} order by revision desc limit 1"
         .map(externalIdsFromResultSet)
         .single()
@@ -328,20 +334,20 @@ trait DraftRepository {
         .flatMap(Option(_))
     }
 
-    def getExternalSubjectIdsFromId(id: Long)(implicit session: DBSession = AutoSession): Seq[String] = {
+    def getExternalSubjectIdsFromId(id: Long)(implicit session: DBSession): Seq[String] = {
       sql"select external_subject_id from ${DBArticle.table} where article_id=${id.toInt} order by revision desc limit 1"
         .map(externalSubjectIdsFromResultSet)
         .single()
         .getOrElse(List.empty)
     }
 
-    def getImportIdFromId(id: Long)(implicit session: DBSession = AutoSession): Option[String] = {
+    def getImportIdFromId(id: Long)(implicit session: DBSession): Option[String] = {
       sql"select import_id from ${DBArticle.table} where article_id=${id.toInt} order by revision desc limit 1"
         .map(rs => rs.string("import_id"))
         .single()
     }
 
-    def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
+    def getAllIds(implicit session: DBSession): Seq[ArticleIds] = {
       sql"select article_id, max(external_id) as external_id from ${DBArticle.table} group by article_id order by article_id asc"
         .map(rs =>
           ArticleIds(
@@ -352,14 +358,14 @@ trait DraftRepository {
         .list()
     }
 
-    def articleCount(implicit session: DBSession = AutoSession): Long = {
+    def articleCount(implicit session: DBSession): Long = {
       sql"select count(distinct article_id) from ${DBArticle.table} where document is not NULL"
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
     }
 
-    def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Draft] = {
+    def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession): Seq[Draft] = {
       val ar = DBArticle.syntax("ar")
       sql"""
            select *
@@ -377,7 +383,7 @@ trait DraftRepository {
         .list()
     }
 
-    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    override def minMaxId(implicit session: DBSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBArticle.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
