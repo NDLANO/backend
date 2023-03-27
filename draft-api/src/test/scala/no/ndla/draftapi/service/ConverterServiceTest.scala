@@ -52,7 +52,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toApiArticle returns sorted supportedLanguages") {
-    when(draftRepository.getExternalIdsFromId(eqTo( TestData.articleId ))(any)).thenReturn(List(TestData.externalId))
+    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticle(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb"

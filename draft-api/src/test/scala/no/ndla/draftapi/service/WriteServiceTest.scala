@@ -120,12 +120,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
-    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(1: Long))
 
-    service
+    val result = service
       .newArticle(TestData.newArticle, List.empty, Seq.empty, TestData.userWithWriteAccess, None, None, None)
-      .isSuccess should be(true)
+
+    result.failIfFailure
 
     verify(draftRepository, times(1)).newEmptyArticleId()(any)
     verify(draftRepository, times(1)).insert(any[Draft])(any)
@@ -571,7 +572,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -593,9 +594,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Draft](0)
-    )
 
     service.copyArticleFromId(5, userinfo, "*", true, true)
 
@@ -623,7 +621,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -644,10 +642,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Draft](0)
-    )
-
     service.copyArticleFromId(5, userinfo, "*", true, false)
 
     val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
@@ -1267,8 +1261,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Some("")
     )
 
-    when(draftRepository.newEmptyArticleId(any[List[String]], any[Seq[String]])(any[DBSession]))
-      .thenReturn(Success(10L))
+    when(draftRepository.newEmptyArticleId()(any[DBSession])).thenReturn(Success(10L))
 
     val Success(created) = service.newArticle(
       newArt,
