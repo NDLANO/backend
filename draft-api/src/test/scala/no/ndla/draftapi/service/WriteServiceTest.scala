@@ -1319,13 +1319,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("shouldUpdateStatus should returns false when comparing comments") {
-    val comment1 = Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hei")
-    val comment2 = Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hi hi")
+    val comment1 =
+      Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hei", isOpen = true)
+    val comment2 =
+      Comment(id = UUID.randomUUID(), created = clock.now(), updated = clock.now(), content = "hi hi", isOpen = false)
     val comment3 = Comment(
       id = UUID.randomUUID(),
       created = clock.now().minusDays(1),
       updated = clock.now().minusDays(1),
-      content = "hello"
+      content = "hello",
+      isOpen = true
     )
 
     val article1 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2))

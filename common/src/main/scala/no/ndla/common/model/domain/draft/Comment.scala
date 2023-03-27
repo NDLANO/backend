@@ -14,5 +14,6 @@ case class Comment(
     id: UUID,
     created: LocalDateTime,
     updated: LocalDateTime,
-    content: String
+    content: String,
+    isOpen: Boolean
 )
