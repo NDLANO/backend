@@ -97,6 +97,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
+    when(draftRepository.insert(any)(any))
+      .thenAnswer((invocation: InvocationOnMock) => {
+        val arg = invocation.getArgument[Draft](0)
+        arg.copy(revision = Some(arg.revision.getOrElse(0) + 1))
+      })
     when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
         val arg = invocation.getArgument[Draft](0)
@@ -115,16 +120,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(1: Long))
 
     service
       .newArticle(TestData.newArticle, List.empty, Seq.empty, TestData.userWithWriteAccess, None, None, None)
       .isSuccess should be(true)
 
-    verify(draftRepository, times(1)).newEmptyArticle(any, any)(any)
-    verify(draftRepository, times(0)).insert(any[Draft])(any)
-    verify(draftRepository, times(1)).updateArticle(any[Draft], any[Boolean])(any)
+    verify(draftRepository, times(1)).newEmptyArticleId()(any)
+    verify(draftRepository, times(1)).insert(any[Draft])(any)
+    verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(any)
     verify(tagIndexService, times(1)).indexAsync(any, any)(any)
     verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
@@ -566,7 +571,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -618,7 +623,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId(any[List[String]], any[List[String]])(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -1262,7 +1267,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Some("")
     )
 
-    when(draftRepository.newEmptyArticle(any[List[String]], any[Seq[String]])(any[DBSession])).thenReturn(Success(10L))
+    when(draftRepository.newEmptyArticleId(any[List[String]], any[Seq[String]])(any[DBSession]))
+      .thenReturn(Success(10L))
 
     val Success(created) = service.newArticle(
       newArt,
@@ -1275,7 +1281,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
-    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
+    Mockito.verify(draftRepository).insert(captor.capture())(any)
     val articlePassedToUpdate = captor.getValue
 
     articlePassedToUpdate.content should be(Seq.empty)

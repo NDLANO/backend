@@ -221,13 +221,13 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("That newEmptyArticle creates the latest available article_id") {
     this.resetIdSequence()
 
-    repository.newEmptyArticle()(AutoSession) should be(Success(1))
-    repository.newEmptyArticle()(AutoSession) should be(Success(2))
-    repository.newEmptyArticle()(AutoSession) should be(Success(3))
-    repository.newEmptyArticle()(AutoSession) should be(Success(4))
-    repository.newEmptyArticle()(AutoSession) should be(Success(5))
-    repository.newEmptyArticle()(AutoSession) should be(Success(6))
-    repository.newEmptyArticle()(AutoSession) should be(Success(7))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(1))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(2))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(3))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(4))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(5))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(6))
+    repository.newEmptyArticleId()(AutoSession) should be(Success(7))
   }
   test("That idsWithStatus returns correct drafts") {
     repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(AutoSession)

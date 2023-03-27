@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.EditorNote
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.auth.UserInfo
 import no.ndla.draftapi.integration.DataSource
-import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, NotFoundException}
+import no.ndla.draftapi.model.api.{ArticleVersioningException, ErrorHelpers, GenerateIDException, NotFoundException}
 import no.ndla.draftapi.model.domain._
 import org.json4s.Formats
 import org.json4s.native.Serialization.write
@@ -142,17 +142,18 @@ trait DraftRepository {
       }
     }
 
-    def newEmptyArticle(
-        externalIds: List[String] = List.empty,
-        externalSubjectIds: Seq[String] = List.empty
-    )(implicit session: DBSession): Try[Long] = {
-      Try(sql"""
-             insert into ${DBArticle.table} (external_id, external_subject_id, article_id, revision)
-             values (ARRAY[${externalIds}]::text[], ARRAY[${externalSubjectIds}]::text[], NEXTVAL('article_id_sequence'), 0)
-          """.updateAndReturnGeneratedKey("article_id").apply()) match {
-        case Success(articleId) =>
-          logger.info(s"Inserted new empty article: $articleId")
+    def newEmptyArticleId()(implicit session: DBSession): Try[Long] = {
+      Try(
+        sql"SELECT NEXTVAL('article_id_sequence') as article_id"
+          .map(rs => rs.long("article_id"))
+          .single
+          .apply()
+      ) match {
+        case Success(Some(articleId)) =>
+          logger.info(s"Generated new article id: $articleId")
           Success(articleId)
+        case Success(_) =>
+          Failure(GenerateIDException("No id gotten when generating id in postgresql statement, this is weird."))
         case Failure(ex) => Failure(ex)
       }
     }

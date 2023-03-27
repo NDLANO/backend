@@ -70,18 +70,15 @@ trait WriteService {
 
   class WriteService extends StrictLogging {
 
-    def insertDump(article: Draft): Try[Draft] = {
+    def insertDump(article: Draft): Try[Draft] =
       draftRepository.rollbackOnFailure(implicit session => {
         draftRepository
-          .newEmptyArticle()
+          .newEmptyArticleId()
           .map(newId => {
-            val artWithId = article.copy(
-              id = Some(newId)
-            )
+            val artWithId = article.copy(id = Some(newId))
             draftRepository.insert(artWithId)
           })
       })
-    }
 
     private def indexArticle(article: Draft): Try[Unit] = {
       val executor = Executors.newSingleThreadExecutor
@@ -111,7 +108,7 @@ trait WriteService {
           case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
           case Some(article) =>
             for {
-              newId <- draftRepository.newEmptyArticle()
+              newId <- draftRepository.newEmptyArticleId()
               status = common.Status(PLANNED, Set.empty)
               notes <- converterService.newNotes(
                 Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
@@ -231,15 +228,15 @@ trait WriteService {
         visualElement = visualElement
       )
       draftRepository.rollbackOnFailure { implicit session =>
-        val updateFunction = externalIds match {
+        val insertFunction = externalIds match {
           case Nil =>
-            (a: Draft) => draftRepository.updateArticle(a, false)
+            (a: Draft) => draftRepository.insert(a)
           case nids =>
-            (a: Draft) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
+            (a: Draft) => draftRepository.insertWithExternalIds(a, nids, externalSubjectIds, importId)
         }
 
         for {
-          newId <- draftRepository.newEmptyArticle()
+          newId <- draftRepository.newEmptyArticleId()
           domainArticle <- converterService.toDomainArticle(
             newId,
             withNotes,
@@ -249,7 +246,7 @@ trait WriteService {
             oldNdlaUpdatedDate
           )
           _               <- contentValidator.validateArticle(domainArticle)
-          insertedArticle <- updateFunction(domainArticle)
+          insertedArticle <- Try(insertFunction(domainArticle))
           _ = indexArticle(insertedArticle)
           apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
         } yield apiArticle
