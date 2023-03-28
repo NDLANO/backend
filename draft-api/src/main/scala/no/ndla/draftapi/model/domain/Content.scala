@@ -7,14 +7,14 @@
 
 package no.ndla.draftapi.model.domain
 
-import enumeratum._
-import no.ndla.common.model.domain.{ArticleType, Availability, Content}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, Copyright, RevisionStatus}
+import no.ndla.common.model.domain.Content
+import no.ndla.common.model.domain.draft.Draft.jsonEncoder
+import no.ndla.common.model.domain.draft.{Copyright, Draft}
 import no.ndla.draftapi.Props
 import org.json4s.FieldSerializer._
-import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
+import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
+import org.json4s.{FieldSerializer, Formats}
 import scalikejdbc._
 
 import java.time.LocalDateTime
@@ -41,15 +41,6 @@ trait DBArticle {
   this: Props =>
 
   object DBArticle extends SQLSyntaxSupport[Draft] {
-
-    val jsonEncoder: Formats = DefaultFormats.withLong +
-      new EnumNameSerializer(DraftStatus) +
-      Json4s.serializer(ArticleType) +
-      Json4s.serializer(RevisionStatus) +
-      new EnumNameSerializer(Availability) ++
-      JavaTimeSerializers.all ++
-      JavaTypesSerializers.all
-
     val repositorySerializer = jsonEncoder +
       FieldSerializer[Draft](
         ignore("id") orElse

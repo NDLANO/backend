@@ -51,6 +51,7 @@ trait DraftIndexService {
 
     def getMapping: MappingDefinition = {
       val fields = List(
+        ObjectField("domainObject", enabled = Some(false)),
         intField("id"),
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),

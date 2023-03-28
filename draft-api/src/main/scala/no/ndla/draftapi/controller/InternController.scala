@@ -50,7 +50,7 @@ trait InternController {
     import props.{DraftSearchIndex, AgreementSearchIndex, DraftTagSearchIndex, DraftGrepCodesSearchIndex}
 
     protected val applicationDescription                 = "API for accessing internal functionality in draft API"
-    protected implicit override val jsonFormats: Formats = DBArticle.jsonEncoder
+    protected implicit override val jsonFormats: Formats = Draft.jsonEncoder
 
     def createIndexFuture(
         indexService: IndexService[_, _]

@@ -1,11 +1,11 @@
 /*
- * Part of NDLA draft-api.
+ * Part of NDLA common.
  * Copyright (C) 2023 NDLA
  *
  * See LICENSE
  */
 
-package no.ndla.draftapi.model.api
+package no.ndla.common.model.api.draft
 
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 

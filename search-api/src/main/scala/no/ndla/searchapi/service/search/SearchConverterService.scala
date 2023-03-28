@@ -393,7 +393,8 @@ trait SearchConverterService {
           embedResourcesAndIds = embedResourcesAndIds,
           revisionMeta = draft.revisionMeta.toList,
           nextRevision = nextRevision,
-          responsible = draft.responsible
+          responsible = draft.responsible,
+          domainObject = draft
         )
       )
 

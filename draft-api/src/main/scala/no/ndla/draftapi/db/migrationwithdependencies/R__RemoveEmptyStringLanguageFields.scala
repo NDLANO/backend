@@ -66,7 +66,7 @@ class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
   }
 
   def convertArticle(document: String): String = {
-    implicit val formats = DBArticle.jsonEncoder
+    implicit val formats = Draft.jsonEncoder
 
     val oldArticle = Serialization.read[Draft](document)
     val newArticle = oldArticle.copy(

@@ -18,7 +18,7 @@ import scalikejdbc._
 
 class V33__ConvertLanguageUnknown(properties: DraftApiProperties) extends BaseJavaMigration with DBArticle with Props {
   override val props: DraftApiProperties = properties
-  implicit val formats: Formats          = DBArticle.jsonEncoder
+  implicit val formats: Formats          = Draft.jsonEncoder
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)

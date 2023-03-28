@@ -28,7 +28,7 @@ class ArticleApiClientTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
     with UnitSuite
     with draftapi.TestEnvironment {
-  implicit val formats: Formats = DBArticle.jsonEncoder
+  implicit val formats: Formats = Draft.jsonEncoder
   override val ndlaClient       = new NdlaClient
 
   val articleApiPort: Int         = findFreePort

@@ -11,11 +11,12 @@ import cats.effect.IO
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.{RelatedContentLink, api => commonApi, domain => common}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.api.draft
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
+import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
+import no.ndla.common.model.{RelatedContentLink, api => commonApi, domain => common}
 import no.ndla.common.{Clock, DateParser, UUIDUtil}
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.auth.UserInfo
@@ -511,7 +512,7 @@ trait ConverterService {
       }
     }
 
-    def toApiComment(comment: Comment): api.Comment = api.Comment(
+    def toApiComment(comment: Comment): draft.Comment = draft.Comment(
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,
