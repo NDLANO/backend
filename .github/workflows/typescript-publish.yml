@@ -6,7 +6,8 @@ on:
     branches:
       - master
     paths:
-      - typescript/**
+      - 'typescript/**'
+      - '!typescript/package.json'
 env:
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
