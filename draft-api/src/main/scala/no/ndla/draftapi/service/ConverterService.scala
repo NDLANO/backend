@@ -131,7 +131,7 @@ trait ConverterService {
             existingComment.copy(
               updated = newUpdated,
               content = updatedComment.content,
-              isOpen = updatedComment.isOpen
+              isOpen = updatedComment.isOpen.getOrElse(true)
             )
           case None =>
             Comment(
@@ -139,7 +139,7 @@ trait ConverterService {
               created = clock.now(),
               updated = clock.now(),
               content = updatedComment.content,
-              isOpen = true
+              isOpen = updatedComment.isOpen.getOrElse(true)
             )
         }
       })
@@ -152,7 +152,7 @@ trait ConverterService {
           created = clock.now(),
           updated = clock.now(),
           content = comment.content,
-          isOpen = true
+          isOpen = comment.isOpen.getOrElse(true)
         )
       )
     }
@@ -169,7 +169,7 @@ trait ConverterService {
                 created = clock.now(),
                 updated = clock.now(),
                 content = comment.content,
-                isOpen = comment.isOpen
+                isOpen = comment.isOpen.getOrElse(true)
               )
             )
           case None =>
@@ -179,7 +179,7 @@ trait ConverterService {
                 created = clock.now(),
                 updated = clock.now(),
                 content = comment.content,
-                isOpen = comment.isOpen
+                isOpen = comment.isOpen.getOrElse(true)
               )
             )
         }
