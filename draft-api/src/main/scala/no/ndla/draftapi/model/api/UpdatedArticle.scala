@@ -40,5 +40,5 @@ case class UpdatedArticle(
     @(ApiModelProperty @field)(description = "A list of all revisions of the article") revisionMeta: Option[Seq[RevisionMeta]],
     @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Deletable[String],
     @(ApiModelProperty @field)(description = "The path to the frontpage article") slug: Option[String],
-    @(ApiModelProperty @field)(description = "Information about a comment attached to an article") comments: List[UpdatedComment],
+    @(ApiModelProperty @field)(description = "Information about a comment attached to an article") comments: Option[List[UpdatedComment]],
 )
