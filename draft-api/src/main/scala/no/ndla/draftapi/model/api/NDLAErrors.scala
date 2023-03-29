@@ -74,3 +74,4 @@ class ArticleStatusException(message: String)            extends RuntimeExceptio
 case class OperationNotAllowedException(message: String) extends RuntimeException(message)
 case class CloneFileException(message: String)           extends RuntimeException(message)
 case class H5PException(message: String)                 extends RuntimeException(message)
+case class GenerateIDException(message: String)          extends RuntimeException(message)

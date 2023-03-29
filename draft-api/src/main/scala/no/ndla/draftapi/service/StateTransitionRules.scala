@@ -23,6 +23,7 @@ import no.ndla.draftapi.service.SideEffect.SideEffect
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.model.RequestInfo
+import scalikejdbc.ReadOnlyAutoSession
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -81,7 +82,7 @@ trait StateTransitionRules {
       (article, isImported) =>
         article.id match {
           case Some(id) =>
-            val externalIds = draftRepository.getExternalIdsFromId(id)
+            val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
 
             val h5pPaths = converterService.getEmbeddedH5PPaths(article)
             h5pApiClient.publishH5Ps(h5pPaths)

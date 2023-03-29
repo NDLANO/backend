@@ -38,6 +38,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.validation._
 import org.jsoup.nodes.Element
 import org.scalatra.servlet.FileItem
+import scalikejdbc.{AutoSession, ReadOnlyAutoSession}
 
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
@@ -69,16 +70,15 @@ trait WriteService {
 
   class WriteService extends StrictLogging {
 
-    def insertDump(article: Draft): Try[Draft] = {
-      draftRepository
-        .newEmptyArticle()
-        .map(newId => {
-          val artWithId = article.copy(
-            id = Some(newId)
-          )
-          draftRepository.insert(artWithId)
-        })
-    }
+    def insertDump(article: Draft): Try[Draft] =
+      draftRepository.rollbackOnFailure(implicit session => {
+        draftRepository
+          .newEmptyArticleId()
+          .map(newId => {
+            val artWithId = article.copy(id = Some(newId))
+            draftRepository.insert(artWithId)
+          })
+      })
 
     private def indexArticle(article: Draft): Try[Unit] = {
       val executor = Executors.newSingleThreadExecutor
@@ -103,36 +103,38 @@ trait WriteService {
         fallback: Boolean,
         usePostFix: Boolean
     ): Try[api.Article] = {
-      draftRepository.withId(articleId) match {
-        case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
-        case Some(article) =>
-          for {
-            newId <- draftRepository.newEmptyArticle()
-            status = common.Status(PLANNED, Set.empty)
-            notes <- converterService.newNotes(
-              Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
-              userInfo,
-              status
-            )
-            newTitles = if (usePostFix) article.title.map(t => t.copy(title = t.title + " (Kopi)")) else article.title
-            newContents <- contentWithClonedFiles(article.content.toList)
-            articleToInsert = article.copy(
-              id = Some(newId),
-              title = newTitles,
-              content = newContents,
-              revision = Some(1),
-              updated = clock.now(),
-              created = clock.now(),
-              published = clock.now(),
-              updatedBy = userInfo.id,
-              status = status,
-              notes = notes
-            )
-            inserted = draftRepository.insert(articleToInsert)
-            _        = indexArticle(inserted)
-            enriched = readService.addUrlsOnEmbedResources(inserted)
-            converted <- converterService.toApiArticle(enriched, language, fallback)
-          } yield converted
+      draftRepository.rollbackOnFailure { implicit session =>
+        draftRepository.withId(articleId) match {
+          case None => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
+          case Some(article) =>
+            for {
+              newId <- draftRepository.newEmptyArticleId()
+              status = common.Status(PLANNED, Set.empty)
+              notes <- converterService.newNotes(
+                Seq(s"Opprettet artikkel, som kopi av artikkel med id: '$articleId'."),
+                userInfo,
+                status
+              )
+              newTitles = if (usePostFix) article.title.map(t => t.copy(title = t.title + " (Kopi)")) else article.title
+              newContents <- contentWithClonedFiles(article.content.toList)
+              articleToInsert = article.copy(
+                id = Some(newId),
+                title = newTitles,
+                content = newContents,
+                revision = Some(1),
+                updated = clock.now(),
+                created = clock.now(),
+                published = clock.now(),
+                updatedBy = userInfo.id,
+                status = status,
+                notes = notes
+              )
+              inserted = draftRepository.insert(articleToInsert)
+              _        = indexArticle(inserted)
+              enriched = readService.addUrlsOnEmbedResources(inserted)
+              converted <- converterService.toApiArticle(enriched, language, fallback)
+            } yield converted
+        }
       }
     }
 
@@ -226,15 +228,15 @@ trait WriteService {
         visualElement = visualElement
       )
       draftRepository.rollbackOnFailure { implicit session =>
-        val updateFunction = externalIds match {
+        val insertFunction = externalIds match {
           case Nil =>
-            (a: Draft) => draftRepository.updateArticle(a, false)
+            (a: Draft) => draftRepository.insert(a)
           case nids =>
-            (a: Draft) => draftRepository.updateWithExternalIds(a, nids, externalSubjectIds, importId)
+            (a: Draft) => draftRepository.insertWithExternalIds(a, nids, externalSubjectIds, importId)
         }
 
         for {
-          newId <- draftRepository.newEmptyArticle()
+          newId <- draftRepository.newEmptyArticleId()
           domainArticle <- converterService.toDomainArticle(
             newId,
             withNotes,
@@ -244,7 +246,7 @@ trait WriteService {
             oldNdlaUpdatedDate
           )
           _               <- contentValidator.validateArticle(domainArticle)
-          insertedArticle <- updateFunction(domainArticle)
+          insertedArticle <- Try(insertFunction(domainArticle))
           _ = indexArticle(insertedArticle)
           apiArticle <- converterService.toApiArticle(insertedArticle, newArticle.language)
         } yield apiArticle
@@ -284,10 +286,12 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED && !isImported
-      draftRepository.updateArticle(article, isImported) match {
-        case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
-        case Success(updated)                      => Success(updated)
-        case Failure(ex)                           => Failure(ex)
+      draftRepository.rollbackOnFailure { implicit session =>
+        draftRepository.updateArticle(article, isImported) match {
+          case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
+          case Success(updated)                      => Success(updated)
+          case Failure(ex)                           => Failure(ex)
+        }
       }
     }
 
@@ -299,10 +303,12 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] = {
       val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
-      draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
-        case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
-        case Success(updated)                      => Success(updated)
-        case Failure(ex)                           => Failure(ex)
+      draftRepository.rollbackOnFailure { implicit session =>
+        draftRepository.updateWithExternalIds(article, externalIds, externalSubjectIds, importId) match {
+          case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
+          case Success(updated)                      => Success(updated)
+          case Failure(ex)                           => Failure(ex)
+        }
       }
     }
 
@@ -318,7 +324,7 @@ trait WriteService {
         statusWasUpdated: Boolean
     ): Try[Draft] =
       if (shouldOnlyCopy) {
-        draftRepository.storeArticleAsNewVersion(article, Some(user), keepResponsible = true)
+        draftRepository.storeArticleAsNewVersion(article, Some(user), keepResponsible = true)(AutoSession)
       } else {
         externalIds match {
           case Nil => updateArticleAndStoreAsNewIfPublished(article, isImported, statusWasUpdated)
@@ -554,7 +560,7 @@ trait WriteService {
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
-    ): Try[api.Article] =
+    ): Try[api.Article] = {
       draftRepository.withId(articleId) match {
         case Some(existing) =>
           updateExistingArticle(
@@ -567,7 +573,7 @@ trait WriteService {
             oldNdlaUpdatedDate,
             importId
           )
-        case None if draftRepository.exists(articleId) =>
+        case None if draftRepository.exists(articleId)(ReadOnlyAutoSession) =>
           updateNullDocumentArticle(
             articleId,
             updatedApiArticle,
@@ -581,6 +587,7 @@ trait WriteService {
         case None =>
           Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
       }
+    }
 
     private def updateExistingArticle(
         existing: Draft,
@@ -633,7 +640,8 @@ trait WriteService {
         oldNdlaCreatedDate: Option[LocalDateTime],
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
-    ): Try[api.Article] =
+    ): Try[api.Article] = {
+      logger.warn(s"Updating null-document article with id '$articleId'")
       for {
         convertedArticle <- converterService.toDomainArticle(
           articleId,
@@ -667,6 +675,7 @@ trait WriteService {
           updatedApiArticle.language.isEmpty
         )
       } yield apiArticle
+    }
 
     def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Article] = {
       draftRepository.withId(id) match {
@@ -690,13 +699,9 @@ trait WriteService {
 
     def deleteArticle(id: Long): Try[api.ContentId] = {
       draftRepository
-        .deleteArticle(id)
+        .deleteArticle(id)(AutoSession)
         .flatMap(articleIndexService.deleteDocument)
         .map(api.ContentId)
-    }
-
-    def newEmptyArticle(externalIds: List[String], externalSubjectIds: Seq[String]): Try[Long] = {
-      draftRepository.newEmptyArticle(externalIds, externalSubjectIds)
     }
 
     def storeFile(file: FileItem): Try[api.UploadedFile] =
@@ -980,7 +985,7 @@ trait WriteService {
         .traverse(article => {
           val revisionMeta = article.revisionMeta ++ revisions
           val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
-          draftRepository.updateArticle(toUpdate)
+          draftRepository.updateArticle(toUpdate)(AutoSession)
         })
     }
   }

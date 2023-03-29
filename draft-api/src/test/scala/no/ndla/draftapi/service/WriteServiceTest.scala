@@ -10,30 +10,15 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.RelatedContentLink
-import no.ndla.common.model.{domain, api => commonApi}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  Description,
-  Introduction,
-  RequiredLibrary,
-  Responsible,
-  Status,
-  Tag,
-  Title,
-  VisualElement
-}
 import no.ndla.common.model.domain.draft.DraftStatus.{PLANNED, PUBLISHED}
-import no.ndla.common.model.domain.draft.{Comment, Copyright, Draft, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft._
+import no.ndla.common.model.domain._
+import no.ndla.common.model.{RelatedContentLink, domain, api => commonApi}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.integration.{Resource, Topic}
+import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.PartialArticleFields
 import no.ndla.draftapi.model.domain.Agreement
-import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers._
@@ -81,6 +66,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentValidator
     )
 
+    doAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[DBSession => Try[_]](0)
+      x(mock[DBSession])
+    }).when(draftRepository).rollbackOnFailure(any)
+
     when(draftRepository.withId(articleId)).thenReturn(Option(article))
     when(agreementRepository.withId(agreementId)).thenReturn(Option(agreement))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
@@ -107,6 +97,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
+    when(draftRepository.insert(any)(any))
+      .thenAnswer((invocation: InvocationOnMock) => {
+        val arg = invocation.getArgument[Draft](0)
+        arg.copy(revision = Some(arg.revision.getOrElse(0) + 1))
+      })
     when(draftRepository.storeArticleAsNewVersion(any[Draft], any[Option[UserInfo]], any[Boolean])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
         val arg = invocation.getArgument[Draft](0)
@@ -125,20 +120,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
     when(contentValidator.validateArticle(any[Draft])).thenReturn(Success(article))
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(1: Long))
-    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[api.Article]](0)
-      func(mock[DBSession])
-    })
 
-    service
+    val result = service
       .newArticle(TestData.newArticle, List.empty, Seq.empty, TestData.userWithWriteAccess, None, None, None)
-      .isSuccess should be(true)
 
-    verify(draftRepository, times(1)).newEmptyArticle(any, any)(any)
-    verify(draftRepository, times(0)).insert(any[Draft])(any)
-    verify(draftRepository, times(1)).updateArticle(any[Draft], any[Boolean])(any)
+    result.failIfFailure
+
+    verify(draftRepository, times(1)).newEmptyArticleId()(any)
+    verify(draftRepository, times(1)).insert(any[Draft])(any)
+    verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(any)
     verify(tagIndexService, times(1)).indexAsync(any, any)(any)
     verify(grepCodesIndexService, times(1)).indexAsync(any, any)(any)
@@ -580,7 +572,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -602,9 +594,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Draft](0)
-    )
 
     service.copyArticleFromId(5, userinfo, "*", true, true)
 
@@ -632,7 +621,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val userinfo = UserInfo("somecoolid", Set.empty)
 
     val newId = 1231.toLong
-    when(draftRepository.newEmptyArticle(any[List[String]], any[List[String]])(any[DBSession]))
+    when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(newId))
 
     val expectedInsertedArticle = article.copy(
@@ -653,10 +642,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(anyLong)).thenReturn(Some(article))
-    when(draftRepository.insert(any[Draft])(any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[Draft](0)
-    )
-
     service.copyArticleFromId(5, userinfo, "*", true, false)
 
     val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
@@ -1266,11 +1251,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("New articles are not made with empty-strings for empty fields") {
-    when(draftRepository.rollbackOnFailure[api.Article](any)).thenAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[api.Article]](0)
-      func(mock[DBSession])
-    })
-
     val newArt = TestData.newArticle.copy(
       language = "nb",
       title = "Jonas",
@@ -1281,7 +1261,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Some("")
     )
 
-    when(draftRepository.newEmptyArticle(any[List[String]], any[Seq[String]])(any[DBSession])).thenReturn(Success(10L))
+    when(draftRepository.newEmptyArticleId()(any[DBSession])).thenReturn(Success(10L))
 
     val Success(created) = service.newArticle(
       newArt,
@@ -1294,7 +1274,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
-    Mockito.verify(draftRepository).updateArticle(captor.capture(), anyBoolean)(any)
+    Mockito.verify(draftRepository).insert(captor.capture())(any)
     val articlePassedToUpdate = captor.getValue
 
     articlePassedToUpdate.content should be(Seq.empty)

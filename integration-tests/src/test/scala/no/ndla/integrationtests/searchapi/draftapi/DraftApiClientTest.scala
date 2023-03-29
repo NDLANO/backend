@@ -64,18 +64,21 @@ class DraftApiClientTest
     draftApiServer.stop()
   }
 
-  private def setupArticles() =
-    (1 to 10)
-      .map(id => {
-        draftApi.componentRegistry.draftRepository.insert(
-          draftapi.TestData.sampleDomainArticle.copy(
-            id = Some(id),
-            updated = DateParser.fromUnixTime(0),
-            created = DateParser.fromUnixTime(0),
-            published = DateParser.fromUnixTime(0)
+  private def setupArticles() = {
+    draftApi.componentRegistry.draftRepository.withSession { implicit session =>
+      (1 to 10)
+        .map(id => {
+          draftApi.componentRegistry.draftRepository.insert(
+            draftapi.TestData.sampleDomainArticle.copy(
+              id = Some(id),
+              updated = DateParser.fromUnixTime(0),
+              created = DateParser.fromUnixTime(0),
+              published = DateParser.fromUnixTime(0)
+            )
           )
-        )
-      })
+        })
+    }
+  }
 
   val exampleToken =
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
