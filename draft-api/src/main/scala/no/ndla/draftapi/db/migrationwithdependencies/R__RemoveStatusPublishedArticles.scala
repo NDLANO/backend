@@ -14,7 +14,6 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleType, Status}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc._
@@ -26,7 +25,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + new EnumNameSerializer(DraftStatus) + Json4s.serializer(ArticleType)
+    org.json4s.DefaultFormats + Json4s.serializer(DraftStatus) + Json4s.serializer(ArticleType)
 
   override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
 
@@ -71,7 +70,7 @@ class R__RemoveStatusPublishedArticles(properties: DraftApiProperties)
 
   def updateStatus(status: Status): Status = {
     if (status.current == DraftStatus.PUBLISHED) {
-      val newOther: Set[DraftStatus.Value] = status.other.filter(value => value == DraftStatus.IMPORTED)
+      val newOther: Set[DraftStatus] = status.other.filter(value => value == DraftStatus.IMPORTED)
       status.copy(other = newOther)
     } else status
   }

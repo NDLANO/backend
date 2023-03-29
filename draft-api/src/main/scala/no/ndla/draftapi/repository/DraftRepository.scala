@@ -280,7 +280,7 @@ trait DraftRepository {
         .list()
     }
 
-    def idsWithStatus(status: DraftStatus.Value)(implicit session: DBSession): Try[List[ArticleIds]] = {
+    def idsWithStatus(status: DraftStatus)(implicit session: DBSession): Try[List[ArticleIds]] = {
       val ar = DBArticle.syntax("ar")
       Try(
         sql"select article_id, external_id from ${DBArticle

@@ -9,4 +9,4 @@ package no.ndla.draftapi.model.search
 
 import no.ndla.common.model.domain.draft.DraftStatus
 
-case class SearchableStatus(current: DraftStatus.Value, other: Set[DraftStatus.Value])
+case class SearchableStatus(current: DraftStatus, other: Set[DraftStatus])

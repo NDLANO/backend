@@ -79,9 +79,9 @@ object SearchableLanguageFormats {
     new SearchableLanguageListSerializer,
     Json4s.serializer(RevisionStatus)
   ) ++
+    Draft.serializers ++
     JavaTimeSerializers.all ++
-    JavaTypesSerializers.all ++
-    Draft.serializers
+    JavaTypesSerializers.all
 
   val JSonFormats: Formats           = defaultFormats(false) ++ serializers
   val JSonFormatsWithMillis: Formats = defaultFormats(true) ++ serializers

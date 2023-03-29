@@ -29,7 +29,7 @@ case class SearchableDraft(
     supportedLanguages: List[String],
     notes: List[String],
     contexts: List[SearchableTaxonomyContext],
-    draftStatus: Status,
+    draftStatus: SearchableStatus,
     users: List[String],
     previousVersionsNotes: List[String],
     grepContexts: List[SearchableGrepContext],

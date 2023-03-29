@@ -29,7 +29,7 @@ case class MultiDraftSearchSettings(
     learningResourceTypes: List[LearningResourceType.Value],
     supportedLanguages: List[String],
     relevanceIds: List[String],
-    statusFilter: List[DraftStatus.Value],
+    statusFilter: List[DraftStatus],
     userFilter: List[String],
     grepCodes: List[String],
     shouldScroll: Boolean,

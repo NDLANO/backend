@@ -7,6 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.learningpathapi
 
+import enumeratum.Json4s
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.EmbedType
@@ -30,7 +31,7 @@ class LearningpathApiClientTest
     with searchapi.TestEnvironment {
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
-      new EnumNameSerializer(DraftStatus) +
+      Json4s.serializer(DraftStatus) +
       new EnumNameSerializer(LearningPathStatus) +
       new EnumNameSerializer(LearningPathVerificationStatus) +
       new EnumNameSerializer(StepType) +

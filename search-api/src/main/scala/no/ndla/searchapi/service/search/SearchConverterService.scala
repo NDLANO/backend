@@ -11,6 +11,7 @@ import cats.implicits._
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.api.draft.Comment
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, VisualElement}
@@ -359,7 +360,8 @@ trait SearchConverterService {
       Success(
         SearchableDraft(
           id = draft.id.get,
-          draftStatus = search.Status(draft.status.current.toString, draft.status.other.map(_.toString).toSeq),
+          draftStatus =
+            search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq),
           title = model.SearchableLanguageValues(draft.title.map(title => LanguageValue(title.language, title.title))),
           content = model.SearchableLanguageValues(
             draft.content.map(article =>
@@ -507,7 +509,8 @@ trait SearchConverterService {
         lastUpdated = searchableArticle.lastUpdated,
         license = Some(searchableArticle.license),
         revisions = Seq.empty,
-        responsible = None
+        responsible = None,
+        comments = None
       )
     }
 
@@ -541,6 +544,10 @@ trait SearchConverterService {
       val revisions =
         searchableDraft.revisionMeta.map(m => api.RevisionMeta(m.revisionDate, m.note, m.status.entryName))
       val responsible = searchableDraft.responsible.map(r => api.DraftResponsible(r.responsibleId, r.lastUpdated))
+      val comments =
+        searchableDraft.domainObject.comments.map(c =>
+          Comment(c.id.toString, c.content, c.created, c.updated, c.isOpen)
+        )
 
       MultiSearchSummary(
         id = searchableDraft.id,
@@ -559,7 +566,8 @@ trait SearchConverterService {
         lastUpdated = searchableDraft.lastUpdated,
         license = searchableDraft.license,
         revisions = revisions,
-        responsible = responsible
+        responsible = responsible,
+        comments = Some(comments)
       )
     }
 
@@ -609,7 +617,8 @@ trait SearchConverterService {
         lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
         revisions = Seq.empty,
-        responsible = None
+        responsible = None,
+        comments = None
       )
     }
 

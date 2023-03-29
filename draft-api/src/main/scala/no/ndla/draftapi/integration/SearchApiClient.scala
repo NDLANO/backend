@@ -36,8 +36,8 @@ trait SearchApiClient {
 
     implicit val formats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(Availability) +
+        Json4s.serializer(DraftStatus) +
         Json4s.serializer(ArticleType) +
         Json4s.serializer(RevisionStatus) ++
         JavaTimeSerializers.all ++

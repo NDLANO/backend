@@ -7,17 +7,17 @@
 
 package no.ndla.draftapi.model.search
 
+import enumeratum.Json4s
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.{read, writePretty}
 
 import java.time.LocalDateTime
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
-  implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(DraftStatus)
+  implicit val formats: Formats = SearchableLanguageFormats.JSonFormats + Json4s.serializer(DraftStatus)
 
   val searchableArticle1 = SearchableArticle(
     id = 10.toLong,

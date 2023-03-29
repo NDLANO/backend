@@ -125,7 +125,7 @@ trait StateTransitionRules {
     val StateTransitions: mutable.LinkedHashSet[StateTransition] = mutable.LinkedHashSet(
        PLANNED               -> PLANNED,
        PLANNED               -> IN_PROGRESS,
-      (PLANNED               -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (PLANNED               -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
        ARCHIVED              -> ARCHIVED               withSideEffect resetResponsible,
        ARCHIVED              -> IN_PROGRESS,
        IN_PROGRESS           -> IN_PROGRESS,
@@ -134,59 +134,59 @@ trait StateTransitionRules {
       (IN_PROGRESS           -> QUALITY_ASSURANCE)     .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED),
       (IN_PROGRESS           -> LANGUAGE)              .require(PublishRoles, articleHasBeenPublished) keepStates Set(PUBLISHED),
       (IN_PROGRESS           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
-      (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (IN_PROGRESS           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
        EXTERNAL_REVIEW       -> IN_PROGRESS            keepStates Set(PUBLISHED),
       (EXTERNAL_REVIEW       -> EXTERNAL_REVIEW)       keepStates Set(IN_PROGRESS, PUBLISHED),
       (EXTERNAL_REVIEW       -> INTERNAL_REVIEW)       keepStates Set(PUBLISHED) keepCurrentOnTransition,
       (EXTERNAL_REVIEW       -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
-      (EXTERNAL_REVIEW       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (EXTERNAL_REVIEW       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
        INTERNAL_REVIEW       -> IN_PROGRESS,
       (INTERNAL_REVIEW       -> EXTERNAL_REVIEW)       keepStates Set(INTERNAL_REVIEW, PUBLISHED),
        INTERNAL_REVIEW       -> INTERNAL_REVIEW,
       (INTERNAL_REVIEW       -> QUALITY_ASSURANCE)     keepCurrentOnTransition,
       (INTERNAL_REVIEW       -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
-      (INTERNAL_REVIEW       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (INTERNAL_REVIEW       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (QUALITY_ASSURANCE     -> IN_PROGRESS)           keepStates Set(PUBLISHED),
       (QUALITY_ASSURANCE     -> INTERNAL_REVIEW)       keepStates Set(PUBLISHED),
        QUALITY_ASSURANCE     -> QUALITY_ASSURANCE,
       (QUALITY_ASSURANCE     -> LANGUAGE)              keepStates Set(PUBLISHED) require DirectPublishRoles,
-      (QUALITY_ASSURANCE     -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (QUALITY_ASSURANCE     -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (QUALITY_ASSURANCE     -> PUBLISHED)             require PublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
        LANGUAGE              -> IN_PROGRESS,
       (LANGUAGE              -> QUALITY_ASSURANCE)     keepCurrentOnTransition,
        LANGUAGE              -> LANGUAGE,
       (LANGUAGE              -> FOR_APPROVAL)          keepStates Set(PUBLISHED) require DirectPublishRoles,
       (LANGUAGE              -> PUBLISHED)             require PublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
-      (LANGUAGE              -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (LANGUAGE              -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (FOR_APPROVAL          -> IN_PROGRESS)           keepStates Set(PUBLISHED),
       (FOR_APPROVAL          -> LANGUAGE)              keepStates Set(PUBLISHED),
        FOR_APPROVAL          -> FOR_APPROVAL,
       (FOR_APPROVAL          -> END_CONTROL)           keepStates Set(PUBLISHED) withSideEffect validateArticleApiArticle,
       (FOR_APPROVAL          -> PUBLISHED)             require PublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
-      (FOR_APPROVAL          -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (FOR_APPROVAL          -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (END_CONTROL           -> IN_PROGRESS)           keepStates Set(PUBLISHED),
       (END_CONTROL           -> FOR_APPROVAL)          keepStates Set(PUBLISHED),
       (END_CONTROL           -> END_CONTROL)           withSideEffect validateArticleApiArticle,
       (END_CONTROL           -> PUBLISH_DELAYED)       require DirectPublishRoles withSideEffect validateArticleApiArticle,
       (END_CONTROL           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
-      (END_CONTROL           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (END_CONTROL           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (PUBLISH_DELAYED       -> END_CONTROL)           keepStates Set(PUBLISHED) withSideEffect validateArticleApiArticle,
        PUBLISH_DELAYED       -> PUBLISH_DELAYED,
       (PUBLISH_DELAYED       -> PUBLISHED)             require DirectPublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
-      (PUBLISH_DELAYED       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (PUBLISH_DELAYED       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
       (PUBLISHED             -> IN_PROGRESS)           keepStates Set(PUBLISHED) keepCurrentOnTransition,
       (PUBLISHED             -> UNPUBLISHED)           keepStates Set.empty require DirectPublishRoles withSideEffect unpublishArticle withSideEffect resetResponsible,
-      (PUBLISHED             -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle withSideEffect resetResponsible,
+      (PUBLISHED             -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle withSideEffect resetResponsible,
        UNPUBLISHED           -> UNPUBLISHED            withSideEffect resetResponsible,
       (UNPUBLISHED           -> PUBLISHED)             require DirectPublishRoles withSideEffect publishWithSoftValidation withSideEffect resetResponsible,
        UNPUBLISHED           -> IN_PROGRESS,
-      (UNPUBLISHED           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) illegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
+      (UNPUBLISHED           -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
     )
     // format: on
 
     private def getTransition(
-        from: DraftStatus.Value,
-        to: DraftStatus.Value,
+        from: DraftStatus,
+        to: DraftStatus,
         user: UserInfo,
         current: Draft
     ): Option[StateTransition] = {
@@ -218,7 +218,7 @@ trait StateTransitionRules {
 
     private def newEditorNotesForTransition(
         current: Draft,
-        to: DraftStatus.Value,
+        to: DraftStatus,
         newStatus: common.Status,
         user: UserInfo,
         isImported: Boolean
@@ -235,7 +235,7 @@ trait StateTransitionRules {
 
     private[service] def doTransitionWithoutSideEffect(
         current: Draft,
-        to: DraftStatus.Value,
+        to: DraftStatus,
         user: UserInfo,
         isImported: Boolean
     ): (Try[Draft], Seq[SideEffect]) = {
@@ -262,7 +262,7 @@ trait StateTransitionRules {
 
     def doTransition(
         current: Draft,
-        to: DraftStatus.Value,
+        to: DraftStatus,
         user: UserInfo,
         isImported: Boolean
     ): IO[Try[Draft]] = {

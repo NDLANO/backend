@@ -232,7 +232,7 @@ trait MultiDraftSearchService {
       )
     }
 
-    private def draftStatusFilter(statuses: Seq[DraftStatus.Value], includeOthers: Boolean): Some[BoolQuery] = {
+    private def draftStatusFilter(statuses: Seq[DraftStatus], includeOthers: Boolean): Some[BoolQuery] = {
       if (statuses.isEmpty) {
         Some(
           boolQuery().not(termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString))

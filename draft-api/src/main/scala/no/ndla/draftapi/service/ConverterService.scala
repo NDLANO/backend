@@ -373,7 +373,7 @@ trait ConverterService {
     }
 
     def updateStatus(
-        status: DraftStatus.Value,
+        status: DraftStatus,
         draft: Draft,
         user: UserInfo,
         isImported: Boolean

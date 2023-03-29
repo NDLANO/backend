@@ -68,10 +68,10 @@ case class Draft(
 
 object Draft {
   val serializers = Seq(
-    new EnumNameSerializer(DraftStatus),
+    new EnumNameSerializer(Availability),
+    Json4s.serializer(DraftStatus),
     Json4s.serializer(ArticleType),
-    Json4s.serializer(RevisionStatus),
-    new EnumNameSerializer(Availability)
+    Json4s.serializer(RevisionStatus)
   ) ++
     JavaTimeSerializers.all ++
     JavaTypesSerializers.all
