@@ -275,7 +275,7 @@ export interface IUpdatedArticle {
   revisionMeta?: IRevisionMeta[]
   responsibleId?: (null | string)
   slug?: string
-  comments: IUpdatedComment[]
+  comments?: IUpdatedComment[]
 }
 
 export interface IUpdatedComment {
