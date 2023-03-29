@@ -270,6 +270,19 @@
         "data-imageid",
         "data-blob-color"
       ]
+    },
+    "blog-post": {
+      "required": [
+        "data-resource",
+        "data-image-id",
+        "data-language",
+        "data-title",
+        "data-url"
+      ],
+      "optional": [
+        [ "data-size" ],
+        [ "data-author" ]
+      ]
     }
   }
 }
