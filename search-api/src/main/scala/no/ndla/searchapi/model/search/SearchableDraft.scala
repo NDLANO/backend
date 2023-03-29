@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.model.domain.{ArticleMetaImage, Responsible}
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
@@ -25,7 +25,6 @@ case class SearchableDraft(
     license: Option[String],
     authors: List[String],
     articleType: String,
-    metaImage: List[ArticleMetaImage],
     defaultTitle: Option[String],
     supportedLanguages: List[String],
     notes: List[String],

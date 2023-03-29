@@ -55,8 +55,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val metaImages = List(ArticleMetaImage("1", "norAlt", "nb"), ArticleMetaImage("2", "enAlt", "en"))
-
     val embedAttrs = SearchableLanguageList(
       Seq(
         LanguageValue("nb", Seq("En norsk", "To norsk")),
@@ -98,7 +96,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       license = Some("by-sa"),
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
-      metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),

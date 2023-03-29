@@ -380,7 +380,6 @@ trait SearchConverterService {
           license = draft.copyright.flatMap(_.license),
           authors = authors,
           articleType = draft.articleType.entryName,
-          metaImage = draft.metaImage.toList,
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           notes = notes,
@@ -526,7 +525,7 @@ trait SearchConverterService {
         searchableDraft.metaDescription.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val visualElements =
         searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElement(lv.value, lv.language))
-      val metaImages = searchableDraft.metaImage.map(image => {
+      val metaImages = searchableDraft.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         api.MetaImage(metaImageUrl, image.altText, image.language)
       })
