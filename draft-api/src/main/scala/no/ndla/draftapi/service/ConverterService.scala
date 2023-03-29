@@ -727,6 +727,10 @@ trait ConverterService {
         case (Right(_), existing) => existing
       }
 
+      val updatedComments = article.comments
+        .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
+        .getOrElse(toMergeInto.comments)
+
       failableFields match {
         case Failure(ex) => Failure(ex)
         case Success((allNotes, newContent)) =>
@@ -748,7 +752,7 @@ trait ConverterService {
             revisionMeta = updatedRevisionMeta,
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
-            comments = updatedCommentToDomain(article.comments, toMergeInto.comments)
+            comments = updatedComments
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -833,7 +837,7 @@ trait ConverterService {
             .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
 
           for {
-            comments <- updatedCommentToDomainNullDocument(article.comments)
+            comments <- updatedCommentToDomainNullDocument(article.comments.getOrElse(List.empty))
             notes    <- mergedNotes
           } yield Draft(
             id = Some(id),

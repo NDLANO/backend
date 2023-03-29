@@ -132,7 +132,7 @@ object TestData {
     None,
     Right(None),
     None,
-    List.empty
+    None
   )
 
   val sampleApiUpdateArticle: UpdatedArticle = blankUpdatedArticle.copy(
