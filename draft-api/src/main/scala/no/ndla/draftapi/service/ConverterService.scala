@@ -131,14 +131,16 @@ trait ConverterService {
             val newUpdated       = if (isContentChanged) clock.now() else existingComment.updated
             existingComment.copy(
               updated = newUpdated,
-              content = updatedComment.content
+              content = updatedComment.content,
+              isOpen = updatedComment.isOpen.getOrElse(true)
             )
           case None =>
             Comment(
               id = uuidUtil.randomUUID(),
               created = clock.now(),
               updated = clock.now(),
-              content = updatedComment.content
+              content = updatedComment.content,
+              isOpen = updatedComment.isOpen.getOrElse(true)
             )
         }
       })
@@ -150,7 +152,8 @@ trait ConverterService {
           id = UUID.randomUUID(),
           created = clock.now(),
           updated = clock.now(),
-          content = comment.content
+          content = comment.content,
+          isOpen = comment.isOpen.getOrElse(true)
         )
       )
     }
@@ -166,7 +169,8 @@ trait ConverterService {
                 id = uuid,
                 created = clock.now(),
                 updated = clock.now(),
-                content = comment.content
+                content = comment.content,
+                isOpen = comment.isOpen.getOrElse(true)
               )
             )
           case None =>
@@ -175,7 +179,8 @@ trait ConverterService {
                 id = uuidUtil.randomUUID(),
                 created = clock.now(),
                 updated = clock.now(),
-                content = comment.content
+                content = comment.content,
+                isOpen = comment.isOpen.getOrElse(true)
               )
             )
         }
@@ -510,7 +515,8 @@ trait ConverterService {
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,
-      updated = comment.updated
+      updated = comment.updated,
+      isOpen = comment.isOpen
     )
 
     def toApiArticleTag(tag: common.Tag): api.ArticleTag = api.ArticleTag(tag.tags, tag.language)
