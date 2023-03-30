@@ -52,6 +52,14 @@ export interface IAudioResults {
   results: IAudioResult[]
 }
 
+export interface IComment {
+  id: string
+  content: string
+  created: string
+  updated: string
+  isOpen: boolean
+}
+
 export interface IDraftResponsible {
   responsibleId: string
   lastUpdated: string
@@ -161,6 +169,7 @@ export interface IMultiSearchSummary {
   license?: string
   revisions: IRevisionMeta[]
   responsible?: IDraftResponsible
+  comments?: IComment[]
 }
 
 export interface IMultiSearchTermsAggregation {
