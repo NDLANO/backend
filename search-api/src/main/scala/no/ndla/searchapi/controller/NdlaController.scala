@@ -31,7 +31,6 @@ trait NdlaController {
   abstract class NdlaController extends NdlaControllerBase {
     protected implicit override val jsonFormats: Formats =
       org.json4s.DefaultFormats +
-        new EnumNameSerializer(DraftStatus) +
         new EnumNameSerializer(LearningPathStatus) +
         new EnumNameSerializer(LearningPathVerificationStatus) +
         new EnumNameSerializer(StepType) +
@@ -42,7 +41,8 @@ trait NdlaController {
         JavaTimeSerializers.all ++
         JavaTypesSerializers.all +
         Json4s.serializer(ArticleType) +
-        Json4s.serializer(RevisionStatus)
+        Json4s.serializer(RevisionStatus) +
+        Json4s.serializer(DraftStatus)
 
     before() {
       contentType = formats("json")

@@ -8,7 +8,7 @@
 package no.ndla.search.model
 
 import enumeratum.Json4s
-import no.ndla.common.model.domain.draft.RevisionStatus
+import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
 import org.json4s.JsonAST.{JField, JObject, JString}
 import org.json4s.ext.{JavaTimeSerializers, JavaTypesSerializers}
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JArray, JNothing, MappingException}
@@ -74,19 +74,15 @@ object SearchableLanguageFormats {
     }
   }
 
-  val JSonFormats: Formats =
-    defaultFormats(false) +
-      new SearchableLanguageValuesSerializer +
-      new SearchableLanguageListSerializer ++
-      JavaTimeSerializers.all ++
-      JavaTypesSerializers.all +
-      Json4s.serializer(RevisionStatus)
+  private val serializers = Seq(
+    new SearchableLanguageValuesSerializer,
+    new SearchableLanguageListSerializer,
+    Json4s.serializer(RevisionStatus)
+  ) ++
+    Draft.serializers ++
+    JavaTimeSerializers.all ++
+    JavaTypesSerializers.all
 
-  val JSonFormatsWithMillis: Formats =
-    defaultFormats(true) +
-      new SearchableLanguageValuesSerializer +
-      new SearchableLanguageListSerializer ++
-      JavaTimeSerializers.all ++
-      JavaTypesSerializers.all +
-      Json4s.serializer(RevisionStatus)
+  val JSonFormats: Formats           = defaultFormats(false) ++ serializers
+  val JSonFormatsWithMillis: Formats = defaultFormats(true) ++ serializers
 }

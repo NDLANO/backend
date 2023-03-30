@@ -7,6 +7,7 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
+import enumeratum.Json4s
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.DateParser
 import no.ndla.common.model.domain.Availability
@@ -33,7 +34,7 @@ class ArticleApiClientTest
     with searchapi.TestEnvironment {
   implicit val formats: Formats =
     org.json4s.DefaultFormats +
-      new EnumNameSerializer(DraftStatus) +
+      Json4s.serializer(DraftStatus) +
       new EnumNameSerializer(LearningPathStatus) +
       new EnumNameSerializer(LearningPathVerificationStatus) +
       new EnumNameSerializer(StepType) +

@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.model.domain.{ArticleMetaImage, Responsible}
-import no.ndla.common.model.domain.draft.RevisionMeta
+import no.ndla.common.model.domain.Responsible
+import no.ndla.common.model.domain.draft.{Draft, RevisionMeta}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 import java.time.LocalDateTime
@@ -25,12 +25,11 @@ case class SearchableDraft(
     license: Option[String],
     authors: List[String],
     articleType: String,
-    metaImage: List[ArticleMetaImage],
     defaultTitle: Option[String],
     supportedLanguages: List[String],
     notes: List[String],
     contexts: List[SearchableTaxonomyContext],
-    draftStatus: Status,
+    draftStatus: SearchableStatus,
     users: List[String],
     previousVersionsNotes: List[String],
     grepContexts: List[SearchableGrepContext],
@@ -39,5 +38,6 @@ case class SearchableDraft(
     embedResourcesAndIds: List[EmbedValues],
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
-    responsible: Option[Responsible]
+    responsible: Option[Responsible],
+    domainObject: Draft
 )

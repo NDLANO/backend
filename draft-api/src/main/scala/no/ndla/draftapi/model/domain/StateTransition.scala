@@ -14,19 +14,19 @@ import no.ndla.draftapi.service.SideEffect.SideEffect
 import scala.language.implicitConversions
 
 case class StateTransition(
-    from: DraftStatus.Value,
-    to: DraftStatus.Value,
-    otherStatesToKeepOnTransition: Set[DraftStatus.Value],
+    from: DraftStatus,
+    to: DraftStatus,
+    otherStatesToKeepOnTransition: Set[DraftStatus],
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
     requiredRoles: Set[Role.Value],
-    illegalStatuses: Set[DraftStatus.Value],
+    illegalStatuses: Set[DraftStatus],
     private val ignoreRolesIf: Option[(Set[Role.Value], IgnoreFunction)]
 ) {
 
-  def keepCurrentOnTransition: StateTransition                    = copy(addCurrentStateToOthersOnTransition = true)
-  def keepStates(toKeep: Set[DraftStatus.Value]): StateTransition = copy(otherStatesToKeepOnTransition = toKeep)
-  def withSideEffect(sideEffect: SideEffect): StateTransition     = copy(sideEffects = sideEffects :+ sideEffect)
+  def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
+  def keepStates(toKeep: Set[DraftStatus]): StateTransition   = copy(otherStatesToKeepOnTransition = toKeep)
+  def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
 
   def require(roles: Set[Role.Value], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
     copy(requiredRoles = roles, ignoreRolesIf = ignoreRoleRequirementIf.map(requiredRoles -> _))
@@ -39,12 +39,12 @@ case class StateTransition(
     ignore || user.hasRoles(this.requiredRoles)
   }
 
-  def illegalStatuses(illegalStatuses: Set[DraftStatus.Value]): StateTransition =
+  def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition =
     copy(illegalStatuses = illegalStatuses)
 }
 
 object StateTransition {
-  implicit def tupleToStateTransition(fromTo: (DraftStatus.Value, DraftStatus.Value)): StateTransition = {
+  implicit def tupleToStateTransition(fromTo: (DraftStatus, DraftStatus)): StateTransition = {
     val (from, to) = fromTo
     StateTransition(
       from,

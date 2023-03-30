@@ -12,7 +12,6 @@ import no.ndla.common.model.domain.{ArticleType, Description}
 import no.ndla.common.model.domain.draft.DraftStatus
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{Formats, JArray, JValue}
 import org.postgresql.util.PGobject
@@ -20,7 +19,7 @@ import scalikejdbc._
 
 class R__RemoveDummyMetaDescription extends BaseJavaMigration {
   implicit val formats: Formats =
-    org.json4s.DefaultFormats + new EnumNameSerializer(DraftStatus) + Json4s.serializer(ArticleType)
+    org.json4s.DefaultFormats + Json4s.serializer(DraftStatus) + Json4s.serializer(ArticleType)
 
   override def getChecksum: Integer = 1 // Change this to something else if you want to repeat migration
 

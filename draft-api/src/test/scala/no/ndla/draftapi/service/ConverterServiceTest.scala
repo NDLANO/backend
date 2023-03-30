@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.unsafe.implicits.global
 import no.ndla.common
 import no.ndla.common.DateParser
+import no.ndla.common.model.api.draft.{Comment => ApiComment}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.DraftStatus._
@@ -86,7 +87,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val commentCreatedTomorrow  = comment.copy(created = clock.now().plusDays(1))
 
     val apiComment =
-      api.Comment(id = uuid.toString, content = "c", created = clock.now(), updated = clock.now(), isOpen = true)
+      ApiComment(id = uuid.toString, content = "c", created = clock.now(), updated = clock.now(), isOpen = true)
     val expectedCreatedToday     = apiComment.copy(created = clock.now())
     val expectedCreatedYesterday = apiComment.copy(created = clock.now().minusDays(1))
     val expectedCreatedTomorrow  = apiComment.copy(created = clock.now().plusDays(1))

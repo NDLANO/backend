@@ -254,7 +254,7 @@ trait WriteService {
     }
 
     def updateArticleStatus(
-        status: DraftStatus.Value,
+        status: DraftStatus,
         id: Long,
         user: UserInfo,
         isImported: Boolean

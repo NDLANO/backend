@@ -7,6 +7,8 @@
 
 package no.ndla.common.model.domain.draft
 
+import enumeratum.Json4s
+
 import java.time.LocalDateTime
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.{
@@ -26,6 +28,8 @@ import no.ndla.common.model.domain.{
   Title,
   VisualElement
 }
+import org.json4s.ext.{EnumNameSerializer, JavaTimeSerializers, JavaTypesSerializers}
+import org.json4s.{DefaultFormats, Formats}
 
 case class Draft(
     id: Option[Long],
@@ -60,4 +64,17 @@ case class Draft(
 
   def supportedLanguages: Seq[String] =
     getSupportedLanguages(title, visualElement, introduction, metaDescription, tags, content, metaImage)
+}
+
+object Draft {
+  val serializers = Seq(
+    new EnumNameSerializer(Availability),
+    Json4s.serializer(DraftStatus),
+    Json4s.serializer(ArticleType),
+    Json4s.serializer(RevisionStatus)
+  ) ++
+    JavaTimeSerializers.all ++
+    JavaTypesSerializers.all
+
+  val jsonEncoder: Formats = DefaultFormats.withLong ++ serializers
 }

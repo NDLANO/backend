@@ -7,8 +7,8 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.model.domain.{ArticleMetaImage, Responsible}
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{EditorNote, Responsible, Status => CommonStatus}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.domain.LearningResourceType
@@ -22,8 +22,6 @@ import java.util.UUID
 class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableDraft to json and deserializing back to object does not change content") {
-    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
-
     val titles =
       SearchableLanguageValues(Seq(LanguageValue("nb", "Christian Tut"), LanguageValue("en", "Christian Honk")))
 
@@ -55,8 +53,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val metaImages = List(ArticleMetaImage("1", "norAlt", "nb"), ArticleMetaImage("2", "enAlt", "en"))
-
     val embedAttrs = SearchableLanguageList(
       Seq(
         LanguageValue("nb", Seq("En norsk", "To norsk")),
@@ -87,7 +83,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
 
     val original = SearchableDraft(
       id = 100,
-      draftStatus = Status(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
+      draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
       title = titles,
       content = contents,
       visualElement = visualElements,
@@ -98,7 +94,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       license = Some("by-sa"),
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
-      metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),
@@ -112,13 +107,28 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       revisionMeta = revisionMeta,
       nextRevision = revisionMeta.lastOption,
-      responsible = Some(Responsible("some responsible", TestData.today))
+      responsible = Some(Responsible("some responsible", TestData.today)),
+      domainObject = TestData.draft1.copy(
+        status = CommonStatus(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
+        notes = Seq(
+          EditorNote(
+            note = "Hei",
+            user = "user",
+            timestamp = TestData.today,
+            status = CommonStatus(
+              current = DraftStatus.IN_PROGRESS,
+              other = Set(DraftStatus.PUBLISHED)
+            )
+          )
+        )
+      )
     )
+
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
 
     val json         = write(original)
     val deserialized = read[SearchableDraft](json)
 
     deserialized should be(original)
   }
-
 }

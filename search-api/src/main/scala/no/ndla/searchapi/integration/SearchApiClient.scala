@@ -94,7 +94,6 @@ trait SearchApiClient {
     def get[T](path: String, params: Map[String, String], timeout: Int = 5000)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats =
         org.json4s.DefaultFormats +
-          new EnumNameSerializer(DraftStatus) +
           new EnumNameSerializer(LearningPathStatus) +
           new EnumNameSerializer(LearningPathVerificationStatus) +
           new EnumNameSerializer(StepType) +
@@ -105,6 +104,7 @@ trait SearchApiClient {
           JavaTimeSerializers.all ++
           JavaTypesSerializers.all +
           Json4s.serializer(ArticleType) +
+          Json4s.serializer(DraftStatus) +
           Json4s.serializer(RevisionStatus)
       val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)

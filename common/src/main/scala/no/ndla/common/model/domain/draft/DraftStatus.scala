@@ -7,16 +7,31 @@
 
 package no.ndla.common.model.domain.draft
 
+import enumeratum._
 import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-object DraftStatus extends Enumeration {
+sealed trait DraftStatus extends EnumEntry {}
 
-  val IMPORTED, PLANNED, IN_PROGRESS, EXTERNAL_REVIEW, INTERNAL_REVIEW, QUALITY_ASSURANCE, LANGUAGE, FOR_APPROVAL,
-      END_CONTROL, PUBLISH_DELAYED, PUBLISHED, UNPUBLISHED, ARCHIVED = Value
+object DraftStatus extends Enum[DraftStatus] {
+  case object IMPORTED          extends DraftStatus
+  case object PLANNED           extends DraftStatus
+  case object IN_PROGRESS       extends DraftStatus
+  case object EXTERNAL_REVIEW   extends DraftStatus
+  case object INTERNAL_REVIEW   extends DraftStatus
+  case object QUALITY_ASSURANCE extends DraftStatus
+  case object LANGUAGE          extends DraftStatus
+  case object FOR_APPROVAL      extends DraftStatus
+  case object END_CONTROL       extends DraftStatus
+  case object PUBLISH_DELAYED   extends DraftStatus
+  case object PUBLISHED         extends DraftStatus
+  case object UNPUBLISHED       extends DraftStatus
+  case object ARCHIVED          extends DraftStatus
 
-  def valueOfOrError(s: String): Try[DraftStatus.Value] =
+  val values: IndexedSeq[DraftStatus] = findValues
+
+  def valueOfOrError(s: String): Try[DraftStatus] =
     valueOf(s) match {
       case Some(st) => Success(st)
       case None =>
@@ -26,8 +41,8 @@ object DraftStatus extends Enumeration {
         )
     }
 
-  def valueOf(s: String): Option[DraftStatus.Value] = values.find(_.toString == s.toUpperCase)
+  def valueOf(s: String): Option[DraftStatus] = values.find(_.toString == s.toUpperCase)
 
-  val thatDoesNotRequireResponsible: Seq[DraftStatus.Value] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
-  val thatRequiresResponsible: DraftStatus.ValueSet = this.values.filterNot(thatDoesNotRequireResponsible.contains)
+  val thatDoesNotRequireResponsible: Seq[DraftStatus] = Seq(PUBLISHED, UNPUBLISHED, ARCHIVED)
+  val thatRequiresResponsible: Seq[DraftStatus]       = this.values.filterNot(thatDoesNotRequireResponsible.contains)
 }

@@ -9,6 +9,7 @@ package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
+import enumeratum.Json4s
 import no.ndla.common.model.{domain => common}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.model.api.{AgreementSearchResult, ArticleSearchResult}
@@ -22,7 +23,6 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageFormats, SearchableLanguageList, SearchableLanguageValues}
 import org.json4s._
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 import org.jsoup.Jsoup
@@ -33,7 +33,7 @@ trait SearchConverterService {
 
   class SearchConverterService extends StrictLogging {
     implicit val formats: Formats =
-      SearchableLanguageFormats.JSonFormats + new EnumNameSerializer(common.draft.DraftStatus)
+      SearchableLanguageFormats.JSonFormats + Json4s.serializer(common.draft.DraftStatus)
 
     def asSearchableArticle(ai: Draft): SearchableArticle = {
 

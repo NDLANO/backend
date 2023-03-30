@@ -8,6 +8,7 @@
 package no.ndla.draftapi.model.api
 
 import no.ndla.common.model.api.RelatedContent
+import no.ndla.common.model.api.draft.Comment
 
 import java.time.LocalDateTime
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}

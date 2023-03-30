@@ -7,7 +7,7 @@
 
 package no.ndla.searchapi.model.search
 
-case class Status(
+case class SearchableStatus(
     current: String,
     other: Seq[String]
 )

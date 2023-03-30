@@ -25,7 +25,6 @@ import no.ndla.language.Language.languageOrUnknown
 import no.ndla.mapping.ISO639.get6391CodeFor6392Code
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Formats
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -43,7 +42,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
 
   implicit val formats: Formats = org.json4s.DefaultFormats +
-    new EnumNameSerializer(DraftStatus) +
+    Json4s.serializer(DraftStatus) +
     Json4s.serializer(ArticleType)
   private val TaxonomyApiEndpoint = s"${props.Domain}/taxonomy/v1"
   private val taxonomyTimeout     = 20.seconds

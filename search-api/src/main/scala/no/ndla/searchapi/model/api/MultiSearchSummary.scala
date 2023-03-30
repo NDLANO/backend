@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.model.api
 
+import no.ndla.common.model.api.draft.Comment
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import java.time.LocalDateTime
@@ -38,5 +39,6 @@ case class MultiSearchSummary(
     @(ApiModelProperty @field)(description = "Describes the license of the resource") license: Option[String],
     @(ApiModelProperty @field)(description = "A list of revisions planned for the article") revisions: Seq[RevisionMeta],
     @(ApiModelProperty @field)(description = "Responsible field") responsible: Option[DraftResponsible],
+    @(ApiModelProperty @field)(description = "Information about comments attached to the article") comments: Option[Seq[Comment]]
 )
 // format: on
