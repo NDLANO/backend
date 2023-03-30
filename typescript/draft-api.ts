@@ -116,6 +116,7 @@ export interface IComment {
   content: string
   created: string
   updated: string
+  isOpen: boolean
 }
 
 export interface ICopyright {
@@ -203,6 +204,7 @@ export interface INewArticleMetaImage {
 
 export interface INewComment {
   content: string
+  isOpen?: boolean
 }
 
 export interface IRelatedContentLink {
@@ -281,6 +283,7 @@ export interface IUpdatedArticle {
 export interface IUpdatedComment {
   id?: string
   content: string
+  isOpen?: boolean
 }
 
 export interface IUpdatedUserData {
