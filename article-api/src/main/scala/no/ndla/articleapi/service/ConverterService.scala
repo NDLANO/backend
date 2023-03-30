@@ -20,7 +20,6 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
 import no.ndla.common.Clock
-import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.RelatedContentLink
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -40,12 +39,9 @@ import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.model.SearchableLanguageFormats
-import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import org.json4s._
 import org.json4s.native.Serialization.read
 
-import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -170,11 +166,6 @@ trait ConverterService {
       }
     }
 
-    private[service] def mergeTags(existing: Seq[Tag], updated: Seq[Tag]): Seq[Tag] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.tags.isEmpty)
-    }
-
     def updateExistingTagsField(existingTags: Seq[Tag], updatedTags: Seq[Tag]): Seq[Tag] = {
       val newTags    = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
       val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
@@ -269,64 +260,6 @@ trait ConverterService {
       )
     }
 
-    def toDomainTitle(articleTitle: api.ArticleTitle): Title = {
-      Title(articleTitle.title, articleTitle.language)
-    }
-
-    def toDomainContent(articleContent: api.ArticleContentV2): ArticleContent = {
-      ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
-    }
-
-    def toDomainTag(tag: api.ArticleTag): Tag = {
-      Tag(tag.tags, tag.language)
-    }
-
-    def toDomainTagV2(tag: Seq[String], language: String): Seq[Tag] = {
-      if (tag.isEmpty) {
-        Seq.empty[Tag]
-      } else {
-        Seq(Tag(tag, language))
-      }
-    }
-
-    def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
-      VisualElement(removeUnknownEmbedTagAttributes(visual.visualElement), visual.language)
-    }
-
-    def toDomainVisualElementV2(visual: Option[String], language: String): Seq[VisualElement] = {
-      if (visual.isEmpty) {
-        Seq.empty[VisualElement]
-      } else {
-        Seq(VisualElement(removeUnknownEmbedTagAttributes(visual.getOrElse("")), language))
-      }
-    }
-
-    def toDomainIntroduction(intro: api.ArticleIntroduction): Introduction = {
-      Introduction(intro.introduction, intro.language)
-    }
-
-    def toDomainIntroductionV2(intro: Option[String], language: String): Seq[Introduction] = {
-      if (intro.isEmpty) {
-        Seq.empty[Introduction]
-      } else {
-        Seq(Introduction(intro.getOrElse(""), language))
-      }
-    }
-
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): Description =
-      Description(meta.metaDescription, meta.language)
-
-    def toDomainMetaImage(imageId: String, altText: String, language: String): ArticleMetaImage =
-      ArticleMetaImage(imageId, altText, language)
-
-    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[Description] = {
-      if (meta.isEmpty) {
-        Seq.empty[Description]
-      } else {
-        Seq(Description(meta.getOrElse(""), language))
-      }
-    }
-
     def toDomainRelatedContent(relatedContent: Seq[common.model.api.RelatedContent]): Seq[RelatedContent] = {
       relatedContent.map {
         case Left(x)  => Left(RelatedContentLink(url = x.url, title = x.title))
@@ -349,28 +282,9 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): Author = Author(author.`type`, author.name)
 
-    def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): RequiredLibrary = {
-      RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
-    }
-
     private def getMainNidUrlToOldNdla(id: Long): Option[String] = {
       // First nid in externalId's should always be mainNid after import.
       articleRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
-    }
-
-    private def removeUnknownEmbedTagAttributes(html: String): String = {
-      val document = stringToJsoupDocument(html)
-      document
-        .select(EmbedTagName)
-        .asScala
-        .map(el => {
-          ResourceType
-            .valueOf(el.attr(TagAttributes.DataResource.toString))
-            .map(EmbedTagRules.attributesForResourceType)
-            .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
-        })
-
-      jsoupDocumentToString(document)
     }
 
     def getSupportedArticleLanguages(article: Article): Seq[String] = {
