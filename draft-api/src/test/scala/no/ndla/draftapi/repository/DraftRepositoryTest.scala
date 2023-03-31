@@ -104,8 +104,8 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
       sampleArticle.copy(id = Some(2), status = Status(DraftStatus.ARCHIVED, Set.empty))
     )(AutoSession)
 
-    repository.withId(1).isDefined should be(true)
-    repository.withId(2).isDefined should be(true)
+    repository.withId(1)(ReadOnlyAutoSession).isDefined should be(true)
+    repository.withId(2)(ReadOnlyAutoSession).isDefined should be(true)
   }
 
   test("that importIdOfArticle works correctly") {
@@ -152,10 +152,10 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
 
     repository.updateArticle(art1.copy(content = updatedContent))(AutoSession)
 
-    repository.withId(art1.id.get).get.content should be(updatedContent)
-    repository.withId(art2.id.get).get.content should be(art2.content)
-    repository.withId(art3.id.get).get.content should be(art3.content)
-    repository.withId(art4.id.get).get.content should be(art4.content)
+    repository.withId(art1.id.get)(ReadOnlyAutoSession).get.content should be(updatedContent)
+    repository.withId(art2.id.get)(ReadOnlyAutoSession).get.content should be(art2.content)
+    repository.withId(art3.id.get)(ReadOnlyAutoSession).get.content should be(art3.content)
+    repository.withId(art4.id.get)(ReadOnlyAutoSession).get.content should be(art4.content)
   }
 
   test("That storing an article an retrieving it returns the original article") {
@@ -172,10 +172,10 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     repository.insert(art3)(AutoSession)
     repository.insert(art4)(AutoSession)
 
-    repository.withId(art1.id.get).get should be(art1)
-    repository.withId(art2.id.get).get should be(art2)
-    repository.withId(art3.id.get).get should be(art3)
-    repository.withId(art4.id.get).get should be(art4)
+    repository.withId(art1.id.get)(ReadOnlyAutoSession).get should be(art1)
+    repository.withId(art2.id.get)(ReadOnlyAutoSession).get should be(art2)
+    repository.withId(art3.id.get)(ReadOnlyAutoSession).get should be(art3)
+    repository.withId(art4.id.get)(ReadOnlyAutoSession).get should be(art4)
   }
 
   test("That updateWithExternalIds updates article correctly") {
@@ -185,7 +185,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     val updatedContent = Seq(ArticleContent("This is updated with external ids yo", "en"))
     val updatedArt     = art1.copy(content = updatedContent)
     repository.updateWithExternalIds(updatedArt, List("1234", "5678"), List.empty, None)(AutoSession)
-    repository.withId(art1.id.get).get should be(updatedArt)
+    repository.withId(art1.id.get)(ReadOnlyAutoSession).get should be(updatedArt)
   }
 
   test("That getAllIds returns all articles") {
@@ -363,7 +363,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
     )
 
     val inserted = repository.insert(draftArticle1)(AutoSession)
-    val fetched  = repository.withId(inserted.id.get).get
+    val fetched  = repository.withId(inserted.id.get)(ReadOnlyAutoSession).get
     fetched.notes should be(prevNotes1)
     fetched.previousVersionsNotes should be(Seq.empty)
 
@@ -411,7 +411,7 @@ class DraftRepositoryTest extends IntegrationSuite(EnablePostgresContainer = tru
   test("withId parse relatedContent correctly") {
     repository.insert(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))))(AutoSession)
 
-    val Right(relatedId) = repository.withId(1).get.relatedContent.head
+    val Right(relatedId) = repository.withId(1)(ReadOnlyAutoSession).get.relatedContent.head
     relatedId should be(2L)
 
   }

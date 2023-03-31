@@ -249,7 +249,7 @@ trait DraftRepository {
       failIfRevisionMismatch(count, article, newRevision)
     }
 
-    def withId(articleId: Long): Option[Draft] =
+    def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =
       articleWhere(
         sqls"""
               ar.article_id=${articleId.toInt}
@@ -402,7 +402,7 @@ trait DraftRepository {
 
     private def articleWhere(
         whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Draft] = {
+    )(implicit session: DBSession): Option[Draft] = {
       val ar = DBArticle.syntax("ar")
       sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
         .map(DBArticle.fromResultSet(ar))
@@ -430,7 +430,7 @@ trait DraftRepository {
         .single()
     }
 
-    def withSlug(slug: String): Option[Draft] = articleWhere(sqls"ar.slug=$slug")
+    def withSlug(slug: String)(implicit session: DBSession): Option[Draft] = articleWhere(sqls"ar.slug=$slug")
 
     def slugExists(slug: String, articleId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession

@@ -897,7 +897,7 @@ trait ConverterService {
     def stateTransitionsToApi(user: UserInfo, articleId: Option[Long]): Try[Map[String, Seq[String]]] =
       articleId match {
         case Some(id) =>
-          draftRepository.withId(id) match {
+          draftRepository.withId(id)(ReadOnlyAutoSession) match {
             case Some(article) => Success(_stateTransitionsToApi(user, Some(article)))
             case None          => Failure(NotFoundException("The article does not exist"))
           }

@@ -54,14 +54,14 @@ trait ReadService {
       draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(api.ContentId)
 
     def withId(id: Long, language: String, fallback: Boolean = false): Try[api.Article] = {
-      draftRepository.withId(id).map(addUrlsOnEmbedResources) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with id $id was not found"))
         case Some(article) => converterService.toApiArticle(article, language, fallback)
       }
     }
 
     def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.Article] = {
-      draftRepository.withSlug(slug) match {
+      draftRepository.withSlug(slug)(ReadOnlyAutoSession) match {
         case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
         case Some(article) => converterService.toApiArticle(article, language, fallback)
       }

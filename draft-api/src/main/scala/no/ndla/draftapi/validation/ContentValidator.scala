@@ -32,6 +32,7 @@ import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation._
+import scalikejdbc.ReadOnlyAutoSession
 
 import java.time.LocalDateTime
 import scala.jdk.CollectionConverters._
@@ -109,7 +110,7 @@ trait ContentValidator {
     }
 
     def validateArticleApiArticle(id: Long, importValidate: Boolean): Try[ContentId] = {
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(draft) =>
           converterService
@@ -125,7 +126,7 @@ trait ContentValidator {
         importValidate: Boolean,
         user: UserInfo
     ): Try[ContentId] = {
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) =>
           converterService
