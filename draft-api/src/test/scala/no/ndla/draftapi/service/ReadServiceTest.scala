@@ -52,7 +52,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(draftRepository.withId(1)).thenReturn(Option(article))
+    when(draftRepository.withId(eqTo(1))(any)).thenReturn(Option(article))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService

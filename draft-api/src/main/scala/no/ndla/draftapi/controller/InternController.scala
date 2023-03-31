@@ -207,7 +207,7 @@ trait InternController {
     get("/dump/article/:id") {
       // Dumps one domain article
       val id = long("id")
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) => Ok(article)
         case None          => errorHandler(NotFoundException(s"Could not find draft with id: '$id"))
       }

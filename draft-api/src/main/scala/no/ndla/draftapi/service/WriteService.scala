@@ -259,7 +259,7 @@ trait WriteService {
         user: UserInfo,
         isImported: Boolean
     ): Try[api.Article] = {
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
@@ -561,7 +561,7 @@ trait WriteService {
         oldNdlaUpdatedDate: Option[LocalDateTime],
         importId: Option[String]
     ): Try[api.Article] = {
-      draftRepository.withId(articleId) match {
+      draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
         case Some(existing) =>
           updateExistingArticle(
             existing,
@@ -678,7 +678,7 @@ trait WriteService {
     }
 
     def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Article] = {
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) =>
           article.title.size match {
             case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
@@ -837,7 +837,7 @@ trait WriteService {
         articleFieldsToUpdate: Seq[api.PartialArticleFields],
         language: String
     ): (Long, Try[Draft]) =
-      draftRepository.withId(id) match {
+      draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of ${id} to partial publish"))
         case Some(article) =>
           partialPublish(article, articleFieldsToUpdate, language)
@@ -933,7 +933,7 @@ trait WriteService {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
             case (Success(articleId), _) =>
-              draftRepository.withId(articleId) match {
+              draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
                 case Some(article) => article.revisionMeta
                 case _             => Seq.empty
               }
@@ -981,7 +981,7 @@ trait WriteService {
 
     def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[_] = {
       draftRepository
-        .withId(articleId)
+        .withId(articleId)(ReadOnlyAutoSession)
         .traverse(article => {
           val revisionMeta = article.revisionMeta ++ revisions
           val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
