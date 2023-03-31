@@ -575,14 +575,33 @@ trait UpdateService {
 
     private def getNextRank(siblings: Seq[_]): Int = siblings.length + 1
 
-    private def createNewFolder(newFolder: api.NewFolder, feideId: FeideID, makeUniqueName: Boolean)(implicit
+    private[service] def changeStatusToSharedIfParentIsShared(
+        newFolder: api.NewFolder,
+        parentFolder: Option[Folder],
+        isCloning: Boolean
+    ): api.NewFolder = {
+      import FolderStatus.SHARED
+
+      parentFolder match {
+        case Some(parent) if parent.status == SHARED && !isCloning => newFolder.copy(status = SHARED.toString.some)
+        case _                                                     => newFolder
+      }
+    }
+
+    private def createNewFolder(
+        newFolder: api.NewFolder,
+        feideId: FeideID,
+        makeUniqueName: Boolean,
+        isCloning: Boolean
+    )(implicit
         session: DBSession
     ): Try[domain.Folder] = {
 
       val parentId          = getMaybeParentId(newFolder.parentId).?
       val maybeSiblings     = getFolderWithDirectChildren(parentId, feideId).?
       val nextRank          = getNextRank(maybeSiblings.childrenFolders)
-      val folderWithName    = newFolder.copy(name = getFolderValidName(makeUniqueName, newFolder.name, maybeSiblings))
+      val withStatus        = changeStatusToSharedIfParentIsShared(newFolder, maybeSiblings.folder, isCloning)
+      val folderWithName    = withStatus.copy(name = getFolderValidName(makeUniqueName, newFolder.name, maybeSiblings))
       val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
       val newFolderData     = converterService.toNewFolderData(folderWithName, validatedParentId, nextRank.some).?
       val inserted          = folderRepository.insertFolder(feideId, newFolderData).?
@@ -613,7 +632,7 @@ trait UpdateService {
       for {
         feideId  <- feideApiClient.getFeideID(feideAccessToken)
         _        <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        inserted <- createNewFolder(newFolder, feideId, makeUniqueName = false)
+        inserted <- createNewFolder(newFolder, feideId, makeUniqueName = false, isCloning = false)
         crumbs   <- readService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
         api      <- converterService.toApiFolder(inserted, crumbs)
       } yield api
@@ -962,14 +981,14 @@ trait UpdateService {
       destinationId match {
         case None =>
           for {
-            createdFolder <- createNewFolder(sourceFolderCopy, feideId, makeUniqueRootNames)
+            createdFolder <- createNewFolder(sourceFolderCopy, feideId, makeUniqueRootNames, isCloning = true)
             clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield clonedFolder
         case Some(id) =>
           for {
             existingFolder <- folderRepository.folderWithId(id)
             clonedSourceFolder = sourceFolderCopy.copy(parentId = existingFolder.id.toString.some)
-            createdFolder <- createNewFolder(clonedSourceFolder, feideId, makeUniqueRootNames)
+            createdFolder <- createNewFolder(clonedSourceFolder, feideId, makeUniqueRootNames, isCloning = true)
             clonedFolder  <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId)
           } yield existingFolder.copy(subfolders = existingFolder.subfolders :+ clonedFolder)
       }

@@ -2335,4 +2335,57 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     result1.isSuccess should be(true)
     result2.isSuccess should be(true)
   }
+
+  test("that changeStatusToSharedIfParentIsShared actually changes the status if parent is shared") {
+    val newFolder =
+      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+    val parentFolder = Folder(
+      id = UUID.randomUUID(),
+      feideId = "feide",
+      parentId = None,
+      name = "parent",
+      status = FolderStatus.SHARED,
+      rank = None,
+      created = clock.now(),
+      updated = clock.now(),
+      resources = List(),
+      subfolders = List(),
+      shared = Some(clock.now())
+    )
+    val expectedFolder =
+      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.SHARED.toString))
+
+    service.changeStatusToSharedIfParentIsShared(newFolder, Some(parentFolder), isCloning = false) should be(
+      expectedFolder
+    )
+  }
+
+  test("that changeStatusToSharedIfParentIsShared does not alter the status if during cloning or parent is None") {
+    val newFolder =
+      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+    val parentFolder = Folder(
+      id = UUID.randomUUID(),
+      feideId = "feide",
+      parentId = None,
+      name = "parent",
+      status = FolderStatus.SHARED,
+      rank = None,
+      created = clock.now(),
+      updated = clock.now(),
+      resources = List(),
+      subfolders = List(),
+      shared = Some(clock.now())
+    )
+    val expectedFolder =
+      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+
+    val result1 = service.changeStatusToSharedIfParentIsShared(newFolder, Some(parentFolder), isCloning = true)
+    val result2 = service.changeStatusToSharedIfParentIsShared(
+      newFolder,
+      Some(parentFolder.copy(status = FolderStatus.PRIVATE)),
+      isCloning = false
+    )
+    result1 should be(expectedFolder)
+    result2 should be(expectedFolder)
+  }
 }
