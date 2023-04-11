@@ -167,23 +167,8 @@ trait SearchService {
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
         case Sort.ByResponsibleLastUpdatedDesc =>
           fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
-      }
-    }
-
-    def getSortDefinition(sort: Sort): FieldSort = {
-      sort match {
-        case Sort.ByTitleAsc        => fieldSort("title.lower").order(SortOrder.Asc).missing("_last")
-        case Sort.ByTitleDesc       => fieldSort("title.lower").order(SortOrder.Desc).missing("_last")
-        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
-        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
-        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
-        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedAsc =>
-          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByResponsibleLastUpdatedDesc =>
-          fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
+        case Sort.ByStatusAsc  => fieldSort("status.current").sortOrder(SortOrder.Asc).missing("_last")
+        case Sort.ByStatusDesc => fieldSort("status.current").sortOrder(SortOrder.Desc).missing("_last")
       }
     }
 
