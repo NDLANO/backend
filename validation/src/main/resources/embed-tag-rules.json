@@ -263,12 +263,15 @@
     "contact-block": {
       "required": [
         "data-resource",
-        "data-title",
+        "data-job-title",
         "data-name",
         "data-email",
-        "data-summary",
-        "data-imageid",
-        "data-blob-color"
+        "data-description",
+        "data-imageid"
+      ],
+      "optional": [
+        ["data-blob-color"],
+        ["data-blob"]
       ]
     },
     "blog-post": {
