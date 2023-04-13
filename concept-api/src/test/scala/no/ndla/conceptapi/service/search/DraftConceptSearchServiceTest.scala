@@ -814,4 +814,14 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     hits.head.copyright.head.origin should be(Some("Gotham City"))
     hits.head.copyright.head.creators.length should be(1)
   }
+
+  test("that sorting for status works") {
+    val Success(search) =
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByStatusAsc, withIdIn = List(1, 8, 9, 10)))
+    search.results.map(_.id) should be(Seq(8, 10, 1, 9))
+
+    val Success(search2) =
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByStatusDesc, withIdIn = List(1, 8, 9, 10)))
+    search2.results.map(_.id) should be(Seq(9, 1, 10, 8))
+  }
 }

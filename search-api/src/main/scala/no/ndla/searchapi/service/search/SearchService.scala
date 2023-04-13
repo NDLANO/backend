@@ -368,6 +368,8 @@ trait SearchService {
           }
         case Sort.ByDurationAsc     => fieldSort("duration").sortOrder(SortOrder.Asc).missing("_last")
         case Sort.ByDurationDesc    => fieldSort("duration").sortOrder(SortOrder.Desc).missing("_last")
+        case Sort.ByStatusAsc       => fieldSort("draftStatus.current").sortOrder(SortOrder.Asc).missing("_last")
+        case Sort.ByStatusDesc      => fieldSort("draftStatus.current").sortOrder(SortOrder.Desc).missing("_last")
         case Sort.ByRelevanceAsc    => fieldSort("_score").sortOrder(SortOrder.Asc)
         case Sort.ByRelevanceDesc   => fieldSort("_score").sortOrder(SortOrder.Desc)
         case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").sortOrder(SortOrder.Asc).missing("_last")

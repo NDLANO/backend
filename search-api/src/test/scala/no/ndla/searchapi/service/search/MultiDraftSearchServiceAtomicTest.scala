@@ -683,4 +683,52 @@ class MultiDraftSearchServiceAtomicTest
     ctxsFor(5).map(_.isPrimaryConnection) should be(Seq(true, true, false)) // Sorted with primary first
 
   }
+
+  test("That sorting by status works as expected") {
+    val draft1 = TestData.draft1.copy(
+      id = Some(1),
+      status = Status(DraftStatus.PLANNED, Set.empty)
+    )
+    val draft2 = TestData.draft1.copy(
+      id = Some(2),
+      status = Status(DraftStatus.PUBLISHED, Set.empty)
+    )
+    val draft3 = TestData.draft1.copy(
+      id = Some(3),
+      status = Status(DraftStatus.LANGUAGE, Set.empty)
+    )
+    val draft4 = TestData.draft1.copy(
+      id = Some(4),
+      status = Status(DraftStatus.FOR_APPROVAL, Set.empty)
+    )
+
+    draftIndexService.indexDocument(draft1, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft2, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft3, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+    draftIndexService.indexDocument(draft4, Some(taxonomyTestBundle), Some(grepBundle)).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 4)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List.empty,
+          sort = Sort.ByStatusAsc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(4, 3, 1, 2))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          responsibleIdFilter = List.empty,
+          sort = Sort.ByStatusDesc
+        )
+      )
+      .get
+      .results
+      .map(_.id) should be(Seq(2, 1, 3, 4))
+  }
 }
