@@ -1,5 +1,6 @@
 package no.ndla.conceptapi.service
 
+import cats.effect.unsafe.implicits.global
 import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
