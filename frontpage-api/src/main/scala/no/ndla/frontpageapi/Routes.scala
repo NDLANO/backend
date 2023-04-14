@@ -14,7 +14,8 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import no.ndla.frontpageapi.controller.{NdlaMiddleware, Service}
-import no.ndla.frontpageapi.model.api.{ErrorBody, ErrorHelpers}
+import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.network.tapir.ErrorBody
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}

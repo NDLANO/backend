@@ -10,7 +10,6 @@ package no.ndla.frontpageapi.controller
 import cats.effect.IO
 import no.ndla.common.CorrelationID
 import no.ndla.common.RequestLogger.{afterRequestLogString, beforeRequestLogString}
-import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
 import org.http4s.{Request, Response}
@@ -18,7 +17,7 @@ import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 trait NdlaMiddleware {
-  this: ErrorHelpers with Service =>
+  this: Service =>
   object NdlaMiddleware {
     private val CorrelationIdHeader = CIString("X-Correlation-ID")
     private val logger              = getLogger

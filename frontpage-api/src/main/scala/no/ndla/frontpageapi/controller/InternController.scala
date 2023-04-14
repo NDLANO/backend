@@ -13,6 +13,7 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.frontpageapi.Props
 import io.circe.generic.auto._
+import no.ndla.network.tapir.TapirErrors.errorOutputs
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -23,8 +24,6 @@ import scala.util.{Failure, Success}
 trait InternController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
   val internController: InternController
-
-  import ErrorHelpers.handleErrorOrOkClass
 
   class InternController extends SwaggerService {
     override val prefix        = "intern"
@@ -40,7 +39,7 @@ trait InternController {
           readService.getIdFromExternalId(nid) match {
             case Success(Some(id)) => id.asRight
             case Success(None)     => ErrorHelpers.notFound.asLeft
-            case Failure(ex)       => ErrorHelpers.returnError(ex).asLeft
+            case Failure(ex)       => returnError(ex).asLeft
           }
         },
       endpoint.post

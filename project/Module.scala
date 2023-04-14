@@ -86,11 +86,11 @@ trait Module {
       )
   }
 
-  def withLogging(libs: Seq[ModuleID]): Seq[ModuleID] = {
+  def withLogging(libs: Seq[ModuleID], extraLibs: Seq[ModuleID]*): Seq[ModuleID] = {
     // Many sub-dependencies might pull in slf4j-api, and since there might
     // be compatibility issues we exclude others and include our own when
     // we add logging.
-    libs.map(_.exclude("org.slf4j", "slf4j-api")) ++ logging
+    libs.map(_.exclude("org.slf4j", "slf4j-api")) ++ logging ++ extraLibs.flatten
   }
 
   def assemblySettings() = Seq(

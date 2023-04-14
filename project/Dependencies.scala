@@ -19,7 +19,7 @@ object Dependencies {
     val MockitoV              = "1.16.49"
     val Elastic4sV            = "8.5.0"
     val JacksonV              = "2.14.1"
-    val CatsEffectV           = "3.4.1"
+    val CatsEffectV           = "3.4.5"
     val ElasticsearchV        = "7.16.2"
     val Json4SV               = "4.0.6"
     val JavaxServletV         = "4.0.1"
@@ -48,7 +48,7 @@ object Dependencies {
     lazy val enumeratumJson4s = "com.beachape" %% "enumeratum-json4s" % "1.7.1"
     lazy val enumeratumCirce  = "com.beachape" %% "enumeratum-circe"  % "1.7.0"
 
-    lazy val database = Seq(
+    lazy val database: Seq[ModuleID] = Seq(
       scalikejdbc,
       postgres,
       hikari
@@ -56,19 +56,42 @@ object Dependencies {
 
     lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
 
-    lazy val scalatra = Seq(
+    lazy val circe: Seq[ModuleID] = Seq(
+      "io.circe" %% "circe-generic"        % CirceV,
+      "io.circe" %% "circe-generic-extras" % CirceV,
+      "io.circe" %% "circe-literal"        % CirceV,
+      "io.circe" %% "circe-parser"         % CirceV
+    )
+
+    lazy val http4s: Seq[ModuleID] = Seq(
+      "org.http4s" %% "http4s-server"       % Http4sV,
+      "org.http4s" %% "http4s-dsl"          % Http4sV,
+      "org.http4s" %% "http4s-circe"        % Http4sV,
+      "org.http4s" %% "http4s-ember-server" % Http4sV
+    )
+
+    lazy val tapir: Seq[ModuleID] = Seq(
+      "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"     % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % TapirV,
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % TapirV,
+      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV
+    )
+
+    lazy val tapirHttp4sCirce: Seq[sbt.ModuleID] = circe ++ http4s ++ tapir
+
+    lazy val scalatra: Seq[ModuleID] = Seq(
       "org.scalatra" %% "scalatra"           % ScalatraV,
       "org.scalatra" %% "scalatra-json"      % ScalatraV,
       "org.scalatra" %% "scalatra-swagger"   % ScalatraV,
       "org.scalatra" %% "scalatra-scalatest" % ScalatraV % "test"
     )
 
-    lazy val elastic4s = Seq(
+    lazy val elastic4s: Seq[ModuleID] = Seq(
       "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % Elastic4sV,
       "com.sksamuel.elastic4s" %% "elastic4s-testkit"       % Elastic4sV % "test"
     )
 
-    lazy val logging = Seq(
+    lazy val logging: Seq[ModuleID] = Seq(
       "org.apache.logging.log4j"    % "log4j-api"         % Log4JV,
       "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
       "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
@@ -81,7 +104,7 @@ object Dependencies {
     )
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
-    lazy val vulnerabilityOverrides = Seq(
+    lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
       "com.google.guava"          % "guava"         % "30.0-jre",
       "commons-codec"             % "commons-codec" % "1.15",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.13",

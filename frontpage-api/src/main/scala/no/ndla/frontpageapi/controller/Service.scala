@@ -8,13 +8,12 @@ package no.ndla.frontpageapi.controller
 
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.frontpageapi.model.api.ErrorHelpers
 import org.http4s.HttpRoutes
 import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint
 
 trait Service {
-  this: ErrorHelpers with NdlaMiddleware =>
+  this: NdlaMiddleware =>
 
   sealed trait Service {}
 
