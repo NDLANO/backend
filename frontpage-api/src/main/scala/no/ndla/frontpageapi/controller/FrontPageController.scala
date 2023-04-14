@@ -11,6 +11,7 @@ import cats.effect.IO
 import cats.implicits._
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputs
 import sttp.tapir._
 import sttp.tapir.generic.auto._

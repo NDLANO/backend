@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package no.ndla.frontpageapi.controller
+package no.ndla.network.tapir
 
 import cats.effect.IO
 import no.ndla.common.CorrelationID

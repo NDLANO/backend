@@ -17,6 +17,7 @@ import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: FrontpageApiProperties)

@@ -20,9 +20,10 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
 
 }
 
-case class UserInfoException() extends RuntimeException("Could not build `UserInfo` from token.")
-
 object UserInfo {
+
+  case class UserInfoException() extends RuntimeException("Could not build `UserInfo` from token.")
+
   def fromToken(token: String): Try[UserInfo] = {
     val jWTExtractor = JWTExtractor(token)
     val userId       = jWTExtractor.extractUserId()

@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package no.ndla.frontpageapi
+package no.ndla.network.tapir
 
 import cats.data.Kleisli
 import cats.effect.IO
@@ -13,9 +13,6 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-import no.ndla.frontpageapi.controller.{NdlaMiddleware, Service}
-import no.ndla.frontpageapi.model.api.ErrorHelpers
-import no.ndla.network.tapir.ErrorBody
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
@@ -26,7 +23,7 @@ import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.model.ValuedEndpointOutput
 
 trait Routes {
-  this: Service with NdlaMiddleware with ErrorHelpers =>
+  this: Service with NdlaMiddleware with TapirErrorHelpers =>
 
   object Routes extends StrictLogging {
     def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {

@@ -8,16 +8,17 @@
 package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.auth.Role
-import no.ndla.frontpageapi.{Props}
-
+import no.ndla.frontpageapi.Props
 import cats.effect.IO
 import cats.implicits._
+import no.ndla.network.tapir.Service
 import org.http4s.headers.`Content-Type`
 import org.http4s.{Header, Headers, HttpRoutes, MediaType}
 import org.typelevel.ci.CIString
 import sttp.apispec.openapi.{Components, Contact, Info, License}
 import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+
 import scala.collection.immutable.ListMap
 
 trait SwaggerDocController {

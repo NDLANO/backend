@@ -13,6 +13,7 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.frontpageapi.Props
 import io.circe.generic.auto._
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputs
 import sttp.tapir._
 import sttp.tapir.generic.auto._

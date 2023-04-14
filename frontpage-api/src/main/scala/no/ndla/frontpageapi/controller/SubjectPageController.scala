@@ -15,6 +15,7 @@ import no.ndla.frontpageapi.auth.UserInfo
 import no.ndla.frontpageapi.model.api.{ErrorHelpers, NewSubjectFrontPageData, SubjectPageData, UpdatedSubjectFrontPageData}
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputs
 import sttp.tapir._
 import sttp.tapir.generic.auto._
