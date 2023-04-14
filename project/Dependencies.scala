@@ -72,7 +72,8 @@ object Dependencies {
       "org.http4s" %% "http4s-server"       % Http4sV,
       "org.http4s" %% "http4s-dsl"          % Http4sV,
       "org.http4s" %% "http4s-circe"        % Http4sV,
-      "org.http4s" %% "http4s-ember-server" % Http4sV
+      "org.http4s" %% "http4s-ember-server" % Http4sV,
+      "org.http4s" %% "http4s-jetty-server" % "0.23.12"
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(

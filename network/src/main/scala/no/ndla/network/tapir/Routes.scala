@@ -1,5 +1,5 @@
 /*
- * Part of NDLA frontpage-api
+ * Part of NDLA network
  * Copyright (C) 2020 NDLA
  *
  * See LICENSE
@@ -26,7 +26,7 @@ trait Routes {
   this: Service with NdlaMiddleware with TapirErrorHelpers =>
 
   object Routes extends StrictLogging {
-    def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
+    private def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
       val (docServices, noDocServices) = routes.partitionMap {
         case swaggerService: SwaggerService  => Left(swaggerService)
         case serviceWithoutDoc: NoDocService => Right(serviceWithoutDoc)
@@ -46,7 +46,7 @@ trait Routes {
       ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
     })
 
-    def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
+    private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
       val swaggerEndpoints = services.flatMap(_.builtEndpoints)
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
@@ -56,7 +56,7 @@ trait Routes {
       Http4sServerInterpreter[IO](options).toRoutes(swaggerEndpoints)
     }
 
-    def getFallbackRoute: Response[IO] = {
+    private def getFallbackRoute: Response[IO] = {
       val body: String = Printer.noSpaces.print(ErrorHelpers.notFound.asJson)
       val headers      = Headers(`Content-Type`(MediaType.application.json))
       Response.notFound[IO].withEntity(body).withHeaders(headers)
@@ -67,13 +67,10 @@ trait Routes {
       val bindings = buildBindings(routes)
       val router   = Router[IO](bindings: _*)
       Kleisli[IO, Request[IO], Response[IO]](req => {
-        NdlaMiddleware(
-          req,
-          router.run(req).getOrElse {
-            getFallbackRoute
-          }
-        )
+        val res = router.run(req).getOrElse { getFallbackRoute }
+        NdlaMiddleware(req, res)
       })
     }
+
   }
 }

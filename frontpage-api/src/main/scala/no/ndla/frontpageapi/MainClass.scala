@@ -8,74 +8,28 @@
 package no.ndla.frontpageapi
 
 import cats.data.Kleisli
-import cats.effect.{ExitCode, IO, IOApp}
-import com.comcast.ip4s.{Host, Port}
-import no.ndla.common.Environment.setPropsFromEnv
+import cats.effect.IO
 import no.ndla.common.Warmup
-import org.http4s.ember.server.EmberServerBuilder
+import no.ndla.network.tapir.NdlaTapirMain
 import org.http4s.{Request, Response}
-import org.log4s.{Logger, getLogger}
 
-import scala.concurrent.Future
-import scala.io.Source
+class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMain {
+  private val componentRegistry                            = new ComponentRegistry(props)
+  override val app: Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
 
-class MainClass(props: FrontpageApiProperties) extends IOApp {
-  val componentRegistry = new ComponentRegistry(props)
-  val logger: Logger    = getLogger
-
-  def warmup(): Unit = {
-    def warmupRequest = (
-        path: String,
-        params: Map[String, String]
-    ) => Warmup.warmupRequest(props.ApplicationPort, path, params)
-    import scala.concurrent.ExecutionContext.Implicits.global
-    Future {
-      // Since we don't really have a good way to check whether blaze is ready lets just wait a bit
-      Thread.sleep(500)
-      val warmupStart = System.currentTimeMillis()
-      logger.info("Starting warmup procedure...")
-
-      warmupRequest("/frontpage-api/v1/frontpage", Map.empty)
-      warmupRequest("/frontpage-api/v1/subjectpage/1", Map.empty)
-      warmupRequest("/health", Map.empty)
-
-      componentRegistry.healthController.setWarmedUp()
-
-      val warmupTime = System.currentTimeMillis() - warmupStart
-      logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
-    }
+  override def beforeStart(): Unit = {
+    logger.info("Starting DB Migration")
+    val dBstartMillis = System.currentTimeMillis()
+    componentRegistry.migrator.migrate()
+    logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
   }
 
-  private def buildRouter(): Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
+  private def warmupRequest = (path: String) => Warmup.warmupRequest(props.ApplicationPort, path, Map.empty)
+  override def warmup(): Unit = {
+    warmupRequest("/frontpage-api/v1/frontpage")
+    warmupRequest("/frontpage-api/v1/subjectpage/1")
+    warmupRequest("/health")
 
-  override def run(args: List[String]): IO[ExitCode] = {
-    setPropsFromEnv()
-
-    logger.info(
-      Source
-        .fromInputStream(getClass.getResourceAsStream("/log-license.txt"))
-        .mkString
-    )
-
-    logger.info("Starting database migration")
-    componentRegistry.migrator.migrate()
-
-    val app = buildRouter()
-
-    logger.info(s"Starting on port ${props.ApplicationPort}")
-    val server = EmberServerBuilder
-      .default[IO]
-      .withHost(Host.fromString("0.0.0.0").get)
-      .withPort(Port.fromInt(props.ApplicationPort).get)
-      .withHttpApp(app)
-      .build
-      .use(server => {
-        IO {
-          logger.info(s"Server has started at ${server.address}")
-          warmup()
-        }.flatMap(_ => IO.never)
-      })
-
-    server.as(ExitCode.Success)
+    componentRegistry.healthController.setWarmedUp()
   }
 }
