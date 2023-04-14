@@ -14,19 +14,21 @@ object searchapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
-      "org.jsoup"           % "jsoup"                           % JsoupV,
-      "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
-      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
-      "org.json4s"         %% "json4s-native"                   % Json4SV,
-      "org.json4s"         %% "json4s-ext"                      % Json4SV,
-      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
-      "org.jrobin"          % "jrobin"                          % "1.5.9",
-      "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test"
-    ) ++ elastic4s ++ scalatra ++ vulnerabilityOverrides
+      "org.jsoup"         % "jsoup"                           % JsoupV,
+      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
+      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
+      "org.json4s"       %% "json4s-native"                   % Json4SV,
+      "org.json4s"       %% "json4s-ext"                      % Json4SV,
+      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
+      "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
+      "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
+      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test"
+    ),
+    melody,
+    elastic4s,
+    scalatra,
+    vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
