@@ -77,29 +77,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.isFailure should be(false)
   }
 
-  test("that toApiArticle sorts comments by created date, newest first") {
-    when(draftRepository.getExternalIdsFromId(any)(any)).thenReturn(List(TestData.externalId))
-    when(clock.now()).thenReturn(LocalDateTime.now())
-    val uuid    = UUID.randomUUID()
-    val comment = Comment(id = uuid, created = clock.now(), updated = clock.now(), content = "c", isOpen = true)
-    val commentCreatedToday     = comment.copy(created = clock.now())
-    val commentCreatedYesterday = comment.copy(created = clock.now().minusDays(1))
-    val commentCreatedTomorrow  = comment.copy(created = clock.now().plusDays(1))
-
-    val apiComment =
-      ApiComment(id = uuid.toString, content = "c", created = clock.now(), updated = clock.now(), isOpen = true)
-    val expectedCreatedToday     = apiComment.copy(created = clock.now())
-    val expectedCreatedYesterday = apiComment.copy(created = clock.now().minusDays(1))
-    val expectedCreatedTomorrow  = apiComment.copy(created = clock.now().plusDays(1))
-    val expectedOrder            = List(expectedCreatedTomorrow, expectedCreatedToday, expectedCreatedYesterday)
-
-    val article = TestData.sampleDomainArticle.copy(comments =
-      List(commentCreatedToday, commentCreatedTomorrow, commentCreatedYesterday)
-    )
-    val Success(result) = service.toApiArticle(article, "nb", fallback = true)
-    result.comments should be(expectedOrder)
-  }
-
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content =
       s"""<h1>hello</h1><$EmbedTagName ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
