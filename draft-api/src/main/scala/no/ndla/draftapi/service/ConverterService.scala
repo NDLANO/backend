@@ -431,7 +431,7 @@ trait ConverterService {
             revisions = revisionMetas,
             responsible = responsible,
             slug = article.slug,
-            comments = article.comments.map(toApiComment).sortBy(_.created).reverse
+            comments = article.comments.map(toApiComment)
           )
         )
       } else {
