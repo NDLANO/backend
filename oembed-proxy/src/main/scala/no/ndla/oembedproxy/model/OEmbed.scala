@@ -13,6 +13,10 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
 import scala.annotation.meta.field
 
+import io.circe.generic.semiauto._
+import io.circe.generic.auto._
+import io.circe._
+
 // format: off
 @ApiModel(description = "oEmbed information for an url.")
 case class OEmbed(
@@ -34,3 +38,6 @@ case class OEmbed(
     @(ApiModelProperty @field)(description = "The HTML required to embed a video player. The HTML should have no padding or margins. Consumers may wish to load the HTML in an off-domain iframe to avoid XSS vulnerabilities. Required if type is video/rich.") html: Option[String]
 )
 // format: on
+
+object OEmbed {
+}

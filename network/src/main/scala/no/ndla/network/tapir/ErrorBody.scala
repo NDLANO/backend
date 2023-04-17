@@ -9,4 +9,56 @@ package no.ndla.network.tapir
 
 import java.time.LocalDateTime
 
-case class ErrorBody(code: String, description: String, occuredAt: LocalDateTime)
+sealed trait ErrorBody {
+  val code: String
+  val description: String
+  val occuredAt: LocalDateTime
+}
+
+case class GenericBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class NotFoundBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class BadRequestBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class UnauthorizedBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class UnprocessableEntityBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class ForbiddenBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class NotImplementedBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody
+
+case class BadGatewayBody(
+    code: String,
+    description: String,
+    occuredAt: LocalDateTime
+) extends ErrorBody

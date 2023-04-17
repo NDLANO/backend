@@ -14,31 +14,15 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 
 object TapirErrors {
-  val NotFoundVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.NotFound).and(jsonBody[ErrorBody])
-
-  val GenericVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.InternalServerError).and(jsonBody[ErrorBody])
-
-  val BadRequestVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.BadRequest).and(jsonBody[ErrorBody])
-
-  val UnauthorizedVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.Unauthorized).and(jsonBody[ErrorBody])
-
-  val ForbiddenVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.Forbidden).and(jsonBody[ErrorBody])
-
-  val UnprocessableEntityVariant: EndpointOutput[ErrorBody] =
-    statusCode(StatusCode.UnprocessableEntity).and(jsonBody[ErrorBody])
-
-  val errorOutputs: EndpointOutput.OneOf[ErrorBody, ErrorBody] =
+  val errorOutputs = {
     oneOf[ErrorBody](
-      oneOfVariant(NotFoundVariant),
-      oneOfVariant(GenericVariant),
-      oneOfVariant(BadRequestVariant),
-      oneOfVariant(UnauthorizedVariant),
-      oneOfVariant(ForbiddenVariant),
-      oneOfVariant(UnprocessableEntityVariant)
+      oneOfVariant(statusCode(StatusCode.NotFound).and(jsonBody[NotFoundBody])),
+      oneOfVariant(statusCode(StatusCode.InternalServerError).and(jsonBody[GenericBody])),
+      oneOfVariant(statusCode(StatusCode.BadRequest).and(jsonBody[BadRequestBody])),
+      oneOfVariant(statusCode(StatusCode.Unauthorized).and(jsonBody[UnauthorizedBody])),
+      oneOfVariant(statusCode(StatusCode.Forbidden).and(jsonBody[ForbiddenBody])),
+      oneOfVariant(statusCode(StatusCode.UnprocessableEntity).and(jsonBody[UnprocessableEntityBody])),
+      oneOfVariant(statusCode(StatusCode.NotImplemented).and(jsonBody[NotImplementedBody]))
     )
+  }
 }

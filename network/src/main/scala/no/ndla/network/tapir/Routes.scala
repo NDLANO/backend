@@ -10,9 +10,8 @@ package no.ndla.network.tapir
 import cats.data.Kleisli
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.Printer
 import io.circe.generic.auto._
-import io.circe.syntax.EncoderOps
+import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
@@ -39,11 +38,11 @@ trait Routes {
 
     private def failureResponse(error: String): ValuedEndpointOutput[_] = {
       logger.error(s"Failure handler got: $error")
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[GenericBody], ErrorHelpers.generic)
     }
 
     private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
+      ValuedEndpointOutput(jsonBody[BadRequestBody], ErrorHelpers.badRequest(failureMsg))
     })
 
     private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
@@ -57,9 +56,8 @@ trait Routes {
     }
 
     private def getFallbackRoute: Response[IO] = {
-      val body: String = Printer.noSpaces.print(ErrorHelpers.notFound.asJson)
-      val headers      = Headers(`Content-Type`(MediaType.application.json))
-      Response.notFound[IO].withEntity(body).withHeaders(headers)
+      val headers = Headers(`Content-Type`(MediaType.application.json))
+      Response.notFound[IO].withEntity(ErrorHelpers.notFound).withHeaders(headers)
     }
 
     def build(routes: List[Service]): Kleisli[IO, Request[IO], Response[IO]] = {

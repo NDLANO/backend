@@ -6,6 +6,7 @@
  */
 
 package no.ndla.frontpageapi
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.{Host, Port}

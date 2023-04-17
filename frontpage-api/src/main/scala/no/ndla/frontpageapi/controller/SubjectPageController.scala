@@ -12,7 +12,12 @@ import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.auth.UserInfo
-import no.ndla.frontpageapi.model.api.{ErrorHelpers, NewSubjectFrontPageData, SubjectPageData, UpdatedSubjectFrontPageData}
+import no.ndla.frontpageapi.model.api.{
+  ErrorHelpers,
+  NewSubjectFrontPageData,
+  SubjectPageData,
+  UpdatedSubjectFrontPageData
+}
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
@@ -26,7 +31,6 @@ import sttp.tapir.server.ServerEndpoint
 trait SubjectPageController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
   val subjectPageController: SubjectPageController
-
 
   class SubjectPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"

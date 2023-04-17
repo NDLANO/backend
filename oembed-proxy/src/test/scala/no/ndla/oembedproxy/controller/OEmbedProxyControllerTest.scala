@@ -8,18 +8,40 @@
 
 package no.ndla.oembedproxy.controller
 
+import cats.effect.IO
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.OEmbed
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
+import org.http4s.jetty.server.JettyBuilder
 import org.mockito.ArgumentMatchers.anyString
-import org.scalatra.test.scalatest.ScalatraFunSuite
+import sttp.client3.quick._
 
 import scala.util.{Failure, Success}
 
-class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
-  implicit val swagger = new OEmbedSwagger
-  lazy val controller  = new OEmbedProxyController
-  addServlet(controller, props.OembedProxyControllerMountPoint)
+class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
+  val controller = new OEmbedProxyController
+
+  val serverPort: Int = findFreePort
+
+  override def beforeAll(): Unit = {
+    import cats.effect.unsafe.implicits.global
+    val app         = Routes.build(List(controller))
+    var serverReady = false
+
+    JettyBuilder[IO]
+      .mountHttpApp(app, "/")
+      .bindHttp(serverPort)
+      .resource
+      .use(server => {
+        IO {
+          println(s"${this.getClass.toString} is running server on ${server.address}")
+          serverReady = true
+        }.flatMap(_ => IO.never)
+      })
+      .unsafeToFuture()
+
+    blockUntil(() => serverReady)
+  }
 
   val oembed = OEmbed(
     `type` = "rich",
@@ -44,19 +66,21 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Scal
 
   test("h5p url should return ok if found") {
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Success(oembed))
-    get("/oembed-proxy/v1/oembed?url=https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730") {
-      status should equal(200)
-    }
+    val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
+    val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
+    val response      = simpleHttpClient.send(quickRequest.get(url))
+    response.code.code should be(200)
   }
 
   test("h5p url should return 404 if not found") {
-    val exception = mock[HttpRequestException]
-    when(exception.is404).thenReturn(true)
-    when(exception.getMessage).thenReturn("")
-    when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
-    get("/oembed-proxy/v1/oembed?url=https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730") {
-      status should equal(404)
+    val exception = new HttpRequestException("bad", None) {
+      override def is404: Boolean = true
     }
+    when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
+    when(clock.now()).thenCallRealMethod()
+    val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
+    val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
+    val response      = simpleHttpClient.send(quickRequest.get(url))
+    response.code.code should be(404)
   }
-
 }

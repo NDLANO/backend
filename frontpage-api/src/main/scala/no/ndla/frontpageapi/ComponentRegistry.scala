@@ -43,7 +43,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with Service
     with Routes
     with NdlaMiddleware
-    with SwaggerDocController {
+    with SwaggerDocControllerConfig {
   override val props: FrontpageApiProperties = properties
   override val migrator                      = new DBMigrator
   override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
@@ -64,7 +64,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val internController      = new InternController
   override val healthController      = new HealthController
 
-  private val services: List[Service] = List(
+  val services: List[Service] = List(
     subjectPageController,
     frontPageController,
     filmPageController,
@@ -72,7 +72,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     healthController
   )
 
-  override val swaggerDocController = new SwaggerDocController(services)
+  private val swaggerDocController = new SwaggerController(services, SwaggerDocControllerConfig.swaggerInfo)
 
   def routes: Kleisli[IO, Request[IO], Response[IO]] = Routes.build(services :+ swaggerDocController)
 }

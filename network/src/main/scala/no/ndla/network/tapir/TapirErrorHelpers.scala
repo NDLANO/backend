@@ -25,6 +25,10 @@ trait TapirErrorHelpers {
     val UNAUTHORIZED         = "UNAUTHORIZED"
     val FORBIDDEN            = "FORBIDDEN"
 
+    val PARAMETER_MISSING      = "PARAMETER MISSING"
+    val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
+    val REMOTE_ERROR           = "REMOTE ERROR"
+
     val GENERIC_DESCRIPTION =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
     val NOT_FOUND_DESCRIPTION = s"The page you requested does not exist"
@@ -32,13 +36,14 @@ trait TapirErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: ErrorBody                          = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now())
-    def notFound: ErrorBody                         = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
-    def notFoundWithMsg(msg: String): ErrorBody     = ErrorBody(NOT_FOUND, msg, clock.now())
-    def badRequest(msg: String): ErrorBody          = ErrorBody(BAD_REQUEST, msg, clock.now())
-    def unauthorized: ErrorBody                     = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
-    def forbidden: ErrorBody                        = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
-    def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now())
+    def generic: GenericBody                       = GenericBody(GENERIC, GENERIC_DESCRIPTION, clock.now())
+    def notFound: NotFoundBody                     = NotFoundBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
+    def notFoundWithMsg(msg: String): NotFoundBody = NotFoundBody(NOT_FOUND, msg, clock.now())
+    def badRequest(msg: String): BadRequestBody    = BadRequestBody(BAD_REQUEST, msg, clock.now())
+    def unauthorized: UnauthorizedBody = UnauthorizedBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
+    def forbidden: ForbiddenBody       = ForbiddenBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
+    def unprocessableEntity(msg: String): UnprocessableEntityBody =
+      UnprocessableEntityBody(UNPROCESSABLE_ENTITY, msg, clock.now())
   }
 
   def returnError(ex: Throwable): ErrorBody

@@ -24,7 +24,6 @@ trait FilmPageController {
   this: ReadService with WriteService with ErrorHelpers with Service =>
   val filmPageController: FilmPageController
 
-
   class FilmPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "filmfrontpage"
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(

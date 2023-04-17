@@ -8,101 +8,44 @@
 
 package no.ndla.oembedproxy.controller
 
-import no.ndla.network.model.HttpRequestException
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import cats.effect.IO
+import no.ndla.network.tapir.{NotImplementedBody, Service}
+import no.ndla.network.tapir.TapirErrors.errorOutputs
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra._
-import org.scalatra.swagger.{ResponseMessage, Swagger}
+import cats.implicits._
+import io.circe.generic.auto._
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.server.ServerEndpoint
 
+import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
-  this: OEmbedServiceComponent with ErrorHelpers with NdlaControllerBase with NdlaSwaggerSupport =>
+  this: OEmbedServiceComponent with ErrorHelpers with Service =>
   val oEmbedProxyController: OEmbedProxyController
 
-  class OEmbedProxyController(implicit val swagger: Swagger) extends NdlaControllerBase with NdlaSwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
-
+  class OEmbedProxyController extends SwaggerService {
+    override val prefix: EndpointInput[Unit] = "oembed-proxy" / "v1" / "oembed"
     protected val applicationDescription =
       "API wrapper for oembed.com adding support for ndla.no."
-
-    registerModel[Error]()
-
-    val response400: ResponseMessage = ResponseMessage(400, "Validation error", Some("Error"))
-    val response401: ResponseMessage = ResponseMessage(401, "Unauthorized")
-    val response404: ResponseMessage = ResponseMessage(404, "Url not found")
-    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    val response501: ResponseMessage =
-      ResponseMessage(501, "Provider Not Supported", Some("Error"))
-    val response502: ResponseMessage = ResponseMessage(502, "Bad Gateway", Some("Error"))
-
-    private val correlationId =
-      Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
-    private val urlParam =
-      Param[String]("url", "The URL to retrieve embedding information for")
-    private val maxWidth =
-      Param[Option[String]]("maxwidth", "The maximum width of the embedded resource")
-    private val maxHeight =
-      Param[Option[String]]("maxheight", "The maximum height of the embedded resource")
-
-    before() {
-      contentType = formats("json")
-    }
-
-    import ErrorHelpers._
-
-    override def ndlaErrorHandler: NdlaErrorHandler = {
-      case pme: ParameterMissingException =>
-        BadRequest(Error(PARAMETER_MISSING, pme.getMessage))
-      case pnse: ProviderNotSupportedException =>
-        NotImplemented(Error(PROVIDER_NOT_SUPPORTED, pnse.getMessage))
-      case hre: HttpRequestException if hre.is404 =>
-        logger.info(s"Could not fetch remote: '${hre.getMessage}'")
-        NotFound(Error(REMOTE_ERROR, hre.getMessage))
-      case hre: HttpRequestException =>
-        val msg = hre.httpResponse.map(response =>
-          s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
-        )
-        logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)
-        BadGateway(Error(REMOTE_ERROR, hre.getMessage))
-      case t: Throwable => {
-        t.printStackTrace()
-        logger.error(t.getMessage)
-        InternalServerError(GenericError)
-      }
-    }
-
-    get(
-      "/",
-      operation(
-        apiOperation[OEmbed]("oembed")
-          .summary("Returns oEmbed information for a given url.")
-          .description("Returns oEmbed information for a given url.")
-          .parameters(
-            asHeaderParam(correlationId),
-            asQueryParam(urlParam),
-            asQueryParam(maxWidth),
-            asQueryParam(maxHeight)
-          )
-          .responseMessages(response400, response401, response500, response501, response502)
-      )
-    ) {
-      val maxWidth  = params.get(this.maxWidth.paramName)
-      val maxHeight = params.get(this.maxHeight.paramName)
-
-      params.get(urlParam.paramName) match {
-        case None =>
-          errorHandler(new ParameterMissingException(s"The required parameter '${urlParam.paramName}' is missing."))
-        case Some(url) =>
+    override val endpoints: List[ServerEndpoint[Any, IO]] = List(
+      endpoint.get
+        .summary("Returns oEmbed information for a given url.")
+        .description("Returns oEmbed information for a given url.")
+        .in(query[String]("url").description("The URL to retrieve embedding information for"))
+        .in(query[Option[String]]("maxwidth").description("The maximum width of the embedded resource"))
+        .in(query[Option[String]]("maxheight").description("The maximum height of the embedded resource"))
+        .errorOut(errorOutputs)
+        .out(jsonBody[OEmbed])
+        .serverLogicPure { case (url, maxWidth, maxHeight) =>
           oEmbedService.get(url, maxWidth, maxHeight) match {
-            case Success(oembed) => oembed
-            case Failure(ex)     => errorHandler(ex)
+            case Success(oembed) => oembed.asRight
+            case Failure(ex)     => returnError(ex).asLeft
           }
-      }
-    }
+        }
+    )
   }
-
 }
