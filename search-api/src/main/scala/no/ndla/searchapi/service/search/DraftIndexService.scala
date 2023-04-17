@@ -100,7 +100,6 @@ trait DraftIndexService {
         generateLanguageSupportedDynamicTemplates("tags") ++
         generateLanguageSupportedDynamicTemplates("embedAttributes") ++
         generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("subject", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
 

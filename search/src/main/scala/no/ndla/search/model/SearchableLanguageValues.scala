@@ -27,6 +27,11 @@ object SearchableLanguageList {
 
   def fromFields(fields: Seq[LanguageField[Seq[String]]]): SearchableLanguageList =
     SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))
+
+  def addValue(fields: SearchableLanguageList, languageValue: String): SearchableLanguageList = {
+    SearchableLanguageList(fields.languageValues.map(field => LanguageValue(field.language, field.value :+ languageValue)))
+  }
+
 }
 
 case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]]) {

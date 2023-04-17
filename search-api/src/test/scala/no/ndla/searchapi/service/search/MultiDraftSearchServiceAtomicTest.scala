@@ -8,10 +8,11 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.domain._
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, Responsible, EditorNote, Status, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
 import no.ndla.search.Elastic4sClientFactory
+import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.ApiTaxonomyContext
 import no.ndla.searchapi.model.domain.Sort
@@ -526,134 +527,133 @@ class MultiDraftSearchServiceAtomicTest
     val draft4 = TestData.draft1.copy(id = Some(4)) // T4
     val draft5 = TestData.draft1.copy(id = Some(5)) // R5 + R6
 
-    val taxonomyBundle = {
-      TaxonomyBundle(
-        relevances,
+    val subject_1 = Node(
+      "urn:subject:1",
+      "Matte",
+      None,
+      Some("/subject:1"),
+      visibleMetadata,
+      List.empty,
+      NodeType.SUBJECT,
+      List(
+        TaxonomyContext(
+          publicId = "urn:subject:1",
+          rootId = "urn:subject:1",
+          root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+          path = "/subject:1",
+          breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+          contextType = None,
+          relevanceId = None,
+          relevance = SearchableLanguageValues(Seq.empty),
+          resourceTypes = List.empty,
+          parentIds = List.empty,
+          isPrimary = true,
+          contextId = "",
+          isVisible = true
+        )
+      )
+    )
+    val topic_1 = Node(
+      "urn:topic:1",
+      "T1",
+      Some(s"urn:article:${draft1.id.get}"),
+      Some("/subject:1/topic:1"),
+      visibleMetadata,
+      List.empty,
+      NodeType.TOPIC,
+      List.empty
+    )
+    topic_1.contexts =
+      generateContexts(topic_1, subject_1, subject_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    val topic_2 = Node(
+      "urn:topic:2",
+      "T2",
+      Some(s"urn:article:${draft2.id.get}"),
+      Some("/subject:1/topic:2"),
+      visibleMetadata,
+      List.empty,
+      NodeType.TOPIC,
+      List.empty
+    )
+    topic_2.contexts =
+      generateContexts(topic_2, subject_1, subject_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    val topic_3 = Node(
+      "urn:topic:3",
+      "T3",
+      Some(s"urn:article:${draft3.id.get}"),
+      Some("/subject:1/topic:1/topic:3"),
+      visibleMetadata,
+      List.empty,
+      NodeType.TOPIC,
+      List.empty
+    )
+    topic_3.contexts =
+      generateContexts(topic_3, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    val topic_4 = Node(
+      "urn:topic:4",
+      "T4",
+      Some(s"urn:article:${draft4.id.get}"),
+      Some("/subject:1/topic:1/topic:4"),
+      visibleMetadata,
+      List.empty,
+      NodeType.TOPIC,
+      List.empty
+    )
+    topic_4.contexts =
+      generateContexts(topic_4, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    val resource_5 = Node(
+      "urn:resource:5",
+      "R5",
+      Some(s"urn:article:${draft5.id.get}"),
+      Some("/subject:1/topic:1/resource:5"),
+      visibleMetadata,
+      List.empty,
+      NodeType.RESOURCE,
+      List.empty
+    )
+    resource_5.contexts = generateContexts(
+      resource_5,
+      subject_1,
+      topic_1,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true
+    ) ++
+      generateContexts(
+        resource_5,
+        subject_1,
+        topic_3,
         List.empty,
-        resourceTypes,
-        subjects = List(
-          TaxSubject(
-            "urn:subject:1",
-            "Matte",
-            None,
-            Some("/subject:1"),
-            visibleMetadata,
-            List.empty
-          )
-        ),
-        topics = List(
-          Topic(
-            "urn:topic:1",
-            "T1",
-            Some(s"urn:article:${draft1.id.get}"),
-            Some("/subject:1/topic:1"),
-            visibleMetadata,
-            List.empty
-          ),
-          Topic(
-            "urn:topic:2",
-            "T2",
-            Some(s"urn:article:${draft2.id.get}"),
-            Some("/subject:1/topic:2"),
-            visibleMetadata,
-            List.empty
-          ),
-          Topic(
-            "urn:topic:3",
-            "T3",
-            Some(s"urn:article:${draft3.id.get}"),
-            Some("/subject:1/topic:1/topic:3"),
-            visibleMetadata,
-            List.empty
-          ),
-          Topic(
-            "urn:topic:4",
-            "T4",
-            Some(s"urn:article:${draft4.id.get}"),
-            Some("/subject:1/topic:1/topic:4"),
-            visibleMetadata,
-            List.empty
-          )
-        ),
-        resources = List(
-          Resource(
-            "urn:resource:5",
-            "R5",
-            Some(s"urn:article:${draft5.id.get}"),
-            Some("/subject:1/topic:1/resource:5"),
-            visibleMetadata,
-            List.empty
-          ),
-          Resource(
-            "urn:resource:6",
-            "R6",
-            Some(s"urn:article:${draft5.id.get}"),
-            Some("/subject:1/topic:1/topic:3/resource:6"),
-            visibleMetadata,
-            List.empty
-          )
-        ),
-        subjectTopicConnections = List(
-          SubjectTopicConnection(
-            "urn:subject:1",
-            "urn:topic:1",
-            "urn:subject-topic:1",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          ),
-          SubjectTopicConnection(
-            "urn:subject:1",
-            "urn:topic:2",
-            "urn:subject-topic:2",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          )
-        ),
-        topicSubtopicConnections = List(
-          TopicSubtopicConnection(
-            "urn:topic:1",
-            "urn:topic:3",
-            "urn:topic-subtopic:1",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          ),
-          TopicSubtopicConnection(
-            "urn:topic:1",
-            "urn:topic:4",
-            "urn:topic-subtopic:2",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          )
-        ),
-        topicResourceConnections = List(
-          TopicResourceConnection(
-            "urn:topic:1",
-            "urn:resource:5",
-            "urn:topic-resource:1",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          ),
-          TopicResourceConnection(
-            "urn:topic:3",
-            "urn:resource:5",
-            "urn:topic-resource:1",
-            primary = false,
-            1,
-            Some("urn:relevance:core")
-          ),
-          TopicResourceConnection(
-            "urn:topic:3",
-            "urn:resource:6",
-            "urn:topic-resource:2",
-            primary = true,
-            1,
-            Some("urn:relevance:core")
-          )
+        None,
+        Some(core),
+        isPrimary = false,
+        isVisible = true
+      )
+    val resource_6 = Node(
+      "urn:resource:6",
+      "R6",
+      Some(s"urn:article:${draft5.id.get}"),
+      Some("/subject:1/topic:1/topic:3/resource:6"),
+      visibleMetadata,
+      List.empty,
+      NodeType.RESOURCE,
+      List.empty
+    )
+    resource_6.contexts =
+      generateContexts(resource_6, subject_1, topic_3, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+
+    val taxonomyBundle = {
+      TaxonomyBundle(nodes =
+        List(
+          subject_1,
+          topic_1,
+          topic_2,
+          topic_3,
+          topic_4,
+          resource_5,
+          resource_6
         )
       )
     }

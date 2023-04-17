@@ -55,74 +55,43 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("the", "words"), "und")
   )
 
-  val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true))
-  val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false))
+  val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
+  val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
 
-  val resources = List(
-    Resource(
+  val nodes = List(
+    Node(
       "urn:resource:1",
       "Resource1",
       Some("urn:article:1"),
       Some("/subject:1/topic:10/resource:1"),
       visibleMetadata,
+      List.empty,
+      NodeType.RESOURCE,
       List.empty
-    )
-  )
-
-  val topics = List(
-    Topic(
+    ),
+    Node(
       "urn:topic:10",
       "Topic1",
       Some("urn:article:10"),
       Some("/subject:1/topic:10"),
       visibleMetadata,
+      List.empty,
+      NodeType.TOPIC,
+      List.empty
+    ),
+    Node(
+      "urn:subject:1",
+      "Subject1",
+      None,
+      Some("/subject:1"),
+      visibleMetadata,
+      List.empty,
+      NodeType.SUBJECT,
       List.empty
     )
   )
 
-  val topicResourceConnections = List(
-    TopicResourceConnection(
-      "urn:topic:10",
-      "urn:resource:1",
-      "urn:topic-resource:abc123",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    )
-  )
-
-  val subject1: TaxSubject = TaxSubject(
-    "urn:subject:1",
-    "Subject1",
-    None,
-    Some("/subject:1"),
-    visibleMetadata,
-    List.empty
-  )
-  val subjects = List(subject1)
-
-  val subjectTopicConnections = List(
-    SubjectTopicConnection(
-      "urn:subject:1",
-      "urn:topic:10",
-      "urn:subject-topic:8180abc",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    )
-  )
-
-  val emptyBundle: TaxonomyBundle = TaxonomyBundle(
-    relevances = List.empty,
-    resourceResourceTypeConnections = List.empty,
-    resourceTypes = List.empty,
-    resources = resources,
-    subjectTopicConnections = subjectTopicConnections,
-    subjects = subjects,
-    topicResourceConnections = topicResourceConnections,
-    topicSubtopicConnections = List.empty,
-    topics = topics
-  )
+  val emptyBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -301,8 +270,10 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That invisible contexts are not indexed") {
-    val taxonomyBundleInvisibleMetadata = TestData.taxonomyTestBundle.copy(resources =
-      resources.map(resource => resource.copy(metadata = invisibleMetadata))
+    val taxonomyBundleInvisibleMetadata = TestData.taxonomyTestBundle.copy(nodes =
+      nodes
+        .filter(node => node.nodeType == NodeType.RESOURCE)
+        .map(resource => resource.copy(metadata = invisibleMetadata))
     )
     val Success(searchable1) =
       searchConverterService.asSearchableArticle(
@@ -330,7 +301,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That invisible subjects are not indexed") {
     val taxonomyBundleInvisibleMetadata =
-      TestData.taxonomyTestBundle.copy(subjects = subjects.map(subject => subject.copy(metadata = invisibleMetadata)))
+      TestData.taxonomyTestBundle.copy(nodes =
+        nodes
+          .filter(node => node.nodeType == NodeType.SUBJECT)
+          .map(subject => subject.copy(metadata = invisibleMetadata))
+      )
     val Success(searchable1) =
       searchConverterService.asSearchableArticle(
         TestData.article1,
