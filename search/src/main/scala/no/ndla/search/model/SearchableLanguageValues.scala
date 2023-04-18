@@ -29,7 +29,9 @@ object SearchableLanguageList {
     SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))
 
   def addValue(fields: SearchableLanguageList, languageValue: String): SearchableLanguageList = {
-    SearchableLanguageList(fields.languageValues.map(field => LanguageValue(field.language, field.value :+ languageValue)))
+    SearchableLanguageList(
+      fields.languageValues.map(field => LanguageValue(field.language, field.value :+ languageValue))
+    )
   }
 
 }
