@@ -9,18 +9,17 @@
 package no.ndla.oembedproxy.controller
 
 import cats.effect.IO
-import no.ndla.network.tapir.{NotImplementedBody, Service}
+import cats.implicits._
+import io.circe.generic.auto._
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputs
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
-import cats.implicits._
-import io.circe.generic.auto._
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
@@ -29,8 +28,6 @@ trait OEmbedProxyController {
 
   class OEmbedProxyController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "oembed-proxy" / "v1" / "oembed"
-    protected val applicationDescription =
-      "API wrapper for oembed.com adding support for ndla.no."
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
         .summary("Returns oEmbed information for a given url.")
