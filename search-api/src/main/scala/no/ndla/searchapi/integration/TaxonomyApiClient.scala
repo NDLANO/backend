@@ -33,7 +33,7 @@ trait TaxonomyApiClient {
   class TaxonomyApiClient extends StrictLogging {
     import props.TaxonomyUrl
 
-    implicit val formats: Formats   = org.json4s.DefaultFormats + Json4s.serializer(NodeType)
+    implicit val formats: Formats   = SearchableLanguageFormats.JSonFormatsWithMillis + Json4s.serializer(NodeType)
     private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
     private val timeoutSeconds      = 600.seconds
     private def getAllNodes(shouldUsePublishedTax: Boolean): Try[List[Node]] =
@@ -48,7 +48,6 @@ trait TaxonomyApiClient {
         filterVisibles: Boolean,
         shouldUsePublishedTax: Boolean
     ): Try[List[SearchableTaxonomyContext]] = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       get[List[SearchableTaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
         headers = getVersionHashHeader(shouldUsePublishedTax),
