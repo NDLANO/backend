@@ -99,7 +99,7 @@ lazy val `learningpath-api` = Module.setup(
 lazy val `oembed-proxy` = Module.setup(
   project in file("./oembed-proxy/"),
   oembedproxy,
-  deps = Seq(network, common)
+  deps = Seq(network, common, testWith(scalatestsuite))
 )
 
 lazy val `search-api` = Module.setup(

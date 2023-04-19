@@ -12,7 +12,7 @@ import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputs
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.oembedproxy.model._
 import no.ndla.oembedproxy.service.OEmbedServiceComponent
 import sttp.tapir._
@@ -35,7 +35,7 @@ trait OEmbedProxyController {
         .in(query[String]("url").description("The URL to retrieve embedding information for"))
         .in(query[Option[String]]("maxwidth").description("The maximum width of the embedded resource"))
         .in(query[Option[String]]("maxheight").description("The maximum height of the embedded resource"))
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404, 501, 502))
         .out(jsonBody[OEmbed])
         .serverLogicPure { case (url, maxWidth, maxHeight) =>
           oEmbedService.get(url, maxWidth, maxHeight) match {

@@ -9,12 +9,12 @@ package no.ndla.frontpageapi.controller
 
 import cats.effect.IO
 import cats.implicits._
+import io.circe.generic.auto._
+import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
-import no.ndla.frontpageapi.Props
-import io.circe.generic.auto._
 import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputs
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -35,7 +35,7 @@ trait InternController {
         .in("subjectpage" / "external" / path[String]("externalId").description("old NDLA node id"))
         .summary("Get subject page id from external id")
         .out(jsonBody[SubjectPageId])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { nid =>
           readService.getIdFromExternalId(nid) match {
             case Success(Some(id)) => id.asRight
@@ -47,7 +47,7 @@ trait InternController {
         .summary("Create new subject page")
         .in("subjectpage")
         .in(jsonBody[NewSubjectFrontPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor())
         .out(jsonBody[SubjectPageData])
         .serverLogicPure { subjectPage =>
           writeService
@@ -57,7 +57,7 @@ trait InternController {
       endpoint.put
         .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
         .in(jsonBody[NewSubjectFrontPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .summary("Update subject page")
         .out(jsonBody[SubjectPageData])
         .serverLogicPure { case (id, subjectPage) =>
@@ -68,7 +68,7 @@ trait InternController {
       endpoint.post
         .summary("Update front page")
         .in(jsonBody[FrontPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[FrontPageData])
         .serverLogicPure { frontPage =>
           writeService

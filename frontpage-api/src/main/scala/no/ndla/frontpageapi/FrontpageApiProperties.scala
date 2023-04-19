@@ -29,16 +29,16 @@ class FrontpageApiProperties extends BaseProps {
 
   val SecretsFile = "frontpage-api.secrets"
 
-  val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
-  val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
-  val MetaResource: String = prop(PropertyKeys.MetaResourceKey)
-  val MetaServer: String   = prop(PropertyKeys.MetaServerKey)
-  val MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
-  val MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
-  val MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
-  val DefaultPageSize           = 10
+  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String   = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int        = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String   = prop(PropertyKeys.MetaSchemaKey)
+  def MetaMaxConnections   = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
+  val DefaultPageSize      = 10
 
-  val Domain: String    = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  val Domain: String         = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val RawImageApiUrl: String = s"$Domain/image-api/raw"
 
   val BrightcoveAccountId: String = prop("BRIGHTCOVE_ACCOUNT")

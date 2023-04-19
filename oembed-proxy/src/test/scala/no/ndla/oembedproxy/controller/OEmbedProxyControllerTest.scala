@@ -84,11 +84,21 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
     response.code.code should be(404)
   }
 
-  test("h5p url should return 500 if something bad happens") {
+  test("h5p url should return 502 if something bad happens during request") {
     val exception = new HttpRequestException("bad", None) {
       override def is404: Boolean = false
     }
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))
+    when(clock.now()).thenCallRealMethod()
+    val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
+    val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"
+    val response      = simpleHttpClient.send(quickRequest.get(url))
+    response.code.code should be(502)
+  }
+
+  test("h5p url should return 500 if generic bad") {
+    val failure = Failure(new RuntimeException("bad stuff"))
+    when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(failure)
     when(clock.now()).thenCallRealMethod()
     val requestParams = Map("url" -> "https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730")
     val url           = uri"http://localhost:$serverPort/oembed-proxy/v1/oembed?$requestParams"

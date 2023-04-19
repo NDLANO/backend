@@ -10,7 +10,8 @@ package no.ndla.network.tapir
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import org.log4s.{Logger, getLogger}
-import scala.util.{Try, Success, Failure}
+
+import scala.util.{Failure, Success, Try}
 
 trait TapirErrorHelpers {
   this: HasBaseProps with Clock =>
@@ -36,14 +37,13 @@ trait TapirErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
 
-    def generic: GenericBody                       = GenericBody(GENERIC, GENERIC_DESCRIPTION, clock.now())
-    def notFound: NotFoundBody                     = NotFoundBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now())
-    def notFoundWithMsg(msg: String): NotFoundBody = NotFoundBody(NOT_FOUND, msg, clock.now())
-    def badRequest(msg: String): BadRequestBody    = BadRequestBody(BAD_REQUEST, msg, clock.now())
-    def unauthorized: UnauthorizedBody = UnauthorizedBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now())
-    def forbidden: ForbiddenBody       = ForbiddenBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now())
-    def unprocessableEntity(msg: String): UnprocessableEntityBody =
-      UnprocessableEntityBody(UNPROCESSABLE_ENTITY, msg, clock.now())
+    def generic: ErrorBody                      = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 500)
+    def notFound: ErrorBody                     = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now(), 404)
+    def notFoundWithMsg(msg: String): ErrorBody = ErrorBody(NOT_FOUND, msg, clock.now(), 404)
+    def badRequest(msg: String): ErrorBody      = ErrorBody(BAD_REQUEST, msg, clock.now(), 400)
+    def unauthorized: ErrorBody                 = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now(), 401)
+    def forbidden: ErrorBody                    = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now(), 403)
+    def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
   }
 
   def returnError(ex: Throwable): ErrorBody

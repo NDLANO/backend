@@ -12,9 +12,8 @@ import cats.implicits._
 import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputs
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
-import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
 
@@ -29,7 +28,7 @@ trait FrontPageController {
       endpoint.get
         .summary("Get data to display on the front page")
         .out(jsonBody[FrontPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(404))
         .serverLogicPure(_ =>
           readService.frontPage match {
             case Some(s) => s.asRight

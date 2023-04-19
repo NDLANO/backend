@@ -7,58 +7,13 @@
 
 package no.ndla.network.tapir
 
+import sttp.tapir.Schema.annotations.description
 import java.time.LocalDateTime
 
-sealed trait ErrorBody {
-  val code: String
-  val description: String
-  val occurredAt: LocalDateTime
-}
-
-case class GenericBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class NotFoundBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class BadRequestBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class UnauthorizedBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class UnprocessableEntityBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class ForbiddenBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class NotImplementedBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
-
-case class BadGatewayBody(
-    code: String,
-    description: String,
-    occurredAt: LocalDateTime
-) extends ErrorBody
+@description("Information about an error")
+case class ErrorBody(
+    @description("Code stating the type of error") code: String,
+    @description("Description of the error") description: String,
+    @description("When the error occured") occurredAt: LocalDateTime,
+    @description("Numeric http status code") statusCode: Int
+)

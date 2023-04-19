@@ -14,7 +14,7 @@ import no.ndla.frontpageapi.model.api._
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.Service
-import no.ndla.network.tapir.TapirErrors.errorOutputs
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -31,7 +31,7 @@ trait FilmPageController {
         .summary("Get data to display on the film front page")
         .in(query[Option[String]]("language"))
         .out(jsonBody[FilmFrontPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(404))
         .serverLogicPure { language =>
           readService.filmFrontPage(language) match {
             case Some(s) => s.asRight
@@ -40,7 +40,7 @@ trait FilmPageController {
         },
       endpoint.post
         .summary("Update film front page")
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 401, 403, 404, 422))
         .in(jsonBody[NewOrUpdatedFilmFrontPageData])
         .out(jsonBody[FilmFrontPageData])
         .securityIn(auth.bearer[Option[UserInfo]]())

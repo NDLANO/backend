@@ -38,11 +38,11 @@ trait Routes {
 
     private def failureResponse(error: String): ValuedEndpointOutput[_] = {
       logger.error(s"Failure handler got: $error")
-      ValuedEndpointOutput(jsonBody[GenericBody], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
     }
 
     private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[BadRequestBody], ErrorHelpers.badRequest(failureMsg))
+      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
     })
 
     private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
