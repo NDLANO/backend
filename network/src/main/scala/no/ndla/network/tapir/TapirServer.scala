@@ -32,7 +32,7 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
 
   private val builder = JettyBuilder[IO]
     .mountHttpApp(app, "/")
-    .bindHttp(serverPort)
+    .bindHttp(serverPort, "0.0.0.0")
 
   private val withMelody = if (enableMelody) setupMelody(builder) else builder
 
