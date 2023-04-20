@@ -8,9 +8,8 @@
 
 package no.ndla.oembedproxy.controller
 
-import cats.effect.IO
+import no.ndla.network.tapir.TapirServer
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import org.http4s.jetty.server.JettyBuilder
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment {
@@ -20,23 +19,10 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
   lazy val controller = new HealthController
   controller.setWarmedUp()
   override def beforeAll(): Unit = {
-    import cats.effect.unsafe.implicits.global
-    val app         = Routes.build(List(controller))
-    var serverReady = false
-
-    JettyBuilder[IO]
-      .mountHttpApp(app, "/")
-      .bindHttp(serverPort)
-      .resource
-      .use(server => {
-        IO {
-          println(s"${this.getClass.toString} is running server on ${server.address}")
-          serverReady = true
-        }.flatMap(_ => IO.never)
-      })
-      .unsafeToFuture()
-
-    blockUntil(() => serverReady)
+    val app    = Routes.build(List(controller))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
   }
 
   test("That /health returns 200 ok") {

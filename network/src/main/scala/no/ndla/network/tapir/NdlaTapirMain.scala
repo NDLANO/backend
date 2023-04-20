@@ -66,19 +66,10 @@ trait NdlaTapirMain extends IOApp {
     beforeStart()
 
     logger.info(s"Starting ${props.ApplicationName} on port ${props.ApplicationPort}")
-    val jettyServer =
-      JettyBuilder[IO]
-        .bindHttp(props.ApplicationPort)
-        .mountHttpApp(app, "/")
-        .setupMelody()
-        .resource
-        .use(server => {
-          IO {
-            logger.info(s"${props.ApplicationName} server has started at ${server.address}")
-            performWarmup()
-          }.flatMap(_ => IO.never)
-        })
+    val server = TapirServer(props.ApplicationName, props.ApplicationPort, app, enableMelody = true)({
+      performWarmup()
+    })
 
-    jettyServer.as(ExitCode.Success)
+    server.as(ExitCode.Success)
   }
 }

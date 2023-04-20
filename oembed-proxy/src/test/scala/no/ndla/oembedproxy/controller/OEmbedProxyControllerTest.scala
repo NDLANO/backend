@@ -8,11 +8,10 @@
 
 package no.ndla.oembedproxy.controller
 
-import cats.effect.IO
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.TapirServer
 import no.ndla.oembedproxy.model.OEmbed
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import org.http4s.jetty.server.JettyBuilder
 import org.mockito.ArgumentMatchers.anyString
 import sttp.client3.quick._
 
@@ -24,23 +23,10 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment {
   val serverPort: Int = findFreePort
 
   override def beforeAll(): Unit = {
-    import cats.effect.unsafe.implicits.global
-    val app         = Routes.build(List(controller))
-    var serverReady = false
-
-    JettyBuilder[IO]
-      .mountHttpApp(app, "/")
-      .bindHttp(serverPort)
-      .resource
-      .use(server => {
-        IO {
-          println(s"${this.getClass.toString} is running server on ${server.address}")
-          serverReady = true
-        }.flatMap(_ => IO.never)
-      })
-      .unsafeToFuture()
-
-    blockUntil(() => serverReady)
+    val app    = Routes.build(List(controller))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
   }
 
   val oembed: OEmbed = OEmbed(
