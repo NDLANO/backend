@@ -23,7 +23,8 @@ object oembedproxy extends Module {
       "org.mockito"      %% "mockito-scala-scalatest" % MockitoV   % "test"
     ),
     scalatra,
-    vulnerabilityOverrides
+    vulnerabilityOverrides,
+    tapirHttp4sCirce
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
