@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA network
+ * Copyright (C) 2023 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.network.tapir
 
 import scala.collection.immutable.ListMap
