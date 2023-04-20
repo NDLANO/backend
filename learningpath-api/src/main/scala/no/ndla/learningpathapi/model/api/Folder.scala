@@ -28,7 +28,8 @@ case class Folder(
     @(ApiModelProperty @field)(description = "Where the folder is sorted within its parent") rank: Option[Int],
     @(ApiModelProperty @field)(description = "When the folder was created") created: LocalDateTime,
     @(ApiModelProperty @field)(description = "When the folder was updated") updated: LocalDateTime,
-    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[LocalDateTime]
+    @(ApiModelProperty @field)(description = "When the folder was last shared") shared: Option[LocalDateTime],
+    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
 ) extends FolderData with CopyableFolder
 // format: on
 
@@ -57,7 +58,8 @@ object FolderData {
       rank: Option[Int],
       created: LocalDateTime,
       updated: LocalDateTime,
-      shared: Option[LocalDateTime]
+      shared: Option[LocalDateTime],
+      description: Option[String]
   ): FolderData = {
     Folder(
       id,
@@ -70,7 +72,8 @@ object FolderData {
       rank,
       created,
       updated,
-      shared
+      shared,
+      description
     )
   }
 
@@ -82,12 +85,14 @@ object FolderData {
 case class NewFolder(
     @(ApiModelProperty @field)(description = "Folder name") name: String,
     @(ApiModelProperty @field)(description = "Id of parent folder") parentId: Option[String],
-    @(ApiModelProperty @field)(description = "Status of the folder (private, public)") status: Option[String]
+    @(ApiModelProperty @field)(description = "Status of the folder (private, shared)") status: Option[String],
+    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
 )
 
 case class UpdatedFolder(
     @(ApiModelProperty @field)(description = "Folder name") name: Option[String],
-    @(ApiModelProperty @field)(description = "Status of the folder (private, public)") status: Option[String]
+    @(ApiModelProperty @field)(description = "Status of the folder (private, shared)") status: Option[String],
+    @(ApiModelProperty @field)(description = "Description of the folder") description: Option[String]
 )
 
 // format: off

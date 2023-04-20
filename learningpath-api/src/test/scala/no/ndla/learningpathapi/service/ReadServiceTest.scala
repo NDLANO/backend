@@ -345,7 +345,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
 
     val subFolder1 = domain.Folder(
@@ -359,7 +360,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
 
     val subFolder2 = domain.Folder(
@@ -373,7 +375,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
 
     val resource1 = domain.Resource(
@@ -419,7 +422,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           rank = None,
           created = created,
           updated = created,
-          shared = None
+          shared = None,
+          description = None
         ),
         api.Folder(
           id = subFolder2UUID.toString,
@@ -435,13 +439,15 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
           rank = None,
           created = created,
           updated = created,
-          shared = None
+          shared = None,
+          description = None
         )
       ),
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
 
     val whgaterh = mainFolder.copy(

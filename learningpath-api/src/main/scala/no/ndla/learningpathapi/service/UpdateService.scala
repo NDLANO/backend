@@ -859,7 +859,7 @@ trait UpdateService {
             val newRank = idx + 1
             val found   = rankables.find(_.sortId == id)
             found match {
-              case Some(Folder(folderId, _, _, _, _, _, _, _, _, _, _)) =>
+              case Some(Folder(folderId, _, _, _, _, _, _, _, _, _, _, _)) =>
                 folderRepository.setFolderRank(folderId, newRank, feideId)(session)
               case Some(FolderResource(folderId, resourceId, _)) =>
                 folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
@@ -951,7 +951,8 @@ trait UpdateService {
           parentId = destinationFolder.id.some,
           name = childFolder.name,
           status = FolderStatus.PRIVATE,
-          rank = childFolder.rank
+          rank = childFolder.rank,
+          description = childFolder.description
         )
         folderRepository
           .insertFolder(feideId, newFolder)
@@ -975,7 +976,8 @@ trait UpdateService {
       val sourceFolderCopy = api.NewFolder(
         name = sourceFolder.name,
         parentId = None,
-        status = FolderStatus.PRIVATE.toString.some
+        status = FolderStatus.PRIVATE.toString.some,
+        description = sourceFolder.description
       )
 
       destinationId match {

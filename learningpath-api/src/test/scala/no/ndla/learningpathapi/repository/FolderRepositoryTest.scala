@@ -155,7 +155,13 @@ class FolderRepositoryTest
     when(clock.now()).thenReturn(created)
 
     val folderData =
-      NewFolderData(parentId = None, name = "new", status = FolderStatus.PRIVATE, rank = None)
+      NewFolderData(
+        parentId = None,
+        name = "new",
+        status = FolderStatus.PRIVATE,
+        rank = None,
+        description = Some("old")
+      )
     val updatedFolder = Folder(
       id = UUID.randomUUID(),
       feideId = "feide",
@@ -167,9 +173,10 @@ class FolderRepositoryTest
       subfolders = List.empty,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = Some("new")
     )
-    val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED)
+    val expected = updatedFolder.copy(name = "updated", status = FolderStatus.SHARED, description = Some("new"))
 
     val inserted = repository.insertFolder(feideId = "feide", folderData = folderData)
     val result   = repository.updateFolder(id = inserted.get.id, feideId = "feide", folder = updatedFolder)
@@ -257,7 +264,7 @@ class FolderRepositoryTest
   test("that getFolderResources works as expected") {
     val created = LocalDateTime.now()
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
 
     val folder1 = repository.insertFolder("feide", doc)
     val folder2 = repository.insertFolder("feide", doc.copy(parentId = Some(folder1.get.id)))
@@ -303,7 +310,8 @@ class FolderRepositoryTest
         rank = None,
         created = clock.now(),
         updated = clock.now(),
-        shared = None
+        shared = None,
+        description = None
       )
 
     val mainParent = base.copy(
@@ -359,14 +367,16 @@ class FolderRepositoryTest
         rank = None,
         created = created,
         updated = created,
-        shared = None
+        shared = None,
+        description = Some("desc")
       )
 
     val baseNewFolderData = domain.NewFolderData(
       parentId = base.parentId,
       name = base.name,
       status = base.status,
-      rank = base.rank
+      rank = base.rank,
+      description = Some("desc")
     )
 
     val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
@@ -439,7 +449,7 @@ class FolderRepositoryTest
   ) {
     val created = LocalDateTime.now()
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = None, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -473,7 +483,7 @@ class FolderRepositoryTest
 
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -493,7 +503,7 @@ class FolderRepositoryTest
 
   test("that updateFolderStatusInBulk updates status of chosen folders") {
     val doc =
-      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None)
+      NewFolderData(parentId = None, name = "some name", status = FolderStatus.PRIVATE, rank = None, description = None)
 
     val folder1 = repository.insertFolder("feide1", doc)
     val folder2 = repository.insertFolder("feide1", doc.copy(parentId = Some(folder1.get.id)))
@@ -524,14 +534,16 @@ class FolderRepositoryTest
         rank = None,
         created = created,
         updated = created,
-        shared = None
+        shared = None,
+        description = None
       )
 
     val baseNewFolderData = domain.NewFolderData(
       parentId = base.parentId,
       name = base.name,
       status = base.status,
-      rank = base.rank
+      rank = base.rank,
+      description = None
     )
 
     val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
