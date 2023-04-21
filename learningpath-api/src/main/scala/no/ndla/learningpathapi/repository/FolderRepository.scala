@@ -58,7 +58,7 @@ trait FolderRepository {
         val newId   = UUID.randomUUID()
         val created = clock.now()
         val updated = created
-        val shared  = if (folderData.status == FolderStatus.SHARED) Some(clock.now()) else None
+        val shared  = if (folderData.status == FolderStatus.SHARED) Some(created) else None
 
         sql"""
         insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared, description)
@@ -119,6 +119,7 @@ trait FolderRepository {
           set name=${folder.name},
               status=${folder.status.toString},
               shared=${folder.shared},
+              updated=${folder.updated},
               description=${folder.description}
           where id=$id and feide_id=$feideId
       """.update()
@@ -134,10 +135,12 @@ trait FolderRepository {
     def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
         session: DBSession = AutoSession
     ): Try[List[UUID]] = Try {
+      val newSharedValue = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
       sql"""
-             UPDATE ${DBFolder.table}
-             SET status = ${newStatus.toString}
-             where id in ($folderIds);
+          UPDATE ${DBFolder.table}
+          SET status = ${newStatus.toString},
+              shared = $newSharedValue
+          where id in ($folderIds);
            """.update()
     } match {
       case Failure(ex) => Failure(ex)
