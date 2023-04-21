@@ -39,8 +39,9 @@ trait TaxonomyApiClient {
     private def getAllNodes(shouldUsePublishedTax: Boolean): Try[List[Node]] =
       get[List[Node]](
         s"$TaxonomyApiEndpoint/nodes/",
-        params = "nodeType" -> NodeType.values.mkString(","),
-        headers = getVersionHashHeader(shouldUsePublishedTax)
+        headers = getVersionHashHeader(shouldUsePublishedTax),
+        "nodeType"        -> NodeType.values.mkString(","),
+        "includeContexts" -> "true"
       )
 
     def getTaxonomyContext(
