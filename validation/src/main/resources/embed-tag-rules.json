@@ -267,7 +267,7 @@
         "data-name",
         "data-email",
         "data-description",
-        "data-imageid"
+        "data-image-id"
       ],
       "optional": [
         ["data-blob-color"],
