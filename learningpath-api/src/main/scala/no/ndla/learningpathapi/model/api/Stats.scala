@@ -18,5 +18,6 @@ case class Stats(
     @(ApiModelProperty @field)(description = "The total number of created folders") numberOfFolders: Long,
     @(ApiModelProperty @field)(description = "The total number of favourited resources ") numberOfResources: Long,
     @(ApiModelProperty @field)(description = "The total number of created tags") numberOfTags: Long,
-    @(ApiModelProperty @field)(description = "The total number of favourited subjects") numberOfSubjects: Long
+    @(ApiModelProperty @field)(description = "The total number of favourited subjects") numberOfSubjects: Long,
+    @(ApiModelProperty @field)(description = "The total number of shared folders") numberOfSharedFolders: Long
 ) {}

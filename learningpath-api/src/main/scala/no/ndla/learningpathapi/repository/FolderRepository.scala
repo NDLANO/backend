@@ -543,5 +543,11 @@ trait FolderRepository {
         .single()
     }
 
+    def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+      sql"select count(*) from ${DBFolder.table} where status = ${FolderStatus.SHARED.toString}"
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
   }
 }
