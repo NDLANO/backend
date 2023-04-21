@@ -33,7 +33,9 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement, GrepTitle}
 import no.ndla.searchapi.model.search._
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy._
+import org.apache.commons.lang3.RandomStringUtils
 
+import java.net.URI
 import java.time.LocalDateTime
 
 object TestData {
@@ -889,8 +891,8 @@ object TestData {
   val paul              = Author("author", "Truly Weird Rand Paul")
   val license           = "publicdomain"
   val copyright         = common.learningpath.Copyright(license, List(paul))
-  val visibleMetadata   = Some(Metadata(Seq.empty, visible = true))
-  val invisibleMetadata = Some(Metadata(Seq.empty, visible = false))
+  val visibleMetadata   = Some(Metadata(Seq.empty, visible = true, Map.empty))
+  val invisibleMetadata = Some(Metadata(Seq.empty, visible = false, Map.empty))
 
   val DefaultLearningPath = LearningPath(
     id = None,
@@ -984,421 +986,460 @@ object TestData {
     learningPath6
   )
 
-  val subjects = List(
-    TaxSubject("urn:subject:1", "Matte", None, Some("/subject:1"), visibleMetadata, List.empty),
-    TaxSubject("urn:subject:2", "Historie", None, Some("/subject:2"), visibleMetadata, List.empty),
-    TaxSubject("urn:subject:3", "Religion", None, Some("/subject:3"), invisibleMetadata, List.empty)
-  )
+  val core: Relevance = Relevance("urn:relevance:core", "Kjernestoff", List.empty)
+  val supp: Relevance = Relevance("urn:relevance:supplementary", "Tilleggsstoff", List.empty)
 
-  val relevances = List(
-    Relevance("urn:relevance:core", "Kjernestoff", List.empty),
-    Relevance("urn:relevance:supplementary", "Tilleggsstoff", List.empty)
-  )
+  val relevances: List[Relevance] = List(core, supp)
 
-  val resourceTypes = List(
-    ResourceType("urn:resourcetype:learningpath", "Læringssti", None, List.empty),
-    ResourceType(
-      "urn:resourcetype:subjectMaterial",
-      "Fagstoff",
-      Some(
-        List(
-          ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None, List.empty),
-          ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
-        )
-      ),
-      List.empty
-    ),
-    ResourceType(
-      "urn:resourcetype:reviewResource",
-      "Vurderingsressurs",
-      Some(
-        List(
-          ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None, List.empty),
-          ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None, List.empty),
-          ResourceType(
-            "urn:resourcetype:peerEvaluation",
-            "Medelevvurdering",
-            Some(
-              List(
-                ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
-              )
-            ),
-            List.empty
-          )
-        )
-      ),
-      List.empty
+  val rtLearningpath: ResourceType  = ResourceType("urn:resourcetype:learningpath", "Læringssti", None, List.empty)
+  val academicArticle: ResourceType = ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None, List.empty)
+  val guidance: ResourceType        = ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
+  val subjectMaterial: ResourceType =
+    ResourceType("urn:resourcetype:subjectMaterial", "Fagstoff", Some(List(academicArticle, guidance)), List.empty)
+  val nested: ResourceType = ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
+  val teacherEvaluation: ResourceType =
+    ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None, List.empty)
+  val selfEvaluation: ResourceType = ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None, List.empty)
+  val peerEvaluation: ResourceType =
+    ResourceType("urn:resourcetype:peerEvaluation", "Medelevvurdering", Some(List(nested)), List.empty)
+  val reviewResource: ResourceType = ResourceType(
+    "urn:resourcetype:reviewResource",
+    "Vurderingsressurs",
+    Some(List(teacherEvaluation, selfEvaluation, peerEvaluation)),
+    List.empty
+  )
+  val resourceTypes: List[ResourceType] = List(rtLearningpath, subjectMaterial, reviewResource)
+
+  def generateContexts(
+      node: Node,
+      root: Node,
+      parent: Node,
+      resourceTypes: List[ResourceType],
+      contextType: Option[String],
+      relevance: Option[Relevance],
+      isPrimary: Boolean,
+      isVisible: Boolean
+  ): List[TaxonomyContext] = {
+    parent.contexts.map(context => {
+      TaxonomyContext(
+        publicId = node.id,
+        path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}",
+        rootId = root.id,
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
+        breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
+        relevanceId = relevance.map(r => r.id),
+        relevance = relevance
+          .map(r => SearchableLanguageValues(Seq(LanguageValue("nb", r.name))))
+          .getOrElse(SearchableLanguageValues(Seq.empty)),
+        resourceTypes = resourceTypes.map(rt =>
+          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+        ),
+        contextType = contextType,
+        parentIds = context.parentIds :+ parent.id,
+        isPrimary = isPrimary,
+        contextId = RandomStringUtils.randomAlphabetic(12),
+        isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible)
+      )
+    })
+  }
+
+  val subject_1: Node = Node(
+    "urn:subject:1",
+    "Matte",
+    None,
+    Some("/subject:1"),
+    visibleMetadata,
+    List.empty,
+    NodeType.SUBJECT,
+    List(
+      TaxonomyContext(
+        publicId = "urn:subject:1",
+        rootId = "urn:subject:1",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+        path = "/subject:1",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = None,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "",
+        isVisible = true
+      )
     )
   )
-
-  val resources = List(
-    Resource(
-      "urn:resource:1",
-      article1.title.head.title,
-      Some(s"urn:article:${article1.id.get}"),
-      Some("/subject:3/topic:5/resource:1"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:2",
-      article2.title.head.title,
-      Some(s"urn:article:${article2.id.get}"),
-      Some("/subject:1/topic:1/resource:2"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:3",
-      article3.title.head.title,
-      Some(s"urn:article:${article3.id.get}"),
-      Some("/subject:1/topic:3/resource:3"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:4",
-      article4.title.head.title,
-      Some(s"urn:article:${article4.id.get}"),
-      Some("/subject:1/topic:1/topic:2/resource:4"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:5",
-      article5.title.head.title,
-      Some(s"urn:article:${article5.id.get}"),
-      Some("/subject:2/topic:4/resource:5"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:6",
-      article6.title.head.title,
-      Some(s"urn:article:${article6.id.get}"),
-      Some("/subject:2/topic:4/resource:6"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:7",
-      article7.title.head.title,
-      Some(s"urn:article:${article7.id.get}"),
-      Some("/subject:2/topic:4/resource:7"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:8",
-      learningPath1.title.head.title,
-      Some(s"urn:learningpath:${learningPath1.id.get}"),
-      Some("/subject:1/topic:1/resource:8"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:9",
-      learningPath2.title.head.title,
-      Some(s"urn:learningpath:${learningPath2.id.get}"),
-      Some("/subject:1/topic:1/resource:9"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:10",
-      learningPath3.title.head.title,
-      Some(s"urn:learningpath:${learningPath3.id.get}"),
-      Some("/subject:1/topic:3/resource:10"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:11",
-      learningPath4.title.head.title,
-      Some(s"urn:learningpath:${learningPath4.id.get}"),
-      Some("/subject:1/topic:1/topic:2/resource:11"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:12",
-      learningPath5.title.head.title,
-      Some(s"urn:learningpath:${learningPath5.id.get}"),
-      Some("/subject:2/topic:4/resource:12"),
-      visibleMetadata,
-      List.empty
-    ),
-    Resource(
-      "urn:resource:13",
-      article12.title.head.title,
-      Some(s"urn:article:${article12.id.get}"),
-      Some("/subject:2/topic:4/resource:13"),
-      visibleMetadata,
-      List.empty
+  val subject_2: Node = Node(
+    "urn:subject:2",
+    "Historie",
+    None,
+    Some("/subject:2"),
+    visibleMetadata,
+    List.empty,
+    NodeType.SUBJECT,
+    List(
+      TaxonomyContext(
+        publicId = "urn:subject:2",
+        rootId = "urn:subject:2",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Historie"))),
+        path = "/subject:2",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = None,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "",
+        isVisible = true
+      )
     )
   )
-
-  val topics = List(
-    Topic(
-      "urn:topic:1",
-      article8.title.head.title,
-      Some(s"urn:article:${article8.id.get}"),
-      Some("/subject:1/topic:1"),
-      visibleMetadata,
-      List.empty
-    ),
-    Topic(
-      "urn:topic:2",
-      article9.title.head.title,
-      Some(s"urn:article:${article9.id.get}"),
-      Some("/subject:1/topic:1/topic:2"),
-      visibleMetadata,
-      List.empty
-    ),
-    Topic(
-      "urn:topic:3",
-      article10.title.head.title,
-      Some(s"urn:article:${article10.id.get}"),
-      Some("/subject:1/topic:3"),
-      visibleMetadata,
-      List.empty
-    ),
-    Topic(
-      "urn:topic:4",
-      article11.title.head.title,
-      Some(s"urn:article:${article11.id.get}"),
-      Some("/subject:2/topic:4"),
-      visibleMetadata,
-      List.empty
-    ),
-    Topic(
-      "urn:topic:5",
-      draft15.title.head.title,
-      Some(s"urn:article:${draft15.id.get}"),
-      Some("/subject:3/topic:5"),
-      invisibleMetadata,
-      List.empty
+  val subject_3: Node = Node(
+    "urn:subject:3",
+    "Religion",
+    None,
+    Some("/subject:3"),
+    invisibleMetadata,
+    List.empty,
+    NodeType.SUBJECT,
+    List(
+      TaxonomyContext(
+        publicId = "urn:subject:3",
+        rootId = "urn:subject:3",
+        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Religion"))),
+        path = "/subject:3",
+        breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+        contextType = None,
+        relevanceId = None,
+        relevance = SearchableLanguageValues(Seq.empty),
+        resourceTypes = List.empty,
+        parentIds = List.empty,
+        isPrimary = true,
+        contextId = "",
+        isVisible = false
+      )
     )
   )
-
-  val subjectTopicConnections = List(
-    SubjectTopicConnection(
-      "urn:subject:1",
-      "urn:topic:1",
-      "urn:subject-topic:1",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    SubjectTopicConnection(
-      "urn:subject:1",
-      "urn:topic:3",
-      "urn:subject-topic:2",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    SubjectTopicConnection(
-      "urn:subject:2",
-      "urn:topic:4",
-      "urn:subject-topic:3",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    SubjectTopicConnection(
-      "urn:subject:3",
-      "urn:topic:5",
-      "urn:subject-topic:4",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
+  val topic_1: Node = Node(
+    "urn:topic:1",
+    article8.title.head.title,
+    Some(s"urn:article:${article8.id.get}"),
+    Some("/subject:1/topic:1"),
+    visibleMetadata,
+    List.empty,
+    NodeType.TOPIC,
+    List.empty
+  )
+  topic_1.contexts =
+    generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true)
+  val topic_2: Node = Node(
+    "urn:topic:2",
+    article9.title.head.title,
+    Some(s"urn:article:${article9.id.get}"),
+    Some("/subject:1/topic:1/topic:2"),
+    visibleMetadata,
+    List.empty,
+    NodeType.TOPIC,
+    List.empty
+  )
+  topic_2.contexts =
+    generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), Some(core), true, true)
+  val topic_3: Node = Node(
+    "urn:topic:3",
+    article10.title.head.title,
+    Some(s"urn:article:${article10.id.get}"),
+    Some("/subject:1/topic:3"),
+    visibleMetadata,
+    List.empty,
+    NodeType.TOPIC,
+    List.empty
+  )
+  topic_3.contexts =
+    generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true)
+  val topic_4: Node = Node(
+    "urn:topic:4",
+    article11.title.head.title,
+    Some(s"urn:article:${article11.id.get}"),
+    Some("/subject:2/topic:4"),
+    visibleMetadata,
+    List.empty,
+    NodeType.TOPIC,
+    List.empty
+  )
+  topic_4.contexts =
+    generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), Some(core), true, true)
+  val topic_5: Node = Node(
+    "urn:topic:5",
+    draft15.title.head.title,
+    Some(s"urn:article:${draft15.id.get}"),
+    Some("/subject:3/topic:5"),
+    invisibleMetadata,
+    List.empty,
+    NodeType.TOPIC,
+    List.empty
+  )
+  topic_5.contexts =
+    generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), Some(supp), true, true)
+  val resource_1: Node = Node(
+    "urn:resource:1",
+    article1.title.head.title,
+    Some(s"urn:article:${article1.id.get}"),
+    Some("/subject:3/topic:5/resource:1"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_1.contexts = generateContexts(
+    resource_1,
+    subject_3,
+    topic_5,
+    List(subjectMaterial),
+    Some("standard"),
+    Some(core),
+    true,
+    true
+  ) ++
+    generateContexts(resource_1, subject_1, topic_1, List(subjectMaterial), Some("standard"), Some(core), true, true) ++
+    generateContexts(resource_1, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(core), true, true)
+  val resource_2: Node = Node(
+    "urn:resource:2",
+    article2.title.head.title,
+    Some(s"urn:article:${article2.id.get}"),
+    Some("/subject:1/topic:1/resource:2"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_2.contexts = generateContexts(
+    resource_2,
+    subject_1,
+    topic_1,
+    List(subjectMaterial, academicArticle),
+    Some("standard"),
+    Some(supp),
+    true,
+    true
+  )
+  val resource_3: Node = Node(
+    "urn:resource:3",
+    article3.title.head.title,
+    Some(s"urn:article:${article3.id.get}"),
+    Some("/subject:1/topic:3/resource:3"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_3.contexts =
+    generateContexts(resource_3, subject_1, topic_3, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+  val resource_4: Node = Node(
+    "urn:resource:4",
+    article4.title.head.title,
+    Some(s"urn:article:${article4.id.get}"),
+    Some("/subject:1/topic:1/topic:2/resource:4"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_4.contexts =
+    generateContexts(resource_4, subject_1, topic_2, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+  val resource_5: Node = Node(
+    "urn:resource:5",
+    article5.title.head.title,
+    Some(s"urn:article:${article5.id.get}"),
+    Some("/subject:2/topic:4/resource:5"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_5.contexts = generateContexts(
+    resource_5,
+    subject_2,
+    topic_4,
+    List(academicArticle, subjectMaterial),
+    Some("standard"),
+    Some(core),
+    true,
+    true
+  ) ++
+    generateContexts(
+      resource_5,
+      subject_1,
+      topic_3,
+      List(academicArticle, subjectMaterial),
+      Some("standard"),
+      Some(core),
+      true,
+      true
     )
+  val resource_6: Node = Node(
+    "urn:resource:6",
+    article6.title.head.title,
+    Some(s"urn:article:${article6.id.get}"),
+    Some("/subject:2/topic:4/resource:6"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_6.contexts =
+    generateContexts(resource_6, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(core), true, true)
+  val resource_7: Node = Node(
+    "urn:resource:7",
+    article7.title.head.title,
+    Some(s"urn:article:${article7.id.get}"),
+    Some("/subject:2/topic:4/resource:7"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_7.contexts = generateContexts(
+    resource_7,
+    subject_2,
+    topic_4,
+    List(guidance, subjectMaterial, nested, peerEvaluation, reviewResource),
+    Some("standard"),
+    Some(core),
+    true,
+    true
+  )
+  val resource_8: Node = Node(
+    "urn:resource:8",
+    learningPath1.title.head.title,
+    Some(s"urn:learningpath:${learningPath1.id.get}"),
+    Some("/subject:1/topic:1/resource:8"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_8.contexts =
+    generateContexts(resource_8, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), Some(supp), true, true)
+  val resource_9: Node = Node(
+    "urn:resource:9",
+    learningPath2.title.head.title,
+    Some(s"urn:learningpath:${learningPath2.id.get}"),
+    Some("/subject:1/topic:1/resource:9"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_9.contexts =
+    generateContexts(resource_9, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), Some(core), true, true)
+  val resource_10: Node = Node(
+    "urn:resource:10",
+    learningPath3.title.head.title,
+    Some(s"urn:learningpath:${learningPath3.id.get}"),
+    Some("/subject:1/topic:3/resource:10"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_10.contexts = generateContexts(
+    resource_10,
+    subject_1,
+    topic_3,
+    List(rtLearningpath),
+    Some("learningpath"),
+    Some(core),
+    true,
+    true
+  )
+  val resource_11: Node = Node(
+    "urn:resource:11",
+    learningPath4.title.head.title,
+    Some(s"urn:learningpath:${learningPath4.id.get}"),
+    Some("/subject:1/topic:1/topic:2/resource:11"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_11.contexts = generateContexts(
+    resource_11,
+    subject_1,
+    topic_2,
+    List(rtLearningpath),
+    Some("learningpath"),
+    Some(supp),
+    true,
+    true
+  )
+  val resource_12: Node = Node(
+    "urn:resource:12",
+    learningPath5.title.head.title,
+    Some(s"urn:learningpath:${learningPath5.id.get}"),
+    Some("/subject:2/topic:4/resource:12"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_12.contexts = generateContexts(
+    resource_12,
+    subject_2,
+    topic_4,
+    List(rtLearningpath),
+    Some("learningpath"),
+    Some(supp),
+    true,
+    true
+  )
+  val resource_13: Node = Node(
+    "urn:resource:13",
+    article12.title.head.title,
+    Some(s"urn:article:${article12.id.get}"),
+    Some("/subject:2/topic:4/resource:13"),
+    visibleMetadata,
+    List.empty,
+    NodeType.RESOURCE,
+    List.empty
+  )
+  resource_13.contexts = generateContexts(
+    resource_13,
+    subject_1,
+    topic_1,
+    List(subjectMaterial),
+    Some("standard"),
+    Some(core),
+    true,
+    true
+  ) ++
+    generateContexts(resource_13, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+
+  val nodes = List(
+    subject_1,
+    subject_2,
+    subject_3,
+    topic_1,
+    topic_2,
+    topic_3,
+    topic_4,
+    topic_5,
+    resource_1,
+    resource_2,
+    resource_3,
+    resource_4,
+    resource_5,
+    resource_6,
+    resource_7,
+    resource_8,
+    resource_9,
+    resource_10,
+    resource_11,
+    resource_12,
+    resource_13
   )
 
-  val topicResourceConnections = List(
-    TopicResourceConnection(
-      "urn:topic:1",
-      "urn:resource:1",
-      "urn:topic-resource:1",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:1",
-      "urn:topic-resource:2",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:1",
-      "urn:resource:2",
-      "urn:topic-resource:3",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:3",
-      "urn:resource:3",
-      "urn:topic-resource:4",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:2",
-      "urn:resource:4",
-      "urn:topic-resource:5",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:5",
-      "urn:topic-resource:6",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:6",
-      "urn:topic-resource:7",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:7",
-      "urn:topic-resource:8",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:3",
-      "urn:resource:5",
-      "urn:topic-resource:9",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:1",
-      "urn:resource:8",
-      "urn:topic-resource:10",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:1",
-      "urn:resource:9",
-      "urn:topic-resource:11",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:3",
-      "urn:resource:10",
-      "urn:topic-resource:12",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:2",
-      "urn:resource:11",
-      "urn:topic-resource:13",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:12",
-      "urn:topic-resource:14",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:1",
-      "urn:resource:13",
-      "urn:topic-resource:15",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    ),
-    TopicResourceConnection(
-      "urn:topic:4",
-      "urn:resource:13",
-      "urn:topic-resource:16",
-      primary = true,
-      1,
-      Some("urn:relevance:supplementary")
-    ),
-    TopicResourceConnection(
-      "urn:topic:5",
-      "urn:resource:1",
-      "urn:topic-resource:17",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    )
-  )
-
-  val topicSubtopicConnections = List(
-    TopicSubtopicConnection(
-      "urn:topic:1",
-      "urn:topic:2",
-      "urn:topic-subtopic:1",
-      primary = true,
-      1,
-      Some("urn:relevance:core")
-    )
-  )
-
-  val resourceResourceTypeConnections = List(
-    ResourceResourceTypeConnection("urn:resource:1", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:1"),
-    ResourceResourceTypeConnection("urn:resource:2", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:2"),
-    ResourceResourceTypeConnection("urn:resource:2", "urn:resourcetype:academicArticle", "urn:resource-resourcetype:3"),
-    ResourceResourceTypeConnection("urn:resource:3", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:4"),
-    ResourceResourceTypeConnection("urn:resource:4", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:5"),
-    ResourceResourceTypeConnection("urn:resource:5", "urn:resourcetype:academicArticle", "urn:resource-resourcetype:6"),
-    ResourceResourceTypeConnection("urn:resource:6", "urn:resourcetype:subjectMaterial", "urn:resource-resourcetype:7"),
-    ResourceResourceTypeConnection("urn:resource:7", "urn:resourcetype:guidance", "urn:resource-resourcetype:8"),
-    ResourceResourceTypeConnection("urn:resource:7", "urn:resourcetype:nested", "urn:resource-resourcetype:9"),
-    ResourceResourceTypeConnection("urn:resource:8", "urn:resourcetype:learningpath", "urn:resource-resourcetype:10"),
-    ResourceResourceTypeConnection("urn:resource:9", "urn:resourcetype:learningpath", "urn:resource-resourcetype:11"),
-    ResourceResourceTypeConnection("urn:resource:10", "urn:resourcetype:learningpath", "urn:resource-resourcetype:12"),
-    ResourceResourceTypeConnection("urn:resource:11", "urn:resourcetype:learningpath", "urn:resource-resourcetype:13"),
-    ResourceResourceTypeConnection("urn:resource:12", "urn:resourcetype:learningpath", "urn:resource-resourcetype:14"),
-    ResourceResourceTypeConnection(
-      "urn:resource:13",
-      "urn:resourcetype:subjectMaterial",
-      "urn:resource-resourcetype:15"
-    )
-  )
-
-  val taxonomyTestBundle = TaxonomyBundle(
-    relevances = relevances,
-    resourceResourceTypeConnections = resourceResourceTypeConnections,
-    resourceTypes = resourceTypes,
-    resources = resources,
-    subjectTopicConnections = subjectTopicConnections,
-    subjects = subjects,
-    topicResourceConnections = topicResourceConnections,
-    topicSubtopicConnections = topicSubtopicConnections,
-    topics = topics
-  )
+  val taxonomyTestBundle = TaxonomyBundle(nodes = nodes)
 
   val emptyGrepBundle = GrepBundle(
     kjerneelementer = List.empty,

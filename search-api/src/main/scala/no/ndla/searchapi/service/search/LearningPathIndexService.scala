@@ -97,7 +97,6 @@ trait LearningPathIndexService {
         generateLanguageSupportedDynamicTemplates("description") ++
         generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("subject", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
         generateLanguageSupportedDynamicTemplates("name", keepRaw = true)
 
