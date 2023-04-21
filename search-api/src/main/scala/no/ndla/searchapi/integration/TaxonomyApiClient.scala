@@ -88,7 +88,8 @@ trait TaxonomyApiClient {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       get[List[SearchableTaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
-        headers = getVersionHashHeader(shouldUsePublishedTax) ++ Map("filterVisibles" -> filterVisibles.toString)
+        headers = getVersionHashHeader(shouldUsePublishedTax),
+        params = "filterVisibles" -> filterVisibles.toString
       )
     }
 
