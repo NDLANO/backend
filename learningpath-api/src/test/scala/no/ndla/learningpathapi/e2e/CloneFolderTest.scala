@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.e2e
 
 import no.ndla.learningpathapi.model.api
-import no.ndla.learningpathapi.model.domain.{FolderStatus, NewFolderData, ResourceDocument, UserRole}
+import no.ndla.learningpathapi.model.domain.{Folder, FolderStatus, NewFolderData, ResourceDocument, UserRole}
 import no.ndla.learningpathapi.{ComponentRegistry, LearningpathApiProperties, MainClass, UnitSuite}
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.scalatestsuite.IntegrationSuite
@@ -530,8 +530,122 @@ class CloneFolderTest
     )
 
     val result = read[api.Folder](response.body)
-    println(result)
     result.shared should be(Some(testClock.now().withNano(0)))
+  }
+
+  test("that sharing a folder with subfolders will update shared field to current date for each subfolder") {
+    val created = LocalDateTime.of(2023, 1, 1, 1, 59)
+    val shared  = LocalDateTime.of(2024, 1, 1, 1, 59)
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    when(testClock.now()).thenReturn(created, created, created, shared)
+    val folderRepository = learningpathApi.componentRegistry.folderRepository
+    val session          = folderRepository.getSession(true)
+
+    val parent =
+      NewFolderData(parentId = None, name = "parent", status = FolderStatus.PRIVATE, rank = Some(1), description = None)
+    val parentId = folderRepository.insertFolder(feideId, folderData = parent).get.id
+    val child = NewFolderData(
+      parentId = Some(parentId),
+      name = "child",
+      status = FolderStatus.PRIVATE,
+      rank = Some(1),
+      description = None
+    )
+    val childId = folderRepository.insertFolder(feideId, folderData = child).get.id
+    val childChild = NewFolderData(
+      parentId = Some(childId),
+      name = "childchild",
+      status = FolderStatus.PRIVATE,
+      rank = Some(1),
+      description = None
+    )
+    val childChildId = folderRepository.insertFolder(feideId, folderData = childChild).get.id
+
+    val expectedChildChild: Folder = Folder(
+      id = childChildId,
+      feideId = feideId,
+      parentId = Some(childId),
+      name = "childchild",
+      status = FolderStatus.SHARED,
+      rank = Some(1),
+      created = created,
+      updated = created,
+      resources = List(),
+      subfolders = List(),
+      shared = Some(shared),
+      description = None
+    )
+    val expectedChild: Folder = Folder(
+      id = childId,
+      feideId = feideId,
+      parentId = Some(parentId),
+      name = "child",
+      status = FolderStatus.SHARED,
+      rank = Some(1),
+      created = created,
+      updated = created,
+      resources = List(),
+      subfolders = List(expectedChildChild),
+      shared = Some(shared),
+      description = None
+    )
+    val expectedParent: Folder = Folder(
+      id = parentId,
+      feideId = feideId,
+      parentId = None,
+      name = "parent",
+      status = FolderStatus.SHARED,
+      rank = Some(1),
+      created = created,
+      updated = created,
+      resources = List(),
+      subfolders = List(expectedChild),
+      shared = Some(shared),
+      description = None
+    )
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"$learningpathApiFolderUrl/shared/$parentId?folder-status=shared")
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+    )
+
+    val results            = read[List[UUID]](response.body)
+    val resultParentId     = results.find(uuid => uuid == parentId).get
+    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(session).get.get
+
+    domainParentFolder should be(expectedParent)
+  }
+
+  test("that updating a folder correctly updates the updated field") {
+    val created = LocalDateTime.of(2023, 1, 1, 1, 59)
+    val updated = LocalDateTime.of(2024, 1, 1, 1, 59)
+    when(learningpathApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
+    when(testClock.now()).thenReturn(created, updated)
+    val folderRepository = learningpathApi.componentRegistry.folderRepository
+    val destinationFolder =
+      NewFolderData(
+        parentId = None,
+        name = "destination",
+        status = FolderStatus.PRIVATE,
+        rank = Some(1),
+        description = None
+      )
+    val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"$learningpathApiFolderUrl/$destinationFolderId")
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+        .header("Content-Type", "application/json", replaceExisting = true)
+        .body("""{"name":"newname1"}""")
+    )
+
+    val result = read[api.Folder](response.body)
+    result.updated should not be (result.created)
+    result.updated should be(updated)
   }
 
 }
