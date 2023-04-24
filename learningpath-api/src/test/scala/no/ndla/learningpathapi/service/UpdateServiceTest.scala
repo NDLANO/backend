@@ -1881,7 +1881,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("that folder is not created if depth limit is reached") {
     val feideId   = "FEIDE"
     val parentId  = UUID.randomUUID()
-    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
@@ -1907,7 +1907,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
-    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -1919,7 +1919,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val apiFolder = api.Folder(
       id = folderId.toString,
@@ -1932,7 +1933,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -1960,7 +1962,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val feideId   = "FEIDE"
     val folderId  = UUID.randomUUID()
     val parentId  = UUID.randomUUID()
-    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None)
+    val newFolder = api.NewFolder(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -1972,7 +1974,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -1985,7 +1988,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2016,7 +2020,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolder(name = Some("asd"), status = None)
+    val updateFolder = api.UpdatedFolder(name = Some("asd"), status = None, description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -2029,7 +2033,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
@@ -2042,7 +2047,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2074,7 +2080,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolder(name = None, status = Some("shared"))
+    val updateFolder = api.UpdatedFolder(name = None, status = Some("shared"), description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -2087,7 +2093,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
     val siblingFolder = domain.Folder(
@@ -2101,7 +2108,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val expectedFolder = api.Folder(
       id = folderId.toString,
@@ -2114,7 +2122,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       rank = None,
       created = created,
       updated = created,
-      shared = None
+      shared = None,
+      description = None
     )
     val belowLimit = props.MaxFolderDepth - 2
 
@@ -2294,7 +2303,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
 
-    val updatedFolder   = UpdatedFolder(name = None, status = Some("shared"))
+    val updatedFolder   = UpdatedFolder(name = None, status = Some("shared"), description = None)
     val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.getMessage should be("You do not have necessary permissions to share folders.")
   }
@@ -2306,7 +2315,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 
-    val updatedFolder   = UpdatedFolder(name = Some("asd"), status = None)
+    val updatedFolder   = UpdatedFolder(name = Some("asd"), status = None, description = None)
     val Failure(result) = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.getMessage should be("You do not have write access while write restriction is active.")
   }
@@ -2316,7 +2325,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isMyNDLAWriteRestricted).thenReturn(false)
 
-    val updatedFolder = UpdatedFolder(name = Some("asd"), status = None)
+    val updatedFolder = UpdatedFolder(name = Some("asd"), status = None, description = None)
     val result        = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.isSuccess should be(true)
   }
@@ -2328,8 +2337,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(readService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
     when(readService.isMyNDLAWriteRestricted).thenReturn(true)
 
-    val folderWithUpdatedName   = UpdatedFolder(name = Some("asd"), status = None)
-    val folderWithUpdatedStatus = UpdatedFolder(name = None, status = Some("shared"))
+    val folderWithUpdatedName   = UpdatedFolder(name = Some("asd"), status = None, description = None)
+    val folderWithUpdatedStatus = UpdatedFolder(name = None, status = Some("shared"), description = None)
     val result1 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedName)
     val result2 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedStatus)
     result1.isSuccess should be(true)
@@ -2338,7 +2347,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that changeStatusToSharedIfParentIsShared actually changes the status if parent is shared") {
     val newFolder =
-      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+      api.NewFolder(
+        name = "folder",
+        parentId = Some("string"),
+        status = Some(FolderStatus.PRIVATE.toString),
+        description = None
+      )
     val parentFolder = Folder(
       id = UUID.randomUUID(),
       feideId = "feide",
@@ -2350,10 +2364,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       updated = clock.now(),
       resources = List(),
       subfolders = List(),
-      shared = Some(clock.now())
+      shared = Some(clock.now()),
+      description = None
     )
     val expectedFolder =
-      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.SHARED.toString))
+      api.NewFolder(
+        name = "folder",
+        parentId = Some("string"),
+        status = Some(FolderStatus.SHARED.toString),
+        description = None
+      )
 
     service.changeStatusToSharedIfParentIsShared(newFolder, Some(parentFolder), isCloning = false) should be(
       expectedFolder
@@ -2362,7 +2382,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("that changeStatusToSharedIfParentIsShared does not alter the status if during cloning or parent is None") {
     val newFolder =
-      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+      api.NewFolder(
+        name = "folder",
+        parentId = Some("string"),
+        status = Some(FolderStatus.PRIVATE.toString),
+        description = None
+      )
     val parentFolder = Folder(
       id = UUID.randomUUID(),
       feideId = "feide",
@@ -2374,10 +2399,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       updated = clock.now(),
       resources = List(),
       subfolders = List(),
-      shared = Some(clock.now())
+      shared = Some(clock.now()),
+      description = None
     )
     val expectedFolder =
-      api.NewFolder(name = "folder", parentId = Some("string"), status = Some(FolderStatus.PRIVATE.toString))
+      api.NewFolder(
+        name = "folder",
+        parentId = Some("string"),
+        status = Some(FolderStatus.PRIVATE.toString),
+        description = None
+      )
 
     val result1 = service.changeStatusToSharedIfParentIsShared(newFolder, Some(parentFolder), isCloning = true)
     val result2 = service.changeStatusToSharedIfParentIsShared(

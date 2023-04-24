@@ -13,6 +13,7 @@ package no.ndla.learningpathapi.model.domain
   */
 trait CopyableFolder {
   val name: String
+  val description: Option[String]
   val subfolders: List[CopyableFolder]
   val resources: List[CopyableResource]
   val rank: Option[Int]

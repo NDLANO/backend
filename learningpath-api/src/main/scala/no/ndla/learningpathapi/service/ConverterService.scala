@@ -707,7 +707,8 @@ trait ConverterService {
           parentId = parentId,
           name = newFolder.name,
           status = newStatus,
-          rank = newRank
+          rank = newRank,
+          description = newFolder.description
         )
       )
     }
@@ -737,7 +738,8 @@ trait ConverterService {
                 rank = folder.rank,
                 created = folder.created,
                 updated = folder.updated,
-                shared = folder.shared
+                shared = folder.shared,
+                description = folder.description
               )
             })
         )
@@ -746,8 +748,9 @@ trait ConverterService {
     }
 
     def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolder): domain.Folder = {
-      val name   = updated.name.getOrElse(existing.name)
-      val status = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
+      val name        = updated.name.getOrElse(existing.name)
+      val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
+      val description = updated.description.orElse(existing.description)
 
       val shared = (existing.status, status) match {
         case (FolderStatus.PRIVATE, FolderStatus.SHARED) => Some(clock.now())
@@ -767,7 +770,8 @@ trait ConverterService {
         rank = existing.rank,
         created = existing.created,
         updated = clock.now(),
-        shared = shared
+        shared = shared,
+        description = description
       )
     }
 
