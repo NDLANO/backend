@@ -60,6 +60,7 @@ export interface IFolder {
   created: string
   updated: string
   shared?: string
+  description?: string
 }
 
 export type IFolderData = IFolder
@@ -184,6 +185,7 @@ export interface INewFolder {
   name: string
   parentId?: string
   status?: string
+  description?: string
 }
 
 export interface INewResource {
@@ -219,6 +221,7 @@ export interface ITitle {
 export interface IUpdatedFolder {
   name?: string
   status?: string
+  description?: string
 }
 
 export interface IUpdatedResource {
