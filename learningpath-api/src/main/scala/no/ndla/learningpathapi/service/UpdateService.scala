@@ -913,7 +913,7 @@ trait UpdateService {
       }
     }
 
-    def shareFolderAndSubfolders(
+    def changeStatusOfFolderAndItsSubfolders(
         folderId: UUID,
         newStatus: domain.FolderStatus.Value,
         feideAccessToken: Option[FeideAccessToken]

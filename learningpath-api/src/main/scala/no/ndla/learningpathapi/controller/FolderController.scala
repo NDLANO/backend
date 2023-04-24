@@ -308,7 +308,7 @@ trait FolderController {
       for {
         folderId   <- uuidParam(this.folderId.paramName)
         status     <- folderStatusParam(this.folderStatus.paramName)
-        updatedIds <- updateService.shareFolderAndSubfolders(folderId, status, requestFeideToken)
+        updatedIds <- updateService.changeStatusOfFolderAndItsSubfolders(folderId, status, requestFeideToken)
       } yield updatedIds
     }
 
