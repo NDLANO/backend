@@ -105,6 +105,8 @@
         ], [
           "data-focal-x",
           "data-focal-y"
+        ], [
+          "data-isdecor"
         ]
       ]
     },
