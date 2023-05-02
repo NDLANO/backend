@@ -1,7 +1,5 @@
 // DO NOT EDIT: generated file by scala-tsi
 
-export type ErrorBody = (IBadGatewayBody | IGenericBody | IUnprocessableEntityBody | IBadRequestBody | IUnauthorizedBody | INotImplementedBody | INotFoundBody | IForbiddenBody)
-
 export interface IAboutFilmSubject {
   title: string
   description: string
@@ -15,25 +13,18 @@ export interface IAboutSubject {
   visualElement: IVisualElement
 }
 
-export interface IBadGatewayBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "BadGatewayBody"
-}
-
-export interface IBadRequestBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "BadRequestBody"
-}
-
 export interface IBannerImage {
   mobileUrl?: string
   mobileId?: number
   desktopUrl: string
   desktopId: number
+}
+
+export interface IErrorBody {
+  code: string
+  description: string
+  occurredAt: string
+  statusCode: number
 }
 
 export interface IFilmFrontPageData {
@@ -43,23 +34,9 @@ export interface IFilmFrontPageData {
   slideShow: string[]
 }
 
-export interface IForbiddenBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "ForbiddenBody"
-}
-
 export interface IFrontPageData {
   topical: string[]
   categories: ISubjectCollection[]
-}
-
-export interface IGenericBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "GenericBody"
 }
 
 export interface IMovieTheme {
@@ -129,20 +106,6 @@ export interface INewSubjectFrontPageData {
   goTo?: string[]
 }
 
-export interface INotFoundBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "NotFoundBody"
-}
-
-export interface INotImplementedBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "NotImplementedBody"
-}
-
 export interface ISubjectCollection {
   name: string
   subjects: ISubjectFilters[]
@@ -169,20 +132,6 @@ export interface ISubjectPageData {
   latestContent?: string[]
   goTo: string[]
   supportedLanguages: string[]
-}
-
-export interface IUnauthorizedBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "UnauthorizedBody"
-}
-
-export interface IUnprocessableEntityBody {
-  code: string
-  description: string
-  occurredAt: string
-  type: "UnprocessableEntityBody"
 }
 
 export interface IUpdatedSubjectFrontPageData {
