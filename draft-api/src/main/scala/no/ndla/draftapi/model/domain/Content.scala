@@ -34,6 +34,7 @@ case class UserData(
     userId: String,
     savedSearches: Option[Seq[String]],
     latestEditedArticles: Option[Seq[String]],
+    latestEditedConcepts: Option[Seq[String]],
     favoriteSubjects: Option[Seq[String]]
 )
 

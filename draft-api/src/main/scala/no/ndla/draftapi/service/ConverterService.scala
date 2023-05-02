@@ -461,6 +461,7 @@ trait ConverterService {
         userId = userData.userId,
         savedSearches = userData.savedSearches,
         latestEditedArticles = userData.latestEditedArticles,
+        latestEditedConcepts = userData.latestEditedConcepts,
         favoriteSubjects = userData.favoriteSubjects
       )
     }
