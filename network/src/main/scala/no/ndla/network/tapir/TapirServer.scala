@@ -20,23 +20,28 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
   val logger: Logger      = getLogger
   private var serverReady = false
 
-  private def setupMelody(b: JettyBuilder[IO]): JettyBuilder[IO] = {
-    val filt          = new MonitoringFilter()
-    val dispatches    = java.util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC)
-    val reportServlet = new ReportServlet
+  implicit class BuilderExtensionMethod(jettyBuilder: JettyBuilder[IO]) {
+    def setupMelody(enable: Boolean): JettyBuilder[IO] = {
+      if (enable) {
+        val monitoringFilter = new MonitoringFilter()
+        val dispatches       = java.util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC)
+        val reportServlet    = new ReportServlet
 
-    b
-      .mountFilter(filt, "/*", Some(name), dispatches)
-      .mountServlet(reportServlet, "/monitoring")
+        jettyBuilder
+          .mountFilter(monitoringFilter, "/*", Some(name), dispatches)
+          .mountServlet(reportServlet, "/monitoring")
+      } else {
+        jettyBuilder
+      }
+    }
   }
 
   private val builder = JettyBuilder[IO]
     .mountHttpApp(app, "/")
     .bindHttp(serverPort, "0.0.0.0")
+    .setupMelody(enableMelody)
 
-  private val withMelody = if (enableMelody) setupMelody(builder) else builder
-
-  val server: IO[Nothing] = withMelody.resource
+  val server: IO[Nothing] = builder.resource
     .use(server => {
       IO {
         logger.info(s"$name server has started at ${server.address}")

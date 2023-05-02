@@ -9,14 +9,11 @@ package no.ndla.network.tapir
 
 import cats.data.Kleisli
 import cats.effect.{ExitCode, IO, IOApp}
-import net.bull.javamelody.{MonitoringFilter, ReportServlet}
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
-import org.http4s.jetty.server.JettyBuilder
 import org.http4s.{Request, Response}
 import org.log4s.{Logger, getLogger}
 
-import javax.servlet.DispatcherType
 import scala.concurrent.Future
 import scala.io.Source
 
@@ -27,18 +24,6 @@ trait NdlaTapirMain extends IOApp {
   val app: Kleisli[IO, Request[IO], Response[IO]]
   def warmup(): Unit
   def beforeStart(): Unit
-
-  implicit class jettyBuilderWithMelody(jettyBuilder: JettyBuilder[IO]) {
-    def setupMelody(): JettyBuilder[IO] = {
-      val filt          = new MonitoringFilter()
-      val dispatches    = java.util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC)
-      val reportServlet = new ReportServlet
-
-      jettyBuilder
-        .mountFilter(filt, "/*", Some(props.ApplicationName), dispatches)
-        .mountServlet(reportServlet, "/monitoring")
-    }
-  }
 
   private def logCopyrightHeader(): Unit = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
