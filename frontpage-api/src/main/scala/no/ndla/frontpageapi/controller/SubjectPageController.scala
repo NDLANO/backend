@@ -20,6 +20,8 @@ import no.ndla.frontpageapi.model.api.{
 }
 import no.ndla.frontpageapi.model.domain.Errors.ValidationException
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.tapir.Service
+import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
@@ -29,8 +31,6 @@ import sttp.tapir.server.ServerEndpoint
 trait SubjectPageController {
   this: ReadService with WriteService with Props with ErrorHelpers with Service =>
   val subjectPageController: SubjectPageController
-
-  import ErrorHelpers.handleErrorOrOkClass
 
   class SubjectPageController extends SwaggerService {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / "subjectpage"
@@ -43,7 +43,7 @@ trait SubjectPageController {
         .in(query[Int]("page-size").default(props.DefaultPageSize))
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[List[SubjectPageData]])
         .serverLogicPure { case (page, pageSize, language, fallback) =>
           readService
@@ -56,7 +56,7 @@ trait SubjectPageController {
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { case (id, language, fallback) =>
           readService
             .subjectPage(id, language, fallback)
@@ -71,7 +71,7 @@ trait SubjectPageController {
         .in(query[Int]("page-size").default(props.DefaultPageSize))
         .in(query[Int]("page").default(1))
         .out(jsonBody[List[SubjectPageData]])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
           val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
           val parsedPage     = if (page < 1) 1 else page
@@ -84,7 +84,7 @@ trait SubjectPageController {
         .securityIn(auth.bearer[Option[UserInfo]]())
         .in(jsonBody[NewSubjectFrontPageData])
         .out(jsonBody[SubjectPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .serverSecurityLogicPure {
           case Some(user) if user.canWrite => user.asRight
           case Some(_)                     => ErrorHelpers.forbidden.asLeft
@@ -107,7 +107,7 @@ trait SubjectPageController {
         .in(query[String]("language").default(props.DefaultLanguage))
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
-        .errorOut(errorOutputs)
+        .errorOut(errorOutputsFor(400, 404))
         .serverSecurityLogicPure {
           case Some(user) if user.canWrite => user.asRight
           case Some(_)                     => ErrorHelpers.forbidden.asLeft

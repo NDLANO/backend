@@ -7,12 +7,9 @@
 
 package no.ndla.frontpageapi
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import com.comcast.ip4s.{Host, Port}
-import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
-import org.http4s.ember.server.EmberServerBuilder
+import io.circe.syntax.EncoderOps
+import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
 
 import java.time.LocalDateTime
@@ -24,24 +21,10 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
   override val subjectPageController = new SubjectPageController()
 
   override def beforeAll(): Unit = {
-    val app = Routes.build(List(subjectPageController))
-
-    var serverReady = false
-
-    EmberServerBuilder
-      .default[IO]
-      .withHost(Host.fromString("0.0.0.0").get)
-      .withPort(Port.fromInt(serverPort).get)
-      .withHttpApp(app)
-      .build
-      .use(server => {
-        IO {
-          println(s"${this.getClass.toString} is running server on ${server.address}")
-          serverReady = true
-        }.flatMap(_ => IO.never)
-      })
-      .unsafeToFuture()
-    blockUntil(() => serverReady)
+    val app    = Routes.build(List(subjectPageController))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
   }
 
   test("Should return 400 with cool custom message if bad request") {

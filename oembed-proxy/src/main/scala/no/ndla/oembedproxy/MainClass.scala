@@ -8,32 +8,24 @@
 
 package no.ndla.oembedproxy
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.scalatra.NdlaScalatraServer
-import org.eclipse.jetty.server.Server
+import cats.data.Kleisli
+import cats.effect.IO
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
+import org.http4s.{Request, Response}
 
-class MainClass(props: OEmbedProxyProperties) extends StrictLogging {
-  val componentRegistry = new ComponentRegistry(props)
+class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain {
+  private val componentRegistry                            = new ComponentRegistry(props)
+  override val app: Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
 
-  private def fetchProviderList() = {
+  private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
+  override def warmup(): Unit = {
+    warmupRequest("/oembed-proxy/v1/oembed", Map("url" -> "https://ndla.no/article/1"))
+    warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
+  }
+
+  override def beforeStart(): Unit =
     componentRegistry.providerService.loadProviders()
-  }
-
-  def startServer(): Server = {
-    new NdlaScalatraServer[OEmbedProxyProperties, ComponentRegistry](
-      "no.ndla.oembedproxy.ScalatraBootstrap",
-      componentRegistry, {
-        fetchProviderList()
-      },
-      warmupRequest => {
-        warmupRequest("/oembed-proxy/v1/oembed", Map("url" -> "https://ndla.no/article/1"))
-        warmupRequest("/health", Map.empty)
-      }
-    )
-  }
-
-  def start(): Unit = {
-    val server = startServer()
-    server.join()
-  }
 }

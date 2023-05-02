@@ -7,11 +7,19 @@
 
 package no.ndla.frontpageapi.model.api
 
-import io.circe._, io.circe.generic.semiauto._
+import io.circe._
+import io.circe.generic.semiauto._
+import sttp.tapir.Schema
+import sttp.tapir.generic._
+import sttp.tapir.generic.auto._
 
 case class FrontPageData(topical: List[String], categories: List[SubjectCollection])
 
 object FrontPageData {
   implicit val encoder: Encoder[FrontPageData] = deriveEncoder[no.ndla.frontpageapi.model.api.FrontPageData]
   implicit val decoder: Decoder[FrontPageData] = deriveDecoder[no.ndla.frontpageapi.model.api.FrontPageData]
+
+  implicit val documentation: Schema[FrontPageData] =
+    implicitly[Derived[Schema[FrontPageData]]].value
+      .description("Object containing frontpage data")
 }

@@ -13,29 +13,20 @@ object frontpageapi extends Module {
       scalaTsi,
       enumeratum,
       enumeratumCirce,
-      "io.circe"                      %% "circe-generic"           % CirceV,
-      "io.circe"                      %% "circe-generic-extras"    % CirceV,
-      "io.circe"                      %% "circe-literal"           % CirceV,
-      "io.circe"                      %% "circe-parser"            % CirceV,
-      "org.http4s"                    %% "http4s-server"           % Http4sV,
-      "org.http4s"                    %% "http4s-dsl"              % Http4sV,
-      "org.http4s"                    %% "http4s-circe"            % Http4sV,
-      "org.http4s"                    %% "http4s-ember-server"     % Http4sV,
-      "org.flywaydb"                   % "flyway-core"             % FlywayV,
-      "org.mockito"                   %% "mockito-scala"           % MockitoV   % "test",
-      "org.mockito"                   %% "mockito-scala-scalatest" % MockitoV   % "test",
-      "org.scalatest"                 %% "scalatest"               % ScalaTestV % "test",
-      "javax.servlet"                  % "javax.servlet-api"       % JavaxServletV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"     % TapirV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-swagger-ui-bundle" % TapirV,
-      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"        % TapirV,
-      "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV,
-      "org.typelevel"                 %% "cats-effect"             % CatsEffectV
-    ) ++ database ++ vulnerabilityOverrides
+      "org.flywaydb"   % "flyway-core"             % FlywayV,
+      "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
+      "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
+      "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
+      "javax.servlet"  % "javax.servlet-api"       % JavaxServletV,
+      "org.typelevel" %% "cats-effect"             % CatsEffectV
+    ),
+    database,
+    vulnerabilityOverrides,
+    tapirHttp4sCirce
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(
-    imports = Seq("no.ndla.frontpageapi.model.api._"),
+    imports = Seq("no.ndla.frontpageapi.model.api._", "no.ndla.network.tapir._"),
     exports = Seq(
       "FrontPageData",
       "FilmFrontPageData",

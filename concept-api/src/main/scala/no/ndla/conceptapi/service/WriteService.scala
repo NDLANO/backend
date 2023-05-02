@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.DateParser
 import no.ndla.conceptapi.auth.UserInfo

@@ -9,6 +9,7 @@ package no.ndla.frontpageapi.controller
 
 import cats.effect.IO
 import no.ndla.common.Warmup
+import no.ndla.network.tapir.Service
 import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 

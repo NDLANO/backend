@@ -16,21 +16,24 @@ object articleapi extends Module {
       scalaUri,
       enumeratum,
       sttp,
-      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV     % "container;compile",
-      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV     % "container",
-      "javax.servlet"       % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
-      "org.json4s"         %% "json4s-native"                   % Json4SV,
-      "com.amazonaws"       % "aws-java-sdk-s3"                 % AwsSdkV,
-      "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalatest"      %% "scalatest"                       % ScalaTestV % "test",
-      "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
-      "org.jrobin"          % "jrobin"                          % "1.5.9", // This is needed for javamelody graphing
-      "org.mockito"        %% "mockito-scala"                   % MockitoV   % "test",
-      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV   % "test",
-      "org.flywaydb"        % "flyway-core"                     % FlywayV
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
+      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
+      "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
+      "org.json4s"       %% "json4s-native"                   % Json4SV,
+      "com.amazonaws"     % "aws-java-sdk-s3"                 % AwsSdkV,
+      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
+      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
+      "org.scalatest"    %% "scalatest"                       % ScalaTestV % "test",
+      "org.jsoup"         % "jsoup"                           % JsoupV,
+      "org.mockito"      %% "mockito-scala"                   % MockitoV   % "test",
+      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
+      "org.flywaydb"      % "flyway-core"                     % FlywayV
+    ),
+    melody,
+    elastic4s,
+    database,
+    scalatra,
+    vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(

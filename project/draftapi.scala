@@ -16,23 +16,26 @@ object draftapi extends Module {
       enumeratum,
       enumeratumJson4s,
       sttp,
-      "org.eclipse.jetty"   % "jetty-webapp"                    % JettyV        % "container;compile",
-      "org.eclipse.jetty"   % "jetty-plus"                      % JettyV        % "container",
-      "javax.servlet"       % "javax.servlet-api"               % JavaxServletV % "container;provided;test",
-      "org.json4s"         %% "json4s-native"                   % Json4SV,
-      "vc.inreach.aws"      % "aws-signing-request-interceptor" % "0.0.22",
-      "org.scalikejdbc"    %% "scalikejdbc"                     % ScalikeJDBCV,
-      "com.amazonaws"       % "aws-java-sdk-s3"                 % AwsSdkV,
-      "org.scalatest"      %% "scalatest"                       % ScalaTestV    % "test",
-      "org.jsoup"           % "jsoup"                           % JsoupV,
-      "net.bull.javamelody" % "javamelody-core"                 % JavaMelodyV,
-      "org.jrobin"          % "jrobin"                          % "1.5.9",
-      "com.amazonaws"       % "aws-java-sdk-cloudwatch"         % AwsSdkV,
-      "org.mockito"        %% "mockito-scala"                   % MockitoV      % "test",
-      "org.mockito"        %% "mockito-scala-scalatest"         % MockitoV      % "test",
-      "org.flywaydb"        % "flyway-core"                     % FlywayV,
-      "org.typelevel"      %% "cats-effect"                     % CatsEffectV
-    ) ++ elastic4s ++ database ++ scalatra ++ vulnerabilityOverrides
+      "org.eclipse.jetty" % "jetty-webapp"                    % JettyV        % "container;compile",
+      "org.eclipse.jetty" % "jetty-plus"                      % JettyV        % "container",
+      "javax.servlet"     % "javax.servlet-api"               % JavaxServletV % "container;provided;test",
+      "org.json4s"       %% "json4s-native"                   % Json4SV,
+      "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22",
+      "org.scalikejdbc"  %% "scalikejdbc"                     % ScalikeJDBCV,
+      "com.amazonaws"     % "aws-java-sdk-s3"                 % AwsSdkV,
+      "org.scalatest"    %% "scalatest"                       % ScalaTestV    % "test",
+      "org.jsoup"         % "jsoup"                           % JsoupV,
+      "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
+      "org.mockito"      %% "mockito-scala"                   % MockitoV      % "test",
+      "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV      % "test",
+      "org.flywaydb"      % "flyway-core"                     % FlywayV,
+      "org.typelevel"    %% "cats-effect"                     % CatsEffectV
+    ),
+    melody,
+    elastic4s,
+    database,
+    scalatra,
+    vulnerabilityOverrides
   )
 
   lazy val tsSettings: Seq[Def.Setting[_]] = typescriptSettings(

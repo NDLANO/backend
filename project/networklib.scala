@@ -17,7 +17,10 @@ object networklib extends Module {
       "javax.servlet"         % "javax.servlet-api"       % "4.0.1"    % "provided;test",
       "com.github.jwt-scala" %% "jwt-json4s-native"       % "9.0.2",
       "redis.clients"         % "jedis"                   % "4.2.3"
-    ) ++ vulnerabilityOverrides ++ scalatra
+    ),
+    vulnerabilityOverrides,
+    scalatra,
+    tapirHttp4sCirce
   )
 
   override lazy val settings: Seq[Def.Setting[_]] = Seq(

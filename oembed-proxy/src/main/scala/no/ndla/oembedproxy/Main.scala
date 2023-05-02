@@ -8,13 +8,14 @@
 
 package no.ndla.oembedproxy
 
+import cats.effect.{ExitCode, IO, IOApp}
 import no.ndla.common.Environment.setPropsFromEnv
 
-object Main {
-  def main(args: Array[String]): Unit = {
+object Main extends IOApp {
+  def run(args: List[String]): IO[ExitCode] = {
     setPropsFromEnv()
     val props     = new OEmbedProxyProperties
     val mainClass = new MainClass(props)
-    mainClass.start()
+    mainClass.run(args)
   }
 }

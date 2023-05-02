@@ -8,37 +8,34 @@
 
 package no.ndla.oembedproxy.model
 
+import no.ndla.common.Clock
+import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir._
 import no.ndla.oembedproxy.Props
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-import java.text.SimpleDateFormat
-import java.util.Date
-import scala.annotation.meta.field
 
-trait ErrorHelpers {
-  this: Props =>
+trait ErrorHelpers extends TapirErrorHelpers {
+  this: Props with Clock =>
 
-  object ErrorHelpers {
-    val GENERIC                = "GENERIC"
-    val PARAMETER_MISSING      = "PARAMETER MISSING"
-    val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
-    val REMOTE_ERROR           = "REMOTE ERROR"
+  import ErrorHelpers._
 
-    val GenericError: Error = Error(
-      GENERIC,
-      s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    )
+  override def returnError(ex: Throwable): ErrorBody = ex match {
+    case pnse: ProviderNotSupportedException =>
+      ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 501)
+    case hre: HttpRequestException if hre.is404 =>
+      val msg = hre.getMessage
+      logger.info(s"Could not fetch remote: '$msg'")
+      ErrorBody(REMOTE_ERROR, msg, clock.now(), 404)
+    case hre: HttpRequestException =>
+      val msg = hre.httpResponse.map(response =>
+        s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
+      )
+      logger.error(hre)(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}")
+      ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
+    case t: Throwable =>
+      logger.error(t)(t.getMessage)
+      generic
   }
 }
 
-@ApiModel(description = "Information about errors")
-case class Error(
-    @(ApiModelProperty @field)(description = "Code stating the type of error") code: String,
-    @(ApiModelProperty @field)(description = "Description of the error") description: String,
-    @(ApiModelProperty @field)(description = "When the error occured") occuredAt: String =
-      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-        .format(new Date())
-)
-
-class ParameterMissingException(message: String)          extends RuntimeException(message)
 case class ProviderNotSupportedException(message: String) extends RuntimeException(message)
 class DoNotUpdateMemoizeException(message: String)        extends RuntimeException(message)

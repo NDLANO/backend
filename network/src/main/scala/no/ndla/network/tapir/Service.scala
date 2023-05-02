@@ -1,20 +1,20 @@
 /*
- * Part of NDLA frontpage-api
+ * Part of NDLA network
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  */
-package no.ndla.frontpageapi.controller
+package no.ndla.network.tapir
 
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.frontpageapi.model.api.ErrorHelpers
+import no.ndla.common.configuration.HasBaseProps
 import org.http4s.HttpRoutes
 import sttp.tapir._
 import sttp.tapir.server.ServerEndpoint
 
 trait Service {
-  this: ErrorHelpers with NdlaMiddleware =>
+  this: NdlaMiddleware with HasBaseProps =>
 
   sealed trait Service {}
 
@@ -30,7 +30,7 @@ trait Service {
     lazy val builtEndpoints: List[ServerEndpoint[Any, IO]] = {
       this.endpoints.map(e => {
         ServerEndpoint(
-          endpoint = e.endpoint.prependIn(this.prefix).tag("frontpage-api"),
+          endpoint = e.endpoint.prependIn(this.prefix).tag(props.ApplicationName),
           securityLogic = e.securityLogic,
           logic = e.logic
         )

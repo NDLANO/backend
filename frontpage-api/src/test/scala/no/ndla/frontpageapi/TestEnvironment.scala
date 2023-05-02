@@ -9,12 +9,13 @@ package no.ndla.frontpageapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.frontpageapi.controller.{FilmPageController, NdlaMiddleware, Service, SubjectPageController}
+import no.ndla.frontpageapi.controller.{FilmPageController, SubjectPageController}
 import no.ndla.frontpageapi.integration.DataSource
 import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment

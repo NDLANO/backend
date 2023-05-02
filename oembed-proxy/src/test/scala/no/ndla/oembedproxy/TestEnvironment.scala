@@ -8,8 +8,10 @@
 
 package no.ndla.oembedproxy
 
+import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
 import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController}
 import no.ndla.oembedproxy.model.ErrorHelpers
@@ -28,7 +30,10 @@ trait TestEnvironment
     with NdlaSwaggerSupport
     with MemoizeHelpers
     with ErrorHelpers
-    with OEmbedProxyInfo {
+    with Clock
+    with Service
+    with NdlaMiddleware
+    with Routes {
   override val props = new OEmbedProxyProperties
 
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
@@ -36,6 +41,7 @@ trait TestEnvironment
   val ndlaClient: NdlaClient                       = mock[NdlaClient]
   val providerService: ProviderService             = mock[ProviderService]
   val healthController: HealthController           = mock[HealthController]
+  val clock: SystemClock                           = mock[SystemClock]
 
   def resetMocks(): Unit = {
     reset(oEmbedService, oEmbedProxyController, ndlaClient, providerService)
