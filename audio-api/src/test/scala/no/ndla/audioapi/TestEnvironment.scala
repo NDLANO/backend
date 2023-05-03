@@ -11,13 +11,7 @@ package no.ndla.audioapi
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.{
-  AudioController,
-  HealthController,
-  InternController,
-  NdlaController,
-  SeriesController
-}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
@@ -27,6 +21,7 @@ import no.ndla.audioapi.service.search._
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Service}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -44,10 +39,11 @@ trait TestEnvironment
     with ValidationService
     with ConverterService
     with AudioStorageService
-    with NdlaController
     with NdlaControllerBase
     with NdlaSwaggerSupport
     with InternController
+    with Service
+    with NdlaMiddleware
     with HealthController
     with AudioController
     with SeriesController

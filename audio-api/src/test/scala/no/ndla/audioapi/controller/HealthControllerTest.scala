@@ -52,7 +52,6 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     None
   )
 
-  addServlet(controller, "/")
   when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
   when(audioRepository.getRandomAudio()).thenReturn(None)
 

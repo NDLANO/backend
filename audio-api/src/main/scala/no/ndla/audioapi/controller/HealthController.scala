@@ -8,42 +8,49 @@
 
 package no.ndla.audioapi.controller
 
+import cats.effect.IO
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.network.scalatra.BaseHealthController
-import org.scalatra.{ActionResult, InternalServerError, Ok}
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.Service
+import org.http4s.HttpRoutes
 import sttp.client3.Response
 import sttp.client3.quick._
+import org.http4s.dsl.io._
 
 trait HealthController {
-  this: AudioRepository with Props =>
+  this: AudioRepository with Props with Service =>
   val healthController: HealthController
 
-  class HealthController extends BaseHealthController {
+  class HealthController extends Warmup with NoDocService {
+    private val localhost = "localhost"
+    private val localport = props.ApplicationPort
 
     def getApiResponse(url: String): Response[String] = {
       simpleHttpClient.send(quickRequest.get(uri"$url"))
     }
 
-    def getReturnCode(imageResponse: Response[String]): ActionResult = {
+    private def getReturnCode(imageResponse: Response[String]) = {
       imageResponse.code.code match {
         case 200 => Ok()
         case _   => InternalServerError()
       }
     }
 
-    get("/") {
-      val host = "localhost"
-      val port = props.ApplicationPort
-
-      audioRepository
-        .getRandomAudio()
-        .map(audio => {
-          val id         = audio.id.get
-          val previewUrl = s"http://$host:$port${props.AudioControllerPath}$id"
-          getReturnCode(getApiResponse(previewUrl))
-        })
-        .getOrElse(Ok())
+    override def getBinding: (String, HttpRoutes[IO]) = "/health" -> {
+      HttpRoutes.of[IO] { case GET -> Root =>
+        if (!isWarmedUp) InternalServerError("Warmup hasn't finished")
+        else {
+          audioRepository
+            .getRandomAudio()
+            .map(audio => {
+              val id         = audio.id.get
+              val previewUrl = s"http://$localhost:$localport${props.AudioControllerPath}$id"
+              getReturnCode(getApiResponse(previewUrl))
+            })
+            .getOrElse(Ok())
+        }
+      }
     }
   }
 

@@ -21,7 +21,6 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
 
   override val converterService = new ConverterService
   lazy val controller           = new InternController
-  addServlet(controller, "/*")
 
   val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
   val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)

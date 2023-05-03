@@ -21,8 +21,9 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import org.scalatra.servlet.FileItem
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File}
 import java.lang.Math.max
+import java.nio.file.Files
 import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {

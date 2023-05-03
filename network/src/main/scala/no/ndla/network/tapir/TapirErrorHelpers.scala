@@ -19,23 +19,34 @@ trait TapirErrorHelpers {
   object ErrorHelpers {
     val logger: Logger = getLogger
 
-    val GENERIC              = "GENERIC"
-    val NOT_FOUND            = "NOT_FOUND"
-    val BAD_REQUEST          = "BAD_REQUEST"
-    val UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY"
-    val UNAUTHORIZED         = "UNAUTHORIZED"
-    val FORBIDDEN            = "FORBIDDEN"
+    val GENERIC                = "GENERIC"
+    val NOT_FOUND              = "NOT_FOUND"
+    val BAD_REQUEST            = "BAD_REQUEST"
+    val UNPROCESSABLE_ENTITY   = "UNPROCESSABLE_ENTITY"
+    val UNAUTHORIZED           = "UNAUTHORIZED"
+    val FORBIDDEN              = "FORBIDDEN"
+    val ACCESS_DENIED          = "ACCESS DENIED"
+    val IMPORT_FAILED          = "IMPORT_FAILED"
+    val FILE_TOO_BIG           = "FILE TOO BIG"
+    val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
+    val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
+    val VALIDATION             = "VALIDATION_ERROR"
 
     val PARAMETER_MISSING      = "PARAMETER MISSING"
     val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
     val REMOTE_ERROR           = "REMOTE ERROR"
+    val WINDOW_TOO_LARGE       = "RESULT_WINDOW_TOO_LARGE"
+    val RESOURCE_OUTDATED      = "RESOURCE_OUTDATED"
 
     val GENERIC_DESCRIPTION =
       s"Ooops. Something we didn't anticipate occurred. We have logged the error, and will look into it. But feel free to contact ${props.ContactEmail} if the error persists."
-    val NOT_FOUND_DESCRIPTION = s"The page you requested does not exist"
-
-    val UNAUTHORIZED_DESCRIPTION = "Missing user/client-id or role"
-    val FORBIDDEN_DESCRIPTION    = "You do not have the required permissions to access that resource"
+    val NOT_FOUND_DESCRIPTION            = s"The page you requested does not exist"
+    val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
+    val UNAUTHORIZED_DESCRIPTION         = "Missing user/client-id or role"
+    val FORBIDDEN_DESCRIPTION            = "You do not have the required permissions to access that resource"
+    val RESOURCE_OUTDATED_DESCRIPTION    = "The resource is outdated. Please try fetching before submitting again."
+    val INVALID_SEARCH_CONTEXT_DESCRIPTION =
+      "The search-context specified was not expected. Please create one by searching from page 1."
 
     def generic: ErrorBody                      = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 500)
     def notFound: ErrorBody                     = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now(), 404)
@@ -44,6 +55,8 @@ trait TapirErrorHelpers {
     def unauthorized: ErrorBody                 = ErrorBody(UNAUTHORIZED, UNAUTHORIZED_DESCRIPTION, clock.now(), 401)
     def forbidden: ErrorBody                    = ErrorBody(FORBIDDEN, FORBIDDEN_DESCRIPTION, clock.now(), 403)
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
+    def invalidSearchContext: ErrorBody =
+      ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
   }
 
   def returnError(ex: Throwable): ErrorBody

@@ -32,7 +32,6 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
   implicit val swagger: AudioSwagger = new AudioSwagger
   lazy val controller                = new AudioController
-  addServlet(controller, "/*")
 
   val sampleUploadFile: Uploadable = new Uploadable {
     override def contentLength        = 3

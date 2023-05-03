@@ -75,7 +75,7 @@ trait SeriesRepository {
           val message =
             s"Found revision mismatch when attempting to update series with id '${series.id}' (rev: ${series.revision})"
           logger.info(message)
-          Failure(new OptimisticLockException)
+          Failure(new Helpers.OptimisticLockException)
         case Success(_) =>
           logger.info(s"Updated series with id ${series.id}")
           Success(series.copy(revision = newRevision))

@@ -7,6 +7,11 @@
 
 package no.ndla.audioapi.model.api
 
+import io.circe.generic.auto._
+import io.circe.generic.semiauto._
+import io.circe.parser._
+import io.circe.syntax._
+import io.circe.{Decoder, Encoder}
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field

@@ -1,9 +1,8 @@
 /*
  * Part of NDLA audio-api
- * Copyright (C) 2016 NDLA
+ * Copyright (C) 2023 NDLA
  *
  * See LICENSE
- *
  */
 
 package no.ndla.audioapi
@@ -11,6 +10,7 @@ package no.ndla.audioapi
 import org.scalatra.ScalatraServlet
 import org.scalatra.swagger._
 
+// TODO: Slett hele fila eru grei
 class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with NativeSwaggerBase {
   get("/") {
     renderSwagger2(swagger.docs.toList)

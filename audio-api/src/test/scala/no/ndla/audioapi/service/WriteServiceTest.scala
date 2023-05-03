@@ -704,7 +704,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
     })
-    when(seriesRepository.update(any[domain.Series])(any[DBSession])).thenReturn(Failure(new OptimisticLockException))
+    when(seriesRepository.update(any[domain.Series])(any[DBSession]))
+      .thenReturn(Failure(new Helpers.OptimisticLockException))
     setupSuccessfulSeriesValidation()
 
     val updateSeries = api.NewSeries(
