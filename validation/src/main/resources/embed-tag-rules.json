@@ -288,6 +288,14 @@
         [ "data-size" ],
         [ "data-author" ]
       ]
+    },
+    "key-performance-indicator": {
+      "required": [
+        "data-resource",
+        "data-image-id",
+        "data-title",
+        "data-sub-title"
+     ]
     }
   }
 }
