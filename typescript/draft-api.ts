@@ -289,6 +289,7 @@ export interface IUpdatedComment {
 export interface IUpdatedUserData {
   savedSearches?: string[]
   latestEditedArticles?: string[]
+  latestEditedConcepts?: string[]
   favoriteSubjects?: string[]
 }
 
@@ -303,6 +304,7 @@ export interface IUserData {
   userId: string
   savedSearches?: string[]
   latestEditedArticles?: string[]
+  latestEditedConcepts?: string[]
   favoriteSubjects?: string[]
 }
 
