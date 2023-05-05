@@ -289,12 +289,12 @@
         [ "data-author" ]
       ]
     },
-    "key-performance-indicator": {
+    "key-figure": {
       "required": [
         "data-resource",
         "data-image-id",
         "data-title",
-        "data-sub-title"
+        "data-subtitle"
      ]
     }
   }
