@@ -23,6 +23,7 @@ import no.ndla.searchapi.model.search.SearchType
 import no.ndla.searchapi.model.search.settings.SearchSettings
 
 import java.util.concurrent.Executors
+import scala.collection.immutable.List
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -117,7 +118,7 @@ trait MultiSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, settings.language).map(hits => {
+            getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
                 page = Some(settings.page),
@@ -168,8 +169,9 @@ trait MultiSearchService {
       )
       val taxonomyContextTypeFilter   = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
-      val taxonomySubjectFilter       = subjectFilter(settings.subjects)
+      val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+      val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
 
@@ -188,6 +190,7 @@ trait MultiSearchService {
         taxonomyContextTypeFilter,
         supportedLanguageFilter,
         taxonomyRelevanceFilter,
+        taxonomyContextActiveFilter,
         grepCodesFilter,
         embedResourceAndIdFilter,
         availabilityFilter

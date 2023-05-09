@@ -127,7 +127,7 @@ trait MultiDraftSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
-            getHits(response.result, settings.language).map(hits => {
+            getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
                 page = Some(settings.page),
@@ -185,9 +185,10 @@ trait MultiDraftSearchService {
       )
       val taxonomyContextFilter       = contextTypeFilter(settings.learningResourceTypes)
       val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
-      val taxonomySubjectFilter       = subjectFilter(settings.subjects)
-      val taxonomyTopicFilter         = topicFilter(settings.topics)
+      val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
+      val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+      val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
       List(
         licenseFilter,
@@ -198,6 +199,7 @@ trait MultiDraftSearchService {
         taxonomyTopicFilter,
         taxonomyResourceTypesFilter,
         taxonomyContextFilter,
+        taxonomyContextActiveFilter,
         supportedLanguageFilter,
         taxonomyRelevanceFilter,
         statusFilter,

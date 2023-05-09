@@ -16,7 +16,6 @@ import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.TaxonomyException
-import no.ndla.searchapi.model.search.SearchableTaxonomyContext
 import no.ndla.searchapi.model.taxonomy._
 import org.json4s.Formats
 import sttp.client3.quick._
@@ -48,8 +47,8 @@ trait TaxonomyApiClient {
         contentUri: String,
         filterVisibles: Boolean,
         shouldUsePublishedTax: Boolean
-    ): Try[List[SearchableTaxonomyContext]] = {
-      get[List[SearchableTaxonomyContext]](
+    ): Try[List[TaxonomyContext]] = {
+      get[List[TaxonomyContext]](
         s"$TaxonomyApiEndpoint/queries/$contentUri",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         params = "filterVisibles" -> filterVisibles.toString

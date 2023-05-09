@@ -47,9 +47,9 @@ object TestData {
     Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
   val today: LocalDateTime = LocalDateTime.now().withNano(0)
 
-  val sampleArticleTitle         = ArticleApiTitle("tittell", "nb")
-  val sampleArticleVisualElement = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
-  val sampleArticleIntro         = ArticleApiIntro("intro", "nb")
+  val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "nb")
+  val sampleArticleVisualElement          = ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
+  val sampleArticleIntro                  = ArticleApiIntro("intro", "nb")
 
   val sampleArticleSearch = ArticleApiSearchResults(
     totalCount = 2,
@@ -1018,7 +1018,8 @@ object TestData {
       contextType: Option[String],
       relevance: Option[Relevance],
       isPrimary: Boolean,
-      isVisible: Boolean
+      isVisible: Boolean,
+      isActive: Boolean
   ): List[TaxonomyContext] = {
     parent.contexts.map(context => {
       TaxonomyContext(
@@ -1038,7 +1039,8 @@ object TestData {
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
         contextId = RandomStringUtils.randomAlphabetic(12),
-        isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible)
+        isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
+        isActive = isActive
       )
     })
   }
@@ -1065,7 +1067,8 @@ object TestData {
         parentIds = List.empty,
         isPrimary = true,
         contextId = "",
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
     )
   )
@@ -1091,7 +1094,8 @@ object TestData {
         parentIds = List.empty,
         isPrimary = true,
         contextId = "",
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
     )
   )
@@ -1117,7 +1121,8 @@ object TestData {
         parentIds = List.empty,
         isPrimary = true,
         contextId = "",
-        isVisible = false
+        isVisible = false,
+        isActive = true
       )
     )
   )
@@ -1132,7 +1137,7 @@ object TestData {
     List.empty
   )
   topic_1.contexts =
-    generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true)
+    generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true, true)
   val topic_2: Node = Node(
     "urn:topic:2",
     article9.title.head.title,
@@ -1144,7 +1149,7 @@ object TestData {
     List.empty
   )
   topic_2.contexts =
-    generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), Some(core), true, true)
+    generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), Some(core), true, true, true)
   val topic_3: Node = Node(
     "urn:topic:3",
     article10.title.head.title,
@@ -1156,7 +1161,7 @@ object TestData {
     List.empty
   )
   topic_3.contexts =
-    generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true)
+    generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), Some(core), true, true, true)
   val topic_4: Node = Node(
     "urn:topic:4",
     article11.title.head.title,
@@ -1168,7 +1173,7 @@ object TestData {
     List.empty
   )
   topic_4.contexts =
-    generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), Some(core), true, true)
+    generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), Some(core), true, true, true)
   val topic_5: Node = Node(
     "urn:topic:5",
     draft15.title.head.title,
@@ -1180,7 +1185,7 @@ object TestData {
     List.empty
   )
   topic_5.contexts =
-    generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), Some(supp), true, true)
+    generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), Some(supp), true, true, true)
   val resource_1: Node = Node(
     "urn:resource:1",
     article1.title.head.title,
@@ -1199,10 +1204,31 @@ object TestData {
     Some("standard"),
     Some(core),
     true,
+    true,
     true
   ) ++
-    generateContexts(resource_1, subject_1, topic_1, List(subjectMaterial), Some("standard"), Some(core), true, true) ++
-    generateContexts(resource_1, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(core), true, true)
+    generateContexts(
+      resource_1,
+      subject_1,
+      topic_1,
+      List(subjectMaterial),
+      Some("standard"),
+      Some(core),
+      true,
+      true,
+      true
+    ) ++
+    generateContexts(
+      resource_1,
+      subject_2,
+      topic_4,
+      List(subjectMaterial),
+      Some("standard"),
+      Some(core),
+      true,
+      true,
+      false
+    )
   val resource_2: Node = Node(
     "urn:resource:2",
     article2.title.head.title,
@@ -1221,6 +1247,7 @@ object TestData {
     Some("standard"),
     Some(supp),
     true,
+    true,
     true
   )
   val resource_3: Node = Node(
@@ -1233,8 +1260,17 @@ object TestData {
     NodeType.RESOURCE,
     List.empty
   )
-  resource_3.contexts =
-    generateContexts(resource_3, subject_1, topic_3, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+  resource_3.contexts = generateContexts(
+    resource_3,
+    subject_1,
+    topic_3,
+    List(subjectMaterial),
+    Some("standard"),
+    Some(supp),
+    true,
+    true,
+    true
+  )
   val resource_4: Node = Node(
     "urn:resource:4",
     article4.title.head.title,
@@ -1245,8 +1281,17 @@ object TestData {
     NodeType.RESOURCE,
     List.empty
   )
-  resource_4.contexts =
-    generateContexts(resource_4, subject_1, topic_2, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+  resource_4.contexts = generateContexts(
+    resource_4,
+    subject_1,
+    topic_2,
+    List(subjectMaterial),
+    Some("standard"),
+    Some(supp),
+    true,
+    true,
+    true
+  )
   val resource_5: Node = Node(
     "urn:resource:5",
     article5.title.head.title,
@@ -1265,7 +1310,8 @@ object TestData {
     Some("standard"),
     Some(core),
     true,
-    true
+    true,
+    false
   ) ++
     generateContexts(
       resource_5,
@@ -1274,6 +1320,7 @@ object TestData {
       List(academicArticle, subjectMaterial),
       Some("standard"),
       Some(core),
+      true,
       true,
       true
     )
@@ -1287,8 +1334,17 @@ object TestData {
     NodeType.RESOURCE,
     List.empty
   )
-  resource_6.contexts =
-    generateContexts(resource_6, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(core), true, true)
+  resource_6.contexts = generateContexts(
+    resource_6,
+    subject_2,
+    topic_4,
+    List(subjectMaterial),
+    Some("standard"),
+    Some(core),
+    true,
+    true,
+    true
+  )
   val resource_7: Node = Node(
     "urn:resource:7",
     article7.title.head.title,
@@ -1307,7 +1363,8 @@ object TestData {
     Some("standard"),
     Some(core),
     true,
-    true
+    true,
+    false
   )
   val resource_8: Node = Node(
     "urn:resource:8",
@@ -1319,8 +1376,17 @@ object TestData {
     NodeType.RESOURCE,
     List.empty
   )
-  resource_8.contexts =
-    generateContexts(resource_8, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), Some(supp), true, true)
+  resource_8.contexts = generateContexts(
+    resource_8,
+    subject_1,
+    topic_1,
+    List(rtLearningpath),
+    Some("learningpath"),
+    Some(supp),
+    true,
+    true,
+    true
+  )
   val resource_9: Node = Node(
     "urn:resource:9",
     learningPath2.title.head.title,
@@ -1331,8 +1397,17 @@ object TestData {
     NodeType.RESOURCE,
     List.empty
   )
-  resource_9.contexts =
-    generateContexts(resource_9, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), Some(core), true, true)
+  resource_9.contexts = generateContexts(
+    resource_9,
+    subject_1,
+    topic_1,
+    List(rtLearningpath),
+    Some("learningpath"),
+    Some(core),
+    true,
+    true,
+    true
+  )
   val resource_10: Node = Node(
     "urn:resource:10",
     learningPath3.title.head.title,
@@ -1350,6 +1425,7 @@ object TestData {
     List(rtLearningpath),
     Some("learningpath"),
     Some(core),
+    true,
     true,
     true
   )
@@ -1371,6 +1447,7 @@ object TestData {
     Some("learningpath"),
     Some(supp),
     true,
+    true,
     true
   )
   val resource_12: Node = Node(
@@ -1390,6 +1467,7 @@ object TestData {
     List(rtLearningpath),
     Some("learningpath"),
     Some(supp),
+    true,
     true,
     true
   )
@@ -1411,9 +1489,20 @@ object TestData {
     Some("standard"),
     Some(core),
     true,
+    true,
     true
   ) ++
-    generateContexts(resource_13, subject_2, topic_4, List(subjectMaterial), Some("standard"), Some(supp), true, true)
+    generateContexts(
+      resource_13,
+      subject_2,
+      topic_4,
+      List(subjectMaterial),
+      Some("standard"),
+      Some(supp),
+      true,
+      true,
+      true
+    )
 
   val nodes = List(
     subject_1,
@@ -1482,7 +1571,8 @@ object TestData {
     embedResource = List.empty,
     embedId = None,
     availability = List.empty,
-    articleTypes = List.empty
+    articleTypes = List.empty,
+    filterInactive = false
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1514,7 +1604,8 @@ object TestData {
     revisionDateFilterTo = None,
     excludeRevisionHistory = false,
     responsibleIdFilter = List.empty,
-    articleTypes = List.empty
+    articleTypes = List.empty,
+    filterInactive = false
   )
 
   val searchableResourceTypes = List(
@@ -1530,9 +1621,9 @@ object TestData {
 
   val singleSearchableTaxonomyContext =
     SearchableTaxonomyContext(
-      id = "urn:resource:101",
-      subjectId = "urn:subject:1",
-      subject = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+      publicId = "urn:resource:101",
+      rootId = "urn:subject:1",
+      root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
       path = "/subject:3/topic:1/topic:151/resource:101",
       breadcrumbs = SearchableLanguageList(
         Seq(
@@ -1543,8 +1634,9 @@ object TestData {
       relevanceId = Some("urn:relevance:core"),
       relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
       resourceTypes = searchableResourceTypes,
-      parentTopicIds = List("urn:topic:1"),
-      isPrimaryConnection = true
+      parentIds = List("urn:topic:1"),
+      isPrimary = true,
+      isActive = true
     )
 
   val searchableTaxonomyContexts = List(

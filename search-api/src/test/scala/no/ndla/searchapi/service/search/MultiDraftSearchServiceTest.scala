@@ -430,6 +430,16 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
     search.results.map(_.id) should be(Seq(1, 5, 5, 6, 7, 11, 12))
   }
 
+  test("That filtering for subjects with inactive contexts works as expected") {
+    val Success(search) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"), filterInactive = true)
+      )
+    search.totalCount should be(4)
+    search.results.flatMap(_.contexts).toList.length should be(5)
+    search.results.map(_.id) should be(Seq(5, 6, 11, 12))
+  }
+
   test("That filtering for subjects returns all drafts with any of listed subjects") {
     val Success(search) =
       multiDraftSearchService.matchingQuery(
@@ -479,6 +489,30 @@ class MultiDraftSearchServiceTest extends IntegrationSuite(EnableElasticsearchCo
 
     search.totalCount should be(12)
     search.results.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 15))
+  }
+
+  test("That filtering out inactive contexts works as expected") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        language = "*",
+        filterInactive = false
+      )
+    )
+
+    val totalCount   = search.totalCount
+    val ids          = search.results.map(_.id).length
+    val contextCount = search.results.flatMap(_.contexts).toList.length
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        language = "*",
+        filterInactive = true
+      )
+    )
+
+    totalCount should be > search2.totalCount
+    ids should be > search2.results.map(_.id).length
+    contextCount should be > search2.results.flatMap(_.contexts).toList.length
   }
 
   test("That filtering on learning-resource-type works") {

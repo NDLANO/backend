@@ -549,7 +549,8 @@ class MultiDraftSearchServiceAtomicTest
           parentIds = List.empty,
           isPrimary = true,
           contextId = "",
-          isVisible = true
+          isVisible = true,
+          isActive = true
         )
       )
     )
@@ -563,8 +564,17 @@ class MultiDraftSearchServiceAtomicTest
       NodeType.TOPIC,
       List.empty
     )
-    topic_1.contexts =
-      generateContexts(topic_1, subject_1, subject_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    topic_1.contexts = generateContexts(
+      topic_1,
+      subject_1,
+      subject_1,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true,
+      isActive = true
+    )
     val topic_2 = Node(
       "urn:topic:2",
       "T2",
@@ -575,8 +585,17 @@ class MultiDraftSearchServiceAtomicTest
       NodeType.TOPIC,
       List.empty
     )
-    topic_2.contexts =
-      generateContexts(topic_2, subject_1, subject_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    topic_2.contexts = generateContexts(
+      topic_2,
+      subject_1,
+      subject_1,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true,
+      isActive = true
+    )
     val topic_3 = Node(
       "urn:topic:3",
       "T3",
@@ -587,8 +606,17 @@ class MultiDraftSearchServiceAtomicTest
       NodeType.TOPIC,
       List.empty
     )
-    topic_3.contexts =
-      generateContexts(topic_3, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    topic_3.contexts = generateContexts(
+      topic_3,
+      subject_1,
+      topic_1,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true,
+      isActive = true
+    )
     val topic_4 = Node(
       "urn:topic:4",
       "T4",
@@ -599,8 +627,17 @@ class MultiDraftSearchServiceAtomicTest
       NodeType.TOPIC,
       List.empty
     )
-    topic_4.contexts =
-      generateContexts(topic_4, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    topic_4.contexts = generateContexts(
+      topic_4,
+      subject_1,
+      topic_1,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true,
+      isActive = true
+    )
     val resource_5 = Node(
       "urn:resource:5",
       "R5",
@@ -619,7 +656,8 @@ class MultiDraftSearchServiceAtomicTest
       None,
       Some(core),
       isPrimary = true,
-      isVisible = true
+      isVisible = true,
+      isActive = true
     ) ++
       generateContexts(
         resource_5,
@@ -629,7 +667,8 @@ class MultiDraftSearchServiceAtomicTest
         None,
         Some(core),
         isPrimary = false,
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
     val resource_6 = Node(
       "urn:resource:6",
@@ -641,8 +680,17 @@ class MultiDraftSearchServiceAtomicTest
       NodeType.RESOURCE,
       List.empty
     )
-    resource_6.contexts =
-      generateContexts(resource_6, subject_1, topic_3, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+    resource_6.contexts = generateContexts(
+      resource_6,
+      subject_1,
+      topic_3,
+      List.empty,
+      None,
+      Some(core),
+      isPrimary = true,
+      isVisible = true,
+      isActive = true
+    )
 
     val taxonomyBundle = {
       TaxonomyBundle(nodes =

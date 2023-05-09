@@ -31,5 +31,6 @@ case class SearchSettings(
     embedResource: List[String],
     embedId: Option[String],
     availability: List[Availability.Value],
-    articleTypes: List[String]
+    articleTypes: List[String],
+    filterInactive: Boolean
 )

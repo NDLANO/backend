@@ -65,10 +65,8 @@ trait SearchController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
-    val response400: ResponseMessage = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404: ResponseMessage = ResponseMessage(404, "Not found", Some("Error"))
-    val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
+    private val response403: ResponseMessage = ResponseMessage(403, "Access Denied", Some("Error"))
+    private val response500: ResponseMessage = ResponseMessage(500, "Unknown error", Some("Error"))
 
     private val correlationId =
       Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
@@ -146,12 +144,10 @@ trait SearchController {
       "missing-group",
       "Whether to include group without resource-types for group-search. Defaults to false."
     )
-
     private val grepCodes = Param[Option[Seq[String]]](
       "grep-codes",
       "A comma separated list of codes from GREP API the resources should be filtered by."
     )
-
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
@@ -161,44 +157,37 @@ trait SearchController {
           |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
           |""".stripMargin
     )
-
     private val statusFilter = Param[Option[Seq[String]]](
       "draft-status",
       s"""List of statuses to filter by.
          |A draft only needs to have one of the available statuses to be included in result (OR).
          |Supported values are ${DraftStatus.values.mkString(", ")}.""".stripMargin
     )
-
     private val includeOtherStatuses =
       Param[Option[Boolean]](
         "include-other-statuses",
         s"Whether or not to include the 'other' status field when filtering with '${statusFilter.paramName}' param."
       )
-
     private val userFilter = Param[Option[Seq[String]]](
       "users",
       s"""List of users to filter by.
          |The value to search for is the user-id from Auth0.
          |UpdatedBy on article and user in editorial-notes are searched.""".stripMargin
     )
-
     private val aggregatePaths = Param[Option[Seq[String]]](
       "aggregate-paths",
       "List of index-paths that should be term-aggregated and returned in result."
     )
-
     private val embedResource =
       Param[Option[String]](
         "embed-resource",
         "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
       )
-
     private val embedId =
       Param[Option[String]](
         "embed-id",
         "Return only results with embed data-resource_id, data-videoid or data-url with the specified id."
       )
-
     private val revisionDateFilterFrom =
       Param[Option[LocalDateTime]](
         "revision-date-from",
@@ -213,11 +202,11 @@ trait SearchController {
       "exclude-revision-log",
       "Set to true to avoid including hits from the revision history log."
     )
-
     private val responsibleIdFilter = Param[Option[Seq[String]]](
       "responsible-ids",
       "List of responsible ids to filter by (OR filter)."
     )
+    private val filterInactive = Param[Option[Boolean]]("filter-inactive", "Filter out inactive taxonomy contexts.")
 
     private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
 
@@ -247,7 +236,8 @@ trait SearchController {
             asQueryParam(aggregatePaths),
             asQueryParam(grepCodes),
             asQueryParam(embedResource),
-            asQueryParam(embedId)
+            asQueryParam(embedId),
+            asQueryParam(filterInactive)
           )
           .responseMessages(response500)
       )
@@ -273,6 +263,7 @@ trait SearchController {
       val aggregatePaths = paramAsListOfString(this.aggregatePaths.paramName)
       val embedResource  = paramAsListOfString(this.embedResource.paramName)
       val embedId        = paramOrNone(this.embedId.paramName)
+      val filterInactive = booleanOrDefault(this.filterInactive.paramName, default = false)
 
       getAvailability() match {
         case Failure(ex) => errorHandler(ex)
@@ -298,7 +289,8 @@ trait SearchController {
             embedResource = embedResource,
             embedId = embedId,
             availability = availability,
-            articleTypes = List.empty
+            articleTypes = List.empty,
+            filterInactive = filterInactive
           )
 
           groupSearch(settings, includeMissingResourceTypeGroup)
@@ -423,6 +415,7 @@ trait SearchController {
       val aggregatePaths           = paramAsListOfString(this.aggregatePaths.paramName)
       val embedResource            = paramAsListOfString(this.embedResource.paramName)
       val embedId                  = paramOrNone(this.embedId.paramName)
+      val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
 
       getAvailability().map(availability =>
         SearchSettings(
@@ -446,7 +439,8 @@ trait SearchController {
           embedResource = embedResource,
           embedId = embedId,
           availability = availability,
-          articleTypes = articleTypes
+          articleTypes = articleTypes,
+          filterInactive = filterInactive
         )
       )
     }
@@ -480,6 +474,7 @@ trait SearchController {
       val revisionDateTo           = paramAsDateOrNone(this.revisionDateFilterTo.paramName)
       val excludeRevisionHistory   = booleanOrDefault(this.excludeRevisionLog.paramName, default = false)
       val responsibleIds           = paramAsListOfString(this.responsibleIdFilter.paramName)
+      val filterInactive           = booleanOrDefault(this.filterInactive.paramName, default = false)
 
       MultiDraftSearchSettings(
         query = query,
@@ -510,7 +505,8 @@ trait SearchController {
         revisionDateFilterTo = revisionDateTo,
         excludeRevisionHistory = excludeRevisionHistory,
         responsibleIdFilter = responsibleIds,
-        articleTypes = articleTypes
+        articleTypes = articleTypes,
+        filterInactive = filterInactive
       )
     }
 
@@ -575,7 +571,8 @@ trait SearchController {
             asQueryParam(grepCodes),
             asQueryParam(aggregatePaths),
             asQueryParam(embedResource),
-            asQueryParam(embedId)
+            asQueryParam(embedId),
+            asQueryParam(filterInactive)
           )
           .responseMessages(response500)
       )
@@ -628,7 +625,8 @@ trait SearchController {
             asQueryParam(revisionDateFilterFrom),
             asQueryParam(revisionDateFilterTo),
             asQueryParam(excludeRevisionLog),
-            asQueryParam(responsibleIdFilter)
+            asQueryParam(responsibleIdFilter),
+            asQueryParam(filterInactive)
           )
           .authorizations("oauth2")
           .responseMessages(response403)

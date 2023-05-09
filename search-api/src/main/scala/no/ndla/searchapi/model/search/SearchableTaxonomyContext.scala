@@ -11,15 +11,16 @@ import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 // NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
 case class SearchableTaxonomyContext(
-    id: String,
-    subjectId: String,
-    subject: SearchableLanguageValues,
+    publicId: String,
+    rootId: String,
+    root: SearchableLanguageValues,
     path: String,
     breadcrumbs: SearchableLanguageList,
     contextType: String,
     relevanceId: Option[String],
     relevance: SearchableLanguageValues,
     resourceTypes: List[SearchableTaxonomyResourceType],
-    parentTopicIds: List[String],
-    isPrimaryConnection: Boolean
+    parentIds: List[String],
+    isPrimary: Boolean,
+    isActive: Boolean
 )
