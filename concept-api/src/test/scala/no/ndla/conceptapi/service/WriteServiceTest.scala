@@ -87,7 +87,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq.empty),
         None,
         None,
-        Right(None)
+        Right(None),
+        None,
+        None
       )
     val expectedConcept = concept.copy(
       content = Option(api.ConceptContent(newContent, "en")),
@@ -114,7 +116,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq.empty),
         None,
         None,
-        Right(None)
+        Right(None),
+        None,
+        None
       )
     val expectedConcept = concept.copy(
       title = api.ConceptTitle(newTitle, "nn"),
@@ -145,7 +149,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(Seq(69L)),
       None,
       None,
-      Right(Some("123"))
+      Right(Some("123")),
+      None,
+      None
     )
 
     val expectedConcept = concept.copy(
@@ -240,7 +246,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq.empty),
         None,
         None,
-        Right(Some(responsibleId))
+        Right(Some(responsibleId)),
+        None,
+        None
       )
     val expectedConcept = concept.copy(
       updated = today,
