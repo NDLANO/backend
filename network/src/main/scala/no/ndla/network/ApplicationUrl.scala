@@ -28,8 +28,6 @@ object ApplicationUrl {
   def set(str: String): Unit                 = applicationUrl.set(str)
   def set(request: NdlaHttpRequest): Unit    = set(fromRequest(request))
 
-  def fromRequest(request: HttpServletRequest): String = fromRequest(NdlaHttpRequest(request))
-
   def fromRequest(request: NdlaHttpRequest): String = {
     propOrNone("NDLA_ENVIRONMENT") match {
       case Some(environment) if environment.nonEmpty => s"${Domains.get(environment)}${request.servletPath}/"

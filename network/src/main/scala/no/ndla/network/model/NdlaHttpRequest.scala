@@ -7,6 +7,10 @@
 
 package no.ndla.network.model
 
+import org.http4s.Request
+import org.typelevel.ci.CIString
+import sttp.tapir.model.ServerRequest
+
 import javax.servlet.http.HttpServletRequest
 
 case class NdlaHttpRequest(
@@ -29,4 +33,26 @@ object NdlaHttpRequest {
       serverName = req.getServerName,
       servletPath = req.getServletPath
     )
+
+  def from(req: ServerRequest): NdlaHttpRequest = {
+    val port   = req.uri.port
+    val scheme = req.uri.scheme
+    NdlaHttpRequest(
+      serverPort = port.getOrElse(-1),
+      getHeaderFunc = name => req.header(name),
+      getScheme = scheme.getOrElse("http"),
+      serverName = req.uri.host.getOrElse("localhost"),
+      servletPath = req.uri.path.mkString("/")
+    )
+  }
+
+  def from[F[+_]](req: Request[F]): NdlaHttpRequest =
+    NdlaHttpRequest(
+      serverPort = req.serverPort.map(_.value).getOrElse(-1),
+      getHeaderFunc = name => req.headers.get(CIString(name)).map(_.head.value),
+      getScheme = req.uri.scheme.map(_.value).getOrElse("http"),
+      serverName = req.serverAddr.map(_.toUriString).getOrElse("localhost"),
+      servletPath = req.uri.path.renderString
+    )
+
 }

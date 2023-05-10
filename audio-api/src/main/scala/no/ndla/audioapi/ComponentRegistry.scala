@@ -102,8 +102,8 @@ class ComponentRegistry(properties: AudioApiProperties)
 
   lazy val internController   = new InternController
   lazy val audioApiController = new AudioController
-   lazy val seriesController   = new SeriesController
-  lazy val healthController = new HealthController
+  lazy val seriesController   = new SeriesController
+  lazy val healthController   = new HealthController
 
   var e4sClient: NdlaE4sClient    = Elastic4sClientFactory.getClient(props.SearchServer)
   lazy val searchConverterService = new SearchConverterService
@@ -119,9 +119,9 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val clock    = new SystemClock
 
   private val services: List[Service] = List(
-    internController,
     audioApiController,
     seriesController,
+    internController,
     healthController
   )
 

@@ -10,11 +10,12 @@ package no.ndla.network.tapir
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
+import no.ndla.network.model.RequestInfoInterceptor
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
-import org.log4s.getLogger
+import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
@@ -29,7 +30,7 @@ trait Routes {
   this: Service with NdlaMiddleware with TapirErrorHelpers =>
 
   object Routes {
-    val logger = getLogger
+    val logger: Logger = getLogger
     private def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
       val (docServices, noDocServices) = routes.partitionMap {
         case swaggerService: SwaggerService  => Left(swaggerService)
@@ -48,21 +49,26 @@ trait Routes {
         case None     => logger.error(logMsg)
       }
 
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
+      ValuedEndpointOutput(NoNullJsonPrinter.jsonBody[ErrorBody], ErrorHelpers.generic)
     }
 
-    private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
-    })
+    private val decodeFailureHandler =
+      DefaultDecodeFailureHandler.default
+        .response(failureMsg => {
+          ValuedEndpointOutput(
+            jsonBody[ErrorBody],
+            ErrorHelpers.badRequest(failureMsg)
+          )
+        })
 
     private case class NdlaExceptionHandler() extends ExceptionHandler[IO] {
       override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] = {
-        monad.unit(
-          Some(
-            failureResponse("Internal server error", Some(ctx.e))
-              .prepend(statusCode, StatusCode.InternalServerError)
-          )
-        )
+        val errorToReturn = returnError(ctx.e)
+        val sc            = StatusCode(errorToReturn.statusCode)
+
+        val resp   = ValuedEndpointOutput(NoNullJsonPrinter.jsonBody[ErrorBody], errorToReturn)
+        val withsc = resp.prepend(statusCode, sc)
+        monad.unit(Some(withsc))
       }
     }
 
@@ -70,6 +76,7 @@ trait Routes {
       val swaggerEndpoints = services.flatMap(_.builtEndpoints)
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
+        .prependInterceptor(RequestInfoInterceptor)
         .defaultHandlers(err => failureResponse(err, None))
         .exceptionHandler(NdlaExceptionHandler())
         .decodeFailureHandler(decodeFailureHandler)
@@ -87,7 +94,8 @@ trait Routes {
       val bindings = buildBindings(routes)
       val router   = Router[IO](bindings: _*)
       Kleisli[IO, Request[IO], Response[IO]](req => {
-        val res = router.run(req).getOrElse { getFallbackRoute }
+        val ran = router.run(req)
+        val res = ran.getOrElse { getFallbackRoute }
         NdlaMiddleware(req, res)
       })
     }

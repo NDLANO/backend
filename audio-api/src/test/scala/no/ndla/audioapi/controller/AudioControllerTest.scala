@@ -12,14 +12,27 @@ import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.TapirServer
 import org.mockito.ArgumentMatchers._
 import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
-import org.scalatra.test.scalatest.ScalatraSuite
+import sttp.client3.quick._
+import sttp.model.Part
 
+import java.io.File
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+class AudioControllerTest extends UnitSuite with TestEnvironment {
+  val serverPort: Int = findFreePort
+  val controller      = new AudioController
+
+  override def beforeAll(): Unit = {
+    val app    = Routes.build(List(controller))
+    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
+  }
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.BRAWsdX1Djs8GXGq7jj77DLUxyx2BAI86C74xwUEt4E"
@@ -30,15 +43,14 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.Hbmh9KX19nx7yT3rEcP9pyzRO0uQJBRucfqH9QEZtLyXjYj_fAyOhsoicOVEbHSES7rtdiJK43-gijSpWWmGWOkE6Ym7nHGhB_nLdvp_25PDgdKHo-KawZdAyIcJFr5_t3CJ2Z2IPVbrXwUd99vuXEBaV0dMwkT0kDtkwHuS-8E"
 
-  implicit val swagger: AudioSwagger = new AudioSwagger
-  lazy val controller                = new AudioController
-
   val sampleUploadFile: Uploadable = new Uploadable {
     override def contentLength        = 3
     override def content: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
     override def contentType          = "audio/mp3"
     override def fileName             = "test.mp3"
   }
+
+  val mockFile = mock[File]
 
   val sampleNewAudioMeta: String =
     """
@@ -57,15 +69,25 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     """.stripMargin
 
   test("That POST / returns 403 if no auth-header") {
-    post("/", Map("metadata" -> sampleNewAudioMeta)) {
-      status should equal(403)
-    }
+    val request =
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .contentType("multipart/form-data")
+        .readTimeout(Duration.Inf)
+        .multipartBody(multipart("metadata", sampleNewAudioMeta))
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(403)
   }
 
   test("That POST / returns 400 if parameters are missing") {
-    post("/", Map("metadata" -> sampleNewAudioMeta), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(400)
-    }
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .body(Map("metadata" -> sampleNewAudioMeta))
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+    )
+    response.code.code should be(400)
   }
 
   test("That POST / returns 200 if everything is fine and dandy") {
@@ -85,17 +107,20 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
         TestData.yesterday,
         TestData.today
       )
-    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem])).thenReturn(Success(sampleAudioMeta))
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Part[File]], any))
+      .thenReturn(Success(sampleAudioMeta))
 
-    post(
-      "/",
-      Map("metadata" -> sampleNewAudioMeta),
-      Map("file"     -> sampleUploadFile),
-      headers = Map("Authorization" -> authHeaderWithWriteRole)
-    ) {
-      status should equal(200)
-      body.contains("audioType\":\"podcast\"") should be(true)
-    }
+    val file     = multipartFile("file", mockFile)
+    val metadata = multipart("metadata", sampleNewAudioMeta)
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .multipartBody(file, metadata)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+    )
+    response.code.code should be(200)
+    response.body.contains("audioType\":\"podcast\"") should be(true)
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
@@ -103,29 +128,42 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     doNothing.when(runtimeMock).printStackTrace()
     when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
 
-    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[FileItem]))
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any, any))
       .thenReturn(Failure(runtimeMock))
 
-    post(
-      "/",
-      Map("metadata" -> sampleNewAudioMeta),
-      Map("file"     -> sampleUploadFile),
-      headers = Map("Authorization" -> authHeaderWithWriteRole)
-    ) {
-      status should equal(500)
-    }
+    val file     = multipartFile("file", mockFile)
+    val metadata = multipart("metadata", sampleNewAudioMeta)
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .multipartBody(file, metadata)
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+    )
+
+    response.code.code should be(500)
+
   }
 
   test("That POST / returns 403 if auth header does not have expected role") {
-    post("/", Map("metadata" -> sampleNewAudioMeta), headers = Map("Authorization" -> authHeaderWithWrongRole)) {
-      status should equal(403)
-    }
+    val metadata = multipart("metadata", sampleNewAudioMeta)
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .multipartBody(metadata)
+        .headers(Map("Authorization" -> authHeaderWithWrongRole))
+    )
+    response.code.code should be(403)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    post("/", Map("metadata" -> sampleNewAudioMeta), headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
-      status should equal(403)
-    }
+    val metadata = multipart("metadata", sampleNewAudioMeta)
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+        .multipartBody(metadata)
+        .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
+    )
   }
 
   test("That scrollId is in header, and not in body") {
@@ -141,11 +179,13 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
     )
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
-    get(s"/") {
-      status should be(200)
-      body.contains(scrollId) should be(false)
-      response.getHeader("search-context") should be(scrollId)
-    }
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/audio-api/v1/audio")
+    )
+    response.code.code should be(200)
+    response.body.contains(scrollId) should be(false)
+    response.header("search-context") should be(scrollId)
   }
 
   test("That scrolling uses scroll and not searches normally") {
@@ -163,9 +203,11 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    get(s"/?search-context=$scrollId") {
-      status should be(200)
-    }
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/audio-api/v1/audio?search-context=$scrollId")
+    )
+    response.code.code should be(200)
 
     verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
     verify(audioSearchService, times(1)).scroll(eqTo(scrollId), any[String])
@@ -186,9 +228,13 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    post(s"/search/", body = s"""{"scrollId":"$scrollId"}""") {
-      status should be(200)
-    }
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+        .body(s"""{"scrollId":"$scrollId"}""")
+        .contentType("application/json")
+    )
+    response.code.code should be(200)
 
     verify(audioSearchService, times(0)).matchingQuery(any[SearchSettings])
     verify(audioSearchService, times(1)).scroll(eqTo(scrollId), any[String])
@@ -213,9 +259,13 @@ class AudioControllerTest extends UnitSuite with ScalatraSuite with TestEnvironm
       shouldScroll = true
     )
 
-    post(s"/search/", body = s"""{"scrollId":"initial"}""") {
-      status should be(200)
-    }
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+        .body(s"""{"scrollId":"initial"}""")
+        .contentType("application/json")
+    )
+    response.code.code should be(200)
 
     verify(audioSearchService, times(1)).matchingQuery(expectedSettings)
     verify(audioSearchService, times(0)).scroll(any[String], any[String])

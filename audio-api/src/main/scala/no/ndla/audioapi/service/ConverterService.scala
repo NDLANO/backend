@@ -21,6 +21,7 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
@@ -247,7 +248,8 @@ trait ConverterService {
     def toDomainAudioMetaInformation(
         audioMeta: api.NewAudioMetaInformation,
         audio: domain.Audio,
-        maybeSeries: Option[domain.Series]
+        maybeSeries: Option[domain.Series],
+        tokenUser: TokenUser
     ): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(
         id = None,
@@ -256,7 +258,7 @@ trait ConverterService {
         filePaths = Seq(audio),
         copyright = toDomainCopyright(audioMeta.copyright),
         tags = if (audioMeta.tags.nonEmpty) Seq(common.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
-        updatedBy = authUser.userOrClientid(),
+        updatedBy = tokenUser.id,
         updated = clock.now(),
         created = clock.now(),
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,

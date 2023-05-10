@@ -7,6 +7,8 @@
 
 package no.ndla.network
 
+import cats.effect.IOLocal
+
 import javax.servlet.http.HttpServletRequest
 import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.NdlaHttpRequest
@@ -45,7 +47,6 @@ object AuthUser {
   private val clientId   = ThreadLocal.withInitial[Option[String]](() => None)
   private val authHeader = ThreadLocal.withInitial[Option[String]](() => None)
 
-  def fromRequest(request: HttpServletRequest): AuthUser = fromRequest(NdlaHttpRequest(request))
   def fromRequest(request: NdlaHttpRequest): AuthUser = {
     val jWTExtractor = JWTExtractor(request)
     new AuthUser(
@@ -56,6 +57,7 @@ object AuthUser {
       authHeader = request.getHeader("Authorization")
     )
   }
+
   def fromThreadContext(): AuthUser = {
     new AuthUser(
       userId = AuthUser.get,

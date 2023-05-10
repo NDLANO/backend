@@ -19,9 +19,10 @@ import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
-import org.scalatra.servlet.FileItem
+import sttp.model.Part
 
 import java.awt.image.BufferedImage
+import java.io.File
 import java.net.URL
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
@@ -91,9 +92,9 @@ trait ValidationService {
       correctTypeError ++ overrideSeriesIdError ++ hasPodcastMetaError
     }
 
-    def validateAudioFile(audioFile: FileItem): Option[ValidationMessage] = {
+    def validateAudioFile(audioFile: Part[File]): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
-      val actualMimeType = audioFile.getContentType.getOrElse("")
+      val actualMimeType = audioFile.contentType.getOrElse("")
 
       if (!validMimeTypes.contains(actualMimeType)) {
         return Some(
@@ -104,10 +105,10 @@ trait ValidationService {
         )
       }
 
-      if (audioFile.name.toLowerCase.endsWith(".mp3")) None
+      if (audioFile.fileName.getOrElse("").toLowerCase.endsWith(".mp3")) None
       else
         Some(
-          ValidationMessage("files", s"The file ${audioFile.name} does not have a known file extension. Must be .mp3")
+          ValidationMessage("files", s"The file '${audioFile.name}' does not have a known file extension. Must be .mp3")
         )
     }
 

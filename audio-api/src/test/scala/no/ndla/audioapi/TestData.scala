@@ -11,6 +11,8 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
 import no.ndla.common.model.{domain => common}
+import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime
 
@@ -106,4 +108,6 @@ object TestData {
     created = yesterday,
     hasRSS = true
   )
+
+  val testUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE))
 }

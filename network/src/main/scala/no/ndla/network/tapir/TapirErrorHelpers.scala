@@ -7,8 +7,10 @@
 
 package no.ndla.network.tapir
 
+import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
+import no.ndla.network.tapir.auth.{Scope, TokenUser}
 import org.log4s.{Logger, getLogger}
 
 import scala.util.{Failure, Success, Try}
@@ -57,6 +59,15 @@ trait TapirErrorHelpers {
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
     def invalidSearchContext: ErrorBody =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
+
+    /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
+      * some endpoint.
+      */
+    def requireScope(scope: Scope): Option[TokenUser] => Either[ErrorBody, TokenUser] = {
+      case Some(user) if user.hasScope(scope) => user.asRight
+      case Some(_)                            => ErrorHelpers.forbidden.asLeft
+      case None                               => ErrorHelpers.unauthorized.asLeft
+    }
   }
 
   def returnError(ex: Throwable): ErrorBody

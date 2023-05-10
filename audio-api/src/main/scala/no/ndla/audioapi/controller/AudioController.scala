@@ -8,44 +8,33 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.model.Sort
-import no.ndla.audioapi.model.api.{
-  AudioMetaInformation,
-  AudioSummarySearchResult,
-  ErrorHelpers,
-  NewAudioMetaInformation,
-  SearchParams,
-  TagsSearchResult,
-  UpdatedAudioMetaInformation,
-  ValidationError
-}
-import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
-import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
-import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.language.Language
-import no.ndla.network.scalatra.NdlaSwaggerSupport
-import no.ndla.network.tapir.Service
-import scala.util.{Failure, Success, Try}
-import sttp.tapir.EndpointInput
 import cats.effect.IO
 import cats.implicits._
 import io.circe._
 import io.circe.generic.auto._
+import no.ndla.audioapi.Props
+import no.ndla.audioapi.auth.{Role, User}
+import no.ndla.audioapi.model.Sort
+import no.ndla.audioapi.model.api._
+import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
+import no.ndla.audioapi.repository.AudioRepository
+import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
+import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.language.Language
+import no.ndla.network.model.RequestInfo
+import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
-import sttp.tapir.Schema
-import sttp.tapir.generic._
+import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
+import sttp.model.Part
+import sttp.tapir.{EndpointInput, _}
 import sttp.tapir.generic.auto._
-import sttp.tapir._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir._
+
 import java.io.File
-import sttp.model.Part
-import sttp.tapir.generic.auto._
+import scala.util.{Failure, Success, Try}
 
 trait AudioController {
   this: AudioRepository
@@ -124,32 +113,34 @@ trait AudioController {
         .in(audioType)
         .in(seriesFilter)
         .in(fallback)
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: Figure out which codes we need :^)
-        .serverLogicPure {
-          case (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) =>
-            scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
-              val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
-              search(
-                query,
-                language,
-                license,
-                sort,
-                pageSize,
-                pageNo,
-                shouldScroll,
-                audioType,
-                seriesFilter,
-                fallback.getOrElse(false)
-              )
-            }.handleErrorsOrOk
+        .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+        .serverLogicPure { _ => input =>
+          val (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) = input
+          scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
+            val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+            search(
+              query,
+              language,
+              license,
+              sort,
+              pageSize,
+              pageNo,
+              shouldScroll,
+              audioType,
+              seriesFilter,
+              fallback.getOrElse(false)
+            )
+          }.handleErrorsOrOk
         },
       endpoint.post
         .summary("Find audio files")
         .description("Shows all the audio files in the ndla.no database. You can search it too.")
-        .in("/search/")
+        .in("search")
         .in(jsonBody[SearchParams])
         .out(jsonBody[AudioSummarySearchResult])
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: Figure out which codes we need :^)
+        .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
         .serverLogicPure { searchParams =>
           scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
             val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
@@ -172,7 +163,7 @@ trait AudioController {
         .description("Shows info of the audio with submitted id.")
         .in(pathAudioId)
         .in(language)
-        .errorOut(errorOutputsFor(400, 403, 404))
+        .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[AudioMetaInformation])
         .serverLogicPure { case (id, language) =>
           readService.withId(id, language) match {
@@ -183,7 +174,7 @@ trait AudioController {
       endpoint.get
         .in(audioIds)
         .in(language)
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: What codes?
+        .errorOut(errorOutputsFor(400, 404)) // TODO: What codes?
         .out(jsonBody[List[AudioMetaInformation]])
         .summary("Fetch audio that matches ids parameter.")
         .description("Fetch audios that matches ids parameter.")
@@ -194,13 +185,11 @@ trait AudioController {
         .summary("Deletes audio with the specified id")
         .description("Deletes audio with the specified id")
         .in(pathAudioId)
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: what codes?
+        .errorOut(errorOutputsFor(400, 401, 403, 404)) // TODO: what codes?
         .out(emptyOutput)
-        .serverLogicPure { audioId =>
-          // TODO: Consider rewriting user assertions to .serverSecurityLogicPure or something like that
-          authUser.assertHasId()
-          authRole.assertHasRole(RoleWithWriteAccess)
-
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+        .serverLogicPure { _ => audioId =>
           writeService.deleteAudioAndFiles(audioId) match {
             case Failure(ex) => returnError(ex).asLeft
             case Success(_)  => Right(())
@@ -214,14 +203,13 @@ trait AudioController {
         .in(pathLanguage)
         .out(jsonBody[Option[AudioMetaInformation]])
         .prependOut(emptyOutput)
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: What codes?
-        .serverLogicPure { case (audioId, language) =>
-          // TODO: Consider rewriting user assertions to .serverSecurityLogicPure or something like that
-          authUser.assertHasId()
-          authRole.assertHasRole(RoleWithWriteAccess)
-
+        .errorOut(errorOutputsFor(400, 401, 403, 404)) // TODO: What codes?
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+        .serverLogicPure { _ => input =>
+          val (audioId, language) = input
           writeService.deleteAudioLanguageVersion(audioId, language) match {
-            // TODO: Test that this returns NoContent (204) on success(none)
+            // TODO: Test that this returns NoContent (204) on Success(none)
             case Success(Some(audio)) => Right(Some(audio))
             case Success(None)        => Right(None)
             case Failure(ex)          => returnError(ex).asLeft
@@ -231,35 +219,43 @@ trait AudioController {
       endpoint.post
         .summary("Upload a new audio file with meta information")
         .description("Upload a new audio file with meta data")
-        .in(multipartBody) // TODO: Could we use `multipartBody[NewAudioForm]` somehow?
+        .in(multipartBody[MetaDataAndFileForm])
         .out(jsonBody[AudioMetaInformation])
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: what codes?
-        .serverLogicPure { inForm =>
-          authUser.assertHasId()
-          authRole.assertHasRole(RoleWithWriteAccess)
-
-          // TODO: No questionmarks
-          writeService.storeNewAudio(???, ???) match {
-            case Success(audioMeta) => Right(audioMeta)
-            case Failure(e)         => returnError(e).asLeft
+        .errorOut(errorOutputsFor(400, 401, 403, 404))
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+        .serverLogicPure { user => formData =>
+          parser.parse(formData.metadata).map(_.as[NewAudioMetaInformation]) match {
+            case Right(Right(metaInformation)) =>
+              writeService.storeNewAudio(metaInformation, formData.file, user) match {
+                case Success(audioMeta) => Right(audioMeta)
+                case Failure(e)         => returnError(e).asLeft
+              }
+            case _ =>
+              badRequest("Could not deserialize `metadata` form field as `NewAudioMetaInformation` json.").asLeft
           }
         },
       endpoint.put
         .summary("Upload audio for a different language or update metadata for an existing audio-file")
         .description("Update the metadata for an existing language, or upload metadata for a new language.")
         .in(pathAudioId)
-        .in(multipartBody)                        // TODO:
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: what codes?
+        .in(multipartBody[MetaDataAndOptFileForm])
+        .errorOut(errorOutputsFor(400, 401, 403, 404))
         .out(jsonBody[AudioMetaInformation])
-        .serverLogicPure { case (id, body) =>
-          authUser.assertHasId()
-          authRole.assertHasRole(RoleWithWriteAccess)
-
-          // TODO: Get the questionmarks from the body
-          writeService.updateAudio(id, ???, ???) match {
-            case Success(audioMeta) => audioMeta.asRight
-            case Failure(e)         => returnError(e).asLeft
+        .securityIn(auth.bearer[Option[TokenUser]]())
+        .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+        .serverLogicPure { user => input =>
+          val (id, body) = input
+          parser.parse(body.metadata).map(_.as[UpdatedAudioMetaInformation]) match {
+            case Right(Right(metaInformation)) =>
+              writeService.updateAudio(id, metaInformation, body.file, user) match {
+                case Success(audioMeta) => audioMeta.asRight
+                case Failure(e)         => returnError(e).asLeft
+              }
+            case _ =>
+              badRequest("Could not deserialize `metadata` form field as `UpdatedAudioMetaInformation` json.").asLeft
           }
+
         },
       endpoint.get
         .summary("Retrieves a list of all previously used tags in audios")
@@ -270,7 +266,7 @@ trait AudioController {
         .in(pageNo)
         .in(language)
         .out(jsonBody[TagsSearchResult])
-        .errorOut(errorOutputsFor(400, 403, 404)) // TODO: what codes?
+        .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { case (query, ps, pn, lang) =>
           val pageSize = ps.getOrElse(DefaultPageSize) match {
             case tooSmall if tooSmall < 1 => DefaultPageSize
@@ -290,7 +286,8 @@ trait AudioController {
         }
     )
 
-    case class NewAudioForm(metadata: Part[String], file: Part[File])
+    case class MetaDataAndFileForm(metadata: String, file: Part[File])
+    case class MetaDataAndOptFileForm(metadata: String, file: Option[Part[File]])
 
     /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.

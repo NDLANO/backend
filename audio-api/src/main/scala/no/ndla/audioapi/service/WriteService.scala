@@ -11,19 +11,19 @@ import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
-import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.Audio
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
-import org.scalatra.servlet.FileItem
+import no.ndla.network.tapir.auth.TokenUser
+import sttp.model.Part
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.{File, FileInputStream}
 import java.lang.Math.max
-import java.nio.file.Files
 import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
@@ -195,7 +195,11 @@ trait WriteService {
       id.traverse(sId => seriesRepository.withId(sId, includeEpisodes)).map(_.flatten)
     }
 
-    def storeNewAudio(newAudioMeta: api.NewAudioMetaInformation, file: FileItem): Try[api.AudioMetaInformation] = {
+    def storeNewAudio(
+        newAudioMeta: api.NewAudioMetaInformation,
+        file: Part[File],
+        tokenUser: TokenUser
+    ): Try[api.AudioMetaInformation] = {
       validationService.validateAudioFile(file) match {
         case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
         case None =>
@@ -206,7 +210,9 @@ trait WriteService {
 
           val audioMetaInformation = for {
             maybeSeries <- getSeriesFromOpt(newAudioMeta.seriesId)
-            domainAudio <- Try(converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta, maybeSeries))
+            domainAudio <- Try(
+              converterService.toDomainAudioMetaInformation(newAudioMeta, audioFileMeta, maybeSeries, tokenUser)
+            )
 
             _ <- validationService.validate(domainAudio, None, maybeSeries, Some(newAudioMeta.language))
 
@@ -269,14 +275,14 @@ trait WriteService {
     def updateAudio(
         id: Long,
         metadataToUpdate: api.UpdatedAudioMetaInformation,
-        fileOpt: Option[FileItem]
+        fileOpt: Option[Part[File]],
+        user: TokenUser
     ): Try[api.AudioMetaInformation] = {
-
       audioRepository.withId(id) match {
         case None => Failure(new NotFoundException)
         case Some(existingMetadata) =>
           val metadataAndFile = fileOpt match {
-            case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None)
+            case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None, user)
             case Some(file) =>
               val validationMessages = validationService.validateAudioFile(file)
               if (validationMessages.nonEmpty) {
@@ -286,7 +292,7 @@ trait WriteService {
               uploadFile(file, metadataToUpdate.language) match {
                 case Failure(err) => Failure(err)
                 case Success(uploadedFile) =>
-                  mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile))
+                  mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile), user)
               }
           }
 
@@ -354,7 +360,8 @@ trait WriteService {
     private[service] def mergeAudioMeta(
         existing: domain.AudioMetaInformation,
         toUpdate: api.UpdatedAudioMetaInformation,
-        savedAudio: Option[Audio]
+        savedAudio: Option[Audio],
+        user: TokenUser
     ): Try[(domain.AudioMetaInformation, Option[Audio])] = {
       val mergedFilePaths = savedAudio match {
         // If no audio is uploaded, and the language doesn't have a filePath. Clone a prioritized one.
@@ -393,7 +400,7 @@ trait WriteService {
           copyright = converterService.toDomainCopyright(toUpdate.copyright),
           updated = clock.now(),
           created = existing.created,
-          updatedBy = authUser.userOrClientid(),
+          updatedBy = user.id,
           podcastMeta = converterService.mergeLanguageField(existing.podcastMeta, newPodcastMeta, toUpdate.language),
           manuscript = converterService.mergeLanguageField(existing.manuscript, newManuscript, toUpdate.language),
           series = series,
@@ -416,13 +423,15 @@ trait WriteService {
       }
     }
 
-    private[service] def uploadFile(file: FileItem, language: String): Try[Audio] = {
-      val fileExtension = getFileExtension(file.name).getOrElse("")
-      val contentType   = file.getContentType.getOrElse("")
+    private[service] def uploadFile(file: Part[File], language: String): Try[Audio] = {
+      val fileExtension = file.fileName.flatMap(getFileExtension).getOrElse("")
+      val contentType   = file.contentType.getOrElse("")
       val fileName      = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
+      val inputStream = new FileInputStream(file.body)
+
       audioStorage
-        .storeAudio(new ByteArrayInputStream(file.get()), contentType, file.size, fileName)
+        .storeAudio(inputStream, contentType, file.body.length(), fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 
