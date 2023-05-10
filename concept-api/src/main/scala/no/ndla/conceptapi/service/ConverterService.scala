@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import cats.implicits._
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
@@ -17,7 +18,7 @@ import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, Status}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordType}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -74,7 +75,9 @@ trait ConverterService {
             articleIds = concept.articleIds,
             status = toApiStatus(concept.status),
             visualElement = visualElement,
-            responsible = responsible
+            responsible = responsible,
+            conceptType = concept.conceptType.toString,
+            wordList = toApiWordList(concept.wordList)
           )
         )
       } else {
@@ -85,6 +88,16 @@ trait ConverterService {
           )
         )
       }
+    }
+
+    def toApiWordList(domainWordList: Option[domain.WordList]): Option[api.WordList] = {
+      domainWordList.map(wl =>
+        api.WordList(
+          wordType = wl.wordType.toString,
+          examples = wl.examples.map(we => we.map(w => api.WordExample(example = w.example, language = w.language))),
+          originalLanguage = wl.originalLanguage
+        )
+      )
     }
 
     def toApiStatus(status: domain.Status) = {
@@ -142,29 +155,52 @@ trait ConverterService {
     def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
       api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
-    def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
-      Success(
-        domain.Concept(
-          id = None,
-          revision = None,
-          title = Seq(Title(concept.title, concept.language)),
-          content = concept.content
-            .map(content => Seq(domain.ConceptContent(content, concept.language)))
-            .getOrElse(Seq.empty),
-          copyright = concept.copyright.map(toDomainCopyright),
-          source = concept.source,
-          created = clock.now(),
-          updated = clock.now(),
-          updatedBy = Seq(userInfo.id),
-          metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
-          tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
-          subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-          articleIds = concept.articleIds.getOrElse(Seq.empty),
-          status = Status.default,
-          visualElement =
-            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
-          responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now()))
+    def toDomainWordList(apiWordList: Option[api.WordList]): Try[Option[domain.WordList]] = {
+      apiWordList
+        .map(wordList =>
+          WordType.valueOfOrError(wordList.wordType) match {
+            case Failure(ex) => Failure(ex)
+            case Success(wordType) =>
+              Success(
+                domain.WordList(
+                  wordType = wordType,
+                  examples = wordList.examples.map(wl =>
+                    wl.map(w => domain.WordExample(language = w.language, example = w.example))
+                  ),
+                  originalLanguage = wordList.originalLanguage
+                )
+              )
+          }
         )
+        .sequence
+    }
+
+    def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
+      for {
+        conceptType <- ConceptType.valueOfOrError(concept.conceptType)
+        wordList    <- toDomainWordList(concept.wordList)
+      } yield domain.Concept(
+        id = None,
+        revision = None,
+        title = Seq(Title(concept.title, concept.language)),
+        content = concept.content
+          .map(content => Seq(domain.ConceptContent(content, concept.language)))
+          .getOrElse(Seq.empty),
+        copyright = concept.copyright.map(toDomainCopyright),
+        source = concept.source,
+        created = clock.now(),
+        updated = clock.now(),
+        updatedBy = Seq(userInfo.id),
+        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
+        tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
+        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
+        articleIds = concept.articleIds.getOrElse(Seq.empty),
+        status = Status.default,
+        visualElement =
+          concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
+        responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
+        conceptType = conceptType,
+        wordList = wordList
       )
     }
 
@@ -197,7 +233,7 @@ trait ConverterService {
         toMergeInto: domain.Concept,
         updateConcept: api.UpdatedConcept,
         userInfo: UserInfo
-    ): domain.Concept = {
+    ): Try[domain.Concept] = {
       val domainTitle = updateConcept.title
         .map(t => Title(t, updateConcept.language))
         .toSeq
@@ -210,7 +246,7 @@ trait ConverterService {
       val domainVisualElement =
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
 
-      val newMetaImage = updateConcept.metaImage match {
+      val updatedMetaImage = updateConcept.metaImage match {
         case Left(_) => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
         case Right(meta) =>
           val domainMetaImage = meta
@@ -233,22 +269,27 @@ trait ConverterService {
         case (Right(_), existing) => existing
       }
 
-      toMergeInto.copy(
-        title = mergeLanguageFields(toMergeInto.title, domainTitle),
-        content = mergeLanguageFields(toMergeInto.content, domainContent),
-        copyright = updateConcept.copyright
-          .map(toDomainCopyright)
-          .orElse(toMergeInto.copyright),
-        source = updateConcept.source,
-        created = toMergeInto.created,
-        updated = clock.now(),
-        updatedBy = updatedBy,
-        metaImage = newMetaImage,
-        tags = mergeLanguageFields(toMergeInto.tags, domainTags),
-        subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
-        articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
-        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
-        responsible = responsible
+      toDomainWordList(updateConcept.wordList).map(wordList =>
+        domain.Concept(
+          id = toMergeInto.id,
+          revision = toMergeInto.revision,
+          title = mergeLanguageFields(toMergeInto.title, domainTitle),
+          content = mergeLanguageFields(toMergeInto.content, domainContent),
+          copyright = updateConcept.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+          source = updateConcept.source,
+          created = toMergeInto.created,
+          updated = clock.now(),
+          updatedBy = updatedBy,
+          metaImage = updatedMetaImage,
+          tags = mergeLanguageFields(toMergeInto.tags, domainTags),
+          subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
+          articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
+          status = toMergeInto.status,
+          visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
+          responsible = responsible,
+          conceptType = ConceptType.valueOf(updateConcept.conceptType).getOrElse(toMergeInto.conceptType),
+          wordList = wordList
+        )
       )
     }
 
@@ -269,6 +310,16 @@ trait ConverterService {
         case Right(_)                   => None
       }
 
+      // format: off
+      val wordList = concept.wordList.map(wl =>
+        domain.WordList(
+          wordType = WordType.valueOf(wl.wordType).getOrElse(WordType.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
+          examples = wl.examples.map(we => we.map(w => domain.WordExample(language = w.language, example = w.example))),
+          originalLanguage = wl.originalLanguage
+        )
+      )
+      // format: on
+
       domain.Concept(
         id = Some(id),
         revision = None,
@@ -285,7 +336,9 @@ trait ConverterService {
         articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
         visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
-        responsible = responsible
+        responsible = responsible,
+        conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT),
+        wordList = wordList
       )
     }
 
