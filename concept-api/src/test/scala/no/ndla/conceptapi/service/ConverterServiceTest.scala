@@ -65,9 +65,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq(42L)),
         None,
         None,
-        Right(None)
+        Right(None),
+        None,
+        None
       )
-    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
+    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         title = Seq(
           common.Title("Tittelur", "nn"),
@@ -95,9 +97,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq(42L)),
         None,
         None,
-        Right(None)
+        Right(None),
+        None,
+        None
       )
-    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
+    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         content = Seq(
           domain.ConceptContent("Innhold", "nb"),
@@ -125,9 +129,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         Some(Seq(42L)),
         None,
         None,
-        Right(None)
+        Right(None),
+        None,
+        None
       )
-    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
+    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         title = Seq(
           common.Title("Tittel", "nb"),
@@ -171,9 +177,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some(Seq(42L)),
       None,
       None,
-      Right(None)
+      Right(None),
+      None,
+      None
     )
-    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
+    converterService.toDomainConcept(TestData.domainConcept, updateWith, userInfo).get should be(
       TestData.domainConcept.copy(
         content = Seq(
           domain.ConceptContent("Innhold", "nb"),
@@ -210,7 +218,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq.empty))
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept updates articleIds when getting list as a parameter") {
@@ -227,7 +235,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(12)))
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept does nothing to articleId when getting None as a parameter") {
@@ -244,7 +252,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept update concept with ID updates articleId when getting new articleId as a parameter") {
@@ -259,9 +267,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(15)))
 
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(
-      afterUpdate
-    )
+    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
 
   test("toDomainConcept update concept with ID sets articleIds to empty list when articleId is not specified") {
@@ -276,9 +282,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(
-      afterUpdate
-    )
+    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
 
   test("toDomainConcept deletes metaImage when getting null as a parameter") {
@@ -295,7 +299,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept updates metaImage when getting new metaImage as a parameter") {
@@ -315,7 +319,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
     )
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept does nothing to metaImage when getting None as a parameter") {
@@ -332,7 +336,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
 
-    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, updateWith, userInfo).get should be(afterUpdate)
   }
 
   test("toDomainConcept update concept with ID updates metaImage when getting new metaImage as a parameter") {
@@ -350,9 +354,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Right(Some(api.NewConceptMetaImage("1", "Hola")))
     )
 
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(
-      afterUpdate
-    )
+    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
 
   test("toDomainConcept update concept with ID sets metaImage to Seq.empty when metaImage is not specified") {
@@ -367,9 +369,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
-    converterService.toDomainConcept(12, updateWith, userInfo) should be(
-      afterUpdate
-    )
+    converterService.toDomainConcept(12, updateWith, userInfo) should be(afterUpdate)
   }
 
   test("toDomainConcept updates updatedBy with new entry from userToken") {
@@ -387,7 +387,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updateWith = UserInfo.SystemUser.copy(id = "test")
     val dummy      = TestData.emptyApiUpdatedConcept
 
-    converterService.toDomainConcept(beforeUpdate, dummy, updateWith) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, dummy, updateWith).get should be(afterUpdate)
   }
 
   test("toDomainConcept does not produce duplicates in updatedBy") {
@@ -405,7 +405,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updateWith = UserInfo.SystemUser.copy(id = "test1")
     val dummy      = TestData.emptyApiUpdatedConcept
 
-    converterService.toDomainConcept(beforeUpdate, dummy, updateWith) should be(afterUpdate)
+    converterService.toDomainConcept(beforeUpdate, dummy, updateWith).get should be(afterUpdate)
   }
 
   test("toDomainConcept update concept with ID updates updatedBy with new entry from userToken") {
@@ -460,13 +460,138 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val updateWith = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("newId")))
-    converterService.toDomainConcept(withOldResponsible, updateWith, userInfo) should be(withNewResponsible)
+    converterService.toDomainConcept(withOldResponsible, updateWith, userInfo).get should be(withNewResponsible)
 
     val updateWith2 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Right(Some("oldId")))
-    converterService.toDomainConcept(withOldResponsible, updateWith2, userInfo) should be(withOldResponsible)
+    converterService.toDomainConcept(withOldResponsible, updateWith2, userInfo).get should be(withOldResponsible)
 
     val updateWith3 = TestData.emptyApiUpdatedConcept.copy(language = "nb", responsibleId = Left(null))
-    converterService.toDomainConcept(withOldResponsible, updateWith3, userInfo) should be(withoutResponsible)
+    converterService.toDomainConcept(withOldResponsible, updateWith3, userInfo).get should be(withoutResponsible)
+  }
 
+  test("that toDomainConcept (new concept) creates wordList correctly") {
+    val newWordExamples1 =
+      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
+    val newWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
+    val newWordList =
+      api.WordList(wordType = "noun", originalLanguage = "nb", examples = List(newWordExamples1, newWordExamples2))
+    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "wordclass", wordList = Some(newWordList))
+
+    val expectedWordExample1 = List(
+      domain.WordExample(example = "nei men saa", language = "nb"),
+      domain.WordExample(example = "jog har inta", "nn")
+    )
+    val expectedWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
+    val expectedWordList = Some(
+      domain.WordList(
+        wordType = domain.WordType.NOUN,
+        originalLanguage = "nb",
+        examples = List(expectedWordExample1, expectedWordExample2)
+      )
+    )
+    val expectedConceptType = domain.ConceptType.WORDCLASS
+
+    val result = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess).get
+    result.conceptType should be(expectedConceptType)
+    result.wordList should be(expectedWordList)
+  }
+
+  test("that toDomainConcept (new concept) fails if either conceptType or wordType is outside of supported values") {
+    val newWordExamples1 =
+      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
+    val newWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
+    val newWordList =
+      api.WordList(wordType = "ikke", originalLanguage = "nb", examples = List(newWordExamples1, newWordExamples2))
+    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "wordclass", wordList = Some(newWordList))
+
+    val Failure(result1) = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess)
+    result1.getMessage should include("'ikke' is not a valid word type")
+
+    val newConcept2 =
+      newConcept.copy(conceptType = "ikke eksisterende", wordList = Some(newWordList.copy(wordType = "noun")))
+    val Failure(result2) = converterService.toDomainConcept(newConcept2, TestData.userWithWriteAccess)
+    result2.getMessage should include("'ikke eksisterende' is not a valid concept type")
+  }
+
+  test("that toDomainConcept (update concept) updates wordList correctly") {
+    val updatedWordExamples1 =
+      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
+    val updatedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
+    val updatedWordList =
+      api.WordList(
+        wordType = "noun",
+        originalLanguage = "nb",
+        examples = List(updatedWordExamples1, updatedWordExamples2)
+      )
+    val updatedConcept =
+      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("wordclass"), wordList = Some(updatedWordList))
+
+    val expectedWordExample1 = List(
+      domain.WordExample(example = "nei men saa", language = "nb"),
+      domain.WordExample(example = "jog har inta", "nn")
+    )
+    val expectedWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
+    val expectedWordList = Some(
+      domain.WordList(
+        wordType = domain.WordType.NOUN,
+        originalLanguage = "nb",
+        examples = List(expectedWordExample1, expectedWordExample2)
+      )
+    )
+    val expectedConceptType = domain.ConceptType.WORDCLASS
+    val existingConcept     = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, wordList = None)
+
+    val result = converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess).get
+    result.conceptType should be(expectedConceptType)
+    result.wordList should be(expectedWordList)
+  }
+
+  test("that toDomainConcept (update concept) fails if word type is not a valid value") {
+    val updatedWordExamples1 =
+      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
+    val updatedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
+    val updatedWordList =
+      api.WordList(
+        wordType = "ikke eksisterende",
+        originalLanguage = "nb",
+        examples = List(updatedWordExamples1, updatedWordExamples2)
+      )
+    val updatedConcept =
+      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("wordclass"), wordList = Some(updatedWordList))
+
+    val existingConcept = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, wordList = None)
+
+    val Failure(result) =
+      converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess)
+    result.getMessage should include("'ikke eksisterende' is not a valid word type")
+  }
+
+  test("that toApiConcept converts word list correctly") {
+    val domainWordExample1 = List(
+      domain.WordExample(example = "nei men saa", language = "nb"),
+      domain.WordExample(example = "jog har inta", "nn")
+    )
+    val domainWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
+    val domainWordList = Some(
+      domain.WordList(
+        wordType = domain.WordType.NOUN,
+        originalLanguage = "nb",
+        examples = List(domainWordExample1, domainWordExample2)
+      )
+    )
+    val existingConcept =
+      TestData.domainConcept.copy(conceptType = domain.ConceptType.WORDCLASS, wordList = domainWordList)
+
+    val expectedWordExamples1 =
+      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
+    val expectedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
+    val expectedWordList = api.WordList(
+      wordType = "noun",
+      originalLanguage = "nb",
+      examples = List(expectedWordExamples1, expectedWordExamples2)
+    )
+    val result = converterService.toApiConcept(existingConcept, "nb", false).get
+    result.conceptType should be("wordclass")
+    result.wordList should be(Some(expectedWordList))
   }
 }

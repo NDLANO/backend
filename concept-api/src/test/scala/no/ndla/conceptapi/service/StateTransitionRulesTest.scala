@@ -5,13 +5,13 @@ import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptStatus, Status}
+import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptStatus, ConceptType, Status}
 import org.mockito.invocation.InvocationOnMock
 
 import scala.util.Success
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
-  test("That publishing article results in responsibleId being reset") {
+  test("That publishing concept results in responsibleId being reset") {
     val beforeResponsible = Responsible("heisann", clock.now())
     val concept = domain.Concept(
       id = Some(1L),
@@ -40,7 +40,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
-      responsible = Some(Responsible("hei", TestData.today))
+      responsible = Some(Responsible("hei", TestData.today)),
+      conceptType = ConceptType.CONCEPT,
+      wordList = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.PUBLISHED)
@@ -62,7 +64,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     }
   }
 
-  test("That archiving article results in responsibleId being reset") {
+  test("That archiving concept results in responsibleId being reset") {
     val beforeResponsible = Responsible("heisann", clock.now())
     val concept = domain.Concept(
       id = Some(1L),
@@ -91,7 +93,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
-      responsible = Some(Responsible("hei", TestData.today))
+      responsible = Some(Responsible("hei", TestData.today)),
+      conceptType = ConceptType.CONCEPT,
+      wordList = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.ARCHIVED)
@@ -113,7 +117,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     }
   }
 
-  test("That unpublishing article results in responsibleId being reset") {
+  test("That unpublishing concept results in responsibleId being reset") {
     val beforeResponsible = Responsible("heisann", clock.now())
     val concept = domain.Concept(
       id = Some(1L),
@@ -142,7 +146,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
-      responsible = Some(Responsible("hei", TestData.today))
+      responsible = Some(Responsible("hei", TestData.today)),
+      conceptType = ConceptType.CONCEPT,
+      wordList = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.UNPUBLISHED)
