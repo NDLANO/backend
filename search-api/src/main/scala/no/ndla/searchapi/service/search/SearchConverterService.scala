@@ -199,7 +199,7 @@ trait SearchConverterService {
     ): Try[SearchableArticle] = {
       val articleId = ai.id.get
       val taxonomyContexts = taxonomyBundle match {
-        case Some(bundle) => getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true)
+        case Some(bundle) => Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:article:$articleId",
@@ -274,7 +274,7 @@ trait SearchConverterService {
         taxonomyBundle: Option[TaxonomyBundle]
     ): Try[SearchableLearningPath] = {
       val taxonomyContexts = taxonomyBundle match {
-        case Some(bundle) => getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true)
+        case Some(bundle) => Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
@@ -326,7 +326,7 @@ trait SearchConverterService {
       val taxonomyContexts = {
         val draftId = draft.id.get
         taxonomyBundle match {
-          case Some(bundle) => getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false)
+          case Some(bundle) => Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
@@ -703,11 +703,10 @@ trait SearchConverterService {
         taxonomyType: String,
         bundle: TaxonomyBundle,
         filterVisibles: Boolean
-    ): Try[List[TaxonomyContext]] = {
+    ): List[TaxonomyContext] = {
       val nodes       = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
       val allContexts = nodes.flatMap(node => node.contexts)
-      val contexts    = if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
-      Success(contexts)
+      if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
     }
 
     private[service] def getGrepContexts(

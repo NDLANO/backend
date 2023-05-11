@@ -508,8 +508,8 @@ class MultiSearchServiceTest
       )
     )
 
-    val totalCount = search.totalCount
-    val ids = search.results.map(_.id).length
+    val totalCount   = search.totalCount
+    val ids          = search.results.map(_.id).length
     val contextCount = search.results.flatMap(_.contexts).toList.length
 
     val Success(search2) = multiSearchService.matchingQuery(
