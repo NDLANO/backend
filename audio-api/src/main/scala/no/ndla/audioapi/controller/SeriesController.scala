@@ -10,7 +10,6 @@ package no.ndla.audioapi.controller
 
 import cats.effect.IO
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.{
   AudioMetaInformation,
@@ -52,8 +51,6 @@ trait SeriesController {
   this: ReadService
     with WriteService
     with SeriesSearchService
-    with Role
-    with User
     with SearchConverterService
     with ConverterService
     with Props

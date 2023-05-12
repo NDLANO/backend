@@ -13,7 +13,6 @@ import cats.implicits._
 import io.circe._
 import io.circe.generic.auto._
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
@@ -41,8 +40,6 @@ trait AudioController {
     with ReadService
     with WriteService
     with AudioSearchService
-    with Role
-    with User
     with SearchConverterService
     with ConverterService
     with Props

@@ -12,10 +12,10 @@ import cats.effect.IO
 import cats.implicits._
 import io.circe.generic.auto._
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHelpers, NotFoundException}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
+import no.ndla.audioapi.model.api.AudioMetaDomainDump._
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
@@ -25,6 +25,11 @@ import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
+import sttp.model.StatusCode
+import sttp.tapir.EndpointOutput.{OneOf, OneOfVariant}
+import sttp.tapir._
+import sttp.tapir.generic.auto._
+import sttp.tapir.json.circe.jsonBody
 
 import scala.util.{Failure, Success}
 
@@ -36,15 +41,15 @@ trait InternController {
     with SeriesIndexService
     with TagIndexService
     with ReadService
-    with User
     with Props
     with Service
     with ErrorHelpers =>
   val internController: InternController
 
   class InternController extends SwaggerService {
-    override val prefix        = "intern"
-    override val enableSwagger = false
+    override val prefix                 = "intern"
+    override val enableSwagger          = false
+    private val internalErrorStringBody = statusCode(StatusCode.InternalServerError).and(stringBody)
 
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
       endpoint.get
@@ -58,7 +63,7 @@ trait InternController {
       endpoint.post
         .in("index")
         .out(stringBody)
-        .errorOut(stringBody)
+        .errorOut(internalErrorStringBody)
         .serverLogicPure { _ =>
           (audioIndexService.indexDocuments, tagIndexService.indexDocuments, seriesIndexService.indexDocuments) match {
             case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
@@ -81,7 +86,7 @@ trait InternController {
         },
       endpoint.delete
         .in("index")
-        .errorOut(stringBody)
+        .errorOut(internalErrorStringBody)
         .out(stringBody)
         .serverLogicPure { _ =>
           def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
@@ -102,32 +107,32 @@ trait InternController {
                 s"Deleted ${pluralIndex(successes.length)}".asRight
               }
           }
-        }
-//      endpoint.get
-//        .in("dump" / "audio")
-//        .in(query[Int]("page").default(1))
-//        .in(query[Int]("page-size").default(250))
-//        .out(jsonBody[AudioMetaDomainDump])
-//        .serverLogicPure { case (pageNo, pageSize) =>
-//          readService.getMetaAudioDomainDump(pageNo, pageSize).asRight
-//        }
-//      endpoint.get
-//        .in("dump" / "audio")
-//        .in(path[Long]("id"))
-//        .errorOut(errorOutputsFor(400, 404))
-//        .out(jsonBody[AudioMetaInformation])
-//        .serverLogicPure { id =>
-//          audioRepository.withId(id) match {
-//            case Some(image) => image.asRight
-//            case None        => returnError(new NotFoundException(s"Could not find audio with id: '$id'")).asLeft
-//          }
-//        },
-//      endpoint.post
-//        .in("dump" / "audio")
-//        .in(jsonBody[AudioMetaInformation])
-//        .out(jsonBody[AudioMetaInformation])
-//        .errorOut(errorOutputsFor(400, 404))
-//        .serverLogicPure { domainMeta => audioRepository.insert(domainMeta).asRight }
+        },
+      endpoint.get
+        .in("dump" / "audio")
+        .in(query[Int]("page").default(1))
+        .in(query[Int]("page-size").default(250))
+        .out(jsonBody[AudioMetaDomainDump])
+        .errorOut(errorOutputsFor(400, 500))
+        .serverLogicPure { case (pageNo, pageSize) =>
+          readService.getMetaAudioDomainDump(pageNo, pageSize).asRight
+        },
+      endpoint.get
+        .in("dump" / "audio")
+        .in(path[Long]("id"))
+        .errorOut(errorOutputsFor(400, 404))
+        .out(jsonBody[AudioMetaInformation])
+        .serverLogicPure { id =>
+          audioRepository.withId(id) match {
+            case Some(image) => image.asRight
+            case None        => returnError(new NotFoundException(s"Could not find audio with id: '$id'")).asLeft
+          }
+        },
+      endpoint.post
+        .in("dump" / "audio")
+        .in(jsonBody[AudioMetaInformation])
+        .out(jsonBody[AudioMetaInformation])
+        .serverLogicPure { domainMeta => audioRepository.insert(domainMeta).asRight }
     )
   }
 }

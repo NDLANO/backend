@@ -12,15 +12,24 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
-import org.scalatra.test.scalatest.ScalatraSuite
+import no.ndla.network.tapir.TapirServer
+import sttp.client3.quick._
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
-class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnvironment {
+class InternControllerTest extends UnitSuite with TestEnvironment {
 
+  val serverPort: Int           = findFreePort
   override val converterService = new ConverterService
-  lazy val controller           = new InternController
+  val controller                = new InternController
+
+  override def beforeAll(): Unit = {
+    val app    = Routes.build(List(controller))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
+  }
 
   val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
   val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
@@ -81,10 +90,14 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(200)
-      body should equal("Deleted 3 indexes")
-    }
+
+    val request =
+      quickRequest
+        .delete(uri"http://localhost:$serverPort/intern/index")
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
+    response.body should be("Deleted 3 indexes")
+
     verify(audioIndexService).findAllIndexes(props.SearchIndex)
     verify(audioIndexService).deleteIndexWithName(Some("index1"))
     verify(audioIndexService).deleteIndexWithName(Some("index2"))
@@ -100,10 +113,14 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal("Failed to find indexes")
-    }
+
+    val request =
+      quickRequest
+        .delete(uri"http://localhost:$serverPort/intern/index")
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(500)
+    response.body should be("Failed to find indexes")
+
     verify(audioIndexService, never).deleteIndexWithName(any[Option[String]])
   }
 
@@ -117,12 +134,16 @@ class InternControllerTest extends UnitSuite with ScalatraSuite with TestEnviron
       .when(audioIndexService)
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil: _*).when(audioIndexService).deleteIndexWithName(Some("index3"))
-    delete("/index") {
-      status should equal(500)
-      body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
-      )
-    }
+
+    val request =
+      quickRequest
+        .delete(uri"http://localhost:$serverPort/intern/index")
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(500)
+    response.body should be(
+      "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."
+    )
+
     verify(audioIndexService).deleteIndexWithName(Some("index1"))
     verify(audioIndexService).deleteIndexWithName(Some("index2"))
     verify(audioIndexService).deleteIndexWithName(Some("index3"))

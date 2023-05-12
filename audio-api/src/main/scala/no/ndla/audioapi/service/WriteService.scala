@@ -9,7 +9,6 @@ package no.ndla.audioapi.service
 
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.model.api.{AudioStorageException, MissingIdException, NotFoundException}
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
@@ -36,8 +35,7 @@ trait WriteService {
     with TagIndexService
     with AudioStorageService
     with ReadService
-    with Clock
-    with User =>
+    with Clock =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {

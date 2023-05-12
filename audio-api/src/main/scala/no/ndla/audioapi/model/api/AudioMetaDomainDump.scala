@@ -7,15 +7,10 @@
 
 package no.ndla.audioapi.model.api
 
-import io.circe.generic.auto._
-import io.circe.generic.semiauto._
-import io.circe.parser._
-import io.circe.syntax._
-import io.circe.{Decoder, Encoder}
+import no.ndla.audioapi.model.domain
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
-import no.ndla.audioapi.model.domain
 
 @ApiModel(description = "Information about audio meta dump")
 case class AudioMetaDomainDump(

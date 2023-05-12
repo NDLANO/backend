@@ -11,7 +11,6 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
@@ -27,7 +26,7 @@ import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: User with Clock with DraftApiClient with Props =>
+  this: Clock with DraftApiClient with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {

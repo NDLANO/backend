@@ -13,7 +13,6 @@ import cats.effect.IO
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller._
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
@@ -63,8 +62,6 @@ class ComponentRegistry(properties: AudioApiProperties)
     with SeriesIndexService
     with TagIndexService
     with SearchConverterService
-    with User
-    with Role
     with SwaggerControllerConfig
     with Clock
     with Routes
@@ -114,9 +111,7 @@ class ComponentRegistry(properties: AudioApiProperties)
   lazy val tagIndexService        = new TagIndexService
   lazy val tagSearchService       = new TagSearchService
 
-  lazy val authRole = new AuthRole
-  lazy val authUser = new AuthUser
-  lazy val clock    = new SystemClock
+  lazy val clock = new SystemClock
 
   private val services: List[Service] = List(
     audioApiController,

@@ -12,19 +12,29 @@ import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
-import org.scalatra.test.scalatest.ScalatraFunSuite
+import no.ndla.network.tapir.TapirServer
 import sttp.client3.Response
 import sttp.model.StatusCode
+import sttp.client3.quick._
 
 import java.time.LocalDateTime
 
-class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
+class HealthControllerTest extends UnitSuite with TestEnvironment {
   implicit val formats = org.json4s.DefaultFormats
+
+  val serverPort: Int = findFreePort
 
   val httpResponseMock: Response[String] = mock[Response[String]]
 
   lazy val controller = new HealthController {
     override def getApiResponse(url: String): Response[String] = httpResponseMock
+  }
+
+  override def beforeAll(): Unit = {
+    val app    = Routes.build(List(controller))
+    val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
+    server.toFuture
+    blockUntil(() => server.isReady)
   }
 
   controller.setWarmedUp()
@@ -59,27 +69,36 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(httpResponseMock.code).thenReturn(StatusCode.Ok)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
-    get("/") {
-      status should equal(200)
-    }
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
   }
 
   test("that /health returns 500 on failure") {
     when(httpResponseMock.code).thenReturn(StatusCode.InternalServerError)
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
 
-    get("/") {
-      status should equal(500)
-    }
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(500)
   }
 
   test("that /health returns 200 on no images") {
     when(httpResponseMock.code).thenReturn(StatusCode.NotFound)
     when(audioRepository.getRandomAudio()).thenReturn(None)
 
-    get("/") {
-      status should equal(200)
-    }
+    val request =
+      quickRequest
+        .get(uri"http://localhost:$serverPort/health")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(200)
   }
 
 }

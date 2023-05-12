@@ -14,7 +14,6 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.TapirServer
 import org.mockito.ArgumentMatchers._
-import org.scalatra.servlet.FileItem
 import org.scalatra.test.Uploadable
 import sttp.client3.quick._
 import sttp.model.Part

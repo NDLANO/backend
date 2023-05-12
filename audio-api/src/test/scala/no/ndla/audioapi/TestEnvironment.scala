@@ -10,7 +10,6 @@ package no.ndla.audioapi
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.auth.{Role, User}
 import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
@@ -60,8 +59,6 @@ trait TestEnvironment
     with TagIndexService
     with TagSearchService
     with MockitoSugar
-    with User
-    with Role
     with Clock
     with Props
     with AudioApiInfo
@@ -99,7 +96,5 @@ trait TestEnvironment
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
   val clock: SystemClock = mock[SystemClock]
-  val authUser: AuthUser = mock[AuthUser]
-  val authRole           = new AuthRole
 
 }
