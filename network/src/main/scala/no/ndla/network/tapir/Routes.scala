@@ -10,7 +10,6 @@ package no.ndla.network.tapir
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
-import no.ndla.network.model.RequestInfoInterceptor
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
@@ -76,7 +75,6 @@ trait Routes {
       val swaggerEndpoints = services.flatMap(_.builtEndpoints)
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
-        .prependInterceptor(RequestInfoInterceptor)
         .defaultHandlers(err => failureResponse(err, None))
         .exceptionHandler(NdlaExceptionHandler())
         .decodeFailureHandler(decodeFailureHandler)

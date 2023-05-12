@@ -14,4 +14,4 @@ trait LoggerContext[+F[_]] {
   def map[T](f: LoggerInfo => T): F[T]
 }
 
-case class LoggerInfo(correlationId: String)
+case class LoggerInfo(correlationId: Option[String])

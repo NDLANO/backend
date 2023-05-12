@@ -10,25 +10,50 @@ package no.ndla.common.logging
 import com.typesafe.scalalogging.Logger
 import org.slf4j.{LoggerFactory, MDC}
 
-trait Flogger {
-  private val delegate = Logger(LoggerFactory.getLogger(getClass.getName))
+trait FLogging {
+  private val delegate          = Logger(LoggerFactory.getLogger(getClass.getName))
   protected def logger: FLogger = new FLogger(delegate)
 }
 
-class FLogger(delegate: Logger) {
+class FLogger(underlying: Logger) {
   private def withMDC[F[_]: LoggerContext, T](t: => T): F[T] =
     implicitly[LoggerContext[F]].map { info =>
-      MDC.put("correlationID", info.correlationId)
+      info.correlationId.foreach(cid => MDC.put(FLogger.correlationIdKey, cid))
       try t
-      finally MDC.clear()
+      finally MDC.remove(FLogger.correlationIdKey)
     }
 
-  def debug[F[_]: LoggerContext](message: String): F[Unit] = withMDC(delegate.debug(message))
-  def debug[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(delegate.debug(message, cause))
-  def info[F[_]: LoggerContext](message: String): F[Unit] = withMDC(delegate.info(message))
-  def info[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(delegate.info(message, cause))
-  def warn[F[_]: LoggerContext](message: String): F[Unit] = withMDC(delegate.warn(message))
-  def warn[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(delegate.warn(message, cause))
-  def error[F[_]: LoggerContext](message: String): F[Unit] = withMDC(delegate.error(message))
-  def error[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(delegate.error(message, cause))
+  // TODO: Is there a way to get a warning about unused return values from these?
+  //       Calling these to log something without handling the F would result in no logging happening
+  def debug[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.debug(message))
+  def debug[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.debug(message, cause))
+  def debug[F[_]: LoggerContext](cause: Throwable)(message: String): F[Unit] = withMDC(underlying.debug(message, cause))
+  def debugNoContext(message: String): Unit                                  = underlying.debug(message)
+  def debugNoContext(message: String, cause: Throwable): Unit                = underlying.debug(message, cause)
+  def debugNoContext(cause: Throwable)(message: String): Unit                = underlying.debug(message, cause)
+
+  def info[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.info(message))
+  def info[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.info(message, cause))
+  def info[F[_]: LoggerContext](cause: Throwable)(message: String): F[Unit] = withMDC(underlying.info(message, cause))
+  def infoNoContext(message: String): Unit                                  = underlying.info(message)
+  def infoNoContext(message: String, cause: Throwable): Unit                = underlying.info(message, cause)
+  def infoNoContext(cause: Throwable)(message: String): Unit                = underlying.info(message, cause)
+
+  def warn[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.warn(message))
+  def warn[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.warn(message, cause))
+  def warn[F[_]: LoggerContext](cause: Throwable)(message: String): F[Unit] = withMDC(underlying.warn(message, cause))
+  def warnNoContext(message: String): Unit                                  = underlying.warn(message)
+  def warnNoContext(message: String, cause: Throwable): Unit                = underlying.warn(message, cause)
+  def warnNoContext(cause: Throwable)(message: String): Unit                = underlying.warn(message, cause)
+
+  def error[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.error(message))
+  def error[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.error(message, cause))
+  def error[F[_]: LoggerContext](cause: Throwable)(message: String): F[Unit] = withMDC(underlying.error(message, cause))
+  def errorNoContext(message: String): Unit                                  = underlying.error(message)
+  def errorNoContext(message: String, cause: Throwable): Unit                = underlying.error(message, cause)
+  def errorNoContext(cause: Throwable)(message: String): Unit                = underlying.error(message, cause)
+}
+
+object FLogger {
+  private val correlationIdKey = "correlationID"
 }

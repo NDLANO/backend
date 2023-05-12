@@ -10,8 +10,8 @@ package no.ndla.audioapi.controller
 
 import cats.effect.IO
 import cats.implicits._
-import io.circe._
 import io.circe.generic.auto._
+import io.circe.parser._
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
@@ -20,19 +20,17 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
-import no.ndla.network.model.RequestInfo
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
-import sttp.tapir.{EndpointInput, _}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.{EndpointInput, _}
 
-import java.io.File
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
@@ -227,8 +225,8 @@ trait AudioController {
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
       .serverLogicPure { user => formData =>
-        parser.parse(formData.metadata).map(_.as[NewAudioMetaInformation]) match {
-          case Right(Right(metaInformation)) =>
+        parse(formData.metadata).flatMap(_.as[NewAudioMetaInformation]) match {
+          case Right(metaInformation) =>
             writeService.storeNewAudio(metaInformation, formData.file, user) match {
               case Success(audioMeta) => Right(audioMeta)
               case Failure(e)         => returnError(e).asLeft
@@ -249,8 +247,8 @@ trait AudioController {
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
       .serverLogicPure { user => input =>
         val (id, body) = input
-        parser.parse(body.metadata).map(_.as[UpdatedAudioMetaInformation]) match {
-          case Right(Right(metaInformation)) =>
+        parse(body.metadata).flatMap(_.as[UpdatedAudioMetaInformation]) match {
+          case Right(metaInformation) =>
             writeService.updateAudio(id, metaInformation, body.file, user) match {
               case Success(audioMeta) => audioMeta.asRight
               case Failure(e)         => returnError(e).asLeft

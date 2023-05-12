@@ -7,14 +7,11 @@
 
 package no.ndla.network.model
 
-import cats.effect.IO.{IOCont, Uncancelable}
 import cats.effect.{IO, IOLocal}
 import no.ndla.common.CorrelationID
+import no.ndla.common.logging.{LoggerContext, LoggerInfo}
 import no.ndla.network.{ApplicationUrl, AuthUser, TaxonomyData}
 import org.http4s.Request
-import org.log4s.MDC
-import sttp.tapir.model.ServerRequest
-import sttp.tapir.server.interceptor.{EndpointInterceptor, RequestHandler, RequestInterceptor, Responder}
 
 import javax.servlet.http.HttpServletRequest
 
@@ -36,24 +33,27 @@ case class RequestInfo(
 }
 
 object RequestInfo {
-  private val localCid = {
+  private val requestLocalState = {
     import cats.effect.unsafe.implicits.global
     IOLocal(None: Option[RequestInfo]).unsafeRunSync()
   }
+  private val accessOutsideContextError = new IllegalStateException(
+    "Tried to access IOLocal `RequestInfo` outside somewhere with context."
+  )
 
-  def get: IO[RequestInfo] = {
-    // TODO: is there a smart way to deal with this pattern? (flatMap into IO.raiseError + IO.pure)
-    //       i assume it happens quite a bit
-    localCid.get.flatMap {
-      case Some(value) => IO.pure(value)
-      case None =>
-        IO.raiseError(
-          new IllegalStateException("Tried to access IOLocal `RequestInfo` outside somewhere with context.")
-        )
-    }
+  def get: IO[RequestInfo] = requestLocalState.get.flatMap {
+    case Some(value) => IO.pure(value)
+    case None        => IO.raiseError(accessOutsideContextError)
   }
-  def set(v: RequestInfo): IO[Unit] = localCid.set(Some(v))
-  def reset: IO[Unit]               = localCid.reset
+
+  def set(v: RequestInfo): IO[Unit] = requestLocalState.set(Some(v))
+  def reset: IO[Unit]               = requestLocalState.reset
+
+  /** Implicit context used to derive required [[LoggerInfo]] */
+  implicit val ioLoggerContext: LoggerContext[IO] = new LoggerContext[IO] {
+    override def get: IO[LoggerInfo] = RequestInfo.get.map(info => LoggerInfo(correlationId = info.correlationId))
+    override def map[T](f: LoggerInfo => T): IO[T] = get.map(f)
+  }
 
   def fromRequest(request: HttpServletRequest): RequestInfo = {
     val ndlaRequest = NdlaHttpRequest(request)
@@ -75,17 +75,6 @@ object RequestInfo {
     )
   }
 
-  def fromRequest(request: ServerRequest): RequestInfo = {
-    val ndlaRequest = NdlaHttpRequest.from(request)
-    new RequestInfo(
-      correlationId = Some(CorrelationID.fromRequest(request)),
-      authUser = AuthUser.fromRequest(ndlaRequest),
-      taxonomyVersion = TaxonomyData.fromRequest(ndlaRequest),
-      applicationUrl = ApplicationUrl.fromRequest(ndlaRequest)
-    )
-
-  }
-
   def fromThreadContext(): RequestInfo = {
     val correlationId   = CorrelationID.get
     val authUser        = AuthUser.fromThreadContext()
@@ -103,16 +92,4 @@ object RequestInfo {
     ApplicationUrl.clear()
   }
 
-}
-
-object RequestInfoInterceptor extends RequestInterceptor[IO] {
-  override def apply[R, B](
-      responder: Responder[IO, B],
-      requestHandler: EndpointInterceptor[IO] => RequestHandler[IO, R, B]
-  ): RequestHandler[IO, R, B] =
-    RequestHandler.from { case (request, endpoints, monad) =>
-      val reqInfo = RequestInfo.fromRequest(request)
-      val set     = RequestInfo.set(reqInfo)
-      set >> requestHandler(EndpointInterceptor.noop)(request, endpoints)(monad)
-    }
 }
