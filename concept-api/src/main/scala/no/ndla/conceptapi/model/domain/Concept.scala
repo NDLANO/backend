@@ -39,7 +39,7 @@ case class Concept(
     visualElement: Seq[VisualElement],
     responsible: Option[Responsible],
     conceptType: ConceptType.Value,
-    wordList: Option[WordList]
+    glossData: Option[GlossData]
 ) {
 
   lazy val supportedLanguages: Set[String] =
@@ -82,14 +82,14 @@ trait DBConcept {
         meta.visualElement,
         meta.responsible,
         meta.conceptType,
-        meta.wordList
+        meta.glossData
       )
     }
 
     val jsonEncoder: Formats = DefaultFormats +
       new EnumNameSerializer(ConceptStatus) +
       new EnumNameSerializer(ConceptType) +
-      new EnumNameSerializer(WordType) ++
+      new EnumNameSerializer(GlossType) ++
       JavaTimeSerializers.all
 
     val repositorySerializer: Formats = jsonEncoder +

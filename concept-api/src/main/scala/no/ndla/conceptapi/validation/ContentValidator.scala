@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
-import no.ndla.conceptapi.validation.WordListValidator.validateWordList
+import no.ndla.conceptapi.validation.GlossDataValidator.validateGlossData
 import no.ndla.language.model.{Iso639, WithLanguage}
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation._
@@ -36,7 +36,7 @@ trait ContentValidator {
           validateTitles(concept.title) ++
           concept.copyright.map(co => validateCopyright(co)).getOrElse(Seq()) ++
           validateResponsible(concept) ++
-          validateWordList(concept.wordList, concept.conceptType)
+          validateGlossData(concept.glossData, concept.conceptType)
 
       if (validationErrors.isEmpty) {
         Success(concept)

@@ -42,7 +42,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
-      wordList = None
+      glossData = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.PUBLISHED)
@@ -95,7 +95,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
-      wordList = None
+      glossData = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.ARCHIVED)
@@ -148,7 +148,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       visualElement = Seq.empty,
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
-      wordList = None
+      glossData = None
     )
     val status            = domain.Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.UNPUBLISHED)
