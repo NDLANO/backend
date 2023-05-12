@@ -52,9 +52,9 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
 
   def as[B](b: B): IO[B] = server.as[B](b)
 
-  def toFuture: Future[Nothing] = {
+  def runInBackground(): Unit = {
     import cats.effect.unsafe.implicits.global
-    server.unsafeToFuture()
+    server.unsafeRunAndForget()
   }
 
   def isReady: Boolean = this.serverReady

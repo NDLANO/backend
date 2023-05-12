@@ -27,7 +27,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
   override def beforeAll(): Unit = {
     val app    = Routes.build(List(controller))
     val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.toFuture
+    server.runInBackground()
     blockUntil(() => server.isReady)
   }
 

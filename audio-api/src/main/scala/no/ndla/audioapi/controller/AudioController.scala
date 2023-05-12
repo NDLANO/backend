@@ -93,7 +93,7 @@ trait AudioController {
 
     import ErrorHelpers._
 
-    val index: ServerEndpoint[Any, IO] = endpoint.get
+    val getSearch: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .out(EndpointOutput.derived[SummaryWithHeader])
@@ -287,7 +287,7 @@ trait AudioController {
       }
 
     override val endpoints: List[ServerEndpoint[Any, IO]] = List(
-      index,
+      getSearch,
       postSearch,
       getSingle,
       getIds,
