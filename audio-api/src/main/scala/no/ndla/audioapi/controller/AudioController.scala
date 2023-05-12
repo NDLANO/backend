@@ -26,8 +26,9 @@ import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
+import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
+import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, _}
 
@@ -95,8 +96,7 @@ trait AudioController {
     val index: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
-      .out(jsonBody[AudioSummarySearchResult])
-      // .out(header[Option[String]]("search-context")) // TODO: Hvordan får man headere til å fungere i output?
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .in(queryString)
       .in(language)
       .in(license)
@@ -134,7 +134,7 @@ trait AudioController {
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .in("search")
       .in(jsonBody[SearchParams])
-      .out(jsonBody[AudioSummarySearchResult])
+      .out(jsonBody[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
       .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
@@ -301,6 +301,13 @@ trait AudioController {
     case class MetaDataAndFileForm(metadata: String, file: Part[Array[Byte]])
     case class MetaDataAndOptFileForm(metadata: String, file: Option[Part[Array[Byte]]])
 
+    case class SummaryWithHeader(
+        @jsonbody
+        body: AudioSummarySearchResult,
+        @header("search-context")
+        searchContext: Option[String]
+    )
+
     /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
       * second parameter list.
       *
@@ -309,16 +316,15 @@ trait AudioController {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr[T](scrollId: Option[String], language: String)(
-        orFunction: => Try[AudioSummarySearchResult]
-    ): Try[AudioSummarySearchResult] =
+    private def scrollSearchOr(scrollId: Option[String], language: String)(
+        orFunction: => Try[SummaryWithHeader]
+    ): Try[SummaryWithHeader] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           audioSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
-              val responseHeader = scrollResult.scrollId.map(i => this.scrollId.name -> i).toMap
-              // TODO: Headers
-              Success(searchConverterService.asApiAudioSummarySearchResult(scrollResult))
+              val body = searchConverterService.asApiAudioSummarySearchResult(scrollResult)
+              Success(SummaryWithHeader(body = body, searchContext = scrollResult.scrollId))
             case Failure(ex) => Failure(ex)
           }
         case _ => orFunction
@@ -335,7 +341,7 @@ trait AudioController {
         audioType: Option[String],
         seriesFilter: Option[Boolean],
         fallback: Boolean
-    ) = {
+    ): Try[SummaryWithHeader] = {
       val searchSettings = query match {
         case Some(q) =>
           SearchSettings(
@@ -368,11 +374,12 @@ trait AudioController {
 
       audioSearchService.matchingQuery(searchSettings) match {
         case Success(searchResult) =>
-          val responseHeader =
-            searchResult.scrollId
-              .map(i => this.scrollId.name -> i)
-              .toMap // TODO: This needs to be returned somehow, probably with a case class with a response body and headers :^)
-          Success(searchConverterService.asApiAudioSummarySearchResult(searchResult))
+          Success(
+            SummaryWithHeader(
+              body = searchConverterService.asApiAudioSummarySearchResult(searchResult),
+              searchContext = searchResult.scrollId
+            )
+          )
         case Failure(ex) => Failure(ex)
       }
     }
