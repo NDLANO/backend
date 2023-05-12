@@ -25,13 +25,11 @@ import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val writeService        = new WriteService
-  override val converterService    = new ConverterService
-  val (newFileName1, newFileName2) = ("AbCdeF.mp3", "GhijKl.mp3")
-  val fileMock1: FileItem          = mock[FileItem]
-  val fileMock2: FileItem          = mock[FileItem]
-  val filePartMock: Part[File]     = mock[Part[File]]
-  val s3ObjectMock: ObjectMetadata = mock[ObjectMetadata]
+  override val writeService           = new WriteService
+  override val converterService       = new ConverterService
+  val (newFileName1, newFileName2)    = ("AbCdeF.mp3", "GhijKl.mp3")
+  val filePartMock: Part[Array[Byte]] = mock[Part[Array[Byte]]]
+  val s3ObjectMock: ObjectMetadata    = mock[ObjectMetadata]
 
   val newAudioMeta: NewAudioMetaInformation = NewAudioMetaInformation(
     "title",
@@ -106,15 +104,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override def beforeEach(): Unit = {
-    when(fileMock1.getContentType).thenReturn(Some("audio/mp3"))
-    when(fileMock1.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
-    when(fileMock1.size).thenReturn(1024)
-    when(fileMock1.name).thenReturn("test.mp3")
-
-    when(fileMock2.getContentType).thenReturn(Some("audio/mp3"))
-    when(fileMock2.get()).thenReturn(Array[Byte](0x49, 0x44, 0x33))
-    when(fileMock2.size).thenReturn(2048)
-    when(fileMock2.name).thenReturn("test2.mp3")
+    when(filePartMock.fileName).thenReturn(Some("test.mp3"))
+    when(filePartMock.contentType).thenReturn(Some("audio/mp3"))
+    when(filePartMock.body).thenReturn(Array[Byte](0x49, 0x44, 0x33))
 
     when(s3ObjectMock.getContentLength).thenReturn(1024)
     when(s3ObjectMock.getContentType).thenReturn("audio/mp3")
@@ -186,7 +178,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewAudio should return Failure if filetype is invalid") {
-    when(fileMock1.contentType).thenReturn(Some("application/text"))
     when(validationService.validateAudioFile(any))
       .thenReturn(Some(ValidationMessage("some-field", "some-message")))
     when(audioStorage.storeAudio(any[InputStream], any[String], any[Long], any[String]))
@@ -402,7 +393,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val validationMessage = ValidationMessage("some-field", "This is an error")
     when(validationService.validateAudioFile(any)).thenReturn(Some(validationMessage))
 
-    val result = writeService.updateAudio(1, updatedAudioMeta, Some(mock[Part[File]]), testUser)
+    val result = writeService.updateAudio(1, updatedAudioMeta, Some(mock[Part[Array[Byte]]]), testUser)
     result.isFailure should be(true)
     result.failed.get.getMessage should equal(new ValidationException(errors = Seq()).getMessage)
   }

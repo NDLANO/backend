@@ -92,7 +92,7 @@ trait ValidationService {
       correctTypeError ++ overrideSeriesIdError ++ hasPodcastMetaError
     }
 
-    def validateAudioFile(audioFile: Part[File]): Option[ValidationMessage] = {
+    def validateAudioFile(audioFile: Part[_]): Option[ValidationMessage] = {
       val validMimeTypes = Seq("audio/mp3", "audio/mpeg")
       val actualMimeType = audioFile.contentType.getOrElse("")
 

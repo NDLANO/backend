@@ -106,8 +106,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
         TestData.yesterday,
         TestData.today
       )
-    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any[Part[File]], any))
-      .thenReturn(Success(sampleAudioMeta))
+    when(writeService.storeNewAudio(any[NewAudioMetaInformation], any, any)).thenReturn(Success(sampleAudioMeta))
 
     val file     = multipartFile("file", mockFile)
     val metadata = multipart("metadata", sampleNewAudioMeta)

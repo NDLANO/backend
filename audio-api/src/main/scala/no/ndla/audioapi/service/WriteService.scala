@@ -21,7 +21,7 @@ import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 
-import java.io.{File, FileInputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.lang.Math.max
 import scala.util.{Failure, Random, Success, Try}
 
@@ -195,7 +195,7 @@ trait WriteService {
 
     def storeNewAudio(
         newAudioMeta: api.NewAudioMetaInformation,
-        file: Part[File],
+        file: Part[Array[Byte]],
         tokenUser: TokenUser
     ): Try[api.AudioMetaInformation] = {
       validationService.validateAudioFile(file) match {
@@ -273,7 +273,7 @@ trait WriteService {
     def updateAudio(
         id: Long,
         metadataToUpdate: api.UpdatedAudioMetaInformation,
-        fileOpt: Option[Part[File]],
+        fileOpt: Option[Part[Array[Byte]]],
         user: TokenUser
     ): Try[api.AudioMetaInformation] = {
       audioRepository.withId(id) match {
@@ -421,15 +421,15 @@ trait WriteService {
       }
     }
 
-    private[service] def uploadFile(file: Part[File], language: String): Try[Audio] = {
+    private[service] def uploadFile(file: Part[Array[Byte]], language: String): Try[Audio] = {
       val fileExtension = file.fileName.flatMap(getFileExtension).getOrElse("")
       val contentType   = file.contentType.getOrElse("")
       val fileName      = LazyList.continually(randomFileName(fileExtension)).dropWhile(audioStorage.objectExists).head
 
-      val inputStream = new FileInputStream(file.body)
+      val inputStream = new ByteArrayInputStream(file.body)
 
       audioStorage
-        .storeAudio(inputStream, contentType, file.body.length(), fileName)
+        .storeAudio(inputStream, contentType, file.body.length, fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 

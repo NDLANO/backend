@@ -13,7 +13,6 @@ import sttp.model.StatusCode
 import sttp.tapir.EndpointOutput.{OneOf, OneOfVariant}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
 
 object TapirErrors {
   val logger: Logger = getLogger
