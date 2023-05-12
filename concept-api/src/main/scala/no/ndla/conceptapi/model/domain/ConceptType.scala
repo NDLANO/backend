@@ -11,8 +11,8 @@ import no.ndla.conceptapi.model.api.InvalidStatusException
 import scala.util.{Failure, Success, Try}
 
 object ConceptType extends Enumeration {
-  val CONCEPT: ConceptType.Value   = Value("concept")
-  val WORDCLASS: ConceptType.Value = Value("wordclass")
+  val CONCEPT: ConceptType.Value = Value("concept")
+  val GLOSS: ConceptType.Value   = Value("gloss")
 
   def all: Seq[String]                                      = ConceptType.values.map(_.toString).toSeq
   def valueOf(s: String): Option[ConceptType.Value]         = ConceptType.values.find(_.toString == s)

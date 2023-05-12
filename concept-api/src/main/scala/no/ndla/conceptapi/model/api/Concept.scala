@@ -31,7 +31,7 @@ case class Concept(
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,
     @(ApiModelProperty @field)(description = "A visual element for the concept") visualElement: Option[VisualElement],
     @(ApiModelProperty @field)(description = "Object with data representing the editor responsible for this concept") responsible: Option[ConceptResponsible],
-    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'wordclass'") conceptType: String,
-    @(ApiModelProperty @field)(description = "Information about the word list") wordList: Option[WordList],
+    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: String,
+    @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData],
     // format: on
 )

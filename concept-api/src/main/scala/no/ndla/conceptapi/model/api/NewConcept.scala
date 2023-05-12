@@ -25,7 +25,7 @@ case class NewConcept(
     @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleIds: Option[Seq[Long]],
     @(ApiModelProperty @field)(description = "A visual element for the concept. May be anything from an image to a video or H5P") visualElement: Option[String],
     @(ApiModelProperty @field)(description = "NDLA ID representing the editor responsible for this article") responsibleId: Option[String],
-    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'word'") conceptType: String,
-    @(ApiModelProperty @field)(description = "Information about the word list") wordList: Option[WordList],
+    @(ApiModelProperty @field)(description = "Type of concept. 'concept', or 'gloss'") conceptType: String,
+    @(ApiModelProperty @field)(description = "Information about the gloss") glossData: Option[GlossData],
 )
 // format: on

@@ -469,129 +469,129 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainConcept(withOldResponsible, updateWith3, userInfo).get should be(withoutResponsible)
   }
 
-  test("that toDomainConcept (new concept) creates wordList correctly") {
-    val newWordExamples1 =
-      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
-    val newWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
-    val newWordList =
-      api.WordList(wordType = "noun", originalLanguage = "nb", examples = List(newWordExamples1, newWordExamples2))
-    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "wordclass", wordList = Some(newWordList))
+  test("that toDomainConcept (new concept) creates glossData correctly") {
+    val newGlossExamples1 =
+      List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
+    val newGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
+    val newGlossData =
+      api.GlossData(glossType = "noun", originalLanguage = "nb", examples = List(newGlossExamples1, newGlossExamples2))
+    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
-    val expectedWordExample1 = List(
-      domain.WordExample(example = "nei men saa", language = "nb"),
-      domain.WordExample(example = "jog har inta", "nn")
+    val expectedGlossExample1 = List(
+      domain.GlossExample(example = "nei men saa", language = "nb"),
+      domain.GlossExample(example = "jog har inta", "nn")
     )
-    val expectedWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
-    val expectedWordList = Some(
-      domain.WordList(
-        wordType = domain.WordType.NOUN,
+    val expectedGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
+    val expectedGlossData = Some(
+      domain.GlossData(
+        glossType = domain.GlossType.NOUN,
         originalLanguage = "nb",
-        examples = List(expectedWordExample1, expectedWordExample2)
+        examples = List(expectedGlossExample1, expectedGlossExample2)
       )
     )
-    val expectedConceptType = domain.ConceptType.WORDCLASS
+    val expectedConceptType = domain.ConceptType.GLOSS
 
     val result = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess).get
     result.conceptType should be(expectedConceptType)
-    result.wordList should be(expectedWordList)
+    result.glossData should be(expectedGlossData)
   }
 
-  test("that toDomainConcept (new concept) fails if either conceptType or wordType is outside of supported values") {
-    val newWordExamples1 =
-      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
-    val newWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
-    val newWordList =
-      api.WordList(wordType = "ikke", originalLanguage = "nb", examples = List(newWordExamples1, newWordExamples2))
-    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "wordclass", wordList = Some(newWordList))
+  test("that toDomainConcept (new concept) fails if either conceptType or glossType is outside of supported values") {
+    val newGlossExamples1 =
+      List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
+    val newGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
+    val newGlossData =
+      api.GlossData(glossType = "ikke", originalLanguage = "nb", examples = List(newGlossExamples1, newGlossExamples2))
+    val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
     val Failure(result1) = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess)
-    result1.getMessage should include("'ikke' is not a valid word type")
+    result1.getMessage should include("'ikke' is not a valid gloss type")
 
     val newConcept2 =
-      newConcept.copy(conceptType = "ikke eksisterende", wordList = Some(newWordList.copy(wordType = "noun")))
+      newConcept.copy(conceptType = "ikke eksisterende", glossData = Some(newGlossData.copy(glossType = "noun")))
     val Failure(result2) = converterService.toDomainConcept(newConcept2, TestData.userWithWriteAccess)
     result2.getMessage should include("'ikke eksisterende' is not a valid concept type")
   }
 
-  test("that toDomainConcept (update concept) updates wordList correctly") {
-    val updatedWordExamples1 =
-      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
-    val updatedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
-    val updatedWordList =
-      api.WordList(
-        wordType = "noun",
+  test("that toDomainConcept (update concept) updates glossData correctly") {
+    val updatedGlossExamples1 =
+      List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
+    val updatedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
+    val updatedGlossData =
+      api.GlossData(
+        glossType = "noun",
         originalLanguage = "nb",
-        examples = List(updatedWordExamples1, updatedWordExamples2)
+        examples = List(updatedGlossExamples1, updatedGlossExamples2)
       )
     val updatedConcept =
-      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("wordclass"), wordList = Some(updatedWordList))
+      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
 
-    val expectedWordExample1 = List(
-      domain.WordExample(example = "nei men saa", language = "nb"),
-      domain.WordExample(example = "jog har inta", "nn")
+    val expectedGlossExample1 = List(
+      domain.GlossExample(example = "nei men saa", language = "nb"),
+      domain.GlossExample(example = "jog har inta", "nn")
     )
-    val expectedWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
-    val expectedWordList = Some(
-      domain.WordList(
-        wordType = domain.WordType.NOUN,
+    val expectedGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
+    val expectedGlossData = Some(
+      domain.GlossData(
+        glossType = domain.GlossType.NOUN,
         originalLanguage = "nb",
-        examples = List(expectedWordExample1, expectedWordExample2)
+        examples = List(expectedGlossExample1, expectedGlossExample2)
       )
     )
-    val expectedConceptType = domain.ConceptType.WORDCLASS
-    val existingConcept     = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, wordList = None)
+    val expectedConceptType = domain.ConceptType.GLOSS
+    val existingConcept     = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, glossData = None)
 
     val result = converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess).get
     result.conceptType should be(expectedConceptType)
-    result.wordList should be(expectedWordList)
+    result.glossData should be(expectedGlossData)
   }
 
-  test("that toDomainConcept (update concept) fails if word type is not a valid value") {
-    val updatedWordExamples1 =
-      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
-    val updatedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
-    val updatedWordList =
-      api.WordList(
-        wordType = "ikke eksisterende",
+  test("that toDomainConcept (update concept) fails if gloss type is not a valid value") {
+    val updatedGlossExamples1 =
+      List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
+    val updatedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
+    val updatedGlossData =
+      api.GlossData(
+        glossType = "ikke eksisterende",
         originalLanguage = "nb",
-        examples = List(updatedWordExamples1, updatedWordExamples2)
+        examples = List(updatedGlossExamples1, updatedGlossExamples2)
       )
     val updatedConcept =
-      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("wordclass"), wordList = Some(updatedWordList))
+      TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
 
-    val existingConcept = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, wordList = None)
+    val existingConcept = TestData.domainConcept.copy(conceptType = domain.ConceptType.CONCEPT, glossData = None)
 
     val Failure(result) =
       converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess)
-    result.getMessage should include("'ikke eksisterende' is not a valid word type")
+    result.getMessage should include("'ikke eksisterende' is not a valid gloss type")
   }
 
-  test("that toApiConcept converts word list correctly") {
-    val domainWordExample1 = List(
-      domain.WordExample(example = "nei men saa", language = "nb"),
-      domain.WordExample(example = "jog har inta", "nn")
+  test("that toApiConcept converts gloss data correctly") {
+    val domainGlossExample1 = List(
+      domain.GlossExample(example = "nei men saa", language = "nb"),
+      domain.GlossExample(example = "jog har inta", "nn")
     )
-    val domainWordExample2 = List(domain.WordExample(example = "nei men da saa", language = "nb"))
-    val domainWordList = Some(
-      domain.WordList(
-        wordType = domain.WordType.NOUN,
+    val domainGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
+    val domainGlossData = Some(
+      domain.GlossData(
+        glossType = domain.GlossType.NOUN,
         originalLanguage = "nb",
-        examples = List(domainWordExample1, domainWordExample2)
+        examples = List(domainGlossExample1, domainGlossExample2)
       )
     )
     val existingConcept =
-      TestData.domainConcept.copy(conceptType = domain.ConceptType.WORDCLASS, wordList = domainWordList)
+      TestData.domainConcept.copy(conceptType = domain.ConceptType.GLOSS, glossData = domainGlossData)
 
-    val expectedWordExamples1 =
-      List(api.WordExample(example = "nei men saa", language = "nb"), api.WordExample(example = "jog har inta", "nn"))
-    val expectedWordExamples2 = List(api.WordExample(example = "nei men da saa", language = "nb"))
-    val expectedWordList = api.WordList(
-      wordType = "noun",
+    val expectedGlossExamples1 =
+      List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
+    val expectedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
+    val expectedGlossData = api.GlossData(
+      glossType = "noun",
       originalLanguage = "nb",
-      examples = List(expectedWordExamples1, expectedWordExamples2)
+      examples = List(expectedGlossExamples1, expectedGlossExamples2)
     )
     val result = converterService.toApiConcept(existingConcept, "nb", false).get
-    result.conceptType should be("wordclass")
-    result.wordList should be(Some(expectedWordList))
+    result.conceptType should be("gloss")
+    result.glossData should be(Some(expectedGlossData))
   }
 }

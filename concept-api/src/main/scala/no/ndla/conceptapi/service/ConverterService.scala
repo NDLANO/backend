@@ -18,7 +18,7 @@ import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordType}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, GlossType}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -77,7 +77,7 @@ trait ConverterService {
             visualElement = visualElement,
             responsible = responsible,
             conceptType = concept.conceptType.toString,
-            wordList = toApiWordList(concept.wordList)
+            glossData = toApiGlossData(concept.glossData)
           )
         )
       } else {
@@ -90,12 +90,13 @@ trait ConverterService {
       }
     }
 
-    def toApiWordList(domainWordList: Option[domain.WordList]): Option[api.WordList] = {
-      domainWordList.map(wl =>
-        api.WordList(
-          wordType = wl.wordType.toString,
-          examples = wl.examples.map(we => we.map(w => api.WordExample(example = w.example, language = w.language))),
-          originalLanguage = wl.originalLanguage
+    def toApiGlossData(domainGlossData: Option[domain.GlossData]): Option[api.GlossData] = {
+      domainGlossData.map(glossData =>
+        api.GlossData(
+          glossType = glossData.glossType.toString,
+          examples =
+            glossData.examples.map(ge => ge.map(g => api.GlossExample(example = g.example, language = g.language))),
+          originalLanguage = glossData.originalLanguage
         )
       )
     }
@@ -155,19 +156,19 @@ trait ConverterService {
     def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsible =
       api.ConceptResponsible(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
-    def toDomainWordList(apiWordList: Option[api.WordList]): Try[Option[domain.WordList]] = {
-      apiWordList
-        .map(wordList =>
-          WordType.valueOfOrError(wordList.wordType) match {
+    def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[domain.GlossData]] = {
+      apiGlossData
+        .map(glossData =>
+          GlossType.valueOfOrError(glossData.glossType) match {
             case Failure(ex) => Failure(ex)
-            case Success(wordType) =>
+            case Success(glossType) =>
               Success(
-                domain.WordList(
-                  wordType = wordType,
-                  examples = wordList.examples.map(wl =>
-                    wl.map(w => domain.WordExample(language = w.language, example = w.example))
+                domain.GlossData(
+                  glossType = glossType,
+                  examples = glossData.examples.map(gl =>
+                    gl.map(g => domain.GlossExample(language = g.language, example = g.example))
                   ),
-                  originalLanguage = wordList.originalLanguage
+                  originalLanguage = glossData.originalLanguage
                 )
               )
           }
@@ -178,7 +179,7 @@ trait ConverterService {
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       for {
         conceptType <- ConceptType.valueOfOrError(concept.conceptType)
-        wordList    <- toDomainWordList(concept.wordList)
+        glossData   <- toDomainGlossData(concept.glossData)
       } yield domain.Concept(
         id = None,
         revision = None,
@@ -200,7 +201,7 @@ trait ConverterService {
           concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq,
         responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
         conceptType = conceptType,
-        wordList = wordList
+        glossData = glossData
       )
     }
 
@@ -269,7 +270,7 @@ trait ConverterService {
         case (Right(_), existing) => existing
       }
 
-      toDomainWordList(updateConcept.wordList).map(wordList =>
+      toDomainGlossData(updateConcept.glossData).map(glossData =>
         domain.Concept(
           id = toMergeInto.id,
           revision = toMergeInto.revision,
@@ -288,7 +289,7 @@ trait ConverterService {
           visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement),
           responsible = responsible,
           conceptType = ConceptType.valueOf(updateConcept.conceptType).getOrElse(toMergeInto.conceptType),
-          wordList = wordList
+          glossData = glossData
         )
       )
     }
@@ -311,11 +312,11 @@ trait ConverterService {
       }
 
       // format: off
-      val wordList = concept.wordList.map(wl =>
-        domain.WordList(
-          wordType = WordType.valueOf(wl.wordType).getOrElse(WordType.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
-          examples = wl.examples.map(we => we.map(w => domain.WordExample(language = w.language, example = w.example))),
-          originalLanguage = wl.originalLanguage
+      val glossData = concept.glossData.map(gloss =>
+        domain.GlossData(
+          glossType = GlossType.valueOf(gloss.glossType).getOrElse(GlossType.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
+          examples = gloss.examples.map(ge => ge.map(g => domain.GlossExample(language = g.language, example = g.example))),
+          originalLanguage = gloss.originalLanguage
         )
       )
       // format: on
@@ -338,7 +339,7 @@ trait ConverterService {
         visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq,
         responsible = responsible,
         conceptType = ConceptType.valueOf(concept.conceptType).getOrElse(ConceptType.CONCEPT),
-        wordList = wordList
+        glossData = glossData
       )
     }
 

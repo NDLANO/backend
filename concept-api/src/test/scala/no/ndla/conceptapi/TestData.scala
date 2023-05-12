@@ -64,7 +64,7 @@ object TestData {
     Some(api.VisualElement(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
-    wordList = None
+    glossData = None
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -85,7 +85,7 @@ object TestData {
     visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    wordList = None
+    glossData = None
   )
 
   val sampleConcept = domain.Concept(
@@ -107,7 +107,7 @@ object TestData {
     visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    wordList = None
+    glossData = None
   )
 
   val domainConcept = domain.Concept(
@@ -128,7 +128,7 @@ object TestData {
     visualElement = Seq(domain.VisualElement(visualElementString, "nb")),
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    wordList = None
+    glossData = None
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
@@ -149,7 +149,7 @@ object TestData {
     visualElement = Seq.empty,
     responsible = None,
     conceptType = domain.ConceptType.CONCEPT,
-    wordList = None
+    glossData = None
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -174,7 +174,7 @@ object TestData {
     Some(api.VisualElement(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
-    wordList = None
+    glossData = None
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(
@@ -191,7 +191,7 @@ object TestData {
     visualElement = None,
     Right(None),
     conceptType = None,
-    wordList = None
+    glossData = None
   )
 
   val sampleNewConcept =
@@ -224,7 +224,7 @@ object TestData {
     visualElement = None,
     responsibleId = None,
     conceptType = "concept",
-    wordList = None
+    glossData = None
   )
 
   val updatedConcept =
@@ -242,7 +242,7 @@ object TestData {
       None,
       Right(None),
       conceptType = None,
-      wordList = None
+      glossData = None
     )
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }
