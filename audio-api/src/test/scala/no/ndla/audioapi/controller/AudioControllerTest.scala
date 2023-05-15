@@ -233,7 +233,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
 
     val response = simpleHttpClient.send(
       quickRequest
-        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
         .body(s"""{"scrollId":"$scrollId"}""")
         .contentType("application/json")
     )
@@ -264,7 +264,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
 
     val response = simpleHttpClient.send(
       quickRequest
-        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
+        .post(uri"http://localhost:$serverPort/audio-api/v1/audio/search/")
         .body(s"""{"scrollId":"initial"}""")
         .contentType("application/json")
     )

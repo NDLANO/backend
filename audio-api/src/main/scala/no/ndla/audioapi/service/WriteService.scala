@@ -21,7 +21,7 @@ import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 
-import java.io.{ByteArrayInputStream, File, FileInputStream}
+import java.io.ByteArrayInputStream
 import java.lang.Math.max
 import scala.util.{Failure, Random, Success, Try}
 

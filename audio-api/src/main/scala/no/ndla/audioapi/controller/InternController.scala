@@ -15,21 +15,16 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.api.{AudioMetaDomainDump, ErrorHelpers, NotFoundException}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
-import no.ndla.audioapi.model.api.AudioMetaDomainDump._
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
+import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.ServerEndpoint
-import sttp.model.StatusCode
-import sttp.tapir.EndpointOutput.{OneOf, OneOfVariant}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe.jsonBody
 
 import scala.util.{Failure, Success}
 

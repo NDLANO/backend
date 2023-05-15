@@ -133,7 +133,7 @@ trait AudioController {
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .in("search")
       .in(jsonBody[SearchParams])
-      .out(jsonBody[SummaryWithHeader])
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
       .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
