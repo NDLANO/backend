@@ -33,6 +33,7 @@ trait TapirErrorHelpers {
     val DATABASE_UNAVAILABLE   = "DATABASE_UNAVAILABLE"
     val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
     val VALIDATION             = "VALIDATION_ERROR"
+    val METHOD_NOT_ALLOWED     = "METHOD_NOT_ALLOWED"
 
     val PARAMETER_MISSING      = "PARAMETER MISSING"
     val PROVIDER_NOT_SUPPORTED = "PROVIDER NOT SUPPORTED"
@@ -47,6 +48,7 @@ trait TapirErrorHelpers {
     val UNAUTHORIZED_DESCRIPTION         = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION            = "You do not have the required permissions to access that resource"
     val RESOURCE_OUTDATED_DESCRIPTION    = "The resource is outdated. Please try fetching before submitting again."
+    val METHOD_NOT_ALLOWED_DESCRIPTION   = "You requested a unsupported method on this endpoint."
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."
 
@@ -59,6 +61,7 @@ trait TapirErrorHelpers {
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
     def invalidSearchContext: ErrorBody =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
+    def methodNotAllowed: ErrorBody = ErrorBody(METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_DESCRIPTION, clock.now(), 405)
 
     /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
       * some endpoint.

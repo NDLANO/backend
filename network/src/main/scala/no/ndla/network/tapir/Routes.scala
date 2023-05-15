@@ -7,6 +7,7 @@
 
 package no.ndla.network.tapir
 
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
@@ -18,12 +19,13 @@ import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
+import sttp.tapir.server.interceptor.RequestResult
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
+import sttp.tapir.server.interceptor.reject.RejectHandler
 import sttp.tapir.server.model.ValuedEndpointOutput
-import sttp.tapir.statusCode
+import sttp.tapir.{EndpointInput, statusCode}
 
 trait Routes {
   this: Service with NdlaMiddleware with TapirErrorHelpers =>
@@ -48,7 +50,7 @@ trait Routes {
         case None     => logger.error(logMsg)
       }
 
-      ValuedEndpointOutput(NoNullJsonPrinter.jsonBody[ErrorBody], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
     }
 
     private val decodeFailureHandler =
@@ -65,10 +67,31 @@ trait Routes {
         val errorToReturn = returnError(ctx.e)
         val sc            = StatusCode(errorToReturn.statusCode)
 
-        val resp   = ValuedEndpointOutput(NoNullJsonPrinter.jsonBody[ErrorBody], errorToReturn)
+        val resp   = ValuedEndpointOutput(jsonBody[ErrorBody], errorToReturn)
         val withsc = resp.prepend(statusCode, sc)
         monad.unit(Some(withsc))
       }
+    }
+
+    private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f.failures.map(_.failingInput).exists {
+      case _: EndpointInput.FixedMethod[_] => true
+      case _                               => false
+    }
+
+    private case class NdlaRejectHandler[F[_]]() extends RejectHandler[F] {
+      override def apply(
+          failure: RequestResult.Failure
+      )(implicit monad: MonadError[F]): F[Option[ValuedEndpointOutput[_]]] = {
+        val statusCodeAndBody = if (hasMethodMismatch(failure)) {
+          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
+            .prepend(statusCode, StatusCode.MethodNotAllowed)
+        } else {
+          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.notFound)
+            .prepend(statusCode, StatusCode.NotFound)
+        }
+        monad.unit(Some(statusCodeAndBody))
+      }
+
     }
 
     private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
@@ -76,6 +99,7 @@ trait Routes {
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
         .defaultHandlers(err => failureResponse(err, None))
+        .rejectHandler(NdlaRejectHandler[IO]())
         .exceptionHandler(NdlaExceptionHandler())
         .decodeFailureHandler(decodeFailureHandler)
         .options
