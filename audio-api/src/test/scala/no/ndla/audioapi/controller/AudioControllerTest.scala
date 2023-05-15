@@ -81,14 +81,14 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     response.code.code should be(401)
   }
 
-  test("That POST / returns 400 if parameters are missing") {
+  test("That POST / returns 422 if parameters are missing") {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
         .body(Map("metadata" -> sampleNewAudioMeta))
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
-    response.code.code should be(400)
+    response.code.code should be(422)
   }
 
   test("That POST / returns 200 if everything is fine and dandy") {
@@ -180,6 +180,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       Some(scrollId)
     )
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
 
     val response = simpleHttpClient.send(
       quickRequest
@@ -187,7 +188,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     )
     response.code.code should be(200)
     response.body.contains(scrollId) should be(false)
-    response.header("search-context") should be(scrollId)
+    response.header("search-context").get should be(scrollId)
   }
 
   test("That scrolling uses scroll and not searches normally") {

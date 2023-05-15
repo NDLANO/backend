@@ -109,9 +109,7 @@ trait AudioController {
       .in(seriesFilter)
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
-      .securityIn(auth.bearer[Option[TokenUser]]())
-      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => input =>
+      .serverLogicPure { input =>
         val (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) = input
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
