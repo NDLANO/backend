@@ -7,12 +7,15 @@
 
 package no.ndla.network.tapir
 
-import io.circe.Encoder
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.errors.ValidationMessage
 import sttp.tapir.Schema.annotations.description
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import scala.util.Try
+import cats.implicits._
 
 @description("Information about an error")
 case class ErrorBody(

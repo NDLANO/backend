@@ -8,15 +8,11 @@
 
 package no.ndla.audioapi.controller
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.TapirServer
-import org.http4s.Uri.Host
-import org.http4s.ember.server.EmberServerBuilder
 import org.mockito.ArgumentMatchers._
 import org.scalatra.test.Uploadable
 import sttp.client3.quick._
@@ -34,10 +30,13 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false)()
     server.runInBackground()
     blockUntil(() => server.isReady)
+
   }
 
+  when(clock.now()).thenCallRealMethod()
+
   val authHeaderWithWriteRole =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.BRAWsdX1Djs8GXGq7jj77DLUxyx2BAI86C74xwUEt4E"
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiYXpwIjoiMTIzIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXVkaW86d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6WyJhdWRpbzp3cml0ZSJdfQ.jOyT-eIsra1liu_ahLynDCBZe6ltlimsY8hh6Y2dk7g"
 
   val authHeaderWithoutAnyRoles =
     "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlF6bEVPVFE1TTBOR01EazROakV4T0VKR01qYzJNalZGT0RoRVFrRTFOVUkyTmtFMFJUUXlSZyJ9.eyJpc3MiOiJodHRwczovL25kbGEtdGVzdC5ldS5hdXRoMC5jb20vIiwic3ViIjoiZnNleE9DZkpGR09LdXkxQzJlNzFPc3ZRd3EwTldLQUtAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNjgzODg0OTQ4LCJleHAiOjE2ODM4OTkzNDgsImF6cCI6ImZzZXhPQ2ZKRkdPS3V5MUMyZTcxT3N2UXdxME5XS0FLIiwic2NvcGUiOiIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.oznL95qVdP7HFTwwVm8ZfVv1GSW3_mNKTbAt9No8-PI"
@@ -52,7 +51,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     override def fileName             = "test.mp3"
   }
 
-  val mockFile = mock[File]
+  val fileBody: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
 
   val sampleNewAudioMeta: String =
     """
@@ -70,7 +69,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       |}
     """.stripMargin
 
-  test("That POST / returns 403 if no auth-header") {
+  test("That POST / returns 401 if no auth-header") {
     val request =
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
@@ -79,7 +78,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
         .multipartBody(multipart("metadata", sampleNewAudioMeta))
 
     val response = simpleHttpClient.send(request)
-    response.code.code should be(403)
+    response.code.code should be(401)
   }
 
   test("That POST / returns 400 if parameters are missing") {
@@ -111,13 +110,13 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       )
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any, any)).thenReturn(Success(sampleAudioMeta))
 
-    val file     = multipartFile("file", mockFile)
+    val file     = multipart("file", fileBody)
     val metadata = multipart("metadata", sampleNewAudioMeta)
 
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody(file, metadata)
+        .multipartBody(metadata, file)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
     response.code.code should be(200)
@@ -132,7 +131,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     when(writeService.storeNewAudio(any[NewAudioMetaInformation], any, any))
       .thenReturn(Failure(runtimeMock))
 
-    val file     = multipartFile("file", mockFile)
+    val file     = multipart("file", fileBody)
     val metadata = multipart("metadata", sampleNewAudioMeta)
 
     val response = simpleHttpClient.send(
