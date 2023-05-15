@@ -8,8 +8,10 @@
 package no.ndla.network.tapir
 
 import io.circe.Printer
+import io.circe.generic.extras.Configuration
 import sttp.tapir.json.circe.TapirJsonCirce
 
 object NoNullJsonPrinter extends TapirJsonCirce {
-  override def jsonPrinter: Printer = Printer.spaces2.copy(dropNullValues = true)
+  implicit val config: Configuration = Configuration.default.withDefaults
+  override def jsonPrinter: Printer  = Printer.noSpaces.copy(dropNullValues = true)
 }

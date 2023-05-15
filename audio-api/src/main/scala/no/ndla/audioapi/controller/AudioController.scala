@@ -10,8 +10,7 @@ package no.ndla.audioapi.controller
 
 import cats.effect.IO
 import cats.implicits._
-import io.circe.generic.auto._
-import io.circe.parser._
+import io.circe.generic.extras.auto._
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
@@ -19,6 +18,7 @@ import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.language.Language
 import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.Service
@@ -28,10 +28,11 @@ import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
-import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, _}
 
+import java.io.File
+import java.nio.file.Files
 import scala.util.{Failure, Success, Try}
 
 trait AudioController {
@@ -225,14 +226,10 @@ trait AudioController {
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
       .serverLogicPure { user => formData =>
-        parse(formData.metadata).flatMap(_.as[NewAudioMetaInformation]) match {
-          case Right(metaInformation) =>
-            writeService.storeNewAudio(metaInformation, formData.file, user) match {
-              case Success(audioMeta) => Right(audioMeta)
-              case Failure(e)         => returnError(e).asLeft
-            }
-          case _ =>
-            badRequest("Could not deserialize `metadata` form field as `NewAudioMetaInformation` json.").asLeft
+        val fileBytes = getBytesAndDeleteFile(formData.file)
+        writeService.storeNewAudio(formData.metadata.body, fileBytes, user) match {
+          case Success(audioMeta) => Right(audioMeta)
+          case Failure(e)         => returnError(e).asLeft
         }
       }
 
@@ -246,15 +243,11 @@ trait AudioController {
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
       .serverLogicPure { user => input =>
-        val (id, body) = input
-        parse(body.metadata).flatMap(_.as[UpdatedAudioMetaInformation]) match {
-          case Right(metaInformation) =>
-            writeService.updateAudio(id, metaInformation, body.file, user) match {
-              case Success(audioMeta) => audioMeta.asRight
-              case Failure(e)         => returnError(e).asLeft
-            }
-          case _ =>
-            badRequest("Could not deserialize `metadata` form field as `UpdatedAudioMetaInformation` json.").asLeft
+        val (id, formData) = input
+        val fileBytes      = formData.file.map(getBytesAndDeleteFile)
+        writeService.updateAudio(id, formData.metadata.body, fileBytes, user) match {
+          case Success(audioMeta) => audioMeta.asRight
+          case Failure(e)         => returnError(e).asLeft
         }
       }
 
@@ -298,8 +291,14 @@ trait AudioController {
       tagSearch
     )
 
-    case class MetaDataAndFileForm(metadata: String, file: Part[Array[Byte]])
-    case class MetaDataAndOptFileForm(metadata: String, file: Option[Part[Array[Byte]]])
+    def getBytesAndDeleteFile(file: Part[File]): Part[Array[Byte]] = {
+      val x: Part[Array[Byte]] = file.copy(body = Files.readAllBytes(file.body.toPath))
+      file.body.delete()
+      x
+    }
+
+    case class MetaDataAndFileForm(metadata: Part[NewAudioMetaInformation], file: Part[File])
+    case class MetaDataAndOptFileForm(metadata: Part[UpdatedAudioMetaInformation], file: Option[Part[File]])
 
     case class SummaryWithHeader(
         @jsonbody
