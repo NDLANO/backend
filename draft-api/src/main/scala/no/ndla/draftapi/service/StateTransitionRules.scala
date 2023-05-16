@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 import cats.effect.IO
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{domain => common}
@@ -58,6 +59,10 @@ trait StateTransitionRules {
       Success(article.copy(responsible = None))
     }
 
+    private val addResponsible: SideEffect = (article: Draft, _: Boolean, user: UserInfo) => {
+      Success(article.copy(responsible = Some(Responsible(user.id, clock.now()))))
+    }
+
     private[service] val unpublishArticle: SideEffect = (article: Draft) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1)) {
         article.id match {
@@ -70,7 +75,7 @@ trait StateTransitionRules {
         }
       }
 
-    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean) => {
+    private val validateArticleApiArticle: SideEffect = (draft: Draft, isImported: Boolean, _: UserInfo) => {
       val validatedArticle = converterService.toArticleApiArticle(draft) match {
         case Failure(ex)      => Failure(ex)
         case Success(article) => articleApiClient.validateArticle(article, isImported)
@@ -79,7 +84,7 @@ trait StateTransitionRules {
     }
 
     private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect =
-      (article, isImported) =>
+      (article, isImported, _) =>
         article.id match {
           case Some(id) =>
             val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
@@ -174,7 +179,7 @@ trait StateTransitionRules {
        PUBLISH_DELAYED       -> PUBLISH_DELAYED,
       (PUBLISH_DELAYED       -> PUBLISHED)             require DirectPublishRoles withSideEffect publishArticle withSideEffect resetResponsible,
       (PUBLISH_DELAYED       -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect resetResponsible,
-      (PUBLISHED             -> IN_PROGRESS)           keepStates Set(PUBLISHED) keepCurrentOnTransition,
+      (PUBLISHED             -> IN_PROGRESS)           keepStates Set(PUBLISHED) withSideEffect addResponsible,
       (PUBLISHED             -> UNPUBLISHED)           keepStates Set.empty require DirectPublishRoles withSideEffect unpublishArticle withSideEffect resetResponsible,
       (PUBLISHED             -> ARCHIVED)              .require(PublishRoles, articleHasNotBeenPublished) withIllegalStatuses Set(PUBLISHED) withSideEffect unpublishArticle withSideEffect resetResponsible,
        UNPUBLISHED           -> UNPUBLISHED            withSideEffect resetResponsible,
@@ -196,8 +201,9 @@ trait StateTransitionRules {
     }
 
     private def validateTransition(draft: Draft, transition: StateTransition): Try[Unit] = {
-      val statusRequiresResponsible = DraftStatus.thatRequiresResponsible.contains(transition.to)
-      if (statusRequiresResponsible && draft.responsible.isEmpty) {
+      val statusRequiresResponsible       = DraftStatus.thatRequiresResponsible.contains(transition.to)
+      val statusFromPublishedToInProgress = draft.status.current != transition.to
+      if (statusRequiresResponsible && draft.responsible.isEmpty && !statusFromPublishedToInProgress) {
         return Failure(
           IllegalStatusStateTransition(
             s"The action triggered a state transition to ${transition.to}, this is invalid without setting new responsible."
@@ -273,7 +279,7 @@ trait StateTransitionRules {
         convertedArticle.flatMap(articleBeforeSideEffect => {
           sideEffects
             .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-              accumulatedArticle.flatMap(a => sideEffect(a, isImported))
+              accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
             })
         })
       }
