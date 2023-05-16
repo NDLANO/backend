@@ -18,7 +18,6 @@ import org.mockito.ArgumentMatchers._
 import org.scalatra.test.Uploadable
 import sttp.client3.quick._
 
-import java.io.File
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
@@ -117,7 +116,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody(metadata, file)
+        .multipartBody[Any](metadata, file)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
     response.code.code should be(200)
@@ -138,7 +137,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody(file, metadata)
+        .multipartBody[Any](file, metadata)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
 
@@ -151,7 +150,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
     val response = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .multipartBody(metadata)
+        .multipartBody[Any](metadata)
         .headers(Map("Authorization" -> authHeaderWithWrongRole))
     )
     response.code.code should be(403)

@@ -8,9 +8,9 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
-import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.TestData._
+import no.ndla.audioapi.model.domain
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
 import no.ndla.network.tapir.TapirServer

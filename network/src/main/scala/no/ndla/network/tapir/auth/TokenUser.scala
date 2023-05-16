@@ -7,7 +7,6 @@
 
 package no.ndla.network.tapir.auth
 
-import cats.implicits.catsSyntaxEitherId
 import sttp.tapir.CodecFormat.TextPlain
 import no.ndla.network.jwt.JWTExtractor
 import sttp.tapir._

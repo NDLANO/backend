@@ -14,7 +14,6 @@ import org.http4s.jetty.server.JettyBuilder
 import org.log4s.{Logger, getLogger}
 
 import javax.servlet.DispatcherType
-import scala.concurrent.Future
 
 case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMelody: Boolean)(onReady: => Unit = {}) {
   val logger: Logger      = getLogger

@@ -7,8 +7,6 @@
 
 package no.ndla.network
 
-import cats.effect.IOLocal
-
 import javax.servlet.http.HttpServletRequest
 import no.ndla.network.jwt.JWTExtractor
 import no.ndla.network.model.NdlaHttpRequest

@@ -13,10 +13,10 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.Service
-import org.http4s.{HttpRoutes, Request}
+import org.http4s.HttpRoutes
+import org.http4s.dsl.io._
 import sttp.client3.Response
 import sttp.client3.quick._
-import org.http4s.dsl.io._
 
 trait HealthController {
   this: AudioRepository with Props with Service =>

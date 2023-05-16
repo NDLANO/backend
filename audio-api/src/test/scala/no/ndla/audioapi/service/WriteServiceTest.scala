@@ -8,19 +8,18 @@
 package no.ndla.audioapi.service
 
 import com.amazonaws.services.s3.model.ObjectMetadata
+import no.ndla.audioapi.TestData.testUser
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
-import no.ndla.common.model.{domain => common}
+import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.audioapi.TestData.testUser
+import no.ndla.common.model.{domain => common}
 import org.mockito.invocation.InvocationOnMock
-import org.scalatra.servlet.FileItem
 import scalikejdbc.DBSession
 import sttp.model.Part
 
-import java.io.{File, InputStream}
+import java.io.InputStream
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 

@@ -18,14 +18,14 @@ import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.language.Language
 import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.model.{Part, StatusCode}
+import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
@@ -108,7 +108,7 @@ trait AudioController {
       .in(audioType)
       .in(seriesFilter)
       .in(fallback)
-      .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
+      .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure {
         case (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) =>
           scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
@@ -134,7 +134,7 @@ trait AudioController {
       .in("search")
       .in(jsonBody[SearchParams])
       .out(EndpointOutput.derived[SummaryWithHeader])
-      .errorOut(errorOutputsFor(400, 404)) // TODO: Figure out which codes we need :^)
+      .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
@@ -171,7 +171,7 @@ trait AudioController {
       .in("ids")
       .in(audioIds)
       .in(language)
-      .errorOut(errorOutputsFor(400, 404)) // TODO: What codes?
+      .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[List[AudioMetaInformation]])
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
@@ -183,7 +183,7 @@ trait AudioController {
       .summary("Deletes audio with the specified id")
       .description("Deletes audio with the specified id")
       .in(pathAudioId)
-      .errorOut(errorOutputsFor(400, 401, 403, 404)) // TODO: what codes?
+      .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(emptyOutput)
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
@@ -200,16 +200,7 @@ trait AudioController {
       .in(pathAudioId)
       .in("language")
       .in(pathLanguage)
-      .out(
-        oneOf(
-          oneOfVariantValueMatcher(StatusCode.Ok, jsonBody[Option[AudioMetaInformation]]) {
-            case Some(x: AudioMetaInformation) => true
-          },
-          oneOfVariantValueMatcher(StatusCode.NoContent, jsonBody[Option[AudioMetaInformation]]) { case None =>
-            true
-          }
-        )
-      )
+      .out(noContentOrBodyOutput[AudioMetaInformation])
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))

@@ -14,25 +14,21 @@ import io.circe.generic.extras.auto._
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api._
-import no.ndla.audioapi.model.domain.{AudioType, SearchSettings, SeriesSearchSettings}
-import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService, SeriesSearchService}
+import no.ndla.audioapi.model.domain.SeriesSearchSettings
+import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.language.Language
-import no.ndla.network.scalatra.NdlaSwaggerSupport
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import sttp.model.Part
+import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, _}
 
-import java.io.File
-import java.nio.file.Files
 import scala.util.{Failure, Success, Try}
 
 trait SeriesController {
@@ -47,20 +43,16 @@ trait SeriesController {
   val seriesController: SeriesController
   class SeriesController() extends SwaggerService {
 
-    import props._
     import ErrorHelpers._
+    import props._
 
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
       query[Option[String]]("language").description("The ISO 639-1 language code describing language.")
-    private val license = query[Option[String]]("license").description("Return only audio with provided license.")
-    private val pageNo  = query[Option[Int]]("page").description("The page number of the search hits to display.")
+    private val pageNo = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
-    )
-    private val audioIds = query[List[Long]]("ids").description(
-      "Return only audios that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
     private val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
@@ -75,29 +67,12 @@ trait SeriesController {
          |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
-    private val audioType = query[Option[String]]("audio-type").description(
-      s"""Only return types of the specified value.
-         |Possible values are ${AudioType.all.mkString("'", ", ", "'")}""".stripMargin
-    )
-    private val seriesFilter = query[Option[Boolean]]("filter-by-series").description(
-      """Filter result by whether they are a part of a series or not.
-        |'true' will return only audios that are a part of a series.
-        |'false' will return only audios that are NOT a part of a series.
-        |Not specifying will return both audios that are a part of a series and not.""".stripMargin
-    )
     private val fallback =
       query[Option[Boolean]]("fallback").description("Fallback to existing language if language is specified.")
     private val pathSeriesId = path[Long]("series-id").description("Id of series.")
     private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
 
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / "series"
-    override protected val endpoints: List[ServerEndpoint[Any, IO]] = List(
-      getSeriesSearch,
-      postSeriesSearch,
-      getSingleSeries,
-      deleteSeries,
-      deleteLanguage
-    )
 
     val getSeriesSearch: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Find series")
@@ -173,7 +148,7 @@ trait SeriesController {
       .in(pathSeriesId)
       .in("language")
       .in(pathLanguage)
-      .out(jsonBody[Option[Series]])
+      .out(noContentOrBodyOutput[Series])
       .errorOut(errorOutputsFor(400, 401, 403))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
@@ -184,6 +159,34 @@ trait SeriesController {
           case Success(Some(series)) => Some(series).asRight
           case Success(None)         => None.asRight
         }
+      }
+
+    val postNewSeries: ServerEndpoint[Any, IO] = endpoint.post
+      .summary("Create a new series with meta information")
+      .description("Create a new series with meta information")
+      .in(jsonBody[NewSeries])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .out(statusCode(StatusCode.Created).and(jsonBody[Series]))
+      .securityIn(auth.bearer[Option[TokenUser]]())
+      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .serverLogicPure { _ => newSeries =>
+        writeService
+          .newSeries(newSeries)
+          .handleErrorsOrOk
+      }
+
+    val putUpdateSeries: ServerEndpoint[Any, IO] = endpoint.put
+      .summary("Upload audio for a different language or update metadata for an existing audio-file")
+      .description("Update the metadata for an existing language, or upload metadata for a new language.")
+      .in(pathSeriesId)
+      .in(jsonBody[NewSeries])
+      .out(jsonBody[Series])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .securityIn(auth.bearer[Option[TokenUser]]())
+      .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
+      .serverLogicPure { _ => input =>
+        val (id, updateSeries) = input
+        writeService.updateSeries(id, updateSeries).handleErrorsOrOk
       }
 
     private case class SummaryWithHeader(
@@ -255,6 +258,16 @@ trait SeriesController {
           }
         case _ => orFunction
       }
+
+    override protected val endpoints: List[ServerEndpoint[Any, IO]] = List(
+      getSeriesSearch,
+      postSeriesSearch,
+      getSingleSeries,
+      deleteSeries,
+      deleteLanguage,
+      postNewSeries,
+      putUpdateSeries
+    )
 
   }
 }
