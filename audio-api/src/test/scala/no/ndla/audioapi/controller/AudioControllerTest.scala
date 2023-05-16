@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.controller
 
+import io.circe.parser
 import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
@@ -272,5 +273,41 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
 
     verify(audioSearchService, times(1)).matchingQuery(expectedSettings)
     verify(audioSearchService, times(0)).scroll(any[String], any[String])
+  }
+
+  test("That deleting language returns audio if exists and 204 on last") {
+
+    {
+      import io.circe.generic.auto._
+
+      when(writeService.deleteAudioLanguageVersion(1, "nb"))
+        .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
+
+      val request = quickRequest
+        .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+
+      val response = simpleHttpClient.send(request)
+      response.code.code should be(200)
+      val parsedBody    = parser.parse(response.body)
+      val jsonObject    = parsedBody.toOption.get
+      val deserializedE = jsonObject.as[api.AudioMetaInformation]
+      val deserialized  = deserializedE.toOption.get
+      deserialized should be(TestData.DefaultApiImageMetaInformation)
+    }
+
+    {
+      when(writeService.deleteAudioLanguageVersion(1, "nb"))
+        .thenReturn(Success(None))
+
+      val request2 = quickRequest
+        .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
+        .headers(Map("Authorization" -> authHeaderWithWriteRole))
+
+      val response2 = simpleHttpClient.send(request2)
+      response2.code.code should be(204)
+      response2.body should be("")
+    }
+
   }
 }

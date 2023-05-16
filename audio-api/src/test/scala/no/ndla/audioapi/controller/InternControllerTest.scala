@@ -10,12 +10,12 @@ package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.model.{api, domain}
+import no.ndla.audioapi.TestData._
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.{domain => common}
 import no.ndla.network.tapir.TapirServer
 import sttp.client3.quick._
 
-import java.time.LocalDateTime
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment {
@@ -30,25 +30,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment {
     server.runInBackground()
     blockUntil(() => server.isReady)
   }
-
-  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
-  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
-
-  val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
-    1,
-    1,
-    api.Title("title", "nb"),
-    api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    api.Copyright(api.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, None),
-    api.Tag(Seq("tag"), "nb"),
-    Seq("nb"),
-    "standard",
-    None,
-    None,
-    None,
-    created,
-    updated
-  )
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
