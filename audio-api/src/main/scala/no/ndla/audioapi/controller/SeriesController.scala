@@ -86,7 +86,7 @@ trait SeriesController {
       .in(scrollId)
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogicPure { case (query, language, sort, page, pageSize, scrollId, fallback) =>
+      .serverLogic { case (query, language, sort, page, pageSize, scrollId, fallback) =>
         scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
 
@@ -102,7 +102,7 @@ trait SeriesController {
       .in(jsonBody[SeriesSearchParams])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogicPure { searchParams =>
+      .serverLogic { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
           val query        = searchParams.query
           val language     = searchParams.language
@@ -123,7 +123,7 @@ trait SeriesController {
       .in(language)
       .errorOut(errorOutputsFor(400, 404))
       .out(jsonBody[Series])
-      .serverLogicPure { case (id, language) =>
+      .serverLogic { case (id, language) =>
         readService.seriesWithId(id, language).handleErrorsOrOk
       }
 
@@ -135,10 +135,10 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 403, 404))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => seriesId =>
+      .serverLogic { _ => seriesId =>
         writeService.deleteSeries(seriesId) match {
-          case Failure(ex) => returnError(ex).asLeft
-          case Success(_)  => Right(())
+          case Failure(ex) => returnLeftError(ex)
+          case Success(_)  => IO(Right(()))
         }
       }
 
@@ -152,12 +152,12 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => input =>
+      .serverLogic { _ => input =>
         val (seriesId, language) = input
         writeService.deleteSeriesLanguageVersion(seriesId, language) match {
-          case Failure(ex)           => returnError(ex).asLeft
-          case Success(Some(series)) => Some(series).asRight
-          case Success(None)         => None.asRight
+          case Failure(ex)           => returnLeftError(ex)
+          case Success(Some(series)) => IO(Some(series).asRight)
+          case Success(None)         => IO(None.asRight)
         }
       }
 
@@ -169,7 +169,7 @@ trait SeriesController {
       .out(statusCode(StatusCode.Created).and(jsonBody[Series]))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => newSeries =>
+      .serverLogic { _ => newSeries =>
         writeService
           .newSeries(newSeries)
           .handleErrorsOrOk
@@ -184,7 +184,7 @@ trait SeriesController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => input =>
+      .serverLogic { _ => input =>
         val (id, updateSeries) = input
         writeService.updateSeries(id, updateSeries).handleErrorsOrOk
       }

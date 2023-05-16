@@ -37,10 +37,10 @@ trait OEmbedProxyController {
         .in(query[Option[String]]("maxheight").description("The maximum height of the embedded resource"))
         .errorOut(errorOutputsFor(400, 404, 501, 502))
         .out(jsonBody[OEmbed])
-        .serverLogicPure { case (url, maxWidth, maxHeight) =>
+        .serverLogic { case (url, maxWidth, maxHeight) =>
           oEmbedService.get(url, maxWidth, maxHeight) match {
-            case Success(oembed) => oembed.asRight
-            case Failure(ex)     => returnError(ex).asLeft
+            case Success(oembed) => IO(oembed.asRight)
+            case Failure(ex)     => returnLeftError(ex)
           }
         }
     )

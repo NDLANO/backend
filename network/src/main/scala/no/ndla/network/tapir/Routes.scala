@@ -63,14 +63,14 @@ trait Routes {
         })
 
     private case class NdlaExceptionHandler() extends ExceptionHandler[IO] {
-      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] = {
-        val errorToReturn = returnError(ctx.e)
-        val sc            = StatusCode(errorToReturn.statusCode)
-
-        val resp   = ValuedEndpointOutput(jsonBody[ErrorBody], errorToReturn)
-        val withsc = resp.prepend(statusCode, sc)
-        monad.unit(Some(withsc))
-      }
+      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] =
+        for {
+          errorToReturn <- returnError(ctx.e)
+          sc     = StatusCode(errorToReturn.statusCode)
+          resp   = ValuedEndpointOutput(jsonBody[ErrorBody], errorToReturn)
+          withsc = resp.prepend(statusCode, sc)
+          result <- monad.unit(Some(withsc))
+        } yield result
     }
 
     private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f.failures.map(_.failingInput).exists {

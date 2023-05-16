@@ -109,7 +109,7 @@ trait AudioController {
       .in(seriesFilter)
       .in(fallback)
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogicPure {
+      .serverLogic {
         case (query, language, license, sort, pageNo, pageSize, scrollId, audioType, seriesFilter, fallback) =>
           scrollSearchOr(scrollId, language.getOrElse(Language.AllLanguages)) {
             val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
@@ -135,7 +135,7 @@ trait AudioController {
       .in(jsonBody[SearchParams])
       .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogicPure { searchParams =>
+      .serverLogic { searchParams =>
         scrollSearchOr(searchParams.scrollId, searchParams.language.getOrElse(Language.AllLanguages)) {
           val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           search(
@@ -175,7 +175,7 @@ trait AudioController {
       .out(jsonBody[List[AudioMetaInformation]])
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
-      .serverLogicPure { case (audioIds, language) =>
+      .serverLogic { case (audioIds, language) =>
         readService.getAudiosByIds(audioIds, language).handleErrorsOrOk
       }
 
@@ -187,10 +187,10 @@ trait AudioController {
       .out(emptyOutput)
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => audioId =>
+      .serverLogic { _ => audioId =>
         writeService.deleteAudioAndFiles(audioId) match {
-          case Failure(ex) => returnError(ex).asLeft
-          case Success(_)  => Right(())
+          case Failure(ex) => returnLeftError(ex)
+          case Success(_)  => IO(Right(()))
         }
       }
 
@@ -204,12 +204,12 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { _ => input =>
+      .serverLogic { _ => input =>
         val (audioId, language) = input
         writeService.deleteAudioLanguageVersion(audioId, language) match {
-          case Success(Some(audio)) => Right(Some(audio))
-          case Success(None)        => Right(None)
-          case Failure(ex)          => returnError(ex).asLeft
+          case Success(Some(audio)) => IO(Right(Some(audio)))
+          case Success(None)        => IO(Right(None))
+          case Failure(ex)          => returnLeftError(ex)
         }
       }
 
@@ -221,11 +221,11 @@ trait AudioController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { user => formData =>
+      .serverLogic { user => formData =>
         val fileBytes = getBytesAndDeleteFile(formData.file)
         writeService.storeNewAudio(formData.metadata.body, fileBytes, user) match {
-          case Success(audioMeta) => Right(audioMeta)
-          case Failure(e)         => returnError(e).asLeft
+          case Success(audioMeta) => IO(Right(audioMeta))
+          case Failure(e)         => returnError(e).map(_.asLeft)
         }
       }
 
@@ -238,12 +238,12 @@ trait AudioController {
       .out(jsonBody[AudioMetaInformation])
       .securityIn(auth.bearer[Option[TokenUser]]())
       .serverSecurityLogicPure(requireScope(AUDIO_API_WRITE))
-      .serverLogicPure { user => input =>
+      .serverLogic { user => input =>
         val (id, formData) = input
         val fileBytes      = formData.file.map(getBytesAndDeleteFile)
         writeService.updateAudio(id, formData.metadata.body, fileBytes, user) match {
-          case Success(audioMeta) => audioMeta.asRight
-          case Failure(e)         => returnError(e).asLeft
+          case Success(audioMeta) => IO(audioMeta.asRight)
+          case Failure(e)         => returnError(e).map(_.asLeft)
         }
       }
 
@@ -257,7 +257,7 @@ trait AudioController {
       .in(language)
       .out(jsonBody[TagsSearchResult])
       .errorOut(errorOutputsFor(400, 404))
-      .serverLogicPure { case (query, ps, pn, lang) =>
+      .serverLogic { case (query, ps, pn, lang) =>
         val pageSize = ps.getOrElse(DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => DefaultPageSize
           case x                        => x
@@ -270,8 +270,8 @@ trait AudioController {
         val language = lang.getOrElse(Language.AllLanguages)
 
         readService.getAllTags(query.getOrElse(""), pageSize, pageNo, language) match {
-          case Failure(ex)     => returnError(ex).asLeft
-          case Success(result) => result.asRight
+          case Failure(ex)     => returnError(ex).map(_.asLeft)
+          case Success(result) => IO(result.asRight)
         }
       }
 

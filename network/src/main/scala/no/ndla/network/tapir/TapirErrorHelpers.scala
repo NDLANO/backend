@@ -7,11 +7,11 @@
 
 package no.ndla.network.tapir
 
+import cats.effect.IO
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.Clock
 import no.ndla.common.configuration.HasBaseProps
 import no.ndla.network.tapir.auth.{Scope, TokenUser}
-import org.log4s.{Logger, getLogger}
 
 import scala.util.{Failure, Success, Try}
 
@@ -19,8 +19,6 @@ trait TapirErrorHelpers {
   this: HasBaseProps with Clock =>
 
   object ErrorHelpers {
-    val logger: Logger = getLogger
-
     val GENERIC                = "GENERIC"
     val NOT_FOUND              = "NOT_FOUND"
     val BAD_REQUEST            = "BAD_REQUEST"
@@ -73,7 +71,8 @@ trait TapirErrorHelpers {
     }
   }
 
-  def returnError(ex: Throwable): ErrorBody
+  def returnError(ex: Throwable): IO[ErrorBody]
+  def returnLeftError[R](ex: Throwable): IO[Either[ErrorBody, R]] = returnError(ex).map(_.asLeft[R])
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits._
@@ -81,9 +80,9 @@ trait TapirErrorHelpers {
     /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
       * to a generic 500 error.
       */
-    def handleErrorsOrOk: Either[ErrorBody, T] = t match {
-      case Success(value) => value.asRight
-      case Failure(ex)    => returnError(ex).asLeft
+    def handleErrorsOrOk: IO[Either[ErrorBody, T]] = t match {
+      case Success(value) => IO(value.asRight)
+      case Failure(ex)    => returnLeftError(ex)
     }
 
     /** Function to override one or more of error responses:
@@ -96,10 +95,10 @@ trait TapirErrorHelpers {
       * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
       * generic 500 error.
       */
-    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[ErrorBody, T] = t match {
-      case Success(value)                          => value.asRight
-      case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
-      case Failure(ex)                             => returnError(ex).asLeft
+    def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): IO[Either[ErrorBody, T]] = t match {
+      case Success(value)                          => IO(value.asRight)
+      case Failure(ex) if callback.isDefinedAt(ex) => IO(callback(ex).asLeft)
+      case Failure(ex)                             => returnLeftError(ex)
     }
 
   }

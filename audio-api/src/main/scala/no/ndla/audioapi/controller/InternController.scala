@@ -117,10 +117,10 @@ trait InternController {
         .in(path[Long]("id"))
         .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[AudioMetaInformation])
-        .serverLogicPure { id =>
+        .serverLogic { id =>
           audioRepository.withId(id) match {
-            case Some(image) => image.asRight
-            case None        => returnError(new NotFoundException(s"Could not find audio with id: '$id'")).asLeft
+            case Some(image) => IO(image.asRight)
+            case None        => returnLeftError(new NotFoundException(s"Could not find audio with id: '$id'"))
           }
         },
       endpoint.post
