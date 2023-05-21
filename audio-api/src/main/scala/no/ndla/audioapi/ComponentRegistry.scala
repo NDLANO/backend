@@ -68,14 +68,11 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Props
     with DBMigrator
     with ErrorHelpers
-    with AudioApiInfo
     with SwaggerDocControllerConfig {
   override val props: AudioApiProperties    = properties
   override val migrator: DBMigrator         = new DBMigrator
   override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   DataSource.connectToDatabase()
-
-  implicit val swagger: AudioSwagger = new AudioSwagger
 
   val currentRegion: Option[Regions] = Option(Regions.getCurrentRegion).map(region => Regions.fromName(region.getName))
 

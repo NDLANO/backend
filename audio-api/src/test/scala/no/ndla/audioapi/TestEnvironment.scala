@@ -61,7 +61,6 @@ trait TestEnvironment
     with MockitoSugar
     with Clock
     with Props
-    with AudioApiInfo
     with ErrorHelpers {
   override val props: AudioApiProperties = new AudioApiProperties
 
@@ -81,7 +80,6 @@ trait TestEnvironment
   val converterService: ConverterService   = mock[ConverterService]
 
   val internController: InternController  = mock[InternController]
-  val resourcesApp: ResourcesApp          = mock[ResourcesApp]
   val audioApiController: AudioController = mock[AudioController]
   val healthController: HealthController  = mock[HealthController]
   val seriesController: SeriesController  = mock[SeriesController]
