@@ -11,7 +11,6 @@ import no.ndla.audioapi.{TestData, TestEnvironment}
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.common.model.{domain => common}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import scala.util.Success

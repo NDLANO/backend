@@ -37,4 +37,6 @@ trait BaseProps {
   def SearchApiUrl: String       = s"http://$SearchApiHost"
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
+
+  def MAX_SEARCH_THREADS: Int = propOrNone("MAX_SEARCH_THREADS").flatMap(_.toIntOption).getOrElse(100)
 }

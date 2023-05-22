@@ -14,7 +14,6 @@ import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime

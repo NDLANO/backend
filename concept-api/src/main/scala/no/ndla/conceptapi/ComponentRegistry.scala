@@ -20,7 +20,7 @@ import no.ndla.conceptapi.service.search._
 import no.ndla.conceptapi.service._
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}

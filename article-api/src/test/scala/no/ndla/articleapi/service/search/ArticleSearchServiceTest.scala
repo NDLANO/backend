@@ -26,7 +26,6 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
