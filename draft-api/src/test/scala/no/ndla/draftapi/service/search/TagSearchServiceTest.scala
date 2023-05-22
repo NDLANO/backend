@@ -10,7 +10,6 @@ package no.ndla.draftapi.service.search
 import no.ndla.common.model.domain._
 import no.ndla.draftapi._
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import scala.util.Success
