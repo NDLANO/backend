@@ -508,10 +508,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Failure(result1) = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess)
     result1.getMessage should include("'ikke' is not a valid gloss type")
 
-//    val newConcept2 =
-//      newConcept.copy(conceptType = "ikke eksisterende", glossData = Some(newGlossData.copy(glossType = "noun")))
-//    val Failure(result2) = converterService.toDomainConcept(newConcept2, TestData.userWithWriteAccess)
-//    result2.getMessage should include("'ikke eksisterende' is not a valid concept type")
+    val newConcept2 =
+      newConcept.copy(conceptType = "ikke eksisterende", glossData = Some(newGlossData.copy(glossType = "noun")))
+    val Failure(result2) = converterService.toDomainConcept(newConcept2, TestData.userWithWriteAccess)
+    result2.getMessage should include("'ikke eksisterende' is not a valid concept type")
   }
 
   test("that toDomainConcept (update concept) updates glossData correctly") {
