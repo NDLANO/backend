@@ -13,7 +13,12 @@ import no.ndla.conceptapi.model.domain.{ConceptType, GlossExample, GlossData, Gl
 class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
   test("that GlossDataValidator fails if ConceptType is concept and glossData is defined") {
     val glossExample = GlossExample(example = "hei hei", language = "nb")
-    val glossData = GlossData(glossType = GlossType.NOUN, originalLanguage = "nb", examples = List(List(glossExample)))
+    val glossData = GlossData(
+      glossType = GlossType.NOUN,
+      originalLanguage = "nb",
+      examples = List(List(glossExample)),
+      alternatives = Map("zh" -> "a", "pinyin" -> "b")
+    )
     val validationError =
       GlossDataValidator.validateGlossData(maybeGlossData = Some(glossData), conceptType = ConceptType.CONCEPT)
 
@@ -40,7 +45,12 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
 
   test("that GlossDataValidator gives no errors when ConceptType is gloss and glossData is defined") {
     val glossExample = GlossExample(example = "hei hei", language = "nb")
-    val glossData = GlossData(glossType = GlossType.NOUN, originalLanguage = "nb", examples = List(List(glossExample)))
+    val glossData = GlossData(
+      glossType = GlossType.NOUN,
+      originalLanguage = "nb",
+      examples = List(List(glossExample)),
+      alternatives = Map("zh" -> "a", "pinyin" -> "b")
+    )
     val validationError =
       GlossDataValidator.validateGlossData(maybeGlossData = Some(glossData), conceptType = ConceptType.GLOSS)
     validationError should be(None)

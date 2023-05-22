@@ -77,7 +77,7 @@ trait ConverterService {
             visualElement = visualElement,
             responsible = responsible,
             conceptType = concept.conceptType.toString,
-            glossData = toApiGlossData(concept.glossData)
+            glossData = toApiGlossData(concept.glossData, concept.title)
           )
         )
       } else {
@@ -90,13 +90,16 @@ trait ConverterService {
       }
     }
 
-    def toApiGlossData(domainGlossData: Option[domain.GlossData]): Option[api.GlossData] = {
+    def toApiGlossData(domainGlossData: Option[domain.GlossData], titles: Seq[Title]): Option[api.GlossData] = {
       domainGlossData.map(glossData =>
         api.GlossData(
           glossType = glossData.glossType.toString,
           examples =
             glossData.examples.map(ge => ge.map(g => api.GlossExample(example = g.example, language = g.language))),
-          originalLanguage = glossData.originalLanguage
+          originalLanguage = glossData.originalLanguage,
+          alternatives = glossData.alternatives ++ titles
+            .filter(t => t.language != glossData.originalLanguage)
+            .map(t => (t.language, t.title))
         )
       )
     }
@@ -168,7 +171,8 @@ trait ConverterService {
                   examples = glossData.examples.map(gl =>
                     gl.map(g => domain.GlossExample(language = g.language, example = g.example))
                   ),
-                  originalLanguage = glossData.originalLanguage
+                  originalLanguage = glossData.originalLanguage,
+                  alternatives = glossData.alternatives
                 )
               )
           }
@@ -316,7 +320,8 @@ trait ConverterService {
         domain.GlossData(
           glossType = GlossType.valueOf(gloss.glossType).getOrElse(GlossType.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
           examples = gloss.examples.map(ge => ge.map(g => domain.GlossExample(language = g.language, example = g.example))),
-          originalLanguage = gloss.originalLanguage
+          originalLanguage = gloss.originalLanguage,
+          alternatives = gloss.alternatives
         )
       )
       // format: on

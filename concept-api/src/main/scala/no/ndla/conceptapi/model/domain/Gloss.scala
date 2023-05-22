@@ -37,4 +37,9 @@ object GlossType extends Enumeration {
 }
 
 case class GlossExample(example: String, language: String)
-case class GlossData(glossType: GlossType.Value, originalLanguage: String, examples: List[List[GlossExample]])
+case class GlossData(
+    glossType: GlossType.Value,
+    originalLanguage: String,
+    alternatives: Map[String, String],
+    examples: List[List[GlossExample]]
+)
