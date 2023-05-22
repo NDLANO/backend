@@ -24,7 +24,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, SwaggerControllerConfig}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, SwaggerControllerConfig, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import org.http4s.{Request, Response}
 
@@ -49,6 +49,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Service
     with NdlaMiddleware
     with HealthController
+    with TapirHealthController
     with AudioController
     with SeriesController
     with SearchService

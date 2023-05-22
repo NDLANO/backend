@@ -25,6 +25,8 @@ class MainClass(override val props: AudioApiProperties) extends NdlaTapirMain {
     warmupRequest("/audio-api/v1/series", Map("language" -> "nb"))
     warmupRequest("/audio-api/v1/series/1", Map("language" -> "nb"))
     warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
   override def beforeStart(): Unit = {
