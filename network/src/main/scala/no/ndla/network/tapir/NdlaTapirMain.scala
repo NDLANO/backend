@@ -29,7 +29,7 @@ trait NdlaTapirMain extends IOApp {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
   }
 
-  private def performWarmup(): Unit = {
+  private def performWarmup(): Unit = if (!props.disableWarmup) {
     import scala.concurrent.ExecutionContext.Implicits.global
     Future {
       // Since we don't really have a good way to check whether server is ready lets just wait a bit
@@ -42,7 +42,6 @@ trait NdlaTapirMain extends IOApp {
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
     }
-
   }
 
   override def run(args: List[String]): IO[ExitCode] = {

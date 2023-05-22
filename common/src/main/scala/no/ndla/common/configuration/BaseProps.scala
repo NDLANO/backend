@@ -1,8 +1,11 @@
 package no.ndla.common.configuration
 
-import scala.util.Properties.propOrElse
+import scala.util.Properties.{propOrElse, propOrNone}
 
 trait BaseProps {
+  def booleanPropOrNone(name: String): Option[Boolean]              = propOrNone(name).flatMap(_.toBooleanOption)
+  def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
+
   def ApplicationPort: Int
   def ApplicationName: String
 
@@ -33,4 +36,5 @@ trait BaseProps {
   def LearningpathApiUrl: String = s"http://$LearningpathApiHost"
   def SearchApiUrl: String       = s"http://$SearchApiHost"
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
+  def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 }
