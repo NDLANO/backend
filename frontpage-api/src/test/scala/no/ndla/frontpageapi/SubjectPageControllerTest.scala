@@ -34,7 +34,8 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
         quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/subjectpage/1?fallback=noefeil")
       )
     response.code.code should equal(400)
-    val expectedBody = ErrorHelpers.badRequest("Invalid value for: query parameter fallback").asJson.noSpaces
+    val expectedBody =
+      ErrorHelpers.badRequest("Invalid value for: query parameter fallback").asJson.dropNullValues.noSpaces
     response.body should be(expectedBody)
   }
 

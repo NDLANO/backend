@@ -8,21 +8,16 @@
 
 package no.ndla.audioapi.model.api
 
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-// format: off
-@ApiModel(description = "Meta information about podcast series")
+@description("Meta information about podcast series")
 case class NewSeries(
-  @(ApiModelProperty @field)(description = "Header for the series") title: String,
-  @(ApiModelProperty @field)(description = "Description for the series") description: String,
-  @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhotoId: String,
-  @(ApiModelProperty @field)(description = "Cover photo alttext for the series") coverPhotoAltText: String,
-  @(ApiModelProperty @field)(description = "Ids for episodes of the series") episodes: Set[Long],
-  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in this resource") language: String,
-  @(ApiModelProperty @field)(description = "Revision number of this series (Only used to do locking when updating)") revision: Option[Int],
-  @(ApiModelProperty @field)(description = "Specifies if this series generates rss-feed") hasRSS: Option[Boolean],
+    @description("Header for the series") title: String,
+    @description("Description for the series") description: String,
+    @description("Cover photo for the series") coverPhotoId: String,
+    @description("Cover photo alttext for the series") coverPhotoAltText: String,
+    @description("Ids for episodes of the series") episodes: Set[Long],
+    @description("ISO 639-1 code that represents the language used in this resource") language: String,
+    @description("Revision number of this series (Only used to do locking when updating)") revision: Option[Int],
+    @description("Specifies if this series generates rss-feed") hasRSS: Option[Boolean]
 )
-// format: on

@@ -19,7 +19,6 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
-import no.ndla.network.scalatra.NdlaSwaggerSupport
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
@@ -44,7 +43,6 @@ trait AudioController {
     with ConverterService
     with Props
     with ErrorHelpers
-    with NdlaSwaggerSupport
     with Service =>
   val audioApiController: AudioController
 

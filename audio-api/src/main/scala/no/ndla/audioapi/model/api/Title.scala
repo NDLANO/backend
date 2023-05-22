@@ -7,13 +7,9 @@
 
 package no.ndla.audioapi.model.api
 
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
-
-import scala.annotation.meta.field
+import sttp.tapir.Schema.annotations.description
 
 case class Title(
-    @(ApiModelProperty @field)(description = "The title of the audio file") title: String,
-    @(ApiModelProperty @field)(
-      description = "ISO 639-1 code that represents the language used in the title"
-    ) language: String
+    @description("The title of the audio file") title: String,
+    @description("ISO 639-1 code that represents the language used in the title") language: String
 )

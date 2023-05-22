@@ -9,23 +9,19 @@
 package no.ndla.audioapi.model.api
 
 import com.scalatsi._
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
 import scala.annotation.unused
 
-// format: off
-@ApiModel(description = "Short summary of information about the series")
+@description("Short summary of information about the series")
 case class SeriesSummary(
-    @(ApiModelProperty @field)(description = "The unique id of the series") id: Long,
-    @(ApiModelProperty @field)(description = "The title of the series") title: Title,
-    @(ApiModelProperty @field)(description = "The description of the series") description: Description,
-    @(ApiModelProperty @field)(description = "A list of available languages for this series") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "A list of episode summaries") episodes: Option[Seq[AudioSummary]],
-    @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhoto: CoverPhoto
+    @description("The unique id of the series") id: Long,
+    @description("The title of the series") title: Title,
+    @description("The description of the series") description: Description,
+    @description("A list of available languages for this series") supportedLanguages: Seq[String],
+    @description("A list of episode summaries") episodes: Option[Seq[AudioSummary]],
+    @description("Cover photo for the series") coverPhoto: CoverPhoto
 )
-// format: on
 
 object SeriesSummary {
   implicit val SeriesSummaryTSI: TSIType[SeriesSummary] = {

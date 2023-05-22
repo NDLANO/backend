@@ -15,7 +15,6 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.TapirServer
 import org.mockito.ArgumentMatchers._
-import org.scalatra.test.Uploadable
 import sttp.client3.quick._
 
 import scala.concurrent.duration.Duration
@@ -43,13 +42,6 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
 
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJhenAiOiIxMjMiLCJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoic29tZTpvdGhlciIsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.1MYhQy2jRMsmyhaUURBC1rFXjCLSJMQyhuWBlB8qLQE"
-
-  val sampleUploadFile: Uploadable = new Uploadable {
-    override def contentLength        = 3
-    override def content: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
-    override def contentType          = "audio/mp3"
-    override def fileName             = "test.mp3"
-  }
 
   val fileBody: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
 

@@ -8,14 +8,12 @@
 package no.ndla.audioapi.model.api
 
 import no.ndla.audioapi.model.domain
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
-
-@ApiModel(description = "Information about audio meta dump")
+@description("Information about audio meta dump")
 case class AudioMetaDomainDump(
-    @(ApiModelProperty @field)(description = "The total number of audios in the database") totalCount: Long,
-    @(ApiModelProperty @field)(description = "For which page results are shown from") page: Int,
-    @(ApiModelProperty @field)(description = "The number of results per page") pageSize: Int,
-    @(ApiModelProperty @field)(description = "The search results") results: Seq[domain.AudioMetaInformation]
+    @description("The total number of audios in the database") totalCount: Long,
+    @description("For which page results are shown from") page: Int,
+    @description("The number of results per page") pageSize: Int,
+    @description("The search results") results: Seq[domain.AudioMetaInformation]
 )
