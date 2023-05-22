@@ -1,6 +1,6 @@
 package no.ndla.common.configuration
 
-import scala.util.Properties.propOrElse
+import scala.util.Properties.{propOrElse, propOrNone}
 
 trait BaseProps {
   def ApplicationPort: Int
@@ -33,4 +33,6 @@ trait BaseProps {
   def LearningpathApiUrl: String = s"http://$LearningpathApiHost"
   def SearchApiUrl: String       = s"http://$SearchApiHost"
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
+
+  def MAX_SEARCH_THREADS: Int = propOrNone("MAX_SEARCH_THREADS").flatMap(_.toIntOption).getOrElse(100)
 }

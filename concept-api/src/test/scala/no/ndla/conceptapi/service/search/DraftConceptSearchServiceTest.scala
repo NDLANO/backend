@@ -16,7 +16,6 @@ import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime

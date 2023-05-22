@@ -14,7 +14,6 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.Outcome
 
