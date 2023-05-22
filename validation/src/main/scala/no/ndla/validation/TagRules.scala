@@ -106,8 +106,8 @@ object TagAttributes extends Enumeration {
   val DataFocalY: TagAttributes.Value      = Value("data-focal-y")
   val DataIsDecor: TagAttributes.Value     = Value("data-isdecor")
   val DataSubtitle: TagAttributes.Value    = Value("data-subtitle")
-
-  val XMLNsAttribute: TagAttributes.Value = Value("xmlns")
+  val DataColumns: TagAttributes.Value     = Value("data-columns")
+  val XMLNsAttribute: TagAttributes.Value  = Value("xmlns")
 
   val Href: TagAttributes.Value    = Value("href")
   val Title: TagAttributes.Value   = Value("title")
