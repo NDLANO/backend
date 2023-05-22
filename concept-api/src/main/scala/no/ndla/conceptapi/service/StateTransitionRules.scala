@@ -74,7 +74,7 @@ trait StateTransitionRules {
       (QUALITY_ASSURANCE  -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
       (QUALITY_ASSURANCE  -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (QUALITY_ASSURANCE  -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
-      (PUBLISHED          -> IN_PROGRESS)         withSideEffect addResponsible,
+      (PUBLISHED          -> IN_PROGRESS)         withSideEffect addResponsible keepCurrentOnTransition,
       (PUBLISHED          -> UNPUBLISHED)         keepStates Set() require UserInfo.PublishRoles withSideEffect unpublishConcept withSideEffect resetResponsible,
        UNPUBLISHED        -> UNPUBLISHED          withSideEffect resetResponsible,
       (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
