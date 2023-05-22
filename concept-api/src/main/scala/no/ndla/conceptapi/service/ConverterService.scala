@@ -177,9 +177,9 @@ trait ConverterService {
     }
 
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
+      val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
       for {
-        conceptType <- ConceptType.valueOfOrError(concept.conceptType)
-        glossData   <- toDomainGlossData(concept.glossData)
+        glossData <- toDomainGlossData(concept.glossData)
       } yield domain.Concept(
         id = None,
         revision = None,
