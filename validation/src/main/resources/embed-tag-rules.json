@@ -295,7 +295,10 @@
         "data-image-id",
         "data-title",
         "data-subtitle"
-     ]
+     ],
+      "optional": [
+        ["data-columns"]
+      ]
     }
   }
 }
