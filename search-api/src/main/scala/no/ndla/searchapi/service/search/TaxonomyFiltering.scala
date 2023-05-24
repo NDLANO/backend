@@ -23,32 +23,37 @@ trait TaxonomyFiltering {
               "contexts",
               boolQuery().must(
                 termQuery("contexts.relevanceId", relevanceId),
-                boolQuery().should(subjectIds.map(sId => termQuery("contexts.subjectId", sId)))
+                boolQuery().should(subjectIds.map(sId => termQuery("contexts.rootId", sId)))
               )
             )
           )
         )
       )
 
-  protected def subjectFilter(subjects: List[String]): Option[NestedQuery] =
-    if (subjects.isEmpty) None
-    else
-      Some(
-        nestedQuery(
-          "contexts",
-          boolQuery().should(subjects.map(subjectId => termQuery(s"contexts.subjectId", subjectId)))
-        )
-      )
+  private val booleanMust: (String, String) => BoolQuery = (field: String, id: String) =>
+    boolQuery().must(termQuery(field, id))
 
-  protected def topicFilter(topics: List[String]): Option[NestedQuery] =
-    if (topics.isEmpty) None
-    else
-      Some(
-        nestedQuery(
-          "contexts",
-          boolQuery().should(topics.map(topicId => termQuery("contexts.parentTopicIds", topicId)))
-        )
+  protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[NestedQuery] =
+    if (subjects.isEmpty) None
+    else {
+      val subjectQueries = subjects.map(subjectId =>
+        if (filterInactive)
+          boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
+        else booleanMust("contexts.rootId", subjectId)
       )
+      Some(nestedQuery("contexts", boolQuery().should(subjectQueries)))
+    }
+
+  protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[NestedQuery] =
+    if (topics.isEmpty) None
+    else {
+      val subjectQueries = topics.map(subjectId =>
+        if (filterInactive)
+          boolQuery().must(booleanMust("contexts.parentIds", subjectId), booleanMust("contexts.isActive", "true"))
+        else booleanMust("contexts.parentIds", subjectId)
+      )
+      Some(nestedQuery("contexts", boolQuery().should(subjectQueries)))
+    }
 
   protected def resourceTypeFilter(resourceTypes: List[String], filterByNoResourceType: Boolean): Option[Query] = {
     if (resourceTypes.isEmpty) {
@@ -80,4 +85,9 @@ trait TaxonomyFiltering {
       Some(boolQuery().should(taxonomyContextQuery))
     }
 
+  protected def contextActiveFilter(filterInactive: Boolean): Option[Query] =
+    if (filterInactive) {
+      val contextActiveQuery = nestedQuery("contexts", termQuery("contexts.isActive", true))
+      Some(contextActiveQuery)
+    } else None
 }

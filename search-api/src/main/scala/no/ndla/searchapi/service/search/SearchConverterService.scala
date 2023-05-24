@@ -171,14 +171,35 @@ trait SearchConverterService {
 
     }
 
+    private def asSearchableTaxonomyContexts(
+        taxonomyContexts: List[TaxonomyContext]
+    ): List[SearchableTaxonomyContext] = {
+      taxonomyContexts.map(context =>
+        SearchableTaxonomyContext(
+          publicId = context.publicId,
+          rootId = context.rootId,
+          root = context.root,
+          path = context.path,
+          breadcrumbs = context.breadcrumbs,
+          contextType = context.contextType.getOrElse(""),
+          relevanceId = context.relevanceId,
+          relevance = context.relevance,
+          resourceTypes = context.resourceTypes,
+          parentIds = context.parentIds,
+          isPrimary = context.isPrimary,
+          isActive = context.isActive
+        )
+      )
+    }
+
     def asSearchableArticle(
         ai: Article,
         taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[SearchableArticle] = {
       val articleId = ai.id.get
-      val taxonomyForArticle = taxonomyBundle match {
-        case Some(bundle) => getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true)
+      val taxonomyContexts = taxonomyBundle match {
+        case Some(bundle) => Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:article:$articleId",
@@ -237,7 +258,7 @@ trait SearchConverterService {
           metaImage = articleWithAgreement.metaImage.toList,
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
-          contexts = taxonomyForArticle.getOrElse(List.empty),
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
           grepContexts = getGrepContexts(ai.grepCodes, grepBundle),
           traits = traits.toList.distinct,
           embedAttributes = embedAttributes,
@@ -252,8 +273,8 @@ trait SearchConverterService {
         lp: LearningPath,
         taxonomyBundle: Option[TaxonomyBundle]
     ): Try[SearchableLearningPath] = {
-      val taxonomyForLearningPath = taxonomyBundle match {
-        case Some(bundle) => getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true)
+      val taxonomyContexts = taxonomyBundle match {
+        case Some(bundle) => Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
@@ -291,7 +312,7 @@ trait SearchConverterService {
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
-          contexts = taxonomyForLearningPath.getOrElse(List.empty),
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
           embedResourcesAndIds = List.empty
         )
       )
@@ -302,10 +323,10 @@ trait SearchConverterService {
         taxonomyBundle: Option[TaxonomyBundle],
         grepBundle: Option[GrepBundle]
     ): Try[SearchableDraft] = {
-      val taxonomyForDraft = {
+      val taxonomyContexts = {
         val draftId = draft.id.get
         taxonomyBundle match {
-          case Some(bundle) => getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false)
+          case Some(bundle) => Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
@@ -374,7 +395,7 @@ trait SearchConverterService {
           defaultTitle = defaultTitle.map(t => t.title),
           supportedLanguages = supportedLanguages,
           notes = notes,
-          contexts = taxonomyForDraft.getOrElse(List.empty),
+          contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty)),
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, grepBundle),
@@ -451,14 +472,21 @@ trait SearchConverterService {
       contexts.map(_.path)
     }
 
-    def articleHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
+    private def filterContexts(
+        contexts: List[SearchableTaxonomyContext],
+        language: String,
+        filterInactive: Boolean
+    ): List[ApiTaxonomyContext] = {
+      val filtered = if (filterInactive) contexts.filter(c => c.isActive) else contexts
+      filtered.sortBy(!_.isPrimary).map(c => searchableContextToApiContext(c, language))
+    }
+
+    def articleHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       val searchableArticle         = read[SearchableArticle](hit.sourceAsString)
 
-      val contexts =
-        searchableArticle.contexts.sortBy(!_.isPrimaryConnection).map(c => searchableContextToApiContext(c, language))
-
-      val titles = searchableArticle.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+      val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
+      val titles   = searchableArticle.title.languageValues.map(lv => api.Title(lv.value, lv.language))
       val introductions =
         searchableArticle.introduction.languageValues.map(lv => api.article.ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions =
@@ -503,14 +531,12 @@ trait SearchConverterService {
       )
     }
 
-    def draftHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
+    def draftHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       val searchableDraft           = read[SearchableDraft](hit.sourceAsString)
 
-      val contexts =
-        searchableDraft.contexts.sortBy(!_.isPrimaryConnection).map(c => searchableContextToApiContext(c, language))
-
-      val titles = searchableDraft.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+      val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
+      val titles   = searchableDraft.title.languageValues.map(lv => api.Title(lv.value, lv.language))
       val introductions =
         searchableDraft.introduction.languageValues.map(lv => api.article.ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions =
@@ -560,13 +586,12 @@ trait SearchConverterService {
       )
     }
 
-    def learningpathHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummary = {
+    def learningpathHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummary = {
       implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis
       val searchableLearningPath    = read[SearchableLearningPath](hit.sourceAsString)
 
-      val contexts = searchableLearningPath.contexts.map(c => searchableContextToApiContext(c, language))
-
-      val titles = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.language))
+      val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
+      val titles   = searchableLearningPath.title.languageValues.map(lv => api.Title(lv.value, lv.language))
       val metaDescriptions =
         searchableLearningPath.description.languageValues.map(lv => api.MetaDescription(lv.value, lv.language))
       val tags =
@@ -615,7 +640,7 @@ trait SearchConverterService {
         context: SearchableTaxonomyContext,
         language: String
     ): ApiTaxonomyContext = {
-      val subjectName = findByLanguageOrBestEffort(context.subject.languageValues, language).map(_.value).getOrElse("")
+      val subjectName = findByLanguageOrBestEffort(context.root.languageValues, language).map(_.value).getOrElse("")
       val breadcrumbs = findByLanguageOrBestEffort(context.breadcrumbs.languageValues, language)
         .map(_.value)
         .getOrElse(Seq.empty)
@@ -630,17 +655,22 @@ trait SearchConverterService {
       val relevance = findByLanguageOrBestEffort(context.relevance.languageValues, language).map(_.value).getOrElse("")
 
       ApiTaxonomyContext(
-        id = context.id,
+        id = context.publicId,
+        publicId = context.publicId,
         subject = subjectName,
-        subjectId = context.subjectId,
+        root = subjectName,
+        subjectId = context.rootId,
+        rootId = context.rootId,
         relevance = relevance,
         path = context.path,
         breadcrumbs = breadcrumbs,
-        filters = List.empty,
         learningResourceType = context.contextType,
+        contextType = context.contextType,
         resourceTypes = resourceTypes,
         language = language,
-        isPrimaryConnection = context.isPrimaryConnection
+        isPrimaryConnection = context.isPrimary,
+        isPrimary = context.isPrimary,
+        isActive = context.isActive
       )
 
     }
@@ -674,27 +704,10 @@ trait SearchConverterService {
         taxonomyType: String,
         bundle: TaxonomyBundle,
         filterVisibles: Boolean
-    ): Try[List[SearchableTaxonomyContext]] = {
+    ): List[TaxonomyContext] = {
       val nodes       = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
       val allContexts = nodes.flatMap(node => node.contexts)
-      val contexts    = if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
-      Success(
-        contexts.map(context =>
-          SearchableTaxonomyContext(
-            id = context.publicId,
-            subjectId = context.rootId,
-            subject = context.root,
-            path = context.path,
-            breadcrumbs = context.breadcrumbs,
-            contextType = context.contextType.getOrElse(""),
-            relevanceId = context.relevanceId,
-            relevance = context.relevance,
-            resourceTypes = context.resourceTypes,
-            parentTopicIds = context.parentIds,
-            isPrimaryConnection = context.isPrimary
-          )
-        )
-      )
+      if (filterVisibles) allContexts.filter(c => c.isVisible) else allContexts
     }
 
     private[service] def getGrepContexts(

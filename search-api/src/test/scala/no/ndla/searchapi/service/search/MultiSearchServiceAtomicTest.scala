@@ -141,7 +141,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             parentIds = List.empty,
             isPrimary = true,
             contextId = "",
-            isVisible = true
+            isVisible = true,
+            isActive = true
           )
         )
       )
@@ -164,7 +165,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = false
+        isVisible = false,
+        isActive = true
       )
       // Visible subtopic
       val topic_2 = Node(
@@ -177,8 +179,17 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         NodeType.TOPIC,
         List.empty
       )
-      topic_2.contexts =
-        generateContexts(topic_2, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = false)
+      topic_2.contexts = generateContexts(
+        topic_2,
+        subject_1,
+        topic_1,
+        List.empty,
+        None,
+        Some(core),
+        isPrimary = true,
+        isVisible = false,
+        isActive = true
+      )
       // Visible topic
       val topic_3 = Node(
         "urn:topic:3",
@@ -198,7 +209,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
       // Visible resource with hidden parent topic
       val resource_1 = Node(
@@ -219,7 +231,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = false
+        isVisible = false,
+        isActive = true
       )
       // Visible resource with visible parent topic
       val resource_2 = Node(
@@ -240,7 +253,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
 
       val nodes = List(
@@ -301,7 +315,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
             parentIds = List.empty,
             isPrimary = true,
             contextId = "",
-            isVisible = true
+            isVisible = true,
+            isActive = true
           )
         )
       )
@@ -324,7 +339,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = false
+        isVisible = false,
+        isActive = true
       ) // TODO: use visible from node also
       // Visible subtopic
       val topic_2 = Node(
@@ -337,8 +353,17 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         NodeType.TOPIC,
         List.empty
       )
-      topic_2.contexts =
-        generateContexts(topic_2, subject_1, topic_1, List.empty, None, Some(core), isPrimary = true, isVisible = true)
+      topic_2.contexts = generateContexts(
+        topic_2,
+        subject_1,
+        topic_1,
+        List.empty,
+        None,
+        Some(core),
+        isPrimary = true,
+        isVisible = true,
+        isActive = true
+      )
       // Visible topic
       val topic_3 = Node(
         "urn:topic:3",
@@ -358,7 +383,8 @@ class MultiSearchServiceAtomicTest extends IntegrationSuite(EnableElasticsearchC
         None,
         Some(core),
         isPrimary = true,
-        isVisible = true
+        isVisible = true,
+        isActive = true
       )
 
       val nodes = List(

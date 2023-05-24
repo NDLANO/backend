@@ -45,7 +45,8 @@ case class TaxonomyContext(
     parentIds: List[String],
     isPrimary: Boolean,
     contextId: String,
-    isVisible: Boolean
+    isVisible: Boolean,
+    isActive: Boolean
 )
 
 case class TaxonomyTranslation(name: String, language: String)

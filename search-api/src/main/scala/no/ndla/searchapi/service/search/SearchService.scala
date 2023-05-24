@@ -49,15 +49,17 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    def hitToApiModel(hit: SearchHit, language: String): Try[MultiSearchSummary] = {
+    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean) = {
       val articleType      = props.SearchIndexes(SearchType.Articles)
       val draftType        = props.SearchIndexes(SearchType.Drafts)
       val learningPathType = props.SearchIndexes(SearchType.LearningPaths)
 
       hit.index.split("_").headOption match {
-        case Some(`articleType`)      => Success(searchConverterService.articleHitAsMultiSummary(hit, language))
-        case Some(`draftType`)        => Success(searchConverterService.draftHitAsMultiSummary(hit, language))
-        case Some(`learningPathType`) => Success(searchConverterService.learningpathHitAsMultiSummary(hit, language))
+        case Some(`articleType`) =>
+          Success(searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive))
+        case Some(`draftType`) => Success(searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive))
+        case Some(`learningPathType`) =>
+          Success(searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive))
         case _ => Failure(NdlaSearchException("Index type was bad when determining search result type."))
       }
     }
@@ -127,7 +129,11 @@ trait SearchService {
       }
     }
 
-    protected def getHits(response: SearchResponse, language: String): Try[Seq[MultiSearchSummary]] = {
+    protected def getHits(
+        response: SearchResponse,
+        language: String,
+        filterInactive: Boolean
+    ): Try[Seq[MultiSearchSummary]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
@@ -138,7 +144,7 @@ trait SearchService {
                 searchConverterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
-            hitToApiModel(result, matchedLanguage)
+            hitToApiModel(result, matchedLanguage, filterInactive)
           })
         case _ => Success(Seq.empty)
       }
@@ -330,7 +336,7 @@ trait SearchService {
           searchScroll(scrollId, ElasticSearchScrollKeepAlive)
         }
         .flatMap(response => {
-          getHits(response.result, language).map(hits => {
+          getHits(response.result, language, filterInactive = false).map(hits => {
             val suggestions  = getSuggestions(response.result)
             val aggregations = getAggregationsFromResult(response.result)
             SearchResult(

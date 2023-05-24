@@ -500,6 +500,30 @@ class MultiSearchServiceTest
     )
   }
 
+  test("That filtering out inactive contexts works as expected") {
+    val Success(search) = multiSearchService.matchingQuery(
+      searchSettings.copy(
+        language = "*",
+        filterInactive = false
+      )
+    )
+
+    val totalCount   = search.totalCount
+    val ids          = search.results.map(_.id).length
+    val contextCount = search.results.flatMap(_.contexts).toList.length
+
+    val Success(search2) = multiSearchService.matchingQuery(
+      searchSettings.copy(
+        language = "*",
+        filterInactive = true
+      )
+    )
+
+    totalCount should be > search2.totalCount
+    ids should be > search2.results.map(_.id).length
+    contextCount should be > search2.results.flatMap(_.contexts).toList.length
+  }
+
   test("That filtering on supportedLanguages works") {
     val Success(search) =
       multiSearchService.matchingQuery(searchSettings.copy(language = "*", supportedLanguages = List("en")))
