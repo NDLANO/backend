@@ -28,6 +28,7 @@ case class ApiTaxonomyContext(
   @(ApiModelProperty @field)(description = "Resource-types of this context.") resourceTypes: List[TaxonomyResourceType],
   @(ApiModelProperty @field)(description = "Language for this context.") language: String,
   @(ApiModelProperty @field)(description = "Whether this context is the primary connection. Legacy field to be removed.") isPrimaryConnection: Boolean,
-  @(ApiModelProperty @field)(description = "Whether this context is the primary connection") isPrimary: Boolean
+  @(ApiModelProperty @field)(description = "Whether this context is the primary connection") isPrimary: Boolean,
+  @(ApiModelProperty @field)(description = "Whether this context is active") isActive: Boolean
 )
 // format: on

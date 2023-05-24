@@ -669,7 +669,8 @@ trait SearchConverterService {
         resourceTypes = resourceTypes,
         language = language,
         isPrimaryConnection = context.isPrimary,
-        isPrimary = context.isPrimary
+        isPrimary = context.isPrimary,
+        isActive = context.isActive
       )
 
     }
