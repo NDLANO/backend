@@ -2,16 +2,21 @@
 
 export interface IApiTaxonomyContext {
   id: string
+  publicId: string
   subject: string
+  root: string
   subjectId: string
+  rootId: string
   relevance: string
   path: string
   breadcrumbs: string[]
-  filters: ITaxonomyContextFilter[]
   learningResourceType: string
+  contextType: string
   resourceTypes: ITaxonomyResourceType[]
   language: string
   isPrimaryConnection: boolean
+  isPrimary: boolean
+  isActive: boolean
 }
 
 export interface IArticleIntroduction {
@@ -205,12 +210,6 @@ export interface IStatus {
 export interface ISuggestOption {
   text: string
   score: number
-}
-
-export interface ITaxonomyContextFilter {
-  id: string
-  name: string
-  relevance: string
 }
 
 export interface ITaxonomyResourceType {
