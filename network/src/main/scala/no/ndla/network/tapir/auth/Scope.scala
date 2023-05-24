@@ -8,6 +8,7 @@
 package no.ndla.network.tapir.auth
 
 import enumeratum._
+import scala.collection.immutable.ListMap
 
 sealed abstract class Scope(override val entryName: String) extends EnumEntry {}
 
@@ -31,4 +32,8 @@ object Scope extends Enum[Scope] {
 
   def fromString(s: String): Option[Scope]     = values.find(_.entryName == s)
   def fromStrings(s: List[String]): Set[Scope] = s.flatMap(fromString).toSet
+
+  def thatStartsWith(start: String): List[Scope] = values.filter(_.entryName.startsWith(start)).toList
+  def toSwaggerMap(scopes: List[Scope]): ListMap[String, String] =
+    ListMap.from(scopes.map(s => s.entryName -> s.entryName))
 }

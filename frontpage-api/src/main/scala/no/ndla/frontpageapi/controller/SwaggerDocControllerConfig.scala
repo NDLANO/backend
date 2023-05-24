@@ -9,6 +9,7 @@ package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.auth.Role
+import no.ndla.network.tapir.auth.Scope
 import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
 
 import scala.collection.immutable.ListMap
@@ -17,17 +18,11 @@ trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Service with Props =>
 
   object SwaggerDocControllerConfig {
-    private val scopes = ListMap.from(Role.values.map(role => {
-      val fullRole = s"${Role.prefix}$role".toLowerCase
-      fullRole -> fullRole
-    }))
+    private val scopes = Scope.toSwaggerMap(Scope.thatStartsWith("frontpage"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
       mountPoint = "/frontpage-api/api-docs",
-      description = "Searching and fetching all audio used in the NDLA platform.\n\n" +
-        "The Audio API provides an endpoint for searching and fetching audio used in NDLA resources. " +
-        "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
-        "The media file is provided as an URL with the mime type.",
+      description = "Service for fetching frontpage data",
       authUrl = props.Auth0LoginEndpoint,
       scopes = scopes
     )
