@@ -119,18 +119,18 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     sampleAgreement.copy(id = Some(11), title = "Woopie", content = "This agreement is not copyrighted")
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    agreementIndexService.createIndexWithName(props.AgreementSearchIndex)
+    agreementIndexService.createIndexWithName(props.AgreementSearchIndex).get
 
-    agreementIndexService.indexDocument(agreement1)
-    agreementIndexService.indexDocument(agreement2)
-    agreementIndexService.indexDocument(agreement3)
-    agreementIndexService.indexDocument(agreement4)
-    agreementIndexService.indexDocument(agreement5)
-    agreementIndexService.indexDocument(agreement6)
-    agreementIndexService.indexDocument(agreement7)
-    agreementIndexService.indexDocument(agreement8)
-    agreementIndexService.indexDocument(agreement9)
-    agreementIndexService.indexDocument(agreement10)
+    agreementIndexService.indexDocument(agreement1).get
+    agreementIndexService.indexDocument(agreement2).get
+    agreementIndexService.indexDocument(agreement3).get
+    agreementIndexService.indexDocument(agreement4).get
+    agreementIndexService.indexDocument(agreement5).get
+    agreementIndexService.indexDocument(agreement6).get
+    agreementIndexService.indexDocument(agreement7).get
+    agreementIndexService.indexDocument(agreement8).get
+    agreementIndexService.indexDocument(agreement9).get
+    agreementIndexService.indexDocument(agreement10).get
 
     blockUntil(() => {
       agreementSearchService.countDocuments == 10

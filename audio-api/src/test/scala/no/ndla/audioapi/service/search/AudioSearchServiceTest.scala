@@ -235,14 +235,14 @@ class AudioSearchServiceTest
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
 
     if (elasticSearchContainer.isSuccess) {
-      audioIndexService.createIndexWithName(SearchIndex)
-      audioIndexService.indexDocument(audio1)
-      audioIndexService.indexDocument(audio2)
-      audioIndexService.indexDocument(audio3)
-      audioIndexService.indexDocument(audio4)
-      audioIndexService.indexDocument(audio5)
-      audioIndexService.indexDocument(audio6)
-      audioIndexService.indexDocument(audio7)
+      audioIndexService.createIndexWithName(SearchIndex).get
+      audioIndexService.indexDocument(audio1).get
+      audioIndexService.indexDocument(audio2).get
+      audioIndexService.indexDocument(audio3).get
+      audioIndexService.indexDocument(audio4).get
+      audioIndexService.indexDocument(audio5).get
+      audioIndexService.indexDocument(audio6).get
+      audioIndexService.indexDocument(audio7).get
 
       blockUntil(() => audioSearchService.countDocuments == 7)
     }

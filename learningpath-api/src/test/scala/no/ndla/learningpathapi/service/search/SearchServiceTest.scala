@@ -171,12 +171,12 @@ class SearchServiceTest
         status = LearningPathStatus.UNLISTED
       )
 
-      searchIndexService.indexDocument(thePenguin)
-      searchIndexService.indexDocument(batman)
-      searchIndexService.indexDocument(theDuck)
-      searchIndexService.indexDocument(unrelated)
-      searchIndexService.indexDocument(englando)
-      searchIndexService.indexDocument(brumle)
+      searchIndexService.indexDocument(thePenguin).get
+      searchIndexService.indexDocument(batman).get
+      searchIndexService.indexDocument(theDuck).get
+      searchIndexService.indexDocument(unrelated).get
+      searchIndexService.indexDocument(englando).get
+      searchIndexService.indexDocument(brumle).get
 
       blockUntil(() => searchService.countDocuments() == 6)
     }
