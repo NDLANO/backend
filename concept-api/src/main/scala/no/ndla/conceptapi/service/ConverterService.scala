@@ -18,7 +18,7 @@ import no.ndla.common.model.domain.draft.Copyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, GlossType}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptStatus, ConceptType, Status, WordClass}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -93,11 +93,11 @@ trait ConverterService {
     def toApiGlossData(domainGlossData: Option[domain.GlossData], titles: Seq[Title]): Option[api.GlossData] = {
       domainGlossData.map(glossData =>
         api.GlossData(
-          glossType = glossData.glossType.toString,
+          wordClass = glossData.wordClass.toString,
           examples =
             glossData.examples.map(ge => ge.map(g => api.GlossExample(example = g.example, language = g.language))),
           originalLanguage = glossData.originalLanguage,
-          alternatives = glossData.alternatives ++ titles
+          transcriptions = glossData.transcriptions ++ titles
             .filter(t => t.language != glossData.originalLanguage)
             .map(t => (t.language, t.title))
         )
@@ -162,17 +162,17 @@ trait ConverterService {
     def toDomainGlossData(apiGlossData: Option[api.GlossData]): Try[Option[domain.GlossData]] = {
       apiGlossData
         .map(glossData =>
-          GlossType.valueOfOrError(glossData.glossType) match {
+          WordClass.valueOfOrError(glossData.wordClass) match {
             case Failure(ex) => Failure(ex)
-            case Success(glossType) =>
+            case Success(wordClass) =>
               Success(
                 domain.GlossData(
-                  glossType = glossType,
+                  wordClass = wordClass,
                   examples = glossData.examples.map(gl =>
                     gl.map(g => domain.GlossExample(language = g.language, example = g.example))
                   ),
                   originalLanguage = glossData.originalLanguage,
-                  alternatives = glossData.alternatives
+                  transcriptions = glossData.transcriptions
                 )
               )
           }
@@ -318,10 +318,10 @@ trait ConverterService {
       // format: off
       val glossData = concept.glossData.map(gloss =>
         domain.GlossData(
-          glossType = GlossType.valueOf(gloss.glossType).getOrElse(GlossType.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
+          wordClass = WordClass.valueOf(gloss.wordClass).getOrElse(WordClass.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
           examples = gloss.examples.map(ge => ge.map(g => domain.GlossExample(language = g.language, example = g.example))),
           originalLanguage = gloss.originalLanguage,
-          alternatives = gloss.alternatives
+          transcriptions = gloss.transcriptions
         )
       )
       // format: on

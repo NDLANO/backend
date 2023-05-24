@@ -89,7 +89,7 @@ trait DBConcept {
     val jsonEncoder: Formats = DefaultFormats +
       new EnumNameSerializer(ConceptStatus) +
       new EnumNameSerializer(ConceptType) +
-      new EnumNameSerializer(GlossType) ++
+      new EnumNameSerializer(WordClass) ++
       JavaTimeSerializers.all
 
     val repositorySerializer: Formats = jsonEncoder +

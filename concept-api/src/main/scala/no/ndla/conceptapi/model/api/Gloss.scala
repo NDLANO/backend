@@ -19,9 +19,9 @@ case class GlossExample(
 
 @ApiModel(description = "Information about the gloss data")
 case class GlossData(
-    @(ApiModelProperty @field)(description = "Type of gloss, ex. noun, adjective, verb, adverb, ...") glossType: String,
-    @(ApiModelProperty @field)(description = "Original language of the gloss") originalLanguage: String,
-    @(ApiModelProperty @field)(description = "Alternative writing of the gloss") alternatives: Map[String, String],
-    @(ApiModelProperty @field)(description = "List of examples of how the gloss can be used") examples: List[List[GlossExample]]
+                      @(ApiModelProperty @field)(description = "Word class / part of speech, ex. noun, adjective, verb, adverb, ...") wordClass: String,
+                      @(ApiModelProperty @field)(description = "Original language of the gloss") originalLanguage: String,
+                      @(ApiModelProperty @field)(description = "Alternative writing of the gloss") transcriptions: Map[String, String],
+                      @(ApiModelProperty @field)(description = "List of examples of how the gloss can be used") examples: List[List[GlossExample]]
 )
 // format: on

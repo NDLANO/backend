@@ -11,7 +11,7 @@ import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.{domain => common}
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcept}
-import no.ndla.conceptapi.model.domain.GlossType
+import no.ndla.conceptapi.model.domain.WordClass
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 
@@ -476,10 +476,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val newGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
     val newGlossData =
       api.GlossData(
-        glossType = "noun",
+        wordClass = "noun",
         originalLanguage = "nb",
         examples = List(newGlossExamples1, newGlossExamples2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
@@ -490,10 +490,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
     val expectedGlossData = Some(
       domain.GlossData(
-        glossType = domain.GlossType.NOUN,
+        wordClass = domain.WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(expectedGlossExample1, expectedGlossExample2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     )
     val expectedConceptType = domain.ConceptType.GLOSS
@@ -503,16 +503,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.glossData should be(expectedGlossData)
   }
 
-  test("that toDomainConcept (new concept) fails if either conceptType or glossType is outside of supported values") {
+  test("that toDomainConcept (new concept) fails if either conceptType or wordClass is outside of supported values") {
     val newGlossExamples1 =
       List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
     val newGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
     val newGlossData =
       api.GlossData(
-        glossType = "ikke",
+        wordClass = "ikke",
         originalLanguage = "nb",
         examples = List(newGlossExamples1, newGlossExamples2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
@@ -520,7 +520,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result1.getMessage should include("'ikke' is not a valid gloss type")
 
 //    val newConcept2 =
-//      newConcept.copy(conceptType = "ikke eksisterende", glossData = Some(newGlossData.copy(glossType = "noun")))
+//      newConcept.copy(conceptType = "ikke eksisterende", glossData = Some(newGlossData.copy(wordClass = "noun")))
 //    val Failure(result2) = converterService.toDomainConcept(newConcept2, TestData.userWithWriteAccess)
 //    result2.getMessage should include("'ikke eksisterende' is not a valid concept type")
   }
@@ -531,10 +531,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
     val updatedGlossData =
       api.GlossData(
-        glossType = "noun",
+        wordClass = "noun",
         originalLanguage = "nb",
         examples = List(updatedGlossExamples1, updatedGlossExamples2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     val updatedConcept =
       TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
@@ -546,10 +546,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
     val expectedGlossData = Some(
       domain.GlossData(
-        glossType = domain.GlossType.NOUN,
+        wordClass = domain.WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(expectedGlossExample1, expectedGlossExample2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     )
     val expectedConceptType = domain.ConceptType.GLOSS
@@ -566,10 +566,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
     val updatedGlossData =
       api.GlossData(
-        glossType = "ikke eksisterende",
+        wordClass = "ikke eksisterende",
         originalLanguage = "nb",
         examples = List(updatedGlossExamples1, updatedGlossExamples2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     val updatedConcept =
       TestData.emptyApiUpdatedConcept.copy(conceptType = Some("gloss"), glossData = Some(updatedGlossData))
@@ -589,10 +589,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val domainGlossExample2 = List(domain.GlossExample(example = "nei men da saa", language = "nb"))
     val domainGlossData = Some(
       domain.GlossData(
-        glossType = domain.GlossType.NOUN,
+        wordClass = domain.WordClass.NOUN,
         originalLanguage = "nb",
         examples = List(domainGlossExample1, domainGlossExample2),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
     )
     val existingConcept =
@@ -606,10 +606,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       List(api.GlossExample(example = "nei men saa", language = "nb"), api.GlossExample(example = "jog har inta", "nn"))
     val expectedGlossExamples2 = List(api.GlossExample(example = "nei men da saa", language = "nb"))
     val expectedGlossData = api.GlossData(
-      glossType = "noun",
+      wordClass = "noun",
       originalLanguage = "nb",
       examples = List(expectedGlossExamples1, expectedGlossExamples2),
-      alternatives = Map("zh" -> "a", "pinyin" -> "b")
+      transcriptions = Map("zh" -> "a", "pinyin" -> "b")
     )
     val result = converterService.toApiConcept(existingConcept, "nb", false).get
     result.conceptType should be("gloss")
@@ -621,20 +621,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val apiGlossData =
       Some(
         api.GlossData(
-          glossType = "verb",
+          wordClass = "verb",
           originalLanguage = "nb",
           examples = List(List(apiGlossExample)),
-          alternatives = Map("zh" -> "a", "pinyin" -> "b")
+          transcriptions = Map("zh" -> "a", "pinyin" -> "b")
         )
       )
 
     val expectedGlossExample = domain.GlossExample(example = "some example", language = "nb")
     val expectedGlossData =
       domain.GlossData(
-        glossType = GlossType.VERB,
+        wordClass = WordClass.VERB,
         originalLanguage = "nb",
         examples = List(List(expectedGlossExample)),
-        alternatives = Map("zh" -> "a", "pinyin" -> "b")
+        transcriptions = Map("zh" -> "a", "pinyin" -> "b")
       )
 
     converterService.toDomainGlossData(apiGlossData) should be(Success(Some(expectedGlossData)))
@@ -649,10 +649,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val apiGlossData =
       Some(
         api.GlossData(
-          glossType = "nonexistent",
+          wordClass = "nonexistent",
           originalLanguage = "nb",
           examples = List(List(apiGlossExample)),
-          alternatives = Map("zh" -> "a", "pinyin" -> "b")
+          transcriptions = Map("zh" -> "a", "pinyin" -> "b")
         )
       )
 
@@ -660,18 +660,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.getMessage should include("'nonexistent' is not a valid gloss type")
   }
 
-  test("that toApiGlossData uses both alternative writing and title") {
+  test("that toApiGlossData uses both transcriptions and title") {
     val domainTitles = Seq(common.Title(title = "zz", language = "nb"), common.Title(title = "qq", language = "en"))
     val domainGlossData = domain.GlossData(
-      glossType = GlossType.PRONOUN,
+      wordClass = WordClass.PRONOUN,
       originalLanguage = "nb",
-      alternatives = Map("zh" -> "a", "pinyin" -> "b"),
+      transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
       examples = List()
     )
 
-    val expectedAlternatives = Map("zh" -> "a", "pinyin" -> "b", "en" -> "qq")
+    val expectedTranscriptions = Map("zh" -> "a", "pinyin" -> "b", "en" -> "qq")
 
     val result = converterService.toApiGlossData(Some(domainGlossData), domainTitles)
-    result.get.alternatives should be(expectedAlternatives)
+    result.get.transcriptions should be(expectedTranscriptions)
   }
 }
