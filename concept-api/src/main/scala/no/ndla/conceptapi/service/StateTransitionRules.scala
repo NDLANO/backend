@@ -108,8 +108,9 @@ trait StateTransitionRules {
         .filter(t => user.hasRoles(t.requiredRoles))
 
     private def validateTransition(current: domain.Concept, transition: StateTransition): Try[Unit] = {
-      val statusRequiresResponsible       = ConceptStatus.thatRequiresResponsible.contains(transition.to)
-      val statusFromPublishedToInProgress = current.status.current != transition.to
+      val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(transition.to)
+      val statusFromPublishedToInProgress =
+        current.status.current == PUBLISHED && transition.to == IN_PROGRESS
       if (statusRequiresResponsible && current.responsible.isEmpty && !statusFromPublishedToInProgress) {
         return Failure(
           IllegalStatusStateTransition(

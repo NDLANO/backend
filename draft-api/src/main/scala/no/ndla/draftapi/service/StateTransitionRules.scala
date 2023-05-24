@@ -201,8 +201,9 @@ trait StateTransitionRules {
     }
 
     private def validateTransition(draft: Draft, transition: StateTransition): Try[Unit] = {
-      val statusRequiresResponsible       = DraftStatus.thatRequiresResponsible.contains(transition.to)
-      val statusFromPublishedToInProgress = draft.status.current != transition.to
+      val statusRequiresResponsible = DraftStatus.thatRequiresResponsible.contains(transition.to)
+      val statusFromPublishedToInProgress =
+        draft.status.current == PUBLISHED && transition.to == IN_PROGRESS
       if (statusRequiresResponsible && draft.responsible.isEmpty && !statusFromPublishedToInProgress) {
         return Failure(
           IllegalStatusStateTransition(

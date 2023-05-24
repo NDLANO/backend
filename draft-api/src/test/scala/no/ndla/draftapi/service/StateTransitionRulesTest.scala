@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus._
 import no.ndla.common.model.{domain => common}
 import no.ndla.draftapi.integration.{ConceptStatus, DraftConcept, SearchHit, Title}
+import no.ndla.draftapi.model.domain.StateTransition
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.mockito.ArgumentCaptor
@@ -634,6 +635,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.unpublishArticle(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Draft](0)))
     when(searchApiClient.draftsWhereUsed(100L)).thenReturn(Seq())
     when(searchApiClient.publishedWhereUsed(100L)).thenReturn(Seq())
+
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result = StateTransitionRules
@@ -644,6 +646,71 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
       }
     }
+  }
+
+  test("That responsibleId is updated at status change from published to in progress") {
+    val articleId = 100L
+    val draft = Draft(
+      id = Some(articleId),
+      revision = None,
+      status = common.Status(PUBLISHED, Set.empty),
+      title = Seq.empty,
+      content = Seq.empty,
+      copyright = Some(
+        common.draft.Copyright(
+          Some(CC_BY.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          None
+        )
+      ),
+      tags = Seq.empty,
+      requiredLibraries = Seq.empty,
+      visualElement = Seq.empty,
+      introduction = Seq.empty,
+      metaDescription = Seq.empty,
+      metaImage = Seq.empty,
+      created = clock.now(),
+      updated = clock.now(),
+      updatedBy = "updated",
+      published = clock.now(),
+      articleType = common.ArticleType.Standard,
+      notes = Seq.empty,
+      previousVersionsNotes = Seq.empty,
+      editorLabels = Seq.empty,
+      grepCodes = Seq.empty,
+      conceptIds = Seq.empty,
+      availability = common.Availability.everyone,
+      relatedContent = Seq.empty,
+      revisionMeta = Seq.empty,
+      responsible = None,
+      slug = None,
+      comments = Seq.empty
+    )
+    val status                            = common.Status(PUBLISHED, Set.empty)
+    val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS
+    val expected                          = TestData.userWithAdminAccess.id
+    when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List.empty)
+    when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[Draft](1)
+      Success(x)
+    })
+    when(taxonomyApiClient.queryTopic(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryResource(100L)).thenReturn(Success(List()))
+    when(articleApiClient.unpublishArticle(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Draft](0)))
+    when(searchApiClient.draftsWhereUsed(100L)).thenReturn(Seq())
+    when(searchApiClient.publishedWhereUsed(100L)).thenReturn(Seq())
+
+    val fromDraft = draft.copy(status = status.copy(current = transitionToTest.from))
+    val result = StateTransitionRules
+      .doTransition(fromDraft, IN_PROGRESS, TestData.userWithAdminAccess, isImported = false)
+      .unsafeRunSync()
+
+    result.get.responsible.get.responsibleId should be(expected)
   }
 
 }
