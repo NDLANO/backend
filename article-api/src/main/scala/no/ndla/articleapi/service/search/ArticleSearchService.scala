@@ -159,7 +159,7 @@ trait ArticleSearchService {
     override def scheduleIndexDocuments(): Unit = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        articleIndexService.indexDocuments
+        articleIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

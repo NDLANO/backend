@@ -134,7 +134,7 @@ trait SeriesSearchService {
     }
 
     protected override def scheduleIndexDocuments(): Unit = {
-      val f = Future(seriesIndexService.indexDocuments)
+      val f = Future(seriesIndexService.indexDocuments(None))
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {
         case Success(reindexResult) =>

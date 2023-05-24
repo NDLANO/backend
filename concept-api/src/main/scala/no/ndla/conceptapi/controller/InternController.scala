@@ -42,12 +42,13 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = Concept.jsonEncoder
 
     post("/index") {
+      val numShards = intOrNone("numShards")
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
       val aggregateFuture = for {
-        draftFuture     <- Future(draftConceptIndexService.indexDocuments)
-        publishedFuture <- Future(publishedConceptIndexService.indexDocuments)
+        draftFuture     <- Future(draftConceptIndexService.indexDocuments(numShards))
+        publishedFuture <- Future(publishedConceptIndexService.indexDocuments(numShards))
       } yield (draftFuture, publishedFuture)
 
       Await.result(aggregateFuture, 10 minutes) match {

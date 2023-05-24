@@ -216,7 +216,7 @@ trait DraftConceptSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        draftConceptIndexService.indexDocuments
+        draftConceptIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

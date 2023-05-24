@@ -137,9 +137,10 @@ trait InternController {
 
     post("/index/draft") {
       val requestInfo = RequestInfo.fromThreadContext()
+      val numShards   = intOrNone("numShards")
       val draftIndex = Future {
         requestInfo.setRequestInfo()
-        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false))
+        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
       }
 
       resolveResultFutures(List(draftIndex))
@@ -148,8 +149,9 @@ trait InternController {
     post("/index/article") {
       val requestInfo = RequestInfo.fromThreadContext()
       val articleIndex = Future {
+        val numShards = intOrNone("numShards")
         requestInfo.setRequestInfo()
-        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true))
+        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(articleIndex))
@@ -157,9 +159,10 @@ trait InternController {
 
     post("/index/learningpath") {
       val requestInfo = RequestInfo.fromThreadContext()
+      val numShards   = intOrNone("numShards")
       val learningPathIndex = Future {
         requestInfo.setRequestInfo()
-        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true))
+        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(learningPathIndex))
@@ -167,6 +170,7 @@ trait InternController {
 
     post("/index") {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
+      val numShards       = intOrNone("numShards")
       val bundles = for {
         taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
         taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
@@ -182,15 +186,15 @@ trait InternController {
           val indexes = List(
             Future {
               requestInfo.setRequestInfo()
-              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
+              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
+              ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle))
+              ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards))
             }
           )
           if (runInBackground) {

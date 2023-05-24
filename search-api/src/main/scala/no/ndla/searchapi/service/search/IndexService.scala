@@ -67,8 +67,13 @@ trait IndexService {
         }
       } yield imported
     }
+    def indexDocuments(shouldUsePublishedTax: Boolean)(implicit mf: Manifest[D]): Try[ReindexResult] =
+      indexDocuments(shouldUsePublishedTax, None)
 
-    def indexDocuments(shouldUsePublishedTax: Boolean)(implicit mf: Manifest[D]): Try[ReindexResult] = {
+    def indexDocuments(
+        shouldUsePublishedTax: Boolean,
+        numShards: Option[Int]
+    )(implicit mf: Manifest[D]): Try[ReindexResult] = {
       val bundles = for {
         taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
         grepBundle     <- grepApiClient.getGrepBundle()
@@ -77,7 +82,7 @@ trait IndexService {
         case Failure(ex) =>
           logger.error(s"Grep and/or Taxonomy could not be fetched when reindexing all $documentType")
           Failure(ex)
-        case Success((taxonomyBundle, grepBundle)) => indexDocuments(taxonomyBundle, grepBundle)
+        case Success((taxonomyBundle, grepBundle)) => indexDocuments(taxonomyBundle, grepBundle, numShards)
       }
     }
 
@@ -93,11 +98,16 @@ trait IndexService {
       } yield toIndex
     }
 
-    def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle)(implicit
+    def indexDocuments(
+        taxonomyBundle: TaxonomyBundle,
+        grepBundle: GrepBundle
+    )(implicit mf: Manifest[D]): Try[ReindexResult] = indexDocuments(taxonomyBundle, grepBundle, None)
+
+    def indexDocuments(taxonomyBundle: TaxonomyBundle, grepBundle: GrepBundle, numShards: Option[Int])(implicit
         mf: Manifest[D]
     ): Try[ReindexResult] = {
       val start = System.currentTimeMillis()
-      createIndexWithGeneratedName.flatMap(indexName => {
+      createIndexWithGeneratedName(numShards).flatMap(indexName => {
         sendToElastic(indexName, taxonomyBundle, grepBundle) match {
           case Failure(ex) =>
             deleteIndexWithName(Some(indexName))

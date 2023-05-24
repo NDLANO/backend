@@ -18,7 +18,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{Copyright, ErrorHelpers, LearningPathSummaryV2, License}
+import no.ndla.learningpathapi.model.api.{ErrorHelpers, LearningPathSummaryV2}
 import no.ndla.learningpathapi.model.domain._
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.model.SearchableLanguageFormats
@@ -341,17 +341,6 @@ trait SearchService extends StrictLogging {
           )
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
-    }
-
-    def readToApiCopyright(copyright: Copyright): Copyright = {
-      Copyright(
-        License(
-          copyright.license.license,
-          copyright.license.description,
-          copyright.license.url
-        ),
-        copyright.contributors
-      )
     }
   }
 

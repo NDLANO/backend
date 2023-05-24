@@ -8,6 +8,7 @@
 
 package no.ndla.search
 
+import cats.implicits.catsSyntaxOptionId
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.Indexes
 import com.sksamuel.elastic4s.analysis.Analysis
@@ -54,21 +55,22 @@ trait BaseIndexService {
       }
     }
 
-    protected def buildCreateIndexRequest(indexName: String): CreateIndexRequest = {
+    protected def buildCreateIndexRequest(indexName: String, numShards: Option[Int]): CreateIndexRequest = {
       createIndex(indexName)
-        .shards(indexShards)
+        .shards(numShards.getOrElse(indexShards))
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
         .replicas(0)
         .analysis(analysis)
     }
+    def createIndexWithName(indexName: String): Try[String] = createIndexWithName(indexName, None)
 
-    def createIndexWithName(indexName: String): Try[String] = {
+    def createIndexWithName(indexName: String, numShards: Option[Int]): Try[String] = {
       if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
         val response = e4sClient.execute {
-          buildCreateIndexRequest(indexName)
+          buildCreateIndexRequest(indexName, numShards)
         }
 
         response match {
@@ -89,15 +91,20 @@ trait BaseIndexService {
       } yield contentId
     }
 
-    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
+    def createIndexWithGeneratedName(numberOfShards: Option[Int]): Try[String] =
+      createIndexWithName(searchIndex + "_" + getTimestamp, numberOfShards)
+
+    def createIndexWithGeneratedName: Try[String] =
+      createIndexWithName(searchIndex + "_" + getTimestamp)
 
     def createIndexIfNotExists(): Try[_] = getAliasTarget.flatMap {
       case Some(index) => Success(index)
-      case None        => createIndexAndAlias()
+      case None        => createIndexAndAlias(indexShards.some)
     }
 
-    def createIndexAndAlias(): Try[String] = {
-      createIndexWithGeneratedName.map(newIndex => {
+    def createIndexAndAlias(): Try[String] = createIndexAndAlias(None)
+    def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = {
+      createIndexWithGeneratedName(numberOfShards).map(newIndex => {
         updateAliasTarget(None, newIndex)
         newIndex
       })

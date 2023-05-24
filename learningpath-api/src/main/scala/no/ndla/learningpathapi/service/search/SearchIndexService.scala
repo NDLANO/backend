@@ -44,10 +44,11 @@ trait SearchIndexService {
     override val searchIndex: String        = SearchIndex
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
-    def indexDocuments: Try[ReindexResult] = {
+    def indexDocuments: Try[ReindexResult] = indexDocuments(None)
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = {
       synchronized {
         val start = System.currentTimeMillis()
-        createIndexWithGeneratedName.flatMap(indexName => {
+        createIndexWithGeneratedName(numShards).flatMap(indexName => {
           val operations = for {
             numIndexed  <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget

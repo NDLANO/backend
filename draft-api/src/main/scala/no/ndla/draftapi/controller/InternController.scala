@@ -53,10 +53,11 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = Draft.jsonEncoder
 
     def createIndexFuture(
-        indexService: IndexService[_, _]
+        indexService: IndexService[_, _],
+        numShards: Option[Int]
     )(implicit ec: ExecutionContext): Future[Try[ReindexResult]] = {
 
-      val fut = Future { indexService.indexDocuments }
+      val fut = Future { indexService.indexDocuments(numShards) }
 
       val logEx = (ex: Throwable) =>
         logger.error(s"Something went wrong when indexing ${indexService.documentType}:", ex)
@@ -74,12 +75,13 @@ trait InternController {
     }
 
     post("/index") {
+      val numShards = intOrNone("numShards")
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
-      val articleIndex   = createIndexFuture(articleIndexService)
-      val agreementIndex = createIndexFuture(agreementIndexService)
-      val tagIndex       = createIndexFuture(tagIndexService)
-      val grepIndex      = createIndexFuture(grepCodesIndexService)
+      val articleIndex   = createIndexFuture(articleIndexService, numShards)
+      val agreementIndex = createIndexFuture(agreementIndexService, numShards)
+      val tagIndex       = createIndexFuture(tagIndexService, numShards)
+      val grepIndex      = createIndexFuture(grepCodesIndexService, numShards)
       val indexResults   = Future.sequence(List(articleIndex, agreementIndex, tagIndex, grepIndex))
 
       Await.result(indexResults, Duration.Inf).sequence match {

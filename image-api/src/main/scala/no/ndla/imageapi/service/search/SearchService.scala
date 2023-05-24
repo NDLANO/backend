@@ -128,7 +128,7 @@ trait SearchService {
     }
 
     def scheduleIndexDocuments(): Unit = {
-      val f = Future(indexService.indexDocuments)
+      val f = Future(indexService.indexDocuments(None))
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {

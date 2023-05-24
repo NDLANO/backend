@@ -51,10 +51,10 @@ trait IndexService {
       } yield imported
     }
 
-    def indexDocuments: Try[ReindexResult] = {
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = {
       synchronized {
         val start = System.currentTimeMillis()
-        createIndexWithGeneratedName.flatMap(indexName => {
+        createIndexWithGeneratedName(numShards).flatMap(indexName => {
           val operations = for {
             numIndexed  <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget

@@ -118,7 +118,7 @@ trait TagSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        tagIndexService.indexDocuments
+        tagIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

@@ -57,10 +57,15 @@ trait InternController {
         },
       endpoint.post
         .in("index")
+        .in(query[Option[Int]]("numShards"))
         .out(stringBody)
         .errorOut(internalErrorStringBody)
-        .serverLogicPure { _ =>
-          (audioIndexService.indexDocuments, tagIndexService.indexDocuments, seriesIndexService.indexDocuments) match {
+        .serverLogicPure { numShards =>
+          (
+            audioIndexService.indexDocuments(numShards),
+            tagIndexService.indexDocuments(numShards),
+            seriesIndexService.indexDocuments(numShards)
+          ) match {
             case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
               val result =
                 s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.

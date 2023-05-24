@@ -45,8 +45,9 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = Article.jsonEncoder
 
     post("/index") {
+      val numShards    = intOrNone("numShards")
       implicit val ec  = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val articleIndex = Future { articleIndexService.indexDocuments }
+      val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
 
       Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
         case (Success(articleResult)) =>

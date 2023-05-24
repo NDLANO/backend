@@ -42,7 +42,7 @@ trait IndexService {
       } yield imported
     }
 
-    def indexDocuments: Try[ReindexResult] = synchronized {
+    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
       val start = System.currentTimeMillis()
       createIndexWithGeneratedName.flatMap(indexName => {
         val operations = for {
