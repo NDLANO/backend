@@ -27,6 +27,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import sttp.model.Part
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
+import sttp.tapir.model.CommaSeparated
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{EndpointInput, _}
 
@@ -59,7 +60,7 @@ trait AudioController {
     private val pageSize = query[Option[Int]]("page-size").description(
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
     )
-    private val audioIds = query[List[Long]]("ids").description(
+    private val audioIds = query[CommaSeparated[Long]]("ids").description(
       "Return only audios that have one of the provided ids. To provide multiple ids, separate by comma (,)."
     )
     private val sort = query[Option[String]]("sort").description(
@@ -174,7 +175,7 @@ trait AudioController {
       .summary("Fetch audio that matches ids parameter.")
       .description("Fetch audios that matches ids parameter.")
       .serverLogic { case (audioIds, language) =>
-        readService.getAudiosByIds(audioIds, language).handleErrorsOrOk
+        readService.getAudiosByIds(audioIds.values, language).handleErrorsOrOk
       }
 
     val deleteAudio: ServerEndpoint[Any, IO] = endpoint.delete

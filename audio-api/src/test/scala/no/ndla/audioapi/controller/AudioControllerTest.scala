@@ -13,6 +13,7 @@ import no.ndla.audioapi.model.api._
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.common.CirceUtil.unsafeParseAs
 import no.ndla.network.tapir.TapirServer
 import org.mockito.ArgumentMatchers._
 import sttp.client3.quick._
@@ -299,6 +300,40 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       response2.code.code should be(204)
       response2.body should be("")
     }
+  }
 
+  test("That GET /ids returns 200 and handles comma separated list") {
+    val one = api.AudioMetaInformation(
+      1,
+      1,
+      Title("one", "nb"),
+      Audio("", "", -1, "nb"),
+      Copyright(License("by", None, None), None, Seq(), Seq(), Seq(), None, None, None),
+      Tag(Seq(), "nb"),
+      Seq("nb"),
+      "podcast",
+      None,
+      None,
+      None,
+      TestData.yesterday,
+      TestData.today
+    )
+    val two   = one.copy(id = 2, title = Title("two", "nb"))
+    val three = one.copy(id = 3, title = Title("three", "nb"))
+
+    val expectedResult = List(one, two, three)
+
+    when(readService.getAudiosByIds(any, any)).thenReturn(Success(expectedResult))
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3")
+    )
+    response.code.code should be(200)
+    import io.circe.generic.auto._
+    val parsedBody = unsafeParseAs[List[api.AudioMetaInformation]](response.body)
+    parsedBody should be(expectedResult)
+
+    verify(readService, times(1)).getAudiosByIds(eqTo(List(1, 2, 3)), any)
   }
 }
