@@ -8,11 +8,8 @@
 package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.auth.Role
 import no.ndla.network.tapir.auth.Scope
 import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
-
-import scala.collection.immutable.ListMap
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Service with Props =>

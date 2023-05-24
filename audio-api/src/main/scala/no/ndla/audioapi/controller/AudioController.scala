@@ -249,7 +249,7 @@ trait AudioController {
     val tagSearch: ServerEndpoint[Any, IO] = endpoint.get
       .summary("Retrieves a list of all previously used tags in audios")
       .description("Retrieves a list of all previously used tags in audios")
-      .in("/tag-search/")
+      .in("tag-search")
       .in(queryString)
       .in(pageSize)
       .in(pageNo)
