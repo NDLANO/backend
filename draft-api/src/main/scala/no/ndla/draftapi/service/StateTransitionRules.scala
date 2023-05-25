@@ -60,7 +60,8 @@ trait StateTransitionRules {
     }
 
     private val addResponsible: SideEffect = (article: Draft, _: Boolean, user: UserInfo) => {
-      Success(article.copy(responsible = Some(Responsible(user.id, clock.now()))))
+      val responsible = article.responsible.getOrElse(Responsible(user.id, clock.now()))
+      Success(article.copy(responsible = Some(responsible)))
     }
 
     private[service] val unpublishArticle: SideEffect = (article: Draft) =>

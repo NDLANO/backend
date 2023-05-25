@@ -47,7 +47,8 @@ trait StateTransitionRules {
     private val resetResponsible: SideEffect = (concept: domain.Concept, _: UserInfo) =>
       Success(concept.copy(responsible = None))
     private val addResponsible: SideEffect = (concept: domain.Concept, user: UserInfo) => {
-      Success(concept.copy(responsible = Some(Responsible(user.id, clock.now()))))
+      val responsible = concept.responsible.getOrElse(Responsible(user.id, clock.now()))
+      Success(concept.copy(responsible = Some(responsible)))
     }
 
     import StateTransition._
