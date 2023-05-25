@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.service
 
 import cats.effect.IO
+import no.ndla.common.model.domain.Responsible
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api.ErrorHelpers
 import no.ndla.conceptapi.model.domain
@@ -18,6 +19,7 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.model.RequestInfo
+import no.ndla.common.Clock
 
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -31,17 +33,23 @@ trait StateTransitionRules {
     with ContentValidator
     with DraftConceptIndexService
     with PublishedConceptRepository
-    with ErrorHelpers =>
+    with ErrorHelpers
+    with Clock =>
 
   object StateTransitionRules {
 
     private[service] val unpublishConcept: SideEffect =
-      (concept: domain.Concept) => writeService.unpublishConcept(concept)
+      (concept: domain.Concept, _: UserInfo) => writeService.unpublishConcept(concept)
 
     private[service] val publishConcept: SideEffect =
-      (concept: domain.Concept) => writeService.publishConcept(concept)
+      (concept: domain.Concept, _: UserInfo) => writeService.publishConcept(concept)
 
-    private val resetResponsible: SideEffect = (concept: domain.Concept) => Success(concept.copy(responsible = None))
+    private val resetResponsible: SideEffect = (concept: domain.Concept, _: UserInfo) =>
+      Success(concept.copy(responsible = None))
+    private val addResponsible: SideEffect = (concept: domain.Concept, user: UserInfo) => {
+      val responsible = concept.responsible.getOrElse(Responsible(user.id, clock.now()))
+      Success(concept.copy(responsible = Some(responsible)))
+    }
 
     import StateTransition._
 
@@ -67,7 +75,7 @@ trait StateTransitionRules {
       (QUALITY_ASSURANCE  -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
       (QUALITY_ASSURANCE  -> IN_PROGRESS)         keepStates Set(PUBLISHED),
       (QUALITY_ASSURANCE  -> INTERNAL_REVIEW)     keepStates Set(PUBLISHED),
-      (PUBLISHED          -> IN_PROGRESS)         keepCurrentOnTransition,
+      (PUBLISHED          -> IN_PROGRESS)         withSideEffect addResponsible keepCurrentOnTransition,
       (PUBLISHED          -> UNPUBLISHED)         keepStates Set() require UserInfo.PublishRoles withSideEffect unpublishConcept withSideEffect resetResponsible,
        UNPUBLISHED        -> UNPUBLISHED          withSideEffect resetResponsible,
       (UNPUBLISHED        -> PUBLISHED)           keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept withSideEffect resetResponsible,
@@ -102,7 +110,9 @@ trait StateTransitionRules {
 
     private def validateTransition(current: domain.Concept, transition: StateTransition): Try[Unit] = {
       val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(transition.to)
-      if (statusRequiresResponsible && current.responsible.isEmpty) {
+      val statusFromPublishedToInProgress =
+        current.status.current == PUBLISHED && transition.to == IN_PROGRESS
+      if (statusRequiresResponsible && current.responsible.isEmpty && !statusFromPublishedToInProgress) {
         return Failure(
           IllegalStatusStateTransition(
             s"The action triggered a state transition to ${transition.to}, this is invalid without setting new responsible."
@@ -158,7 +168,7 @@ trait StateTransitionRules {
         requestInfo.setRequestInfo()
         convertedArticle.flatMap(conceptBeforeSideEffect => {
           sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
-            accumulatedConcept.flatMap(c => sideEffect(c))
+            accumulatedConcept.flatMap(c => sideEffect(c, user))
           })
         })
       }
