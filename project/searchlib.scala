@@ -7,6 +7,7 @@ object searchlib extends Module {
   override val moduleName: String = "search"
   lazy val dependencies: Seq[ModuleID] = Seq(
     scalaUri,
+    catsEffect,
     "org.json4s" %% "json4s-native" % Json4SV,
     "org.json4s" %% "json4s-ext"    % Json4SV
   ) ++ elastic4s

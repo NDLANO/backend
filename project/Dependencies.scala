@@ -83,7 +83,8 @@ object Dependencies {
       "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"      % ApiSpecV
     )
 
-    lazy val tapirHttp4sCirce: Seq[sbt.ModuleID] = circe ++ http4s ++ tapir
+    lazy val catsEffect: ModuleID                = "org.typelevel" %% "cats-effect" % CatsEffectV
+    lazy val tapirHttp4sCirce: Seq[sbt.ModuleID] = circe ++ http4s ++ tapir :+ catsEffect
 
     lazy val scalatra: Seq[ModuleID] = Seq(
       "org.scalatra" %% "scalatra"           % ScalatraV,

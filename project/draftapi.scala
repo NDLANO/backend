@@ -16,6 +16,7 @@ object draftapi extends Module {
       enumeratum,
       enumeratumJson4s,
       sttp,
+      catsEffect,
       "org.eclipse.jetty" % "jetty-webapp"                    % JettyV        % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"                      % JettyV        % "container",
       "javax.servlet"     % "javax.servlet-api"               % JavaxServletV % "container;provided;test",
@@ -28,8 +29,7 @@ object draftapi extends Module {
       "com.amazonaws"     % "aws-java-sdk-cloudwatch"         % AwsSdkV,
       "org.mockito"      %% "mockito-scala"                   % MockitoV      % "test",
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV      % "test",
-      "org.flywaydb"      % "flyway-core"                     % FlywayV,
-      "org.typelevel"    %% "cats-effect"                     % CatsEffectV
+      "org.flywaydb"      % "flyway-core"                     % FlywayV
     ),
     melody,
     elastic4s,

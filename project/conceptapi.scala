@@ -15,6 +15,7 @@ object conceptapi extends Module {
       scalaTsi,
       scalaUri,
       enumeratum,
+      catsEffect,
       "org.eclipse.jetty" % "jetty-webapp"                    % JettyV     % "container;compile",
       "org.eclipse.jetty" % "jetty-plus"                      % JettyV     % "container",
       "javax.servlet"     % "javax.servlet-api"               % "4.0.1"    % "container;provided;test",
@@ -25,7 +26,6 @@ object conceptapi extends Module {
       "org.mockito"      %% "mockito-scala-scalatest"         % MockitoV   % "test",
       "org.flywaydb"      % "flyway-core"                     % FlywayV,
       "org.typelevel"    %% "cats-core"                       % "2.9.0",
-      "org.typelevel"    %% "cats-effect"                     % CatsEffectV,
       "vc.inreach.aws"    % "aws-signing-request-interceptor" % "0.0.22"
     ),
     melody,
