@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.controller
 
+import cats.implicits.toTraverseOps
 import no.ndla.common.model.domain.Content
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -35,7 +36,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends NdlaController {
-    implicit val ec: ExecutionContextExecutorService =
+    implicit val ec: ExecutionContext =
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
     private def resolveResultFutures(indexResults: List[Future[(String, Try[ReindexResult])]]): ActionResult = {
@@ -168,6 +169,36 @@ trait InternController {
       resolveResultFutures(List(learningPathIndex))
     }
 
+    def inheritedFuture[T](f: => T)(implicit requestInfo: RequestInfo = RequestInfo.fromThreadContext()): Future[T] =
+      Future {
+        requestInfo.setRequestInfo()
+        f
+      }
+
+    post("/reindex/shards/:num_shards") {
+      val startTime = System.currentTimeMillis()
+      int("num_shards") match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(numShards) =>
+          logger.info("Cleaning up unreferenced indexes before reindexing...")
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+          learningPathIndexService.cleanupIndexes()
+
+          val articles      = articleIndexService.reindexWithShards(numShards)
+          val drafts        = draftIndexService.reindexWithShards(numShards)
+          val learningpaths = learningPathIndexService.reindexWithShards(numShards)
+          List(articles, drafts, learningpaths).sequence match {
+            case Success(_) =>
+              Ok(s"Reindexing with $numShards shards completed in ${System.currentTimeMillis() - startTime}ms")
+            case Failure(ex) =>
+              logger.error("Could not reindex with shards...", ex)
+              errorHandler(ex)
+          }
+      }
+
+    }
+
     post("/index") {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
       val numShards       = intOrNone("numShards")
@@ -182,6 +213,11 @@ trait InternController {
       bundles match {
         case Failure(ex) => errorHandler(ex)
         case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+          logger.info("Cleaning up unreferenced indexes before reindexing...")
+          learningPathIndexService.cleanupIndexes()
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+
           val requestInfo = RequestInfo.fromThreadContext()
           val indexes = List(
             Future {

@@ -15,7 +15,7 @@ import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -24,16 +24,15 @@ trait Elastic4sClient {
   var e4sClient: NdlaE4sClient
 
   case class NdlaE4sClient(searchServer: String) {
-    private var client: ElasticClient = Elastic4sClientFactory.getNonSigningClient(searchServer)
-    def recreateClient(): Unit        = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
+    private var client: ElasticClient  = Elastic4sClientFactory.getNonSigningClient(searchServer)
+    private def recreateClient(): Unit = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
 
-    implicit val ec: ExecutionContextExecutor =
+    private val clientExecutionContext: ExecutionContextExecutor =
       ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
 
     def executeAsync[T, U](
         request: T
     )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
-
       val result = client.execute(request).map {
         case failure: RequestFailure   => Failure(NdlaSearchException(failure))
         case result: RequestSuccess[U] => Success(result)
@@ -54,11 +53,15 @@ trait Elastic4sClient {
     }
 
     def execute[T, U](request: T)(implicit handler: Handler[T, U], mf: Manifest[U]): Try[RequestSuccess[U]] = {
-      Try(Await.result(this.executeAsync(request), Duration.Inf)).flatten
+      implicit val ec: ExecutionContextExecutor = clientExecutionContext
+
+      val future = this.executeAsync(request)
+      Try(Await.result(future, Duration.Inf)).flatten
     }
   }
 
   object Elastic4sClientFactory {
+    private val requestTimeoutMs = 10.minutes.toMillis.toInt
 
     def getClient(searchServer: String): NdlaE4sClient = NdlaE4sClient(searchServer)
 
@@ -71,10 +74,11 @@ trait Elastic4sClient {
     }
 
     private class RequestConfigCallbackWithTimeout extends RequestConfigCallback {
-
       override def customizeRequestConfig(requestConfigBuilder: RequestConfig.Builder): RequestConfig.Builder = {
-        val elasticSearchRequestTimeoutMs = 10000
-        requestConfigBuilder.setConnectionRequestTimeout(elasticSearchRequestTimeoutMs)
+        requestConfigBuilder
+          .setConnectionRequestTimeout(requestTimeoutMs)
+          .setSocketTimeout(requestTimeoutMs)
+          .setConnectTimeout(requestTimeoutMs)
       }
     }
 

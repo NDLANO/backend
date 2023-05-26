@@ -16,6 +16,8 @@ import com.sksamuel.elastic4s.requests.alias.AliasAction
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 
 import java.text.SimpleDateFormat
@@ -23,7 +25,7 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
 trait BaseIndexService {
-  this: Elastic4sClient =>
+  this: Elastic4sClient with HasBaseProps =>
 
   trait BaseIndexService extends StrictLogging {
     val documentType: String
@@ -91,11 +93,31 @@ trait BaseIndexService {
       } yield contentId
     }
 
-    def createIndexWithGeneratedName(numberOfShards: Option[Int]): Try[String] =
-      createIndexWithName(searchIndex + "_" + getTimestamp, numberOfShards)
+    def getNewIndexName() = s"${searchIndex}_$getTimestamp"
+
+    def createIndexWithGeneratedName(numShards: Option[Int]): Try[String] =
+      createIndexWithName(getNewIndexName(), numShards)
 
     def createIndexWithGeneratedName: Try[String] =
-      createIndexWithName(searchIndex + "_" + getTimestamp)
+      createIndexWithName(getNewIndexName())
+
+    def reindexWithShards(numShards: Int): Try[_] = {
+      logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
+      val maybeAliasTarget = getAliasTarget.?
+      val currentIndex = maybeAliasTarget match {
+        case Some(target) => target
+        case None =>
+          logger.info(s"No existing $searchIndex index to reindex from")
+          return Success(())
+      }
+
+      for {
+        newIndex <- createIndexWithGeneratedName(numShards.some)
+        _ = logger.info(s"Created index $newIndex for internal reindexing")
+        _ <- e4sClient.execute(reindex(currentIndex, newIndex))
+        _ <- updateAliasTarget(currentIndex.some, newIndex)
+      } yield ()
+    }
 
     def createIndexIfNotExists(): Try[_] = getAliasTarget.flatMap {
       case Some(index) => Success(index)
@@ -123,8 +145,13 @@ trait BaseIndexService {
     }
 
     def updateReplicaNumber(indexName: String): Try[_] = {
-      e4sClient.execute {
-        updateSettings(Indexes(indexName), Map("number_of_replicas" -> "1"))
+      if (props.Environment == "local") {
+        logger.info("Skipping replica change in local environment, since the cluster only has one node.")
+        Success(())
+      } else {
+        e4sClient.execute {
+          updateSettings(Indexes(indexName), Map("number_of_replicas" -> "1"))
+        }
       }
     }
 
