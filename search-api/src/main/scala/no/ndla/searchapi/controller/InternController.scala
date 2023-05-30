@@ -196,7 +196,28 @@ trait InternController {
               errorHandler(ex)
           }
       }
+    }
 
+    post("/reindex/replicas/:num_replicas") {
+      int("num_replicas") match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(numReplicas) =>
+          logger.info("Cleaning up unreferenced indexes before updating replications setting...")
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+          learningPathIndexService.cleanupIndexes()
+
+          val articles      = articleIndexService.updateReplicaNumber(numReplicas)
+          val drafts        = draftIndexService.updateReplicaNumber(numReplicas)
+          val learningpaths = learningPathIndexService.updateReplicaNumber(numReplicas)
+          List(articles, drafts, learningpaths).sequence match {
+            case Success(_) =>
+              Ok(s"Updated replication setting for indexes to $numReplicas replicas. Populating may take some time.")
+            case Failure(ex) =>
+              logger.error("Could not update replication settings", ex)
+              errorHandler(ex)
+          }
+      }
     }
 
     post("/index") {

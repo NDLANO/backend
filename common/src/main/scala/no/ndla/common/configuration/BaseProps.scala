@@ -3,7 +3,8 @@ package no.ndla.common.configuration
 import scala.util.Properties.{propOrElse, propOrNone}
 
 trait BaseProps {
-  def booleanPropOrNone(name: String): Option[Boolean]              = propOrNone(name).flatMap(_.toBooleanOption)
+  def intPropOrDefault(name: String, default: Int): Int = propOrNone(name).flatMap(_.toIntOption).getOrElse(default)
+  def booleanPropOrNone(name: String): Option[Boolean]  = propOrNone(name).flatMap(_.toBooleanOption)
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
   def ApplicationPort: Int
@@ -38,5 +39,7 @@ trait BaseProps {
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 
-  def MAX_SEARCH_THREADS: Int = propOrNone("MAX_SEARCH_THREADS").flatMap(_.toIntOption).getOrElse(100)
+  def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
+  def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)
+  def SEARCH_INDEX_REPLICAS: Int = intPropOrDefault("SEARCH_INDEX_REPLICAS", 5)
 }

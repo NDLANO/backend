@@ -8,7 +8,7 @@
 
 package no.ndla.search
 
-import cats.implicits.catsSyntaxOptionId
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.Indexes
 import com.sksamuel.elastic4s.analysis.Analysis
@@ -40,10 +40,8 @@ trait BaseIndexService {
 
     def getMapping: MappingDefinition
 
-    // Setting this to suppress the warning, since it will default to '1' in the new version.
-    // The value '5' was chosen since that is what was the default earlier (which worked fine).
-    // However there are probably more optimal values.
-    val indexShards: Int = 5
+    val indexShards: Int   = props.SEARCH_INDEX_SHARDS
+    val indexReplicas: Int = props.SEARCH_INDEX_REPLICAS
 
     def indexWithNameExists(indexName: String): Try[Boolean] = {
       val response = e4sClient.execute {
@@ -62,7 +60,7 @@ trait BaseIndexService {
         .shards(numShards.getOrElse(indexShards))
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
-        .replicas(0)
+        .replicas(0) // Spawn with 0 replicas to make indexing faster
         .analysis(analysis)
     }
     def createIndexWithName(indexName: String): Try[String] = createIndexWithName(indexName, None)
@@ -144,14 +142,19 @@ trait BaseIndexService {
       }
     }
 
-    def updateReplicaNumber(indexName: String): Try[_] = {
+    def updateReplicaNumber(overrideReplicaNumber: Int): Try[_] = getAliasTarget.flatMap {
+      case None => Success(())
+      case Some(indexName) =>
+        updateReplicaNumber(indexName, overrideReplicaNumber.some)
+    }
+
+    private def updateReplicaNumber(indexName: String, overrideReplicaNumber: Option[Int]): Try[_] = {
       if (props.Environment == "local") {
         logger.info("Skipping replica change in local environment, since the cluster only has one node.")
         Success(())
       } else {
-        e4sClient.execute {
-          updateSettings(Indexes(indexName), Map("number_of_replicas" -> "1"))
-        }
+        val settingsMap = Map("number_of_replicas" -> overrideReplicaNumber.getOrElse(indexReplicas).toString)
+        e4sClient.execute(updateSettings(Indexes(indexName), settingsMap))
       }
     }
 
@@ -171,7 +174,7 @@ trait BaseIndexService {
             logger.info("Alias target updated successfully, deleting other indexes.")
             for {
               _ <- cleanupIndexes()
-              _ <- updateReplicaNumber(newIndexName)
+              _ <- updateReplicaNumber(newIndexName, overrideReplicaNumber = None)
             } yield ()
           case Failure(ex) =>
             logger.error("Could not update alias target.")
