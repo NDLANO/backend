@@ -104,7 +104,8 @@ object TestData {
     Seq.empty,
     responsible = None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val blankUpdatedArticle: UpdatedArticle = api.UpdatedArticle(
@@ -131,6 +132,7 @@ object TestData {
     None,
     None,
     Right(None),
+    None,
     None,
     None
   )
@@ -216,7 +218,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val apiArticleUserTest: api.Article = api.Article(
@@ -265,7 +268,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val sampleTopicArticle: Draft = Draft(
@@ -296,7 +300,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -327,7 +332,8 @@ object TestData {
     common.draft.RevisionMeta.default,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -358,7 +364,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val newArticle: NewArticle = api.NewArticle(
@@ -394,7 +401,8 @@ object TestData {
     None,
     None,
     None,
-    List.empty
+    List.empty,
+    Some(false)
   )
 
   val sampleArticleWithByNcSa: Draft =
@@ -439,7 +447,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val apiArticleWithHtmlFaultV2: api.Article = api.Article(
@@ -491,7 +500,8 @@ object TestData {
     Seq.empty,
     None,
     None,
-    Seq.empty
+    Seq.empty,
+    Some(false)
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

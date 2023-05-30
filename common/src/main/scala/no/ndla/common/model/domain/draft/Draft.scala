@@ -59,7 +59,8 @@ case class Draft(
     revisionMeta: Seq[RevisionMeta],
     responsible: Option[Responsible],
     slug: Option[String],
-    comments: Seq[Comment]
+    comments: Seq[Comment],
+    prioritized: Option[Boolean]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
