@@ -196,15 +196,3 @@ export interface IUpdatedAudioMetaInformation {
   seriesId?: number
   manuscript?: string
 }
-
-export interface IValidationError {
-  code: string
-  description: string
-  messages: IValidationMessage[]
-  occuredAt: string
-}
-
-export interface IValidationMessage {
-  field: string
-  message: string
-}

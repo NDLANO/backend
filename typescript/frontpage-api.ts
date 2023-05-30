@@ -24,6 +24,7 @@ export interface IErrorBody {
   code: string
   description: string
   occurredAt: string
+  messages?: IValidationMessage[]
   statusCode: number
 }
 
@@ -149,6 +150,11 @@ export interface IUpdatedSubjectFrontPageData {
   editorsChoices?: string[]
   latestContent?: string[]
   goTo?: string[]
+}
+
+export interface IValidationMessage {
+  field: string
+  message: string
 }
 
 export interface IVisualElement {
