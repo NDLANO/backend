@@ -23,7 +23,7 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
   override def beforeAll(): Unit = {
     val app    = Routes.build(List(subjectPageController))
     val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.toFuture
+    server.runInBackground()
     blockUntil(() => server.isReady)
   }
 
@@ -34,7 +34,8 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment {
         quickRequest.get(uri"http://localhost:$serverPort/frontpage-api/v1/subjectpage/1?fallback=noefeil")
       )
     response.code.code should equal(400)
-    val expectedBody = ErrorHelpers.badRequest("Invalid value for: query parameter fallback").asJson.noSpaces
+    val expectedBody =
+      ErrorHelpers.badRequest("Invalid value for: query parameter fallback").asJson.dropNullValues.noSpaces
     response.body should be(expectedBody)
   }
 

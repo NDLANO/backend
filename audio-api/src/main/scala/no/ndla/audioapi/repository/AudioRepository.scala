@@ -98,7 +98,7 @@ trait AudioRepository {
         if (count != 1) {
           val message = s"Found revision mismatch when attempting to update audio with id $id"
           logger.info(message)
-          Failure(new OptimisticLockException)
+          Failure(new Helpers.OptimisticLockException)
         } else {
           logger.info(s"Updated audio with id $id")
           Success(audioMetaInformation.copy(id = Some(id), revision = Some(newRevision)))

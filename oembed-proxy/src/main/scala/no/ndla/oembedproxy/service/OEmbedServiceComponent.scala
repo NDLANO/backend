@@ -8,7 +8,6 @@
 
 package no.ndla.oembedproxy.service
 
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.oembedproxy.model.{OEmbed, OEmbedProvider, ProviderNotSupportedException}
 import org.json4s.DefaultFormats
@@ -17,7 +16,7 @@ import sttp.client3.quick._
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Try}
 
-trait OEmbedServiceComponent extends StrictLogging {
+trait OEmbedServiceComponent {
   this: NdlaClient with ProviderService =>
   val oEmbedService: OEmbedService
 

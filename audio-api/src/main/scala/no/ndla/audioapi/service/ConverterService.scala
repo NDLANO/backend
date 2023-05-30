@@ -11,7 +11,6 @@ package no.ndla.audioapi.service
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.auth.User
 import no.ndla.audioapi.integration.DraftApiClient
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, Tag}
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMeta}
@@ -21,12 +20,13 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: User with Clock with DraftApiClient with Props =>
+  this: Clock with DraftApiClient with Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -247,7 +247,8 @@ trait ConverterService {
     def toDomainAudioMetaInformation(
         audioMeta: api.NewAudioMetaInformation,
         audio: domain.Audio,
-        maybeSeries: Option[domain.Series]
+        maybeSeries: Option[domain.Series],
+        tokenUser: TokenUser
     ): domain.AudioMetaInformation = {
       domain.AudioMetaInformation(
         id = None,
@@ -256,7 +257,7 @@ trait ConverterService {
         filePaths = Seq(audio),
         copyright = toDomainCopyright(audioMeta.copyright),
         tags = if (audioMeta.tags.nonEmpty) Seq(common.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
-        updatedBy = authUser.userOrClientid(),
+        updatedBy = tokenUser.id,
         updated = clock.now(),
         created = clock.now(),
         podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,

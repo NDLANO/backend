@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.model.domain
 
+import io.circe.{Decoder, Encoder}
 import no.ndla.audioapi.Props
 import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
@@ -46,6 +47,9 @@ object AudioType extends Enumeration {
 
   def all: Seq[String]                       = this.values.map(_.toString).toSeq
   def valueOf(s: String): Option[this.Value] = this.values.find(_.toString == s)
+
+  implicit val audioTypeEnc = Encoder.encodeEnumeration(AudioType)
+  implicit val audioTypeDec = Decoder.decodeEnumeration(AudioType)
 }
 
 case class Manuscript(manuscript: String, language: String) extends LanguageField[String] {

@@ -14,9 +14,9 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.oembedproxy.caching.MemoizeHelpers
-import no.ndla.oembedproxy.controller.{HealthController, OEmbedProxyController, SwaggerDocControllerConfig}
+import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
 import no.ndla.oembedproxy.model.ErrorHelpers
 import no.ndla.oembedproxy.service.{OEmbedServiceComponent, ProviderService}
 import org.http4s.{Request, Response}
@@ -30,7 +30,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with NdlaClient
     with ProviderService
     with MemoizeHelpers
-    with HealthController
+    with TapirHealthController
     with Props
     with ErrorHelpers
     with Routes
@@ -44,7 +44,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
   lazy val oEmbedService         = new OEmbedService
   lazy val ndlaClient            = new NdlaClient
   lazy val oEmbedProxyController = new OEmbedProxyController
-  lazy val healthController      = new HealthController
+  lazy val healthController      = new TapirHealthController
 
   lazy val clock = new SystemClock
 

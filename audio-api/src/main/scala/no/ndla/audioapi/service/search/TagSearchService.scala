@@ -83,7 +83,7 @@ trait TagSearchService {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
         )
-        Failure(new ResultWindowTooLargeException())
+        Failure(new Helpers.ResultWindowTooLargeException())
       } else {
         val searchToExecute = search(searchIndex)
           .size(numResults)

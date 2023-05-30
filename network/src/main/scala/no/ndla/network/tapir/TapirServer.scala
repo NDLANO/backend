@@ -14,7 +14,6 @@ import org.http4s.jetty.server.JettyBuilder
 import org.log4s.{Logger, getLogger}
 
 import javax.servlet.DispatcherType
-import scala.concurrent.Future
 
 case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMelody: Boolean)(onReady: => Unit = {}) {
   val logger: Logger      = getLogger
@@ -52,9 +51,9 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
 
   def as[B](b: B): IO[B] = server.as[B](b)
 
-  def toFuture: Future[Nothing] = {
+  def runInBackground(): Unit = {
     import cats.effect.unsafe.implicits.global
-    server.unsafeToFuture()
+    server.unsafeRunAndForget()
   }
 
   def isReady: Boolean = this.serverReady

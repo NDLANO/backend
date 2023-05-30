@@ -10,7 +10,10 @@ package no.ndla.audioapi
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, Copyright, SearchSettings}
 import no.ndla.audioapi.model.domain
+import no.ndla.audioapi.model.api
 import no.ndla.common.model.{domain => common}
+import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 
 import java.time.LocalDateTime
 
@@ -106,4 +109,25 @@ object TestData {
     created = yesterday,
     hasRSS = true
   )
+
+  val updated: LocalDateTime = LocalDateTime.of(2017, 4, 1, 12, 15, 32)
+  val created: LocalDateTime = LocalDateTime.of(2017, 3, 1, 12, 15, 32)
+
+  val DefaultApiImageMetaInformation: api.AudioMetaInformation = api.AudioMetaInformation(
+    1,
+    1,
+    api.Title("title", "nb"),
+    api.Audio("audio/test.mp3", "audio/mpeg", 1024, "nb"),
+    api.Copyright(api.License("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, None),
+    api.Tag(Seq("tag"), "nb"),
+    Seq("nb"),
+    "standard",
+    None,
+    None,
+    None,
+    created,
+    updated
+  )
+
+  val testUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE))
 }

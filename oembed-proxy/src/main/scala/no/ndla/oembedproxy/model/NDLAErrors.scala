@@ -8,32 +8,35 @@
 
 package no.ndla.oembedproxy.model
 
+import cats.effect.IO
 import no.ndla.common.Clock
+import no.ndla.common.logging.FLogging
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir._
 import no.ndla.oembedproxy.Props
+import no.ndla.network.model.RequestInfo.ioLoggerContext
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHelpers extends TapirErrorHelpers with FLogging {
   this: Props with Clock =>
 
   import ErrorHelpers._
 
-  override def returnError(ex: Throwable): ErrorBody = ex match {
+  override def returnError(ex: Throwable): IO[ErrorBody] = ex match {
     case pnse: ProviderNotSupportedException =>
-      ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 501)
+      IO(ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 501))
     case hre: HttpRequestException if hre.is404 =>
       val msg = hre.getMessage
-      logger.info(s"Could not fetch remote: '$msg'")
-      ErrorBody(REMOTE_ERROR, msg, clock.now(), 404)
+      logger.info(s"Could not fetch remote: '$msg'") >>
+        IO(ErrorBody(REMOTE_ERROR, msg, clock.now(), 404))
     case hre: HttpRequestException =>
       val msg = hre.httpResponse.map(response =>
         s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
       )
-      logger.error(hre)(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}")
-      ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
+      logger.error(hre)(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}") >>
+        IO(ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502))
     case t: Throwable =>
-      logger.error(t)(t.getMessage)
-      generic
+      logger.error(t)(t.getMessage) >>
+        IO(generic)
   }
 }
 

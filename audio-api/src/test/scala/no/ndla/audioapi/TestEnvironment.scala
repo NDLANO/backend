@@ -10,14 +10,7 @@ package no.ndla.audioapi
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.audioapi.auth.{Role, User}
-import no.ndla.audioapi.controller.{
-  AudioController,
-  HealthController,
-  InternController,
-  NdlaController,
-  SeriesController
-}
+import no.ndla.audioapi.controller.{AudioController, HealthController, InternController, SeriesController}
 import no.ndla.audioapi.integration._
 import no.ndla.audioapi.model.api.ErrorHelpers
 import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
@@ -26,7 +19,7 @@ import no.ndla.audioapi.service._
 import no.ndla.audioapi.service.search._
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.scalatra.{NdlaControllerBase, NdlaSwaggerSupport}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient}
 import org.mockito.scalatest.MockitoSugar
 
@@ -44,11 +37,12 @@ trait TestEnvironment
     with ValidationService
     with ConverterService
     with AudioStorageService
-    with NdlaController
-    with NdlaControllerBase
-    with NdlaSwaggerSupport
     with InternController
+    with Service
+    with Routes
+    with NdlaMiddleware
     with HealthController
+    with TapirHealthController
     with AudioController
     with SeriesController
     with Elastic4sClient
@@ -63,11 +57,8 @@ trait TestEnvironment
     with TagIndexService
     with TagSearchService
     with MockitoSugar
-    with User
-    with Role
     with Clock
     with Props
-    with AudioApiInfo
     with ErrorHelpers {
   override val props: AudioApiProperties = new AudioApiProperties
 
@@ -87,7 +78,6 @@ trait TestEnvironment
   val converterService: ConverterService   = mock[ConverterService]
 
   val internController: InternController  = mock[InternController]
-  val resourcesApp: ResourcesApp          = mock[ResourcesApp]
   val audioApiController: AudioController = mock[AudioController]
   val healthController: HealthController  = mock[HealthController]
   val seriesController: SeriesController  = mock[SeriesController]
@@ -102,7 +92,5 @@ trait TestEnvironment
   val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
   val clock: SystemClock = mock[SystemClock]
-  val authUser: AuthUser = mock[AuthUser]
-  val authRole           = new AuthRole
 
 }

@@ -7,27 +7,25 @@
 
 package no.ndla.frontpageapi.model.api
 
+import cats.effect.IO
 import no.ndla.common.Clock
+import no.ndla.common.logging.FLogging
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException, ValidationException}
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
-import org.log4s.{Logger, getLogger}
+import no.ndla.network.model.RequestInfo.ioLoggerContext
 
-trait ErrorHelpers extends TapirErrorHelpers {
+trait ErrorHelpers extends TapirErrorHelpers with FLogging {
   this: Props with Clock =>
 
   import ErrorHelpers._
 
-  val logger: Logger = getLogger
-
-  override def returnError(ex: Throwable): ErrorBody = {
+  override def returnError(ex: Throwable): IO[ErrorBody] = {
     ex match {
-      case a: ValidationException        => badRequest(ex.getMessage)
-      case ex: NotFoundException         => notFoundWithMsg(ex.getMessage)
-      case ex: LanguageNotFoundException => notFoundWithMsg(ex.getMessage)
-      case ex =>
-        logger.error(ex)(s"Internal error: ${ex.getMessage}")
-        generic
+      case a: ValidationException        => IO(badRequest(ex.getMessage))
+      case ex: NotFoundException         => IO(notFoundWithMsg(ex.getMessage))
+      case ex: LanguageNotFoundException => IO(notFoundWithMsg(ex.getMessage))
+      case ex                            => logger.error(ex)(s"Internal error: ${ex.getMessage}").as(generic)
     }
   }
 

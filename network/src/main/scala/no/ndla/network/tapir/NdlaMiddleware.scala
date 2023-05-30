@@ -8,28 +8,15 @@
 package no.ndla.network.tapir
 
 import cats.effect.IO
-import no.ndla.common.CorrelationID
 import no.ndla.common.RequestLogger.{afterRequestLogString, beforeRequestLogString}
-import no.ndla.network.ApplicationUrl
-import no.ndla.network.model.NdlaHttpRequest
+import no.ndla.network.model.RequestInfo
 import org.http4s.{Request, Response}
-import org.log4s.getLogger
-import org.typelevel.ci.CIString
+import org.log4s.{MDC, getLogger}
 
 trait NdlaMiddleware {
   this: Service =>
   object NdlaMiddleware {
-    private val CorrelationIdHeader = CIString("X-Correlation-ID")
-    private val logger              = getLogger
-
-    def asNdlaHttpRequest[F[+_]](req: Request[F]): NdlaHttpRequest =
-      NdlaHttpRequest(
-        serverPort = req.serverPort.map(_.value).getOrElse(-1),
-        getHeaderFunc = name => req.headers.get(CIString(name)).map(_.head.value),
-        getScheme = req.uri.scheme.map(_.value).getOrElse("http"),
-        serverName = req.serverAddr.map(_.toUriString).getOrElse("localhost"),
-        servletPath = req.uri.path.renderString
-      )
+    private val logger = getLogger
 
     private def shouldLogRequest(req: Request[IO]): Boolean = {
       req.uri.path.renderString != "/health"
@@ -38,9 +25,6 @@ trait NdlaMiddleware {
     private def before(req: Request[IO]): Long = {
       val beforeTime = System.currentTimeMillis()
 
-      val correlationIdHeader = req.headers.get(CorrelationIdHeader).map(_.head.value)
-      CorrelationID.set(correlationIdHeader)
-      ApplicationUrl.set(asNdlaHttpRequest(req))
       if (shouldLogRequest(req)) {
         logger.info(
           beforeRequestLogString(
@@ -54,10 +38,16 @@ trait NdlaMiddleware {
       beforeTime
     }
 
-    private def after(beforeTime: Long, req: Request[IO], resp: Response[IO]): Response[IO] = {
+    private def after(
+        beforeTime: Long,
+        req: Request[IO],
+        requestInfo: RequestInfo,
+        resp: Response[IO]
+    ): Response[IO] = {
       val latency = System.currentTimeMillis() - beforeTime
 
       if (shouldLogRequest(req)) {
+        MDC.put("correlationID", requestInfo.correlationId.get)
         logger.info(
           afterRequestLogString(
             method = req.method.name,
@@ -69,15 +59,16 @@ trait NdlaMiddleware {
         )
       }
 
-      CorrelationID.clear()
-      ApplicationUrl.clear()
-
       resp
     }
 
     def apply(req: Request[IO], responseIO: IO[Response[IO]]): IO[Response[IO]] = {
+      val reqInfo = RequestInfo.fromRequest(req)
+      val set     = RequestInfo.set(reqInfo)
+      MDC.put("correlationID", reqInfo.correlationId.get)
       val beforeTime = before(req)
-      responseIO.map(resp => after(beforeTime, req, resp))
+
+      set >> responseIO.map(resp => after(beforeTime, req, reqInfo, resp))
     }
   }
 }

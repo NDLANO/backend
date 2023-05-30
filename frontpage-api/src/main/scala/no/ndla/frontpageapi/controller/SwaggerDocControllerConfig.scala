@@ -8,19 +8,14 @@
 package no.ndla.frontpageapi.controller
 
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.auth.Role
+import no.ndla.network.tapir.auth.Scope
 import no.ndla.network.tapir.{Service, SwaggerControllerConfig, SwaggerInfo}
-
-import scala.collection.immutable.ListMap
 
 trait SwaggerDocControllerConfig extends SwaggerControllerConfig {
   this: Service with Props =>
 
   object SwaggerDocControllerConfig {
-    private val scopes = ListMap.from(Role.values.map(role => {
-      val fullRole = s"${Role.prefix}$role".toLowerCase
-      fullRole -> fullRole
-    }))
+    private val scopes = Scope.toSwaggerMap(Scope.thatStartsWith("frontpage"))
 
     val swaggerInfo: SwaggerInfo = SwaggerInfo(
       mountPoint = "/frontpage-api/api-docs",

@@ -17,7 +17,7 @@ import no.ndla.frontpageapi.model.api.ErrorHelpers
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service}
+import no.ndla.network.tapir.{NdlaMiddleware, Routes, Service, TapirHealthController}
 import org.http4s.{Request, Response}
 
 class ComponentRegistry(properties: FrontpageApiProperties)
@@ -39,7 +39,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with Props
     with DBMigrator
     with ConverterService
-    with HealthController
+    with TapirHealthController
     with Service
     with Routes
     with NdlaMiddleware
@@ -62,7 +62,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val frontPageController   = new FrontPageController
   override val filmPageController    = new FilmPageController
   override val internController      = new InternController
-  override val healthController      = new HealthController
+  val healthController               = new TapirHealthController
 
   val services: List[Service] = List(
     subjectPageController,

@@ -26,9 +26,6 @@ class AudioApiProperties extends BaseProps with StrictLogging {
   val ApplicationName    = "audio-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
-  val RoleWithWriteAccess = "audio:write"
-  val RoleWithAdminAccess = "audio:admin"
-
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 

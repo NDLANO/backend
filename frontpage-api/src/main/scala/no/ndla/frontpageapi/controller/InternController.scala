@@ -36,11 +36,11 @@ trait InternController {
         .summary("Get subject page id from external id")
         .out(jsonBody[SubjectPageId])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogicPure { nid =>
+        .serverLogic { nid =>
           readService.getIdFromExternalId(nid) match {
-            case Success(Some(id)) => id.asRight
-            case Success(None)     => ErrorHelpers.notFound.asLeft
-            case Failure(ex)       => returnError(ex).asLeft
+            case Success(Some(id)) => IO(id.asRight)
+            case Success(None)     => IO(ErrorHelpers.notFound.asLeft)
+            case Failure(ex)       => returnError(ex).map(_.asLeft)
           }
         },
       endpoint.post
@@ -49,7 +49,7 @@ trait InternController {
         .in(jsonBody[NewSubjectFrontPageData])
         .errorOut(errorOutputsFor())
         .out(jsonBody[SubjectPageData])
-        .serverLogicPure { subjectPage =>
+        .serverLogic { subjectPage =>
           writeService
             .newSubjectPage(subjectPage)
             .handleErrorsOrOk
@@ -60,7 +60,7 @@ trait InternController {
         .errorOut(errorOutputsFor(400, 404))
         .summary("Update subject page")
         .out(jsonBody[SubjectPageData])
-        .serverLogicPure { case (id, subjectPage) =>
+        .serverLogic { case (id, subjectPage) =>
           writeService
             .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
             .handleErrorsOrOk
@@ -70,7 +70,7 @@ trait InternController {
         .in(jsonBody[FrontPageData])
         .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[FrontPageData])
-        .serverLogicPure { frontPage =>
+        .serverLogic { frontPage =>
           writeService
             .updateFrontPage(frontPage)
             .handleErrorsOrOk

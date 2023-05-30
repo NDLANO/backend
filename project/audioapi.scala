@@ -51,8 +51,7 @@ object audioapi extends Module {
       "AudioMetaInformation",
       "UpdatedAudioMetaInformation",
       "SeriesSummarySearchResult",
-      "SeriesSearchParams",
-      "ValidationError"
+      "SeriesSearchParams"
     )
   )
 

@@ -20,7 +20,8 @@ object commonlib extends Module {
       "javax.servlet"     % "javax.servlet-api" % "4.0.1" % "container;provided;test"
     ),
     melody,
-    scalatra
+    scalatra,
+    tapirHttp4sCirce
   )
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
     libraryDependencies ++= dependencies

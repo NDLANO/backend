@@ -45,7 +45,7 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .errorOut(errorOutputsFor(400, 404))
         .out(jsonBody[List[SubjectPageData]])
-        .serverLogicPure { case (page, pageSize, language, fallback) =>
+        .serverLogic { case (page, pageSize, language, fallback) =>
           readService
             .subjectPages(page, pageSize, language, fallback)
             .handleErrorsOrOk
@@ -57,7 +57,7 @@ trait SubjectPageController {
         .in(query[Boolean]("fallback").default(false))
         .out(jsonBody[SubjectPageData])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogicPure { case (id, language, fallback) =>
+        .serverLogic { case (id, language, fallback) =>
           readService
             .subjectPage(id, language, fallback)
             .handleErrorsOrOk
@@ -72,7 +72,7 @@ trait SubjectPageController {
         .in(query[Int]("page").default(1))
         .out(jsonBody[List[SubjectPageData]])
         .errorOut(errorOutputsFor(400, 404))
-        .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
+        .serverLogic { case (ids, language, fallback, pageSize, page) =>
           val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
           val parsedPage     = if (page < 1) 1 else page
           readService
@@ -90,7 +90,7 @@ trait SubjectPageController {
           case Some(_)                     => ErrorHelpers.forbidden.asLeft
           case None                        => ErrorHelpers.unauthorized.asLeft
         }
-        .serverLogicPure { _ => newSubjectFrontPageData =>
+        .serverLogic { _ => newSubjectFrontPageData =>
           {
             writeService
               .newSubjectPage(newSubjectFrontPageData)
@@ -113,7 +113,7 @@ trait SubjectPageController {
           case Some(_)                     => ErrorHelpers.forbidden.asLeft
           case None                        => ErrorHelpers.unauthorized.asLeft
         }
-        .serverLogicPure { _ =>
+        .serverLogic { _ =>
           { case (subjectPage, id, language, fallback) =>
             writeService
               .updateSubjectPage(id, subjectPage, language)

@@ -49,7 +49,7 @@ trait FilmPageController {
           case Some(_)                     => ErrorHelpers.forbidden.asLeft
           case None                        => ErrorHelpers.unauthorized.asLeft
         }
-        .serverLogicPure { _ => filmFrontPage =>
+        .serverLogic { _ => filmFrontPage =>
           writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
             ErrorHelpers.unprocessableEntity(ex.getMessage)
           }

@@ -9,25 +9,22 @@
 package no.ndla.audioapi.model.api
 
 import com.scalatsi._
-import org.scalatra.swagger.annotations.ApiModel
-import org.scalatra.swagger.runtime.annotations.ApiModelProperty
+import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.meta.field
 import scala.annotation.unused
 
-// format: off
-@ApiModel(description = "Meta information about the series")
+@description("Meta information about the series")
 case class Series(
-    @(ApiModelProperty @field)(description = "The unique id of this series") id: Long,
-    @(ApiModelProperty @field)(description = "The revision number of this series") revision: Int,
-    @(ApiModelProperty @field)(description = "The title of the series") title: Title,
-    @(ApiModelProperty @field)(description = "The description of the series") description: Description,
-    @(ApiModelProperty @field)(description = "Cover photo for the series") coverPhoto: CoverPhoto,
-    @(ApiModelProperty @field)(description = "The metainfo of the episodes in the series") episodes: Option[Seq[AudioMetaInformation]],
-    @(ApiModelProperty @field)(description = "A list of available languages for this series") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "Specifies if this series generates rss-feed") hasRSS: Boolean
+    @description("The unique id of this series") id: Long,
+    @description("The revision number of this series") revision: Int,
+    @description("The title of the series") title: Title,
+    @description("The description of the series") description: Description,
+    @description("Cover photo for the series") coverPhoto: CoverPhoto,
+    @description("The metainfo of the episodes in the series") episodes: Option[Seq[AudioMetaInformation]],
+    @description("A list of available languages for this series") supportedLanguages: Seq[String],
+    @description("Specifies if this series generates rss-feed") hasRSS: Boolean
 )
-// format: on
+
 object Series {
   implicit val seriesTSI: TSIType[Series] = {
     @unused

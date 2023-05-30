@@ -8,34 +8,31 @@
 
 package no.ndla.audioapi
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.network.scalatra.NdlaScalatraServer
-import org.eclipse.jetty.server.Server
+import cats.data.Kleisli
+import cats.effect.IO
+import no.ndla.common.Warmup
+import no.ndla.network.tapir.NdlaTapirMain
+import org.http4s.{Request, Response}
 
-class MainClass(props: AudioApiProperties) extends StrictLogging {
-  val componentRegistry = new ComponentRegistry(props)
+class MainClass(override val props: AudioApiProperties) extends NdlaTapirMain {
+  private val componentRegistry                            = new ComponentRegistry(props)
+  override val app: Kleisli[IO, Request[IO], Response[IO]] = componentRegistry.routes
 
-  def startServer(): Server = {
-    new NdlaScalatraServer[AudioApiProperties, ComponentRegistry](
-      "no.ndla.audioapi.ScalatraBootstrap",
-      componentRegistry, {
-        logger.info("Starting DB Migration")
-        val dBstartMillis = System.currentTimeMillis()
-        componentRegistry.migrator.migrate()
-        logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
-      },
-      warmupRequest => {
-        warmupRequest("/audio-api/v1/audio", Map("query" -> "norge", "fallback" -> "true"))
-        warmupRequest("/audio-api/v1/audio/1", Map("language" -> "nb"))
-        warmupRequest("/audio-api/v1/series", Map("language" -> "nb"))
-        warmupRequest("/audio-api/v1/series/1", Map("language" -> "nb"))
-        warmupRequest("/health", Map.empty)
-      }
-    )
+  private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
+  override def warmup(): Unit = {
+    warmupRequest("/audio-api/v1/audio", Map("query" -> "norge", "fallback" -> "true"))
+    warmupRequest("/audio-api/v1/audio/1", Map("language" -> "nb"))
+    warmupRequest("/audio-api/v1/series", Map("language" -> "nb"))
+    warmupRequest("/audio-api/v1/series/1", Map("language" -> "nb"))
+    warmupRequest("/health", Map.empty)
+
+    componentRegistry.healthController.setWarmedUp()
   }
 
-  def start(): Unit = {
-    val server = startServer()
-    server.join()
+  override def beforeStart(): Unit = {
+    logger.info("Starting DB Migration")
+    val dBstartMillis = System.currentTimeMillis()
+    componentRegistry.migrator.migrate()
+    logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
   }
 }

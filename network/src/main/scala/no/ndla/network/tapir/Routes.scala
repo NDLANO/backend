@@ -7,6 +7,7 @@
 
 package no.ndla.network.tapir
 
+import no.ndla.network.tapir.NoNullJsonPrinter._
 import cats.data.Kleisli
 import cats.effect.IO
 import io.circe.generic.auto._
@@ -14,22 +15,23 @@ import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.headers.`Content-Type`
 import org.http4s.server.Router
 import org.http4s.{Headers, HttpRoutes, MediaType, Request, Response}
-import org.log4s.getLogger
+import org.log4s.{Logger, getLogger}
 import sttp.model.StatusCode
 import sttp.monad.MonadError
 import sttp.tapir.generic.auto.schemaForCaseClass
-import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
+import sttp.tapir.server.interceptor.RequestResult
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
+import sttp.tapir.server.interceptor.reject.RejectHandler
 import sttp.tapir.server.model.ValuedEndpointOutput
-import sttp.tapir.statusCode
+import sttp.tapir.{EndpointInput, statusCode}
 
 trait Routes {
   this: Service with NdlaMiddleware with TapirErrorHelpers =>
 
   object Routes {
-    val logger = getLogger
+    val logger: Logger = getLogger
     private def buildBindings(routes: List[Service]): List[(String, HttpRoutes[IO])] = {
       val (docServices, noDocServices) = routes.partitionMap {
         case swaggerService: SwaggerService  => Left(swaggerService)
@@ -51,19 +53,45 @@ trait Routes {
       ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.generic)
     }
 
-    private val decodeFailureHandler = DefaultDecodeFailureHandler.default.response(failureMsg => {
-      ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.badRequest(failureMsg))
-    })
+    private val decodeFailureHandler =
+      DefaultDecodeFailureHandler.default
+        .response(failureMsg => {
+          ValuedEndpointOutput(
+            jsonBody[ErrorBody],
+            ErrorHelpers.badRequest(failureMsg)
+          )
+        })
 
     private case class NdlaExceptionHandler() extends ExceptionHandler[IO] {
-      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] = {
-        monad.unit(
-          Some(
-            failureResponse("Internal server error", Some(ctx.e))
-              .prepend(statusCode, StatusCode.InternalServerError)
-          )
-        )
+      override def apply(ctx: ExceptionContext)(implicit monad: MonadError[IO]): IO[Option[ValuedEndpointOutput[_]]] =
+        for {
+          errorToReturn <- returnError(ctx.e)
+          sc     = StatusCode(errorToReturn.statusCode)
+          resp   = ValuedEndpointOutput(jsonBody[ErrorBody], errorToReturn)
+          withsc = resp.prepend(statusCode, sc)
+          result <- monad.unit(Some(withsc))
+        } yield result
+    }
+
+    private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f.failures.map(_.failingInput).exists {
+      case _: EndpointInput.FixedMethod[_] => true
+      case _                               => false
+    }
+
+    private case class NdlaRejectHandler[F[_]]() extends RejectHandler[F] {
+      override def apply(
+          failure: RequestResult.Failure
+      )(implicit monad: MonadError[F]): F[Option[ValuedEndpointOutput[_]]] = {
+        val statusCodeAndBody = if (hasMethodMismatch(failure)) {
+          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
+            .prepend(statusCode, StatusCode.MethodNotAllowed)
+        } else {
+          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.notFound)
+            .prepend(statusCode, StatusCode.NotFound)
+        }
+        monad.unit(Some(statusCodeAndBody))
       }
+
     }
 
     private def swaggerServicesToRoutes(services: List[SwaggerService]): HttpRoutes[IO] = {
@@ -71,6 +99,7 @@ trait Routes {
       val options = Http4sServerOptions
         .customiseInterceptors[IO]
         .defaultHandlers(err => failureResponse(err, None))
+        .rejectHandler(NdlaRejectHandler[IO]())
         .exceptionHandler(NdlaExceptionHandler())
         .decodeFailureHandler(decodeFailureHandler)
         .options
@@ -87,7 +116,8 @@ trait Routes {
       val bindings = buildBindings(routes)
       val router   = Router[IO](bindings: _*)
       Kleisli[IO, Request[IO], Response[IO]](req => {
-        val res = router.run(req).getOrElse { getFallbackRoute }
+        val ran = router.run(req)
+        val res = ran.getOrElse { getFallbackRoute }
         NdlaMiddleware(req, res)
       })
     }

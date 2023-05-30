@@ -16,12 +16,12 @@ class HealthControllerTest extends UnitSuite with TestEnvironment {
 
   val serverPort: Int = findFreePort
 
-  lazy val controller = new HealthController
+  lazy val controller = new TapirHealthController
   controller.setWarmedUp()
   override def beforeAll(): Unit = {
     val app    = Routes.build(List(controller))
     val server = TapirServer(this.getClass.getName, serverPort, app, enableMelody = false)()
-    server.toFuture
+    server.runInBackground()
     blockUntil(() => server.isReady)
   }
 
