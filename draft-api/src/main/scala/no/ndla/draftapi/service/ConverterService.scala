@@ -117,7 +117,7 @@ trait ConverterService {
           responsible = responsible,
           slug = newArticle.slug,
           comments = newCommentToDomain(newArticle.comments),
-          prioritized = false
+          prioritized = newArticle.prioritized
         )
       )
     }
