@@ -15,7 +15,7 @@ import org.apache.http.client.config.RequestConfig
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
 
 import java.util.concurrent.Executors
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -26,6 +26,7 @@ trait Elastic4sClient {
   case class NdlaE4sClient(searchServer: String) {
     private var client: ElasticClient  = Elastic4sClientFactory.getNonSigningClient(searchServer)
     private def recreateClient(): Unit = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
+    private val elasticTimeout         = 10.minutes
 
     private val clientExecutionContext: ExecutionContextExecutor =
       ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
@@ -49,14 +50,14 @@ trait Elastic4sClient {
     def executeBlocking[T, U](
         request: T
     )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
-      Try(Await.result(this.executeAsync(request), Duration.Inf)).flatten
+      Try(Await.result(this.executeAsync(request), elasticTimeout)).flatten
     }
 
     def execute[T, U](request: T)(implicit handler: Handler[T, U], mf: Manifest[U]): Try[RequestSuccess[U]] = {
       implicit val ec: ExecutionContextExecutor = clientExecutionContext
 
       val future = this.executeAsync(request)
-      Try(Await.result(future, Duration.Inf)).flatten
+      Try(Await.result(future, elasticTimeout)).flatten
     }
   }
 
