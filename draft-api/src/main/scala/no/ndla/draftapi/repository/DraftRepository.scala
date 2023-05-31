@@ -94,7 +94,7 @@ trait DraftRepository {
       article.copy(revision = Some(startRevision))
     }
 
-    def storeArticleAsNewVersion(article: Draft, user: Option[UserInfo], keepResponsible: Boolean = false)(implicit
+    def storeArticleAsNewVersion(article: Draft, user: Option[UserInfo], keepDraftData: Boolean = false)(implicit
         session: DBSession
     ): Try[Draft] = {
       article.id match {
@@ -115,8 +115,8 @@ trait DraftRepository {
                 .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, clock.now()))
                 .toList,
               previousVersionsNotes = article.previousVersionsNotes ++ article.notes,
-              responsible = if (keepResponsible) article.responsible else None,
-              comments = Seq.empty
+              responsible = if (keepDraftData) article.responsible else None,
+              comments = if (keepDraftData) article.comments else Seq.empty
             )
 
             val dataObject = new PGobject()
