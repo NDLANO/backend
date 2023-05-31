@@ -117,7 +117,7 @@ trait ConverterService {
           responsible = responsible,
           slug = newArticle.slug,
           comments = newCommentToDomain(newArticle.comments),
-          prioritized = Some(false)
+          prioritized = false
         )
       )
     }
@@ -433,7 +433,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = article.comments.map(toApiComment),
-            prioritized = Some(article.prioritized.getOrElse(false))
+            prioritized = article.prioritized
           )
         )
       } else {
@@ -764,7 +764,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
             comments = updatedComments,
-            prioritized = Some(article.prioritized.getOrElse(false))
+            prioritized = article.prioritized
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -882,7 +882,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = comments,
-            prioritized = Some(article.prioritized.getOrElse(false))
+            prioritized = article.prioritized
           )
       }
     }

@@ -103,7 +103,7 @@ class ArticleApiClientTest
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    Some(false)
+    false
   )
 
   val exampleToken =

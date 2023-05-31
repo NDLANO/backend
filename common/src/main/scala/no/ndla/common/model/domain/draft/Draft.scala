@@ -60,7 +60,7 @@ case class Draft(
     responsible: Option[Responsible],
     slug: Option[String],
     comments: Seq[Comment],
-    prioritized: Option[Boolean]
+    prioritized: Boolean
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
