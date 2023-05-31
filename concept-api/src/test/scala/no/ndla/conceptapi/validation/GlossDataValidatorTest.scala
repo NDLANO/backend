@@ -12,8 +12,9 @@ import no.ndla.conceptapi.model.domain.{ConceptType, GlossExample, GlossData, Wo
 
 class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
   test("that GlossDataValidator fails if ConceptType is concept and glossData is defined") {
-    val glossExample = GlossExample(example = "hei hei", language = "nb")
+    val glossExample = GlossExample(example = "hei hei", language = "nb", transcriptions = Map("a" -> "b"))
     val glossData = GlossData(
+      gloss = "hi",
       wordClass = WordClass.NOUN,
       originalLanguage = "nb",
       examples = List(List(glossExample)),
@@ -44,8 +45,9 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("that GlossDataValidator gives no errors when ConceptType is gloss and glossData is defined") {
-    val glossExample = GlossExample(example = "hei hei", language = "nb")
+    val glossExample = GlossExample(example = "hei hei", language = "nb", transcriptions = Map("a" -> "b"))
     val glossData = GlossData(
+      gloss = "y",
       wordClass = WordClass.NOUN,
       originalLanguage = "nb",
       examples = List(List(glossExample)),

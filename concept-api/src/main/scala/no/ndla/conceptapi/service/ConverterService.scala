@@ -93,9 +93,11 @@ trait ConverterService {
     def toApiGlossData(domainGlossData: Option[domain.GlossData], titles: Seq[Title]): Option[api.GlossData] = {
       domainGlossData.map(glossData =>
         api.GlossData(
+          gloss = glossData.gloss,
           wordClass = glossData.wordClass.toString,
-          examples =
-            glossData.examples.map(ge => ge.map(g => api.GlossExample(example = g.example, language = g.language))),
+          examples = glossData.examples.map(ge =>
+            ge.map(g => api.GlossExample(example = g.example, language = g.language, transcriptions = g.transcriptions))
+          ),
           originalLanguage = glossData.originalLanguage,
           transcriptions = glossData.transcriptions ++ titles
             .filter(t => t.language != glossData.originalLanguage)
@@ -167,9 +169,12 @@ trait ConverterService {
             case Success(wordClass) =>
               Success(
                 domain.GlossData(
+                  gloss = glossData.gloss,
                   wordClass = wordClass,
                   examples = glossData.examples.map(gl =>
-                    gl.map(g => domain.GlossExample(language = g.language, example = g.example))
+                    gl.map(g =>
+                      domain.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions)
+                    )
                   ),
                   originalLanguage = glossData.originalLanguage,
                   transcriptions = glossData.transcriptions
@@ -318,8 +323,10 @@ trait ConverterService {
       // format: off
       val glossData = concept.glossData.map(gloss =>
         domain.GlossData(
+          gloss = gloss.gloss,
           wordClass = WordClass.valueOf(gloss.wordClass).getOrElse(WordClass.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
-          examples = gloss.examples.map(ge => ge.map(g => domain.GlossExample(language = g.language, example = g.example))),
+          examples = gloss.examples.map(ge =>
+            ge.map(g => domain.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions))),
           originalLanguage = gloss.originalLanguage,
           transcriptions = gloss.transcriptions
         )

@@ -64,8 +64,9 @@ object WordClass extends Enumeration {
   }
 }
 
-case class GlossExample(example: String, language: String)
+case class GlossExample(example: String, language: String, transcriptions: Map[String, String])
 case class GlossData(
+    gloss: String,
     wordClass: WordClass.Value,
     originalLanguage: String,
     transcriptions: Map[String, String],

@@ -198,7 +198,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       articleIds = Seq.empty,
       status = Status(ConceptStatus.PUBLISHED, Set.empty),
       visualElement = Seq.empty,
-      responsible = None
+      responsible = None,
+      conceptType = ConceptType.CONCEPT,
+      glossData = None
     )
     val status                            = domain.Status(ConceptStatus.PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = ConceptStatus.PUBLISHED -> ConceptStatus.IN_PROGRESS
