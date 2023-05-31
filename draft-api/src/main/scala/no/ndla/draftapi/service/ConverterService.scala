@@ -764,7 +764,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug.orElse(toMergeInto.slug),
             comments = updatedComments,
-            prioritized = article.prioritized
+            prioritized = article.prioritized.getOrElse(toMergeInto.prioritized)
           )
 
           val articleWithNewContent = article.copy(content = newContent)
@@ -882,7 +882,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = comments,
-            prioritized = article.prioritized
+            prioritized = article.prioritized.getOrElse(false)
           )
       }
     }
