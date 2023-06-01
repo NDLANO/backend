@@ -297,7 +297,8 @@
         "data-subtitle"
      ],
       "optional": [
-        ["data-columns"]
+        ["data-columns"],
+        ["data-border"]
       ]
     }
   }
