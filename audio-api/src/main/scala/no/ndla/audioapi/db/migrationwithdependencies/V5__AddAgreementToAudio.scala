@@ -22,14 +22,11 @@ class V5__AddAgreementToAudio(props: AudioApiProperties) extends BaseJavaMigrati
   implicit val formats = org.json4s.DefaultFormats
   import props._
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allAudios.map(t => updateAuthorFormat(t._1, t._2, t._3)).foreach(update)
     }
-  }
 
   def allAudios(implicit session: DBSession): List[(Long, Int, String)] = {
     sql"select id, revision, document from audiodata"

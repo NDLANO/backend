@@ -25,7 +25,6 @@ trait AudioStorageService {
     def storeAudio(
         audioStream: InputStream,
         contentType: String,
-        size: Long,
         destinationPath: String
     ): Try[ObjectMetadata] = {
       val metadata = new ObjectMetadata()

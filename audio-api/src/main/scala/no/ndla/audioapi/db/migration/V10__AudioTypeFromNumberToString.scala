@@ -22,16 +22,13 @@ class V10__AudioTypeFromNumberToString extends BaseJavaMigration {
     val Podcast: this.Value  = Value("podcast")
   }
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allAudios.map { case (id: Long, document: String) =>
         update(convertDocument(document), id)
       }
-    }
-  }
+    }: Unit
 
   def allAudios(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from audiodata"

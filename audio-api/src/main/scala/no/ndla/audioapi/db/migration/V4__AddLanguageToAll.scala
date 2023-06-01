@@ -18,14 +18,12 @@ import scalikejdbc.{DB, DBSession, _}
 class V4__AddLanguageToAll extends BaseJavaMigration {
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      allAudios.map(convertAudioUpdate).foreach(update)
-    }
-  }
+  override def migrate(context: Context): Unit =
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        allAudios.map(convertAudioUpdate).foreach(update)
+      }
 
   def convertAudioUpdate(audioMeta: V4_AudioMetaInformation): V4_AudioMetaInformation = {
     audioMeta.copy(

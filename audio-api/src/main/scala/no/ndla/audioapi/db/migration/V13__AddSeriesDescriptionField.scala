@@ -16,16 +16,13 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V13__AddSeriesDescriptionField extends BaseJavaMigration {
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allSeries.map { case (id: Long, document: String) =>
         update(convertDocument(document), id)
       }
-    }
-  }
+    }: Unit
 
   def allSeries(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from seriesdata"

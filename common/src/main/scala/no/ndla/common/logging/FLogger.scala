@@ -10,7 +10,7 @@ package no.ndla.common.logging
 import com.typesafe.scalalogging.Logger
 import org.slf4j.MDC
 
-class FLogger(underlying: Logger) {
+case class FLogger(underlying: Logger) {
   private def withMDC[F[_]: LoggerContext, T](t: => T): F[T] =
     implicitly[LoggerContext[F]].map { info =>
       info.correlationId.foreach(cid => MDC.put(FLogger.correlationIdKey, cid))

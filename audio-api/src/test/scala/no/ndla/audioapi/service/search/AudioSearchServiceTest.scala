@@ -235,7 +235,7 @@ class AudioSearchServiceTest
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
 
     if (elasticSearchContainer.isSuccess) {
-      audioIndexService.createIndexWithName(SearchIndex).get
+      audioIndexService.createIndexAndAlias().get
       audioIndexService.indexDocument(audio1).get
       audioIndexService.indexDocument(audio2).get
       audioIndexService.indexDocument(audio3).get

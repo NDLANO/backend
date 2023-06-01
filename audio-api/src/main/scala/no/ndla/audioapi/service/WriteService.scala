@@ -222,14 +222,15 @@ trait WriteService {
             _             <- seriesToIndex.traverse(series => seriesIndexService.indexDocument(series))
             _             <- audioIndexService.indexDocument(audioMetaData)
             _             <- tagIndexService.indexDocument(audioMetaData)
-
-          } yield converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
+            converted     <- converterService.toApiAudioMetaInformation(audioMetaData, Some(newAudioMeta.language))
+          } yield converted
 
           if (audioMetaInformation.isFailure) {
-            deleteFile(audioFileMeta)
+            val deletion = deleteFile(audioFileMeta)
+            deletion.flatMap(_ => audioMetaInformation)
+          } else {
+            audioMetaInformation
           }
-
-          audioMetaInformation.flatten
       }
     }
 
@@ -308,26 +309,26 @@ trait WriteService {
               )
             )
 
-          savedAudio match {
-            case Success(None)                                => // No file, do nothing
-            case Success(Some(audio)) if (finished.isFailure) => deleteFile(audio)
-            case Success(Some(_)) => {
+          val deleteResult = savedAudio match {
+            case Success(None)                              => Success(()) // No file, do nothing
+            case Success(Some(audio)) if finished.isFailure => deleteFile(audio)
+            case Success(Some(_))                           =>
               // If old file in update language version is no longer in use, delete it
               val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
               oldAudio match {
-                case None =>
+                case None => Success(())
                 case Some(old) =>
                   if (
                     !existingMetadata.filePaths
                       .exists(audio => audio.language != old.language && audio.filePath == old.filePath)
                   ) {
                     deleteFile(old)
-                  }
+                  } else Success(())
               }
-            }
-            case Failure(exception) => Failure(exception)
+            case Failure(ex) => Failure(ex)
           }
-          finished
+
+          deleteResult.flatMap(_ => finished)
       }
     }
 
@@ -429,7 +430,7 @@ trait WriteService {
       val inputStream = new ByteArrayInputStream(file.body)
 
       audioStorage
-        .storeAudio(inputStream, contentType, file.body.length, fileName)
+        .storeAudio(inputStream, contentType, fileName)
         .map(objectMeta => Audio(fileName, objectMeta.getContentType, objectMeta.getContentLength, language))
     }
 

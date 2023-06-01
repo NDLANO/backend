@@ -60,51 +60,53 @@ trait InternController {
         .in(query[Option[Int]]("numShards"))
         .out(stringBody)
         .errorOut(internalErrorStringBody)
-        .serverLogicPure { numShards =>
-          (
-            audioIndexService.indexDocuments(numShards),
-            tagIndexService.indexDocuments(numShards),
-            seriesIndexService.indexDocuments(numShards)
-          ) match {
+        .serverLogic { numShards =>
+          val result = IO(
+            (audioIndexService.indexDocuments(numShards), tagIndexService.indexDocuments(numShards), seriesIndexService.indexDocuments(numShards))
+          )
+
+          result.flatMap {
             case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
               val result =
                 s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.
                    |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.
                    |Completed indexing of ${seriesReIndexResult.totalIndexed} documents in ${seriesReIndexResult.millisUsed} (series) ms.""".stripMargin
-              logger.info(result)
-              result.asRight
+              logger.info(result) >>
+                IO.pure(result.asRight)
             case (Failure(f), _, _) =>
-              logger.warn(f.getMessage, f)
-              f.getMessage.asLeft
+              logger.warn(f.getMessage, f) >>
+                IO.pure(f.getMessage.asLeft)
             case (_, Failure(f), _) =>
-              logger.warn(f.getMessage, f)
-              f.getMessage.asLeft
+              logger.warn(f.getMessage, f) >>
+                IO.pure(f.getMessage.asLeft)
             case (_, _, Failure(f)) =>
-              logger.warn(f.getMessage, f)
-              f.getMessage.asLeft
+              logger.warn(f.getMessage, f) >>
+                IO.pure(f.getMessage.asLeft)
           }
         },
       endpoint.delete
         .in("index")
         .errorOut(internalErrorStringBody)
         .out(stringBody)
-        .serverLogicPure { _ =>
+        .serverLogic { _ =>
           def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
           audioIndexService.findAllIndexes(props.SearchIndex) match {
-            case Failure(f) => f.getMessage.asLeft
+            case Failure(f) => IO.pure(f.getMessage.asLeft)
             case Success(indexes) =>
-              val deleteResults = indexes.map(index => {
-                logger.info(s"Deleting index $index")
-                audioIndexService.deleteIndexWithName(Option(index))
+              val deletes = indexes.traverse(index => {
+                logger.info(s"Deleting index $index") >>
+                  IO.pure(audioIndexService.deleteIndexWithName(Option(index)))
               })
-              val (errors, successes) = deleteResults.partition(_.isFailure)
-              if (errors.nonEmpty) {
-                val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
-                  s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
-                  s"${pluralIndex(successes.length)} were deleted successfully."
-                message.asLeft
-              } else {
-                s"Deleted ${pluralIndex(successes.length)}".asRight
+              deletes.map { deleteResults =>
+                val (errors, successes) = deleteResults.partition(_.isFailure)
+                if (errors.nonEmpty) {
+                  val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+                    s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+                    s"${pluralIndex(successes.length)} were deleted successfully."
+                  message.asLeft
+                } else {
+                  s"Deleted ${pluralIndex(successes.length)}".asRight
+                }
               }
           }
         },
