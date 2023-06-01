@@ -3,6 +3,9 @@ import sbt._
 import Dependencies.versions._
 import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
+import _root_.io.github.davidgregory084.TpolecatPlugin.autoImport.*
+import _root_.io.github.davidgregory084.ScalaVersion.*
+import _root_.io.github.davidgregory084.ScalacOption
 
 object commonlib extends Module {
   override val moduleName: String = "common"
@@ -23,8 +26,10 @@ object commonlib extends Module {
     scalatra,
     tapirHttp4sCirce
   )
+  val commonTestExcludeOptions = Set(ScalacOptions.warnUnusedPatVars)
   override lazy val settings: Seq[Def.Setting[_]] = Seq(
-    libraryDependencies ++= dependencies
+    libraryDependencies ++= dependencies,
+    tpolecatExcludeOptions ++= commonTestExcludeOptions ++ excludeOptions
   ) ++
     commonSettings
 

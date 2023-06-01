@@ -1,8 +1,8 @@
-import Dependencies.versions._
+import Dependencies.versions.*
 import com.earldouglas.xwp.JettyPlugin
 import com.scalatsi.plugin.ScalaTsiPlugin
-import sbt.Keys._
-import sbt._
+import sbt.Keys.*
+import sbt.*
 import sbtdocker.DockerPlugin
 
 object oembedproxy extends Module {
