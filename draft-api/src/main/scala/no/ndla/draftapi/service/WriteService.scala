@@ -319,12 +319,12 @@ trait WriteService {
         externalSubjectIds: Seq[String],
         isImported: Boolean,
         importId: Option[String],
-        shouldOnlyCopy: Boolean,
+        createNewVersion: Boolean,
         user: UserInfo,
         statusWasUpdated: Boolean
     ): Try[Draft] =
-      if (shouldOnlyCopy) {
-        draftRepository.storeArticleAsNewVersion(article, Some(user), keepResponsible = true)(AutoSession)
+      if (createNewVersion) {
+        draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)(AutoSession)
       } else {
         externalIds match {
           case Nil => updateArticleAndStoreAsNewIfPublished(article, isImported, statusWasUpdated)
@@ -387,7 +387,7 @@ trait WriteService {
         externalSubjectIds: Seq[String],
         language: Option[String],
         isImported: Boolean,
-        shouldAlwaysCopy: Boolean,
+        createNewVersion: Boolean,
         oldArticle: Option[Draft],
         user: UserInfo,
         statusWasUpdated: Boolean
@@ -413,7 +413,7 @@ trait WriteService {
           externalSubjectIds,
           isImported,
           importId,
-          shouldAlwaysCopy,
+          createNewVersion,
           user,
           statusWasUpdated
         )
@@ -618,7 +618,7 @@ trait WriteService {
           externalSubjectIds,
           language = updatedApiArticle.language,
           isImported = externalIds.nonEmpty,
-          shouldAlwaysCopy = updatedApiArticle.createNewVersion.getOrElse(false),
+          createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
           oldArticle = Some(existing),
           user = user,
           statusWasUpdated = didUpdateStatus
@@ -664,7 +664,7 @@ trait WriteService {
           externalSubjectIds = externalSubjectIds,
           language = updatedApiArticle.language,
           isImported = false,
-          shouldAlwaysCopy = updatedApiArticle.createNewVersion.getOrElse(false),
+          createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
           oldArticle = None,
           user = user,
           statusWasUpdated = false
