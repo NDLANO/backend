@@ -8,12 +8,7 @@
 package no.ndla.common.logging
 
 import com.typesafe.scalalogging.Logger
-import org.slf4j.{LoggerFactory, MDC}
-
-trait FLogging {
-  private val delegate          = Logger(LoggerFactory.getLogger(getClass.getName))
-  protected def logger: FLogger = new FLogger(delegate)
-}
+import org.slf4j.MDC
 
 class FLogger(underlying: Logger) {
   private def withMDC[F[_]: LoggerContext, T](t: => T): F[T] =
@@ -23,8 +18,6 @@ class FLogger(underlying: Logger) {
       finally MDC.remove(FLogger.correlationIdKey)
     }
 
-  // TODO: Is there a way to get a warning about unused return values from these?
-  //       Calling these to log something without handling the F would result in no logging happening
   def debug[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.debug(message))
   def debug[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.debug(message, cause))
   def debug[F[_]: LoggerContext](cause: Throwable)(message: String): F[Unit] = withMDC(underlying.debug(message, cause))
