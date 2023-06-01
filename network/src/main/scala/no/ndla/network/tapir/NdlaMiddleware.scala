@@ -47,7 +47,7 @@ trait NdlaMiddleware {
       val latency = System.currentTimeMillis() - beforeTime
 
       if (shouldLogRequest(req)) {
-        MDC.put("correlationID", requestInfo.correlationId.get)
+        MDC.put("correlationID", requestInfo.correlationId.get): Unit
         logger.info(
           afterRequestLogString(
             method = req.method.name,
@@ -65,7 +65,7 @@ trait NdlaMiddleware {
     def apply(req: Request[IO], responseIO: IO[Response[IO]]): IO[Response[IO]] = {
       val reqInfo = RequestInfo.fromRequest(req)
       val set     = RequestInfo.set(reqInfo)
-      MDC.put("correlationID", reqInfo.correlationId.get)
+      MDC.put("correlationID", reqInfo.correlationId.get): Unit
       val beforeTime = before(req)
 
       set >> responseIO.map(resp => after(beforeTime, req, reqInfo, resp))

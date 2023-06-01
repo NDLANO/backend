@@ -34,5 +34,5 @@ class BaseHealthController extends ScalatraServlet with Warmup {
 
   get("/") {
     Ok()
-  }
+  }: Unit
 }

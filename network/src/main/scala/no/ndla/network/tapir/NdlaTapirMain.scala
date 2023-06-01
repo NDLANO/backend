@@ -41,7 +41,7 @@ trait NdlaTapirMain extends IOApp {
 
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
-    }
+    }: Unit
   }
 
   override def run(args: List[String]): IO[ExitCode] = {

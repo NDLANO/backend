@@ -7,7 +7,6 @@
 package no.ndla.network.tapir
 
 import cats.effect.IO
-import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.configuration.HasBaseProps
 import org.http4s.HttpRoutes
@@ -33,7 +32,7 @@ trait Service {
     def getBinding: (String, HttpRoutes[IO])
   }
 
-  trait SwaggerService extends Service with StrictLogging {
+  trait SwaggerService extends Service {
     val enableSwagger: Boolean = true
     protected val prefix: EndpointInput[Unit]
     protected val endpoints: List[ServerEndpoint[Any, IO]]
