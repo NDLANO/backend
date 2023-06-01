@@ -30,7 +30,7 @@ abstract class UnitTestSuite
   def setPropEnv(key: String, value: String): String = setProp(key, value)
 
   def setPropEnv(map: Map[String, String]): Unit = {
-    map.map { case (key, value) => setPropEnv(key, value) }
+    map.foreach { case (key, value) => setPropEnv(key, value) }
   }
 
   def setPropEnv(keyValueTuples: (String, String)*): Unit = setPropEnv(keyValueTuples.toMap)

@@ -33,7 +33,7 @@ abstract class IntegrationSuite(
     if (skipContainerSpawn) {
       val esMock = mock[ElasticsearchContainer]
       val found  = env.get("SEARCH_SERVER").map(x => x.stripPrefix("http://"))
-      when(esMock.getHttpHostAddress).thenReturn(found.getOrElse("localhost:9200"))
+      when(esMock.getHttpHostAddress).thenReturn(found.getOrElse("localhost:9200")): Unit
       Success(esMock)
     } else {
       val imageFromEnv = env.get("SEARCH_ENGINE_IMAGE")
@@ -74,10 +74,10 @@ abstract class IntegrationSuite(
 
     if (skipContainerSpawn) {
       val x = mock[PostgreSQLContainer[Nothing]]
-      when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword))
-      when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername))
-      when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName))
-      when(x.getMappedPort(any)).thenReturn(env.getOrElse("META_PORT", "5432").toInt)
+      when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
+      when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
+      when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
+      when(x.getMappedPort(any)).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
       Success(x)
     } else {
       val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
@@ -135,7 +135,7 @@ abstract class IntegrationSuite(
       PropertyKeys.MetaSchemaKey
     )
 
-    postgresContainer.map(container => {
+    postgresContainer.foreach(container => {
       setPropEnv(
         PropertyKeys.MetaUserNameKey -> container.getUsername,
         PropertyKeys.MetaPasswordKey -> container.getPassword,
@@ -150,8 +150,8 @@ abstract class IntegrationSuite(
   override def beforeAll(): Unit = setDatabaseEnvironment()
   override def afterAll(): Unit = {
     setPropEnv(previousDatabaseEnv)
-    elasticSearchContainer.map(c => c.stop())
-    postgresContainer.map(c => c.stop())
-    redisContainer.map(c => c.genericContainer.stop())
+    elasticSearchContainer.foreach(c => c.stop())
+    postgresContainer.foreach(c => c.stop())
+    redisContainer.foreach(c => c.genericContainer.stop())
   }
 }
