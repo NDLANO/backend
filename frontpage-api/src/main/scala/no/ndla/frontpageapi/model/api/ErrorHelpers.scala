@@ -9,11 +9,10 @@ package no.ndla.frontpageapi.model.api
 
 import cats.effect.IO
 import no.ndla.common.Clock
-import no.ndla.common.logging.FLogging
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, NotFoundException, ValidationException}
+import no.ndla.network.logging.FLogging
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
-import no.ndla.network.model.RequestInfo.ioLoggerContext
 
 trait ErrorHelpers extends TapirErrorHelpers with FLogging {
   this: Props with Clock =>

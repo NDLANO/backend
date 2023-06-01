@@ -2,7 +2,6 @@ package no.ndla.common
 
 import scala.util.{Failure, Success, Try}
 import scala.reflect.macros.blackbox
-import scala.language.experimental.macros
 
 package object implicits {
 
@@ -28,13 +27,13 @@ package object implicits {
   def tryQuestionMarkOperator(c: blackbox.Context): c.Tree = {
     import c.universe._
     c.prefix.tree match {
-      case q"$_[$tp]($self)" =>
+      case q"""$_[$_]($self)""" =>
         q"""
-           import scala.util.{Failure, Success, Try}
-           $self match {
-             case Success(value) => value
-             case Failure(ex)    => return Failure(ex)
-           }
+            import scala.util.{Failure, Success, Try}
+            $self match {
+              case Success(value) => value
+              case Failure(ex)    => return Failure(ex)
+            }
            """
       case _ => c.abort(c.enclosingPosition, "This is a bug with the tryQuestionMarkOperator macro")
     }
@@ -47,8 +46,9 @@ package object implicits {
 
   def optionQuestionMarkOperator(c: blackbox.Context): c.Tree = {
     import c.universe._
+
     c.prefix.tree match {
-      case q"$_[$tp]($self)" =>
+      case q"$_[$_]($self)" =>
         q"""
            $self match {
              case Some(value) => value

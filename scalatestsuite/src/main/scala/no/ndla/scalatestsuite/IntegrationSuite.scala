@@ -77,16 +77,16 @@ abstract class IntegrationSuite(
       when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
       when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
       when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
-      when(x.getMappedPort(any)).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
+      when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
       Success(x)
     } else {
       val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
         this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
       }
-      c.withDatabaseName(defaultResource)
-      c.withUsername(defaultUsername)
-      c.withPassword(defaultPassword)
-      c.start()
+      c.withDatabaseName(defaultResource): Unit
+      c.withUsername(defaultUsername): Unit
+      c.withPassword(defaultPassword): Unit
+      c.start(): Unit
       Success(c)
     }
   } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }

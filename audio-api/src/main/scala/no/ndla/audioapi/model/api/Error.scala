@@ -11,10 +11,9 @@ package no.ndla.audioapi.model.api
 import cats.effect.IO
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.DataSource
-import no.ndla.network.model.RequestInfo.ioLoggerContext
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.logging.FLogging
+import no.ndla.network.logging.FLogging
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHelpers}
 import no.ndla.search.NdlaSearchException
