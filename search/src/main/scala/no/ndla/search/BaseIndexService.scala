@@ -83,7 +83,7 @@ trait BaseIndexService {
     def deleteDocument(contentId: Long): Try[Long] = {
       for {
         _ <- createIndexIfNotExists()
-        deleted <- {
+        _ <- {
           e4sClient.execute {
             deleteById(searchIndex, s"$contentId")
           }
@@ -123,12 +123,10 @@ trait BaseIndexService {
     }
 
     def createIndexAndAlias(): Try[String] = createIndexAndAlias(None)
-    def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = {
-      createIndexWithGeneratedName(numberOfShards).map(newIndex => {
-        updateAliasTarget(None, newIndex)
-        newIndex
-      })
-    }
+    def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = for {
+      newIndex <- createIndexWithGeneratedName(numberOfShards)
+      _        <- updateAliasTarget(None, newIndex)
+    } yield newIndex
 
     def getAliasTarget: Try[Option[String]] = {
       val response = e4sClient.execute {
