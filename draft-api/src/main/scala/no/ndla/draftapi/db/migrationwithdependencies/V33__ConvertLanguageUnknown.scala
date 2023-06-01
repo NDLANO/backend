@@ -65,10 +65,26 @@ class V33__ConvertLanguageUnknown(properties: DraftApiProperties) extends BaseJa
     sql"update articledata set document = $dataObject where id = $id"
       .update()
   }
+  case class V33_Title(title: String, language: String)
+  case class V33_Content(content: String, language: String)
+  case class V33_VisualElement(resource: String, language: String)
+  case class V33_Introduction(introduction: String, language: String)
+  case class V33_Description(content: String, language: String)
+  case class V33_MetaImage(imageId: String, altText: String, language: String)
+  case class V33_Tag(tags: Seq[String], language: String)
+  case class V33_Draft(
+      title: Seq[V33_Title],
+      content: Seq[V33_Content],
+      visualElement: Seq[V33_VisualElement],
+      introduction: Seq[V33_Introduction],
+      metaDescription: Seq[V33_Description],
+      metaImage: Seq[V33_MetaImage],
+      tags: Seq[V33_Tag]
+  )
 
   private[migrationwithdependencies] def convertArticleUpdate(document: String): String = {
     val oldArticle       = parse(document)
-    val extractedArticle = oldArticle.extract[Draft]
+    val extractedArticle = oldArticle.extract[V33_Draft]
     val title = extractedArticle.title.map(t => {
       if (t.language == "unknown")
         t.copy(language = "und")
