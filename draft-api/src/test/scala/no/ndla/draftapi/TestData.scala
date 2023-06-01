@@ -402,7 +402,7 @@ object TestData {
     None,
     None,
     List.empty,
-    false
+    None
   )
 
   val sampleArticleWithByNcSa: Draft =
