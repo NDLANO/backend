@@ -16,14 +16,11 @@ import scalikejdbc.{DB, DBSession, _}
 class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
   implicit val formats = DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -33,7 +30,7 @@ class V34__RemoveStudentFromAvailability extends BaseJavaMigration {
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }

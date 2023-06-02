@@ -153,7 +153,7 @@ trait ReadService {
           embedTag.attr(
             s"${TagAttributes.DataUrl}",
             baseUrl.addPathParts(pathParts).toString
-          )
+          ): Unit
         case _ =>
       }
     }
@@ -185,7 +185,7 @@ trait ReadService {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
         case Success(user) => user.availabilities
         case Failure(ex) =>
-          logger.warn("Something went wrong when fetching feideuser, assuming non-user")
+          logger.warn(s"Something went wrong when fetching feideuser, assuming non-user: ${ex.getMessage}")
           Seq.empty
       }
 
@@ -250,8 +250,8 @@ trait ReadService {
         articleIds: List[Long],
         language: String,
         fallback: Boolean,
-        page: Long,
-        pageSize: Long,
+        page: Int,
+        pageSize: Int,
         feideAccessToken: Option[String] = None
     ): Try[Seq[api.ArticleV2]] = {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))

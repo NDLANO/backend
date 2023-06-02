@@ -17,14 +17,11 @@ import scalikejdbc.{DB, DBSession, _}
 import java.time.{LocalDateTime, Month}
 
 class V36__Add2030Revision extends BaseJavaMigration {
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -34,7 +31,7 @@ class V36__Add2030Revision extends BaseJavaMigration {
     while (numPagesLeft > 0) {
       allArticles(offset * 1000).map { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }

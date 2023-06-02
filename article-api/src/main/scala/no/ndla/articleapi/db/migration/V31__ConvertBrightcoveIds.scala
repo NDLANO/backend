@@ -117,14 +117,11 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
 
   val Brightcove = new BrightcoveApiClient
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
-    }
-  }
+    }: Unit
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -139,7 +136,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
       allArticles(offset * 1000).map { case (id, document) =>
         // Convert each article in separate thread
         futures += Future { convertArticleUpdate(document, id) }
-      }
+      }: Unit
       numPagesLeft -= 1
       offset += 1
 
@@ -149,7 +146,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
 
       allThemArticles.map { case (newDocument, articleId) =>
         updateArticle(newDocument, articleId)(session)
-      }
+      }: Unit
     }
   }
 
@@ -198,7 +195,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration {
             Brightcove.fetchBrightcoveVideo(brightcoveId) match {
               case Success(brightcoveObj) =>
                 println(s"Updated article id: $id with brightcoveId: ${brightcoveObj.id}")
-                embed.attr("data-videoid", brightcoveObj.id)
+                embed.attr("data-videoid", brightcoveObj.id): Unit
               case Failure(exception) =>
                 println(s"Article with id $id failed to update BrightcoveId. ${exception.getMessage}")
             }

@@ -8,18 +8,9 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.db.migrationwithdependencies.{
-  R__SetArticleLanguageFromTaxonomy,
-  R__SetArticleTypeFromTaxonomy,
-  V20__UpdateH5PDomainForFF,
-  V22__UpdateH5PDomainForFFVisualElement,
-  V33__ConvertLanguageUnknown,
-  V8__CopyrightFormatUpdated,
-  V9__TranslateUntranslatedAuthors
-}
+import no.ndla.articleapi.db.migrationwithdependencies._
 import no.ndla.articleapi.integration.DataSource
 import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.output.MigrateResult
 
 trait DBMigrator {
   this: Props with DataSource =>
@@ -27,7 +18,7 @@ trait DBMigrator {
 
   class DBMigrator {
 
-    def migrate(): MigrateResult = {
+    def migrate(): Unit = {
       val flyway = Flyway
         .configure()
         .javaMigrations(
@@ -47,7 +38,7 @@ trait DBMigrator {
         // https://github.com/flyway/flyway/issues/2182
         .schemas(dataSource.getSchema)
         .load()
-      flyway.migrate()
+      flyway.migrate(): Unit
     }
   }
 

@@ -22,15 +22,12 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   implicit val formats: Formats =
     org.json4s.DefaultFormats + FieldSerializer[V6_Article](ignore("id") orElse ignore("revision"))
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
       migrateConcepts
     }
-  }
 
   //
   // Articles

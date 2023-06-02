@@ -100,14 +100,11 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     }
   }
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
 
@@ -116,18 +113,18 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     )
     val convertedTopicArticles = topicIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
-    for {
+    (for {
       convertedArticle <- convertedTopicArticles
       article          <- convertedArticle
-    } yield updateArticle(article)
+    } yield updateArticle(article)): Unit
 
     val resourceIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy("/subjects/urn:subject:15/resources")
     val convertedResourceArticles = resourceIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
-    for {
+    (for {
       convertedArticle <- convertedResourceArticles
       article          <- convertedArticle
-    } yield updateArticle(article)
+    } yield updateArticle(article)): Unit
 
   }
 
@@ -195,7 +192,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def updateArticle(article: Article)(implicit session: DBSession): Long = {
+  def updateArticle(article: Article)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))

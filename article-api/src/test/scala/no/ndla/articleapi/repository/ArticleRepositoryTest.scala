@@ -64,9 +64,9 @@ class ArticleRepositoryTest
     assume(databaseIsAvailable, "Database is unavailable")
     val externalIdsAndRegularIds = (100 to 150).map(_.toString).zipWithIndex
     externalIdsAndRegularIds.foreach { case (exId, id) =>
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id)), List(exId))
+      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong)), List(exId))
     }
-    val expected = externalIdsAndRegularIds.map { case (exId, id) => ArticleIds(id, List(exId)) }.toList
+    val expected = externalIdsAndRegularIds.map { case (exId, id) => ArticleIds(id.toLong, List(exId)) }.toList
     repository.getAllIds should equal(expected)
   }
 
@@ -253,7 +253,7 @@ class ArticleRepositoryTest
 
   test("Dumping articles should ignore unpublished ones") {
     assume(databaseIsAvailable, "Database is unavailable")
-    val articleId = 110
+    val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
 
     repository.updateArticleFromDraftApi(article.copy(revision = 1.some), List.empty).get
@@ -271,7 +271,7 @@ class ArticleRepositoryTest
 
   test("That fetching with slugs works as expected with revisions") {
     assume(databaseIsAvailable, "Database is unavailable")
-    val articleId = 110
+    val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId), slug = Some("Detti-er-ein-slug"))
 
     val article1 = article.copy(revision = 1.some)

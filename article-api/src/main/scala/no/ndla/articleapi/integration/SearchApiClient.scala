@@ -87,7 +87,7 @@ trait SearchApiClient {
         quickRequest
           .delete(uri"$InternalEndpoint/article/$id")
           .readTimeout(indexTimeout)
-      )
+      ): Unit
 
       id
     }

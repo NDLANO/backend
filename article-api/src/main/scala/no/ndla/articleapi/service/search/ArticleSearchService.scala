@@ -147,7 +147,7 @@ trait ArticleSearchService {
                 Some(settings.page),
                 numResults,
                 settings.language,
-                getHits(response.result, settings.language, settings.fallback),
+                getHits(response.result, settings.language),
                 response.result.scrollId
               )
             )

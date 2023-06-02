@@ -24,7 +24,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service                  = new WriteService()
 
-  val articleId = 13
+  val articleId = 13L
 
   val article: Article =
     TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
@@ -77,7 +77,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That unpublisArticle removes article from indexes") {
     reset(articleIndexService, searchApiClient)
-    val articleIdToUnpublish = 11
+    val articleIdToUnpublish = 11L
 
     when(articleRepository.unpublishMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
@@ -91,7 +91,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That deleteArticle removes article from indexes") {
     reset(articleIndexService, searchApiClient)
-    val articleIdToUnpublish = 11
+    val articleIdToUnpublish = 11L
 
     when(articleRepository.deleteMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))

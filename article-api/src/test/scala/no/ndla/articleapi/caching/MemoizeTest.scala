@@ -37,7 +37,7 @@ class MemoizeTest extends UnitSuite {
   }
 
   test("That the cache is invalidated after cacheMaxAge") {
-    val cacheMaxAgeInMs = 20
+    val cacheMaxAgeInMs = 20L
     val targetMock      = mock[Target]
     val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false)
 

@@ -435,7 +435,7 @@ trait ConverterService {
 
     def toApiArticleTags(
         tags: Seq[String],
-        tagsCount: Int,
+        tagsCount: Long,
         pageSize: Int,
         offset: Int,
         language: String

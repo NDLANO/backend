@@ -23,14 +23,11 @@ class V8__CopyrightFormatUpdated(props: ArticleApiProperties) extends BaseJavaMi
 
   implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   //
   // Articles

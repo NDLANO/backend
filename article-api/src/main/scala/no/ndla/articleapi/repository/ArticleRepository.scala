@@ -138,7 +138,7 @@ trait ArticleRepository {
       )
     }
 
-    def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(implicit
+    def withIds(articleIds: List[Long], offset: Int, pageSize: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[ArticleRow] = {
       val ar  = Article.syntax("ar")
@@ -254,7 +254,7 @@ trait ArticleRepository {
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
         session: DBSession = AutoSession
-    ): (Seq[String], Int) = {
+    ): (Seq[String], Long) = {
       val sanitizedInput    = input.replaceAll("%", "")
       val sanitizedLanguage = language.replaceAll("%", "")
       val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
@@ -283,7 +283,7 @@ trait ArticleRepository {
           .single()
           .getOrElse(0)
 
-      (tags, tagsCount)
+      (tags, tagsCount.toLong)
 
     }
 

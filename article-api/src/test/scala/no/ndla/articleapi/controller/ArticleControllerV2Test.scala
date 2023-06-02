@@ -48,7 +48,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val updateTitleJson = """{"revision": 1, "title": "hehe", "language": "nb", "content": "content"}"""
   val invalidArticle  = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
   val lang            = "nb"
-  val articleId       = 1
+  val articleId       = 1L
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
     when(readService.withIdV2(articleId, lang, fallback = false, None, None))
@@ -69,7 +69,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("/<article_id> should return 200 if parameter is correctly formated (urn:article:<id>#<revision>") {
-    val articleId2             = 23
+    val articleId2             = 23L
     val revision               = 5
     val articleUrnWithRevision = s"urn:article:$articleId2#$revision"
 
@@ -134,7 +134,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Some(scrollId)
     )
 
-    when(articleSearchService.scroll(anyString, anyString, anyBoolean)).thenReturn(Success(searchResponse))
+    when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
     get(s"/test?search-context=$scrollId") {
       status should be(200)
@@ -142,7 +142,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
     verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any, any)
-    verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
+    verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 
   test("That scrolling with POST uses scroll and not searches normally") {
@@ -158,14 +158,14 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Some(scrollId)
     )
 
-    when(articleSearchService.scroll(anyString, anyString, anyBoolean)).thenReturn(Success(searchResponse))
+    when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
     post(s"/test/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
-    verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
+    verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String])
   }
 
   test("tags should return 200 OK if the result was not empty") {
@@ -207,7 +207,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
         shouldScroll = eqTo(true),
         feideAccessToken = any
       )
-      verify(articleSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+      verify(articleSearchService, times(0)).scroll(any[String], any[String])
     }
   }
 
