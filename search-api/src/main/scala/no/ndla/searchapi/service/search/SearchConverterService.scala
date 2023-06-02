@@ -527,7 +527,8 @@ trait SearchConverterService {
         license = Some(searchableArticle.license),
         revisions = Seq.empty,
         responsible = None,
-        comments = None
+        comments = None,
+        prioritized = Some(false)
       )
     }
 
@@ -582,7 +583,8 @@ trait SearchConverterService {
         license = searchableDraft.license,
         revisions = revisions,
         responsible = responsible,
-        comments = Some(comments)
+        comments = Some(comments),
+        prioritized = Some(false)
       )
     }
 
@@ -632,7 +634,8 @@ trait SearchConverterService {
         license = Some(searchableLearningPath.license),
         revisions = Seq.empty,
         responsible = None,
-        comments = None
+        comments = None,
+        prioritized = Some(false)
       )
     }
 
