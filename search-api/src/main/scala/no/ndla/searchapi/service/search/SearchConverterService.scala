@@ -405,7 +405,8 @@ trait SearchConverterService {
           revisionMeta = draft.revisionMeta.toList,
           nextRevision = nextRevision,
           responsible = draft.responsible,
-          domainObject = draft
+          domainObject = draft,
+          prioritized = Some(draft.prioritized)
         )
       )
 
@@ -528,7 +529,7 @@ trait SearchConverterService {
         revisions = Seq.empty,
         responsible = None,
         comments = None,
-        prioritized = Some(false)
+        prioritized = None
       )
     }
 
@@ -584,7 +585,7 @@ trait SearchConverterService {
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
-        prioritized = Some(false)
+        prioritized = searchableDraft.prioritized
       )
     }
 
