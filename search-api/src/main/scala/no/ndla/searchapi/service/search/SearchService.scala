@@ -7,25 +7,25 @@
 
 package no.ndla.searchapi.service.search
 
+import cats.data.NonEmptySeq
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.fields.{ElasticField, NestedField, ObjectField, TextField}
 import com.sksamuel.elastic4s.handlers.searches.suggestion.{DirectGenerator, PhraseSuggestion}
 import com.sksamuel.elastic4s.requests.searches.aggs.Aggregation
-import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
+import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, SimpleStringQuery}
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
+import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{MultiSearchSuggestion, MultiSearchSummary, SearchSuggestion, SuggestOption}
 import no.ndla.searchapi.model.domain._
-import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.search.SearchType
-import cats.implicits._
-import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 
 import java.lang.Math.max
 import scala.annotation.tailrec
@@ -178,13 +178,16 @@ trait SearchService {
     }
 
     protected[search] def buildTermsAggregation(paths: Seq[String]): Seq[Aggregation] = {
-      val rootFields = indexServices.flatMap(_.getMapping.properties)
-
-      val aggregationTrees        = paths.flatMap(p => buildAggregationTreeFromPath(p, rootFields).toSeq)
+      val indexRootFields: Seq[ElasticField] = indexServices.flatMap(_.getMapping.properties)
+      val aggregationTrees        = paths.flatMap(p => buildAggregationTreeFromPath(p, indexRootFields).toSeq)
       val initialFakeAggregations = aggregationTrees.flatMap(FakeAgg.seqAggsToSubAggs(_).toSeq)
+      val mergedFakeAggregations  = mergeAllFakeAggregations(initialFakeAggregations)
+      mergedFakeAggregations.map(_.convertToReal())
+    }
 
-      /** This fancy block basically merges all the [[FakeAgg]]'s that can be merged together */
-      val mergedFakeAggregations = initialFakeAggregations.foldLeft(Seq.empty[FakeAgg])((acc, fakeAgg) => {
+    /** This method merges all the [[FakeAgg]]'s that can be merged together */
+    private def mergeAllFakeAggregations(initialFakeAggregations: Seq[FakeAgg]): Seq[FakeAgg] =
+      initialFakeAggregations.foldLeft(Seq.empty[FakeAgg])((acc, fakeAgg) => {
         val (hasBeenMerged, merged) = acc.foldLeft((false, Seq.empty[FakeAgg]))((acc, toMerge) => {
           val (curHasBeenMerged, aggs) = acc
           fakeAgg.merge(toMerge) match {
@@ -195,9 +198,6 @@ trait SearchService {
         if (hasBeenMerged) merged else merged :+ fakeAgg
       })
 
-      mergedFakeAggregations.map(_.convertToReal())
-    }
-
     private def buildAggregationTreeFromPath(path: String, fieldsInIndex: Seq[ElasticField]): Option[Seq[FakeAgg]] = {
       @tailrec
       def _buildAggregationRecursive(
@@ -206,56 +206,46 @@ trait SearchService {
           fieldsInIndex: Seq[ElasticField],
           remainder: Seq[String],
           parentAgg: Seq[FakeAgg]
-      ): Option[(Seq[FakeAgg], Seq[String])] = {
-        if (parts.isEmpty) {
-          None
-        } else {
-          val matchingIndexFields = fieldsInIndex.filter(_.name == parts.mkString("."))
-          matchingIndexFields match {
-            case Nil =>
-              val (newPath, restOfPath) = parts.splitAt(math.max(parts.size - 1, 1))
-              if (newPath == parts) {
-                // The path is already as short as can be, and is not matching
-                logger.info(s"The path '$fullPath' couldn't be found in the index-mapping.")
-                None
-              } else {
-                _buildAggregationRecursive(newPath, fullPath, fieldsInIndex, restOfPath ++ remainder, parentAgg)
-              }
-            case fieldsFound =>
-              val fieldTypes    = fieldsFound.map(_.`type`).distinct
-              val pathSoFar     = parts.mkString(".")
-              val fullPathSoFar = fullPath.split("\\.").reverse.dropWhile(_ != parts.last).reverse.mkString(".")
+      ): Option[(Seq[FakeAgg], Seq[String])] = if (parts.isEmpty) { None }
+      else {
+        val matchingIndexFields: Seq[ElasticField] = fieldsInIndex.filter(_.name == parts.mkString("."))
+        NonEmptySeq.fromSeq(matchingIndexFields) match {
+          case None =>
+            val (newPath, restOfPath) = parts.splitAt(math.max(parts.size - 1, 1))
+            if (parts == newPath) { None }
+            else { _buildAggregationRecursive(newPath, fullPath, fieldsInIndex, restOfPath ++ remainder, parentAgg) }
+          case Some(fieldsFound) =>
+            val fieldTypes    = fieldsFound.map(_.`type`).distinct
+            val pathSoFar     = parts.mkString(".")
+            val fullPathSoFar = fullPath.split("\\.").reverse.dropWhile(_ != parts.last).reverse.mkString(".")
+            val newParent     = newParentAggregation(fullPath, parentAgg, fieldTypes.toList, pathSoFar, fullPathSoFar)
 
-              val newParent = fieldTypes match {
-                case singleType :: Nil if singleType == "nested" =>
-                  val n = FakeNestedAgg(pathSoFar, fullPathSoFar)
-                  parentAgg :+ n
-                case singleType :: Nil if singleType == "keyword" =>
-                  val n = FakeTermAgg(pathSoFar).field(fullPath)
-                  parentAgg :+ n
-                case _ => parentAgg
-              }
-
-              if (remainder.isEmpty) {
-                Some(newParent -> Seq.empty)
-              } else {
-                val subFields = fieldsFound.head match {
-                  case nestedField: NestedField => nestedField.properties
-                  case objectField: ObjectField => objectField.properties
-                  case textField: TextField     => textField.fields
-                  case _                        => Seq.empty
-                }
-
-                _buildAggregationRecursive(
-                  remainder,
-                  fullPath,
-                  subFields,
-                  Seq.empty,
-                  newParent
-                )
-              }
-          }
+            if (remainder.isEmpty) { Some(newParent -> Seq.empty) }
+            else { _buildAggregationRecursive(remainder, fullPath, subfieldsOf(fieldsFound), Seq.empty, newParent) }
         }
+      }
+
+      def newParentAggregation(
+          fullPath: String,
+          parentAgg: Seq[FakeAgg],
+          fieldTypes: Seq[String],
+          pathSoFar: String,
+          fullPathSoFar: String
+      ): Seq[FakeAgg] = fieldTypes match {
+        case singleType :: Nil if singleType == "nested" =>
+          val n = FakeNestedAgg(pathSoFar, fullPathSoFar)
+          parentAgg :+ n
+        case singleType :: Nil if singleType == "keyword" =>
+          val n = FakeTermAgg(pathSoFar).field(fullPath)
+          parentAgg :+ n
+        case _ => parentAgg
+      }
+
+      def subfieldsOf(fieldsFound: NonEmptySeq[ElasticField]): Seq[ElasticField] = fieldsFound.head match {
+        case nestedField: NestedField => nestedField.properties
+        case objectField: ObjectField => objectField.properties
+        case textField: TextField     => textField.fields
+        case _                        => Seq.empty
       }
 
       _buildAggregationRecursive(path.split("\\.").toSeq, path, fieldsInIndex, Seq.empty, Seq.empty).map(_._1)
