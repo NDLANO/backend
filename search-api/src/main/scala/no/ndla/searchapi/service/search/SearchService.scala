@@ -210,10 +210,17 @@ trait SearchService {
         if (parts.isEmpty) {
           None
         } else {
-          fieldsInIndex.filter(_.name == parts.mkString(".")) match {
+          val matchingIndexFields = fieldsInIndex.filter(_.name == parts.mkString("."))
+          matchingIndexFields match {
             case Nil =>
               val (newPath, restOfPath) = parts.splitAt(math.max(parts.size - 1, 1))
-              _buildAggregationRecursive(newPath, fullPath, fieldsInIndex, restOfPath ++ remainder, parentAgg)
+              if (newPath == parts) {
+                // The path is already as short as can be, and is not matching
+                logger.info(s"The path '$fullPath' couldn't be found in the index-mapping.")
+                None
+              } else {
+                _buildAggregationRecursive(newPath, fullPath, fieldsInIndex, restOfPath ++ remainder, parentAgg)
+              }
             case fieldsFound =>
               val fieldTypes    = fieldsFound.map(_.`type`).distinct
               val pathSoFar     = parts.mkString(".")
