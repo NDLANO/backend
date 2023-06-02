@@ -298,7 +298,8 @@
      ],
       "optional": [
         ["data-columns"],
-        ["data-border"]
+        ["data-border"],
+        ["data-background"]
       ]
     }
   }
