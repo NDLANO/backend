@@ -105,4 +105,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     res1 should be(Seq.empty)
   }
 
+  test("that passing in a path that doesn't exist doesn't run forever") {
+    val res1 = service.buildTermsAggregation(Seq("contexts.someFieldThatDoesntExist"))
+    res1 should be(Seq.empty)
+  }
+
 }
