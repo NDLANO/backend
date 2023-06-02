@@ -8,16 +8,14 @@
 
 package no.ndla.learningpathapi.service.search
 
-import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
-import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.common.model.domain.learningpath.{Copyright, EmbedType, EmbedUrl}
+import no.ndla.common.model.domain.{Author, Tag, Title}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
-import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.model.domain.{Description, _}
+import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
@@ -38,8 +36,7 @@ class SearchServiceTest
   override val searchConverterService: SearchConverterService =
     new SearchConverterService
   override val searchIndexService: SearchIndexService = new SearchIndexService {
-    override def buildCreateIndexRequest(indexName: String): CreateIndexRequest =
-      super.buildCreateIndexRequest(indexName).shards(1) // 1 shard for accurate scoring in tests
+    override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
   override val searchService: SearchService = new SearchService
 
@@ -172,12 +169,12 @@ class SearchServiceTest
         status = LearningPathStatus.UNLISTED
       )
 
-      searchIndexService.indexDocument(thePenguin)
-      searchIndexService.indexDocument(batman)
-      searchIndexService.indexDocument(theDuck)
-      searchIndexService.indexDocument(unrelated)
-      searchIndexService.indexDocument(englando)
-      searchIndexService.indexDocument(brumle)
+      searchIndexService.indexDocument(thePenguin).get
+      searchIndexService.indexDocument(batman).get
+      searchIndexService.indexDocument(theDuck).get
+      searchIndexService.indexDocument(unrelated).get
+      searchIndexService.indexDocument(englando).get
+      searchIndexService.indexDocument(brumle).get
 
       blockUntil(() => searchService.countDocuments() == 6)
     }

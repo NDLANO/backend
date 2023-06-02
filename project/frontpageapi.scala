@@ -13,12 +13,12 @@ object frontpageapi extends Module {
       scalaTsi,
       enumeratum,
       enumeratumCirce,
+      catsEffect,
       "org.flywaydb"   % "flyway-core"             % FlywayV,
       "org.mockito"   %% "mockito-scala"           % MockitoV   % "test",
       "org.mockito"   %% "mockito-scala-scalatest" % MockitoV   % "test",
       "org.scalatest" %% "scalatest"               % ScalaTestV % "test",
-      "javax.servlet"  % "javax.servlet-api"       % JavaxServletV,
-      "org.typelevel" %% "cats-effect"             % CatsEffectV
+      "javax.servlet"  % "javax.servlet-api"       % JavaxServletV
     ),
     database,
     vulnerabilityOverrides,

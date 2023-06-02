@@ -10,7 +10,6 @@ package no.ndla.searchapi.service.search
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.ArticleContent
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.taxonomy._

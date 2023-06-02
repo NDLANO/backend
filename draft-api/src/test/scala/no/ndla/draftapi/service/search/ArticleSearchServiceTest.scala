@@ -14,7 +14,6 @@ import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi._
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import java.time.LocalDateTime
@@ -217,19 +216,19 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.createIndexWithName(props.DraftSearchIndex)
+    articleIndexService.createIndexWithName(props.DraftSearchIndex).get
 
-    articleIndexService.indexDocument(article1)
-    articleIndexService.indexDocument(article2)
-    articleIndexService.indexDocument(article3)
-    articleIndexService.indexDocument(article4)
-    articleIndexService.indexDocument(article5)
-    articleIndexService.indexDocument(article6)
-    articleIndexService.indexDocument(article7)
-    articleIndexService.indexDocument(article8)
-    articleIndexService.indexDocument(article9)
-    articleIndexService.indexDocument(article10)
-    articleIndexService.indexDocument(article11)
+    articleIndexService.indexDocument(article1).get
+    articleIndexService.indexDocument(article2).get
+    articleIndexService.indexDocument(article3).get
+    articleIndexService.indexDocument(article4).get
+    articleIndexService.indexDocument(article5).get
+    articleIndexService.indexDocument(article6).get
+    articleIndexService.indexDocument(article7).get
+    articleIndexService.indexDocument(article8).get
+    articleIndexService.indexDocument(article9).get
+    articleIndexService.indexDocument(article10).get
+    articleIndexService.indexDocument(article11).get
 
     blockUntil(() => articleSearchService.countDocuments == 11)
   }

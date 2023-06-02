@@ -9,7 +9,6 @@ package no.ndla.draftapi.service.search
 
 import no.ndla.draftapi._
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 class GrepCodesIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {

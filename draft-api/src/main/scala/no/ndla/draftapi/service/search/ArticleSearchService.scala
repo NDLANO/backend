@@ -144,7 +144,7 @@ trait ArticleSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        articleIndexService.indexDocuments
+        articleIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

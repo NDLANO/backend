@@ -107,7 +107,7 @@ trait GrepCodesSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        grepCodesIndexService.indexDocuments
+        grepCodesIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

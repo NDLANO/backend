@@ -75,6 +75,19 @@ trait NdlaControllerBase {
       paramValue.toLong
     }
 
+    def int(paramName: String)(implicit request: HttpServletRequest): Try[Int] = {
+      val paramValue = params(paramName)
+      if (!isInteger(paramValue))
+        Failure(
+          ValidationException(
+            "Validation Error",
+            Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+          )
+        )
+
+      Try(paramValue.toInt)
+    }
+
     def extractDoubleOpt2(one: String, two: String)(implicit
         request: HttpServletRequest
     ): (Option[Double], Option[Double]) = {

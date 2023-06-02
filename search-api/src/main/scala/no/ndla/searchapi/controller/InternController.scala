@@ -7,6 +7,7 @@
 
 package no.ndla.searchapi.controller
 
+import cats.implicits.toTraverseOps
 import no.ndla.common.model.domain.Content
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
@@ -35,7 +36,7 @@ trait InternController {
   val internController: InternController
 
   class InternController extends NdlaController {
-    implicit val ec: ExecutionContextExecutorService =
+    implicit val ec: ExecutionContext =
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(props.SearchIndexes.size))
 
     private def resolveResultFutures(indexResults: List[Future[(String, Try[ReindexResult])]]): ActionResult = {
@@ -137,9 +138,10 @@ trait InternController {
 
     post("/index/draft") {
       val requestInfo = RequestInfo.fromThreadContext()
+      val numShards   = intOrNone("numShards")
       val draftIndex = Future {
         requestInfo.setRequestInfo()
-        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false))
+        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
       }
 
       resolveResultFutures(List(draftIndex))
@@ -148,8 +150,9 @@ trait InternController {
     post("/index/article") {
       val requestInfo = RequestInfo.fromThreadContext()
       val articleIndex = Future {
+        val numShards = intOrNone("numShards")
         requestInfo.setRequestInfo()
-        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true))
+        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(articleIndex))
@@ -157,16 +160,69 @@ trait InternController {
 
     post("/index/learningpath") {
       val requestInfo = RequestInfo.fromThreadContext()
+      val numShards   = intOrNone("numShards")
       val learningPathIndex = Future {
         requestInfo.setRequestInfo()
-        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true))
+        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(learningPathIndex))
     }
 
+    def inheritedFuture[T](f: => T)(implicit requestInfo: RequestInfo = RequestInfo.fromThreadContext()): Future[T] =
+      Future {
+        requestInfo.setRequestInfo()
+        f
+      }
+
+    post("/reindex/shards/:num_shards") {
+      val startTime = System.currentTimeMillis()
+      int("num_shards") match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(numShards) =>
+          logger.info("Cleaning up unreferenced indexes before reindexing...")
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+          learningPathIndexService.cleanupIndexes()
+
+          val articles      = articleIndexService.reindexWithShards(numShards)
+          val drafts        = draftIndexService.reindexWithShards(numShards)
+          val learningpaths = learningPathIndexService.reindexWithShards(numShards)
+          List(articles, drafts, learningpaths).sequence match {
+            case Success(_) =>
+              Ok(s"Reindexing with $numShards shards completed in ${System.currentTimeMillis() - startTime}ms")
+            case Failure(ex) =>
+              logger.error("Could not reindex with shards...", ex)
+              errorHandler(ex)
+          }
+      }
+    }
+
+    post("/reindex/replicas/:num_replicas") {
+      int("num_replicas") match {
+        case Failure(ex) => errorHandler(ex)
+        case Success(numReplicas) =>
+          logger.info("Cleaning up unreferenced indexes before updating replications setting...")
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+          learningPathIndexService.cleanupIndexes()
+
+          val articles      = articleIndexService.updateReplicaNumber(numReplicas)
+          val drafts        = draftIndexService.updateReplicaNumber(numReplicas)
+          val learningpaths = learningPathIndexService.updateReplicaNumber(numReplicas)
+          List(articles, drafts, learningpaths).sequence match {
+            case Success(_) =>
+              Ok(s"Updated replication setting for indexes to $numReplicas replicas. Populating may take some time.")
+            case Failure(ex) =>
+              logger.error("Could not update replication settings", ex)
+              errorHandler(ex)
+          }
+      }
+    }
+
     post("/index") {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
+      val numShards       = intOrNone("numShards")
       val bundles = for {
         taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
         taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
@@ -178,19 +234,24 @@ trait InternController {
       bundles match {
         case Failure(ex) => errorHandler(ex)
         case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
+          logger.info("Cleaning up unreferenced indexes before reindexing...")
+          learningPathIndexService.cleanupIndexes()
+          articleIndexService.cleanupIndexes()
+          draftIndexService.cleanupIndexes()
+
           val requestInfo = RequestInfo.fromThreadContext()
           val indexes = List(
             Future {
               requestInfo.setRequestInfo()
-              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
+              ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle))
+              ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
               requestInfo.setRequestInfo()
-              ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle))
+              ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards))
             }
           )
           if (runInBackground) {

@@ -44,11 +44,12 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = DefaultFormats ++ ImageMetaInformation.jsonEncoders
 
     post("/index") {
+      val numShards   = intOrNone("numShards")
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
       val indexResults = for {
-        imageIndex <- Future { imageIndexService.indexDocuments }
-        tagIndex   <- Future { tagIndexService.indexDocuments }
+        imageIndex <- Future { imageIndexService.indexDocuments(numShards) }
+        tagIndex   <- Future { tagIndexService.indexDocuments(numShards) }
       } yield (imageIndex, tagIndex)
 
       Await.result(indexResults, Duration(60, TimeUnit.MINUTES)) match {

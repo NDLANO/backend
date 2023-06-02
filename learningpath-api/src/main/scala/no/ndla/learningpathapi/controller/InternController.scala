@@ -65,7 +65,8 @@ trait InternController {
     }
 
     post("/index") {
-      searchIndexService.indexDocuments match {
+      val numShards = intOrNone("numShards")
+      searchIndexService.indexDocuments(numShards) match {
         case Success(reindexResult) =>
           val result =
             s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."

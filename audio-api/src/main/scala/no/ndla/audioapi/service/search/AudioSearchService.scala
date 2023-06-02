@@ -148,7 +148,7 @@ trait AudioSearchService {
 
     protected override def scheduleIndexDocuments(): Unit = {
       val f = Future {
-        audioIndexService.indexDocuments
+        audioIndexService.indexDocuments(None)
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

@@ -9,7 +9,6 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import no.ndla.search.model.SearchableLanguageFormats
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.search.SearchableArticle

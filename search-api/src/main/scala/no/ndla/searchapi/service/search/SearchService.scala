@@ -288,10 +288,7 @@ trait SearchService {
     ): Seq[TermAggregation] = {
       m.flatMap {
         case (key, map) =>
-          val newMap = Try(map.asInstanceOf[Map[String, Any]]).getOrElse {
-            logger.error("Map cast failed")
-            Map.empty[String, Any]
-          }
+          val newMap = Try(map.asInstanceOf[Map[String, Any]]).getOrElse(Map.empty[String, Any])
 
           if (
             newMap.contains("buckets") &&

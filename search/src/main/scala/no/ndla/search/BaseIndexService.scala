@@ -8,6 +8,7 @@
 
 package no.ndla.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.Indexes
 import com.sksamuel.elastic4s.analysis.Analysis
@@ -15,6 +16,8 @@ import com.sksamuel.elastic4s.requests.alias.AliasAction
 import com.sksamuel.elastic4s.requests.indexes.CreateIndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.search.SearchLanguage.NynorskLanguageAnalyzer
 
 import java.text.SimpleDateFormat
@@ -22,7 +25,7 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 
 trait BaseIndexService {
-  this: Elastic4sClient =>
+  this: Elastic4sClient with HasBaseProps =>
 
   trait BaseIndexService extends StrictLogging {
     val documentType: String
@@ -37,10 +40,8 @@ trait BaseIndexService {
 
     def getMapping: MappingDefinition
 
-    // Setting this to suppress the warning, since it will default to '1' in the new version.
-    // The value '5' was chosen since that is what was the default earlier (which worked fine).
-    // However there are probably more optimal values.
-    val indexShards: Int = 5
+    val indexShards: Int   = props.SEARCH_INDEX_SHARDS
+    val indexReplicas: Int = props.SEARCH_INDEX_REPLICAS
 
     def indexWithNameExists(indexName: String): Try[Boolean] = {
       val response = e4sClient.execute {
@@ -54,21 +55,22 @@ trait BaseIndexService {
       }
     }
 
-    protected def buildCreateIndexRequest(indexName: String): CreateIndexRequest = {
+    protected def buildCreateIndexRequest(indexName: String, numShards: Option[Int]): CreateIndexRequest = {
       createIndex(indexName)
-        .shards(indexShards)
+        .shards(numShards.getOrElse(indexShards))
         .mapping(getMapping)
         .indexSetting("max_result_window", MaxResultWindowOption)
-        .replicas(0)
+        .replicas(0) // Spawn with 0 replicas to make indexing faster
         .analysis(analysis)
     }
+    def createIndexWithName(indexName: String): Try[String] = createIndexWithName(indexName, None)
 
-    def createIndexWithName(indexName: String): Try[String] = {
+    def createIndexWithName(indexName: String, numShards: Option[Int]): Try[String] = {
       if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
         val response = e4sClient.execute {
-          buildCreateIndexRequest(indexName)
+          buildCreateIndexRequest(indexName, numShards)
         }
 
         response match {
@@ -89,15 +91,40 @@ trait BaseIndexService {
       } yield contentId
     }
 
-    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
+    def getNewIndexName() = s"${searchIndex}_$getTimestamp"
+
+    def createIndexWithGeneratedName(numShards: Option[Int]): Try[String] =
+      createIndexWithName(getNewIndexName(), numShards)
+
+    def createIndexWithGeneratedName: Try[String] =
+      createIndexWithName(getNewIndexName())
+
+    def reindexWithShards(numShards: Int): Try[_] = {
+      logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
+      val maybeAliasTarget = getAliasTarget.?
+      val currentIndex = maybeAliasTarget match {
+        case Some(target) => target
+        case None =>
+          logger.info(s"No existing $searchIndex index to reindex from")
+          return Success(())
+      }
+
+      for {
+        newIndex <- createIndexWithGeneratedName(numShards.some)
+        _ = logger.info(s"Created index $newIndex for internal reindexing")
+        _ <- e4sClient.execute(reindex(currentIndex, newIndex))
+        _ <- updateAliasTarget(currentIndex.some, newIndex)
+      } yield ()
+    }
 
     def createIndexIfNotExists(): Try[_] = getAliasTarget.flatMap {
       case Some(index) => Success(index)
-      case None        => createIndexAndAlias()
+      case None        => createIndexAndAlias(indexShards.some)
     }
 
-    def createIndexAndAlias(): Try[String] = {
-      createIndexWithGeneratedName.map(newIndex => {
+    def createIndexAndAlias(): Try[String] = createIndexAndAlias(None)
+    def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = {
+      createIndexWithGeneratedName(numberOfShards).map(newIndex => {
         updateAliasTarget(None, newIndex)
         newIndex
       })
@@ -115,9 +142,19 @@ trait BaseIndexService {
       }
     }
 
-    def updateReplicaNumber(indexName: String): Try[_] = {
-      e4sClient.execute {
-        updateSettings(Indexes(indexName), Map("number_of_replicas" -> "1"))
+    def updateReplicaNumber(overrideReplicaNumber: Int): Try[_] = getAliasTarget.flatMap {
+      case None => Success(())
+      case Some(indexName) =>
+        updateReplicaNumber(indexName, overrideReplicaNumber.some)
+    }
+
+    private def updateReplicaNumber(indexName: String, overrideReplicaNumber: Option[Int]): Try[_] = {
+      if (props.Environment == "local") {
+        logger.info("Skipping replica change in local environment, since the cluster only has one node.")
+        Success(())
+      } else {
+        val settingsMap = Map("number_of_replicas" -> overrideReplicaNumber.getOrElse(indexReplicas).toString)
+        e4sClient.execute(updateSettings(Indexes(indexName), settingsMap))
       }
     }
 
@@ -137,7 +174,7 @@ trait BaseIndexService {
             logger.info("Alias target updated successfully, deleting other indexes.")
             for {
               _ <- cleanupIndexes()
-              _ <- updateReplicaNumber(newIndexName)
+              _ <- updateReplicaNumber(newIndexName, overrideReplicaNumber = None)
             } yield ()
           case Failure(ex) =>
             logger.error("Could not update alias target.")

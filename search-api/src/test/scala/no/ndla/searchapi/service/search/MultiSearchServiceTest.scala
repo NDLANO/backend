@@ -11,7 +11,6 @@ import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language.AllLanguages
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import no.ndla.searchapi.TestData._
 import no.ndla.searchapi.model.api.MetaImage
 import no.ndla.searchapi.model.domain.learningpath.LearningPath

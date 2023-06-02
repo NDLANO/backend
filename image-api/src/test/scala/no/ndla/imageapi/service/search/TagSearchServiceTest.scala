@@ -11,7 +11,6 @@ import no.ndla.common.model.{domain => common}
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.IntegrationSuite
-import no.ndla.search.Elastic4sClientFactory
 import org.scalatest.Outcome
 
 import scala.util.Success
