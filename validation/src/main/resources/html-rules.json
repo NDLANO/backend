@@ -44,6 +44,9 @@
         ],
         [
           "data-border"
+        ],
+        [
+          "data-background"
         ]
       ]
     },
