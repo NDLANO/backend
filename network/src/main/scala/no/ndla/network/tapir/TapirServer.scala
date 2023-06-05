@@ -14,6 +14,7 @@ import org.http4s.jetty.server.JettyBuilder
 import org.log4s.{Logger, getLogger}
 
 import javax.servlet.DispatcherType
+import scala.concurrent.duration.Duration
 
 case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMelody: Boolean)(onReady: => Unit = {}) {
   val logger: Logger      = getLogger
@@ -39,6 +40,8 @@ case class TapirServer(name: String, serverPort: Int, app: HttpApp[IO], enableMe
     .mountHttpApp(app, "/")
     .bindHttp(serverPort, "0.0.0.0")
     .setupMelody(enableMelody)
+    .withIdleTimeout(Duration.Inf)
+    .withAsyncTimeout(Duration.Inf)
 
   val server: IO[Nothing] = builder.resource
     .use(server => {
