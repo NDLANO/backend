@@ -39,5 +39,6 @@ case class SearchableDraft(
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
     responsible: Option[Responsible],
-    domainObject: Draft
+    domainObject: Draft,
+    prioritized: Option[Boolean]
 )

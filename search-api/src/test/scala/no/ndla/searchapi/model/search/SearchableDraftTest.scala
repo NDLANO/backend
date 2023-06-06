@@ -121,7 +121,8 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
             )
           )
         )
-      )
+      ),
+      prioritized = Some(false)
     )
 
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormatsWithMillis

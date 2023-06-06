@@ -90,7 +90,8 @@ trait DraftIndexService {
           keywordField("note"),
           keywordField("status")
         ),
-        dateField("nextRevision.revisionDate")
+        dateField("nextRevision.revisionDate"),
+        booleanField("prioritized")
       )
       val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
         generateLanguageSupportedDynamicTemplates("metaDescription") ++
