@@ -77,7 +77,7 @@ trait ConverterService {
             visualElement = visualElement,
             responsible = responsible,
             conceptType = concept.conceptType.toString,
-            glossData = toApiGlossData(concept.glossData, concept.title)
+            glossData = toApiGlossData(concept.glossData)
           )
         )
       } else {
@@ -90,7 +90,7 @@ trait ConverterService {
       }
     }
 
-    def toApiGlossData(domainGlossData: Option[domain.GlossData], titles: Seq[Title]): Option[api.GlossData] = {
+    def toApiGlossData(domainGlossData: Option[domain.GlossData]): Option[api.GlossData] = {
       domainGlossData.map(glossData =>
         api.GlossData(
           gloss = glossData.gloss,
@@ -99,9 +99,7 @@ trait ConverterService {
             ge.map(g => api.GlossExample(example = g.example, language = g.language, transcriptions = g.transcriptions))
           ),
           originalLanguage = glossData.originalLanguage,
-          transcriptions = glossData.transcriptions ++ titles
-            .filter(t => t.language != glossData.originalLanguage)
-            .map(t => (t.language, t.title))
+          transcriptions = glossData.transcriptions
         )
       )
     }

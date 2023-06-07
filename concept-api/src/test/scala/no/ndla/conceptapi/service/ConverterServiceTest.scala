@@ -698,20 +698,4 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Failure(result) = converterService.toDomainGlossData(apiGlossData)
     result.getMessage should include("'nonexistent' is not a valid gloss type")
   }
-
-  test("that toApiGlossData uses both transcriptions and title") {
-    val domainTitles = Seq(common.Title(title = "zz", language = "nb"), common.Title(title = "qq", language = "en"))
-    val domainGlossData = domain.GlossData(
-      gloss = "quant",
-      wordClass = WordClass.PRONOUN,
-      originalLanguage = "nb",
-      transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
-      examples = List()
-    )
-
-    val expectedTranscriptions = Map("zh" -> "a", "pinyin" -> "b", "en" -> "qq")
-
-    val result = converterService.toApiGlossData(Some(domainGlossData), domainTitles)
-    result.get.transcriptions should be(expectedTranscriptions)
-  }
 }
