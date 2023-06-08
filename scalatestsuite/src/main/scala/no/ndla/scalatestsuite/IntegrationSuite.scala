@@ -66,11 +66,10 @@ abstract class IntegrationSuite(
     addr
   })
 
-  val postgresContainer: Try[PostgreSQLContainer[Nothing]] = if (EnablePostgresContainer) {
+  val postgresContainer: Try[PostgreSQLContainer[_]] = if (EnablePostgresContainer) {
     val defaultUsername: String     = "postgres"
     val defaultDatabaseName: String = "postgres"
     val defaultPassword: String     = "hemmelig"
-    val defaultResource: String     = "postgres"
 
     if (skipContainerSpawn) {
       val x = mock[PostgreSQLContainer[Nothing]]
@@ -80,13 +79,13 @@ abstract class IntegrationSuite(
       when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
       Success(x)
     } else {
-      val c = new PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
-        this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
-      }
-      c.withDatabaseName(defaultResource): Unit
-      c.withUsername(defaultUsername): Unit
-      c.withPassword(defaultPassword): Unit
-      c.start(): Unit
+      val c: PgContainer = PgContainer(
+        PostgresqlVersion,
+        defaultUsername,
+        defaultPassword,
+        defaultDatabaseName
+      )
+      c.start()
       Success(c)
     }
   } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }

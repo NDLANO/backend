@@ -22,14 +22,11 @@ import scala.jdk.CollectionConverters._
 class V11__ConvertH5AndH6ToH3 extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   private def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -37,7 +34,7 @@ class V11__ConvertH5AndH6ToH3 extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1

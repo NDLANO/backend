@@ -44,7 +44,7 @@ trait UserDataController {
           case Success(userData) => userData
         }
       }
-    }
+    }: Unit
 
     patch(
       "/",
@@ -68,7 +68,7 @@ trait UserDataController {
           case Failure(exception) => errorHandler(exception)
         }
       }
-    }
+    }: Unit
   }
 
 }

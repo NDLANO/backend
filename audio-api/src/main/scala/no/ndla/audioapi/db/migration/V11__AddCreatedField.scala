@@ -16,12 +16,12 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V11__AddCreatedField extends BaseJavaMigration {
   override def migrate(context: Context): Unit = DB(context.getConnection)
-      .autoClose(false)
-      .withinTx { implicit session =>
-        allAudios.map { case (id: Long, document: String) =>
-          update(convertDocument(document), id)
-        }
-      }: Unit
+    .autoClose(false)
+    .withinTx { implicit session =>
+      allAudios.map { case (id: Long, document: String) =>
+        update(convertDocument(document), id)
+      }
+    }: Unit
 
   def allAudios(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, document from audiodata"

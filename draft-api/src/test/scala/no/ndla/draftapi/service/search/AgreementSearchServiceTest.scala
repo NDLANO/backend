@@ -119,7 +119,7 @@ class AgreementSearchServiceTest extends IntegrationSuite(EnableElasticsearchCon
     sampleAgreement.copy(id = Some(11), title = "Woopie", content = "This agreement is not copyrighted")
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    agreementIndexService.createIndexWithName(props.AgreementSearchIndex).get
+    agreementIndexService.createIndexAndAlias().get
 
     agreementIndexService.indexDocument(agreement1).get
     agreementIndexService.indexDocument(agreement2).get

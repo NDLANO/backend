@@ -22,14 +22,11 @@ import scala.util.{Success, Try}
 class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -37,7 +34,7 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document, article_id) =>
+      allArticles(offset * 1000).foreach { case (id, document, article_id) =>
         updateArticle(convertArticleUpdate(article_id, id, document), id)
       }
       numPagesLeft -= 1
@@ -84,7 +81,7 @@ class V19__AddPreviousNotesAsHiddenNotes extends BaseJavaMigration {
     val allPreviousNotes    = allPreviousVersions.flatMap(artTup => read[V18__Article](artTup._2).notes)
 
     Try(oldArticle.extract[V18__Article]) match {
-      case Success(art) =>
+      case Success(_) =>
         val previousNotes = JObject(JField("previousVersionsNotes", Extraction.decompose(allPreviousNotes)))
         val newArticle    = oldArticle.merge(previousNotes)
         compact(render(newArticle))

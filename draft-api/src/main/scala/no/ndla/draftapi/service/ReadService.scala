@@ -153,7 +153,7 @@ trait ReadService {
           embedTag.attr(
             s"${TagAttributes.DataUrl}",
             baseUrl.addPathParts(pathParts).toString
-          )
+          ): Unit
         case _ =>
       }
     }

@@ -41,7 +41,7 @@ trait AgreementRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(agreement))
 
-      sql"update ${DBAgreement.table} set document=${dataObject} where id=${agreement.id}".update()
+      sql"update ${DBAgreement.table} set document=${dataObject} where id=${agreement.id}".update(): Unit
 
       logger.info(s"Updated agreement ${agreement.id}")
       Success(agreement)

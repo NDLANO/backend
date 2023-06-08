@@ -11,8 +11,6 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.draftapi.auth.{Role, UserInfo}
 import no.ndla.draftapi.service.SideEffect.SideEffect
 
-import scala.language.implicitConversions
-
 case class StateTransition(
     from: DraftStatus,
     to: DraftStatus,

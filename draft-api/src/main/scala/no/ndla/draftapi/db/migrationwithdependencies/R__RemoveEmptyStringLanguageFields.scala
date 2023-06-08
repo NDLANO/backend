@@ -24,14 +24,11 @@ class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
   override val props: DraftApiProperties = properties
   override def getChecksum: Integer      = 1 // Change this to something else if you want to repeat migration
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -39,7 +36,7 @@ class R__RemoveEmptyStringLanguageFields(properties: DraftApiProperties)
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertArticle(document), id)
       }
       numPagesLeft -= 1

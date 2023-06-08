@@ -23,14 +23,11 @@ import java.time.LocalDateTime
 import java.util.UUID.randomUUID
 
 class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateTopicArticleEmbeds
     }
-  }
 
   def migrateTopicArticleEmbeds(implicit session: DBSession): Unit = {
     val count        = countAllTopicArticles.get
@@ -38,7 +35,7 @@ class V17__MoveTopicArticleEmbedToVisualElement extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allTopicArticles(offset * 1000).map { case (id, document) =>
+      allTopicArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertTopicArticle(document), id)
       }
       numPagesLeft -= 1

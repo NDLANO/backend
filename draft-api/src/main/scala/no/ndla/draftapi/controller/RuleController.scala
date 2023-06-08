@@ -40,7 +40,7 @@ trait RuleController {
       doOrAccessDenied(userInfo.canWrite) {
         ValidationRules.htmlRulesJson
       }
-    }
+    }: Unit
 
     get(
       "/embed-tag/",
@@ -57,7 +57,7 @@ trait RuleController {
       doOrAccessDenied(userInfo.canWrite) {
         ValidationRules.embedTagRulesJson
       }
-    }
+    }: Unit
 
     get(
       "/mathml/",
@@ -74,7 +74,7 @@ trait RuleController {
       doOrAccessDenied(userInfo.canWrite) {
         ValidationRules.mathMLRulesJson
       }
-    }
+    }: Unit
   }
 
 }

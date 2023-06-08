@@ -117,14 +117,11 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
 
   val Brightcove = new BrightcoveApiClient
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -136,7 +133,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
     while (numPagesLeft > 0) {
       val futures = ListBuffer.empty[Future[(String, Long)]]
 
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         // Convert each article in separate thread
         futures += Future { convertArticleUpdate(document, id) }
       }
@@ -148,7 +145,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
       val futs            = Future.sequence(futures)
       val allThemArticles = Await.result(futs, Duration.Inf)
 
-      allThemArticles.map { case (newDocument, articleId) =>
+      allThemArticles.foreach { case (newDocument, articleId) =>
         updateArticle(newDocument, articleId)(session)
       }
     }
@@ -199,7 +196,7 @@ class V31__ConvertBrightcoveIds extends BaseJavaMigration with StrictLogging {
             Brightcove.fetchBrightcoveVideo(brightcoveId) match {
               case Success(brightcoveObj) =>
                 println(s"Successfully fetched ${brightcoveId} as ${brightcoveObj.id} for article $id")
-                embed.attr("data-videoid", brightcoveObj.id)
+                embed.attr("data-videoid", brightcoveObj.id): Unit
               case Failure(exception) =>
                 println(s"Article with id $id failed to update BrightcoveId. ${exception.getMessage}")
             }

@@ -56,12 +56,11 @@ class R__SetArticleTypeFromTaxonomy(properties: DraftApiProperties) extends Base
     // So this is a noop migration to speed up tests and fresh local runs
     // If we want to repeat migration just remove this comment and change checksum
 
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      migrateArticles
-    }
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        migrateArticles
+      }
      */
   }
 
@@ -74,7 +73,7 @@ class R__SetArticleTypeFromTaxonomy(properties: DraftApiProperties) extends Base
     val resourceIds: Seq[Long] = fetchResourceFromTaxonomy("/resources")
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, articleId, document) =>
+      allArticles(offset * 1000).foreach { case (id, articleId, document) =>
         updateArticle(convertArticleUpdate(document, articleId, topicIds, resourceIds), id)
       }
       numPagesLeft -= 1

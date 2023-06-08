@@ -68,7 +68,7 @@ trait FileController {
             )
         }
       }
-    }
+    }: Unit
 
     delete(
       "/",
@@ -100,7 +100,7 @@ trait FileController {
             )
         }
       }
-    }
+    }: Unit
 
   }
 }

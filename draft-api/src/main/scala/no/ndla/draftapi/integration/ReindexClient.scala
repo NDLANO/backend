@@ -44,10 +44,10 @@ trait ReindexClient {
     def reindexAll() = {
       logger.info("Calling for API's to reindex")
       Future {
-        reindexArticles()
-        reindexAudios()
-        reindexDrafts()
-        reindexImages()
+        reindexArticles(): Unit
+        reindexAudios(): Unit
+        reindexDrafts(): Unit
+        reindexImages(): Unit
       }
     }
   }

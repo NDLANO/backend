@@ -83,7 +83,7 @@ trait H5PApiClient {
       val threadInfo = RequestInfo.fromThreadContext()
       Future {
         logger.info(s"Doing call to $url")
-        threadInfo.setRequestInfo()
+        threadInfo.setThreadContextRequestInfo()
         ndlaClient.fetchRawWithForwardedAuth(
           quickRequest
             .put(uri"$url".withParams(params: _*))

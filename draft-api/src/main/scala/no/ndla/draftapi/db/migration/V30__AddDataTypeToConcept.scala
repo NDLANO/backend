@@ -21,14 +21,11 @@ import scalikejdbc.{DB, DBSession, _}
 class V30__AddDataTypeToConcept extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateArticles
     }
-  }
 
   def migrateArticles(implicit session: DBSession): Unit = {
     val count        = countAllArticles.get
@@ -36,7 +33,7 @@ class V30__AddDataTypeToConcept extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1
@@ -85,7 +82,7 @@ class V30__AddDataTypeToConcept extends BaseJavaMigration {
         val dataResource = embed.attr("data-resource")
         if (dataResource == "concept") {
           if ("".equals(embed.attr("data-type"))) {
-            embed.attr("data-type", "inline")
+            embed.attr("data-type", "inline"): Unit
           }
         }
       })

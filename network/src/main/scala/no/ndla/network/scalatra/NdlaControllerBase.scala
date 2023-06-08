@@ -84,8 +84,7 @@ trait NdlaControllerBase {
             Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
           )
         )
-
-      Try(paramValue.toInt)
+      else Try(paramValue.toInt)
     }
 
     def extractDoubleOpt2(one: String, two: String)(implicit

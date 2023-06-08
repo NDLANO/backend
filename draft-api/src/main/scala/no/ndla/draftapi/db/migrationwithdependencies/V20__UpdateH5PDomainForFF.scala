@@ -19,13 +19,13 @@ class V20__UpdateH5PDomainForFF(props: DraftApiProperties) extends BaseJavaMigra
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
 
     if (props.Environment == "ff") {
-      db.withinTx { implicit session =>
-        migrateArticles
-      }
+      DB(context.getConnection)
+        .autoClose(false)
+        .withinTx { implicit session =>
+          migrateArticles
+        }
     }
   }
 
@@ -35,7 +35,7 @@ class V20__UpdateH5PDomainForFF(props: DraftApiProperties) extends BaseJavaMigra
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allArticles(offset * 1000).map { case (id, document) =>
+      allArticles(offset * 1000).foreach { case (id, document) =>
         updateArticle(convertArticleUpdate(document), id)
       }
       numPagesLeft -= 1

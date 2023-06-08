@@ -17,14 +17,11 @@ import scalikejdbc.{DB, DBSession, _}
 class V45__RenameSearchStatuses extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateUserData
     }
-  }
 
   def migrateUserData(implicit session: DBSession): Unit = {
     val count        = countAllUsers.get
@@ -32,7 +29,7 @@ class V45__RenameSearchStatuses extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allUsers(offset * 1000).map { case (id, document) =>
+      allUsers(offset * 1000).foreach { case (id, document) =>
         updateUser(convertUser(document), id)
       }
       numPagesLeft -= 1

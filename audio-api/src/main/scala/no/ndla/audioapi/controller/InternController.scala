@@ -62,7 +62,11 @@ trait InternController {
         .errorOut(internalErrorStringBody)
         .serverLogic { numShards =>
           val result = IO(
-            (audioIndexService.indexDocuments(numShards), tagIndexService.indexDocuments(numShards), seriesIndexService.indexDocuments(numShards))
+            (
+              audioIndexService.indexDocuments(numShards),
+              tagIndexService.indexDocuments(numShards),
+              seriesIndexService.indexDocuments(numShards)
+            )
           )
 
           result.flatMap {

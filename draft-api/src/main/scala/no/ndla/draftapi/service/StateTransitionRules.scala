@@ -91,7 +91,7 @@ trait StateTransitionRules {
             val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
 
             val h5pPaths = converterService.getEmbeddedH5PPaths(article)
-            h5pApiClient.publishH5Ps(h5pPaths)
+            h5pApiClient.publishH5Ps(h5pPaths): Unit
 
             val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article)
             val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation)
@@ -276,15 +276,15 @@ trait StateTransitionRules {
     ): IO[Try[Draft]] = {
       val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
       val requestInfo                     = RequestInfo.fromThreadContext()
-      IO {
-        requestInfo.setRequestInfo()
-        convertedArticle.flatMap(articleBeforeSideEffect => {
-          sideEffects
-            .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-              accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
-            })
-        })
-      }
+      requestInfo.setRequestInfo() >>
+        IO {
+          convertedArticle.flatMap(articleBeforeSideEffect => {
+            sideEffects
+              .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
+                accumulatedArticle.flatMap(a => sideEffect(a, isImported, user))
+              })
+          })
+        }
     }
 
     private[this] def learningPathsUsingArticle(articleId: Long): Seq[LearningPath] = {

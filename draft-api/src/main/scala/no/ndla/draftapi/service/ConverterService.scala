@@ -363,7 +363,7 @@ trait ConverterService {
       document
         .select(EmbedTagName)
         .asScala
-        .map(el => {
+        .foreach(el => {
           ResourceType
             .valueOf(el.attr(TagAttributes.DataResource.toString))
             .map(EmbedTagRules.attributesForResourceType)

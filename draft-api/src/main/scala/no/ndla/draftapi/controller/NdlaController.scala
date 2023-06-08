@@ -43,7 +43,7 @@ trait NdlaController {
       case v: ValidationException =>
         BadRequest(body = ValidationError(VALIDATION, VALIDATION_DESCRIPTION, messages = v.errors))
       case as: ArticleStatusException        => BadRequest(body = Error(VALIDATION, as.getMessage))
-      case e: IndexNotFoundException         => InternalServerError(body = IndexMissingError)
+      case _: IndexNotFoundException         => InternalServerError(body = IndexMissingError)
       case n: NotFoundException              => NotFound(body = Error(NOT_FOUND, n.getMessage))
       case o: OptimisticLockException        => Conflict(body = Error(RESOURCE_OUTDATED, o.getMessage))
       case rw: ResultWindowTooLargeException => UnprocessableEntity(body = Error(WINDOW_TOO_LARGE, rw.getMessage))

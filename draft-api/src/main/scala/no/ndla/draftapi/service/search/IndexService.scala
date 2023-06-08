@@ -66,7 +66,7 @@ trait IndexService {
 
           operations match {
             case Failure(f) => {
-              deleteIndexWithName(Some(indexName))
+              deleteIndexWithName(Some(indexName)): Unit
               Failure(f)
             }
             case Success(totalIndexed) => {
@@ -138,7 +138,7 @@ trait IndexService {
       *   A Try suggesting if the request was successful or not with a tuple containing number of successful requests
       *   and number of failed requests (in that order)
       */
-    private def executeRequests(requests: Seq[IndexRequest]): Try[(Long, Long)] = {
+    private def executeRequests(requests: Seq[IndexRequest]): Try[(Int, Int)] = {
       requests match {
         case Nil         => Success((0, 0))
         case head :: Nil => e4sClient.execute(head).map(r => if (r.isSuccess) (1, 0) else (0, 1))

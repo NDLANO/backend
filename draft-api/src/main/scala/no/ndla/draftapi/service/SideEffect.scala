@@ -10,13 +10,11 @@ package no.ndla.draftapi.service
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.auth.UserInfo
 
-import scala.util.{Success, Try}
-import scala.language.implicitConversions
+import scala.util.Try
 
 object SideEffect {
-  type SideEffect = (Draft, Boolean, UserInfo) => Try[Draft]
-  def none: SideEffect                           = (article, isImported, _) => Success(article)
-  def fromOutput(output: Try[Draft]): SideEffect = (_, _, _) => output
+  type IsImported = Boolean
+  type SideEffect = (Draft, IsImported, UserInfo) => Try[Draft]
 
   /** Implicits used to simplify creating a [[SideEffect]] which doesn't need all the parameters */
   object implicits {

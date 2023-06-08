@@ -21,11 +21,14 @@ case class RequestInfo(
     taxonomyVersion: String,
     applicationUrl: String
 ) {
-  def setRequestInfo(): IO[Unit] = {
+  def setThreadContextRequestInfo(): Unit = {
     TaxonomyData.set(taxonomyVersion)
     authUser.setThreadContext()
     CorrelationID.set(correlationId)
     ApplicationUrl.set(applicationUrl)
+  }
+  def setRequestInfo(): IO[Unit] = {
+    setThreadContextRequestInfo()
     RequestInfo.set(this)
   }
 

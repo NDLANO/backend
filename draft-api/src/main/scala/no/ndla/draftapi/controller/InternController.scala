@@ -95,7 +95,7 @@ trait InternController {
           logger.info(result)
           Ok(result)
       }
-    }
+    }: Unit
 
     delete("/index") {
       implicit val ec         = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
@@ -144,7 +144,7 @@ trait InternController {
         Ok(body = s"Deleted ${pluralIndex(successes.length)}")
       }
 
-    }
+    }: Unit
 
     get("/ids") {
       paramOrNone("status").map(DraftStatus.valueOfOrError) match {
@@ -152,7 +152,7 @@ trait InternController {
         case Some(Failure(ex))     => errorHandler(ex)
         case None                  => draftRepository.getAllIds(ReadOnlyAutoSession)
       }
-    }
+    }: Unit
 
     get("/import-id/:external_id") {
       val articleId = params("external_id")
@@ -160,7 +160,7 @@ trait InternController {
         case Some(ids) => Ok(ids)
         case _         => NotFound()
       }
-    }
+    }: Unit
 
     get("/id/:external_id") {
       val externalId = params("external_id")
@@ -168,7 +168,7 @@ trait InternController {
         case Some(id) => id
         case None     => NotFound()
       }
-    }
+    }: Unit
 
     get("/articles") {
       val pageNo   = intOrDefault("page", 1)
@@ -177,7 +177,7 @@ trait InternController {
       val fallback = booleanOrDefault("fallback", default = false)
 
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
-    }
+    }: Unit
 
     @tailrec
     private def deleteArticleWithRetries(id: Long, maxRetries: Int = 10, retries: Int = 0): Try[ContentId] = {
@@ -196,7 +196,7 @@ trait InternController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     get("/dump/article/?") {
       // Dumps all domain articles
@@ -204,7 +204,7 @@ trait InternController {
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getArticleDomainDump(pageNo, pageSize)
-    }
+    }: Unit
 
     get("/dump/article/:id") {
       // Dumps one domain article
@@ -213,7 +213,7 @@ trait InternController {
         case Some(article) => Ok(article)
         case None          => errorHandler(NotFoundException(s"Could not find draft with id: '$id"))
       }
-    }
+    }: Unit
 
     post("/dump/article/?") {
       tryExtract[Draft](request.body) match {
@@ -225,7 +225,7 @@ trait InternController {
           }
       }
 
-    }
+    }: Unit
 
   }
 }

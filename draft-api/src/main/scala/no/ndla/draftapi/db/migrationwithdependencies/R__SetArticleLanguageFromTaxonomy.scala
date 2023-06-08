@@ -60,12 +60,11 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     // So this is a noop migration to speed up tests and fresh local runs
     // If we want to repeat migration just remove this comment and change checksum
 
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
-      migrateArticles
-    }
+    DB(context.getConnection)
+      .autoClose(false)
+      .withinTx { implicit session =>
+        migrateArticles
+      }
      */
   }
 
@@ -136,18 +135,18 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     )
     val convertedTopicArticles = topicIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
-    for {
+    (for {
       convertedArticle <- convertedTopicArticles
       article          <- convertedArticle
-    } yield updateArticle(article)
+    } yield updateArticle(article)): Unit
 
     val resourceIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy("/subjects/urn:subject:15/resources")
     val convertedResourceArticles = resourceIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
-    for {
+    (for {
       convertedArticle <- convertedResourceArticles
       article          <- convertedArticle
-    } yield updateArticle(article)
+    } yield updateArticle(article)): Unit
 
   }
 
@@ -223,7 +222,7 @@ class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties)
     if (field.language == "unknown") field.copy(language = "sma") else field
   }
 
-  def updateArticle(article: Draft)(implicit session: DBSession): Long = {
+  def updateArticle(article: Draft)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(article))
