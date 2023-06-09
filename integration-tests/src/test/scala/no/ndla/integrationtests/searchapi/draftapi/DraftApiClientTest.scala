@@ -47,7 +47,7 @@ class DraftApiClientTest
   val esHost: String              = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int = draftApiPort
-    override def MetaServer: String   = pgc.getContainerIpAddress
+    override def MetaServer: String   = pgc.getHost
     override def MetaResource: String = pgc.getDatabaseName
     override def MetaUserName: String = pgc.getUsername
     override def MetaPassword: String = pgc.getPassword
@@ -67,7 +67,7 @@ class DraftApiClientTest
 
   private def setupArticles() = {
     draftApi.componentRegistry.draftRepository.withSession { implicit session =>
-      (1 to 10)
+      (1L to 10)
         .map(id => {
           draftApi.componentRegistry.draftRepository.insert(
             draftapi.TestData.sampleDomainArticle.copy(
