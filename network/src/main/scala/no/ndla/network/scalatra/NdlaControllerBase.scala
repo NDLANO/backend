@@ -34,7 +34,7 @@ trait NdlaControllerBase {
     def ndlaErrorHandler: NdlaErrorHandler
 
     before() {
-      RequestInfo.fromRequest(request).setRequestInfo(): Unit
+      RequestInfo.fromRequest(request).setThreadContextRequestInfo()
 
       logger.info(
         beforeRequestLogString(request.getMethod, request.getRequestURI, request.queryString)

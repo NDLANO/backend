@@ -295,7 +295,7 @@ trait SearchController {
 
           groupSearch(settings, includeMissingResourceTypeGroup)
       }
-    }
+    }: Unit
 
     private def searchInGroup(group: String, settings: SearchSettings): Try[GroupSearchResult] = {
       multiSearchService
@@ -392,7 +392,7 @@ trait SearchController {
       val remainingParams = params(request).toMap.view.filterKeys(key => !usedKeys.contains(key)).toMap
 
       searchService.search(SearchParams(language, sort, page, pageSize, remainingParams), apisToSearch)
-    }
+    }: Unit
 
     private def getSearchSettingsFromRequest: Try[SearchSettings] = {
       val query                    = paramOrNone(this.query.paramName)
@@ -523,13 +523,10 @@ trait SearchController {
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
     private def scrollWithOr[T <: SearchService](scroller: T)(orFunction: => Any): Any = {
-
       val language = paramOrDefault(this.language.paramName, AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
       paramOrNone(this.scrollId.paramName) match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          scroller.scroll(scroll, language, fallback) match {
+          scroller.scroll(scroll, language) match {
             case Success(scrollResult) =>
               Ok(
                 searchConverterService.toApiMultiSearchResult(scrollResult),
@@ -589,7 +586,7 @@ trait SearchController {
             }
         }
       }
-    }
+    }: Unit
 
     get(
       "/editorial/",
@@ -645,7 +642,7 @@ trait SearchController {
           }
         }
       }
-    }
+    }: Unit
 
     /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
       * feide api and should be used sparingly.

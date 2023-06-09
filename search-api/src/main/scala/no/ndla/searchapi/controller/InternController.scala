@@ -79,7 +79,7 @@ trait InternController {
         case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
         case _                                     =>
       }
-    }
+    }: Unit
 
     private def parseBody[T](body: String)(implicit mf: Manifest[T]): Try[T] = {
       Try(parse(body).camelizeKeys.extract[T])
@@ -109,7 +109,7 @@ trait InternController {
             s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}'"
           )
       }
-    }
+    }: Unit
 
     post("/reindex/:type/:id") {
       val indexType = params("type")
@@ -134,46 +134,40 @@ trait InternController {
           )
       }
 
-    }
+    }: Unit
 
     post("/index/draft") {
       val requestInfo = RequestInfo.fromThreadContext()
       val numShards   = intOrNone("numShards")
       val draftIndex = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
       }
 
       resolveResultFutures(List(draftIndex))
-    }
+    }: Unit
 
     post("/index/article") {
       val requestInfo = RequestInfo.fromThreadContext()
       val articleIndex = Future {
         val numShards = intOrNone("numShards")
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(articleIndex))
-    }
+    }: Unit
 
     post("/index/learningpath") {
       val requestInfo = RequestInfo.fromThreadContext()
       val numShards   = intOrNone("numShards")
       val learningPathIndex = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
       }
 
       resolveResultFutures(List(learningPathIndex))
-    }
-
-    def inheritedFuture[T](f: => T)(implicit requestInfo: RequestInfo = RequestInfo.fromThreadContext()): Future[T] =
-      Future {
-        requestInfo.setRequestInfo()
-        f
-      }
+    }: Unit
 
     post("/reindex/shards/:num_shards") {
       val startTime = System.currentTimeMillis()
@@ -181,9 +175,9 @@ trait InternController {
         case Failure(ex) => errorHandler(ex)
         case Success(numShards) =>
           logger.info("Cleaning up unreferenced indexes before reindexing...")
-          articleIndexService.cleanupIndexes()
-          draftIndexService.cleanupIndexes()
-          learningPathIndexService.cleanupIndexes()
+          articleIndexService.cleanupIndexes(): Unit
+          draftIndexService.cleanupIndexes(): Unit
+          learningPathIndexService.cleanupIndexes(): Unit
 
           val articles      = articleIndexService.reindexWithShards(numShards)
           val drafts        = draftIndexService.reindexWithShards(numShards)
@@ -196,16 +190,16 @@ trait InternController {
               errorHandler(ex)
           }
       }
-    }
+    }: Unit
 
     post("/reindex/replicas/:num_replicas") {
       int("num_replicas") match {
         case Failure(ex) => errorHandler(ex)
         case Success(numReplicas) =>
           logger.info("Cleaning up unreferenced indexes before updating replications setting...")
-          articleIndexService.cleanupIndexes()
-          draftIndexService.cleanupIndexes()
-          learningPathIndexService.cleanupIndexes()
+          articleIndexService.cleanupIndexes(): Unit
+          draftIndexService.cleanupIndexes(): Unit
+          learningPathIndexService.cleanupIndexes(): Unit
 
           val articles      = articleIndexService.updateReplicaNumber(numReplicas)
           val drafts        = draftIndexService.updateReplicaNumber(numReplicas)
@@ -218,7 +212,7 @@ trait InternController {
               errorHandler(ex)
           }
       }
-    }
+    }: Unit
 
     post("/index") {
       val runInBackground = booleanOrDefault("run-in-background", default = false)
@@ -235,22 +229,22 @@ trait InternController {
         case Failure(ex) => errorHandler(ex)
         case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle)) =>
           logger.info("Cleaning up unreferenced indexes before reindexing...")
-          learningPathIndexService.cleanupIndexes()
-          articleIndexService.cleanupIndexes()
-          draftIndexService.cleanupIndexes()
+          learningPathIndexService.cleanupIndexes(): Unit
+          articleIndexService.cleanupIndexes(): Unit
+          draftIndexService.cleanupIndexes(): Unit
 
           val requestInfo = RequestInfo.fromThreadContext()
           val indexes = List(
             Future {
-              requestInfo.setRequestInfo()
+              requestInfo.setThreadContextRequestInfo()
               ("learningpaths", learningPathIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
-              requestInfo.setRequestInfo()
+              requestInfo.setThreadContextRequestInfo()
               ("articles", articleIndexService.indexDocuments(taxonomyBundlePublished, grepBundle, numShards))
             },
             Future {
-              requestInfo.setRequestInfo()
+              requestInfo.setThreadContextRequestInfo()
               ("drafts", draftIndexService.indexDocuments(taxonomyBundleDraft, grepBundle, numShards))
             }
           )
@@ -262,7 +256,7 @@ trait InternController {
             out
           }
       }
-    }
+    }: Unit
 
   }
 }

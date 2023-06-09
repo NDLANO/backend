@@ -46,7 +46,7 @@ trait MultiSearchService {
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
 
       val contentSearch = settings.query.map(q => {
-        val langQueryFunc = (fieldName: String, boost: Int) =>
+        val langQueryFunc = (fieldName: String, boost: Double) =>
           buildSimpleStringQueryForField(
             q,
             fieldName,
@@ -203,11 +203,11 @@ trait MultiSearchService {
       val requestInfo = RequestInfo.fromThreadContext()
 
       val articleFuture = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         articleIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
       val learningPathFuture = Future {
-        requestInfo.setRequestInfo()
+        requestInfo.setThreadContextRequestInfo()
         learningPathIndexService.indexDocuments(shouldUsePublishedTax = true)
       }
 

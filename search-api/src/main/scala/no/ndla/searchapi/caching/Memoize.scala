@@ -33,7 +33,7 @@ class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
       CacheValue(input, f(input), System.currentTimeMillis())
     }
 
-    isUpdating.put(input, fut)
+    isUpdating.put(input, fut): Unit
 
     fut.onComplete {
       case Success(value) => updateCache(value)
@@ -56,8 +56,8 @@ class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
   }
 
   def updateCache(result: CacheValue): Unit = {
-    isUpdating.remove(result.input)
-    cache.put(result.input, result)
+    isUpdating.remove(result.input): Unit
+    cache.put(result.input, result): Unit
     System.gc()
   }
 }

@@ -71,8 +71,10 @@ trait TaxonomyApiClient {
       val requestInfo = RequestInfo.fromThreadContext()
 
       /** Calls function in separate thread and converts Try to Future */
-      def tryToFuture[T](x: Boolean => Try[T]) =
-        Future { requestInfo.setRequestInfo(); x(shouldUsePublishedTax) }.flatMap(Future.fromTry)
+      def tryToFuture[T](x: Boolean => Try[T]) = Future {
+        requestInfo.setRequestInfo(): Unit
+        x(shouldUsePublishedTax)
+      }.flatMap(Future.fromTry)
 
       val nodes = tryToFuture(shouldUsePublishedTax => getAllNodes(shouldUsePublishedTax))
 

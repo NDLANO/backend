@@ -110,14 +110,14 @@ trait IndexService {
       createIndexWithGeneratedName(numShards).flatMap(indexName => {
         sendToElastic(indexName, taxonomyBundle, grepBundle) match {
           case Failure(ex) =>
-            deleteIndexWithName(Some(indexName))
+            deleteIndexWithName(Some(indexName)): Unit
             Failure(ex)
           case Success((count, totalCount)) =>
             val numErrors = totalCount - count
 
             if (numErrors > 0) {
               logger.error(s"Indexing completed, but with $numErrors errors.")
-              deleteIndexWithName(Some(indexName))
+              deleteIndexWithName(Some(indexName)): Unit
               Failure(ElasticIndexingException(s"Indexing completed with $numErrors errors, will not replace index."))
             } else {
               val operations = getAliasTarget.flatMap(updateAliasTarget(_, indexName))

@@ -155,7 +155,7 @@ object TestData {
     )
   )
 
-  val (articleId, externalId) = (1, "751234")
+  val (articleId, externalId) = (1L, "751234")
 
   val sampleArticleWithPublicDomain = Article(
     Option(1),
@@ -913,12 +913,12 @@ object TestData {
     copyright = copyright
   )
 
-  val PenguinId   = 1
-  val BatmanId    = 2
-  val DonaldId    = 3
-  val UnrelatedId = 4
-  val EnglandoId  = 5
-  val KekId       = 6
+  val PenguinId   = 1L
+  val BatmanId    = 2L
+  val DonaldId    = 3L
+  val UnrelatedId = 4L
+  val EnglandoId  = 5L
+  val KekId       = 6L
 
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
