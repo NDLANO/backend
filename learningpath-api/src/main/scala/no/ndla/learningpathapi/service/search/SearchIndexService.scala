@@ -57,7 +57,7 @@ trait SearchIndexService {
 
           operations match {
             case Failure(f) =>
-              deleteIndexWithName(Some(indexName))
+              deleteIndexWithName(Some(indexName)): Unit
               Failure(f)
             case Success(totalIndexed) => Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
           }
@@ -65,23 +65,16 @@ trait SearchIndexService {
       }
     }
 
-    def indexDocument(learningPath: LearningPath): Try[LearningPath] = {
-      for {
-        _ <- createIndexIfNotExists()
-        indexed <- {
-          val source = write(searchConverterService.asSearchableLearningpath(learningPath))
-
-          e4sClient
-            .execute {
-              deleteById(searchIndex, learningPath.id.get.toString)
-              indexInto(searchIndex)
-                .doc(source)
-                .id(learningPath.id.get.toString)
-            }
-            .map(_ => learningPath)
-        }
-      } yield indexed
-    }
+    def indexDocument(learningPath: LearningPath): Try[LearningPath] = for {
+      _ <- createIndexIfNotExists()
+      source = write(searchConverterService.asSearchableLearningpath(learningPath))
+      _ <- e4sClient.execute(deleteById(searchIndex, learningPath.id.get.toString))
+      _ <- e4sClient.execute(
+        indexInto(searchIndex)
+          .doc(source)
+          .id(learningPath.id.get.toString)
+      )
+    } yield learningPath
 
     def deleteDocument(learningPath: LearningPath): Try[LearningPath] = {
       learningPath.id

@@ -41,15 +41,12 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
       new EnumNameSerializer(StepType) +
       new EnumNameSerializer(EmbedType)
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths.foreach(update)
       allLearningSteps.foreach(update)
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): Seq[V5_LearningPath] = {
     sql"select id, document from learningpaths"

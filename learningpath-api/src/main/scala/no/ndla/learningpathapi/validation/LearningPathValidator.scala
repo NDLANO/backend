@@ -20,7 +20,7 @@ trait LearningPathValidator {
   this: LanguageValidator with TitleValidator with TextValidator =>
   val learningPathValidator: LearningPathValidator
 
-  class LearningPathValidator(titleRequired: Boolean = true, descriptionRequired: Boolean = true) {
+  class LearningPathValidator(descriptionRequired: Boolean = true) {
 
     val MISSING_DESCRIPTION = "At least one description is required."
 
@@ -30,11 +30,11 @@ trait LearningPathValidator {
     val noHtmlTextValidator = new TextValidator(allowHtml = false)
     val durationValidator   = new DurationValidator
 
-    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): LearningPath = {
+    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Unit = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {
         case head :: tail =>
           throw new ValidationException(errors = head :: tail)
-        case _ => newLearningPath
+        case _ =>
       }
     }
 
@@ -79,8 +79,8 @@ trait LearningPathValidator {
 
     private def validateDuration(durationOpt: Option[Int]): Option[ValidationMessage] = {
       durationOpt match {
-        case None           => None
-        case Some(duration) => durationValidator.validateRequired(durationOpt)
+        case None    => None
+        case Some(_) => durationValidator.validateRequired(durationOpt)
       }
     }
 

@@ -55,7 +55,7 @@ trait UserController {
       )
     ) {
       readService.getMyNDLAUserData(requestFeideToken)
-    }
+    }: Unit
 
     patch(
       "/",
@@ -73,7 +73,7 @@ trait UserController {
     ) {
       val updatedUserData = extract[UpdatedMyNDLAUser](request.body)
       updateService.updateMyNDLAUserData(updatedUserData, requestFeideToken)
-    }
+    }: Unit
 
     delete(
       "/delete-personal-data/?",
@@ -89,7 +89,7 @@ trait UserController {
       )
     ) {
       updateService.deleteAllUserData(requestFeideToken).map(_ => NoContent())
-    }
+    }: Unit
 
     get(
       "/export",
@@ -101,7 +101,7 @@ trait UserController {
       )
     ) {
       readService.exportUserData(requestFeideToken)
-    }
+    }: Unit
 
     post(
       "/import",
@@ -117,6 +117,6 @@ trait UserController {
     ) {
       val importBody = tryExtract[ExportedUserData](request.body)
       importBody.flatMap(importBody => updateService.importUserData(importBody, requestFeideToken))
-    }
+    }: Unit
   }
 }

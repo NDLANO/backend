@@ -58,7 +58,7 @@ trait NdlaController {
         Forbidden(body = Error(ACCESS_DENIED, a.getMessage))
       case dfe: DeleteFavoriteException =>
         BadRequest(body = Error(DELETE_FAVORITE, dfe.getMessage))
-      case ole: OptimisticLockException =>
+      case _: OptimisticLockException =>
         Conflict(body = Error(RESOURCE_OUTDATED, RESOURCE_OUTDATED_DESCRIPTION))
       case nfe: NotFoundException =>
         NotFound(Error(NOT_FOUND, nfe.getMessage))
@@ -68,7 +68,7 @@ trait NdlaController {
         UnprocessableEntity(body = Error(IMPORT_FAILED, i.getMessage))
       case rw: ResultWindowTooLargeException =>
         UnprocessableEntity(body = Error(WINDOW_TOO_LARGE, rw.getMessage))
-      case e: IndexNotFoundException =>
+      case _: IndexNotFoundException =>
         InternalServerError(body = IndexMissingError)
       case i: ElasticIndexingException =>
         InternalServerError(body = Error(GENERIC, i.getMessage))

@@ -34,10 +34,9 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiPropertie
   case class Auth0TokenRequestBody(grant_type: String, client_id: String, client_secret: String, audience: String)
   case class Auth0TokenResponseBody(access_token: String)
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    db.withinTx(implicit session => {
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx(implicit session => {
       getOwnerIdsWithRoles match {
         case Failure(ex) =>
           logger.error("Something went wrong during fetching users from auth0.")
@@ -52,7 +51,6 @@ class V11__CreatedByNdlaStatusForOwnersWithRoles(props: LearningpathApiPropertie
         case _ => // No paths to migrate
       }
     })
-  }
 
   def getAuth0Token: Try[String] = {
     val requestBody = for {

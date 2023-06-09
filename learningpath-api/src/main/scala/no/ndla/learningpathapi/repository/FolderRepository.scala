@@ -63,7 +63,7 @@ trait FolderRepository {
         sql"""
         insert into ${DBFolder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared, description)
         values ($newId, ${folderData.parentId}, $feideId, ${folderData.name}, ${folderData.status.toString}, ${folderData.rank}, $created, $updated, $shared, ${folderData.description})
-        """.update()
+        """.update(): Unit
 
         logger.info(s"Inserted new folder with id: $newId")
         folderData.toFullFolder(
@@ -93,7 +93,7 @@ trait FolderRepository {
       sql"""
         insert into ${DBResource.table} (id, feide_id, path, resource_type, created, document)
         values ($newId, $feideId, $path, $resourceType, $created, $dataObject)
-        """.update()
+        """.update(): Unit
 
       logger.info(s"Inserted new resource with id: $newId")
       document.toFullResource(newId, path, resourceType, feideId, created, None)
@@ -105,7 +105,7 @@ trait FolderRepository {
         rank: Int
     )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
       sql"insert into ${DBFolderResource.table} (folder_id, resource_id, rank) values ($folderId, $resourceId, $rank)"
-        .update()
+        .update(): Unit
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
 
       FolderResource(folderId = folderId, resourceId = resourceId, rank = rank)
@@ -253,7 +253,7 @@ trait FolderRepository {
           Success(resourceId)
       }
 
-    def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${DBFolder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) =>
@@ -262,7 +262,7 @@ trait FolderRepository {
       }
     }
 
-    def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${DBResource.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
         case Success(numRows) =>

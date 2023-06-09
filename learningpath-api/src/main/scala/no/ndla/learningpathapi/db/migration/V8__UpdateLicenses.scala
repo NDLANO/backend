@@ -17,11 +17,9 @@ import scalikejdbc.{DB, DBSession, _}
 class V8__UpdateLicenses extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths
         .map { case (id, document) => (id, convertLearningPathDocument(document)) }
         .foreach { case (id, document) => updateLearningPath(id, document) }
@@ -30,7 +28,6 @@ class V8__UpdateLicenses extends BaseJavaMigration {
         .map { case (id, document) => (id, convertLearningStepDocument(document)) }
         .foreach { case (id, document) => updateLearningStep(id, document) }
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): Seq[(Long, String)] = {
     sql"select id, document from learningpaths"

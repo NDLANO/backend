@@ -103,7 +103,7 @@ trait SearchService extends StrictLogging {
       executeSearch(boolQuery(), settings)
     }
 
-    private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Float): Query =
+    private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Double): Query =
       simpleStringQuery(query).field(s"$searchField.$language", boost)
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {

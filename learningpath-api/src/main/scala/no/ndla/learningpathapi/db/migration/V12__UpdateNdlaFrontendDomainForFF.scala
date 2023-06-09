@@ -19,14 +19,11 @@ import scalikejdbc.{DB, DBSession, _}
 class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
   implicit val formats: Formats = org.json4s.DefaultFormats + new EnumNameSerializer(V11_EmbedType)
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateLearningSteps
     }
-  }
 
   def migrateLearningSteps(implicit session: DBSession): Unit = {
     val count        = countAllLearningSteps.get
@@ -34,7 +31,7 @@ class V12__UpdateNdlaFrontendDomainForFF extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allLearingSteps(offset * 1000).map { case (id, document) =>
+      allLearingSteps(offset * 1000).foreach { case (id, document) =>
         updateLearningStep(migrateLearningPathDocument(document), id)
       }
       numPagesLeft -= 1

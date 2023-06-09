@@ -18,14 +18,11 @@ class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths.map(convertLearningPathStatus).foreach(update)
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): List[V4_DBLearningPath] = {
     sql"select id, document from learningpaths where document ->> 'status' = 'NOT_LISTED'"
@@ -36,8 +33,8 @@ class V4__ConvertStatusNotListedToPrivate extends BaseJavaMigration {
   def convertLearningPathStatus(learningPath: V4_DBLearningPath): V4_DBLearningPath = {
     val oldDocument = parse(learningPath.document)
     val updatedDocument = oldDocument mapField {
-      case ("status", JString(oldStatus)) => ("status", JString("PRIVATE"))
-      case x                              => x
+      case ("status", JString(oldStatus @ _)) => ("status", JString("PRIVATE"))
+      case x                                  => x
     }
     learningPath.copy(document = compact(render(updatedDocument)))
   }

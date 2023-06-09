@@ -20,6 +20,7 @@ import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.ApplicationUrl
 import org.mockito.ArgumentMatchers._
+import org.mockito.Strictness
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -331,7 +332,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That createUrlToLearningPath does not include private in path for private learningpath") {
-    val httpServletRequest = mock[HttpServletRequest](withSettings.lenient())
+    val httpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     when(httpServletRequest.getServerPort).thenReturn(80)
     when(httpServletRequest.getScheme).thenReturn("http")
     when(httpServletRequest.getServerName).thenReturn("api-gateway.ndla-local")
@@ -471,7 +472,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("asDomainLearningStep should work with learningpaths no matter the amount of steps") {
     val newLs =
       NewLearningStepV2("Tittel", Some("Beskrivelse"), "nb", Some(api.EmbedUrlV2("", "oembed")), true, "TEXT", None)
-    val lpId = 5591
+    val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
     val lp3 = TestData.sampleDomainLearningPath.copy(

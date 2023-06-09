@@ -20,6 +20,7 @@ import org.json4s.Formats
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.native.Serialization._
 import org.mockito.ArgumentMatchers._
+import org.mockito.Strictness
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import java.time.LocalDateTime
@@ -205,7 +206,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That paramAsListOfLong returns empty list when empty param") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
+    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     val paramName                            = "test"
     val parameterMap                         = Map("someOther" -> Array(""))
 
@@ -214,7 +215,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That paramAsListOfLong returns List of longs for all ids specified in input") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
+    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     val expectedList                         = List(1, 2, 3, 5, 6, 7, 8)
     val paramName                            = "test"
     val parameterMap                         = Map(paramName -> Array(expectedList.mkString(" , ")))
@@ -224,7 +225,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with S
   }
 
   test("That paramAsListOfLong returns validation error when list of ids contains a string") {
-    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.lenient())
+    implicit val request: HttpServletRequest = mock[HttpServletRequest](withSettings.strictness(Strictness.Lenient))
     val paramName                            = "test"
     val parameterMap                         = Map(paramName -> Array("1,2,abc,3"))
 

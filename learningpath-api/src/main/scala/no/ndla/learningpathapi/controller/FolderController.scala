@@ -95,7 +95,7 @@ trait FolderController {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
-    }
+    }: Unit
 
     get(
       "/:folder_id",
@@ -118,7 +118,7 @@ trait FolderController {
         val includeSubfolders = booleanOrDefault(this.includeSubfolders.paramName, default = false)
         readService.getSingleFolder(id, includeSubfolders, includeResources, requestFeideToken)
       })
-    }
+    }: Unit
 
     post(
       "/",
@@ -139,7 +139,7 @@ trait FolderController {
         case Failure(ex)     => errorHandler(ex)
         case Success(folder) => folder
       }
-    }
+    }: Unit
 
     patch(
       "/:folder_id",
@@ -160,7 +160,7 @@ trait FolderController {
         val updatedFolder = extract[UpdatedFolder](request.body)
         updateService.updateFolder(id, updatedFolder, requestFeideToken)
       })
-    }
+    }: Unit
 
     delete(
       "/:folder_id",
@@ -181,7 +181,7 @@ trait FolderController {
           updateService.deleteFolder(id, requestFeideToken)
         })
         .map(_ => NoContent())
-    }
+    }: Unit
 
     get(
       "/resources/?",
@@ -206,7 +206,7 @@ trait FolderController {
         case Failure(ex)      => errorHandler(ex)
         case Success(folders) => folders
       }
-    }
+    }: Unit
 
     post(
       "/:folder_id/resources/?",
@@ -227,7 +227,7 @@ trait FolderController {
         val newResource = extract[NewResource](request.body)
         updateService.newFolderResourceConnection(id, newResource, requestFeideToken)
       })
-    }
+    }: Unit
 
     patch(
       "/resources/:resource_id",
@@ -248,7 +248,7 @@ trait FolderController {
         val updatedResource = extract[UpdatedResource](request.body)
         updateService.updateResource(id, updatedResource, requestFeideToken)
       })
-    }
+    }: Unit
 
     delete(
       "/:folder_id/resources/:resource_id",
@@ -272,7 +272,7 @@ trait FolderController {
           })
         })
         .map(_ => NoContent())
-    }
+    }: Unit
 
     get(
       "/shared/:folder_id",
@@ -288,7 +288,7 @@ trait FolderController {
       )
     ) {
       uuidParam(this.folderId.paramName).flatMap(id => readService.getSharedFolder(id))
-    }
+    }: Unit
 
     patch(
       "/shared/:folder_id",
@@ -310,7 +310,7 @@ trait FolderController {
         status     <- folderStatusParam(this.folderStatus.paramName)
         updatedIds <- updateService.changeStatusOfFolderAndItsSubfolders(folderId, status, requestFeideToken)
       } yield updatedIds
-    }
+    }: Unit
 
     post(
       "/clone/:source_folder_id/?",
@@ -332,7 +332,7 @@ trait FolderController {
         destination <- uuidParamOrNone(this.destinationId.paramName)
         cloned      <- updateService.cloneFolder(source, destination, requestFeideToken)
       } yield cloned
-    }
+    }: Unit
 
     put(
       "/sort-resources/:folder_id",
@@ -352,7 +352,7 @@ trait FolderController {
         sortObject = ResourceSorting(folderId)
         sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
-    }
+    }: Unit
 
     put(
       "/sort-subfolders",
@@ -373,6 +373,6 @@ trait FolderController {
         sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
         sorted <- updateService.sortFolder(sortObject, sortRequest, requestFeideToken)
       } yield sorted
-    }
+    }: Unit
   }
 }

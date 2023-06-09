@@ -236,7 +236,7 @@ trait LearningpathControllerV2 {
 
         search(query, language, tag, idList, sort, pageSize, page, fallback, verificationStatus, shouldScroll)
       }
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -269,7 +269,7 @@ trait LearningpathControllerV2 {
 
         search(query, language, tag, idList, sort, pageSize, page, fallback, verificationStatus, shouldScroll)
       }
-    }
+    }: Unit
 
     get(
       "/ids/",
@@ -309,7 +309,7 @@ trait LearningpathControllerV2 {
           case Success(articles) => Ok(articles)
         }
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id",
@@ -337,7 +337,7 @@ trait LearningpathControllerV2 {
         case Success(lp) => Ok(lp)
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id/status/",
@@ -358,7 +358,7 @@ trait LearningpathControllerV2 {
         case Success(status) => Ok(status)
         case Failure(ex)     => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id/learningsteps/",
@@ -391,7 +391,7 @@ trait LearningpathControllerV2 {
         case Success(x)  => Ok(x)
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id/learningsteps/:learningstep_id",
@@ -420,7 +420,7 @@ trait LearningpathControllerV2 {
         case Success(step) => Ok(step)
         case Failure(ex)   => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id/learningsteps/trash/",
@@ -448,7 +448,7 @@ trait LearningpathControllerV2 {
         case Success(x)  => Ok(x)
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/:learningpath_id/learningsteps/:learningstep_id/status/",
@@ -474,7 +474,7 @@ trait LearningpathControllerV2 {
         case Success(status) => Ok(status)
         case Failure(ex)     => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/mine/",
@@ -488,7 +488,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       readService.withOwnerV2(UserInfo(requireUserId))
-    }
+    }: Unit
 
     get(
       "/licenses/",
@@ -513,7 +513,7 @@ trait LearningpathControllerV2 {
         }
 
       licenses.map(x => License(x.license.toString, Option(x.description), x.url))
-    }
+    }: Unit
 
     post(
       "/",
@@ -537,7 +537,7 @@ trait LearningpathControllerV2 {
           logger.info(s"CREATED LearningPath with ID =  ${learningPath.id}")
           Created(headers = Map("Location" -> learningPath.metaUrl), body = learningPath)
       }
-    }
+    }: Unit
 
     post(
       "/:learningpath_id/copy/",
@@ -566,7 +566,7 @@ trait LearningpathControllerV2 {
             case Failure(ex) => errorHandler(ex)
           }
       }
-    }
+    }: Unit
 
     patch(
       "/:learningpath_id",
@@ -589,7 +589,7 @@ trait LearningpathControllerV2 {
         case Success(lp) => Ok(lp)
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     post(
       "/:learningpath_id/learningsteps/",
@@ -615,7 +615,7 @@ trait LearningpathControllerV2 {
           logger.info(s"CREATED LearningStep with ID =  ${learningStep.id} for LearningPath with ID = $pathId")
           Created(headers = Map("Location" -> learningStep.metaUrl), body = learningStep)
       }
-    }
+    }: Unit
 
     patch(
       "/:learningpath_id/learningsteps/:learningstep_id",
@@ -646,7 +646,7 @@ trait LearningpathControllerV2 {
           logger.info(s"UPDATED LearningStep with ID = $stepId for LearningPath with ID = $pathId")
           Ok(learningStep)
       }
-    }
+    }: Unit
 
     put(
       "/:learningpath_id/learningsteps/:learningstep_id/seqNo/",
@@ -675,7 +675,7 @@ trait LearningpathControllerV2 {
         case Success(seqNo) => Ok(seqNo)
         case Failure(ex)    => errorHandler(ex)
       }
-    }
+    }: Unit
 
     put(
       "/:learningpath_id/learningsteps/:learningstep_id/status/",
@@ -709,7 +709,7 @@ trait LearningpathControllerV2 {
           )
           Ok(learningStep)
       }
-    }
+    }: Unit
 
     put(
       "/:learningpath_id/status/",
@@ -737,7 +737,7 @@ trait LearningpathControllerV2 {
           logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
           Ok(learningPath)
       }
-    }
+    }: Unit
 
     get(
       s"/status/:${this.learningPathStatus.paramName}",
@@ -758,7 +758,7 @@ trait LearningpathControllerV2 {
         case Success(lps) => Ok(lps)
         case Failure(ex)  => errorHandler(ex)
       }
-    }
+    }: Unit
 
     delete(
       "/:learningpath_id",
@@ -788,7 +788,7 @@ trait LearningpathControllerV2 {
           logger.info(s"MARKED LearningPath with ID: $pathId as DELETED")
           NoContent()
       }
-    }
+    }: Unit
 
     delete(
       "/:learningpath_id/learningsteps/:learningstep_id",
@@ -815,7 +815,7 @@ trait LearningpathControllerV2 {
           logger.info(s"MARKED LearningStep with id: $stepId for LearningPath with id: $pathId as DELETED.")
           NoContent()
       }
-    }
+    }: Unit
 
     get(
       "/tags/",
@@ -842,7 +842,7 @@ trait LearningpathControllerV2 {
         case None =>
           NotFound(Error(ErrorHelpers.NOT_FOUND, s"Tags with language '$language' not found"))
       }
-    }
+    }: Unit
 
     get(
       "/contributors/",
@@ -856,7 +856,7 @@ trait LearningpathControllerV2 {
       )
     ) {
       readService.contributors
-    }
+    }: Unit
 
     post(
       "/:learningpath_id/update-taxonomy/",
@@ -885,7 +885,7 @@ trait LearningpathControllerV2 {
         case Success(lp) => Ok(lp)
         case Failure(ex) => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/contains-article/:article_id",
@@ -914,6 +914,6 @@ trait LearningpathControllerV2 {
         case Success(result) => result.results
         case Failure(ex)     => errorHandler(ex)
       }
-    }
+    }: Unit
   }
 }

@@ -15,11 +15,9 @@ import scalikejdbc.{DB, DBSession, _}
 
 class V6__UpdateDuration extends BaseJavaMigration {
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allLearningPaths
         .map { case (id, document) =>
           (id, updateDuration(document))
@@ -28,7 +26,6 @@ class V6__UpdateDuration extends BaseJavaMigration {
           update(id, document)
         }
     }
-  }
 
   def allLearningPaths(implicit session: DBSession): Seq[(Long, String)] = {
     sql"select id, document from learningpaths"

@@ -44,7 +44,7 @@ trait StatsController {
         case Some(c) => Ok(c)
         case None    => NotFound("No stats found")
       }
-    }
+    }: Unit
   }
 
 }
