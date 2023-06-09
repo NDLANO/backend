@@ -61,8 +61,8 @@ trait ReadService {
         subjectIds: List[Long],
         language: String,
         fallback: Boolean,
-        pageSize: Long,
-        page: Long
+        pageSize: Int,
+        page: Int
     ): Try[List[api.SubjectPageData]] = {
       val offset = (page - 1) * pageSize
       for {

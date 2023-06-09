@@ -24,13 +24,11 @@ class V2__convert_subjects_to_object extends BaseJavaMigration {
   implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
   implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    db.withinTx { implicit session =>
-      frontPageData.flatMap(convertSubjects).map(update)
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      frontPageData.flatMap(convertSubjects).foreach(update)
     }
-  }
 
   def frontPageData(implicit session: DBSession): Option[DBFrontPage] = {
     sql"select id, document from mainfrontpage"

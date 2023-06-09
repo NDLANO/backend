@@ -75,7 +75,7 @@ trait SubjectPageRepository {
     def withId(subjectId: Long): Try[Option[SubjectFrontPageData]] =
       subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 
-    def withIds(subjectIds: List[Long], offset: Long, pageSize: Long)(implicit
+    def withIds(subjectIds: List[Long], offset: Int, pageSize: Int)(implicit
         session: DBSession = AutoSession
     ): Try[List[SubjectFrontPageData]] = Try {
       val su = DBSubjectFrontPageData.syntax("su")
