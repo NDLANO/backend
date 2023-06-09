@@ -80,6 +80,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
       quickRequest
         .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
         .body(Map("metadata" -> sampleNewAudioMeta))
+        .readTimeout(Duration.Inf)
         .headers(Map("Authorization" -> authHeaderWithWriteRole))
     )
     response.code.code should be(422)
