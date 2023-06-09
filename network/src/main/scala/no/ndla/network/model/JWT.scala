@@ -7,6 +7,7 @@
 
 package no.ndla.network.model
 
+import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods.parse
 import pdi.jwt.JwtClaim
 
@@ -24,7 +25,7 @@ case class JWTClaims(
 )
 
 object JWTClaims {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats = org.json4s.DefaultFormats
 
   case class ClaimsJSON(
       azp: Option[String],

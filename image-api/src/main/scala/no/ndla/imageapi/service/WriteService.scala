@@ -105,7 +105,7 @@ trait WriteService {
           if (isLastLanguage) {
             deleteImageAndFiles(imageId).map(_ => None)
           } else {
-            deleteFileForLanguageIfUnused(imageId, existing.images, language).?
+            deleteFileForLanguageIfUnused(imageId, existing.images, language).??
             updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
           }
 
@@ -141,7 +141,7 @@ trait WriteService {
       }
 
       val toInsert = converterService.asDomainImageMetaInformationV2(newImage).?
-      validationService.validate(toInsert, None).?
+      validationService.validate(toInsert, None).??
       val insertedMeta       = Try(imageRepository.insert(toInsert)).?
       val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
       val imageId            = insertedMeta.id.toTry(missingIdException).?
@@ -160,19 +160,19 @@ trait WriteService {
       imageIndexService
         .indexDocument(imageMeta)
         .recoverWith { e =>
-          deleteUploadedImages(e)
-          imageRepository.delete(imageId)
+          deleteUploadedImages(e): Unit
+          Try(imageRepository.delete(imageId)): Unit
           Failure(e)
         }
-        .?
+        .??
 
       tagIndexService.indexDocument(imageMeta) match {
         case Success(_) => Success(imageMeta)
         case Failure(e) =>
-          deleteUploadedImages(e)
-          imageIndexService.deleteDocument(imageId)
-          tagIndexService.deleteDocument(imageId)
-          imageRepository.delete(imageId)
+          deleteUploadedImages(e): Unit
+          imageIndexService.deleteDocument(imageId): Unit
+          tagIndexService.deleteDocument(imageId): Unit
+          Try(imageRepository.delete(imageId)): Unit
           Failure(e)
       }
     }

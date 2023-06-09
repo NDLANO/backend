@@ -136,7 +136,7 @@ trait ImageSearchService {
       val sizeFilter = settings.minimumSize match {
         case Some(size) =>
           Some(
-            nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size))
+            nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size.toLong))
           )
         case _ => None
       }

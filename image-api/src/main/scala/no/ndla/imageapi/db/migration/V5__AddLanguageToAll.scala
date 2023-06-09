@@ -22,14 +22,11 @@ class V5__AddLanguageToAll extends BaseJavaMigration {
   implicit val formats: Formats =
     org.json4s.DefaultFormats + FieldSerializer[V5_ImageMetaInformation](ignore("id")) ++ JavaTimeSerializers.all
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       allImages.map(updateImageLanguage).foreach(update)
     }
-  }
 
   def updateImageLanguage(audioMeta: V5_ImageMetaInformation): V5_ImageMetaInformation = {
     audioMeta.copy(

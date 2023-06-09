@@ -23,17 +23,14 @@ class V4__DateFormatUpdated extends BaseJavaMigration with StrictLogging {
   implicit val formats: Formats = org.json4s.DefaultFormats ++ JavaTimeSerializers.all
   val timeService               = new TimeService2()
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    logger.info("Starting V4__DateFormatUpdated DB Migration")
-    val dBstartMillis = System.currentTimeMillis()
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      logger.info("Starting V4__DateFormatUpdated DB Migration")
+      val dBstartMillis = System.currentTimeMillis()
       allImages.map(fixImageUpdatestring).foreach(update)
+      logger.info(s"Done V4__DateFormatUpdated DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms")
     }
-    logger.info(s"Done V4__DateFormatUpdated DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms")
-  }
 
   def allImages(implicit session: DBSession): List[V4__DBImageMetaInformation] = {
     sql"select id, metadata from imagemetadata"
@@ -45,8 +42,8 @@ class V4__DateFormatUpdated extends BaseJavaMigration with StrictLogging {
     val oldDocument = parse(imageMeta.document)
 
     val updatedDocument = oldDocument mapField {
-      case ("updated", JString(oldUpdated)) => ("updated", JString(timeService.nowAsString()))
-      case x                                => x
+      case ("updated", JString(oldUpdated @ _)) => ("updated", JString(timeService.nowAsString()))
+      case x                                    => x
     }
 
     imageMeta.copy(document = compact(render(updatedDocument)))

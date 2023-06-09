@@ -88,12 +88,12 @@ trait ImageStorageService {
         val copyRequest = new CopyObjectRequest(StorageName, storageKey, StorageName, storageKey)
           .withNewObjectMetadata(meta)
 
-        amazonClient.copyObject(copyRequest)
+        amazonClient.copyObject(copyRequest): Unit
       }
     }
 
     def cloneObject(existingKey: String, newKey: String): Try[Unit] = {
-      Try(amazonClient.copyObject(StorageName, existingKey, StorageName, newKey))
+      Try(amazonClient.copyObject(StorageName, existingKey, StorageName, newKey): Unit)
     }
 
     def objectExists(storageKey: String): Boolean = {

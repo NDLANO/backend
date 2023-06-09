@@ -38,10 +38,29 @@ package object implicits {
       case _ => c.abort(c.enclosingPosition, "This is a bug with the tryQuestionMarkOperator macro")
     }
   }
+
+  /** Same as [[tryQuestionMarkOperator]] except that it returns Unit on success */
+  def doubleTryQuestionMarkOperator(c: blackbox.Context): c.Tree = {
+    import c.universe._
+    c.prefix.tree match {
+      case q"""$_[$_]($self)""" =>
+        q"""
+            import scala.util.{Failure, Success, Try}
+            $self match {
+              case Success(value) => ()
+              case Failure(ex)    => return Failure(ex)
+            }
+           """
+      case _ => c.abort(c.enclosingPosition, "This is a bug with the tryQuestionMarkOperator macro")
+    }
+  }
   implicit class TryQuestionMark[A](private val self: Try[A]) extends AnyVal {
 
     /** See [[tryQuestionMarkOperator]] docs above */
     def ? : A = macro tryQuestionMarkOperator
+
+    /** Same as [[?]] except that it returns Unit on success */
+    def ?? : Unit = macro doubleTryQuestionMarkOperator
   }
 
   def optionQuestionMarkOperator(c: blackbox.Context): c.Tree = {

@@ -29,14 +29,11 @@ class V7__TranslateUntranslatedAuthors(props: ImageApiProperties) extends BaseJa
     rightsholderTypes
   }
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       imagesToUpdate.map(t => updateAuthorFormat(t._1, t._2)).foreach(update)
     }
-  }
 
   def imagesToUpdate(implicit session: DBSession): List[(Long, String)] = {
     sql"select id, metadata from imagemetadata"

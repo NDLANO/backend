@@ -17,20 +17,18 @@ import scalikejdbc._
 
 class V2__RemoveFullFromImagePath extends BaseJavaMigration with StrictLogging {
 
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(context: Context) = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-    logger.info("Starting V2__RemoveFullFromImagePath DB Migration")
-    val dBstartMillis = System.currentTimeMillis()
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context) = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
+      logger.info("Starting V2__RemoveFullFromImagePath DB Migration")
+      val dBstartMillis = System.currentTimeMillis()
       allImages.map(convertImageUrl).foreach(update)
+      logger.info(
+        s"Done V2__RemoveFullFromImagePath DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms"
+      )
     }
-    logger.info(s"Done V2__RemoveFullFromImagePath DB Migration tok ${System.currentTimeMillis() - dBstartMillis} ms")
-
-  }
 
   def allImages(implicit session: DBSession): List[V2_DBImageMetaInformation] = {
     sql"select id, metadata from imagemetadata"

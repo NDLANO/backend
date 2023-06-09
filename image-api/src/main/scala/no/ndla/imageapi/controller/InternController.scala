@@ -66,7 +66,7 @@ trait InternController {
           logger.warn(tagFail.getMessage, tagFail)
           InternalServerError(tagFail.getMessage)
       }
-    }
+    }: Unit
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
@@ -87,7 +87,7 @@ trait InternController {
       } else {
         Ok(body = s"Deleted ${pluralIndex(successes.length)}")
       }
-    }
+    }: Unit
 
     get("/extern/:image_id") {
       val externalId = params("image_id")
@@ -100,7 +100,7 @@ trait InternController {
           }
         case None => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with external id $externalId not found"))
       }
-    }
+    }: Unit
 
     get("/domain_image_from_url/") {
       val urlQueryParam = "url"
@@ -116,13 +116,13 @@ trait InternController {
             Error(ErrorHelpers.VALIDATION, s"Query param '$urlQueryParam' needs to be specified to return an image")
           )
       }
-    }
+    }: Unit
 
     get("/dump/image/") {
       val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       readService.getMetaImageDomainDump(pageNo, pageSize)
-    }
+    }: Unit
 
     get("/dump/image/:id") {
       val id = long("id")
@@ -130,12 +130,12 @@ trait InternController {
         case Some(image) => Ok(image)
         case None        => errorHandler(new ImageNotFoundException(s"Could not find image with id: '$id'"))
       }
-    }
+    }: Unit
 
     post("/dump/image/") {
       val domainMeta = extract[ImageMetaInformation](request.body)
       Ok(imageRepository.insert(domainMeta))
-    }
+    }: Unit
   }
 
 }

@@ -15,7 +15,7 @@ trait User {
   val authUser: AuthUser
 
   class AuthUser {
-    def assertHasId(): Unit = userOrClientid()
+    def assertHasId(): Unit = userOrClientid(): Unit
 
     def userOrClientid(): String = {
       if (AuthUser.get.isDefined) {

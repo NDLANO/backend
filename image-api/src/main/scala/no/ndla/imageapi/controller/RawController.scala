@@ -98,7 +98,7 @@ trait RawController {
         case Failure(ex)  => errorHandler(ex)
         case Success(img) => Ok(img)
       }
-    }
+    }: Unit
 
     get(
       "/id/:image_id",
@@ -128,7 +128,7 @@ trait RawController {
           }
         case None => NotFound(Error(ErrorHelpers.NOT_FOUND, s"Image with id $imageId not found"))
       }
-    }
+    }: Unit
 
     private def getRawImage(imageName: String): Try[ImageStream] = {
       val dynamicCropOrResize = if (canDoDynamicCrop) dynamicCrop _ else resize _
