@@ -146,7 +146,7 @@ trait DraftConceptController {
         case Success(concept) => Ok(concept)
         case Failure(ex)      => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/",
@@ -214,7 +214,7 @@ trait DraftConceptController {
         )
 
       }
-    }
+    }: Unit
 
     get(
       "/subjects/",
@@ -233,7 +233,7 @@ trait DraftConceptController {
         case Success(subjects) => Ok(subjects)
         case Failure(ex)       => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/tags/",
@@ -258,13 +258,13 @@ trait DraftConceptController {
       if (subjects.nonEmpty) {
         draftConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res) => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)  => errorHandler(ex)
+          case Success(_)  => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex) => errorHandler(ex)
         }
       } else {
         readService.allTagsFromDraftConcepts(language, fallback)
       }
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -323,7 +323,7 @@ trait DraftConceptController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     delete(
       "/:concept_id",
@@ -349,7 +349,7 @@ trait DraftConceptController {
           case None           => Failure(NotFoundException("Language not found"))
         }
       }
-    }
+    }: Unit
 
     put(
       "/:concept_id/status/:STATUS",
@@ -377,7 +377,7 @@ trait DraftConceptController {
         }
 
       }
-    }
+    }: Unit
 
     get(
       "/status-state-machine/",
@@ -393,6 +393,6 @@ trait DraftConceptController {
       doOrAccessDenied(userInfo.canWrite) {
         converterService.stateTransitionsToApi(user.getUser)
       }
-    }
+    }: Unit
   }
 }

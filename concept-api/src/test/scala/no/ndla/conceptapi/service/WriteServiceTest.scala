@@ -27,7 +27,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val today: LocalDateTime     = LocalDateTime.now()
   val yesterday: LocalDateTime = LocalDateTime.now().minusDays(1)
   val service                  = new WriteService()
-  val conceptId                = 13
+  val conceptId                = 13L
   val userInfo: UserInfo       = UserInfo.SystemUser
 
   val concept: api.Concept =

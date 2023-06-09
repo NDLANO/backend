@@ -66,7 +66,7 @@ trait InternController {
           logger.error(s"Reindexing published concepts failed with ${ex.getMessage}", ex)
           errorHandler(ex)
       }
-    }
+    }: Unit
 
     def deleteIndexes[T <: IndexService[_]](indexService: T) = {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
@@ -109,14 +109,14 @@ trait InternController {
 
       if (result1.isFailure || result2.isFailure) InternalServerError(msg)
       else Ok(msg)
-    }
+    }: Unit
 
     get("/dump/draft-concept/") {
       val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getDraftConceptDomainDump(pageNo, pageSize)
-    }
+    }: Unit
 
     get("/dump/draft-concept/:id") {
       val id = long("id")
@@ -124,14 +124,14 @@ trait InternController {
         case Some(concept) => Ok(concept)
         case None          => errorHandler(NotFoundException(s"Could not find draft concept with id '$id'"))
       }
-    }
+    }: Unit
 
     get("/dump/concept/") {
       val pageNo   = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
       readService.getPublishedConceptDomainDump(pageNo, pageSize)
-    }
+    }: Unit
 
     get("/dump/concept/:id") {
       val id = long("id")
@@ -139,7 +139,7 @@ trait InternController {
         case Some(concept) => Ok(concept)
         case None          => errorHandler(NotFoundException(s"Could not find published concept with id '$id'"))
       }
-    }
+    }: Unit
 
     post("/dump/draft-concept/") {
       val concept = tryExtract[Concept](request.body)
@@ -147,7 +147,7 @@ trait InternController {
         case Success(c) => Ok(draftConceptRepository.insert(c))
         case Failure(f) => errorHandler(f)
       }
-    }
+    }: Unit
 
     post("/import/concept") {
       UserInfo.get match {
@@ -171,7 +171,7 @@ trait InternController {
         case _ => Unauthorized("You do not have access to perform this action")
       }
 
-    }
+    }: Unit
 
   }
 }

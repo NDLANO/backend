@@ -126,10 +126,10 @@ trait DraftConceptRepository {
                   insert into ${Concept.table} (id, document, revision)
                   values ($id, ${dataObject}, $newRevision)
                """.update()
-          )
-
-          logger.info(s"Inserted new concept: $id")
-          Success(concept)
+          ).map(_ => {
+            logger.info(s"Inserted new concept: $id")
+            concept
+          })
         case None =>
           Failure(ConceptMissingIdException("Attempted to insert concept without an id."))
       }
@@ -237,13 +237,13 @@ trait DraftConceptRepository {
         .getOrElse(0)
     }
 
-    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Int = {
+    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
       val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
       val sequenceName = SQLSyntax.createUnsafely(
         s"${Concept.schemaName.getOrElse(props.MetaSchema)}.${Concept.tableName}_id_seq"
       )
 
-      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
+      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate(): Unit
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit

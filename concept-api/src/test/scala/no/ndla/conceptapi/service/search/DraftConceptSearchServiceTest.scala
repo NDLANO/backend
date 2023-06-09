@@ -209,20 +209,20 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      draftConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
+      draftConceptIndexService.createIndexAndAlias().get
 
-      draftConceptIndexService.indexDocument(concept1)
-      draftConceptIndexService.indexDocument(concept2)
-      draftConceptIndexService.indexDocument(concept3)
-      draftConceptIndexService.indexDocument(concept4)
-      draftConceptIndexService.indexDocument(concept5)
-      draftConceptIndexService.indexDocument(concept6)
-      draftConceptIndexService.indexDocument(concept7)
-      draftConceptIndexService.indexDocument(concept8)
-      draftConceptIndexService.indexDocument(concept9)
-      draftConceptIndexService.indexDocument(concept10)
-      draftConceptIndexService.indexDocument(concept11)
-      draftConceptIndexService.indexDocument(concept12)
+      draftConceptIndexService.indexDocument(concept1).get
+      draftConceptIndexService.indexDocument(concept2).get
+      draftConceptIndexService.indexDocument(concept3).get
+      draftConceptIndexService.indexDocument(concept4).get
+      draftConceptIndexService.indexDocument(concept5).get
+      draftConceptIndexService.indexDocument(concept6).get
+      draftConceptIndexService.indexDocument(concept7).get
+      draftConceptIndexService.indexDocument(concept8).get
+      draftConceptIndexService.indexDocument(concept9).get
+      draftConceptIndexService.indexDocument(concept10).get
+      draftConceptIndexService.indexDocument(concept11).get
+      draftConceptIndexService.indexDocument(concept12).get
 
       blockUntil(() => {
         draftConceptSearchService.countDocuments == 12

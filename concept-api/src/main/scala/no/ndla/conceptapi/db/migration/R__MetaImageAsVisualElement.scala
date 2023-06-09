@@ -20,15 +20,12 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
 
   override def getChecksum: Integer = 0 // Increment this number to re-run
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateConcepts()
       migratePublishedConcepts()
     }
-  }
 
   def migratePublishedConcepts()(implicit session: DBSession): Unit = {
     val count        = countAllPublishedConcepts.get
@@ -36,7 +33,7 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allPublishedConcepts(offset * 1000).map { case (id, document) =>
+      allPublishedConcepts(offset * 1000).foreach { case (id, document) =>
         updatePublishedConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1
@@ -50,7 +47,7 @@ class R__MetaImageAsVisualElement extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allConcepts(offset * 1000).map { case (id, document) =>
+      allConcepts(offset * 1000).foreach { case (id, document) =>
         updateConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1

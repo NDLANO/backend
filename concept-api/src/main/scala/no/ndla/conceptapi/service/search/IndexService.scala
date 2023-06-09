@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
+import cats.implicits._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.analysis.{Analysis, CustomNormalizer}
 import com.sksamuel.elastic4s.fields.ElasticField
@@ -19,9 +20,7 @@ import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.SearchLanguage.{NynorskLanguageAnalyzer, languageAnalyzers}
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import cats.implicits._
 
-import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
@@ -63,7 +62,7 @@ trait IndexService {
 
           operations match {
             case Failure(f) =>
-              deleteIndexWithName(Some(indexName))
+              deleteIndexWithName(Some(indexName)): Unit
               Failure(f)
             case Success(totalIndexed) =>
               Success(ReindexResult(totalIndexed, System.currentTimeMillis() - start))
@@ -179,22 +178,26 @@ trait IndexService {
         fieldName: String,
         keepRaw: Boolean = false
     ): Seq[DynamicTemplateRequest] = {
-      val fields = new ListBuffer[ElasticField]()
-      if (keepRaw) {
-        fields += keywordField("raw") += keywordField("lower").normalizer("lower")
-      }
+      val fields =
+        if (keepRaw)
+          List(
+            keywordField("raw"),
+            keywordField("lower").normalizer("lower")
+          )
+        else List.empty
+
       val languageTemplates = languageAnalyzers.map(languageAnalyzer => {
         val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
         DynamicTemplateRequest(
           name = name,
-          mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields.toList),
+          mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields),
           matchMappingType = Some("string"),
           pathMatch = Some(name)
         )
       })
       val catchAlltemplate = DynamicTemplateRequest(
         name = fieldName,
-        mapping = textField(fieldName).analyzer("standard").fields(fields.toList),
+        mapping = textField(fieldName).analyzer("standard").fields(fields),
         matchMappingType = Some("string"),
         pathMatch = Some(s"$fieldName.*")
       )

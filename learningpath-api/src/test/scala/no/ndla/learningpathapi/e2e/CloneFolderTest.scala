@@ -37,9 +37,9 @@ class CloneFolderTest
   implicit val formats: Formats =
     DefaultFormats ++ JavaTimeSerializers.all ++ JavaTypesSerializers.all + new EnumNameSerializer(UserRole)
 
-  val learningpathApiPort: Int          = findFreePort
-  val pgc: PostgreSQLContainer[Nothing] = postgresContainer.get
-  val redisPort: Int                    = redisContainer.get.port
+  val learningpathApiPort: Int    = findFreePort
+  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val redisPort: Int              = redisContainer.get.port
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int = learningpathApiPort
     override def MetaServer: String   = pgc.getContainerIpAddress

@@ -13,7 +13,7 @@ import org.scalatra.swagger._
 class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with NativeSwaggerBase {
   get("/") {
     renderSwagger2(swagger.docs.toList)
-  }
+  }: Unit
 }
 trait ConceptApiInfo {
   this: Props =>

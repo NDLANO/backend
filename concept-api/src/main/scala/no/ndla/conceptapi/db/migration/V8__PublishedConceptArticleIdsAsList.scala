@@ -16,14 +16,11 @@ import scalikejdbc.{DB, DBSession, _}
 class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  override def migrate(context: Context): Unit = {
-    val db = DB(context.getConnection)
-    db.autoClose(false)
-
-    db.withinTx { implicit session =>
+  override def migrate(context: Context): Unit = DB(context.getConnection)
+    .autoClose(false)
+    .withinTx { implicit session =>
       migrateConcepts
     }
-  }
 
   def migrateConcepts(implicit session: DBSession): Unit = {
     val count        = countAllConcepts.get
@@ -31,7 +28,7 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allConcepts(offset * 1000).map { case (id, document) =>
+      allConcepts(offset * 1000).foreach { case (id, document) =>
         updateConcept(convertToNewConcept(document), id)
       }
       numPagesLeft -= 1

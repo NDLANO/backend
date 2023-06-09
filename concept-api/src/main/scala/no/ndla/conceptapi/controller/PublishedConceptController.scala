@@ -130,7 +130,7 @@ trait PublishedConceptController {
         case Success(concept) => Ok(concept)
         case Failure(ex)      => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/",
@@ -192,7 +192,7 @@ trait PublishedConceptController {
         )
 
       }
-    }
+    }: Unit
 
     post(
       "/search/",
@@ -247,7 +247,7 @@ trait PublishedConceptController {
           case Failure(ex) => errorHandler(ex)
         }
       }
-    }
+    }: Unit
 
     get(
       "/subjects/",
@@ -266,7 +266,7 @@ trait PublishedConceptController {
         case Success(subjects) => Ok(subjects)
         case Failure(ex)       => errorHandler(ex)
       }
-    }
+    }: Unit
 
     get(
       "/tags/",
@@ -291,13 +291,13 @@ trait PublishedConceptController {
       if (subjects.nonEmpty) {
         publishedConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res) => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)  => errorHandler(ex)
+          case Success(_)  => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex) => errorHandler(ex)
         }
       } else {
         readService.allTagsFromConcepts(language, fallback)
       }
-    }
+    }: Unit
 
   }
 }
