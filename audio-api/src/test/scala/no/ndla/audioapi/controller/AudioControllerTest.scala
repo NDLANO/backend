@@ -27,8 +27,10 @@ class AudioControllerTest extends UnitSuite with TestEnvironment {
   val controller      = new AudioController
 
   override def beforeAll(): Unit = {
-    val app    = Routes.build(List(controller))
-    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false)()
+    val app = Routes.build(List(controller))
+    val server = TapirServer("AudioControllerTest", serverPort, app, enableMelody = false) {
+      Thread.sleep(1000)
+    }
     server.runInBackground()
     blockUntil(() => server.isReady)
 
