@@ -19,6 +19,7 @@ import no.ndla.imageapi.model.ResultWindowTooLargeException
 import no.ndla.imageapi.model.api.{ErrorHelpers, ImageMetaSummary}
 import no.ndla.imageapi.model.domain.{DBImageMetaInformation, SearchResult, SearchSettings, Sort}
 import no.ndla.imageapi.model.search.SearchableImage
+import no.ndla.common.implicits._
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.search.Elastic4sClient
@@ -99,7 +100,7 @@ trait ImageSearchService {
     )
 
     def matchingQueryV3(settings: SearchSettings): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
-      val fullSearch = settings.query match {
+      val fullSearch = settings.query.emptySomeToNone match {
         case None => boolQuery()
         case Some(query) =>
           val language = if (settings.fallback) "*" else settings.language

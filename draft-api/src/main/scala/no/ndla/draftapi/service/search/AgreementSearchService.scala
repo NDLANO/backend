@@ -16,6 +16,7 @@ import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.ErrorHelpers
 import no.ndla.draftapi.model.domain._
 import no.ndla.draftapi.service.ConverterService
+import no.ndla.common.implicits._
 import no.ndla.language.Language
 import no.ndla.search.Elastic4sClient
 
@@ -42,7 +43,7 @@ trait AgreementSearchService {
 
     def matchingQuery(settings: AgreementSearchSettings): Try[SearchResult[api.AgreementSummary]] = {
 
-      val fullQuery = settings.query match {
+      val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           boolQuery()
             .must(

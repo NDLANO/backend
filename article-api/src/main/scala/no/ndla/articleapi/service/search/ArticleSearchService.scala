@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service.search
 
-import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
@@ -18,11 +17,13 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2, ErrorHelpers}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.common.implicits._
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.search.Elastic4sClient
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -48,7 +49,7 @@ trait ArticleSearchService {
     }
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
-      val fullQuery = settings.query match {
+      val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           val language      = if (settings.fallback) "*" else settings.language
           val titleSearch   = simpleStringQuery(query).field(s"title.$language", 3)

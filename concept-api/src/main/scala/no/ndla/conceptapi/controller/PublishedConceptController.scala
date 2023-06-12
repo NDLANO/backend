@@ -19,6 +19,7 @@ import no.ndla.conceptapi.service.search.{
   SearchConverterService
 }
 import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.common.implicits._
 import no.ndla.language.Language
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.{DefaultFormats, Formats}
@@ -91,7 +92,7 @@ trait PublishedConceptController {
         embedId = embedId
       )
 
-      val result = query match {
+      val result = query.emptySomeToNone match {
         case Some(q) =>
           publishedConceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
         case None => publishedConceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))

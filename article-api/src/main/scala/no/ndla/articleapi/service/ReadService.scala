@@ -21,6 +21,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.implicits._
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.network.clients.FeideApiClient
@@ -189,7 +190,7 @@ trait ReadService {
           Seq.empty
       }
 
-      val settings = query match {
+      val settings = query.emptySomeToNone match {
         case Some(q) =>
           SearchSettings(
             query = Some(q),

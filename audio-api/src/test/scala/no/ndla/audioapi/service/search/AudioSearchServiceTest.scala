@@ -620,4 +620,9 @@ class AudioSearchServiceTest
 
     result1.results.map(_.id) should be(Seq(4))
   }
+
+  test("That searching with empty string query works") {
+    val result = audioSearchService.matchingQuery(searchSettings.copy(query = Some("")))
+    result.failIfFailure
+  }
 }

@@ -23,6 +23,7 @@ import no.ndla.network.tapir.Service
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
 import no.ndla.network.tapir.auth.Scope.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.common.implicits._
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto._
@@ -205,7 +206,7 @@ trait SeriesController {
         shouldScroll: Boolean,
         fallback: Boolean
     ): Try[SummaryWithHeader] = {
-      val searchSettings = query match {
+      val searchSettings = query.emptySomeToNone match {
         case Some(q) =>
           SeriesSearchSettings(
             query = Some(q),

@@ -19,6 +19,7 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
 import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.language.Language
+import no.ndla.common.implicits._
 import no.ndla.network.tapir.NoNullJsonPrinter._
 import no.ndla.network.tapir.{MaybeNonEmptyString, Service}
 import no.ndla.network.tapir.TapirErrors.errorOutputsFor
@@ -336,7 +337,7 @@ trait AudioController {
         seriesFilter: Option[Boolean],
         fallback: Boolean
     ): Try[SummaryWithHeader] = {
-      val searchSettings = query match {
+      val searchSettings = query.emptySomeToNone match {
         case Some(q) =>
           SearchSettings(
             query = Some(q),

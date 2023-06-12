@@ -15,6 +15,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query}
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.implicits._
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
@@ -112,7 +113,7 @@ trait SearchService extends StrictLogging {
         case _                                        => AllLanguages
       }
 
-      val fullQuery = settings.query match {
+      val fullQuery = settings.query.emptySomeToNone match {
         case Some(query) =>
           val language =
             if (settings.fallback) "*" else searchLanguage
