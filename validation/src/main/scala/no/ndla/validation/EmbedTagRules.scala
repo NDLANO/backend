@@ -57,6 +57,7 @@ object ResourceType extends Enumeration {
   val ContactBlock: ResourceType.Value    = Value("contact-block")
   val BlogPost: ResourceType.Value        = Value("blog-post")
   val KeyFigure: ResourceType.Value       = Value("key-figure")
+  val CampaignBlock: ResourceType.Value   = Value("campaign-block")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 
