@@ -114,9 +114,9 @@ trait SubjectPageController {
           case None                        => ErrorHelpers.unauthorized.asLeft
         }
         .serverLogic { _ =>
-          { case (subjectPage, id, language, fallback @ _) =>
+          { case (subjectPage, id, language, fallback) =>
             writeService
-              .updateSubjectPage(id, subjectPage, language)
+              .updateSubjectPage(id, subjectPage, language, fallback)
               .partialOverride { case ex: ValidationException =>
                 ErrorHelpers.unprocessableEntity(ex.getMessage)
               }

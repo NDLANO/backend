@@ -49,7 +49,8 @@ trait WriteService {
     def updateSubjectPage(
         id: Long,
         subject: api.UpdatedSubjectFrontPageData,
-        language: String
+        language: String,
+        fallback: Boolean
     ): Try[api.SubjectPageData] = {
       subjectPageRepository.withId(id) match {
         case Failure(ex) => Failure(ex)
@@ -57,7 +58,7 @@ trait WriteService {
           for {
             domainSubject <- ConverterService.toDomainSubjectPage(existingSubject, subject)
             subjectPage   <- subjectPageRepository.updateSubjectPage(domainSubject)
-            converted     <- ConverterService.toApiSubjectPage(subjectPage, language, fallback = true)
+            converted     <- ConverterService.toApiSubjectPage(subjectPage, language, fallback)
           } yield converted
         case Success(None) =>
           newFromUpdatedSubjectPage(subject) match {
